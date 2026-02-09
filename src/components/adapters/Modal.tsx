@@ -15,6 +15,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type ModalProps = {
     children?: React.ReactNode
+    content?: React.ReactNode // Slot content, can be text or component
     isOpen: boolean
     onClose: () => void
     title?: React.ReactNode
@@ -27,15 +28,25 @@ export type ModalProps = {
     onPrimaryAction?: () => void
     secondaryActionLabel?: string
     onSecondaryAction?: () => void
+    primaryActionDisabled?: boolean
+    secondaryActionDisabled?: boolean
     size?: string | number
     layer?: ComponentLayer
     elevation?: string // e.g., "elevation-0", "elevation-1", etc.
     className?: string
     style?: React.CSSProperties
+    withOverlay?: boolean
+    centered?: boolean
+    position?: { x: number; y: number }
+    trapFocus?: boolean
+    zIndex?: number
+    draggable?: boolean
+    onPositionChange?: (position: { x: number; y: number }) => void
 } & LibrarySpecificProps
 
 export function Modal({
     children,
+    content,
     isOpen,
     onClose,
     title,
@@ -48,11 +59,20 @@ export function Modal({
     onPrimaryAction,
     secondaryActionLabel = 'Cancel',
     onSecondaryAction,
+    primaryActionDisabled = false,
+    secondaryActionDisabled = false,
     size = 'md',
     layer = 'layer-1', // Default to layer-1 for modals as they usually sit on top
     elevation,
     className,
     style,
+    withOverlay = true,
+    centered = true,
+    position,
+    trapFocus,
+    zIndex,
+    draggable,
+    onPositionChange,
     mantine,
     material,
     carbon,
@@ -171,14 +191,31 @@ export function Modal({
                         </div>
                     )}
                     <div style={{ padding: padding ? '16px' : 0, overflowY: scrollable ? 'auto' : 'visible', flex: 1 }}>
-                        {children}
+                        {(() => {
+                            const slotContent = content || children
+                            if (!slotContent) return null
+                            if (typeof slotContent === 'string') {
+                                return <p style={{ margin: 0 }}>{slotContent}</p>
+                            }
+                            return slotContent
+                        })()}
                     </div>
                     {showFooter && (
                         <div style={{ padding: '16px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                             {showSecondaryButton && (
-                                <button onClick={onSecondaryAction}>{secondaryActionLabel}</button>
+                                <button
+                                    onClick={onSecondaryAction}
+                                    disabled={secondaryActionDisabled}
+                                >
+                                    {secondaryActionLabel}
+                                </button>
                             )}
-                            <button onClick={onPrimaryAction}>{primaryActionLabel}</button>
+                            <button
+                                onClick={onPrimaryAction}
+                                disabled={primaryActionDisabled}
+                            >
+                                {primaryActionLabel}
+                            </button>
                         </div>
                     )}
                 </div>
@@ -192,6 +229,8 @@ export function Modal({
                 isOpen={isOpen}
                 onClose={onClose}
                 title={title}
+                content={content}
+                children={children}
                 showHeader={showHeader}
                 showFooter={showFooter}
                 scrollable={scrollable}
@@ -201,11 +240,20 @@ export function Modal({
                 onPrimaryAction={onPrimaryAction}
                 secondaryActionLabel={secondaryActionLabel}
                 onSecondaryAction={onSecondaryAction}
+                primaryActionDisabled={primaryActionDisabled}
+                secondaryActionDisabled={secondaryActionDisabled}
                 size={size}
                 layer={layer}
                 elevation={componentElevation}
                 className={className}
                 style={style}
+                withOverlay={withOverlay}
+                centered={centered}
+                position={position}
+                trapFocus={trapFocus}
+                zIndex={zIndex}
+                draggable={draggable}
+                onPositionChange={onPositionChange}
                 mantine={mantine}
                 material={material}
                 carbon={carbon}

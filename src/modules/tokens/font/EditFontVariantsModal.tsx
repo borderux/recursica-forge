@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import { createPortal } from 'react-dom'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
@@ -7,6 +6,7 @@ import { Button } from '../../../components/adapters/Button'
 import { Checkbox } from '../../../components/adapters/Checkbox'
 import { Dropdown } from '../../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../../components/iconUtils'
+import { Modal } from '../../../components/adapters/Modal'
 
 export type EditFontVariantsModalProps = {
   open: boolean
@@ -440,239 +440,164 @@ export function EditFontVariantsModal({
     onClose()
   }
 
-  if (!open) return null
-
-  return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'grid',
-        placeItems: 'center',
-        zIndex: 20000,
-      }}
-      onClick={handleClose}
+  return (
+    <Modal
+      isOpen={open}
+      onClose={handleClose}
+      title={`Edit weights and styles: ${fontName}`}
+      size={600}
+      layer="layer-2"
+      primaryActionLabel={loading ? 'Saving...' : 'Save'}
+      onPrimaryAction={handleAccept}
+      secondaryActionLabel="Cancel"
+      onSecondaryAction={handleClose}
+      showFooter={true}
+      scrollable={true}
+      primaryActionDisabled={Boolean(loading || (currentUrl && currentUrl.includes('fonts.googleapis.com') && selectedCombos.size === 0))}
+      secondaryActionDisabled={loading}
     >
-      <div
-        style={{
-          background: `var(${layer2Base}-surface)`,
-          color: `var(${layer2Base}-element-text-color)`,
-          border: `1px solid var(${layer2Base}-border-color)`,
-          borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
-          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
-          padding: `var(${layer2Base}-padding)`,
-          display: 'grid',
-          gap: 'var(--recursica-brand-dimensions-general-lg)',
-          width: 600,
-          maxWidth: '90vw',
-          maxHeight: '80vh',
-          overflow: 'auto',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{
-            margin: 0,
-            fontSize: 'var(--recursica-brand-typography-h5-font-size)',
-            fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
+      <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+        {/* Sequence selector */}
+        <Dropdown
+          items={availableSequences.map(seq => ({
+            value: seq,
+            label: seq.charAt(0).toUpperCase() + seq.slice(1)
+          }))}
+          value={selectedSequence}
+          onChange={(value) => {
+            setSelectedSequence(value)
+            setError('')
+          }}
+          label="Sequence"
+          layer="layer-3"
+          layout="stacked"
+          disableTopBottomMargin={false}
+          zIndex={20001}
+        />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
+          <span style={{
+            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
             color: `var(${layer2Base}-element-text-color)`,
             opacity: `var(${layer2Base}-element-text-high-emphasis)`,
           }}>
-            Edit weights and styles: {fontName}
-          </h2>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handleClose()
+            Select weight+style combinations:
+          </span>
+          <Checkbox
+            checked={allCheckboxState.checked}
+            indeterminate={allCheckboxState.indeterminate}
+            onChange={(checked) => {
+              if (checked) {
+                setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+              } else {
+                setSelectedCombos(new Set())
+              }
             }}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: 'var(--recursica-brand-dimensions-general-default)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {(() => {
-              const XIcon = iconNameToReactComponent('x-mark')
-              return XIcon ? <XIcon style={{ width: 20, height: 20, color: `var(${layer2Base}-element-text-color)`, opacity: 0.6 }} /> : null
-            })()}
-          </button>
+            label="All"
+          />
         </div>
 
-        {(
-          <>
-            <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
-              {/* Sequence selector */}
-              <Dropdown
-                items={availableSequences.map(seq => ({
-                  value: seq,
-                  label: seq.charAt(0).toUpperCase() + seq.slice(1)
-                }))}
-                value={selectedSequence}
-                onChange={(value) => {
-                  setSelectedSequence(value)
-                  setError('')
-                }}
-                label="Sequence"
-                layer="layer-3"
-                layout="stacked"
-                disableTopBottomMargin={false}
-                zIndex={20001}
-              />
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
-                <span style={{
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+        {/* Table with weights as rows and styles as columns */}
+        <div style={{
+          overflowX: 'auto',
+          border: `1px solid var(${layer1Base}-border-color)`,
+          borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+        }}>
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+          }}>
+            <thead>
+              <tr>
+                <th style={{
+                  padding: 'var(--recursica-brand-dimensions-general-default)',
+                  textAlign: 'left',
+                  borderBottom: `1px solid var(${layer1Base}-border-color)`,
                   color: `var(${layer2Base}-element-text-color)`,
                   opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                  fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
                 }}>
-                  Select weight+style combinations:
-                </span>
-                <Checkbox
-                  checked={allCheckboxState.checked}
-                  indeterminate={allCheckboxState.indeterminate}
-                  onChange={(checked) => {
-                    if (checked) {
-                      setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
-                    } else {
-                      setSelectedCombos(new Set())
-                    }
-                  }}
-                  label="All"
-                />
-              </div>
-
-              {/* Table with weights as rows and styles as columns */}
-              <div style={{
-                overflowX: 'auto',
-                border: `1px solid var(${layer1Base}-border-color)`,
-                borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-              }}>
-                <table style={{
-                  width: '100%',
-                  borderCollapse: 'collapse',
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                  Weight
+                </th>
+                {styles.map(style => (
+                  <th key={style} style={{
+                    padding: 'var(--recursica-brand-dimensions-general-default)',
+                    textAlign: 'center',
+                    borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                    color: `var(${layer2Base}-element-text-color)`,
+                    opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                    fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                    textTransform: 'capitalize',
+                    width: '50%',
+                  }}>
+                    {style}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {weights.map(weight => (
+                <tr key={weight} style={{
+                  borderBottom: `1px solid var(${layer1Base}-border-color)`,
                 }}>
-                  <thead>
-                    <tr>
-                      <th style={{
+                  <td style={{
+                    padding: 'var(--recursica-brand-dimensions-general-default)',
+                    color: `var(${layer2Base}-element-text-color)`,
+                    opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                    fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                  }}>
+                    {weight}
+                  </td>
+                  {styles.map(style => {
+                    const comboId = `${weight}-${style}`
+                    const isSelected = selectedCombos.has(comboId)
+                    return (
+                      <td key={style} style={{
                         padding: 'var(--recursica-brand-dimensions-general-default)',
-                        textAlign: 'left',
-                        borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                        color: `var(${layer2Base}-element-text-color)`,
-                        opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-                        fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                        textAlign: 'center',
+                        verticalAlign: 'middle',
                       }}>
-                        Weight
-                      </th>
-                      {styles.map(style => (
-                        <th key={style} style={{
-                          padding: 'var(--recursica-brand-dimensions-general-default)',
-                          textAlign: 'center',
-                          borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                          color: `var(${layer2Base}-element-text-color)`,
-                          opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-                          fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-                          textTransform: 'capitalize',
-                          width: '50%',
+                        <div style={{
+                          display: 'inline-flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
                         }}>
-                          {style}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {weights.map(weight => (
-                      <tr key={weight} style={{
-                        borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                      }}>
-                        <td style={{
-                          padding: 'var(--recursica-brand-dimensions-general-default)',
-                          color: `var(${layer2Base}-element-text-color)`,
-                          opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-                          fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-                        }}>
-                          {weight}
-                        </td>
-                        {styles.map(style => {
-                          const comboId = `${weight}-${style}`
-                          const isSelected = selectedCombos.has(comboId)
-                          return (
-                            <td key={style} style={{
-                              padding: 'var(--recursica-brand-dimensions-general-default)',
-                              textAlign: 'center',
-                              verticalAlign: 'middle',
-                            }}>
-                              <div style={{
-                                display: 'inline-flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}>
-                                <Checkbox
-                                  checked={isSelected}
-                                  onChange={(checked) => {
-                                    const newCombos = new Set(selectedCombos)
-                                    if (checked) {
-                                      newCombos.add(comboId)
-                                    } else {
-                                      newCombos.delete(comboId)
-                                    }
-                                    setSelectedCombos(newCombos)
-                                  }}
-                                />
-                              </div>
-                            </td>
-                          )
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={(checked) => {
+                              const newCombos = new Set(selectedCombos)
+                              if (checked) {
+                                newCombos.add(comboId)
+                              } else {
+                                newCombos.delete(comboId)
+                              }
+                              setSelectedCombos(newCombos)
+                            }}
+                          />
+                        </div>
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-            {error && (
-              <div style={{
-                padding: 'var(--recursica-brand-dimensions-general-default)',
-                borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                background: `var(--recursica-brand-themes-${mode}-palettes-core-error-50-tone)`,
-                border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
-                fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                color: `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
-              }}>
-                {error}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
-              <Button
-                variant="outline"
-                size="default"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleClose()
-                }}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="solid"
-                size="default"
-                onClick={handleAccept}
-                disabled={Boolean(loading || (currentUrl && currentUrl.includes('fonts.googleapis.com') && selectedCombos.size === 0))}
-              >
-                {loading ? 'Saving...' : 'Save'}
-              </Button>
-            </div>
-          </>
+        {error && (
+          <div style={{
+            padding: 'var(--recursica-brand-dimensions-general-default)',
+            borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+            background: `var(--recursica-brand-themes-${mode}-palettes-core-error-50-tone)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
+            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+            color: `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
+          }}>
+            {error}
+          </div>
         )}
       </div>
-    </div>,
-    document.body
+    </Modal>
   )
 }

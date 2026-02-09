@@ -5,7 +5,7 @@
  */
 
 import { Modal as MantineModal, Box, Group } from '@mantine/core'
-import { X } from '@phosphor-icons/react'
+import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import { useState, useEffect } from 'react'
 import type { ModalProps as AdapterModalProps } from '../../Modal'
 import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
@@ -17,6 +17,7 @@ import './Modal.css'
 
 export default function Modal({
     children,
+    content,
     isOpen,
     onClose,
     title,
@@ -29,15 +30,74 @@ export default function Modal({
     onPrimaryAction,
     secondaryActionLabel = 'Cancel',
     onSecondaryAction,
+    primaryActionDisabled = false,
+    secondaryActionDisabled = false,
     size = 'md',
     layer = 'layer-1',
     elevation,
     className,
     style,
+    withOverlay = true,
+    centered = true,
+    position,
+    trapFocus,
+    zIndex,
+    draggable,
+    onPositionChange,
     mantine,
     ...props
 }: AdapterModalProps) {
     const { mode } = useThemeMode()
+    const [dragPos, setDragPos] = useState<{ x: number, y: number } | null>(position || null)
+    const [isDragging, setIsDragging] = useState(false)
+
+    // Synchronize dragPos with position prop
+    useEffect(() => {
+        if (position && !isDragging) {
+            setDragPos(position)
+        }
+    }, [position, isDragging])
+
+    // Dragging logic
+    const handleMouseDown = (e: React.MouseEvent) => {
+        if (!draggable || !dragPos) return
+
+        const target = e.target as HTMLElement
+        // Support both Mantine classes and our own structure
+        const isHeader = !!target.closest('.mantine-Modal-header') || !!target.closest('.recursica-modal-header')
+        const isInteractive = !!target.closest('button') ||
+            !!target.closest('input') ||
+            !!target.closest('select') ||
+            !!target.closest('textarea') ||
+            !!target.closest('.mantine-Modal-close')
+
+        if (isHeader && !isInteractive) {
+            setIsDragging(true)
+            const startX = e.clientX - dragPos.x
+            const startY = e.clientY - dragPos.y
+
+            const handleMouseMove = (mmE: MouseEvent) => {
+                const newPos = {
+                    x: mmE.clientX - startX,
+                    y: mmE.clientY - startY
+                }
+                setDragPos(newPos)
+                onPositionChange?.(newPos)
+            }
+
+            const handleMouseUp = () => {
+                setIsDragging(false)
+                window.removeEventListener('mousemove', handleMouseMove)
+                window.removeEventListener('mouseup', handleMouseUp)
+            }
+
+            window.addEventListener('mousemove', handleMouseMove)
+            window.addEventListener('mouseup', handleMouseUp)
+
+            // Prevent text selection while dragging
+            e.preventDefault()
+        }
+    }
 
     // Build CSS variable names
     const bgVar = getComponentCssVar('Modal', 'colors', 'background', layer)
@@ -119,6 +179,8 @@ export default function Modal({
         }
     }, [headerFontFamilyVar, headerFontSizeVar, headerFontWeightVar, headerLetterSpacingVar, headerLineHeightVar, headerFontStyleVar, headerTextDecorationVar, headerTextTransformVar, contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar, contentTextDecorationVar, contentTextTransformVar, internalElevationVar, scrollDividerThicknessVar])
 
+    const effectivePos = dragPos || position
+
     // Custom styles for Mantine Modal
     const modalStyles = {
         ...style,
@@ -132,10 +194,10 @@ export default function Modal({
         '--modal-padding-x': `var(${horizontalPaddingVar})`,
         '--modal-padding-y': `var(${verticalPaddingVar})`,
         '--modal-button-gap': `var(${buttonGapVar}, 0px)`,
-        '--modal-min-width': `var(${minWidthVar})`,
-        '--modal-max-width': `var(${maxWidthVar})`,
-        '--modal-min-height': `var(${minHeightVar})`,
-        '--modal-max-height': `var(${maxHeightVar})`,
+        '--modal-content-min-width': effectivePos ? 'auto' : `var(${minWidthVar})`,
+        '--modal-content-max-width': effectivePos ? 'auto' : `var(${maxWidthVar})`,
+        '--modal-content-min-height': effectivePos ? 'auto' : `var(${minHeightVar})`,
+        '--modal-content-max-height': effectivePos ? 'auto' : `var(${maxHeightVar})`,
         '--modal-header-font-family': `var(${headerFontFamilyVar})`,
         '--modal-header-font-size': `var(${headerFontSizeVar})`,
         '--modal-header-font-weight': `var(${headerFontWeightVar})`,
@@ -153,52 +215,116 @@ export default function Modal({
         '--modal-content-font-style': `var(${contentFontStyleVar})`,
         '--modal-content-text-decoration': `var(${contentTextDecorationVar})`,
         '--modal-content-text-transform': `var(${contentTextTransformVar})`,
+
+        // Position variables (for CSS file !important overrides)
+        ...(effectivePos && !centered ? {
+            '--modal-position': 'fixed',
+            '--modal-top': `${effectivePos.y}px`,
+            '--modal-left': `${effectivePos.x}px`,
+            '--modal-margin': '0',
+            '--modal-transform': 'none',
+        } : {}),
     } as React.CSSProperties
 
     // Get elevation value (either from prop or from CSS variable)
     const activeElevation = elevation || parseElevationValue(readCssVar(internalElevationVar))
     const elevationBoxShadow = getElevationBoxShadow(mode, activeElevation)
 
-    if (elevationBoxShadow) {
-        modalStyles.boxShadow = elevationBoxShadow
+    const renderContent = () => {
+        const slotContent = content || children
+        if (!slotContent) return null
+
+        if (typeof slotContent === 'string') {
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <p style={{ margin: 0 }}>{slotContent}</p>
+                </div>
+            )
+        }
+
+        return slotContent
     }
+
+    const CloseIcon = iconNameToReactComponent('x')
 
     return (
         <MantineModal
             opened={isOpen}
             onClose={onClose}
+            centered={centered}
+            withOverlay={withOverlay}
+            trapFocus={trapFocus ?? withOverlay}
+            zIndex={zIndex}
             title={showHeader ? (
-                <span style={{
-                    color: 'var(--modal-title-color)',
-                    fontFamily: 'var(--modal-header-font-family)',
-                    fontSize: 'var(--modal-header-font-size)',
-                    fontWeight: 'var(--modal-header-font-weight)',
-                    letterSpacing: 'var(--modal-header-letter-spacing)',
-                    lineHeight: 'var(--modal-header-line-height)',
-                    fontStyle: 'var(--modal-header-font-style)',
-                    textDecoration: 'var(--modal-header-text-decoration)',
-                    textTransform: 'var(--modal-header-text-transform)',
-                } as any}>
-                    {title}
-                </span>
+                <Group
+                    className="recursica-modal-header"
+                    justify="space-between"
+                    w="100%"
+                    wrap="nowrap"
+                    onMouseDown={handleMouseDown}
+                    style={{
+                        pointerEvents: 'auto',
+                        cursor: draggable ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                        userSelect: isDragging ? 'none' : 'auto',
+                    }}
+                >
+                    <span style={{
+                        color: 'var(--modal-title-color)',
+                        fontFamily: 'var(--modal-header-font-family)',
+                        fontSize: 'var(--modal-header-font-size)',
+                        fontWeight: 'var(--modal-header-font-weight)',
+                        letterSpacing: 'var(--modal-header-letter-spacing)',
+                        lineHeight: 'var(--modal-header-line-height)',
+                        fontStyle: 'var(--modal-header-font-style)',
+                        textDecoration: 'var(--modal-header-text-decoration)',
+                        textTransform: 'var(--modal-header-text-transform)',
+                        userSelect: 'none',
+                        pointerEvents: 'none',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        flex: 1,
+                    } as any}>
+                        {title}
+                    </span>
+                    <Button
+                        variant="text"
+                        layer="layer-1" // Use layer-1 to ensure brand reddish color for text variant
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onClose()
+                        }}
+                        style={{
+                            padding: 0,
+                            minWidth: 0,
+                            width: 24,
+                            height: 24,
+                            flexShrink: 0,
+                            '--button-icon-size': '16px',
+                        } as any}
+                        icon={CloseIcon ? <CloseIcon size={16} weight="bold" /> : undefined}
+                    />
+                </Group>
             ) : null}
             withCloseButton={false} // We implement our own close button
-            size={size}
+            size={effectivePos ? 'auto' : size}
             padding={0}
             className={`recursica-modal ${className || ''}`}
             styles={{
-                root: modalStyles,
+                root: {
+                    ...modalStyles,
+                    pointerEvents: withOverlay ? 'auto' : 'none',
+                },
                 content: {
                     backgroundColor: 'var(--modal-bg)',
                     borderRadius: 'var(--modal-border-radius)',
-                    minWidth: 'var(--modal-min-width)',
-                    maxWidth: 'var(--modal-max-width)',
-                    minHeight: 'var(--modal-min-height)',
-                    maxHeight: 'var(--modal-max-height)',
                     border: 'var(--modal-border-thickness) solid var(--modal-border-color)',
-                    overflow: 'hidden',
+                    overflow: 'visible',
                     display: 'flex',
                     flexDirection: 'column',
+                    pointerEvents: 'auto',
+                    boxShadow: elevationBoxShadow || 'none',
+                    // Note: dynamic positioning is now handled via CSS variables and Modal.css
                 },
                 header: {
                     backgroundColor: 'var(--modal-bg)',
@@ -208,20 +334,10 @@ export default function Modal({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    zIndex: 2,
                 },
                 title: {
-                    color: 'var(--modal-title-color)',
-                    fontFamily: 'var(--modal-header-font-family)',
-                    fontSize: 'var(--modal-header-font-size)',
-                    fontWeight: 'var(--modal-header-font-weight)',
-                    letterSpacing: 'var(--modal-header-letter-spacing)',
-                    lineHeight: 'var(--modal-header-line-height)',
-                    fontStyle: 'var(--modal-header-font-style)',
-                    textDecoration: 'var(--modal-header-text-decoration)',
-                    textTransform: 'var(--modal-header-text-transform)',
-                },
-                close: {
-                    display: 'none', // Hide default close button
+                    flex: 1, // Ensure title group takes full width
                 },
                 body: {
                     padding: 0,
@@ -237,36 +353,15 @@ export default function Modal({
                     fontStyle: 'var(--modal-content-font-style)',
                     textDecoration: 'var(--modal-content-text-decoration)',
                     textTransform: 'var(--modal-content-text-transform)',
+                    position: 'relative',
+                    zIndex: 1,
                 } as any,
                 ...mantine?.styles,
             }}
+            onMouseDown={handleMouseDown}
             {...mantine}
             {...props}
         >
-            {showHeader && (
-                <div style={{
-                    position: 'absolute',
-                    top: 'var(--modal-padding-y)',
-                    right: 'var(--modal-padding-x)',
-                    zIndex: 10,
-                }}>
-                    <Button
-                        variant="text"
-                        onClick={onClose}
-                        layer={layer}
-                        style={{
-                            padding: 0,
-                            minWidth: 0,
-                            width: 32,
-                            height: 32,
-                            '--button-icon-size': '16px',
-                            '--button-padding': '0px',
-                            '--button-padding-x': '0px'
-                        } as any}
-                        icon={<X size={16} />}
-                    />
-                </div>
-            )}
             <Box
                 className="recursica-modal-body"
                 style={{
@@ -284,14 +379,7 @@ export default function Modal({
                     textTransform: 'var(--modal-content-text-transform)',
                 } as any}
             >
-                {children}
-                {!children && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        <p style={{ margin: 0 }}>
-                            The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. This legendary encounter has been told for generations in the deep mines of the Obsidian Mountains. Every word of this story carries the weight of a thousand hammers striking the anvil of truth. The goblin, known as Zog, was not merely swift; he was a master of the dance between light and shadow, and his leap was more than just a movement—it was a statement of freedom in a world carved from unyielding stone.
-                        </p>
-                    </div>
-                )}
+                {renderContent()}
             </Box>
 
             {showFooter && (
@@ -309,6 +397,7 @@ export default function Modal({
                                 variant="text"
                                 onClick={onSecondaryAction || onClose}
                                 layer={layer}
+                                disabled={secondaryActionDisabled}
                             >
                                 {secondaryActionLabel}
                             </Button>
@@ -317,6 +406,7 @@ export default function Modal({
                             variant="solid"
                             onClick={onPrimaryAction}
                             layer={layer}
+                            disabled={primaryActionDisabled}
                         >
                             {primaryActionLabel}
                         </Button>

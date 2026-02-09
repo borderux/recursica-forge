@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { Checkbox } from '../../../components/adapters/Checkbox'
@@ -7,6 +6,7 @@ import { TextField } from '../../../components/adapters/TextField'
 import { Dropdown } from '../../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { ensureFontLoaded, getActualFontFamilyName, getCachedFontFamilyName } from '../../type/fontUtils'
+import { Modal } from '../../../components/adapters/Modal'
 
 export type GoogleFontsModalProps = {
   open: boolean
@@ -496,68 +496,23 @@ export function GoogleFontsModal({
 
   if (!open) return null
 
-  return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'grid',
-        placeItems: 'center',
-        zIndex: 20000,
-      }}
-      onClick={handleClose}
+  return (
+    <Modal
+      isOpen={open}
+      onClose={handleClose}
+      title="Add font family"
+      size={600}
+      layer="layer-2"
+      primaryActionLabel={loading ? 'Adding...' : 'Add Font'}
+      onPrimaryAction={handleAccept}
+      secondaryActionLabel="Cancel"
+      onSecondaryAction={handleClose}
+      showFooter={true}
+      scrollable={true}
+      primaryActionDisabled={loading || (activeTab === 'google' && (!googleFontsUrl.trim() || selectedCombos.size === 0)) || (activeTab === 'custom' && (!customFontName.trim() || selectedCombos.size === 0))}
+      secondaryActionDisabled={loading}
     >
-      <div
-        style={{
-          background: `var(${layer2Base}-surface)`,
-          color: `var(${layer2Base}-element-text-color)`,
-          border: `1px solid var(${layer2Base}-border-color)`,
-          borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
-          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
-          padding: `var(${layer2Base}-padding)`,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--recursica-brand-dimensions-general-lg)',
-          width: 600,
-          maxWidth: '90vw',
-          maxHeight: '80vh',
-          overflow: 'hidden',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-          <h2 style={{
-            margin: 0,
-            fontSize: 'var(--recursica-brand-typography-h5-font-size)',
-            fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
-            color: `var(${layer2Base}-element-text-color)`,
-            opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-          }}>
-            Add font family
-          </h2>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handleClose()
-            }}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: 'var(--recursica-brand-dimensions-general-default)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {(() => {
-              const XIcon = iconNameToReactComponent('x-mark')
-              return XIcon ? <XIcon style={{ width: 20, height: 20, color: `var(${layer2Base}-element-text-color)`, opacity: 0.6 }} /> : null
-            })()}
-          </button>
-        </div>
-
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-lg)' }}>
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-general-default)', borderBottom: `1px solid var(${layer1Base}-border-color)`, flexShrink: 0 }}>
           <button
@@ -610,8 +565,8 @@ export function GoogleFontsModal({
           </button>
         </div>
 
-        {/* Tab Content - Scrollable area */}
-        <div style={{ flex: 1, overflowY: 'auto', paddingRight: 'var(--recursica-brand-dimensions-general-default)' }}>
+        {/* Tab Content - Scrollable area handled by Modal prop */}
+        <div>
           <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)', paddingBottom: 'var(--recursica-brand-dimensions-general-md)' }}>
             {activeTab === 'google' ? (
               <>
@@ -1027,30 +982,7 @@ export function GoogleFontsModal({
             {error}
           </div>
         )}
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--recursica-brand-dimensions-general-default)', marginTop: 'var(--recursica-brand-dimensions-general-md)', paddingTop: 'var(--recursica-brand-dimensions-general-md)', borderTop: `1px solid var(${layer1Base}-border-color)`, flexShrink: 0 }}>
-          <Button
-            variant="outline"
-            size="default"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleClose()
-            }}
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="solid"
-            size="default"
-            onClick={handleAccept}
-            disabled={loading || (activeTab === 'google' && (!googleFontsUrl.trim() || selectedCombos.size === 0)) || (activeTab === 'custom' && (!customFontName.trim() || selectedCombos.size === 0))}
-          >
-            {loading ? 'Loading...' : 'Add Font'}
-          </Button>
-        </div>
       </div>
-    </div>,
-    document.body
+    </Modal>
   )
 }

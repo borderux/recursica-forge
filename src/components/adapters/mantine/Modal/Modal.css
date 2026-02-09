@@ -3,10 +3,17 @@
 .recursica-modal .mantine-Modal-content {
     background-color: var(--modal-bg) !important;
     border-radius: var(--modal-border-radius) !important;
-    min-width: var(--modal-min-width) !important;
-    max-width: var(--modal-max-width) !important;
+    min-width: var(--modal-content-min-width, auto) !important;
+    max-width: var(--modal-content-max-width, none) !important;
+    min-height: var(--modal-content-min-height, auto) !important;
+    max-height: var(--modal-content-max-height, none) !important;
     display: flex !important;
     flex-direction: column !important;
+    position: var(--modal-position, relative) !important;
+    top: var(--modal-top, auto) !important;
+    left: var(--modal-left, auto) !important;
+    margin: var(--modal-margin, auto) !important;
+    transform: var(--modal-transform, none) !important;
 }
 
 .recursica-modal .mantine-Modal-header {
