@@ -4,6 +4,8 @@
  * Mantine-specific MenuItem component that uses CSS variables for theming.
  */
 
+import React, { useState, useEffect } from 'react'
+import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import type { MenuItemProps as AdapterMenuItemProps } from '../../MenuItem'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar } from '../../../utils/brandCssVars'
@@ -20,7 +22,7 @@ export default function MenuItem({
   trailingIcon,
   supportingText,
   selected = false,
-  divider = 'bottom',
+  divider,
   dividerColor,
   dividerOpacity,
   disabled = false,
@@ -31,7 +33,14 @@ export default function MenuItem({
   ...props
 }: AdapterMenuItemProps) {
   const { mode } = useThemeMode()
-  
+  const [, forceUpdate] = useState(0)
+
+  useEffect(() => {
+    const handleUpdate = () => forceUpdate(prev => prev + 1)
+    window.addEventListener('cssVarsUpdated', handleUpdate)
+    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+  }, [])
+
   // Determine effective variant
   let effectiveVariant = variant
   if (disabled) {
@@ -39,26 +48,28 @@ export default function MenuItem({
   } else if (selected) {
     effectiveVariant = 'selected'
   }
-  
-  // Get CSS variables for colors
-  const bgVar = getComponentCssVar('MenuItem', 'colors', `${effectiveVariant}-background`, layer)
-  const textVar = getComponentCssVar('MenuItem', 'colors', `${effectiveVariant}-text`, layer)
-  
-  // Get selected-background from properties.colors (component-level, layer-specific)
-  const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-background')
-  
+
+  // Get selected/unselected background, text, and opacity from properties.colors (component-level, layer-specific)
+  const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'background')
+  const selectedTextVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'text')
+  const selectedOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'opacity')
+  const unselectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'background')
+  const unselectedTextVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'text')
+  const unselectedOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'opacity')
+
   // Get component-level properties
   const borderRadiusVar = getComponentLevelCssVar('MenuItem', 'border-radius')
   const minWidthVar = getComponentLevelCssVar('MenuItem', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('MenuItem', 'max-width')
   const verticalPaddingVar = getComponentLevelCssVar('MenuItem', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('MenuItem', 'horizontal-padding')
-  const supportingTextOpacityVar = getComponentLevelCssVar('MenuItem', 'supporting-text-opacity')
-  const supportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'supporting-text-color')
+  const supportingTextOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'supporting-text-opacity')
+  const supportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'supporting-text-color')
   const dividerColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'divider-color')
   const dividerOpacityVar = getComponentLevelCssVar('MenuItem', 'divider-opacity')
+  const dividerHeightVar = getComponentLevelCssVar('MenuItem', 'divider-height')
   const dividerItemGapVar = getComponentLevelCssVar('MenuItem', 'divider-item-gap')
-  
+
   // Get text styling CSS variables using getComponentTextCssVar (for text style toolbar)
   const fontFamilyVar = getComponentTextCssVar('MenuItem', 'text', 'font-family')
   const fontSizeVar = getComponentTextCssVar('MenuItem', 'text', 'font-size')
@@ -68,7 +79,7 @@ export default function MenuItem({
   const textDecorationVar = getComponentTextCssVar('MenuItem', 'text', 'text-decoration')
   const textTransformVar = getComponentTextCssVar('MenuItem', 'text', 'text-transform')
   const fontStyleVar = getComponentTextCssVar('MenuItem', 'text', 'font-style')
-  
+
   // Get supporting text styling CSS variables
   const supportingFontFamilyVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-family')
   const supportingFontSizeVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-size')
@@ -78,28 +89,41 @@ export default function MenuItem({
   const supportingTextDecorationVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'text-decoration')
   const supportingTextTransformVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'text-transform')
   const supportingFontStyleVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-style')
-  
+
   // Get hover opacity and overlay color from brand theme (not user-configurable)
   const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
   const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
-  
+
   // Read background color to check if it's null/transparent
-  const bgColorValue = readCssVar(bgVar)
+  const bgColorValue = readCssVar(unselectedBgVar)
   const hasBackground = bgColorValue && bgColorValue !== 'transparent' && bgColorValue !== 'null'
-  
-  // For selected state, use selected-background instead of variant background
-  const finalBgVar = effectiveVariant === 'selected' ? selectedBgVar : bgVar
-  const finalBgColorValue = effectiveVariant === 'selected' ? readCssVar(selectedBgVar) : bgColorValue
+
+  // For selected state, use selected-item properties. For default/disabled states, use unselected-item properties.
+  const finalBgVar = effectiveVariant === 'selected' ? selectedBgVar : unselectedBgVar
+  const finalTextVar = effectiveVariant === 'selected' ? selectedTextVar : unselectedTextVar
+  const finalOpacityVar = effectiveVariant === 'selected' ? selectedOpacityVar : unselectedOpacityVar
+  const finalBgColorValue = readCssVar(finalBgVar)
   const finalHasBackground = finalBgColorValue && finalBgColorValue !== 'transparent' && finalBgColorValue !== 'null'
-  
+
+  // Read divider height to determine if it should be visible by default
+  const dividerHeightValue = readCssVar(dividerHeightVar)
+  const isGlobalDividerVisible = dividerHeightValue && dividerHeightValue !== '0px' && dividerHeightValue !== '0'
+
+  // Explicit prop 'bottom' always shows it. 
+  // 'none' always hides it.
+  // undefined (default) uses global setting.
+  const showDivider = divider === 'bottom' || (divider !== 'none' && isGlobalDividerVisible)
+
   return (
     <div
-      className={`mantine-menu-item-wrapper ${className || ''} ${divider === 'bottom' ? 'has-divider' : ''}`}
+      className={`mantine-menu-item-wrapper ${className || ''} ${showDivider ? 'has-divider' : ''}`}
       style={{
         // Set CSS custom properties for CSS file to use
         ['--menu-item-divider-color' as string]: dividerColor || `var(${dividerColorVar})`,
         ['--menu-item-divider-opacity' as string]: dividerOpacity !== undefined ? dividerOpacity : `var(${dividerOpacityVar}, 1)`,
-        ['--menu-item-divider-item-gap' as string]: `var(${dividerItemGapVar})`,
+        // Use dividerHeightVar if showDivider is true, otherwise 0px
+        ['--menu-item-divider-height' as string]: showDivider ? `var(${dividerHeightVar})` : '0px',
+        ['--menu-item-divider-item-gap' as string]: showDivider ? `var(${dividerItemGapVar}, 4px)` : '0px',
         ...style,
       } as React.CSSProperties}
     >
@@ -115,7 +139,7 @@ export default function MenuItem({
         style={{
           // Set CSS custom properties for CSS file to use
           ['--menu-item-bg' as string]: finalHasBackground ? `var(${finalBgVar})` : 'transparent',
-          ['--menu-item-text' as string]: `var(${textVar})`,
+          ['--menu-item-text' as string]: `var(${finalTextVar})`,
           ['--menu-item-border-radius' as string]: `var(${borderRadiusVar})`,
           ['--menu-item-min-width' as string]: `var(${minWidthVar})`,
           ['--menu-item-max-width' as string]: `var(${maxWidthVar})`,
@@ -123,7 +147,7 @@ export default function MenuItem({
           ['--menu-item-horizontal-padding' as string]: `var(${horizontalPaddingVar})`,
           ['--menu-item-supporting-text-opacity' as string]: `var(${supportingTextOpacityVar})`,
           ['--menu-item-supporting-text-color' as string]: `var(${supportingTextColorVar})`,
-          ['--menu-item-opacity' as string]: disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : '1',
+          ['--menu-item-opacity' as string]: disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : (finalOpacityVar ? `var(${finalOpacityVar}, 1)` : '1'),
           ['--menu-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
           ['--menu-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
           // Apply text styles using CSS variables from text style toolbar
@@ -139,13 +163,13 @@ export default function MenuItem({
         {...mantine}
         {...props}
       >
-        {leadingIcon && leadingIconType !== 'none' && (
+        {leadingIconType !== 'none' && (
           <span className="mantine-menu-item-leading-icon" data-icon-type={leadingIconType}>
             {leadingIconType === 'radio' && !leadingIcon && (
-              <span className="mantine-menu-item-radio-icon" />
+              <span className={`mantine-menu-item-radio-icon ${selected ? 'selected' : ''}`} />
             )}
             {leadingIconType === 'checkbox' && !leadingIcon && (
-              <span className="mantine-menu-item-checkbox-icon" />
+              <span className={`mantine-menu-item-checkbox-icon ${selected ? 'selected' : ''}`} />
             )}
             {leadingIcon && <span className="mantine-menu-item-custom-icon">{leadingIcon}</span>}
           </span>
@@ -153,7 +177,7 @@ export default function MenuItem({
         <div className="mantine-menu-item-content">
           <span className="mantine-menu-item-text">{children}</span>
           {supportingText && (
-            <span 
+            <span
               className="mantine-menu-item-supporting-text"
               style={{
                 fontFamily: supportingFontFamilyVar ? `var(${supportingFontFamilyVar})` : undefined,
@@ -170,13 +194,13 @@ export default function MenuItem({
             </span>
           )}
         </div>
-        {trailingIcon && (
-          <span className="mantine-menu-item-trailing-icon">{trailingIcon}</span>
+        {(trailingIcon || selected) && (
+          <span className="mantine-menu-item-trailing-icon">
+            {trailingIcon || (selected && iconNameToReactComponent('check') ? React.createElement(iconNameToReactComponent('check')!) : (selected ? '✓' : null))}
+          </span>
         )}
       </button>
-      {divider === 'bottom' && (
-        <div className="mantine-menu-item-divider" />
-      )}
+      <div className="mantine-menu-item-divider" />
     </div>
   )
 }

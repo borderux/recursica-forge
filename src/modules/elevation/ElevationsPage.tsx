@@ -154,9 +154,6 @@ export default function ElevationsPage() {
 
   // Helper functions that update elevation state directly
   const updateElevationControl = (elevationKey: string, property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationsPage.tsx:updateElevationControl',message:'updateElevationControl called',data:{elevationKey,property,value,mode,previousLight:JSON.stringify(elevation?.controls?.light?.[elevationKey]),previousDark:JSON.stringify(elevation?.controls?.dark?.[elevationKey])},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     
     // Determine token name and final value BEFORE updating state
     const level = elevationKey.replace('elevation-', '')
@@ -191,10 +188,6 @@ export default function ElevationsPage() {
         dark: { ...next.controls.dark }
       }
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationsPage.tsx:updateElevationControl',message:'state update start',data:{elevationKey,property,mode,value,prevLightControl:JSON.stringify(prev.controls.light?.[elevationKey]),prevDarkControl:JSON.stringify(prev.controls.dark?.[elevationKey]),controlsAreSameObject:prev.controls.light === prev.controls.dark},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-      // #endregion
-      
       // For offsetX and offsetY, convert signed values to absolute + direction
       if (property === 'offsetX') {
         const absValue = Math.abs(value)
@@ -208,10 +201,6 @@ export default function ElevationsPage() {
         if (!next.directions[mode]) next.directions[mode] = {}
         const currentY = next.directions[mode][elevationKey]?.y ?? getYDirForLevel(elevationKey)
         next.directions[mode] = { ...next.directions[mode], [elevationKey]: { x: direction, y: currentY } }
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationsPage.tsx:updateElevationControl',message:'offsetX updated',data:{elevationKey,property,mode,absValue,direction,newControl:JSON.stringify(next.controls[mode][elevationKey]),lightControl:JSON.stringify(next.controls.light?.[elevationKey]),darkControl:JSON.stringify(next.controls.dark?.[elevationKey])},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
       } else if (property === 'offsetY') {
         const absValue = Math.abs(value)
         const direction = value >= 0 ? 'down' : 'up'
@@ -228,10 +217,6 @@ export default function ElevationsPage() {
         if (!next.directions[mode]) next.directions[mode] = {}
         const currentX = next.directions[mode][elevationKey]?.x ?? getXDirForLevel(elevationKey)
         next.directions[mode] = { ...next.directions[mode], [elevationKey]: { x: currentX, y: direction } }
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationsPage.tsx:updateElevationControl',message:'offsetY updated',data:{elevationKey,property,mode,absValue,direction,existing:JSON.stringify(existing),beforeUpdate,afterUpdate,newControl:JSON.stringify(next.controls[mode][elevationKey]),lightControl:JSON.stringify(next.controls.light?.[elevationKey]),darkControl:JSON.stringify(next.controls.dark?.[elevationKey])},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
       } else if (property === 'blur') {
         // Get existing control or create new default - ensure we get a copy, not a reference
         const existingControl = next.controls[mode][elevationKey]
@@ -242,20 +227,12 @@ export default function ElevationsPage() {
           [elevationKey]: { ...existing, blur: value }
         }
         const afterUpdate = JSON.stringify({ light: next.controls.light?.[elevationKey], dark: next.controls.dark?.[elevationKey] })
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationsPage.tsx:updateElevationControl',message:'blur updated',data:{elevationKey,property,mode,value,existing:JSON.stringify(existing),beforeUpdate,afterUpdate,newControl:JSON.stringify(next.controls[mode][elevationKey]),lightControl:JSON.stringify(next.controls.light?.[elevationKey]),darkControl:JSON.stringify(next.controls.dark?.[elevationKey])},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
       } else if (property === 'spread') {
         const existing = next.controls[mode][elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
         next.controls[mode] = {
           ...next.controls[mode],
           [elevationKey]: { ...existing, spread: value }
         }
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationsPage.tsx:updateElevationControl',message:'spread updated',data:{elevationKey,property,mode,value,newControl:JSON.stringify(next.controls[mode][elevationKey]),lightControl:JSON.stringify(next.controls.light?.[elevationKey]),darkControl:JSON.stringify(next.controls.dark?.[elevationKey])},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-        // #endregion
       }
       
       return next
@@ -268,9 +245,6 @@ export default function ElevationsPage() {
 
   const setElevationAlphaToken = (elevationKey: string, token: string) => {
     if (elevationKey === 'elevation-0') return
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationsPage.tsx:setElevationAlphaToken',message:'setElevationAlphaToken called',data:{elevationKey,token,mode,previousAlphaTokens:JSON.stringify(elevation?.alphaTokens)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     updateElevation((prev) => {
       const next = { ...prev }
       if (!next.alphaTokens[mode]) next.alphaTokens[mode] = {}
