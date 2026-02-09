@@ -7,10 +7,12 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { Modal } from '../../components/adapters/Modal'
 import { Label } from '../../components/adapters/Label'
-import { TextField } from '../../components/adapters/TextField'
+import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
   const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
+  const { mode } = useThemeMode()
+  const modeLower = mode.toLowerCase()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [targetCssVars, setTargetCssVars] = useState<string[]>([])
@@ -20,8 +22,6 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const firstHexMatchRef = useRef<string | null>(null)
 
-  const { mode } = useThemeMode()
-  const modeLower = mode.toLowerCase()
 
   // Close picker when mode changes or event received
   useEffect(() => {
@@ -51,8 +51,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       const themes = root?.themes || root
-      const lightPal: any = themes?.light?.palettes || themes?.light?.palette || {}
-      Object.keys(lightPal).forEach((k) => {
+      const modePal: any = themes?.[modeLower]?.palettes || themes?.[modeLower]?.palette || {}
+      Object.keys(modePal).forEach((k) => {
         if (k !== 'core' && k !== 'core-colors' && !dynamic.includes(k)) {
           staticPalettes.push(k)
         }
@@ -187,6 +187,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
   useEffect(() => {
     (window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[], opacityCssVar?: string) => {
+      window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
+
       setAnchor(el)
       setTargetCssVar(cssVar || null)
       setTargetCssVars(cssVarsArray && cssVarsArray.length > 0 ? cssVarsArray : [])
@@ -224,7 +226,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const gap = 1
   const CheckIcon = iconNameToReactComponent('check')
   const isOverlay = targetCssVars.some(v => v.includes('state-overlay-color')) || (targetCssVar?.includes('state-overlay-color'))
-  const pickerTitle = isOverlay ? 'Edit overlay' : 'Pick palette color'
+  const pickerTitle = isOverlay ? 'Edit overlay' : 'Pick a color'
 
   return (
     <Modal
@@ -252,9 +254,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     >
       <div
         style={{
-          display: 'grid',
-          gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
-          minWidth: 280,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})`,
+          width: '100%',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -316,7 +319,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               height: swatch,
               cursor: 'pointer',
               background: 'transparent',
-              border: `1px solid ${isNoneSelected ? `var(--recursica-brand-themes-${mode}-palettes-core-black)` : `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`}`,
+              border: `1px solid ${isNoneSelected ? `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` : `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-color)`}`,
               position: 'relative',
               padding: isNoneSelected ? '1px' : '0',
               borderRadius: isNoneSelected ? '5px' : '0',
@@ -328,14 +331,14 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               height: '100%',
               borderRadius: isNoneSelected ? '4px' : '0',
               position: 'relative',
-              background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`
+              background: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-surface)`
             }}>
               <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
-                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica-brand-themes-${mode}-palettes-neutral-500-tone)`} strokeWidth="1.5" />
+                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica-brand-themes-${modeLower}-palettes-neutral-500-tone)`} strokeWidth="1.5" />
               </svg>
               {isNoneSelected && (
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica-brand-themes-${mode}-palettes-core-black)` }} /> : '✓'}
+                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` }} /> : '✓'}
                 </div>
               )}
             </div>
@@ -415,7 +418,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         height: swatch,
                         cursor: 'pointer',
                         background: `var(${s.cssVar})`,
-                        border: `1px solid ${isSelected ? `var(--recursica-brand-themes-${mode}-palettes-core-black)` : `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`}`,
+                        border: `1px solid ${isSelected ? `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` : `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-color)`}`,
                         padding: isSelected ? '1px' : '0',
                         borderRadius: isSelected ? '5px' : '0',
                         boxSizing: 'border-box',

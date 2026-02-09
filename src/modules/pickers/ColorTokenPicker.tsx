@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
-import { updateCssVar, clearPendingCssVars, suppressCssVarEvents } from '../../core/css/updateCssVar'
+import { updateCssVar, removeCssVar, clearPendingCssVars, suppressCssVarEvents } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateInteractiveColor, updateCoreColorInteractiveOnTones } from './interactiveColorUpdater'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
@@ -13,6 +13,10 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { tokenToCssVar } from '../../core/css/tokenRefs'
 import { getVarsStore } from '../../core/store/varsStore'
 import { updateCoreColorOnTonesForCompliance } from '../../core/compliance/coreColorAaCompliance'
+import { iconNameToReactComponent } from '../components/iconUtils'
+import { Modal } from '../../components/adapters/Modal'
+import { Label } from '../../components/adapters/Label'
+import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
 export default function ColorTokenPicker() {
   const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
@@ -23,7 +27,7 @@ export default function ColorTokenPicker() {
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
-  
+
   // Close picker when mode changes
   useEffect(() => {
     const handleCloseAll = () => {
@@ -33,12 +37,12 @@ export default function ColorTokenPicker() {
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
   }, [])
-  
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem('family-friendly-names')
       if (raw) setFamilyNames(JSON.parse(raw))
-    } catch {}
+    } catch { }
     const onNames = (ev: Event) => {
       try {
         const detail: any = (ev as CustomEvent).detail
@@ -55,32 +59,32 @@ export default function ColorTokenPicker() {
     window.addEventListener('familyNamesChanged', onNames as any)
     return () => window.removeEventListener('familyNamesChanged', onNames as any)
   }, [])
-  
+
   const options = useMemo(() => {
     const byFamily: Record<string, Array<{ level: string; name: string; value: string }>> = {}
     const overrideMap = readOverrides()
-    
+
     // Process new colors structure (colors.scale-XX.level)
     const jsonColors: any = (tokensJson as any)?.tokens?.colors || {}
     const colorFamilyMap: Record<string, Set<string>> = {} // family -> Set of levels
-    
+
     for (const [scaleKey, scale] of Object.entries(jsonColors)) {
       if (!scaleKey.startsWith('scale-')) continue
       const scaleObj = scale as any
       const alias = scaleObj?.alias // Get the alias (e.g., "cornflower", "gray")
       const familyName = alias && typeof alias === 'string' ? alias : scaleKey
-      
+
       if (!colorFamilyMap[familyName]) {
         colorFamilyMap[familyName] = new Set()
       }
-      
+
       // Collect all levels from this scale
       for (const [level, value] of Object.entries(scaleObj)) {
         if (level === 'alias') continue
         colorFamilyMap[familyName].add(level)
       }
     }
-    
+
     // Also process old color structure for backwards compatibility
     const oldColors: any = (tokensJson as any)?.tokens?.color || {}
     Object.keys(oldColors).forEach((fam) => {
@@ -92,7 +96,7 @@ export default function ColorTokenPicker() {
         colorFamilyMap[fam].add(lvl)
       })
     })
-    
+
     // Add override families
     const overrideFamilies = Array.from(new Set(Object.keys(overrideMap)
       .filter((k) => k.startsWith('color/') || k.startsWith('colors/'))
@@ -101,31 +105,31 @@ export default function ColorTokenPicker() {
         return parts.length >= 2 ? parts[1] : null
       })
       .filter((f): f is string => f !== null && f !== 'translucent')))
-    
+
     overrideFamilies.forEach((fam) => {
       if (!colorFamilyMap[fam]) {
         colorFamilyMap[fam] = new Set()
       }
     })
-    
+
     const families = Array.from(new Set([...Object.keys(colorFamilyMap), ...overrideFamilies])).sort((a, b) => {
       if (a === 'gray' && b !== 'gray') return -1
       if (b === 'gray' && a !== 'gray') return 1
       return a.localeCompare(b)
     })
-    
+
     families.forEach((fam) => {
       const allLevels = Array.from(colorFamilyMap[fam] || new Set())
-      
+
       // Also check override levels
       const overrideLevels = Object.keys(overrideMap)
         .filter((k) => (k.startsWith(`color/${fam}/`) || k.startsWith(`colors/${fam}/`)))
         .map((k) => k.split('/')[2])
         .filter((lvl) => lvl && /^(\d{2,4}|000|050)$/.test(lvl))
-      
+
       const levelSet = new Set<string>([...allLevels, ...overrideLevels])
       const finalLevels = Array.from(levelSet)
-      
+
       // Show all levels including 000 and 1000 - no deduplication
       byFamily[fam] = finalLevels.map((lvl) => {
         const name = `colors/${fam}/${lvl}` // Use new format
@@ -156,45 +160,54 @@ export default function ColorTokenPicker() {
     return byFamily
   }, [tokensJson])
 
-  ;(window as any).openPicker = (el: HTMLElement, cssVar: string) => {
-    setAnchor(el)
-    setTargetVar(cssVar)
-    // Calculate absolute position (relative to document, not viewport)
-    const rect = el.getBoundingClientRect()
-    const scrollX = window.pageXOffset || document.documentElement.scrollLeft
-    const scrollY = window.pageYOffset || document.documentElement.scrollTop
-    const top = rect.bottom + scrollY + 8
-    const left = Math.min(rect.left + scrollX, window.innerWidth - 420)
-    setPos({ top, left })
-  }
+    // Handle opening from legacy global function if needed, but prefer useColorTokenPicker hook
+    ; (window as any).openPicker = (el: HTMLElement, cssVar: string) => {
+      window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
+
+      setAnchor(el)
+      setTargetVar(cssVar)
+
+      const rect = el.getBoundingClientRect()
+      const viewportWidth = window.innerWidth
+      // Estimate width: label column (110) + 12 swatches (12 * 25) + padding/margins
+      const estimatedWidth = 420
+
+      let left = rect.left
+      // If the picker would go off the right edge, align its right edge with the button's right edge
+      if (left + estimatedWidth > viewportWidth - 20) {
+        left = Math.max(16, rect.right - estimatedWidth)
+      }
+
+      setPos({ top: rect.bottom + 8, left })
+    }
 
   // Helper: Build CSS variable name for a color token (matches varsStore format)
   // Always uses scale key (e.g., scale-01) instead of alias (e.g., cornflower)
   const buildTokenCssVar = (family: string, level: string): string => {
     const normalizedLevel = level === '000' ? '050' : level === '1000' ? '1000' : String(level).padStart(3, '0')
-    
+
     // If family is already a scale key (starts with scale-), use it directly
     if (family.startsWith('scale-')) {
       return `--recursica-tokens-colors-${family}-${normalizedLevel}`
     }
-    
+
     // Otherwise, find the scale key from the alias
     if (tokensJson) {
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
       const colorsRoot: any = tokensRoot?.colors || {}
-      
+
       // Find the scale that has this alias
       const scaleKey = Object.keys(colorsRoot).find(key => {
         if (!key.startsWith('scale-')) return false
         const scale = colorsRoot[key]
         return scale && typeof scale === 'object' && scale.alias === family
       })
-      
+
       if (scaleKey) {
         return `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`
       }
     }
-    
+
     // Fallback: if we can't find the scale, try the old format (for backwards compatibility)
     return `--recursica-tokens-colors-${family}-${normalizedLevel}`
   }
@@ -211,16 +224,16 @@ export default function ColorTokenPicker() {
   // Check if a color token swatch is currently selected
   const isTokenSelected = (tokenName: string, tokenHex: string): boolean => {
     if (!targetResolvedValue || !targetVar) return false
-    
+
     // Parse token name: color/{family}/{level} or colors/{family}/{level}
     const tokenParts = tokenName.split('/')
     if (tokenParts.length !== 3 || (tokenParts[0] !== 'color' && tokenParts[0] !== 'colors')) return false
-    
+
     const family = tokenParts[1]
     const level = tokenParts[2]
     const tokenCssVar = buildTokenCssVar(family, level)
     const expectedValue = `var(${tokenCssVar})`
-    
+
     // Check if target CSS var directly references this token var
     const directValue = readCssVar(targetVar)
     if (directValue) {
@@ -228,7 +241,7 @@ export default function ColorTokenPicker() {
       if (trimmed === expectedValue) {
         return true
       }
-      
+
       // If target is a CSS var reference, check if it resolves to this token
       if (trimmed.startsWith('var(')) {
         // Extract the inner CSS variable name
@@ -242,12 +255,12 @@ export default function ColorTokenPicker() {
           while (depth < maxDepth) {
             const currentValue = readCssVar(currentVar)
             if (!currentValue) break
-            
+
             const trimmedValue = currentValue.trim()
             if (trimmedValue === expectedValue) {
               return true
             }
-            
+
             // If it's another var() reference, continue resolving
             const nextVarMatch = trimmedValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
             if (nextVarMatch) {
@@ -260,31 +273,31 @@ export default function ColorTokenPicker() {
         }
       }
     }
-    
+
     // Fallback: compare resolved hex values
     if (targetResolvedValue.resolved) {
       const normalizedHex = tokenHex.startsWith('#') ? tokenHex.toLowerCase().trim() : `#${tokenHex.toLowerCase().trim()}`
       if (/^#[0-9a-f]{6}$/.test(normalizedHex)) {
-        const targetHex = targetResolvedValue.resolved.startsWith('#') 
-          ? targetResolvedValue.resolved.toLowerCase().trim() 
+        const targetHex = targetResolvedValue.resolved.startsWith('#')
+          ? targetResolvedValue.resolved.toLowerCase().trim()
           : `#${targetResolvedValue.resolved.toLowerCase().trim()}`
         return targetHex === normalizedHex
       }
     }
-    
+
     return false
   }
 
   // Helper function to update theme JSON for core colors and check on-tone AA compliance
   const updateCoreColorInTheme = (cssVar: string, tokenName: string) => {
     if (!setTheme || !themeJson || !tokensJson) return
-    
+
     // Check if this is a core color CSS var for the current mode
     // Use --recursica-brand-themes- format to match varsStore.ts and palettes.ts
     const modeLower = mode.toLowerCase()
     const coreColorPrefix = `--recursica-brand-themes-${modeLower}-palettes-core-`
     if (!cssVar.startsWith(coreColorPrefix)) return // Not a core color
-    
+
     // Extract the color name from the CSS var
     // Only update if this is a -tone variable, not -on-tone
     // We should always be updating the tone value, never the on-tone value
@@ -292,19 +305,19 @@ export default function ColorTokenPicker() {
       console.warn(`updateCoreColorInTheme called with on-tone CSS variable: ${cssVar}. Skipping update - only tone values should be updated.`)
       return
     }
-    
+
     // Extract color name - handle both -tone suffix and base (for backward compatibility)
     let colorName = cssVar.replace(coreColorPrefix, '')
     if (colorName.endsWith('-tone')) {
       colorName = colorName.replace('-tone', '')
     }
-    
+
     // If it's the main interactive variable (not interactive-default-tone or interactive-hover-tone), handle it separately
     if (colorName === 'interactive' && !cssVar.includes('interactive-default-tone') && !cssVar.includes('interactive-hover-tone')) {
       // This is the main interactive var (backward compatibility) - treat as interactive-default
       colorName = 'interactive-default'
     }
-    
+
     // Determine mapping based on color name
     let mapping: { isInteractive?: boolean; isHover?: boolean } | null = null
     if (colorName === 'black' || colorName === 'white' || colorName === 'alert' || colorName === 'warning' || colorName === 'success') {
@@ -316,27 +329,27 @@ export default function ColorTokenPicker() {
     } else if (colorName === 'interactive-hover') {
       mapping = { isInteractive: true, isHover: true }
     }
-    
+
     if (!mapping) return // Not a recognized core color
-    
+
     try {
       const themeCopy = JSON.parse(JSON.stringify(themeJson))
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const themes = root?.themes || root
-      
+
       // Navigate to core-colors.$value
       if (!themes[modeLower]) themes[modeLower] = {}
       if (!themes[modeLower].palettes) themes[modeLower].palettes = {}
       if (!themes[modeLower].palettes['core-colors']) themes[modeLower].palettes['core-colors'] = {}
       if (!themes[modeLower].palettes['core-colors'].$value) themes[modeLower].palettes['core-colors'].$value = {}
-      
+
       const coreColors = themes[modeLower].palettes['core-colors'].$value
-      
+
       // Build the token reference string: {tokens.colors.{family}.{level}}
       const tokenParts = tokenName.split('/')
       const family = tokenParts[1]
       const level = tokenParts[2]
-      
+
       // Resolve alias to scale key for token reference (e.g., greensheen -> scale-05)
       let scaleKeyForRef = family
       if (!family.startsWith('scale-')) {
@@ -351,46 +364,46 @@ export default function ColorTokenPicker() {
           scaleKeyForRef = foundScaleKey
         }
       }
-      
+
       // Use new format (colors) for token references - always use scale key, not alias
       const tokenRef = `{tokens.colors.${scaleKeyForRef}.${level}}`
-      
+
       // Get the hex value of the new tone for AA compliance checking
       const tokenIndex = buildTokenIndex(tokensJson)
-      
+
       // Resolve alias to scale key if needed (e.g., greensheen -> scale-05)
       let scaleKey = family
       if (!family.startsWith('scale-')) {
         const tokensRoot: any = (tokensJson as any)?.tokens || {}
         const colorsRoot: any = tokensRoot?.colors || {}
-        
+
         // Find the scale that has this alias
         const foundScaleKey = Object.keys(colorsRoot).find(key => {
           if (!key.startsWith('scale-')) return false
           const scale = colorsRoot[key]
           return scale && typeof scale === 'object' && scale.alias === family
         })
-        
+
         if (foundScaleKey) {
           scaleKey = foundScaleKey
         }
       }
-      
+
       // Try new format first (colors/scaleKey/level), then old format (color/family/level) for backwards compatibility
       let toneHex = tokenIndex.get(`colors/${scaleKey}/${level}`)
       if (typeof toneHex !== 'string') {
         toneHex = tokenIndex.get(`color/${family}/${level}`)
       }
-      
-      const normalizedToneHex = typeof toneHex === 'string' 
+
+      const normalizedToneHex = typeof toneHex === 'string'
         ? (toneHex.startsWith('#') ? toneHex.toLowerCase() : `#${toneHex.toLowerCase()}`)
         : null
-      
+
       // Handle interactive colors with nested structure
       if (mapping.isInteractive) {
         // For main interactive var (backward compatibility), it maps to default.tone
-        const isMainInteractive = cssVar === `--recursica-brand-themes-${mode}-palettes-core-interactive`
-        
+        const isMainInteractive = cssVar === `--recursica-brand-themes-${modeLower}-palettes-core-interactive`
+
         if (!coreColors.interactive) {
           coreColors.interactive = {
             default: { tone: { $value: tokenRef } },
@@ -420,7 +433,7 @@ export default function ColorTokenPicker() {
         } else {
           if (!coreColors[colorName].tone) coreColors[colorName].tone = {}
           coreColors[colorName].tone.$value = tokenRef
-          
+
           // AA compliance is now manual via header button - removed automatic on-tone update
           // Preserve existing on-tone if it exists, otherwise set default
           if (!coreColors[colorName]['on-tone']) {
@@ -428,7 +441,7 @@ export default function ColorTokenPicker() {
           }
         }
       }
-      
+
       // For base color tones (not interactive), update all other base colors' on-tone values
       // This works similarly to how interactive color updates all base colors' interactive properties
       // We do this BEFORE setTheme so we can use themeCopy which has the updated tone
@@ -438,7 +451,7 @@ export default function ColorTokenPicker() {
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
         const themes = root?.themes || root
         const coreColorsObj = themes?.[modeLower]?.palettes?.['core-colors']?.$value || {}
-        
+
         // Get OLD white tone scale key from current theme (before update) for comparison
         // We need to check if on-tones are using the OLD white, not the new one
         const oldRoot: any = themeJson?.brand ? themeJson.brand : themeJson
@@ -455,21 +468,21 @@ export default function ColorTokenPicker() {
             }
           }
         }
-        
+
         // Helper function to check if an on-tone is currently using white (the OLD white)
         const isOnToneUsingWhite = (onToneColorName: string): boolean => {
           if (!oldWhiteScaleKey) return false
-          
+
           const onToneVar = `--recursica-brand-themes-${modeLower}-palettes-core-${onToneColorName}-on-tone`
           const onToneValue = readCssVar(onToneVar)
           if (!onToneValue) return false
-          
+
           // Check if it's a direct reference to white core color
           // Format: var(--recursica-brand-themes-light-palettes-core-white)
           if (onToneValue.includes('palettes-core-white')) {
             return true
           }
-          
+
           // Parse the on-tone CSS var value to see which scale it's using
           // The on-tone value should be a CSS var like var(--recursica-tokens-colors-scale-XX-level)
           // or a token reference like {tokens.colors.scale-XX.level}
@@ -478,14 +491,14 @@ export default function ColorTokenPicker() {
             tokenIndex,
             theme: themeJson // Use old theme for context
           }
-          
+
           // Try to parse as token reference first
           const parsed = parseTokenReference(onToneValue, context)
           if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'colors') {
             const onToneScaleKey = parsed.path[1]
             return onToneScaleKey === oldWhiteScaleKey
           }
-          
+
           // If it's a CSS var, extract the scale key from the var name
           // Format: var(--recursica-tokens-colors-scale-XX-level)
           const cssVarMatch = onToneValue.match(/--recursica-tokens-colors-([^-]+)-(\d+)/)
@@ -493,7 +506,7 @@ export default function ColorTokenPicker() {
             const onToneScaleKey = cssVarMatch[1]
             return onToneScaleKey === oldWhiteScaleKey
           }
-          
+
           // Also check if it resolves to white by resolving the CSS var to hex and checking
           // if that hex matches the old white tone hex
           const resolvedHex = resolveCssVarToHex(onToneValue, tokenIndex)
@@ -516,10 +529,10 @@ export default function ColorTokenPicker() {
               }
             }
           }
-          
+
           return false
         }
-        
+
         // Update on-tone values for all base colors (including the one that changed)
         // This ensures all on-tones are AA-compliant with their respective tones
         // Use themeCopy which has the updated black/white tone values
@@ -538,11 +551,11 @@ export default function ColorTokenPicker() {
               }
             }
           }
-          
+
           // Get the tone hex for this other color from themeCopy (not CSS vars, since they might not be updated yet)
           const otherColorDef = coreColorsObj[otherColorName]
           let otherToneHex: string | null = null
-          
+
           if (otherColorDef?.tone?.$value) {
             // Resolve the tone reference from themeCopy
             const toneRef = otherColorDef.tone.$value
@@ -559,16 +572,16 @@ export default function ColorTokenPicker() {
               }
             }
           }
-          
+
           // Fallback: try to read from CSS var if theme doesn't have it
           if (!otherToneHex || otherToneHex === '#000000') {
             const otherToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-${otherColorName}-tone`
             const otherToneValue = readCssVarResolved(otherToneCssVar) || readCssVar(otherToneCssVar)
-            otherToneHex = otherToneValue 
+            otherToneHex = otherToneValue
               ? (resolveCssVarToHex(otherToneValue, tokenIndex) || '#000000')
               : '#000000'
           }
-          
+
           if (otherToneHex && otherToneHex !== '#000000') {
             // Update on-tone for this color - this updates CSS vars directly
             // The function will read the updated black/white tones from themeCopy
@@ -585,9 +598,9 @@ export default function ColorTokenPicker() {
           }
         })
       }
-      
+
       setTheme(themeCopy)
-      
+
       // After core color changes, trigger AA compliance checks
       // This updates all layers and all palette on-tones
       setTimeout(() => {
@@ -595,17 +608,17 @@ export default function ColorTokenPicker() {
         if (varsStore.aaWatcher) {
           // Suppress CSS var events during AA compliance check
           suppressCssVarEvents(true)
-          
+
           // Update the watcher with the latest theme so it has the updated core color values
           varsStore.aaWatcher.updateTokensAndTheme(tokensJson, themeCopy)
-          
+
           // Update all layers (0-3) for both modes
           varsStore.aaWatcher.updateAllLayers()
-          
+
           // Update all palette on-tones (core color changes affect all palettes)
           // CSS vars only, never JSON
           varsStore.aaWatcher.checkAllPaletteOnTones()
-          
+
           setTimeout(() => {
             clearPendingCssVars()
             suppressCssVarEvents(false)
@@ -619,30 +632,30 @@ export default function ColorTokenPicker() {
 
   const handleSelect = (tokenName: string) => {
     if (!targetVar) return
-    
+
     // Parse token name: color/{family}/{level} or colors/{family}/{level}
     const tokenParts = tokenName.split('/')
     if (tokenParts.length !== 3 || (tokenParts[0] !== 'color' && tokenParts[0] !== 'colors')) {
       console.warn('Invalid token name format:', tokenName)
       return
     }
-    
+
     const family = tokenParts[1]
     const level = tokenParts[2] // Use actual level (000, 050, 900, 1000, etc.)
     const tokenCssVar = buildTokenCssVar(family, level)
-    
+
     // Verify the CSS variable exists before trying to use it
     // Check both the prefixed and unprefixed versions
     const tokenVarValue = readCssVar(tokenCssVar) || readCssVar(tokenCssVar.replace('--recursica-', '--'))
     // Still try to set it even if variable doesn't exist yet - it might be created dynamically
-    
+
     // Check if this is a core color CSS var
     const isCoreColor = targetVar.startsWith(`--recursica-brand-themes-${modeLower}-palettes-core-`)
-    
+
     // Check if this is an interactive color change
     const isInteractiveDefault = targetVar === `--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-tone` ||
-                                  targetVar === `--recursica-brand-themes-${modeLower}-palettes-core-interactive`
-    
+      targetVar === `--recursica-brand-themes-${modeLower}-palettes-core-interactive`
+
     if (isInteractiveDefault) {
       // Get the hex value for the selected token from tokens JSON (checking overrides first)
       const overrideMap = readOverrides()
@@ -650,7 +663,7 @@ export default function ColorTokenPicker() {
       const tokenNameNew = `colors/${family}/${level}`
       const tokenNameOld = `color/${family}/${level}`
       const overrideValue = (overrideMap as any)[tokenNameNew] ?? (overrideMap as any)[tokenNameOld]
-      
+
       // Try to get value from new colors structure
       let tokenValue: any = null
       const jsonColors: any = (tokensJson as any)?.tokens?.colors || {}
@@ -670,24 +683,24 @@ export default function ColorTokenPicker() {
       }
       const finalTokenValue = overrideValue ?? tokenValue
       let tokenHex: string | null = null
-      
+
       if (typeof tokenValue === 'string' && /^#?[0-9a-f]{6}$/i.test(tokenValue)) {
         tokenHex = tokenValue
       } else {
         // Fallback to reading from CSS var
-        tokenHex = tokenVarValue && !tokenVarValue.startsWith('var(') 
-          ? tokenVarValue 
+        tokenHex = tokenVarValue && !tokenVarValue.startsWith('var(')
+          ? tokenVarValue
           : readCssVarResolved(tokenCssVar) || null
       }
-      
+
       if (tokenHex && /^#?[0-9a-f]{6}$/i.test(tokenHex)) {
         const normalizedHex = tokenHex.startsWith('#') ? tokenHex.toLowerCase() : `#${tokenHex.toLowerCase()}`
-        
+
         // Update CSS variable FIRST for immediate visual feedback (before setTheme triggers recompute)
         const tokenCssVar = buildTokenCssVar(family, level)
         const targetCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-tone`
         updateCssVar(targetCssVar, `var(${tokenCssVar})`, tokensJson)
-        
+
         // Directly update interactive color with 'keep' option (keep current hover)
         if (!setTheme || !themeJson || !tokensJson) {
           // Fallback: just update CSS vars if we can't update theme
@@ -698,18 +711,18 @@ export default function ColorTokenPicker() {
           setTimeout(() => {
             try {
               window.dispatchEvent(new CustomEvent('recheckCoreColorInteractiveOnTones'))
-            } catch {}
+            } catch { }
           }, 10)
           return
         }
-        
+
         try {
           // Build token index to find which token matches the hex
           const tokenIndex = buildTokenIndex(tokensJson)
-          
+
           // Determine default tone token reference
           const defaultToneRef = hexToCssVarRef(normalizedHex, tokensJson)
-          
+
           // Keep current hover color
           const currentHover = readCssVar(`--recursica-brand-themes-${modeLower}-palettes-core-interactive-hover-tone`)
           let hoverHex: string
@@ -719,13 +732,13 @@ export default function ColorTokenPicker() {
             hoverHex = resolveCssVarToHex(`var(--recursica-brand-themes-${modeLower}-palettes-core-interactive-hover-tone)`, tokenIndex) || normalizedHex
           }
           const hoverToneRef = hexToCssVarRef(hoverHex, tokensJson)
-          
+
           // Determine on-tone colors
           const defaultOnTone = pickAAOnTone(normalizedHex)
           const hoverOnTone = pickAAOnTone(hoverHex)
           const defaultOnToneCore = defaultOnTone === '#ffffff' ? 'white' : 'black'
           const hoverOnToneCore = hoverOnTone === '#ffffff' ? 'white' : 'black'
-          
+
           // Extract token names from CSS var references
           const extractTokenFromCssVarRef = (cssVarRef: string | null): string | null => {
             if (!cssVarRef || !cssVarRef.startsWith('var(')) return null
@@ -740,25 +753,25 @@ export default function ColorTokenPicker() {
             }
             return null
           }
-          
+
           const defaultToken = extractTokenFromCssVarRef(defaultToneRef)
           const hoverToken = extractTokenFromCssVarRef(hoverToneRef)
-          
+
           // Update theme JSON FIRST (before updating CSS vars) to prevent flicker
           const themeCopy = JSON.parse(JSON.stringify(themeJson))
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
           const themes = root?.themes || root
-          
+
           if (!themes[modeLower]) themes[modeLower] = {}
           if (!themes[modeLower].palettes) themes[modeLower].palettes = {}
           if (!themes[modeLower].palettes['core-colors']) themes[modeLower].palettes['core-colors'] = {}
           if (!themes[modeLower].palettes['core-colors'].$value) themes[modeLower].palettes['core-colors'].$value = {}
-          
+
           const coreColors = themes[modeLower].palettes['core-colors'].$value
           if (!coreColors.interactive) {
             coreColors.interactive = { default: {}, hover: {} }
           }
-          
+
           // Update tone colors in theme JSON
           if (defaultToken) {
             const tokenParts = defaultToken.split('/')
@@ -768,7 +781,7 @@ export default function ColorTokenPicker() {
             if (!coreColors.interactive.default.tone) coreColors.interactive.default.tone = {}
             coreColors.interactive.default.tone.$value = tokenRef
           }
-          
+
           if (hoverToken) {
             const tokenParts = hoverToken.split('/')
             // Use new format (colors) for token references
@@ -777,18 +790,18 @@ export default function ColorTokenPicker() {
             if (!coreColors.interactive.hover.tone) coreColors.interactive.hover.tone = {}
             coreColors.interactive.hover.tone.$value = tokenRef
           }
-          
+
           // Update on-tone colors in theme JSON
           if (!coreColors.interactive.default) coreColors.interactive.default = {}
           coreColors.interactive.default['on-tone'] = {
             $value: `{brand.themes.${modeLower}.palettes.core-colors.${defaultOnToneCore}}`
           }
-          
+
           if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
           coreColors.interactive.hover['on-tone'] = {
             $value: `{brand.themes.${modeLower}.palettes.core-colors.${hoverOnToneCore}}`
           }
-          
+
           // Update core color interactive properties in theme JSON BEFORE calling setTheme
           // This ensures recomputeAndApplyAll generates the correct CSS variables
           if (themeCopy && tokensJson) {
@@ -797,7 +810,7 @@ export default function ColorTokenPicker() {
             const AA = 4.5
             const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
             const coreColors = ['black', 'white', 'alert', 'warning', 'success']
-            
+
             // Find the interactive color's family and level for stepping
             // findColorFamilyAndLevel now returns scale keys directly, not aliases
             const interactiveFamily = findColorFamilyAndLevel(normalizedHex, tokensJson)
@@ -805,10 +818,10 @@ export default function ColorTokenPicker() {
               const { family: interactiveScaleKey, level: interactiveLevel } = interactiveFamily
               const normalizedInteractiveLevel = interactiveLevel === '000' ? '050' : interactiveLevel
               const startIdx = LEVELS.indexOf(normalizedInteractiveLevel)
-              
+
               if (startIdx !== -1 && interactiveScaleKey) {
                 const coreColorsPath = themes[modeLower].palettes['core-colors'].$value
-                
+
                 // Helper to resolve tone reference to hex
                 const context: TokenReferenceContext = {
                   currentMode: modeLower as 'light' | 'dark',
@@ -828,23 +841,23 @@ export default function ColorTokenPicker() {
                   }
                   return null
                 }
-                
+
                 // For each core color, update its interactive property
                 for (const colorName of coreColors) {
                   const colorDef = coreColorsPath[colorName]
                   if (!colorDef) continue
-                  
+
                   const toneRef = colorDef.tone?.$value
                   if (!toneRef) continue
-                  
+
                   const toneHex = resolveRef(toneRef)
                   if (!toneHex) continue
-                  
+
                   // Step through interactive scale to find AA-compliant color
                   let interactiveRef: string | null = null
                   let bestContrast = 0
                   let bestLevel: string | null = null
-                  
+
                   // First, check the current interactive color itself
                   const currentContrast = contrastRatio(toneHex, normalizedHex)
                   if (currentContrast >= AA) {
@@ -853,7 +866,7 @@ export default function ColorTokenPicker() {
                   } else {
                     bestContrast = currentContrast
                     bestLevel = normalizedInteractiveLevel
-                    
+
                     // Try ALL levels in the interactive scale, alternating from the starting point
                     const searchOrder: number[] = []
                     for (let offset = 1; offset < LEVELS.length; offset++) {
@@ -866,7 +879,7 @@ export default function ColorTokenPicker() {
                         searchOrder.push(startIdx + offset)
                       }
                     }
-                    
+
                     // Search in alternating order
                     for (const testIdx of searchOrder) {
                       const testLevel = LEVELS[testIdx]
@@ -889,7 +902,7 @@ export default function ColorTokenPicker() {
                         }
                       }
                     }
-                    
+
                     // If no color passed, use the original interactive color (the one user selected)
                     // This will show the warning triangle in the UI
                     if (!interactiveRef) {
@@ -897,7 +910,7 @@ export default function ColorTokenPicker() {
                       interactiveRef = `{tokens.colors.${interactiveScaleKey}.${normalizedInteractiveLevel}}`
                     }
                   }
-                  
+
                   // Update interactive property in theme JSON
                   if (interactiveRef) {
                     if (!colorDef.interactive) {
@@ -909,14 +922,14 @@ export default function ColorTokenPicker() {
               }
             }
           }
-          
+
           // Directly update CSS variables for all core color interactive properties BEFORE setTheme
           // This ensures immediate visual feedback and prevents recomputeAndApplyAll from overwriting
           // Use the updated themeCopy structure for proper resolution
           const rootForCssVar: any = themeCopy?.brand ? themeCopy.brand : themeCopy
           const themesForCssVar = rootForCssVar?.themes || rootForCssVar
           const coreColorsPath = themesForCssVar[modeLower]?.palettes?.['core-colors']?.$value
-          
+
           if (coreColorsPath) {
             const coreColorNames = ['black', 'white', 'alert', 'warning', 'success']
             const contextForCssVar: TokenReferenceContext = {
@@ -924,14 +937,14 @@ export default function ColorTokenPicker() {
               tokenIndex: buildTokenIndex(tokensJson),
               theme: themeCopy
             }
-            
+
             coreColorNames.forEach((colorName) => {
               const colorDef = coreColorsPath[colorName]
               if (!colorDef) return
-              
+
               const interactiveRef = colorDef.interactive?.$value
               if (!interactiveRef) return
-              
+
               const interactiveCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-${colorName}-interactive`
               const cssVarValue = resolveTokenReferenceToCssVar(interactiveRef, contextForCssVar)
               if (cssVarValue) {
@@ -939,11 +952,11 @@ export default function ColorTokenPicker() {
               }
             })
           }
-          
+
           // Update theme JSON synchronously - CSS vars were already updated above
           // This includes the updated interactive values for each core color
           setTheme(themeCopy)
-          
+
           // Update other interactive-related CSS vars (hover, on-tones, etc.)
           // The default-tone CSS var was already updated above, so this won't overwrite it
           // Use themeCopy instead of themeJson since we just updated it
@@ -955,7 +968,7 @@ export default function ColorTokenPicker() {
           // if (setTheme && themeCopy) {
           //   updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeCopy, setTheme, mode)
           // }
-          
+
           // AA compliance is now manual via header button - removed automatic call
         } catch (err) {
           console.error('Failed to update interactive color:', err)
@@ -964,13 +977,13 @@ export default function ColorTokenPicker() {
           updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower as 'light' | 'dark', themeJson, setTheme)
           // AA compliance is now manual via header button - removed automatic call
         }
-        
+
         setAnchor(null)
         setTargetVar(null)
         return
       }
     }
-    
+
     // Set the CSS variable FIRST for immediate visual feedback
     // For core colors, this will be preserved by recomputeAndApplyAll's preservation logic
     const success = updateCssVar(targetVar, `var(${tokenCssVar})`, tokensJson)
@@ -978,10 +991,10 @@ export default function ColorTokenPicker() {
       console.error(`Failed to update ${targetVar} to var(${tokenCssVar})`)
       return
     }
-    
+
     // Trigger recalculation of targetResolvedValue to update checkmark
     setCssVarUpdateTrigger((prev) => prev + 1)
-    
+
     // Also update theme JSON for core colors so changes persist across navigation
     // This will also check and update on-tone colors for AA compliance
     // The CSS variable we set above will be preserved by recomputeAndApplyAll's preservation logic
@@ -990,17 +1003,17 @@ export default function ColorTokenPicker() {
       requestAnimationFrame(() => {
         updateCoreColorInTheme(targetVar, tokenName)
       })
-      
+
       // Dispatch cssVarsUpdated event to trigger on-tone updates
       setTimeout(() => {
         try {
-          window.dispatchEvent(new CustomEvent('cssVarsUpdated', { 
-            detail: { cssVars: [targetVar] } 
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: [targetVar] }
           }))
-        } catch {}
+        } catch { }
       }, 0)
     }
-    
+
     setAnchor(null)
     setTargetVar(null)
   }
@@ -1012,116 +1025,149 @@ export default function ColorTokenPicker() {
     if (typeof fromMap === 'string' && fromMap.trim()) return fromMap
     return toTitle(family)
   }
+
+  if (!anchor || !targetVar) return null
+
   const labelCol = 110
-  const swatch = 18
+  const swatch = 24
   const gap = 1
-  // Calculate max width for swatches to wrap nicely (about 12 swatches per row)
-  const maxSwatchWidth = 12 * (swatch + gap) - gap
+  const CheckIcon = iconNameToReactComponent('check')
+
+  const isNoneSelected = !targetResolvedValue?.direct || targetResolvedValue.direct === 'transparent' || targetResolvedValue.direct === 'null' || targetResolvedValue.direct === ''
 
   return (
-    <>
-      {anchor && targetVar && (
-        createPortal(
-          <div style={{ position: 'absolute', top: pos.top, left: pos.left, width: 'fit-content', maxWidth: '90vw', background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`, border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1))`, padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding)`, zIndex: 20000 }}>
-            <div
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
-              onMouseDown={(e) => {
-                const startX = e.clientX
-                const startY = e.clientY
-                const start = { ...pos }
-                const move = (ev: MouseEvent) => {
-                  const dx = ev.clientX - startX
-                  const dy = ev.clientY - startY
-                  // Use a ref or calculate width dynamically, but for now use a reasonable estimate
-                  const estimatedWidth = labelCol + maxSwatchWidth + 32
-                  const next = { left: Math.max(0, Math.min(window.innerWidth - estimatedWidth, start.left + dx)), top: Math.max(0, Math.min(window.innerHeight - 120, start.top + dy)) }
-                  setPos(next)
-                }
-                const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
-                window.addEventListener('mousemove', move)
-                window.addEventListener('mouseup', up)
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>Pick color</div>
-              <button onClick={() => { setAnchor(null); setTargetVar(null) }} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
-            </div>
-            <div style={{ display: 'grid', gap: 6 }}>
-              {Object.entries(options).map(([family, items]) => (
-                <div key={family} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
-                  <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize' }}>{getFriendly(family)}</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap, maxWidth: maxSwatchWidth, overflow: 'visible' }}>
-                    {items.map((it) => {
-                      const isSelected = isTokenSelected(it.name, it.value)
-                      
-                      // Parse token name and build CSS variable for swatch background
-                      const tokenParts = it.name.split('/')
-                      let tokenCssVar: string | null = null
-                      if (tokenParts.length === 3 && (tokenParts[0] === 'color' || tokenParts[0] === 'colors')) {
-                        const family = tokenParts[1]
-                        const level = tokenParts[2]
-                        tokenCssVar = buildTokenCssVar(family, level)
-                      }
-                      
-                      return (
-                        <div 
-                          key={it.name} 
-                          title={it.name} 
-                          onClick={() => handleSelect(it.name)} 
-                          style={{ 
-                            position: 'relative',
-                            width: swatch, 
-                            height: swatch, 
-                            background: tokenCssVar ? `var(${tokenCssVar})` : it.value, 
-                            cursor: 'pointer', 
-                            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, 
-                            flex: '0 0 auto' 
-                          }}
-                        >
-                          {isSelected && (
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 12 12"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                              style={{
-                                position: 'absolute',
-                                top: '50%',
-                                left: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                pointerEvents: 'none',
-                              }}
-                            >
-                              {/* White checkmark with dark shadow for visibility on any background */}
-                              <path
-                                d="M2 6L5 9L10 2"
-                                stroke={`var(--recursica-brand-themes-${mode}-palettes-core-black)`}
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                opacity="0.4"
-                              />
-                              <path
-                                d="M2 6L5 9L10 2"
-                                stroke={`var(--recursica-brand-themes-${mode}-palettes-core-white)`}
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
+    <Modal
+      isOpen={true}
+      onClose={() => {
+        setAnchor(null)
+        setTargetVar(null)
+      }}
+      title="Pick a color"
+      size="auto"
+      withOverlay={false}
+      centered={false}
+      position={{ x: pos.left, y: pos.top }}
+      onPositionChange={(newPos) => setPos({ top: newPos.y, left: newPos.x })}
+      draggable={true}
+      showHeader={true}
+      showFooter={false}
+      padding={true}
+      layer="layer-3"
+      zIndex={20000}
+      style={{
+        overflow: 'visible',
+        visibility: pos.top === -9999 ? 'hidden' : 'visible',
+      }}
+    >
+      <div
+        style={{
+          display: 'grid',
+          gap: `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})`,
+          minWidth: 280,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* "None" option */}
+        <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
+          <Label size="small">None</Label>
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              removeCssVar(targetVar)
+              setAnchor(null)
+              setTargetVar(null)
+              window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: [targetVar] } }))
+            }}
+            style={{
+              width: swatch,
+              height: swatch,
+              cursor: 'pointer',
+              background: 'transparent',
+              border: `1px solid ${isNoneSelected ? `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` : `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-color)`}`,
+              position: 'relative',
+              padding: isNoneSelected ? '1px' : '0',
+              borderRadius: isNoneSelected ? '5px' : '0',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: isNoneSelected ? '4px' : '0',
+              position: 'relative',
+              background: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-surface)`
+            }}>
+              <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
+                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica-brand-themes-${modeLower}-palettes-neutral-500-tone)`} strokeWidth="1.5" />
+              </svg>
+              {isNoneSelected && (
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
+                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` }} /> : '✓'}
                 </div>
-              ))}
+              )}
             </div>
-          </div>,
-          document.body
-        )
-      )}
-    </>
+          </div>
+        </div>
+
+        {Object.entries(options).map(([family, items]) => (
+          <div key={family} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
+            <Label size="small" style={{ textTransform: 'capitalize' }}>{getFriendly(family)}</Label>
+            <div style={{ display: 'flex', flexWrap: 'nowrap', gap }}>
+              {items.map((it) => {
+                const isSelected = isTokenSelected(it.name, it.value)
+
+                // Parse token name and build CSS variable for swatch background
+                const tokenParts = it.name.split('/')
+                let tokenCssVar: string | null = null
+                if (tokenParts.length === 3 && (tokenParts[0] === 'color' || tokenParts[0] === 'colors')) {
+                  const family = tokenParts[1]
+                  const level = tokenParts[2]
+                  tokenCssVar = buildTokenCssVar(family, level)
+                }
+
+                return (
+                  <div
+                    key={it.name}
+                    title={it.name}
+                    onClick={() => handleSelect(it.name)}
+                    style={{
+                      position: 'relative',
+                      width: swatch,
+                      height: swatch,
+                      background: tokenCssVar ? `var(${tokenCssVar})` : it.value,
+                      cursor: 'pointer',
+                      border: `1px solid ${isSelected ? `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` : `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-color)`}`,
+                      padding: isSelected ? '1px' : '0',
+                      borderRadius: isSelected ? '5px' : '0',
+                      boxSizing: 'border-box',
+                      flex: '0 0 auto'
+                    }}
+                  >
+                    {isSelected && (
+                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
+                        {(() => {
+                          const hex = it.value.replace('#', '')
+                          const r = parseInt(hex.slice(0, 2), 16)
+                          const g = parseInt(hex.slice(2, 4), 16)
+                          const b = parseInt(hex.slice(4, 6), 16)
+                          const yiq = (r * 299 + g * 587 + b * 114) / 1000
+                          const isDark = yiq < 128
+                          const checkColor = isDark
+                            ? `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
+                            : `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+
+                          return CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: checkColor }} /> : <span style={{ color: checkColor }}>✓</span>
+                        })()}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Modal>
   )
 }
 
