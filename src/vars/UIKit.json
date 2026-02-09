@@ -4497,7 +4497,7 @@
           "vertical-padding": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.general.default}",
+              "value": "{brand.dimensions.general.lg}",
               "unit": "px"
             }
           },

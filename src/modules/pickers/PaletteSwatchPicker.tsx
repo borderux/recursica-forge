@@ -1,15 +1,13 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Dropdown } from '../../components/adapters/Dropdown'
-import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
-import { buildTokenIndex } from '../../core/resolvers/tokens'
-import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
-// AA compliance is now manual via header button - removed automatic calls
+import { Modal } from '../../components/adapters/Modal'
+import { Label } from '../../components/adapters/Label'
+import { TextField } from '../../components/adapters/TextField'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
   const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
@@ -20,11 +18,12 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const [showOpacityDropdown, setShowOpacityDropdown] = useState(false)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [refreshTrigger, setRefreshTrigger] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const firstHexMatchRef = useRef<string | null>(null)
 
-  // Close picker when mode changes
+  const { mode } = useThemeMode()
+  const modeLower = mode.toLowerCase()
+
+  // Close picker when mode changes or event received
   useEffect(() => {
     const handleCloseAll = () => {
       setAnchor(null)
@@ -32,10 +31,6 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       setTargetCssVars([])
       setTargetOpacityCssVar(null)
       setShowOpacityDropdown(false)
-      setSelectedOpacity('')
-      setTargetOpacityCssVar(null)
-      setShowOpacityDropdown(false)
-      setSelectedOpacity('')
     }
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
@@ -55,11 +50,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     const staticPalettes: string[] = []
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = root?.themes || root
       const lightPal: any = themes?.light?.palettes || themes?.light?.palette || {}
       Object.keys(lightPal).forEach((k) => {
-        // Include all palettes except core and core-colors (we'll handle core colors separately)
         if (k !== 'core' && k !== 'core-colors' && !dynamic.includes(k)) {
           staticPalettes.push(k)
         }
@@ -68,13 +61,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     return Array.from(new Set([...dynamic, ...staticPalettes]))
   }, [palettes, themeJson])
 
-  const { mode } = useThemeMode()
-  const modeLower = mode.toLowerCase()
-
   // Get opacity tokens and build dropdown options
   const opacityOptions = useMemo(() => {
     const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
-    const list: Array<{ key: string; label: string; tokenName: string }> = Object.keys(src)
+    const list: Array<{ key: string; label: string }> = Object.keys(src)
       .filter((k) => !k.startsWith('$'))
       .map((k) => {
         const v = src[k]?.$value
@@ -84,1304 +74,368 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
         return {
           key: k,
           label: `${label} (${percentage}%)`,
-          tokenName: `opacity/${k}`,
-          value: num, // Store the numeric value for filtering and sorting
+          value: num,
         }
       })
-      .filter((it) => Number.isFinite(it.value)) // Filter by value, not key
-      .map(({ value, ...rest }) => rest) // Remove value from final objects
-    list.sort((a, b) => {
-      const aVal = src[a.key]?.$value
-      const bVal = src[b.key]?.$value
-      const aNum = typeof aVal === 'number' ? aVal : Number(aVal)
-      const bNum = typeof bVal === 'number' ? bVal : Number(bVal)
-      return aNum - bNum
-    })
+      .filter((it) => Number.isFinite(it.value))
+      .sort((a, b) => a.value - b.value)
+      .map(({ key, label }) => ({ key, label }))
     return list
   }, [tokensJson])
 
-  // Extract current opacity token from CSS variable
   const extractTokenFromCssVar = (cssVar: string): string | null => {
     try {
       const rawValue = readCssVar(cssVar)
       if (!rawValue) return null
-
       let match = rawValue.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
       if (match) return match[1]
-
       const resolvedValue = readCssVarResolved(cssVar)
       if (resolvedValue) {
-        match = resolvedValue.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
-        if (match) return match[1]
-
-        const resolvedNum = parseFloat(resolvedValue)
-        if (!isNaN(resolvedNum)) {
-          const normalized = resolvedNum <= 1 ? resolvedNum : resolvedNum / 100
-          const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
-          for (const [key, val] of Object.entries(src)) {
-            if (key.startsWith('$')) continue
-            const v = (val as any)?.$value
-            const num = typeof v === 'number' ? v : Number(v)
-            const tokenNormalized = num <= 1 ? num : num / 100
-            if (Math.abs(tokenNormalized - normalized) < 0.01) {
-              return key
-            }
+        // Fallback: match by value if direct reference not found
+        const val = parseFloat(resolvedValue)
+        const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
+        for (const [k, v] of Object.entries(src)) {
+          if (k.startsWith('$')) continue
+          const vVal = (v as any).$value
+          const vNum = typeof vVal === 'number' ? vVal : parseFloat(vVal)
+          if (Math.abs(vNum - val) < 0.01 || Math.abs(vNum / 100 - val) < 0.01) {
+            return k
           }
         }
+
+        match = resolvedValue.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
+        if (match) return match[1]
       }
     } catch { }
     return null
   }
-
-  // Compute current opacity selection directly (not as a function)
-  // Only compute when targetOpacityCssVar is set to avoid unnecessary work
-  const currentOpacitySelection = useMemo(() => {
-    if (!targetOpacityCssVar || !showOpacityDropdown) return ''
-    const tokenKey = extractTokenFromCssVar(targetOpacityCssVar)
-    if (tokenKey) return tokenKey
-    return opacityOptions[0]?.key || ''
-  }, [targetOpacityCssVar, showOpacityDropdown, tokensJson, opacityOptions])
 
   const [selectedOpacity, setSelectedOpacity] = useState('')
 
-  // Update selected opacity when current selection changes (only if opacity dropdown is shown)
+  const currentOpacityToken = useMemo(() => {
+    if (!targetOpacityCssVar) return ''
+    return extractTokenFromCssVar(targetOpacityCssVar) || ''
+  }, [targetOpacityCssVar, refreshTrigger])
+
   useEffect(() => {
-    if (showOpacityDropdown && currentOpacitySelection && currentOpacitySelection !== selectedOpacity) {
-      setSelectedOpacity(currentOpacitySelection)
-    } else if (!showOpacityDropdown) {
-      setSelectedOpacity('')
-    }
-  }, [currentOpacitySelection, showOpacityDropdown])
-
-  // Get core colors (black, white, interactive, alert, warning, success)
-  const coreColors = useMemo(() => {
-    const colors: Array<{ key: string; cssVar: string; label: string }> = []
-    try {
-      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const coreColorsRaw: any = themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core || {}
-      const coreColorsObj: any = coreColorsRaw?.$value || coreColorsRaw || {}
-
-      // Add interactive colors (default and hover states)
-      if (coreColorsObj?.interactive) {
-        const interactive = coreColorsObj.interactive
-        if (interactive.default?.tone) {
-          colors.push({
-            key: 'interactive-default',
-            cssVar: `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`,
-            label: 'Interactive / Default'
-          })
-        }
-        if (interactive.hover?.tone) {
-          colors.push({
-            key: 'interactive-hover',
-            cssVar: `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`,
-            label: 'Interactive / Hover'
-          })
-        }
-        // Fallback to base interactive if no states
-        if (!interactive.default && !interactive.hover && interactive.tone) {
-          colors.push({
-            key: 'interactive',
-            cssVar: `--recursica-brand-themes-${mode}-palettes-core-interactive`,
-            label: 'Interactive'
-          })
-        }
-      }
-
-      // Add other core colors
-      const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success']
-      coreColorKeys.forEach((colorKey) => {
-        if (coreColorsObj[colorKey]) {
-          colors.push({
-            key: colorKey,
-            cssVar: `--recursica-brand-themes-${mode}-palettes-core-${colorKey}`,
-            label: colorKey.charAt(0).toUpperCase() + colorKey.slice(1)
-          })
-        }
-      })
-    } catch { }
-    return colors
-  }, [themeJson, mode])
-
-  const paletteLevels = useMemo(() => {
-    const levelsByPalette: Record<string, string[]> = {}
-    paletteKeys.forEach((pk) => {
-      try {
-        const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-        // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
-        const themes = root?.themes || root
-        const paletteData: any = themes?.light?.palettes?.[pk] || themes?.light?.palette?.[pk]
-        if (paletteData) {
-          // Get all numeric levels including 000 and 1000 - no normalization or deduplication
-          const levels = Object.keys(paletteData).filter((k) => /^(\d{2,4}|000|1000)$/.test(k))
-          // Sort: 1000, 900, 800, ..., 100, 050, 000
-          levels.sort((a, b) => {
-            const aNum = a === '000' ? 0 : a === '050' ? 50 : a === '1000' ? 1000 : Number(a)
-            const bNum = b === '000' ? 0 : b === '050' ? 50 : b === '1000' ? 1000 : Number(b)
-            return bNum - aNum
-          })
-          levelsByPalette[pk] = levels
-        }
-      } catch { }
-      // Fallback to standard levels if not found (including 000 and 1000)
-      if (!levelsByPalette[pk]) {
-        levelsByPalette[pk] = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
-      }
-    })
-    return levelsByPalette
-  }, [paletteKeys, themeJson])
+    setSelectedOpacity(currentOpacityToken)
+  }, [currentOpacityToken])
 
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
-    // Use actual level - no normalization (000 stays 000, 1000 stays 1000)
-    // Use new brand.json structure: --recursica-brand-themes-{mode}-palettes-${paletteKey}-${level}-tone
     return `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
   }
 
-  const buildPaletteOnToneCssVar = (paletteKey: string, level: string): string => {
-    // Build the on-tone CSS variable for a palette swatch
-    return `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
-  }
-
-  // Get the resolved value of the target CSS var to compare with palette swatches
-  // This hook must be called before any early returns to follow Rules of Hooks
   const targetResolvedValue = useMemo(() => {
     if (!targetCssVar) return null
     const resolved = readCssVarResolved(targetCssVar)
-    const directValue = readCssVar(targetCssVar)
-    return { resolved, direct: directValue }
+    const direct = readCssVar(targetCssVar)
+    return { resolved, direct }
   }, [targetCssVar, refreshTrigger])
 
-  // Track which palette swatch we've already selected to avoid multiple selections
   const selectedPaletteSwatch = useMemo(() => {
     if (!targetResolvedValue || !targetCssVar) return null
-
     const directValue = readCssVar(targetCssVar)
     if (!directValue) return null
-
     const trimmed = directValue.trim()
 
-    // Helper function to follow CSS variable chain and find palette reference
-    const findPaletteInChain = (cssVarName: string, depth: number = 0, visited: Set<string> = new Set()): string | null => {
-      if (depth > 10) return null // Prevent infinite loops
-      if (visited.has(cssVarName)) return null // Prevent circular references
-      visited.add(cssVarName)
+    // Match palette pattern
+    const paletteMatch = trimmed.match(/var\(--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone\)/)
+    if (paletteMatch) return `${paletteMatch[1]}-${paletteMatch[2]}`
 
-      const value = readCssVar(cssVarName)
-      if (!value) return null
-
-      const trimmedValue = value.trim()
-
-      // Check if this value directly contains a core color reference
-      const coreMatch = trimmedValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\s*\)/i)
-      if (coreMatch) {
-        const [, coreKey] = coreMatch
-        // For interactive colors, preserve -default and -hover suffixes
-        // Normalize: remove -tone suffix if present, but keep -default and -hover
-        let normalizedKey = coreKey
-        if (coreKey.endsWith('-tone') && !coreKey.includes('-default-tone') && !coreKey.includes('-hover-tone')) {
-          normalizedKey = coreKey.replace(/-tone$/, '')
-        }
-        // Check if this matches any of our core colors - exact match first
-        for (const coreColor of coreColors) {
-          // Exact match (including -default-tone, -hover-tone)
-          if (coreKey === coreColor.key || normalizedKey === coreColor.key) {
-            return `core-${coreColor.key}`
-          }
-          // Match without -tone suffix for non-interactive colors
-          const colorKey = coreColor.key.replace(/-tone$/, '')
-          if (normalizedKey === colorKey && !coreColor.key.includes('-default') && !coreColor.key.includes('-hover')) {
-            return `core-${coreColor.key}`
-          }
-        }
-        // If we found a core color reference but it doesn't match our list, still return it
-        return `core-${normalizedKey}`
-      }
-
-      // Check if this value directly contains a palette reference
-      const paletteMatch = trimmedValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000|default|hover)-tone\s*\)/i)
-      if (paletteMatch) {
-        const [, paletteKey, level] = paletteMatch
-        return `${paletteKey}-${level}`
-      }
-
-      // If it's a var() reference, extract the inner variable name and recurse
-      const varMatch = trimmedValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
-      if (varMatch) {
-        const innerVarName = varMatch[1].trim()
-        const result = findPaletteInChain(innerVarName, depth + 1, visited)
-        if (result) return result
-      }
-
-      return null
-    }
-
-    // First, try direct match
-    // Check if target directly references a core color
-    // Match patterns like: var(--recursica-brand-themes-light-palettes-core-black)
-    // or: var(--recursica-brand-themes-light-palettes-core-interactive-default-tone)
-    // or: var(--recursica-brand-themes-light-palettes-core-interactive-hover-tone)
-    const directCoreMatch = trimmed.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\s*\)/i)
-    if (directCoreMatch) {
-      const [, coreKey] = directCoreMatch
-      // For interactive colors, preserve -default and -hover suffixes
-      // Normalize: remove -tone suffix if present, but keep -default and -hover
-      let normalizedKey = coreKey
-      if (coreKey.endsWith('-tone') && !coreKey.includes('-default-tone') && !coreKey.includes('-hover-tone')) {
-        normalizedKey = coreKey.replace(/-tone$/, '')
-      }
-      // Check if this matches any of our core colors - exact match first
-      for (const coreColor of coreColors) {
-        // Exact match (including -default-tone, -hover-tone)
-        if (coreKey === coreColor.key || normalizedKey === coreColor.key) {
-          return `core-${coreColor.key}`
-        }
-        // Match without -tone suffix for non-interactive colors
-        const colorKey = coreColor.key.replace(/-tone$/, '')
-        if (normalizedKey === colorKey && !coreColor.key.includes('-default') && !coreColor.key.includes('-hover')) {
-          return `core-${coreColor.key}`
-        }
-      }
-      // If no exact match found, return the normalized key
-      return `core-${normalizedKey}`
-    }
-
-    // If direct match didn't work, try following the chain (for UIKit variables)
-    const chainResult = findPaletteInChain(targetCssVar)
-    if (chainResult) {
-      return chainResult
-    }
-
-    // Check if target directly references a palette var
-    // Use new brand.json structure: --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-tone
-    const directPaletteMatch = trimmed.match(/var\(--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone\)/)
-    if (directPaletteMatch) {
-      const [, paletteKey, level] = directPaletteMatch
-      return `${paletteKey}-${level}`
-    }
-
-    // Check if target is a color-mix() that contains a palette var
-    if (trimmed.includes('color-mix')) {
-      const colorMixPaletteMatch = trimmed.match(/--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone/)
-      if (colorMixPaletteMatch) {
-        const [, paletteKey, level] = colorMixPaletteMatch
-        return `${paletteKey}-${level}`
-      }
-
-      // Check if color-mix() contains a core color reference
-      // Note: interactive colors have -default-tone or -hover-tone suffixes
-      const colorMixCoreMatch = trimmed.match(/--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)/i)
-      if (colorMixCoreMatch) {
-        const [, coreKey] = colorMixCoreMatch
-        // Normalize: remove -tone suffix if present, but keep -default and -hover
-        const normalizedKey = coreKey.replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
-        // Check if this matches any of our core colors
-        for (const coreColor of coreColors) {
-          const colorKey = coreColor.key.replace(/-tone$/, '')
-          if (normalizedKey === colorKey || coreKey === coreColor.key || normalizedKey === coreColor.key) {
-            return `core-${coreColor.key}`
-          }
-        }
-        return `core-${normalizedKey}`
-      }
-
-      // Check if color-mix() contains a token reference - extract and resolve the token directly (not the color-mix result)
-      const tokenMatch = trimmed.match(/var\(--recursica-tokens-color-([a-z0-9-]+)-(\d+|050|000)\)/)
-      if (tokenMatch) {
-        const [, family, level] = tokenMatch
-        // Try to follow the chain first
-        const tokenCssVar = `--recursica-tokens-color-${family}-${level}`
-        const chainResult = findPaletteInChain(tokenCssVar)
-        if (chainResult) {
-          return chainResult
-        }
-        // If chain doesn't work, try hex matching as fallback
-        // Resolve the token directly (not the color-mix result which includes opacity)
-        const tokenHex = readCssVarResolved(tokenCssVar)
-        if (tokenHex && /^#[0-9a-f]{6}$/i.test(tokenHex)) {
-          const targetHex = tokenHex.toLowerCase().trim()
-          // First check core colors - return immediately on first match
-          for (const coreColor of coreColors) {
-            const coreResolved = readCssVarResolved(coreColor.cssVar)
-            if (coreResolved && /^#[0-9a-f]{6}$/i.test(coreResolved)) {
-              const coreHex = coreResolved.toLowerCase().trim()
-              if (targetHex === coreHex) {
-                return `core-${coreColor.key}`
-              }
-            }
-          }
-          // Find the first palette swatch that matches this hex - return immediately on first match
-          for (const pk of paletteKeys) {
-            const levels = paletteLevels[pk] || []
-            for (const level of levels) {
-              const paletteCssVar = buildPaletteCssVar(pk, level)
-              const paletteResolved = readCssVarResolved(paletteCssVar)
-              if (paletteResolved && /^#[0-9a-f]{6}$/i.test(paletteResolved)) {
-                const paletteHex = paletteResolved.toLowerCase().trim()
-                if (targetHex === paletteHex) {
-                  return `${pk}-${level}`
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    // If target is a direct token reference (not in color-mix), try to follow the chain first
-    const isTokenReference = trimmed.startsWith('var(--recursica-tokens-color-')
-    if (isTokenReference) {
-      // Try to follow the chain to find a palette reference
-      const chainResult = findPaletteInChain(targetCssVar)
-      if (chainResult) {
-        return chainResult
-      }
-      // If chain doesn't work and we have a resolved hex, use hex matching as last resort
-      // BUT: Only return the FIRST match to prevent multiple selections
-      if (targetResolvedValue.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
-        const targetHex = targetResolvedValue.resolved.toLowerCase().trim()
-        // First check core colors - return immediately on first match
-        for (const coreColor of coreColors) {
-          const coreResolved = readCssVarResolved(coreColor.cssVar)
-          if (coreResolved && /^#[0-9a-f]{6}$/i.test(coreResolved)) {
-            const coreHex = coreResolved.toLowerCase().trim()
-            if (targetHex === coreHex) {
-              return `core-${coreColor.key}`
-            }
-          }
-        }
-        // Find the first palette swatch that matches this hex - return immediately on first match
-        for (const pk of paletteKeys) {
-          const levels = paletteLevels[pk] || []
-          for (const level of levels) {
-            const paletteCssVar = buildPaletteCssVar(pk, level)
-            const paletteResolved = readCssVarResolved(paletteCssVar)
-            if (paletteResolved && /^#[0-9a-f]{6}$/i.test(paletteResolved)) {
-              const paletteHex = paletteResolved.toLowerCase().trim()
-              if (targetHex === paletteHex) {
-                return `${pk}-${level}`
-              }
-            }
-          }
-        }
-      }
+    // Match core color pattern
+    const coreMatch = trimmed.match(/var\(--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\)/i)
+    if (coreMatch) {
+      let key = coreMatch[1].replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
+      return `core-${key}`
     }
 
     return null
-  }, [targetResolvedValue, targetCssVar, paletteKeys, paletteLevels, buildPaletteCssVar, coreColors])
+  }, [targetResolvedValue, targetCssVar])
 
-  // Check if "none" is selected (CSS var is empty, null, or transparent)
   const isNoneSelected = useMemo(() => {
     if (!targetCssVar) return false
-    const directValue = readCssVar(targetCssVar)
-    if (!directValue || directValue.trim() === '' || directValue === 'null' || directValue === 'transparent') {
-      return true
-    }
-    // Check if resolved value is transparent
-    const resolved = readCssVarResolved(targetCssVar)
-    if (resolved && (resolved === 'transparent' || resolved === 'rgba(0, 0, 0, 0)' || resolved === 'rgba(255, 255, 255, 0)')) {
-      return true
-    }
-    return false
-  }, [targetCssVar])
+    const val = readCssVar(targetCssVar)
+    return !val || val === 'transparent' || val === 'null' || val === ''
+  }, [targetCssVar, refreshTrigger])
 
-  // Get the highest available layer for picker overlay styling
-  const highestLayer = useMemo(() => {
-    try {
-      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
-      const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
-        const aNum = parseInt(a.replace('layer-', ''), 10)
-        const bNum = parseInt(b.replace('layer-', ''), 10)
-        return bNum - aNum // Sort descending to get highest first
-      })
-      return layerKeys.length > 0 ? layerKeys[0] : 'layer-3' // Fallback to layer-3 if no layers found
-    } catch { }
-    return 'layer-3'
-  }, [themeJson, mode])
-
-  // Get elevation level from the highest available layer
-  const elevationLevel = useMemo(() => {
-    try {
-      const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-      const themes = root?.themes || root
-      const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
-      const layerSpec: any = layersData[highestLayer] || {}
-      const v: any = layerSpec?.properties?.elevation?.$value
-      if (typeof v === 'string') {
-        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
-        const m = v.match(/elevations?\.(elevation-(\d+))/i)
-        if (m) return m[2]
-      }
-    } catch { }
-    return '3' // Default to elevation-3 if not found
-  }, [themeJson, mode, highestLayer])
-
-  // Reset hex match ref when target changes
-  useEffect(() => {
-    firstHexMatchRef.current = null
-  }, [targetCssVar, selectedPaletteSwatch])
-
-  // Check if a palette swatch is currently selected
   const isSwatchSelected = (paletteCssVar: string): boolean => {
-    if (!targetResolvedValue || !targetCssVar) return false
+    if (!targetCssVar) return false
 
-    // PRIORITY 1: Use the tracked selected swatch - this prevents multiple selections
+    // Exact match
+    const currentVal = readCssVar(targetCssVar)
+    if (currentVal?.trim() === `var(${paletteCssVar})`) return true
+
+    // Tracking match
     if (selectedPaletteSwatch) {
-      // Check if this is a core color
-      // Note: interactive colors have -default-tone or -hover-tone suffixes
-      const coreColorMatch = paletteCssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)$/i)
-      if (coreColorMatch) {
-        const [, coreKey] = coreColorMatch
-        // Normalize: remove -tone suffix if present, but keep -default and -hover
-        const normalizedKey = coreKey.replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
-        // Find matching core color from our list to get the correct key
-        const matchingCoreColor = coreColors.find(cc => {
-          const cssVarMatch = cc.cssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)$/i)
-          if (!cssVarMatch) return false
-          const [, ccKey] = cssVarMatch
-          const normalizedCcKey = ccKey.replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
-          return normalizedCcKey === normalizedKey || ccKey === coreKey || cc.cssVar === paletteCssVar || normalizedCcKey === cc.key
-        })
-
-        if (matchingCoreColor) {
-          const coreId = `core-${matchingCoreColor.key}`
-          return selectedPaletteSwatch === coreId
-        }
-
-        // Fallback: use the coreKey directly (normalize it first)
-        const normalizedCoreKey = normalizedKey
-        const coreId = `core-${normalizedCoreKey}`
-        return selectedPaletteSwatch === coreId
-      }
-
-      // Check if this is a regular palette swatch
-      const paletteMatch = paletteCssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000|default|hover)-tone/)
-      if (paletteMatch) {
-        const [, paletteKey, level] = paletteMatch
-        const paletteId = `${paletteKey}-${level}`
-        return selectedPaletteSwatch === paletteId
-      }
-
-      // If selectedPaletteSwatch is set but doesn't match, return false
-      return false
+      const paletteMatch = paletteCssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-([a-z0-9]+)-tone/)
+      if (paletteMatch && selectedPaletteSwatch === `${paletteMatch[1]}-${paletteMatch[2]}`) return true
     }
 
-    // PRIORITY 2: Check for exact CSS variable match (only if no selectedPaletteSwatch is set)
-    if (!selectedPaletteSwatch) {
-      const directValue = readCssVar(targetCssVar)
-      if (directValue) {
-        const trimmed = directValue.trim()
-        const expectedValue = `var(${paletteCssVar})`
-        if (trimmed === expectedValue) {
+    // Hex match fallback
+    if (targetResolvedValue?.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
+      const paletteHex = readCssVarResolved(paletteCssVar)
+      if (paletteHex && paletteHex.toLowerCase() === targetResolvedValue.resolved.toLowerCase()) {
+        if (firstHexMatchRef.current === null) {
+          firstHexMatchRef.current = paletteCssVar
           return true
         }
-
-        // Check if target is a color-mix() that contains this palette var
-        const paletteVarName = paletteCssVar.replace(/^var\(/, '').replace(/\)$/, '')
-        if (trimmed.includes('color-mix') && trimmed.includes(paletteVarName)) {
-          return true
-        }
-      }
-
-      // PRIORITY 3: Hex comparison (only as last resort, and only if no selectedPaletteSwatch)
-      // Use a ref to track the first swatch that matches to prevent multiple matches
-      if (targetResolvedValue.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
-        const paletteHex = readCssVarResolved(paletteCssVar, 10)
-        if (paletteHex && /^#[0-9a-f]{6}$/i.test(paletteHex.trim())) {
-          if (targetResolvedValue.resolved.trim().toLowerCase() === paletteHex.trim().toLowerCase()) {
-            // Only match the first swatch that matches this hex
-            if (firstHexMatchRef.current === null) {
-              firstHexMatchRef.current = paletteCssVar
-              return true
-            }
-            // If we've already matched a swatch, only return true if this is the same one
-            return firstHexMatchRef.current === paletteCssVar
-          }
-        }
+        return firstHexMatchRef.current === paletteCssVar
       }
     }
-
     return false
   }
 
-  // Update position on scroll and resize
   useEffect(() => {
-    if (!anchor) return
-
-    const calculatePosition = () => {
-      const rect = anchor.getBoundingClientRect()
-      const scrollX = window.scrollX || window.pageXOffset || 0
-      const scrollY = window.scrollY || window.pageYOffset || 0
-      const top = rect.bottom + scrollY + 8
-      const left = Math.min(rect.left + scrollX, scrollX + window.innerWidth - 420)
-      setPos({ top, left })
-    }
-
-    const handleScroll = () => {
-      calculatePosition()
-    }
-    const handleResize = () => {
-      calculatePosition()
-    }
-
-    window.addEventListener('scroll', handleScroll, true)
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll, true)
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [anchor])
-
-  // Handle dragging
-  useEffect(() => {
-    if (!isDragging) return
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const scrollX = window.scrollX || window.pageXOffset || 0
-      const scrollY = window.scrollY || window.pageYOffset || 0
-      setPos({
-        top: e.clientY + scrollY - dragStart.y,
-        left: e.clientX + scrollX - dragStart.x,
-      })
-    }
-
-    const handleMouseUp = () => {
-      setIsDragging(false)
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [isDragging, dragStart])
-
-    ; (window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[], opacityCssVar?: string) => {
+    (window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[], opacityCssVar?: string) => {
       setAnchor(el)
       setTargetCssVar(cssVar || null)
       setTargetCssVars(cssVarsArray && cssVarsArray.length > 0 ? cssVarsArray : [])
       setTargetOpacityCssVar(opacityCssVar || null)
       setShowOpacityDropdown(!!opacityCssVar)
 
-      // Set initial selected opacity immediately if opacity CSS var is provided
       if (opacityCssVar) {
         const tokenKey = extractTokenFromCssVar(opacityCssVar)
         if (tokenKey) {
           setSelectedOpacity(tokenKey)
         } else {
-          // Fallback to first option if no token found
-          const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
-          const firstKey = Object.keys(src).filter((k) => !k.startsWith('$') && Number.isFinite(parseFloat(String(k))))[0]
-          setSelectedOpacity(firstKey || '')
+          setSelectedOpacity(opacityOptions[0]?.key || '')
         }
-      } else {
-        setSelectedOpacity('')
       }
 
       const rect = el.getBoundingClientRect()
-      const scrollX = window.scrollX || window.pageXOffset || 0
-      const scrollY = window.scrollY || window.pageYOffset || 0
-      const top = rect.bottom + scrollY + 8
-      const left = Math.min(rect.left + scrollX, scrollX + window.innerWidth - 420)
-      setPos({ top, left })
+      const viewportWidth = window.innerWidth
+      // Estimate width: label column (110) + 12 swatches (12 * 25) + padding/margins
+      const estimatedWidth = 420
+
+      let left = rect.left
+      // If the picker would go off the right edge, align its right edge with the button's right edge
+      if (left + estimatedWidth > viewportWidth - 20) {
+        left = Math.max(16, rect.right - estimatedWidth)
+      }
+
+      setPos({ top: rect.bottom + 8, left })
     }
+  }, [tokensJson, opacityOptions])
 
-  if (!anchor || !targetCssVar) return null
+  if (!anchor) return null
 
-  const labelCol = 80 // Reduced from 120 to give more space for swatches
-  const swatch = 18
+  const labelCol = 110
+  const swatch = 24
   const gap = 1
-  // Calculate max swatches per row to determine minimum width needed
-  const maxLevelCount = Math.max(...Object.values(paletteLevels).map((levels) => levels.length), coreColors.length, 0)
-  // Calculate width to fit all swatches without wrapping - hug the content
-  const swatchAreaWidth = maxLevelCount * (swatch + gap) - gap // Exact width needed for all swatches
-  const overlayWidth = labelCol + swatchAreaWidth + 32
-  const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
-
-  const elevationBoxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0.1))`
-
-  // Get the Check icon component
   const CheckIcon = iconNameToReactComponent('check')
+  const isOverlay = targetCssVars.some(v => v.includes('state-overlay-color')) || (targetCssVar?.includes('state-overlay-color'))
+  const pickerTitle = isOverlay ? 'Edit overlay' : 'Pick palette color'
 
-  const handleHeaderMouseDown = (e: React.MouseEvent) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    setDragStart({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    })
-    setIsDragging(true)
-  }
-
-  const highestLayerNum = highestLayer.replace('layer-', '')
-
-  return createPortal(
-    <div style={{ position: 'absolute', top: pos.top, left: pos.left, width: 'auto', minWidth: overlayWidth, maxWidth: 'none', background: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface))`, color: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-element-text-color))`, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-color))`, borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-border-radius))`, boxShadow: elevationBoxShadow, padding: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-padding, var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-padding))`, zIndex: 20000, cursor: isDragging ? 'grabbing' : 'default' }}>
+  return (
+    <Modal
+      isOpen={true}
+      onClose={() => {
+        setAnchor(null)
+      }}
+      title={pickerTitle}
+      size="auto"
+      withOverlay={false}
+      centered={false}
+      position={{ x: pos.left, y: pos.top }}
+      onPositionChange={(newPos) => setPos({ top: newPos.y, left: newPos.x })}
+      draggable={true}
+      showHeader={true}
+      showFooter={false}
+      padding={true}
+      layer="layer-3"
+      zIndex={20000}
+      className="palette-swatch-picker-overlay"
+      style={{
+        overflow: 'visible',
+        visibility: pos.top === -9999 ? 'hidden' : 'visible',
+      }}
+    >
       <div
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, cursor: 'move' }}
-        onMouseDown={handleHeaderMouseDown}
+        style={{
+          display: 'grid',
+          gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
+          minWidth: 280,
+        }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ fontWeight: 600 }}>Pick palette color</div>
-        <button onClick={() => {
-          setAnchor(null)
-          setTargetCssVar(null)
-          setTargetCssVars([])
-          setTargetOpacityCssVar(null)
-          setShowOpacityDropdown(false)
-          setSelectedOpacity('')
-          setTargetOpacityCssVar(null)
-          setShowOpacityDropdown(false)
-          setSelectedOpacity('')
-        }} aria-label="Close" style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16 }}>&times;</button>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
-        {/* Opacity Dropdown - only show when showOpacityDropdown is true */}
-        {showOpacityDropdown && targetOpacityCssVar && (
+        {showOpacityDropdown && (
           <Dropdown
             label="Opacity"
-            items={opacityOptions.map(o => ({ value: o.key, label: o.label }))}
+            layout="side-by-side"
+            items={opacityOptions.map((opt) => ({ value: opt.key, label: opt.label }))}
             value={selectedOpacity}
             onChange={(val) => {
-              const option = opacityOptions.find(o => o.key === val)
-              if (option && targetOpacityCssVar) {
-                const tokenKey = option.key
-                const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
-                updateCssVar(targetOpacityCssVar, `var(${opacityCssVar})`)
-                setSelectedOpacity(val)
+              if (!targetOpacityCssVar) return
+              setSelectedOpacity(val)
+              const opacityRef = `--recursica-tokens-opacities-${val}`
+              updateCssVar(targetOpacityCssVar, `var(${opacityRef})`, tokensJson)
 
-                // Dispatch event
-                setTimeout(() => {
-                  try {
-                    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-                      detail: { cssVars: [targetOpacityCssVar] }
-                    }))
-                  } catch { }
-                }, 0)
+              if (setTheme && themeJson) {
+                try {
+                  const themeCopy = JSON.parse(JSON.stringify(themeJson))
+                  const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                  const themes = root?.themes || root
+                  const isDark = targetOpacityCssVar.includes('-dark-')
+                  const modeKey = isDark ? 'dark' : 'light'
+
+                  if (!themes[modeKey]) themes[modeKey] = {}
+                  if (!themes[modeKey].states) themes[modeKey].states = {}
+                  if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+
+                  themes[modeKey].states.overlay.opacity = {
+                    $type: 'number',
+                    $value: `{tokens.opacities.${val}}`
+                  }
+                  setTheme(themeCopy)
+                } catch (err) { }
               }
+
+              window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+                detail: { cssVars: [targetOpacityCssVar] }
+              }))
             }}
             layer="layer-3"
+            labelSize="small"
             zIndex={30000}
-            style={{ width: '100%' }}
           />
         )}
-        <div style={{ display: 'grid', gap: 4 }}>
-          {/* None option */}
-          <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
-            <div style={{ fontSize: 12, opacity: 0.8 }}>None</div>
-            <div style={{ display: 'flex', flexWrap: 'nowrap', gap }}>
-              <div
-                title="None"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  try {
-                    const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
 
-                    // Remove CSS variables for "none" (remove the CSS var to use default/transparent)
-                    cssVarsToUpdate.forEach((cssVar) => {
-                      const prefixedTarget = cssVar.startsWith('--recursica-')
-                        ? cssVar
-                        : cssVar.startsWith('--')
-                          ? `--recursica-${cssVar.slice(2)}`
-                          : `--recursica-${cssVar}`
-
-                      // Remove the CSS var to clear the color (falls back to default/transparent)
-                      removeCssVar(prefixedTarget)
-                    })
-
-                    try {
-                      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-                        detail: { cssVars: cssVarsToUpdate }
-                      }))
-                    } catch { }
-
-                    // Force re-render to update selection state
-                    setRefreshTrigger(prev => prev + 1)
-
-                    // Trigger a delay to ensure CSS vars are updated before notifying
-                    setTimeout(() => {
-                      try {
-                        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-                          detail: { cssVars: cssVarsToUpdate }
-                        }))
-                      } catch { }
-                    }, 0)
-
-                    onSelect?.('none')
-                  } catch (err) {
-                    console.error('Failed to set none:', err)
-                  }
-                  setAnchor(null)
-                  setTargetCssVar(null)
-                  setTargetCssVars([])
-                  setTargetOpacityCssVar(null)
-                  setShowOpacityDropdown(false)
-                  setSelectedOpacity('')
-                }}
-                style={{
-                  position: 'relative',
-                  width: swatch,
-                  height: swatch,
-                  cursor: 'pointer',
-                  border: `1px solid ${isNoneSelected ? `var(--recursica-brand-themes-${mode}-palettes-core-black)` : `var(--recursica-brand-themes-${mode}-palettes-neutral-500-tone)`}`,
-                  flex: '0 0 auto',
-                  padding: isNoneSelected ? '1px' : '0',
-                  borderRadius: isNoneSelected ? '5px' : '0',
-                  boxSizing: 'border-box',
-                }}
-              >
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    background: `var(--recursica-brand-themes-${mode}-layer-layer-${highestLayerNum}-property-surface)`,
-                    borderRadius: isNoneSelected ? '4px' : '0',
-                    position: 'relative',
-                  }}
-                >
-                  {/* Diagonal line through box */}
-                  <svg
-                    width={swatch - (isNoneSelected ? 2 : 0)}
-                    height={swatch - (isNoneSelected ? 2 : 0)}
-                    viewBox={`0 0 ${swatch} ${swatch}`}
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      transform: 'translate(-50%, -50%)',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    <line
-                      x1="2"
-                      y1="2"
-                      x2={swatch - 2}
-                      y2={swatch - 2}
-                      stroke={`var(--recursica-brand-themes-${mode}-palettes-neutral-500-tone)`}
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                    />
-                  </svg>
+        <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
+          <Label size="small">None</Label>
+          <div
+            onClick={(e) => {
+              e.stopPropagation()
+              const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
+              cssVarsToUpdate.forEach((v) => removeCssVar(v))
+              setAnchor(null)
+              onSelect?.('')
+              window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
+            }}
+            style={{
+              width: swatch,
+              height: swatch,
+              cursor: 'pointer',
+              background: 'transparent',
+              border: `1px solid ${isNoneSelected ? `var(--recursica-brand-themes-${mode}-palettes-core-black)` : `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`}`,
+              position: 'relative',
+              padding: isNoneSelected ? '1px' : '0',
+              borderRadius: isNoneSelected ? '5px' : '0',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: isNoneSelected ? '4px' : '0',
+              position: 'relative',
+              background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`
+            }}>
+              <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
+                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica-brand-themes-${mode}-palettes-neutral-500-tone)`} strokeWidth="1.5" />
+              </svg>
+              {isNoneSelected && (
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
+                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica-brand-themes-${mode}-palettes-core-black)` }} /> : '✓'}
                 </div>
-              </div>
+              )}
             </div>
           </div>
-          {paletteKeys.map((pk) => {
-            // Calculate width needed for this specific palette's swatches
-            const paletteLevelCount = (paletteLevels[pk] || []).length
-            const paletteSwatchWidth = paletteLevelCount * (swatch + gap) - gap
+        </div>
 
-            return (
-              <div key={pk} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
-                <div style={{ fontSize: 12, opacity: 0.8, textTransform: 'capitalize' }}>{toTitle(pk)}</div>
-                <div style={{ display: 'flex', flexWrap: 'nowrap', gap, minWidth: paletteSwatchWidth }}>
-                  {(paletteLevels[pk] || []).map((level) => {
-                    const paletteCssVar = buildPaletteCssVar(pk, level)
-                    const onToneCssVar = buildPaletteOnToneCssVar(pk, level)
-                    const isSelected = isSwatchSelected(paletteCssVar)
-                    return (
-                      <div
-                        key={`${pk}-${level}`}
-                        title={`${pk}/${level}`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          try {
-                            // Get all CSS vars to update (use array if provided, otherwise just the single target)
-                            const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
+        {paletteKeys.map((pk) => {
+          const swatches: { key: string; label: string; cssVar: string }[] = []
+          try {
+            const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+            const themes = root?.themes || root
+            const pal: any = themes?.[modeLower]?.palettes?.[pk] || themes?.[modeLower]?.palette?.[pk] || {}
 
-                            // Update all CSS variables - only update CSS vars, never JSON
-                            cssVarsToUpdate.forEach((cssVar) => {
-                              // Ensure target CSS var has --recursica- prefix if it doesn't already
-                              const prefixedTarget = cssVar.startsWith('--recursica-')
-                                ? cssVar
-                                : cssVar.startsWith('--')
-                                  ? `--recursica-${cssVar.slice(2)}`
-                                  : `--recursica-${cssVar}`
+            // Get keys and sort them: 1000 on the left to 000 on the right
+            const keys = Object.keys(pal).filter(k => /^\d+$/.test(k))
+            keys.sort((a, b) => {
+              const aNum = parseInt(a)
+              const bNum = parseInt(b)
+              if (!isNaN(aNum) && !isNaN(bNum)) {
+                return bNum - aNum // Descending: 1000, 900, ..., 000
+              }
+              return b.localeCompare(a)
+            })
 
-                              // Set the target CSS variable to reference the selected palette CSS variable
-                              updateCssVar(prefixedTarget, `var(${paletteCssVar})`, tokensJson)
-                            })
+            keys.forEach((sk) => {
+              const label = sk.charAt(0).toUpperCase() + sk.slice(1).replace(/-/g, ' ')
+              const cssVar = buildPaletteCssVar(pk, sk)
+              swatches.push({ key: sk, label, cssVar })
+            })
+          } catch { }
 
-                            // Persist to theme JSON if this is an overlay color
-                            const isOverlayColor = cssVarsToUpdate.some(cssVar => cssVar.includes('state-overlay-color'))
-                            if (isOverlayColor && setTheme && themeJson) {
-                              try {
-                                const themeCopy = JSON.parse(JSON.stringify(themeJson))
-                                const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                                const themes = root?.themes || root
+          if (swatches.length === 0) return null
 
-                                // Determine which mode (light or dark)
-                                const isDark = cssVarsToUpdate.some(cssVar => cssVar.includes('-dark-'))
-                                const modeKey = isDark ? 'dark' : 'light'
-
-                                // Extract palette key and level from paletteCssVar
-                                // Format: --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-tone
-                                const paletteMatch = paletteCssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-([a-z0-9]+)-tone/)
-                                if (paletteMatch) {
-                                  const [, paletteKey, level] = paletteMatch
-                                  const cssLevel = level === 'primary' ? 'default' : level
-
-                                  // Ensure state structure exists
-                                  if (!themes[modeKey]) themes[modeKey] = {}
-                                  if (!themes[modeKey].states) themes[modeKey].states = {}
-                                  if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
-
-                                  // Update the overlay color reference in theme JSON
-                                  themes[modeKey].states.overlay.color = {
-                                    $type: 'color',
-                                    $value: `{brand.themes.${modeKey}.palettes.${paletteKey}.${cssLevel}.color.tone}`
-                                  }
-
-                                  setTheme(themeCopy)
-                                }
-                              } catch (err) {
-                                console.error('Failed to update theme JSON for overlay color:', err)
-                              }
-                            }
-
-                            // Force re-render to update selection state
-                            setRefreshTrigger(prev => prev + 1)
-
-                            // Trigger a delay to ensure CSS vars are updated before notifying
-                            setTimeout(() => {
-                              try {
-                                window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-                                  detail: { cssVars: cssVarsToUpdate, paletteCssVar }
-                                }))
-                              } catch { }
-                            }, 0)
-
-                            onSelect?.(paletteCssVar)
-                          } catch (err) {
-                            console.error('Failed to set palette CSS variable:', err)
-                          }
-                          setAnchor(null)
-                          setTargetCssVar(null)
-                          setTargetCssVars([])
-                          setTargetOpacityCssVar(null)
-                          setShowOpacityDropdown(false)
-                          setSelectedOpacity('')
-                        }}
-                        style={{
-                          position: 'relative',
-                          width: swatch,
-                          height: swatch,
-                          cursor: 'pointer',
-                          border: `1px solid ${isSelected ? `var(--recursica-brand-themes-${mode}-palettes-core-black)` : `var(--recursica-brand-themes-${mode}-palettes-neutral-500-tone)`}`,
-                          flex: '0 0 auto',
-                          padding: isSelected ? '1px' : '0',
-                          borderRadius: isSelected ? '5px' : '0',
-                          boxSizing: 'border-box',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            background: `var(${paletteCssVar})`,
-                            borderRadius: isSelected ? '4px' : '0',
-                            position: 'relative',
-                          }}
-                        >
-                          {isSelected && CheckIcon && (
-                            <CheckIcon
-                              style={{
-                                position: 'absolute',
-                                top: '50%',
-                                left: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                pointerEvents: 'none',
-                                width: 12,
-                                height: 12,
-                                color: `var(${onToneCssVar})`,
-                              }}
-                            />
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-          {coreColors.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
-              <div style={{ fontSize: 12, opacity: 0.8 }}>Core</div>
+          return (
+            <div key={pk} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
+              <Label size="small" style={{ textTransform: 'capitalize' }}>{pk.replace(/-/g, ' ')}</Label>
               <div style={{ display: 'flex', flexWrap: 'nowrap', gap }}>
-                {coreColors.map((coreColor) => {
-                  const isSelected = isSwatchSelected(coreColor.cssVar)
-                  // Build on-tone CSS var for core colors
-                  // For interactive, use the state-specific on-tone (default or hover)
-                  let onToneCssVar: string
-                  if (coreColor.key === 'interactive-default') {
-                    onToneCssVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`
-                  } else if (coreColor.key === 'interactive-hover') {
-                    onToneCssVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone`
-                  } else if (coreColor.key === 'interactive') {
-                    // Fallback for base interactive
-                    onToneCssVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`
-                  } else {
-                    // For other core colors (black, white, alert, warning, success)
-                    onToneCssVar = `--recursica-brand-themes-${mode}-palettes-core-${coreColor.key}-on-tone`
-                  }
+                {swatches.map((s) => {
+                  const isSelected = isSwatchSelected(s.cssVar)
+                  const baseVarName = s.cssVar.replace('-tone', '')
+                  const onToneCssVar = `${baseVarName}-on-tone`
+
                   return (
                     <div
-                      key={coreColor.key}
-                      title={coreColor.label}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        console.log(`[PaletteSwatchPicker] Core color clicked: key=${coreColor.key}, cssVar=${coreColor.cssVar}, targetCssVar=${targetCssVar}`)
-                        try {
-                          const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
-                          const coreColorPrefix = `--recursica-brand-themes-${mode}-palettes-core-`
+                      key={s.key}
+                      title={s.label}
+                      onClick={() => {
+                        const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
+                        cssVarsToUpdate.forEach((v) => updateCssVar(v, `var(${s.cssVar})`, tokensJson))
 
-                          // Check if this is an overlay color selection
-                          const isOverlayColor = cssVarsToUpdate.some(cssVar => cssVar.includes('state-overlay-color'))
-                          console.log(`[PaletteSwatchPicker] isOverlayColor=${isOverlayColor}, cssVarsToUpdate=`, cssVarsToUpdate)
-
-                          if (isOverlayColor) {
-                            // Handle overlay color selection (similar to palette color handler)
-                            console.log(`[PaletteSwatchPicker] Handling overlay color selection for core color: ${coreColor.key}`)
-
-                            // Extract core color name from CSS var (e.g., "black", "white", "alert", etc.)
-                            const coreColorMatch = coreColor.cssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-default-tone|-hover-tone|-tone)?)/i)
-                            if (!coreColorMatch) {
-                              console.error('[PaletteSwatchPicker] Failed to extract core color name from CSS var')
-                              return
+                        if (isOverlay && setTheme && themeJson) {
+                          try {
+                            const themeCopy = JSON.parse(JSON.stringify(themeJson))
+                            const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                            const themes = root?.themes || root
+                            const isDark = cssVarsToUpdate.some(v => v.includes('-dark-'))
+                            const modeKey = isDark ? 'dark' : 'light'
+                            if (!themes[modeKey]) themes[modeKey] = {}
+                            if (!themes[modeKey].states) themes[modeKey].states = {}
+                            if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+                            themes[modeKey].states.overlay.color = {
+                              $type: 'color',
+                              $value: `{brand.themes.${modeKey}.palettes.${pk}.${s.key}.tone}`
                             }
-
-                            const [, coreColorKey] = coreColorMatch
-                            // Normalize the key (remove -tone, -default-tone, -hover-tone suffixes)
-                            let normalizedKey = coreColorKey.replace(/-tone$/, '').replace(/-default-tone$/, '-default').replace(/-hover-tone$/, '-hover')
-
-                            // For non-interactive core colors, we need just the base name (black, white, alert, warning, success)
-                            if (normalizedKey === 'black' || normalizedKey === 'white' || normalizedKey === 'alert' || normalizedKey === 'warning' || normalizedKey === 'success') {
-                              // Update CSS vars FIRST for immediate visual feedback
-                              cssVarsToUpdate.forEach((cssVar) => {
-                                const prefixedTarget = cssVar.startsWith('--recursica-')
-                                  ? cssVar
-                                  : cssVar.startsWith('--')
-                                    ? `--recursica-${cssVar.slice(2)}`
-                                    : `--recursica-${cssVar}`
-
-                                console.log(`[PaletteSwatchPicker] Updating overlay CSS var ${prefixedTarget} to var(${coreColor.cssVar})`)
-                                updateCssVar(prefixedTarget, `var(${coreColor.cssVar})`, tokensJson)
-                              })
-
-                              // Persist to theme JSON
-                              if (setTheme && themeJson) {
-                                try {
-                                  const themeCopy = JSON.parse(JSON.stringify(themeJson))
-                                  const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                                  const themes = root?.themes || root
-
-                                  // Determine which mode (light or dark)
-                                  const isDark = cssVarsToUpdate.some(cssVar => cssVar.includes('-dark-'))
-                                  const modeKey = isDark ? 'dark' : 'light'
-
-                                  // Ensure state structure exists
-                                  if (!themes[modeKey]) themes[modeKey] = {}
-                                  if (!themes[modeKey].states) themes[modeKey].states = {}
-                                  if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
-
-                                  // Update the overlay color reference in theme JSON
-                                  // Format: {brand.palettes.core-colors.{colorName}.tone}
-                                  themes[modeKey].states.overlay.color = {
-                                    $type: 'color',
-                                    $value: `{brand.palettes.core-colors.${normalizedKey}.tone}`
-                                  }
-
-                                  console.log(`[PaletteSwatchPicker] Updating theme JSON overlay color to: {brand.palettes.core-colors.${normalizedKey}.tone}`)
-                                  setTheme(themeCopy)
-                                } catch (err) {
-                                  console.error('[PaletteSwatchPicker] Failed to update theme JSON for overlay color:', err)
-                                }
-                              }
-
-                              // Force re-render to update selection state
-                              setRefreshTrigger(prev => prev + 1)
-
-                              // Dispatch cssVarsUpdated event
-                              setTimeout(() => {
-                                try {
-                                  window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-                                    detail: { cssVars: cssVarsToUpdate }
-                                  }))
-                                } catch { }
-                              }, 0)
-
-                              onSelect?.(coreColor.cssVar)
-
-                              // Close the picker
-                              setAnchor(null)
-                              setTargetCssVar(null)
-                              setTargetCssVars([])
-                              setTargetOpacityCssVar(null)
-                              setShowOpacityDropdown(false)
-                              setSelectedOpacity('')
-                              return
-                            }
-                          }
-
-                          // Original logic for core color tone updates (not overlay colors)
-                          // Extract token reference from selected core color CSS var
-                          // First try to get it from theme JSON (most reliable)
-                          let tokenRef: string | null = null
-                          let tokenName: string | null = null
-                          const sourceColorMatch = coreColor.cssVar.match(/--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-default-tone|-hover-tone|-tone)?)/i)
-
-                          if (sourceColorMatch && themeJson) {
-                            const [, sourceColorKey] = sourceColorMatch
-                            let sourceColorName = sourceColorKey.replace(/-tone$/, '').replace(/-default-tone$/, '-default').replace(/-hover-tone$/, '-hover')
-
-                            try {
-                              const root: any = themeJson?.brand ? themeJson.brand : themeJson
-                              const themes = root?.themes || root
-                              const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']
-
-                              if (sourceColorName.includes('interactive')) {
-                                const interactive = coreColors?.interactive
-                                if (sourceColorName.includes('hover') && interactive?.hover?.tone?.$value) {
-                                  tokenRef = interactive.hover.tone.$value
-                                } else if (interactive?.default?.tone?.$value) {
-                                  tokenRef = interactive.default.tone.$value
-                                }
-                              } else if (coreColors?.[sourceColorName]?.tone?.$value) {
-                                tokenRef = coreColors[sourceColorName].tone.$value
-                              }
-
-                              // Extract token name from token reference
-                              if (tokenRef) {
-                                const tokenMatch = tokenRef.match(/\{tokens\.colors\.([^.]+)\.([^}]+)\}/)
-                                if (tokenMatch) {
-                                  const [, family, level] = tokenMatch
-                                  tokenName = `colors/${family}/${level}`
-                                }
-                              }
-                            } catch { }
-                          }
-
-                          // If we couldn't get token ref from theme, try resolving the CSS var
-                          if (!tokenRef) {
-                            const resolvedValue = readCssVarResolved(coreColor.cssVar)
-                            if (resolvedValue) {
-                              const tokenMatch = resolvedValue.match(/--recursica-tokens-colors?-([a-z0-9-]+)-(\d+|050|000)/)
-                              if (tokenMatch) {
-                                const [, family, level] = tokenMatch
-                                const normalizedLevel = level === '000' ? '050' : level
-                                tokenRef = `{tokens.colors.${family}.${normalizedLevel}}`
-                                tokenName = `colors/${family}/${normalizedLevel}`
-                              }
-                            }
-                          }
-
-                          if (!tokenRef || !tokenName) {
-                            console.error('Failed to extract token reference from selected core color')
-                            return
-                          }
-
-                          // Use the EXACT same pattern as ColorTokenPicker:
-                          // 1. Update CSS vars FIRST for immediate visual feedback
-                          // 2. Then update theme JSON using requestAnimationFrame
-                          // 3. Let recomputeAndApplyAll regenerate CSS vars from theme JSON
-
-                          // Step 1: Update CSS vars FIRST (like ColorTokenPicker does)
-                          cssVarsToUpdate.forEach((cssVar) => {
-                            const prefixedTarget = cssVar.startsWith('--recursica-')
-                              ? cssVar
-                              : cssVar.startsWith('--')
-                                ? `--recursica-${cssVar.slice(2)}`
-                                : `--recursica-${cssVar}`
-
-                            if (prefixedTarget.startsWith(coreColorPrefix) && prefixedTarget.includes('-tone') && !prefixedTarget.includes('-on-tone') && !prefixedTarget.includes('-interactive')) {
-                              updateCssVar(prefixedTarget, `var(${coreColor.cssVar})`, tokensJson)
-                            }
-                          })
-
-                          // Step 2: Update theme JSON SYNCHRONOUSLY (not in requestAnimationFrame)
-                          // This ensures theme JSON is updated before setTheme triggers recomputeAndApplyAll
-                          if (setTheme && themeJson && tokenRef && tokenName) {
-                            try {
-                              // Create ONE theme copy and update ALL colors in it
-                              const themeCopy = JSON.parse(JSON.stringify(themeJson))
-                              const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                              const themes = root?.themes || root
-
-                              if (!themes[mode]) themes[mode] = {}
-                              if (!themes[mode].palettes) themes[mode].palettes = {}
-                              if (!themes[mode].palettes['core-colors']) themes[mode].palettes['core-colors'] = {}
-                              if (!themes[mode].palettes['core-colors'].$value) themes[mode].palettes['core-colors'].$value = {}
-
-                              const coreColors = themes[mode].palettes['core-colors'].$value
-
-                              // Update all target CSS vars in the SAME theme copy
-                              cssVarsToUpdate.forEach((cssVar) => {
-                                const prefixedTarget = cssVar.startsWith('--recursica-')
-                                  ? cssVar
-                                  : cssVar.startsWith('--')
-                                    ? `--recursica-${cssVar.slice(2)}`
-                                    : `--recursica-${cssVar}`
-
-                                if (!prefixedTarget.startsWith(coreColorPrefix)) return
-                                if (prefixedTarget.includes('-on-tone')) return
-
-                                let colorName = prefixedTarget.replace(coreColorPrefix, '').replace('-tone', '')
-                                if (colorName === 'interactive' && !prefixedTarget.includes('interactive-default-tone') && !prefixedTarget.includes('interactive-hover-tone')) {
-                                  colorName = 'interactive-default'
-                                }
-
-                                let mapping: { isInteractive?: boolean; isHover?: boolean } | null = null
-                                if (colorName === 'black' || colorName === 'white' || colorName === 'alert' || colorName === 'warning' || colorName === 'success') {
-                                  mapping = {}
-                                } else if (colorName === 'interactive-default') {
-                                  mapping = { isInteractive: true }
-                                } else if (colorName === 'interactive-hover') {
-                                  mapping = { isInteractive: true, isHover: true }
-                                }
-
-                                if (!mapping) return
-
-                                if (mapping.isInteractive) {
-                                  if (!coreColors.interactive) {
-                                    coreColors.interactive = {
-                                      default: { tone: { $value: tokenRef } },
-                                      hover: { tone: { $value: tokenRef } }
-                                    }
-                                  } else {
-                                    if (mapping.isHover) {
-                                      if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
-                                      if (!coreColors.interactive.hover.tone) coreColors.interactive.hover.tone = {}
-                                      coreColors.interactive.hover.tone.$value = tokenRef
-                                    } else {
-                                      if (!coreColors.interactive.default) coreColors.interactive.default = {}
-                                      if (!coreColors.interactive.default.tone) coreColors.interactive.default.tone = {}
-                                      coreColors.interactive.default.tone.$value = tokenRef
-                                    }
-                                  }
-                                } else {
-                                  if (!coreColors[colorName]) {
-                                    // Get default interactive token from Brand.json structure
-                                    let defaultInteractive = `{tokens.colors.scale-05.300}` // Default fallback
-                                    if (colorName === 'black') {
-                                      defaultInteractive = `{tokens.colors.scale-05.300}`
-                                    } else if (colorName === 'white') {
-                                      defaultInteractive = `{tokens.colors.scale-05.500}`
-                                    } else if (colorName === 'alert') {
-                                      defaultInteractive = `{tokens.colors.scale-05.050}`
-                                    } else if (colorName === 'success') {
-                                      defaultInteractive = `{tokens.colors.scale-05.050}`
-                                    } else if (colorName === 'warning') {
-                                      defaultInteractive = `{tokens.colors.scale-05.900}`
-                                    }
-                                    coreColors[colorName] = {
-                                      tone: { $value: tokenRef },
-                                      'on-tone': { $value: `{brand.themes.${mode}.palettes.core-colors.white}` },
-                                      interactive: { $value: defaultInteractive }
-                                    }
-                                  } else {
-                                    if (!coreColors[colorName].tone) coreColors[colorName].tone = {}
-                                    coreColors[colorName].tone.$value = tokenRef
-                                    // Preserve existing interactive value if it exists, otherwise use default from Brand.json
-                                    if (!coreColors[colorName].interactive) {
-                                      // Get default interactive token from Brand.json structure
-                                      let defaultInteractive = `{tokens.colors.scale-05.300}` // Default fallback
-                                      if (colorName === 'black') {
-                                        defaultInteractive = `{tokens.colors.scale-05.300}`
-                                      } else if (colorName === 'white') {
-                                        defaultInteractive = `{tokens.colors.scale-05.500}`
-                                      } else if (colorName === 'alert') {
-                                        defaultInteractive = `{tokens.colors.scale-05.050}`
-                                      } else if (colorName === 'success') {
-                                        defaultInteractive = `{tokens.colors.scale-05.050}`
-                                      } else if (colorName === 'warning') {
-                                        defaultInteractive = `{tokens.colors.scale-05.900}`
-                                      }
-                                      coreColors[colorName].interactive = { $value: defaultInteractive }
-                                    }
-                                  }
-                                }
-                              })
-
-                              // Call setTheme SYNCHRONOUSLY with all updates
-                              // This ensures recomputeAndApplyAll reads the updated theme JSON
-                              setTheme(themeCopy)
-                            } catch (err) {
-                              console.error('Failed to update core color in theme:', err)
-                            }
-                          }
-
-                          // Force re-render to update selection state
-                          setRefreshTrigger(prev => prev + 1)
-
-                          // Dispatch cssVarsUpdated event (like ColorTokenPicker does)
-                          setTimeout(() => {
-                            try {
-                              window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-                                detail: { cssVars: cssVarsToUpdate }
-                              }))
-                            } catch { }
-                          }, 0)
-
-                          onSelect?.(coreColor.cssVar)
-                        } catch (err) {
-                          console.error('Failed to set core color CSS variable:', err)
+                            setTheme(themeCopy)
+                          } catch (err) { }
                         }
+
+                        onSelect?.(s.cssVar)
+                        setRefreshTrigger(prev => prev + 1)
                         setAnchor(null)
-                        setTargetCssVar(null)
-                        setTargetCssVars([])
-                        setTargetOpacityCssVar(null)
-                        setShowOpacityDropdown(false)
-                        setSelectedOpacity('')
+                        window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
                       }}
                       style={{
                         position: 'relative',
                         width: swatch,
                         height: swatch,
                         cursor: 'pointer',
-                        border: `1px solid ${isSelected ? `var(--recursica-brand-themes-${mode}-palettes-core-black)` : `var(--recursica-brand-themes-${mode}-palettes-neutral-500-tone)`}`,
-                        flex: '0 0 auto',
+                        background: `var(${s.cssVar})`,
+                        border: `1px solid ${isSelected ? `var(--recursica-brand-themes-${mode}-palettes-core-black)` : `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`}`,
                         padding: isSelected ? '1px' : '0',
                         borderRadius: isSelected ? '5px' : '0',
                         boxSizing: 'border-box',
                       }}
                     >
-                      <div
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          background: `var(${coreColor.cssVar})`,
-                          borderRadius: isSelected ? '4px' : '0',
-                          position: 'relative',
-                        }}
-                      >
-                        {isSelected && CheckIcon && (
-                          <CheckIcon
-                            style={{
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              transform: 'translate(-50%, -50%)',
-                              pointerEvents: 'none',
-                              width: 12,
-                              height: 12,
-                              color: `var(${onToneCssVar})`,
-                            }}
-                          />
-                        )}
-                      </div>
+                      {isSelected && (
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
+                          {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(${onToneCssVar})` }} /> : '✓'}
+                        </div>
+                      )}
                     </div>
                   )
                 })}
               </div>
             </div>
-          )}
-        </div>
+          )
+        })}
+
+        {/* Core colors removed */}
       </div>
-    </div>,
-    document.body
+    </Modal>
   )
 }

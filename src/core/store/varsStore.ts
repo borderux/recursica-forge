@@ -667,7 +667,10 @@ class VarsStore {
           } catch { return undefined }
         }
         const norm = normalize(tokenValue)
-        if (norm) varsToUpdate[`--recursica-tokens-opacity-${key}`] = norm
+        if (norm) {
+          varsToUpdate[`--recursica-tokens-opacities-${key}`] = norm
+          varsToUpdate[`--recursica-tokens-opacity-${key}`] = norm
+        }
       } else if ((category === 'color' || category === 'colors') && rest.length >= 2) {
         const [scaleOrFamily, level] = rest
         // Preserve 000 and 1000 as-is, pad others to 3 digits

@@ -284,7 +284,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
       position={pos ? { x: pos.left, y: pos.top } : { x: 0, y: 0 }}
       onPositionChange={(newPos) => setPos({ top: newPos.y, left: newPos.x })}
       draggable={true}
-      zIndex={20000}
+      zIndex={30000}
       showHeader={true}
       showFooter={false}
       padding={true}

@@ -30,7 +30,7 @@ function buildThemeIndex(theme: JsonLike) {
 export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLabel): Record<string, string> {
   const themeIndex = buildThemeIndex(theme)
   const tokenIndex = buildTokenIndex(tokens)
-  const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
+  const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
   // Derive palette keys from Brand JSON (exclude 'core'); do NOT synthesize extra palettes
   const palettes = (() => {
     try {
@@ -38,7 +38,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = root?.themes || root
       const lightPal: any = themes?.light?.palettes || {}
-        return Object.keys(lightPal).filter((k) => k !== 'core' && k !== 'core-colors')
+      return Object.keys(lightPal).filter((k) => k !== 'core' && k !== 'core-colors')
     } catch {
       return []
     }
@@ -49,14 +49,14 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     return entry?.value
   })
   const modeLower = mode.toLowerCase()
-  
+
   // Create context for centralized token reference parser
   const context: TokenReferenceContext = {
     currentMode: mode.toLowerCase() as 'light' | 'dark',
     tokenIndex,
     theme
   }
-  
+
   // Helper function to convert opacity values to CSS variable references
   const getOpacityVar = (v: any): string => {
     // Extract $value if v is an object with $value property (e.g., { $type: "number", $value: "{tokens.opacity.smoky}" })
@@ -65,30 +65,35 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     try {
       if (typeof rawValue === 'string') {
         const parsed = parseTokenReference(rawValue, context)
-        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'opacity') {
+        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && (parsed.path[0] === 'opacity' || parsed.path[0] === 'opacities')) {
           const tokenName = parsed.path[1]
-          return `var(--recursica-tokens-opacity-${tokenName})`
+          // Standardize on plural 'opacities' to match tokenRefs.ts and varsStore mapping
+          return `var(--recursica-tokens-opacities-${tokenName})`
         }
       }
-    } catch {}
+    } catch { }
     // If that didn't work, try resolving and checking the result
     const s = resolveBraceRef(rawValue, tokenIndex)
-    if (typeof s === 'string') {
+    if (s != null) {
+      const sStr = String(s)
       // Try centralized parser on the resolved value
-      const parsed = parseTokenReference(s, context)
-      if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'opacity') {
-        return `var(--recursica-tokens-opacity-${parsed.path[1]})`
+      const parsed = parseTokenReference(sStr, context)
+      if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && (parsed.path[0] === 'opacity' || parsed.path[0] === 'opacities')) {
+        return `var(--recursica-tokens-opacities-${parsed.path[1]})`
       }
-      // numeric fallback wraps solid as default
-      const n = Number(s)
+      // numeric fallback: if we resolved to a number, use it directly
+      const n = Number(sStr)
       if (Number.isFinite(n)) {
         const norm = n <= 1 ? n : n / 100
-        return `var(--recursica-tokens-opacity-solid, ${String(Math.max(0, Math.min(1, norm)))})`
+        const normStr = String(Math.max(0, Math.min(1, norm)))
+        // Return the number itself as the primary value, with 'solid' as a fallback variable ONLY if the number is 1
+        if (norm >= 0.99) return 'var(--recursica-tokens-opacities-solid, 1)'
+        return normStr
       }
     }
-    return 'var(--recursica-tokens-opacity-solid)'
+    return 'var(--recursica-tokens-opacities-solid)'
   }
-  
+
   // Read brand-level text emphasis from Brand JSON and emit brand vars
   try {
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
@@ -99,18 +104,18 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const low = getOpacityVar(textEmphasis?.low)
     vars[`--recursica-brand-themes-${modeLower}-text-emphasis-high`] = high
     vars[`--recursica-brand-themes-${modeLower}-text-emphasis-low`] = low
-  } catch {}
-  
+  } catch { }
+
   // Helper function to convert color values to CSS variable references
   const getColorVar = (v: any, depth: number = 0): string => {
     // Prevent infinite recursion
     if (depth > 5) {
       return `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
     }
-    
+
     // Extract $value if v is an object with $value property
     const rawValue = (v && typeof v === 'object' && '$value' in v) ? v.$value : v
-    
+
     // Try to resolve to CSS var using centralized parser
     const cssVar = resolveTokenReferenceToCssVar(rawValue, context)
     if (cssVar) {
@@ -140,7 +145,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
                 // Recursively resolve the tone value (should be a token reference)
                 return getColorVar(colorDef.tone, depth + 1)
               }
-            } catch {}
+            } catch { }
             // Fallback to CSS var if resolution fails
             return `var(--recursica-brand-themes-${refMode}-palettes-core-${color})`
           }
@@ -148,7 +153,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       }
       return cssVar
     }
-    
+
     // Try to resolve theme reference as fallback
     if (typeof rawValue === 'string') {
       const resolved = resolveThemeRef(rawValue)
@@ -161,7 +166,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         }
       }
     }
-    
+
     // Fallback to black for current mode
     return `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
   }
@@ -176,7 +181,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const hover = getOpacityVar(state?.hover)
     const overlayOpacity = getOpacityVar(state?.overlay?.opacity)
     const overlayColor = getColorVar(state?.overlay?.color)
-    
+
     // Always emit state CSS variables, even if values are undefined (they'll have fallback defaults)
     vars[`--recursica-brand-themes-${modeLower}-state-disabled`] = disabled
     vars[`--recursica-brand-themes-${modeLower}-state-hover`] = hover
@@ -221,7 +226,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         return []
       }
     })()
-    
+
     // Always process all standard levels (including 1000) to ensure CSS variables are generated
     // Even if a level doesn't exist in JSON, we'll generate default values for on-tone
     // This ensures reset doesn't cause on-tone colors to disappear
@@ -233,29 +238,29 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     if (paletteLevels.includes('primary') && !levelsToProcess.includes('primary')) {
       levelsToProcess.push('primary')
     }
-    
+
     levelsToProcess.forEach((lvl) => {
       // Map 'default' to 'primary' for CSS variable names (Brand.json uses 'default', CSS uses 'primary')
       const cssLevel = lvl === 'default' ? 'primary' : lvl
       const toneName = `palette/${pk}/${lvl}/color/tone`
       const onToneName = `palette/${pk}/${lvl}/on-tone`
       let toneRaw = themeIndex[`${mode}::${toneName}`]?.value
-      
+
       // Check if on-tone exists in JSON
       // We always want to generate on-tone CSS variables, even if tone doesn't exist
       // So we don't skip the level - we'll generate a default on-tone value if needed
       const onToneRawCheck = themeIndex[`${mode}::${onToneName}`]?.value
-      
+
       // NEVER skip standard levels (like 1000) - always generate CSS variables for them
       // Only skip non-standard levels that don't exist in JSON and aren't in the standard levels array
       const isStandardLevel = levels.includes(lvl) || lvl === 'default'
       if (!toneRaw && !onToneRawCheck && !isStandardLevel) {
         return // Skip non-standard levels that don't exist in JSON
       }
-      
+
       // For standard levels (including 1000), always continue to generate CSS variables
       // even if they don't exist in JSON - they'll get default values
-      
+
       // If 'default' level and no direct color.tone, check if default references another level
       if (lvl === 'default' && !toneRaw) {
         const defaultRef = themeIndex[`${mode}::palette/${pk}/default`]?.value
@@ -265,14 +270,14 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
             // Check if it's a palette reference: palettes.{paletteKey}.{level}
             if (parsed.path[0] === 'palettes' && parsed.path[1] === pk && /^\d+$/.test(parsed.path[2])) {
               const referencedLevel = parsed.path[2]
-            toneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/tone`]?.value
+              toneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/tone`]?.value
             }
           }
         }
       }
-      
+
       const scope = `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${pk}-${cssLevel}`
-      
+
       // Parse tone from JSON - use centralized resolver to handle both old and new formats
       let toneVar: string | null = null
       if (toneRaw && typeof toneRaw === 'string') {
@@ -280,7 +285,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         // - Old format: {tokens.color.family.level} -> --recursica-tokens-color-{family}-{level}
         // - New format: {tokens.colors.scale-XX.level} -> --recursica-tokens-colors-{scale-XX}-{level}
         toneVar = resolveTokenReferenceToCssVar(toneRaw, context)
-        
+
         // If that didn't work, try resolving to see if it's a valid reference that just resolved to a hex
         if (!toneVar) {
           try {
@@ -290,10 +295,10 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
               // This is a fallback case - the reference should be in token format
               console.error(`[PaletteResolver] Tone reference resolved to hex color instead of token: ${toneRaw} -> ${resolvedValue}`)
             }
-          } catch {}
+          } catch { }
         }
       }
-      
+
       // If parsing failed, try resolving the theme reference (but this should rarely be needed)
       if (!toneVar && toneRaw) {
         const tone = resolveThemeRef({ collection: 'Theme', name: toneName })
@@ -301,7 +306,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
           toneVar = tone
         }
       }
-      
+
       // Emit tone only if we successfully resolved it
       if (toneVar) {
         vars[`${scope}-tone`] = toneVar
@@ -309,10 +314,10 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         // Parsing failed - log an error but don't emit erroneous variables
         console.error(`[PaletteResolver] Failed to parse tone reference for ${scope}-tone:`, toneRaw)
       }
-      
+
       // Always process on-tone, even if tone wasn't found (some levels might only have on-tone defined)
       {
-        
+
         // Map on-tone to core color reference (black/white)
         // If theme JSON specifies on-tone, use it; otherwise default to black
         // AA compliance will be handled reactively in Phase 3
@@ -327,17 +332,17 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
               // Check if it's a palette reference: palettes.{paletteKey}.{level}
               if (parsed.path[0] === 'palettes' && parsed.path[1] === pk && /^\d+$/.test(parsed.path[2])) {
                 const referencedLevel = parsed.path[2]
-              onToneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/on-tone`]?.value
+                onToneRaw = themeIndex[`${mode}::palette/${pk}/${referencedLevel}/color/on-tone`]?.value
               }
             }
           }
         }
         let onToneVar: string
-        
+
         if (typeof onToneRaw === 'string') {
           const s = onToneRaw.trim()
           const sLower = s.toLowerCase()
-          
+
           // Handle direct hex values and color names
           if (sLower === '#ffffff' || sLower === 'white') {
             onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
@@ -369,13 +374,13 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
                 const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
                 if (cssVar) {
                   onToneVar = cssVar
-          } else {
-            // Try to resolve as theme reference
-            const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
-            if (typeof onTone === 'string' && onTone.startsWith('var(')) {
-              onToneVar = onTone
-            } else {
-              // Default to black if unknown
+                } else {
+                  // Try to resolve as theme reference
+                  const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
+                  if (typeof onTone === 'string' && onTone.startsWith('var(')) {
+                    onToneVar = onTone
+                  } else {
+                    // Default to black if unknown
                     onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
                   }
                 }
@@ -396,26 +401,26 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
           // Always generate on-tone CSS variable, even if not found in JSON
           onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
         }
-        
+
         // Only set on-tone CSS variable if it doesn't already exist with a valid value
         // This preserves AA-compliant values set by AA compliance checks
         // On-tone vars should never be overwritten by recomputeAndApplyAll after initial load
         const onToneCssVarName = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${lvl}-on-tone`
         let shouldSetOnTone = true
-        
+
         if (typeof document !== 'undefined') {
           // Use readCssVar to get the actual CSS variable value (var() reference), not the resolved hex color
           // This is critical: getComputedStyle returns resolved values like #fcfcfc, but we need the var() reference
           const existingValue = readCssVar(onToneCssVarName)
           // If on-tone var already exists and is a valid var() reference to core-white or core-black, preserve it
-          if (existingValue && existingValue.trim() !== '' && 
-              existingValue.startsWith('var(') &&
-              (existingValue.includes('core-white') || existingValue.includes('core-black'))) {
+          if (existingValue && existingValue.trim() !== '' &&
+            existingValue.startsWith('var(') &&
+            (existingValue.includes('core-white') || existingValue.includes('core-black'))) {
             // Don't overwrite existing AA-compliant value - skip setting from JSON
             shouldSetOnTone = false
           }
         }
-        
+
         // Only set from JSON if no existing valid value
         if (shouldSetOnTone) {
           vars[`${scope}-on-tone`] = onToneVar
@@ -423,30 +428,53 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       }
       // Do not emit per-level palette emphasis vars; consumers should reference brand-level text emphasis tokens directly
     })
-    
+
     // After processing all levels, ensure primary-tone exists even if there's no 'default' level
     // This is needed because UIKit and other references use {palettes.neutral.default.color.tone}
     // which resolves to --recursica-brand-light-palettes-neutral-primary-tone
     const primaryToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-primary-tone`
     const primaryOnToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-primary-on-tone`
-    
-      // Always check localStorage first for primary level, even if primary-tone var already exists
-      // This ensures randomization updates are reflected
-      let primaryLevel: string | null = null
-      try {
-        const raw = localStorage.getItem(`palette-primary-level:${pk}:${modeLower}`)
-        if (raw) {
-          const parsed = JSON.parse(raw)
-          if (typeof parsed === 'string') {
-            primaryLevel = parsed.padStart(3, '0')
-          }
+
+    // Always check localStorage first for primary level, even if primary-tone var already exists
+    // This ensures randomization updates are reflected
+    let primaryLevel: string | null = null
+    try {
+      const raw = localStorage.getItem(`palette-primary-level:${pk}:${modeLower}`)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (typeof parsed === 'string') {
+          primaryLevel = parsed.padStart(3, '0')
         }
-      } catch (err) {
-        // Ignore localStorage errors
       }
-      
-      // If we have a primary level from localStorage, use it (even if primary-tone var already exists)
-      // This ensures randomization updates override the JSON default
+    } catch (err) {
+      // Ignore localStorage errors
+    }
+
+    // If we have a primary level from localStorage, use it (even if primary-tone var already exists)
+    // This ensures randomization updates override the JSON default
+    if (primaryLevel) {
+      const targetToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-tone`
+      const targetOnToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-on-tone`
+      if (vars[targetToneVar]) {
+        vars[primaryToneVar] = `var(${targetToneVar})`
+        if (vars[targetOnToneVar]) {
+          vars[primaryOnToneVar] = `var(${targetOnToneVar})`
+        }
+      }
+    } else if (!vars[primaryToneVar]) {
+      // Generate primary tone from theme JSON - no DOM preservation
+      // Theme JSON is the single source of truth
+      // If no localStorage value, try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
+      const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
+      for (const level of fallbackLevels) {
+        const fallbackToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${level}-tone`
+        if (vars[fallbackToneVar]) {
+          primaryLevel = level
+          break
+        }
+      }
+
+      // If we found a primary level (from fallback), create primary-tone and primary-on-tone by referencing it
       if (primaryLevel) {
         const targetToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-tone`
         const targetOnToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-on-tone`
@@ -456,33 +484,10 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
             vars[primaryOnToneVar] = `var(${targetOnToneVar})`
           }
         }
-      } else if (!vars[primaryToneVar]) {
-        // Generate primary tone from theme JSON - no DOM preservation
-        // Theme JSON is the single source of truth
-        // If no localStorage value, try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
-        const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
-        for (const level of fallbackLevels) {
-          const fallbackToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${level}-tone`
-          if (vars[fallbackToneVar]) {
-            primaryLevel = level
-            break
-          }
-        }
-        
-        // If we found a primary level (from fallback), create primary-tone and primary-on-tone by referencing it
-        if (primaryLevel) {
-          const targetToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-tone`
-          const targetOnToneVar = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${primaryLevel}-on-tone`
-          if (vars[targetToneVar]) {
-            vars[primaryToneVar] = `var(${targetToneVar})`
-            if (vars[targetOnToneVar]) {
-              vars[primaryOnToneVar] = `var(${targetOnToneVar})`
-            }
-          }
-        }
       }
+    }
   })
-  
+
   // Process core-colors.interactive with states (default/hover) and types (tone/on-tone)
   // Also process other core-colors (alert, warning, success, black, white)
   try {
@@ -491,7 +496,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const coreColorsRaw: any = (mode === 'Light' ? themes?.light?.palettes?.['core-colors'] : themes?.dark?.palettes?.['core-colors']) || {}
     // Handle $value wrapper: core-colors may be { $type: "color", $value: { black: {...}, interactive: {...} } }
     const coreColors: any = coreColorsRaw?.$value || coreColorsRaw
-    
+
     // Process interactive with states
     const interactive: any = coreColors?.interactive || {}
     const defaultState: any = interactive?.default || {}
@@ -503,7 +508,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       const onToneValue = getColorVar(defaultState['on-tone'])
       vars[`--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-on-tone`] = onToneValue
     }
-    
+
     const hoverState: any = interactive?.hover || {}
     if (hoverState?.tone) {
       const toneValue = getColorVar(hoverState.tone)
@@ -513,7 +518,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       const onToneValue = getColorVar(hoverState['on-tone'])
       vars[`--recursica-brand-themes-${modeLower}-palettes-core-interactive-hover-on-tone`] = onToneValue
     }
-    
+
     // Process other core-colors (alert, warning, success, black, white)
     const coreColorKeys = ['alert', 'warning', 'success', 'black', 'white']
     coreColorKeys.forEach((colorKey) => {
@@ -545,9 +550,9 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         }
       }
     })
-  } catch {}
-  
-  
+  } catch { }
+
+
   return vars
 }
 
