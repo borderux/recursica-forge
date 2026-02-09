@@ -415,41 +415,42 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
           onPrimaryAction={handleImportClick}
           primaryActionDisabled={selectedFileNames.length === 0}
           onSecondaryAction={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
-              <input
-                type="file"
-                accept="application/json,.json"
-                multiple
-                onChange={(e) => {
-                  onFileSelect(e.currentTarget.files)
-                  e.currentTarget.value = ''
-                }}
-                style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
-              />
-              {selectedFileNames.length > 0 && (
+          content={
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  multiple
+                  onChange={(e) => {
+                    onFileSelect(e.currentTarget.files)
+                    e.currentTarget.value = ''
+                  }}
+                  style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
+                />
+                {selectedFileNames.length > 0 && (
+                  <div style={{
+                    fontSize: 'var(--recursica-brand-typography-caption-font-size)',
+                    color: `var(${layer0Base}-element-text-color)`,
+                    opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
+                    marginTop: 'var(--recursica-brand-dimensions-general-sm)'
+                  }}>
+                    Selected: {selectedFileNames.join(', ')}
+                  </div>
+                )}
                 <div style={{
                   fontSize: 'var(--recursica-brand-typography-caption-font-size)',
                   color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
+                  opacity: `var(${layer0Base}-element-text-low-emphasis)`,
                   marginTop: 'var(--recursica-brand-dimensions-general-sm)'
                 }}>
-                  Selected: {selectedFileNames.join(', ')}
+                  Upload tokens.json, brand.json, and/or uikit.json files
                 </div>
-              )}
-              <div style={{
-                fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: `var(${layer0Base}-element-text-low-emphasis)`,
-                marginTop: 'var(--recursica-brand-dimensions-general-sm)'
-              }}>
-                Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-          </div>
-        </Modal>
+          }
+        />
       </div>
       <ExportValidationErrorModal
         show={showValidationModal}
@@ -484,11 +485,6 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
           onCancel={() => setShowRandomizeModal(false)}
         />
       )}
-      <ExportValidationErrorModal
-        show={showValidationModal}
-        errors={validationErrors}
-        onClose={handleValidationModalClose}
-      />
       <ImportDirtyDataModal
         show={showDirtyModal}
         filesToImport={filesToImport}

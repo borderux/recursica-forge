@@ -4,8 +4,10 @@
  * Allows users to select which sections/areas to randomize with nested checkboxes
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
-import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import { useState, useEffect } from 'react'
+import { Modal } from '../../components/adapters/Modal'
+import { Button } from '../../components/adapters/Button'
+import { Checkbox } from '../../components/adapters/Checkbox'
 import { getUiKitStructure, type CheckboxItem } from './getUiKitStructure'
 
 export interface RandomizeOptions {
@@ -140,7 +142,6 @@ const findParent = (items: CheckboxItem[], childKey: string): CheckboxItem | nul
 }
 
 export function RandomizeOptionsModal({ show, onRandomize, onCancel }: RandomizeOptionsModalProps) {
-  const { mode } = useThemeMode()
   const [options, setOptions] = useState<RandomizeOptions>(getDefaultOptions())
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
@@ -161,8 +162,6 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
       return next
     })
   }
-
-  if (!show) return null
 
   // Helpers to check selection status
   const isSelected = (section: 'tokens' | 'theme' | 'uikit', key: string): boolean => {
@@ -189,8 +188,6 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
       return false
     })
   }
-
-  // Update logic
 
   const updateUikitState = (key: string, checked: boolean) => {
     const newComponents = { ...options.uikit.components }
@@ -255,8 +252,6 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
   }
 
   const handleRandomize = () => {
-    // Basic validation: ensure something is selected
-    // (Simply passing options is fine, randomizer will just do nothing if empty)
     onRandomize(options)
   }
 
@@ -300,7 +295,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
                 border: 'none', background: 'transparent', cursor: 'pointer',
                 padding: 0, width: '16px', height: '16px', marginRight: '4px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+                color: 'inherit',
                 opacity: 0.6
               }}
             >
@@ -308,33 +303,20 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
             </button>
           ) : (hasChildren && item.key !== rootKey) ? <div style={{ width: '20px' }} /> : null}
 
-          <label style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            cursor: 'pointer',
-            fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-            fontSize: 'var(--recursica-brand-typography-body-font-size)',
-            fontWeight: hasChildren ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
-            lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-            letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-            color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-          }}>
-            <input
-              type="checkbox"
-              checked={selected}
-              ref={(el) => {
-                if (el) (el as HTMLInputElement).indeterminate = indeterminate
-              }}
-              onChange={(e) => handleToggle(item, rootKey, e.target.checked)}
-              style={{
-                width: '16px',
-                height: '16px',
-                cursor: 'pointer',
-              }}
-            />
-            <span>{item.label}</span>
-          </label>
+          <Checkbox
+            checked={selected}
+            indeterminate={indeterminate}
+            onChange={(checked) => handleToggle(item, rootKey, checked)}
+            label={
+              <span style={{
+                fontWeight: hasChildren ? 600 : 'inherit',
+                fontSize: '14px'
+              }}>
+                {item.label}
+              </span>
+            }
+            layer="layer-3"
+          />
         </div>
 
         {/* Children (always show for roots, toggle for deeper levels) */}
@@ -348,58 +330,32 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
   }
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 10000,
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onCancel()
-        }
-      }}
-    >
-      <div
-        style={{
-          backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`,
-          color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-          border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
-          borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-          padding: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-padding)`,
-          maxWidth: '500px',
-          width: '100%',
-          maxHeight: '90vh',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 style={{
-          marginTop: 0,
-          marginBottom: '16px',
-          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-        }}>
-          Randomize Variables
-        </h2>
-
-        <div style={{ flex: 1, overflowY: 'auto', marginBottom: '24px', paddingRight: '8px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <label style={{ fontWeight: 700 }}>Select Options</label>
-              <button
+    <Modal
+      isOpen={show}
+      onClose={onCancel}
+      title="Randomize Variables"
+      primaryActionLabel="Randomize"
+      onPrimaryAction={handleRandomize}
+      secondaryActionLabel="Cancel"
+      onSecondaryAction={onCancel}
+      layer="layer-3"
+      size="md"
+      scrollable={true}
+      content={
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '12px',
+            paddingBottom: '8px',
+            borderBottom: '1px solid var(--modal-border-color)'
+          }}>
+            <label style={{ fontWeight: 700 }}>Select Options</label>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <Button
+                variant="text"
+                size="small"
                 onClick={() => {
                   const newComps: any = {}; ALL_UIKIT_KEYS.forEach(k => newComps[k] = true)
                   setOptions({
@@ -408,11 +364,12 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
                     uikit: { components: newComps }
                   })
                 }}
-                style={{ background: 'none', border: 'none', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-interactive-tone)`, cursor: 'pointer', fontSize: '12px' }}
               >
                 Select All
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="text"
+                size="small"
                 onClick={() => {
                   const newComps: any = {}; ALL_UIKIT_KEYS.forEach(k => newComps[k] = false)
                   setOptions({
@@ -421,55 +378,17 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
                     uikit: { components: newComps }
                   })
                 }}
-                style={{ background: 'none', border: 'none', color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-interactive-tone)`, cursor: 'pointer', fontSize: '12px' }}
               >
                 Deselect All
-              </button>
+              </Button>
             </div>
+          </div>
 
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {OPTIONS_STRUCTURE.map(item => renderCheckbox(item, item.key, 0))}
           </div>
         </div>
-
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', paddingTop: '16px', borderTop: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)` }}>
-          <button
-            onClick={onCancel}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: 'transparent',
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`,
-              borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-              color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-              cursor: 'pointer',
-              fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-              fontSize: 'var(--recursica-brand-typography-body-font-size)',
-              fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-              lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-              letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleRandomize}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-interactive-tone)`,
-              border: 'none',
-              borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`,
-              color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-interactive-on-tone)`,
-              cursor: 'pointer',
-              fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-              fontSize: 'var(--recursica-brand-typography-body-font-size)',
-              fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-              lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-              letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-            }}
-          >
-            Randomize
-          </button>
-        </div>
-      </div>
-    </div>
+      }
+    />
   )
 }

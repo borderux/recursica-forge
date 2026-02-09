@@ -183,7 +183,6 @@ export default function Modal({
 
     // Custom styles for Mantine Modal
     const modalStyles = {
-        ...style,
         '--modal-bg': `var(${bgVar})`,
         '--modal-title-color': `var(${titleColorVar})`,
         '--modal-border-color': `var(${borderColorVar})`,
@@ -224,6 +223,7 @@ export default function Modal({
             '--modal-margin': '0',
             '--modal-transform': 'none',
         } : {}),
+        ...style,
     } as React.CSSProperties
 
     // Get elevation value (either from prop or from CSS variable)
