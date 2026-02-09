@@ -714,6 +714,10 @@ export default function PropControlContent({
   const { theme: themeJson } = useVars()
   const { mode } = useThemeMode()
 
+  // Variant-specific variables
+  const sizeVariant = selectedVariants.size || 'default'
+  const layoutVariant = selectedVariants.layout || 'stacked'
+
   const elevationOptions = useMemo(() => {
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
@@ -853,37 +857,13 @@ export default function PropControlContent({
     componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
     componentName === 'MenuItem'
 
-  if (prop.name.toLowerCase() === 'background' && isMenuItem) {
-    const defaultBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'background')
-    const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', selectedLayer, 'selected-background')
-    const disabledBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'disabled', 'properties', 'colors', selectedLayer, 'background')
-
-    // Use default as primary, but include all three in the control
-    primaryCssVar = defaultBgVar
-    cssVarsForControl = [defaultBgVar, selectedBgVar, disabledBgVar]
-  }
-
-  // Special handling for MenuItem text: update all variant text colors (default, selected, disabled)
-  if (prop.name.toLowerCase() === 'text' && isMenuItem) {
-    const defaultTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'text')
-    const selectedTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'selected', 'properties', 'colors', selectedLayer, 'text')
-    const disabledTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'disabled', 'properties', 'colors', selectedLayer, 'text')
-
-    // Use default as primary, but include all three in the control
-    primaryCssVar = defaultTextVar
-    cssVarsForControl = [defaultTextVar, selectedTextVar, disabledTextVar]
-  }
-
   if (prop.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
-    const sizeVariant = selectedVariants.size || 'small'
     const minHeightVar = `--recursica-ui-kit-components-badge-size-variants-${sizeVariant}-min-height`
     primaryCssVar = minHeightVar
     cssVarsForControl = [minHeightVar]
   }
 
   if (prop.name.toLowerCase() === 'label-width' && componentName.toLowerCase() === 'label') {
-    const layoutVariant = selectedVariants.layout || 'stacked'
-    const sizeVariant = selectedVariants.size || 'default'
     // Build CSS var path using buildComponentCssVarPath to include theme prefix
     const widthVar = buildComponentCssVarPath('Label', 'variants', 'layouts', layoutVariant, 'variants', 'sizes', sizeVariant, 'properties', 'width')
     primaryCssVar = widthVar
@@ -3491,6 +3471,41 @@ export default function PropControlContent({
           const groupedPropKey = groupedPropName.toLowerCase()
           let groupedProp = prop.borderProps!.get(groupedPropKey)
 
+          // CRITICAL FIX for Menu item: When we have nested groups like "selected-item" and "unselected-item",
+          // both containing "background" and "text" properties, we need to match by BOTH the prop name
+          // AND the parent group name to avoid collisions
+          const parentGroupName = prop.name.toLowerCase() // e.g., "selected-item" or "unselected-item"
+          const needsParentGroupMatch = (parentGroupName === 'selected-item' || parentGroupName === 'unselected-item') &&
+            componentName.toLowerCase() === 'menu item'
+
+          if (needsParentGroupMatch && groupedProp) {
+            // Verify that the cached prop actually belongs to this parent group
+            const propBelongsToParentGroup = groupedProp.path.includes(parentGroupName)
+            if (!propBelongsToParentGroup) {
+              // Cached prop is from the wrong group - need to re-find
+              groupedProp = undefined
+            }
+          }
+
+          // If we don't have a grouped prop yet, or it was from the wrong group, find it from structure
+          if (!groupedProp && needsParentGroupMatch) {
+            const structure = parseComponentStructure(componentName)
+            // Find the prop that matches both the prop name AND has the parent group in its path
+            const matchingProp = structure.props.find(p =>
+              p.name.toLowerCase() === groupedPropKey &&
+              p.category === 'colors' &&
+              p.path.includes('colors') &&
+              p.path.includes(parentGroupName) &&
+              p.path.includes(selectedLayer)
+            )
+            if (matchingProp) {
+              groupedProp = matchingProp
+              // Cache it with a unique key that includes the parent group
+              const uniqueKey = `${parentGroupName}-${groupedPropKey}`
+              prop.borderProps!.set(uniqueKey, matchingProp)
+            }
+          }
+
           // Special case: interactive-color maps to "color" prop under colors.layer-X.interactive
           // For breadcrumb, ALWAYS re-find to ensure we have the correct prop
           if (groupedPropKey === 'interactive-color' && componentName.toLowerCase() === 'breadcrumb') {
@@ -3695,11 +3710,6 @@ export default function PropControlContent({
             }
           }
 
-          // Special handling for MenuItem background grouped prop: update all three background CSS variables
-          const isMenuItem = componentName.toLowerCase().replace(/\s+/g, '-') === 'menu-item' ||
-            componentName.toLowerCase().replace(/\s+/g, '') === 'menuitem' ||
-            componentName === 'MenuItem'
-
           // For grouped props:
           // - If variant-specific (e.g., border-size for Button variants), always use getCssVarsForProp to get the CSS var matching selected variant
           // - If grouped prop path contains "container" or "selected", use the prop's CSS var directly to ensure we're updating the correct grouped prop
@@ -3717,26 +3727,6 @@ export default function PropControlContent({
             cssVars = getCssVarsForProp(groupedProp)
           }
           let primaryVar = cssVars[0] || groupedProp.cssVar
-
-
-          if (groupedPropKey === 'background' && isMenuItem) {
-            const defaultBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'background')
-            const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', selectedLayer, 'selected-background')
-            const disabledBgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'disabled', 'properties', 'colors', selectedLayer, 'background')
-
-            primaryVar = defaultBgVar
-            cssVars = [defaultBgVar, selectedBgVar, disabledBgVar]
-          }
-
-          // Special handling for MenuItem text grouped prop: update all variant text colors
-          if (groupedPropKey === 'text' && isMenuItem) {
-            const defaultTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'default', 'properties', 'colors', selectedLayer, 'text')
-            const selectedTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'selected', 'properties', 'colors', selectedLayer, 'text')
-            const disabledTextVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', 'disabled', 'properties', 'colors', selectedLayer, 'text')
-
-            primaryVar = defaultTextVar
-            cssVars = [defaultTextVar, selectedTextVar, disabledTextVar]
-          }
 
           // For breadcrumb interactive/read-only colors, ALWAYS re-validate the prop
           // to ensure we have the correct CSS variable

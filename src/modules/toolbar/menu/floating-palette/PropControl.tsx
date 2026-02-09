@@ -48,22 +48,22 @@ function ElevationPropControl({
     if (tokenMatch) {
       const refMode = tokenMatch[1].toLowerCase() as 'light' | 'dark'
       const elevationName = tokenMatch[2]
-      
+
       // If the token reference is for a different mode, ignore it and return default
       // This prevents reading light mode values when in dark mode
       if (refMode !== mode) {
         return 'elevation-0'
       }
-      
+
       return elevationName
     }
-    
+
     // Fallback: try to match without mode check (for backwards compatibility)
     const fallbackMatch = inlineValue.match(/elevations?\.(elevation-\d+)/i)
     if (fallbackMatch) {
       return fallbackMatch[1]
     }
-    
+
     // Parse direct elevation name format: elevation-0
     if (/^elevation-\d+$/.test(inlineValue)) {
       return inlineValue
@@ -134,7 +134,7 @@ function ElevationPropControl({
     const numValue = typeof value === 'number' ? value : value[0]
     const clampedIndex = Math.max(0, Math.min(Math.round(numValue), tokens.length - 1))
     const selectedToken = tokens[clampedIndex]
-    
+
     if (selectedToken) {
       const elevationName = selectedToken.name
       updateCssVar(primaryVar, `{brand.themes.${mode}.elevations.${elevationName}}`)
@@ -145,7 +145,7 @@ function ElevationPropControl({
       }))
     }
   }, [primaryVar, mode, tokens])
-  
+
   return (
     <Slider
       value={safeCurrentIdx}
@@ -185,14 +185,14 @@ export default function PropControl({
 }: PropControlProps) {
   const { theme: themeJson } = useVars()
   const { mode } = useThemeMode()
-  
+
   // Get elevation options from brand theme
   const elevationOptions = useMemo(() => {
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       const themes = root?.themes || root
       const elev: any = themes?.[mode]?.elevations || root?.[mode]?.elevations || {}
-      const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a,b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
+      const names = Object.keys(elev).filter((k) => /^elevation-\d+$/.test(k)).sort((a, b) => Number(a.split('-')[1]) - Number(b.split('-')[1]))
       return names.map((n) => {
         const idx = Number(n.split('-')[1])
         const label = idx === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${idx}`
@@ -206,7 +206,7 @@ export default function PropControl({
   // Simply finds the CSS var that matches the current selected variants and layer
   const getCssVarsForProp = (propToCheck: ComponentProp): string[] => {
     const structure = parseComponentStructure(componentName)
-    
+
     // Find the prop that matches:
     // 1. Same prop name
     // 2. Same category
@@ -218,23 +218,23 @@ export default function PropControl({
       if (p.name !== propToCheck.name || p.category !== propToCheck.category) {
         return false
       }
-      
+
       // For breadcrumb interactive/read-only colors, must match the path structure
       // Both have name "color" and category "colors", but different paths
-      if (componentName.toLowerCase() === 'breadcrumb' && 
-          propToCheck.name === 'color' && 
-          propToCheck.category === 'colors') {
+      if (componentName.toLowerCase() === 'breadcrumb' &&
+        propToCheck.name === 'color' &&
+        propToCheck.category === 'colors') {
         // Check if both paths include "interactive" or both include "read-only"
         const propToCheckHasInteractive = propToCheck.path.includes('interactive')
         const propToCheckHasReadOnly = propToCheck.path.includes('read-only')
         const pHasInteractive = p.path.includes('interactive')
         const pHasReadOnly = p.path.includes('read-only')
-        
+
         if (propToCheckHasInteractive && !pHasInteractive) return false
         if (propToCheckHasReadOnly && !pHasReadOnly) return false
         if (!propToCheckHasInteractive && !propToCheckHasReadOnly && (pHasInteractive || pHasReadOnly)) return false
       }
-      
+
       // CRITICAL FIX: Check if prop path contains variant information - if so, MUST match selected variant
       // This handles cases where multiple variants have the same prop name (e.g., border-size for solid/outline/text)
       // Check if the prop being searched (p) has variant info in its path
@@ -254,11 +254,11 @@ export default function PropControl({
       if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
         const selectedVariant = selectedVariants[propToCheck.variantProp]
         if (!selectedVariant) return false
-        
+
         const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
         if (!variantInPath) return false
       }
-      
+
       // If color prop, must match selected layer (if prop has a layer in path)
       if (propToCheck.category === 'colors') {
         const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
@@ -266,10 +266,10 @@ export default function PropControl({
           if (layerInPath !== selectedLayer) return false
         }
       }
-      
+
       return true
     })
-    
+
     // Return the matching prop's CSS var, or fallback to the prop's own CSS var
     return matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]
   }
@@ -278,7 +278,7 @@ export default function PropControl({
   const baseCssVars = getCssVarsForProp(prop)
   let primaryCssVar = baseCssVars[0] || prop.cssVar
   let cssVarsForControl = baseCssVars
-  
+
   // For Badge height, override to target the size variant's min-height instead of component-level height
   if (prop.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
     const sizeVariant = selectedVariants.size || 'small'
@@ -286,7 +286,7 @@ export default function PropControl({
     primaryCssVar = minHeightVar
     cssVarsForControl = [minHeightVar]
   }
-  
+
   // For Label width, override to target the size variant's width property based on layout and size
   if (prop.name.toLowerCase() === 'label-width' && componentName.toLowerCase() === 'label') {
     const layoutVariant = selectedVariants.layout || 'stacked'
@@ -301,12 +301,12 @@ export default function PropControl({
   const getContrastColorVar = (propToRender: ComponentProp): string | undefined => {
     const propName = propToRender.name.toLowerCase()
     const structure = parseComponentStructure(componentName)
-    
+
     // For text colors, check against background
     if (propName === 'text' || propName === 'text-hover') {
       const bgPropName = propName === 'text-hover' ? 'background-hover' : 'background'
-      const bgProp = structure.props.find(p => 
-        p.name.toLowerCase() === bgPropName && 
+      const bgProp = structure.props.find(p =>
+        p.name.toLowerCase() === bgPropName &&
         p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
         (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
@@ -316,12 +316,12 @@ export default function PropControl({
         return bgCssVars[0]
       }
     }
-    
+
     // For background colors, check against text
     if (propName === 'background' || propName === 'background-hover') {
       const textPropName = propName === 'background-hover' ? 'text-hover' : 'text'
-      const textProp = structure.props.find(p => 
-        p.name.toLowerCase() === textPropName && 
+      const textProp = structure.props.find(p =>
+        p.name.toLowerCase() === textPropName &&
         p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
         (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
@@ -331,11 +331,11 @@ export default function PropControl({
         return textCssVars[0]
       }
     }
-    
+
     // For switch track-selected, check against thumb
     if (propName === 'track-selected' || propName === 'track-unselected') {
-      const thumbProp = structure.props.find(p => 
-        p.name.toLowerCase() === 'thumb' && 
+      const thumbProp = structure.props.find(p =>
+        p.name.toLowerCase() === 'thumb' &&
         p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
         (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
@@ -345,11 +345,11 @@ export default function PropControl({
         return thumbCssVars[0]
       }
     }
-    
+
     // For switch thumb, check against track-selected (when checked)
     if (propName === 'thumb') {
-      const trackProp = structure.props.find(p => 
-        p.name.toLowerCase() === 'track-selected' && 
+      const trackProp = structure.props.find(p =>
+        p.name.toLowerCase() === 'track-selected' &&
         p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
         (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
@@ -359,7 +359,7 @@ export default function PropControl({
         return trackCssVars[0]
       }
     }
-    
+
     return undefined
   }
 
@@ -369,15 +369,15 @@ export default function PropControl({
       // Ensure we have a valid CSS var - use the first from cssVars array or fallback to prop's cssVar
       let validPrimaryVar = (primaryVar && primaryVar.trim()) || (cssVars.length > 0 && cssVars[0]?.trim()) || propToRender.cssVar
       let validCssVars = cssVars.length > 0 ? cssVars.filter(v => v && v.trim()) : [propToRender.cssVar]
-      
+
       // Special validation for breadcrumb read-only color
       if (componentName.toLowerCase() === 'breadcrumb' && label.toLowerCase().includes('read only')) {
         // Ensure we're using the read-only CSS variable, not the interactive one
         if (validPrimaryVar.includes('interactive') && !validPrimaryVar.includes('read-only')) {
           // Try to find the correct CSS variable from the structure
           const structure = parseComponentStructure(componentName)
-          const correctProp = structure.props.find(p => 
-            p.name.toLowerCase() === 'color' && 
+          const correctProp = structure.props.find(p =>
+            p.name.toLowerCase() === 'color' &&
             p.category === 'colors' &&
             !p.isVariantSpecific &&
             p.path.includes('colors') &&
@@ -393,12 +393,12 @@ export default function PropControl({
           }
         }
       }
-      
+
       // Only render if we have a valid CSS var
       if (!validPrimaryVar || !validPrimaryVar.trim()) {
         return null
       }
-      
+
       return (
         <PaletteColorControl
           targetCssVar={validPrimaryVar}
@@ -411,7 +411,7 @@ export default function PropControl({
     }
 
     if (propToRender.type === 'typography') {
-      
+
       // For typography props (like text-size), use type style selector
       return (
         <TypeStyleSelector
@@ -426,13 +426,13 @@ export default function PropControl({
       // Ensure we have a valid CSS var - use the first from cssVars array or fallback to prop's cssVar
       const validPrimaryVar = (primaryVar && primaryVar.trim()) || (cssVars.length > 0 && cssVars[0]?.trim()) || propToRender.cssVar
       const validCssVars = cssVars.length > 0 ? cssVars.filter(v => v && v.trim()) : [propToRender.cssVar].filter(v => v && v.trim())
-      
+
       // Only render if we have a valid CSS var
       if (!validPrimaryVar || !validPrimaryVar.trim()) {
         return null
       }
-      
-      
+
+
       // For Badge height, get min value from size variant's min-height in UIKit.json
       // Read from JSON structure directly, not from CSS var (which can be modified)
       let minPixelValue: number | undefined = undefined
@@ -466,7 +466,7 @@ export default function PropControl({
           minPixelValue = defaultValues[sizeVariant] || 16
         }
       }
-      
+
       // Use pixel slider for label-width (raw pixel values, not tokens)
       // Toolbar sliders ALWAYS use stacked layout
       // When Label is side-by-side, only update CSS var on drag end
@@ -481,7 +481,7 @@ export default function PropControl({
             const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
             return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
           })
-          
+
           useEffect(() => {
             const handleUpdate = () => {
               const currentValue = readCssVar(validPrimaryVar)
@@ -495,39 +495,39 @@ export default function PropControl({
             window.addEventListener('cssVarsUpdated', handleUpdate)
             return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
           }, [validPrimaryVar])
-          
+
           const updateCssVars = useCallback((clampedValue: number) => {
             const cssVarsToUpdate = validCssVars.length > 0 ? validCssVars : [validPrimaryVar]
             cssVarsToUpdate.forEach(cssVar => {
               updateCssVar(cssVar, `${clampedValue}px`)
             })
-            
+
             window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
               detail: { cssVars: cssVarsToUpdate }
             }))
           }, [validCssVars, validPrimaryVar])
-          
+
           const handleChange = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             setValue(clampedValue)
-            
+
             // Always update CSS vars immediately during dragging
             updateCssVars(clampedValue)
           }
-          
+
           const handleChangeCommitted = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
-            
+
             // Update CSS vars on drag end (already updated during drag, but ensure final value is set)
             updateCssVars(clampedValue)
           }
-          
+
           const getValueLabel = useCallback((val: number) => {
             return `${Math.round(val)}px`
           }, [])
-          
+
           return (
             <Slider
               value={value}
@@ -548,14 +548,14 @@ export default function PropControl({
             />
           )
         }
-        
+
         return (
           <LabelWidthSlider
             key={`${validPrimaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           />
         )
       }
-      
+
       // For dimension props, use dimension token selector (only theme values)
       return (
         <DimensionTokenSelector
@@ -574,7 +574,7 @@ export default function PropControl({
       // For elevation props, use a separate component that can use hooks
       // Ensure primaryVar is mode-specific - it might have been built with the wrong mode
       const modeSpecificPrimaryVar = primaryVar.replace(/themes-(light|dark)-/, `themes-${mode}-`)
-      
+
       return (
         <ElevationPropControl
           primaryVar={modeSpecificPrimaryVar}
@@ -600,13 +600,13 @@ export default function PropControl({
   const renderControls = () => {
     // Special case: Toast background and text props should show "Color" as the label
     // Toast icon prop should show "Size" as the label
-    const baseLabel = (componentName.toLowerCase() === 'toast' && 
-                       (prop.name.toLowerCase() === 'background' || prop.name.toLowerCase() === 'text'))
+    const baseLabel = (componentName.toLowerCase() === 'toast' &&
+      (prop.name.toLowerCase() === 'background' || prop.name.toLowerCase() === 'text'))
       ? 'Color'
       : (componentName.toLowerCase() === 'toast' && prop.name.toLowerCase() === 'icon')
-      ? 'Size'
-      : toSentenceCase(prop.name)
-    
+        ? 'Size'
+        : toSentenceCase(prop.name)
+
     // If this is a combined "thumb" prop, render all thumb-related properties
     if (prop.name.toLowerCase() === 'thumb' && prop.thumbProps && prop.thumbProps.size > 0) {
       const thumbSelectedProp = prop.thumbProps.get('thumb-selected')
@@ -618,7 +618,7 @@ export default function PropControl({
       // const thumbIconUnselectedProp = prop.thumbProps.get('thumb-icon-unselected')
       // const thumbIconSizeProp = prop.thumbProps.get('thumb-icon-size')
       const thumbElevationProp = prop.thumbProps.get('thumb-elevation')
-      
+
       return (
         <>
           {/* Thumb Colors */}
@@ -654,7 +654,7 @@ export default function PropControl({
               })()}
             </div>
           )}
-          
+
           {/* Thumb Icons - COMMENTED OUT FOR NOW */}
           {/* {thumbIconSelectedProp && (
             <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-brand-dimensions-general-md)' : 0 }}>
@@ -686,7 +686,7 @@ export default function PropControl({
               })()}
             </div>
           )} */}
-          
+
           {/* Thumb Dimensions */}
           {thumbHeightProp && (
             <div style={{ marginTop: thumbUnselectedProp ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}>
@@ -756,14 +756,14 @@ export default function PropControl({
         </>
       )
     }
-    
+
     // Check if this prop has a group in the toolbar config
     const groupedPropsConfig = getGroupedProps(componentName, prop.name)
-    
+
     // If this is a grouped prop (border, width, etc.), render all grouped properties
     if (groupedPropsConfig && prop.borderProps && prop.borderProps.size > 0) {
       const groupedPropEntries = Object.entries(groupedPropsConfig)
-      
+
       return (
         <>
           {groupedPropEntries.map(([groupedPropName, groupedPropConfig], index) => {
@@ -771,11 +771,46 @@ export default function PropControl({
             if (groupedPropConfig.visible === false) {
               return null
             }
-            
+
             // Try to find the grouped prop in the borderProps map (keys are lowercase)
             const groupedPropKey = groupedPropName.toLowerCase()
             let groupedProp = prop.borderProps!.get(groupedPropKey)
-            
+
+            // CRITICAL FIX for MenuItem: When we have nested groups like "selected-item" and "unselected-item",
+            // both containing "background" and "text" properties, we need to match by BOTH the prop name
+            // AND the parent group name to avoid collisions
+            const parentGroupName = prop.name.toLowerCase() // e.g., "selected-item" or "unselected-item"
+            const needsParentGroupMatch = (parentGroupName === 'selected-item' || parentGroupName === 'unselected-item') &&
+              componentName === 'MenuItem'
+
+            if (needsParentGroupMatch && groupedProp) {
+              // Verify that the cached prop actually belongs to this parent group
+              const propBelongsToParentGroup = groupedProp.path.includes(parentGroupName)
+              if (!propBelongsToParentGroup) {
+                // Cached prop is from the wrong group - need to re-find
+                groupedProp = undefined
+              }
+            }
+
+            // If we don't have a grouped prop yet, or it was from the wrong group, find it from structure
+            if (!groupedProp && needsParentGroupMatch) {
+              const structure = parseComponentStructure(componentName)
+              // Find the prop that matches both the prop name AND has the parent group in its path
+              const matchingProp = structure.props.find(p =>
+                p.name.toLowerCase() === groupedPropKey &&
+                p.category === 'colors' &&
+                p.path.includes('colors') &&
+                p.path.includes(parentGroupName) &&
+                p.path.includes(selectedLayer)
+              )
+              if (matchingProp) {
+                groupedProp = matchingProp
+                // Cache it with a unique key that includes the parent group
+                const uniqueKey = `${parentGroupName}-${groupedPropKey}`
+                prop.borderProps!.set(uniqueKey, matchingProp)
+              }
+            }
+
             // For state-specific grouped props, ensure we have the prop for the selected state variant
             // CRITICAL: Also check if groupedProp.name doesn't match groupedPropKey (wrong prop cached)
             const propNameMismatch = groupedProp && groupedProp.name.toLowerCase() !== groupedPropKey
@@ -787,19 +822,19 @@ export default function PropControl({
               }
             }
             const needsRefind = propNameMismatch || variantMismatch || false
-            
+
             if (needsRefind && groupedProp) {
               // Cached prop doesn't match - re-find it
               const structure = parseComponentStructure(componentName)
-              
+
               // Determine the variant prop to search for
               const targetVariantProp = groupedProp.variantProp || (componentName === 'TextField' && groupedPropKey === 'border-size' ? 'states' : undefined)
               const selectedVariant = targetVariantProp ? selectedVariants[targetVariantProp] : undefined
-              
+
               const correctProp = structure.props.find(p => {
                 const nameMatches = p.name.toLowerCase() === groupedPropKey
                 if (!nameMatches) return false
-                
+
                 // If we have a variant prop, match by variant
                 if (targetVariantProp && selectedVariant) {
                   if (!p.isVariantSpecific || p.variantProp !== targetVariantProp) {
@@ -808,24 +843,24 @@ export default function PropControl({
                   const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
                   return !!variantInPath
                 }
-                
+
                 // If no variant prop, just match by name and category
                 return groupedProp ? p.category === groupedProp.category : false
               })
-              
+
               if (correctProp) {
                 groupedProp = correctProp
                 // Update the cache
                 prop.borderProps!.set(groupedPropKey, correctProp)
               }
             }
-            
+
             // For breadcrumb colors, always re-find to ensure correct prop
-            if (componentName.toLowerCase() === 'breadcrumb' && 
-                (groupedPropKey === 'interactive-color' || groupedPropKey === 'read-only-color')) {
+            if (componentName.toLowerCase() === 'breadcrumb' &&
+              (groupedPropKey === 'interactive-color' || groupedPropKey === 'read-only-color')) {
               groupedProp = undefined // Force re-find by clearing it
             }
-            
+
             // Special case mappings: toolbar config names -> UIKit.json property names
             if (!groupedProp && groupedPropKey === 'border-color') {
               groupedProp = prop.borderProps!.get('border')
@@ -839,7 +874,7 @@ export default function PropControl({
               // Always re-find the prop - ignore what's in the map
               const structure = parseComponentStructure(componentName)
               const interactiveColorProp = structure.props.find(p => {
-                const matches = p.name.toLowerCase() === 'color' && 
+                const matches = p.name.toLowerCase() === 'color' &&
                   p.category === 'colors' &&
                   !p.isVariantSpecific &&
                   p.path.includes('colors') &&
@@ -869,7 +904,7 @@ export default function PropControl({
               // Always re-find the prop - ignore what's in the map
               const structure = parseComponentStructure(componentName)
               const readOnlyColorProp = structure.props.find(p => {
-                const matches = p.name.toLowerCase() === 'color' && 
+                const matches = p.name.toLowerCase() === 'color' &&
                   p.category === 'colors' &&
                   !p.isVariantSpecific &&
                   p.path.includes('colors') &&
@@ -899,8 +934,8 @@ export default function PropControl({
               // If not found, try to find it from structure (it's now component-level under colors.layer-X.separator-color)
               if (!groupedProp) {
                 const structure = parseComponentStructure(componentName)
-                const separatorColorProp = structure.props.find(p => 
-                  p.name.toLowerCase() === 'separator-color' && 
+                const separatorColorProp = structure.props.find(p =>
+                  p.name.toLowerCase() === 'separator-color' &&
                   p.category === 'colors' &&
                   !p.isVariantSpecific &&
                   p.path.includes('colors') &&
@@ -927,7 +962,7 @@ export default function PropControl({
               const layoutVariant = selectedVariants['layout']
               if (layoutVariant) {
                 // Find the prop that matches the name and the selected layout variant
-                const matchingProp = structure.props.find(p => 
+                const matchingProp = structure.props.find(p =>
                   p.name.toLowerCase() === groupedPropKey &&
                   p.isVariantSpecific &&
                   p.variantProp === 'layout' &&
@@ -940,7 +975,7 @@ export default function PropControl({
                 }
               }
             }
-            
+
             // Filter spacing props based on selected layout variant
             // Only show props that belong to the selected layout variant
             if (prop.name.toLowerCase() === 'spacing' && groupedProp) {
@@ -953,26 +988,26 @@ export default function PropControl({
                 }
               }
             }
-            
+
             if (!groupedProp) {
               return null
             }
-            
+
             // For breadcrumb interactive/read-only colors, ALWAYS re-find and validate the prop
             // to ensure we have the correct CSS variable
             let cssVars: string[]
             let primaryVar: string
-            if (componentName.toLowerCase() === 'breadcrumb' && 
-                (groupedPropKey === 'interactive-color' || groupedPropKey === 'read-only-color')) {
+            if (componentName.toLowerCase() === 'breadcrumb' &&
+              (groupedPropKey === 'interactive-color' || groupedPropKey === 'read-only-color')) {
               // Always re-find the prop from structure - don't trust anything in the map
               const structure = parseComponentStructure(componentName)
               let correctProp: ComponentProp | undefined = undefined
-              
+
               if (groupedPropKey === 'read-only-color') {
                 // Find the read-only prop - must have read-only in path, NOT interactive
                 // AND the CSS variable must contain 'read-only' and NOT 'interactive'
                 const allMatchingProps = structure.props.filter(p => {
-                  const pathMatches = p.name.toLowerCase() === 'color' && 
+                  const pathMatches = p.name.toLowerCase() === 'color' &&
                     p.category === 'colors' &&
                     !p.isVariantSpecific &&
                     p.path.includes('colors') &&
@@ -981,17 +1016,17 @@ export default function PropControl({
                     p.path.includes(selectedLayer)
                   return pathMatches
                 })
-                
+
                 // Find the one with the correct CSS variable
-                correctProp = allMatchingProps.find(p => 
-                  p.cssVar.includes('read-only') && 
+                correctProp = allMatchingProps.find(p =>
+                  p.cssVar.includes('read-only') &&
                   !p.cssVar.includes('interactive')
                 ) || allMatchingProps[0]
               } else if (groupedPropKey === 'interactive-color') {
                 // Find the interactive prop - must have interactive in path, NOT read-only
                 // AND the CSS variable must contain 'interactive' and NOT 'read-only'
                 const allMatchingProps = structure.props.filter(p => {
-                  const pathMatches = p.name.toLowerCase() === 'interactive' && 
+                  const pathMatches = p.name.toLowerCase() === 'interactive' &&
                     p.category === 'colors' &&
                     !p.isVariantSpecific &&
                     p.path.includes('colors') &&
@@ -1000,22 +1035,22 @@ export default function PropControl({
                     p.path.includes(selectedLayer)
                   return pathMatches
                 })
-                
-              // Find the one with the correct CSS variable
-              correctProp = allMatchingProps.find(p => 
-                p.cssVar.includes('interactive') && 
-                !p.cssVar.includes('read-only')
-              ) || allMatchingProps[0]
-            }
-            
-            // Always use the correct prop if found
+
+                // Find the one with the correct CSS variable
+                correctProp = allMatchingProps.find(p =>
+                  p.cssVar.includes('interactive') &&
+                  !p.cssVar.includes('read-only')
+                ) || allMatchingProps[0]
+              }
+
+              // Always use the correct prop if found
               if (correctProp) {
                 groupedProp = correctProp
                 // Update the map with the correct prop
                 prop.borderProps!.set(groupedPropKey, correctProp)
                 cssVars = [correctProp.cssVar]
                 primaryVar = correctProp.cssVar
-                
+
               } else {
                 // Fallback: use what we have
                 cssVars = groupedProp ? [groupedProp.cssVar] : []
@@ -1027,9 +1062,9 @@ export default function PropControl({
               primaryVar = cssVars[0] || groupedProp.cssVar
             }
             const label = groupedPropConfig.label || toSentenceCase(groupedPropName)
-            
+
             return (
-              <div 
+              <div
                 key={groupedPropName}
                 style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
               >
@@ -1040,30 +1075,30 @@ export default function PropControl({
         </>
       )
     }
-    
+
     // If this is a combined "track" prop, render track-selected, track-unselected, track-width, and track-inner-padding
     if (prop.name.toLowerCase() === 'track' && (prop.trackSelectedProp || prop.trackUnselectedProp || prop.thumbProps)) {
       const trackSelectedCssVars = prop.trackSelectedProp ? getCssVarsForProp(prop.trackSelectedProp) : []
       const trackUnselectedCssVars = prop.trackUnselectedProp ? getCssVarsForProp(prop.trackUnselectedProp) : []
       const trackSelectedPrimaryVar = trackSelectedCssVars[0] || prop.trackSelectedProp?.cssVar
       const trackUnselectedPrimaryVar = trackUnselectedCssVars[0] || prop.trackUnselectedProp?.cssVar
-      
+
       // Get track-related props (track-width, track-inner-padding, track-border-radius) from thumbProps field (reused for track props)
       const trackWidthProp = prop.thumbProps?.get('track-width')
       const trackInnerPaddingProp = prop.thumbProps?.get('track-inner-padding')
       const trackBorderRadiusProp = prop.thumbProps?.get('track-border-radius')
-      
+
       // Get thumb color for contrast checking
       const structure = parseComponentStructure(componentName)
-      const thumbProp = structure.props.find(p => 
-        p.name.toLowerCase() === 'thumb' && 
+      const thumbProp = structure.props.find(p =>
+        p.name.toLowerCase() === 'thumb' &&
         p.category === 'colors' &&
         (!p.isVariantSpecific || (p.variantProp && selectedVariants[p.variantProp] && p.path.includes(selectedVariants[p.variantProp]))) &&
         (p.category !== 'colors' || !p.path.includes('layer-') || p.path.includes(selectedLayer))
       )
       const thumbCssVars = thumbProp ? getCssVarsForProp(thumbProp) : []
       const thumbVar = thumbCssVars[0]
-      
+
       return (
         <>
           {prop.trackSelectedProp && trackSelectedPrimaryVar && (
@@ -1137,7 +1172,7 @@ export default function PropControl({
         </>
       )
     }
-    
+
     // Render the base control (hover props are now handled via config grouping)
     return renderControl(prop, cssVarsForControl, primaryCssVar, baseLabel)
   }

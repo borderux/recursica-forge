@@ -49,15 +49,13 @@ export default function MenuItem({
     effectiveVariant = 'selected'
   }
 
-  // Get CSS variables for colors
-  const bgVar = getComponentCssVar('MenuItem', 'colors', `${effectiveVariant}-background`, layer)
-  const textVar = getComponentCssVar('MenuItem', 'colors', `${effectiveVariant}-text`, layer)
-
-  // Get selected/unselected background and text from properties.colors (component-level, layer-specific)
+  // Get selected/unselected background, text, and opacity from properties.colors (component-level, layer-specific)
   const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'background')
   const selectedTextVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'text')
+  const selectedOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'opacity')
   const unselectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'background')
   const unselectedTextVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'text')
+  const unselectedOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'opacity')
 
   // Get component-level properties
   const borderRadiusVar = getComponentLevelCssVar('MenuItem', 'border-radius')
@@ -65,7 +63,7 @@ export default function MenuItem({
   const maxWidthVar = getComponentLevelCssVar('MenuItem', 'max-width')
   const verticalPaddingVar = getComponentLevelCssVar('MenuItem', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('MenuItem', 'horizontal-padding')
-  const supportingTextOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'unselected-item', 'supporting-text-opacity')
+  const supportingTextOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'supporting-text-opacity')
   const supportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'supporting-text-color')
   const dividerColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'divider-color')
   const dividerOpacityVar = getComponentLevelCssVar('MenuItem', 'divider-opacity')
@@ -97,12 +95,13 @@ export default function MenuItem({
   const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
 
   // Read background color to check if it's null/transparent
-  const bgColorValue = readCssVar(bgVar)
+  const bgColorValue = readCssVar(unselectedBgVar)
   const hasBackground = bgColorValue && bgColorValue !== 'transparent' && bgColorValue !== 'null'
 
-  // For selected state, use selected-item properties. For default state, use unselected-item properties.
-  const finalBgVar = effectiveVariant === 'selected' ? selectedBgVar : (effectiveVariant === 'default' ? unselectedBgVar : bgVar)
-  const finalTextVar = effectiveVariant === 'selected' ? selectedTextVar : (effectiveVariant === 'default' ? unselectedTextVar : textVar)
+  // For selected state, use selected-item properties. For default/disabled states, use unselected-item properties.
+  const finalBgVar = effectiveVariant === 'selected' ? selectedBgVar : unselectedBgVar
+  const finalTextVar = effectiveVariant === 'selected' ? selectedTextVar : unselectedTextVar
+  const finalOpacityVar = effectiveVariant === 'selected' ? selectedOpacityVar : unselectedOpacityVar
   const finalBgColorValue = readCssVar(finalBgVar)
   const finalHasBackground = finalBgColorValue && finalBgColorValue !== 'transparent' && finalBgColorValue !== 'null'
 
@@ -148,7 +147,7 @@ export default function MenuItem({
           ['--menu-item-horizontal-padding' as string]: `var(${horizontalPaddingVar})`,
           ['--menu-item-supporting-text-opacity' as string]: `var(${supportingTextOpacityVar})`,
           ['--menu-item-supporting-text-color' as string]: `var(${supportingTextColorVar})`,
-          ['--menu-item-opacity' as string]: disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : '1',
+          ['--menu-item-opacity' as string]: disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : (finalOpacityVar ? `var(${finalOpacityVar}, 1)` : '1'),
           ['--menu-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
           ['--menu-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
           // Apply text styles using CSS variables from text style toolbar
