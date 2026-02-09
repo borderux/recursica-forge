@@ -1,0 +1,10 @@
+/* Material UI CheckboxGroup Overrides */
+
+.recursica-checkbox-group-mui {
+    gap: var(--checkbox-group-gap) !important;
+    padding: var(--checkbox-group-padding) !important;
+    /* Ensure column layout if default is row, or override if needed */
+    flex-direction: column !important;
+    /* Adapter prop default is probably vertical for groups usually */
+    /* If adapter orientation prop is passed, FormGroup handles it, but check conflict */
+}

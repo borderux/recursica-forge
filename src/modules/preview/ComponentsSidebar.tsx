@@ -28,12 +28,12 @@ type TreeNode = {
   children?: TreeNode[]
 }
 
-export function ComponentsSidebar({ 
-  showUnmapped, 
+export function ComponentsSidebar({
+  showUnmapped,
   onShowUnmappedChange,
   debugMode,
   onDebugModeChange,
-}: { 
+}: {
   showUnmapped: boolean
   onShowUnmappedChange: (show: boolean) => void
   debugMode: boolean
@@ -42,16 +42,21 @@ export function ComponentsSidebar({
   const location = useLocation()
   const navigate = useNavigate()
   const { mode } = useThemeMode()
-  
+
   // Get list of mapped components from UIKit.json
   const mappedComponents = useMemo(() => {
     const components = (uikitJson as any)?.['ui-kit']?.components || {}
     return new Set(Object.keys(components).map(name => {
+      // Special alias: map checkbox-item to "Checkbox group item" so it nests active under Checkbox group
+      if (name === 'checkbox-item') {
+        return 'Checkbox group item'
+      }
+
       // Convert "button" -> "Button", "text-field" -> "Text field", "menu-item" -> "Menu item", etc.
       const words = name.split('-')
       return words
-        .map((word, index) => 
-          index === 0 
+        .map((word, index) =>
+          index === 0
             ? word.charAt(0).toUpperCase() + word.slice(1) // First word: capitalize first letter
             : word.toLowerCase() // Subsequent words: lowercase
         )
@@ -71,7 +76,9 @@ export function ComponentsSidebar({
       { name: 'Breadcrumb', url: `${base}/breadcrumb` },
       { name: 'Button', url: `${base}/button` },
       { name: 'Card', url: `${base}/card` },
-      { name: 'Checkbox', url: `${base}/checkbox` },
+      // { name: 'Checkbox', url: `${base}/checkbox` },
+      { name: 'Checkbox group', url: `${base}/checkbox-group` },
+      { name: 'Checkbox group item', url: `${base}/checkbox-group-item` },
       { name: 'Chip', url: `${base}/chip` },
       { name: 'Date picker', url: `${base}/date-picker` },
       { name: 'Dropdown', url: `${base}/dropdown` },
@@ -124,12 +131,12 @@ export function ComponentsSidebar({
     const tree: TreeNode[] = []
     const itemMap = new Map<string, ComponentItem>()
     const parentMap = new Map<string, TreeNode>()
-    
+
     // First pass: separate parents and items
     allComponents.forEach(comp => {
       const isItem = comp.name.endsWith(' item')
       const parentName = isItem ? comp.name.replace(' item', '') : comp.name
-      
+
       if (isItem) {
         // Store item for second pass
         itemMap.set(parentName, comp)
@@ -144,7 +151,7 @@ export function ComponentsSidebar({
         parentMap.set(comp.name, node)
       }
     })
-    
+
     // Second pass: attach items to their parents
     // If parent exists in tree, attach item to it
     // If parent doesn't exist but item should be shown, create parent node from baseComponents
@@ -173,10 +180,10 @@ export function ComponentsSidebar({
         }
       }
     })
-    
+
     // Sort tree alphabetically by name
     tree.sort((a, b) => a.name.localeCompare(b.name))
-    
+
     return tree
   }, [allComponents, baseComponents])
 
@@ -194,11 +201,11 @@ export function ComponentsSidebar({
 
   // Track expanded nodes
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
-  
+
   // Auto-expand parent if child is active
   useEffect(() => {
     if (currentComponent) {
-      const parentNode = componentTree.find(node => 
+      const parentNode = componentTree.find(node =>
         node.children?.some(child => child.name === currentComponent)
       )
       if (parentNode) {
@@ -209,7 +216,7 @@ export function ComponentsSidebar({
   const unmappedCount = useMemo(() => {
     return baseComponents.filter(c => !c.isMapped).length
   }, [baseComponents])
-  
+
   const totalCount = baseComponents.length
 
   // Redirect to first component if on /components without a component name
@@ -223,12 +230,12 @@ export function ComponentsSidebar({
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
-  
+
   const handleNavClick = (componentName: string) => {
     const slug = componentNameToSlug(componentName)
     navigate(`/components/${slug}`)
   }
-  
+
   return (
     <aside
       style={{
@@ -266,7 +273,7 @@ export function ComponentsSidebar({
       >
         Components
       </h2>
-      
+
       {/* Navigation Items */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
         {componentTree.map((node) => {
@@ -275,10 +282,10 @@ export function ComponentsSidebar({
           const isActive = currentComponent === node.name
           const isUnmapped = !node.isMapped
           const disabledOpacity = getBrandStateCssVar(mode, 'disabled')
-          
+
           const ChevronRightIcon = iconNameToReactComponent('chevron-right')
           const ChevronDownIcon = iconNameToReactComponent('chevron-down')
-          
+
           const toggleExpand = (e: React.MouseEvent) => {
             e.stopPropagation()
             setExpandedNodes(prev => {
@@ -291,7 +298,7 @@ export function ComponentsSidebar({
               return next
             })
           }
-          
+
           return (
             <div key={node.name} style={{ display: 'flex', flexDirection: 'column' }}>
               {/* Parent Node */}
@@ -338,8 +345,8 @@ export function ComponentsSidebar({
                     border: 'none',
                     background: 'transparent',
                     color: `var(${layer0Base}-element-text-color)`,
-                    opacity: isActive 
-                      ? `var(${layer0Base}-element-text-high-emphasis)` 
+                    opacity: isActive
+                      ? `var(${layer0Base}-element-text-high-emphasis)`
                       : isUnmapped
                         ? `var(${disabledOpacity})`
                         : `var(${layer0Base}-element-text-low-emphasis)`,
@@ -382,14 +389,14 @@ export function ComponentsSidebar({
                   {node.name}
                 </button>
               </div>
-              
+
               {/* Children Nodes */}
               {hasChildren && isExpanded && node.children && (
                 <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: '48px' }}>
                   {node.children.map((child) => {
                     const isChildActive = currentComponent === child.name
                     const isChildUnmapped = !child.isMapped
-                    
+
                     return (
                       <button
                         key={child.name}
@@ -402,8 +409,8 @@ export function ComponentsSidebar({
                           border: 'none',
                           background: 'transparent',
                           color: `var(${layer0Base}-element-text-color)`,
-                          opacity: isChildActive 
-                            ? `var(${layer0Base}-element-text-high-emphasis)` 
+                          opacity: isChildActive
+                            ? `var(${layer0Base}-element-text-high-emphasis)`
                             : isChildUnmapped
                               ? `var(${disabledOpacity})`
                               : `var(${layer0Base}-element-text-low-emphasis)`,
@@ -453,7 +460,7 @@ export function ComponentsSidebar({
           )
         })}
       </nav>
-      
+
       {/* Footer Links - Fixed at bottom */}
       <div
         style={{
@@ -505,7 +512,7 @@ export function ComponentsSidebar({
           Help
         </Button>
       </div>
-      
+
       {/* Copyright */}
       <div
         style={{

@@ -9,6 +9,8 @@ import { TextField } from '../../components/adapters/TextField'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
+import { CheckboxItem } from '../../components/adapters/CheckboxItem'
+import { CheckboxGroup } from '../../components/adapters/CheckboxGroup'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -39,13 +41,13 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     const [checked1, setChecked1] = React.useState(true)
     const [checked2, setChecked2] = React.useState(false)
     const [checked3, setChecked3] = React.useState(false)
-    
+
     // Get the label-switch-gap CSS var - it's at the component level, not under size/variant
     // Use getComponentCssVar with any category since it will detect component-level properties
     const labelSwitchGapVar = React.useMemo(() => {
       return getComponentCssVar('Switch', 'size', 'label-switch-gap', undefined)
     }, [])
-    
+
     // Get label text styling CSS variables using getComponentTextCssVar (for text style toolbar)
     const labelTextFontFamilyVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'font-family'), [])
     const labelTextFontSizeVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'font-size'), [])
@@ -55,7 +57,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     const labelTextTextDecorationVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'text-decoration'), [])
     const labelTextTextTransformVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'text-transform'), [])
     const labelTextFontStyleVar = React.useMemo(() => getComponentTextCssVar('Switch', 'label-text', 'font-style'), [])
-    
+
     // State to force re-render when text CSS variables change
     const [textVarsUpdate, setTextVarsUpdate] = React.useState(0)
 
@@ -65,7 +67,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         labelTextFontFamilyVar, labelTextFontSizeVar, labelTextFontWeightVar, labelTextLetterSpacingVar,
         labelTextLineHeightVar, labelTextTextDecorationVar, labelTextTextTransformVar, labelTextFontStyleVar
       ]
-      
+
       const handleCssVarUpdate = (e: Event) => {
         const detail = (e as CustomEvent).detail
         const updatedVars = detail?.cssVars || []
@@ -76,9 +78,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           setTextVarsUpdate(prev => prev + 1)
         }
       }
-      
+
       window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-      
+
       // Also watch for direct style changes using MutationObserver
       const observer = new MutationObserver(() => {
         // Force re-render for text vars
@@ -88,7 +90,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         attributes: true,
         attributeFilter: ['style'],
       })
-      
+
       return () => {
         window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
         observer.disconnect()
@@ -97,18 +99,18 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       labelTextFontFamilyVar, labelTextFontSizeVar, labelTextFontWeightVar, labelTextLetterSpacingVar,
       labelTextLineHeightVar, labelTextTextDecorationVar, labelTextTextTransformVar, labelTextFontStyleVar
     ])
-    
+
     // Build layer text color CSS variables
     const layerTextColorVars = React.useMemo(() => {
       const layerBase = `--recursica-brand-themes-${mode}-layer-${layer}-property`
-      
+
       return {
         textColor: `${layerBase}-element-text-color`,
         highEmphasis: `${layerBase}-element-text-high-emphasis`,
         lowEmphasis: `${layerBase}-element-text-low-emphasis`,
       }
     }, [layer, mode])
-    
+
     return (
       <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: `var(${labelSwitchGapVar}, 8px)` }}>
@@ -159,6 +161,82 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       </div>
     )
   }
+
+  function CheckboxItemExamples({ layer }: { layer: string }) {
+    const [checked1, setChecked1] = React.useState(false)
+    const [checked2, setChecked2] = React.useState(true)
+    const [checked3, setChecked3] = React.useState(false)
+    const [checked4, setChecked4] = React.useState(false)
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <CheckboxItem
+          label="Checkbox item"
+          checked={checked1}
+          onChange={setChecked1}
+          layer={layer as any}
+        />
+        <CheckboxItem
+          label="Checked item"
+          checked={checked2}
+          onChange={setChecked2}
+          layer={layer as any}
+        />
+        <CheckboxItem
+          label="Disabled item"
+          checked={checked3}
+          onChange={setChecked3}
+          disabled
+          layer={layer as any}
+        />
+        <CheckboxItem
+          label="Indeterminate item"
+          checked={checked4}
+          onChange={setChecked4}
+          indeterminate
+          layer={layer as any}
+        />
+      </div>
+    )
+  }
+
+  function CheckboxGroupExample({ layer }: { layer: string }) {
+    const [values, setValues] = React.useState({
+      opt1: false,
+      opt2: false,
+      opt3: false
+    })
+
+    return (
+      <div style={{ width: '100%', maxWidth: 400 }}>
+        <CheckboxGroup
+          label="Checkbox group"
+          layer={layer as any}
+          orientation="vertical"
+        >
+          <CheckboxItem
+            label="Option 1"
+            checked={values.opt1}
+            onChange={(c) => setValues(p => ({ ...p, opt1: c }))}
+            layer={layer as any}
+          />
+          <CheckboxItem
+            label="Option 2"
+            checked={values.opt2}
+            onChange={(c) => setValues(p => ({ ...p, opt2: c }))}
+            layer={layer as any}
+          />
+          <CheckboxItem
+            label="Option 3"
+            checked={values.opt3}
+            onChange={(c) => setValues(p => ({ ...p, opt3: c }))}
+            layer={layer as any}
+          />
+        </CheckboxGroup>
+      </div>
+    )
+  }
+
   const base = 'https://www.recursica.com/docs/components'
   return [
     {
@@ -183,17 +261,17 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
         const { Accordion } = require('../../components/adapters/Accordion')
-        
+
         return (
           <div style={{ width: '100%', maxWidth: 520 }}>
             <Accordion
               items={[
-                { 
-                  id: 'item-1', 
-                  title: 'Accordion item', 
-                  content: 'This demonstrates AccordionItem properties. The header uses AccordionItem colors, padding, icon-size, and icon-gap. The content uses AccordionItem content-background, content-text, and content-padding.', 
-                  open: true, 
-                  divider: false 
+                {
+                  id: 'item-1',
+                  title: 'Accordion item',
+                  content: 'This demonstrates AccordionItem properties. The header uses AccordionItem colors, padding, icon-size, and icon-gap. The content uses AccordionItem content-background, content-text, and content-padding.',
+                  open: true,
+                  divider: false
                 },
               ]}
               layer={layer as any}
@@ -295,7 +373,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const variants: Array<'solid' | 'outline' | 'text'> = ['solid', 'outline', 'text']
         const sizes: Array<'default' | 'small'> = ['default', 'small']
         const layers: LayerOption[] = sortLayers(Array.from(selectedLayers))
-        
+
         return (
           <div style={{ display: 'grid', gap: 16 }}>
             {layers.map((layer) => {
@@ -303,14 +381,14 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
               const layerBase = `--recursica-brand-${mode}-layer-${layer}-property`
               const textColorVar = `${layerBase}-element-text-color`
               const highEmphasisVar = `${layerBase}-element-text-high-emphasis`
-              
+
               return (
                 <div key={layer} style={{ display: 'grid', gap: 12 }}>
                   <div style={{ display: 'grid', gap: 12 }}>
                     {variants.map((variant) => (
                       <div key={variant} style={{ display: 'grid', gap: 8 }}>
-                        <h5 style={{ 
-                          margin: 0, 
+                        <h5 style={{
+                          margin: 0,
                           fontFamily: 'var(--recursica-brand-typography-h5-font-family)',
                           fontSize: 'var(--recursica-brand-typography-h5-font-size)',
                           fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
@@ -322,7 +400,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
                         }}>{variant}</h5>
                         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                           {sizes.map((size) => (
-                            <Button 
+                            <Button
                               key={`${variant}-${size}`}
                               variant={variant}
                               size={size}
@@ -332,7 +410,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
                             </Button>
                           ))}
                           {sizes.map((size) => (
-                            <Button 
+                            <Button
                               key={`${variant}-${size}-icon`}
                               variant={variant}
                               size={size}
@@ -347,7 +425,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
                               {variant} {size}
                             </Button>
                           ))}
-                          <Button 
+                          <Button
                             variant={variant}
                             layer={layer}
                             disabled
@@ -484,7 +562,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const { iconNameToReactComponent } = require('../components/iconUtils')
         const ChevronRightIcon = iconNameToReactComponent('arrow-right')
         const FileIcon = iconNameToReactComponent('document-text')
-        
+
         return (
           <Menu layer={layer as any}>
             <MenuItem
@@ -527,11 +605,11 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const { MenuItem } = require('../../components/adapters/MenuItem')
         const { iconNameToReactComponent } = require('../components/iconUtils')
         const ChevronRightIcon = iconNameToReactComponent('arrow-right')
-        
+
         return (
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
             gap: 4,
             width: '100%',
             maxWidth: '464px',
@@ -577,10 +655,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       render: (_selectedLayers: Set<LayerOption>) => {
         const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
         return (
-          <div style={{ 
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
-            padding: 12, 
-            borderRadius: 8, 
+          <div style={{
+            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            padding: 12,
+            borderRadius: 8,
             background: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
             boxShadow: layer1Elevation || undefined
           }}>
@@ -598,10 +676,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const layer2Elevation = getLayerElevationBoxShadow(mode, 'layer-2')
         return (
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ 
-              width: 240, 
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
-              borderRadius: 8, 
+            <div style={{
+              width: 240,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+              borderRadius: 8,
               padding: 12,
               boxShadow: layer1Elevation || undefined
             }}>
@@ -609,11 +687,11 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
               <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses layer-1 elevation.</p>
               <a href="#" style={{ fontSize: 12 }}>Learn more</a>
             </div>
-            <div style={{ 
-              width: 240, 
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, 
-              borderRadius: 8, 
-              padding: 12, 
+            <div style={{
+              width: 240,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+              borderRadius: 8,
+              padding: 12,
               boxShadow: layer2Elevation || undefined
             }}>
               <strong>Higher Elevation</strong>
@@ -636,6 +714,22 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           </label>
         </div>
       ),
+    },
+    {
+      name: 'Checkbox group item',
+      url: `${base}/checkbox-group-item`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return <CheckboxItemExamples layer={layer} />
+      },
+    },
+    {
+      name: 'Checkbox group',
+      url: `${base}/checkbox-group`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return <CheckboxGroupExample layer={layer} />
+      },
     },
     {
       name: 'Chip',
@@ -674,9 +768,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             <div>List item 2</div>
             <div style={{ fontSize: 12, opacity: 0.75 }}>Secondary text</div>
           </li>
-            <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }}>
-              Disabled item
-            </li>
+          <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }}>
+            Disabled item
+          </li>
         </ul>
       ),
     },
@@ -768,7 +862,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const HouseIcon = iconNameToReactComponent('house')
         const SlidersIcon = iconNameToReactComponent('sliders-horizontal')
         const UserIcon = iconNameToReactComponent('user')
-        
+
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', alignItems: 'center' }}>
             <SegmentedControl
@@ -778,7 +872,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
                 { value: 'third', label: 'Third', icon: UserIcon ? <UserIcon size={16} /> : undefined },
               ]}
               value="first"
-              onChange={() => {}}
+              onChange={() => { }}
               orientation="horizontal"
               fullWidth={false}
               layer={layer as any}
@@ -791,14 +885,14 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Slider',
       url: `${base}/slider`,
       render: (selectedLayers: Set<LayerOption>) => {
-        const layer = selectedLayers.size > 0 
+        const layer = selectedLayers.size > 0
           ? Array.from(selectedLayers)[0] as string
           : 'layer-0'
-        
+
         return (
           <Slider
             value={25}
-            onChange={() => {}}
+            onChange={() => { }}
             min={0}
             max={100}
             layer={layer as any}
@@ -829,10 +923,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/switch`,
       render: (selectedLayers: Set<LayerOption>) => {
         // Extract layer from selectedLayers Set (use first one, or default to layer-0)
-        const layer = selectedLayers.size > 0 
+        const layer = selectedLayers.size > 0
           ? Array.from(selectedLayers)[0] as string
           : 'layer-0'
-        
+
         // Use default variants - the toolbar will update the CSS vars for the selected variant
         return <SwitchExamples layer={layer} colorVariant="default" sizeVariant="default" />
       },
@@ -890,16 +984,16 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       render: (selectedLayers: Set<LayerOption>) => {
         const layers = sortLayers(Array.from(selectedLayers))
         const layer = layers[0] || 'layer-0'
-        
+
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 600 }}>
             <Toast variant="default" layer={layer as any}>
               Default toast message
             </Toast>
-            <Toast variant="success" layer={layer as any} icon={<span>✓</span>} onClose={() => {}}>
+            <Toast variant="success" layer={layer as any} icon={<span>✓</span>} onClose={() => { }}>
               Success toast message
             </Toast>
-            <Toast variant="error" layer={layer as any} icon={<span>✕</span>} onClose={() => {}}>
+            <Toast variant="error" layer={layer as any} icon={<span>✕</span>} onClose={() => { }}>
               Error toast message
             </Toast>
           </div>

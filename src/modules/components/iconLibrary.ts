@@ -77,6 +77,7 @@ import {
   SignOut,
   SlidersHorizontal,
   SplitHorizontal,
+  SplitVertical,
   Square,
   SquareLogo,
   SquaresFour,
@@ -301,6 +302,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'x': X,
   'check-square': CheckSquare,
   'squares-four': SquaresFour,
+  'split-vertical': SplitVertical,
 }
 
 /**

@@ -1,0 +1,18 @@
+/* Mantine CheckboxItem Overrides */
+
+.recursica-checkbox-item.recursica-checkbox-root .mantine-Checkbox-label,
+.recursica-checkbox-item .mantine-Checkbox-body .mantine-Checkbox-label {
+    padding-left: var(--checkbox-item-gap) !important;
+    font-family: var(--checkbox-item-font-family) !important;
+    font-size: var(--checkbox-item-font-size) !important;
+    font-weight: var(--checkbox-item-font-weight) !important;
+    line-height: var(--checkbox-item-line-height) !important;
+    color: var(--checkbox-item-color) !important;
+}
+
+/* Disabled state for CheckboxItem label - high specificity */
+.recursica-checkbox-item.recursica-checkbox-root[data-disabled] .mantine-Checkbox-label,
+.recursica-checkbox-item.recursica-checkbox-root .mantine-Checkbox-input:disabled~.mantine-Checkbox-label,
+.recursica-checkbox-item .mantine-Checkbox-input:disabled+.mantine-Checkbox-labelWrapper .mantine-Checkbox-label {
+    opacity: var(--checkbox-disabled-opacity, 0.4) !important;
+}

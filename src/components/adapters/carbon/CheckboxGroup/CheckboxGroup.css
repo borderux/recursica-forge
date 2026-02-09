@@ -1,0 +1,10 @@
+/* Carbon CheckboxGroup Overrides */
+
+.recursica-carbon-checkbox-group.cds--fieldset {
+    /* Carbon Fieldset usually applies margins. */
+    gap: var(--checkbox-group-gap) !important;
+    padding: var(--checkbox-group-padding) !important;
+    display: flex;
+    flex-direction: column;
+    /* Default stack */
+}

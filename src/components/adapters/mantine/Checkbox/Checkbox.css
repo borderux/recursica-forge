@@ -1,0 +1,58 @@
+/* Mantine Checkbox Overrides */
+
+.recursica-checkbox-root .mantine-Checkbox-input,
+.recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-input {
+  /* Box Model */
+  width: var(--checkbox-size) !important;
+  height: var(--checkbox-size) !important;
+  min-width: var(--checkbox-size) !important;
+  min-height: var(--checkbox-size) !important;
+  border-radius: var(--checkbox-radius) !important;
+  border-width: var(--checkbox-border-width) !important;
+
+  /* Colors - Unchecked */
+  background-color: var(--checkbox-bg-unchecked) !important;
+  border-color: var(--checkbox-border-unchecked) !important;
+
+  transition: all 0.2s ease;
+}
+
+/* Checked State */
+.recursica-checkbox-root .mantine-Checkbox-input:checked,
+.recursica-checkbox-root .mantine-Checkbox-input[data-checked],
+.recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-input:checked,
+.recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-input[data-checked] {
+  background-color: var(--checkbox-bg-checked, #1a1a1a) !important;
+  border-color: var(--checkbox-border-checked, #1a1a1a) !important;
+}
+
+/* Indeterminate State (often treated as checked in Mantine) */
+.recursica-checkbox-root .mantine-Checkbox-input[data-indeterminate],
+.recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-input[data-indeterminate] {
+  background-color: var(--checkbox-bg-checked, #1a1a1a) !important;
+  border-color: var(--checkbox-border-checked, #1a1a1a) !important;
+}
+
+/* Icon */
+.recursica-checkbox-root .mantine-Checkbox-icon,
+.recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-icon {
+  color: var(--checkbox-icon-color, #ffffff) !important;
+  width: var(--checkbox-icon-size) !important;
+  height: var(--checkbox-icon-size) !important;
+}
+
+/* Disabled State */
+.recursica-checkbox-root .mantine-Checkbox-input:disabled,
+.recursica-checkbox-root[data-disabled] .mantine-Checkbox-input {
+  opacity: var(--checkbox-disabled-opacity, 0.4) !important;
+  cursor: not-allowed !important;
+}
+
+.recursica-checkbox-root .mantine-Checkbox-input:disabled+.mantine-Checkbox-icon,
+.recursica-checkbox-root[data-disabled] .mantine-Checkbox-icon {
+  opacity: var(--checkbox-disabled-opacity, 0.4) !important;
+}
+
+.recursica-checkbox-root[data-disabled] .mantine-Checkbox-label {
+  opacity: var(--checkbox-disabled-opacity, 0.4) !important;
+}

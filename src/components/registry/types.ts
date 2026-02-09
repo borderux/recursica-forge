@@ -10,11 +10,13 @@ import type { UiKit } from '../../modules/uikit/UiKitContext'
 
 export type { UiKit }
 
-export type ComponentName = 
+export type ComponentName =
   | 'Button'
   | 'Card'
   | 'TextField'
   | 'Checkbox'
+  | 'CheckboxItem'
+  | 'CheckboxGroup'
   | 'Radio'
   | 'Select'
   | 'Textarea'

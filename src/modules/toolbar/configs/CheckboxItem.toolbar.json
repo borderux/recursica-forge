@@ -1,0 +1,75 @@
+{
+    "props": {
+        "size": {
+            "icon": "resize",
+            "label": "Size",
+            "visible": true
+        },
+        "border-radius": {
+            "icon": "corners-out",
+            "label": "Corner radius",
+            "visible": true
+        },
+        "border-width": {
+            "icon": "arrows-left-right",
+            "label": "Border width",
+            "visible": false
+        },
+        "icon-size": {
+            "icon": "resize",
+            "label": "Icon size",
+            "visible": true
+        },
+        "label-gap": {
+            "icon": "split-horizontal",
+            "label": "Label gap",
+            "visible": true
+        },
+        "colors": {
+            "icon": "palette",
+            "label": "Colors",
+            "visible": true,
+            "group": {
+                "background-checked": {
+                    "label": "Checked background",
+                    "visible": true
+                },
+                "border-unchecked": {
+                    "label": "Border",
+                    "visible": true
+                },
+                "icon-color": {
+                    "label": "Icon color",
+                    "visible": true
+                }
+            }
+        },
+        "text": {
+            "icon": "text-aa",
+            "label": "Label text",
+            "visible": true,
+            "group": {
+                "font-family": {
+                    "label": "Font",
+                    "visible": true
+                },
+                "font-weight": {
+                    "label": "Weight",
+                    "visible": true
+                },
+                "font-size": {
+                    "label": "Size",
+                    "visible": true
+                },
+                "line-height": {
+                    "label": "Line height",
+                    "visible": true
+                },
+                "color": {
+                    "label": "Color",
+                    "visible": true
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "props": {
+        "properties": {
+            "icon": "stack",
+            "label": "Group properties",
+            "visible": true,
+            "group": {
+                "item-gap": {
+                    "icon": "split-vertical",
+                    "label": "Item gap",
+                    "visible": true
+                },
+                "padding": {
+                    "icon": "frame-corners",
+                    "label": "Padding",
+                    "visible": true
+                }
+            }
+        }
+    }
+}
