@@ -18,6 +18,7 @@ import { Tooltip } from '../../../../components/adapters/Tooltip'
 import { Button } from '../../../../components/adapters/Button'
 import { SegmentedControl } from '../../../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
+import { Dropdown } from '../../../../components/adapters/Dropdown'
 import { getVarsStore } from '../../../../core/store/varsStore'
 import './TextStyleToolbar.css'
 
@@ -38,11 +39,11 @@ export default function TextStyleToolbar({
 }: TextStyleToolbarProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
-  
+
   // State to track whether all properties are shown
   // Reset when component mounts (accordion opens)
   const [showAllProperties, setShowAllProperties] = useState(false)
-  
+
   // Reset showAllProperties when component mounts (accordion opens)
   useEffect(() => {
     setShowAllProperties(false)
@@ -54,7 +55,7 @@ export default function TextStyleToolbar({
   const componentsWithSizeSpecificText = ['Avatar'] // Components that have text properties under size variants
   const hasSizeSpecificText = componentsWithSizeSpecificText.includes(componentName)
   const sizeVariant = hasSizeSpecificText ? (selectedVariants?.size || selectedVariants?.sizeVariant || undefined) : undefined
-  
+
   // Get CSS variables for all text properties
   // Use size variant if available (for components like Avatar where text properties are per size variant)
   const fontFamilyVar = getComponentTextCssVar(componentName as any, textElementName, 'font-family', sizeVariant)
@@ -70,22 +71,22 @@ export default function TextStyleToolbar({
   // Get available font families (typefaces)
   const fontFamilies = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: string }> = []
-    
+
     try {
       const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
       const typefaces = tokensRoot?.font?.typefaces || tokensRoot?.font?.typeface || {}
-      
+
       Object.keys(typefaces).forEach(key => {
         if (key.startsWith('$')) return
-        
+
         const cssVar = `--recursica-tokens-font-typefaces-${key}`
         const cssValue = readCssVar(cssVar)
-        
+
         if (cssValue) {
           // Get the resolved font name to display in parentheses
           const resolvedValue = readCssVarResolved(cssVar)
           let fontName = ''
-          
+
           if (resolvedValue) {
             // Extract font name from resolved value (e.g., "Lexend" or "Lexend, sans-serif" -> "Lexend")
             // Remove quotes if present
@@ -96,11 +97,11 @@ export default function TextStyleToolbar({
               fontName = fontNameMatch[1].trim()
             }
           }
-          
+
           // Build label with font name in parentheses if available
           const sequenceLabel = toSentenceCase(key)
           const label = fontName ? `${sequenceLabel} (${fontName})` : sequenceLabel
-          
+
           options.push({
             label,
             cssVar,
@@ -111,7 +112,7 @@ export default function TextStyleToolbar({
     } catch (error) {
       console.error('Error loading font families:', error)
     }
-    
+
     return options
   }, [tokensFromVars])
 
@@ -126,18 +127,18 @@ export default function TextStyleToolbar({
   // Helper function to get available weight keys for the current font
   const getAvailableWeightKeysForFont = useCallback((fontName: string): Set<string> | null => {
     if (!fontName || !fontName.trim()) return null
-    
+
     try {
       const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '').toLowerCase()
       const store = getVarsStore()
       const state = store.getState()
       const tokens = state.tokens as any
       const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-      
+
       // Check fontVariants structure first (newer structure)
       const fontVariants = fontRoot.fontVariants || {}
       const variants = fontVariants[cleanFontName]
-      
+
       if (variants && Array.isArray(variants) && variants.length > 0) {
         const weightKeys = new Set<string>()
         variants.forEach((variant: any) => {
@@ -151,29 +152,29 @@ export default function TextStyleToolbar({
         })
         return weightKeys.size > 0 ? weightKeys : null
       }
-      
+
       // Fallback: check $extensions.variants in typefaces (older structure)
       const typefaces = fontRoot?.typefaces || fontRoot?.typeface || {}
       for (const [key, typefaceDef] of Object.entries(typefaces)) {
         if (key.startsWith('$')) continue
-        
+
         const typeface = typefaceDef as any
         const value = typeface?.$value
         let typefaceFontName = ''
-        
+
         // Extract font name from value
         if (Array.isArray(value) && value.length > 0) {
           typefaceFontName = typeof value[0] === 'string' ? value[0].trim().replace(/^["']|["']$/g, '').toLowerCase() : ''
         } else if (typeof value === 'string') {
           typefaceFontName = value.trim().replace(/^["']|["']$/g, '').toLowerCase()
         }
-        
+
         // Check if this typeface matches our font
         if (typefaceFontName === cleanFontName) {
           const extensions = typeface?.$extensions
           const googleFontsExt = extensions?.['com.google.fonts']
           const variants = googleFontsExt?.variants || extensions?.variants
-          
+
           if (variants && Array.isArray(variants) && variants.length > 0) {
             const weightKeys = new Set<string>()
             variants.forEach((variant: any) => {
@@ -192,25 +193,25 @@ export default function TextStyleToolbar({
     } catch (error) {
       console.error('Error getting available weights for font:', error)
     }
-    
+
     return null
   }, [])
 
   // Helper function to get available style keys for the current font
   const getAvailableStyleKeysForFont = useCallback((fontName: string): Set<string> | null => {
     if (!fontName || !fontName.trim()) return null
-    
+
     try {
       const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '').toLowerCase()
       const store = getVarsStore()
       const state = store.getState()
       const tokens = state.tokens as any
       const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-      
+
       // Check fontVariants structure first (newer structure)
       const fontVariants = fontRoot.fontVariants || {}
       const variants = fontVariants[cleanFontName]
-      
+
       if (variants && Array.isArray(variants) && variants.length > 0) {
         const styleKeys = new Set<string>()
         variants.forEach((variant: any) => {
@@ -224,29 +225,29 @@ export default function TextStyleToolbar({
         })
         return styleKeys.size > 0 ? styleKeys : null
       }
-      
+
       // Fallback: check $extensions.variants in typefaces (older structure)
       const typefaces = fontRoot?.typefaces || fontRoot?.typeface || {}
       for (const [key, typefaceDef] of Object.entries(typefaces)) {
         if (key.startsWith('$')) continue
-        
+
         const typeface = typefaceDef as any
         const value = typeface?.$value
         let typefaceFontName = ''
-        
+
         // Extract font name from value
         if (Array.isArray(value) && value.length > 0) {
           typefaceFontName = typeof value[0] === 'string' ? value[0].trim().replace(/^["']|["']$/g, '').toLowerCase() : ''
         } else if (typeof value === 'string') {
           typefaceFontName = value.trim().replace(/^["']|["']$/g, '').toLowerCase()
         }
-        
+
         // Check if this typeface matches our font
         if (typefaceFontName === cleanFontName) {
           const extensions = typeface?.$extensions
           const googleFontsExt = extensions?.['com.google.fonts']
           const variants = googleFontsExt?.variants || extensions?.variants
-          
+
           if (variants && Array.isArray(variants) && variants.length > 0) {
             const styleKeys = new Set<string>()
             variants.forEach((variant: any) => {
@@ -265,18 +266,18 @@ export default function TextStyleToolbar({
     } catch (error) {
       console.error('Error getting available styles for font:', error)
     }
-    
+
     return null
   }, [])
 
   // Get available font weights - filtered by selected font
   const fontWeights = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: number }> = []
-    
+
     try {
       const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
       const weights = tokensRoot?.font?.weights || tokensRoot?.font?.weight || {}
-      
+
       // Get available weight keys for the current font
       let availableWeightKeys: Set<string> | null = null
       if (currentFontFamily) {
@@ -291,24 +292,24 @@ export default function TextStyleToolbar({
           }
         }
       }
-      
+
       Object.keys(weights).forEach(key => {
         if (key.startsWith('$')) return
-        
+
         // Filter by available weights if we have them
         if (availableWeightKeys && !availableWeightKeys.has(key)) {
           return
         }
-        
+
         const weightValue = weights[key]
         const weightNum = typeof weightValue === 'object' && weightValue?.$value
           ? (typeof weightValue.$value === 'number' ? weightValue.$value : Number(weightValue.$value))
           : (typeof weightValue === 'number' ? weightValue : Number(weightValue))
-        
+
         if (Number.isFinite(weightNum)) {
           const cssVar = `--recursica-tokens-font-weights-${key}`
           const cssValue = readCssVar(cssVar)
-          
+
           if (cssValue) {
             options.push({
               label: toSentenceCase(key),
@@ -321,7 +322,7 @@ export default function TextStyleToolbar({
     } catch (error) {
       console.error('Error loading font weights:', error)
     }
-    
+
     // Sort by numeric value
     return options.sort((a, b) => a.value - b.value)
   }, [tokensFromVars, currentFontFamily, getAvailableWeightKeysForFont])
@@ -330,19 +331,19 @@ export default function TextStyleToolbar({
   const letterSpacings = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: number }> = []
     const foundKeys = new Set<string>()
-    
+
     try {
       const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
       const spacings = tokensRoot?.font?.['letter-spacings'] || tokensRoot?.font?.['letter-spacing'] || {}
-      
+
       Object.keys(spacings).forEach(key => {
         if (key.startsWith('$')) return
-        
+
         const spacingValue = spacings[key]
         const spacingNum = typeof spacingValue === 'object' && spacingValue?.$value !== undefined
           ? (typeof spacingValue.$value === 'number' ? spacingValue.$value : Number(spacingValue.$value))
           : (typeof spacingValue === 'number' ? spacingValue : Number(spacingValue))
-        
+
         // Include all valid tokens, including 0 (default)
         // Check for NaN explicitly since Number.isFinite(0) is true but we want to ensure it's a valid number
         if (Number.isFinite(spacingNum) && !isNaN(spacingNum)) {
@@ -357,7 +358,7 @@ export default function TextStyleToolbar({
           foundKeys.add(key)
         }
       })
-      
+
       // Ensure "default" token is always included (it has value 0)
       if (!foundKeys.has('default')) {
         options.push({
@@ -377,7 +378,7 @@ export default function TextStyleToolbar({
         })
       }
     }
-    
+
     // Sort by numeric value
     return options.sort((a, b) => a.value - b.value)
   }, [tokensFromVars])
@@ -385,19 +386,19 @@ export default function TextStyleToolbar({
   // Get available line height tokens
   const lineHeights = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: number }> = []
-    
+
     try {
       const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
       const heights = tokensRoot?.font?.['line-heights'] || tokensRoot?.font?.['line-height'] || {}
-      
+
       Object.keys(heights).forEach(key => {
         if (key.startsWith('$')) return
-        
+
         const heightValue = heights[key]
         const heightNum = typeof heightValue === 'object' && heightValue?.$value
           ? (typeof heightValue.$value === 'number' ? heightValue.$value : Number(heightValue.$value))
           : (typeof heightValue === 'number' ? heightValue : Number(heightValue))
-        
+
         if (Number.isFinite(heightNum)) {
           const cssVar = `--recursica-tokens-font-line-heights-${key}`
           // Include all valid tokens, even if CSS variable doesn't exist yet
@@ -412,7 +413,7 @@ export default function TextStyleToolbar({
     } catch (error) {
       console.error('Error loading line heights:', error)
     }
-    
+
     // Sort by numeric value
     return options.sort((a, b) => a.value - b.value)
   }, [tokensFromVars])
@@ -420,29 +421,29 @@ export default function TextStyleToolbar({
   // Get available font size tokens
   const fontSizes = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; sizeKey: string; fontSize: number }> = []
-    
+
     try {
       const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
       const sizes = tokensRoot?.font?.sizes || tokensRoot?.font?.size || {}
-      
+
       Object.keys(sizes).forEach(sizeKey => {
         if (sizeKey.startsWith('$')) return
-        
+
         const sizeValue = sizes[sizeKey]
         if (sizeValue && typeof sizeValue === 'object' && '$value' in sizeValue) {
           const cssVar = `--recursica-tokens-font-sizes-${sizeKey}`
           const cssValue = readCssVar(cssVar)
-          
+
           if (cssValue) {
             const resolvedValue = readCssVarResolved(cssVar)
             let fontSize = 0
-            
+
             if (resolvedValue) {
               const match = resolvedValue.match(/([\d.]+)(px|rem|em)/)
               if (match) {
                 const value = parseFloat(match[1])
                 const unit = match[2]
-                
+
                 if (unit === 'px') {
                   fontSize = value
                 } else if (unit === 'rem' || unit === 'em') {
@@ -455,16 +456,16 @@ export default function TextStyleToolbar({
                 }
               }
             }
-            
+
             // Format label from size key (e.g., "2xs" -> "2Xs", "sm" -> "Sm")
             const formattedLabel = sizeKey === '2xs' ? '2Xs' :
-                                 sizeKey === '2xl' ? '2Xl' :
-                                 sizeKey === '3xl' ? '3Xl' :
-                                 sizeKey === '4xl' ? '4Xl' :
-                                 sizeKey === '5xl' ? '5Xl' :
-                                 sizeKey === '6xl' ? '6Xl' :
-                                 sizeKey.charAt(0).toUpperCase() + sizeKey.slice(1)
-            
+              sizeKey === '2xl' ? '2Xl' :
+                sizeKey === '3xl' ? '3Xl' :
+                  sizeKey === '4xl' ? '4Xl' :
+                    sizeKey === '5xl' ? '5Xl' :
+                      sizeKey === '6xl' ? '6Xl' :
+                        sizeKey.charAt(0).toUpperCase() + sizeKey.slice(1)
+
             options.push({
               label: formattedLabel,
               cssVar,
@@ -477,7 +478,7 @@ export default function TextStyleToolbar({
     } catch (error) {
       console.error('Error loading font sizes:', error)
     }
-    
+
     // Sort by font-size from smallest to largest
     return options.sort((a, b) => a.fontSize - b.fontSize)
   }, [tokensFromVars])
@@ -512,12 +513,12 @@ export default function TextStyleToolbar({
   const fontStyleOptions = useMemo(() => {
     const RomanIcon = iconNameToReactComponent('radix-font-roman')
     const ItalicIcon = iconNameToReactComponent('radix-font-italic')
-    
+
     const allOptions = [
       { value: 'normal', label: 'Normal', icon: RomanIcon ? <RomanIcon size={16} /> : null, tooltip: 'Normal' },
       { value: 'italic', label: 'Italic', icon: ItalicIcon ? <ItalicIcon size={16} /> : null, tooltip: 'Italic' },
     ]
-    
+
     // Filter based on available styles for the current font
     if (currentFontFamily) {
       // Extract font name from the CSS variable
@@ -528,7 +529,7 @@ export default function TextStyleToolbar({
         if (fontNameMatch) {
           const fontName = fontNameMatch[1].trim()
           const availableStyleKeys = getAvailableStyleKeysForFont(fontName)
-          
+
           // If we have variant restrictions, filter the options
           if (availableStyleKeys && availableStyleKeys.size > 0) {
             // Map style keys to CSS values (normal/italic)
@@ -539,7 +540,7 @@ export default function TextStyleToolbar({
               const optionStyleKey = option.value.toLowerCase()
               return availableStyleKeys.has(optionStyleKey)
             })
-            
+
             // Only return filtered options if we have at least one
             // If only "normal" is available, we'll still show it (but the control will be hidden if there's only one option)
             return filteredOptions.length > 0 ? filteredOptions : allOptions
@@ -547,7 +548,7 @@ export default function TextStyleToolbar({
         }
       }
     }
-    
+
     // Default: return all options if no restrictions found
     return allOptions
   }, [currentFontFamily, getAvailableStyleKeysForFont])
@@ -563,7 +564,7 @@ export default function TextStyleToolbar({
       const currentFontFamilyValue = readCssVar(fontFamilyVar) || ''
       // Extract CSS var name from value (e.g., "var(--recursica-tokens-font-typefaces-primary)" -> "--recursica-tokens-font-typefaces-primary")
       const extracted = currentFontFamilyValue.match(/var\(([^)]+)\)/)?.[1] || currentFontFamilyValue
-      
+
       // Ensure the extracted value matches one of the available font families
       // If not, try to find a match by comparing resolved values
       let matchedCssVar = extracted
@@ -589,17 +590,17 @@ export default function TextStyleToolbar({
           }
         }
       }
-      
+
       setCurrentFontFamily(matchedCssVar)
     }
-    
+
     updateCurrentFontFamily()
-    
+
     // Listen for CSS var updates
     const handleUpdate = () => {
       updateCurrentFontFamily()
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleUpdate)
     return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
   }, [fontFamilyVar, fontFamilies])
@@ -607,17 +608,17 @@ export default function TextStyleToolbar({
   // Validate font style when font family changes
   useEffect(() => {
     if (!currentFontFamily || !currentFontStyle) return
-    
+
     const resolvedValue = readCssVarResolved(currentFontFamily)
     if (!resolvedValue) return
-    
+
     const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
     const fontNameMatch = cleanValue.match(/^([^,]+)/)
     if (!fontNameMatch) return
-    
+
     const fontName = fontNameMatch[1].trim()
     const availableStyleKeys = getAvailableStyleKeysForFont(fontName)
-    
+
     // If we have variant restrictions and current style is not available, switch to normal
     if (availableStyleKeys && availableStyleKeys.size > 0) {
       const currentStyleKey = currentFontStyle.toLowerCase()
@@ -646,24 +647,24 @@ export default function TextStyleToolbar({
       setCurrentTextTransform(transformValue)
       setCurrentFontStyle(styleValue)
     }
-    
+
     updateValues()
-    
+
     // Listen for CSS var updates
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const updatedVars = detail?.cssVars || []
       // Update if any of these vars were updated, or if no specific vars were mentioned (global update)
-      if (updatedVars.length === 0 || 
-          updatedVars.includes(textDecorationVar) || 
-          updatedVars.includes(textTransformVar) || 
-          updatedVars.includes(fontStyleVar)) {
+      if (updatedVars.length === 0 ||
+        updatedVars.includes(textDecorationVar) ||
+        updatedVars.includes(textTransformVar) ||
+        updatedVars.includes(fontStyleVar)) {
         updateValues()
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleUpdate)
-    
+
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       updateValues()
@@ -672,7 +673,7 @@ export default function TextStyleToolbar({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleUpdate)
       observer.disconnect()
@@ -712,11 +713,11 @@ export default function TextStyleToolbar({
               const value = parseFloat(pixelMatch[1])
               const unit = pixelMatch[2]
               const pixelValue = unit === 'px' ? value : (unit === 'rem' || unit === 'em' ? value * 16 : value)
-              
+
               // Find the closest matching font size by pixel value
               let closestToken = fontSizes[0]
               let closestDiff = Math.abs(closestToken.fontSize - pixelValue)
-              
+
               for (const token of fontSizes) {
                 const diff = Math.abs(token.fontSize - pixelValue)
                 if (diff < closestDiff) {
@@ -724,7 +725,7 @@ export default function TextStyleToolbar({
                   closestToken = token
                 }
               }
-              
+
               // Only use the match if it's reasonably close (within 2px)
               if (closestDiff <= 2) {
                 setCurrentFontSizeToken(closestToken.cssVar)
@@ -771,11 +772,11 @@ export default function TextStyleToolbar({
               const unit = emMatch[2]
               // Letter spacing tokens store values in em, so compare directly
               const emValue = unit === 'px' ? value / 16 : (unit === 'rem' || unit === 'em' || !unit ? value : value)
-              
+
               // Find the closest matching letter spacing by value
               let closestToken = letterSpacings[0]
               let closestDiff = Math.abs(closestToken.value - emValue)
-              
+
               for (const token of letterSpacings) {
                 const diff = Math.abs(token.value - emValue)
                 if (diff < closestDiff) {
@@ -783,7 +784,7 @@ export default function TextStyleToolbar({
                   closestToken = token
                 }
               }
-              
+
               // Use a percentage-based tolerance: 5% of the value or 0.0001, whichever is larger
               const tolerance = Math.max(Math.abs(emValue) * 0.05, 0.0001)
               if (closestDiff <= tolerance) {
@@ -810,21 +811,21 @@ export default function TextStyleToolbar({
             const value = parseFloat(heightMatch[1])
             if (!isNaN(value)) {
               const unit = heightMatch[2]
-              
+
               // Line height tokens store values as numbers (could be unitless multipliers or pixel values)
               let numericValue = value
-              
+
               if (unit === 'px') {
                 numericValue = value
               } else if (unit === 'rem' || unit === 'em') {
                 numericValue = value
               }
               // If no unit, it's already a unitless multiplier
-              
+
               // Find the closest matching line height by value
               let closestToken = lineHeights[0]
               let closestDiff = Math.abs(closestToken.value - numericValue)
-              
+
               for (const token of lineHeights) {
                 const diff = Math.abs(token.value - numericValue)
                 if (diff < closestDiff) {
@@ -832,7 +833,7 @@ export default function TextStyleToolbar({
                   closestToken = token
                 }
               }
-              
+
               // Use a percentage-based tolerance: 1% of the value or 0.01, whichever is larger
               const tolerance = Math.max(Math.abs(numericValue) * 0.01, 0.01)
               if (closestDiff <= tolerance) {
@@ -871,11 +872,11 @@ export default function TextStyleToolbar({
                 const value = parseFloat(pixelMatch[1])
                 const unit = pixelMatch[2]
                 const pixelValue = unit === 'px' ? value : (unit === 'rem' || unit === 'em' ? value * 16 : value)
-                
+
                 // Find the closest matching font size by pixel value
                 let closestToken = fontSizes[0]
                 let closestDiff = Math.abs(closestToken.fontSize - pixelValue)
-                
+
                 for (const token of fontSizes) {
                   const diff = Math.abs(token.fontSize - pixelValue)
                   if (diff < closestDiff) {
@@ -883,7 +884,7 @@ export default function TextStyleToolbar({
                     closestToken = token
                   }
                 }
-                
+
                 // Only use the match if it's reasonably close (within 2px)
                 if (closestDiff <= 2) {
                   setCurrentFontSizeToken(closestToken.cssVar)
@@ -916,11 +917,11 @@ export default function TextStyleToolbar({
                 const unit = emMatch[2]
                 // Letter spacing tokens store values in em, so compare directly
                 const emValue = unit === 'px' ? value / 16 : (unit === 'rem' || unit === 'em' || !unit ? value : value)
-                
+
                 // Find the closest matching letter spacing by value
                 let closestToken = letterSpacings[0]
                 let closestDiff = Math.abs(closestToken.value - emValue)
-                
+
                 for (const token of letterSpacings) {
                   const diff = Math.abs(token.value - emValue)
                   if (diff < closestDiff) {
@@ -928,7 +929,7 @@ export default function TextStyleToolbar({
                     closestToken = token
                   }
                 }
-                
+
                 // Use a percentage-based tolerance: 5% of the value or 0.0001, whichever is larger
                 const tolerance = Math.max(Math.abs(emValue) * 0.05, 0.0001)
                 if (closestDiff <= tolerance) {
@@ -953,21 +954,21 @@ export default function TextStyleToolbar({
               const value = parseFloat(heightMatch[1])
               if (!isNaN(value)) {
                 const unit = heightMatch[2]
-                
+
                 // Line height tokens store values as numbers (could be unitless multipliers or pixel values)
                 let numericValue = value
-                
+
                 if (unit === 'px') {
                   numericValue = value
                 } else if (unit === 'rem' || unit === 'em') {
                   numericValue = value
                 }
                 // If no unit, it's already a unitless multiplier
-                
+
                 // Find the closest matching line height by value
                 let closestToken = lineHeights[0]
                 let closestDiff = Math.abs(closestToken.value - numericValue)
-                
+
                 for (const token of lineHeights) {
                   const diff = Math.abs(token.value - numericValue)
                   if (diff < closestDiff) {
@@ -975,7 +976,7 @@ export default function TextStyleToolbar({
                     closestToken = token
                   }
                 }
-                
+
                 // Use a percentage-based tolerance: 1% of the value or 0.01, whichever is larger
                 const tolerance = Math.max(Math.abs(numericValue) * 0.01, 0.01)
                 if (closestDiff <= tolerance) {
@@ -998,7 +999,7 @@ export default function TextStyleToolbar({
     updateCssVar(fontFamilyVar, tokenValue)
     // Update state immediately for UI responsiveness
     setCurrentFontFamily(cssVar)
-    
+
     // Check if current font weight is available for the new font
     // Extract font name from the new CSS variable
     const resolvedValue = readCssVarResolved(cssVar)
@@ -1008,29 +1009,29 @@ export default function TextStyleToolbar({
       if (fontNameMatch) {
         const fontName = fontNameMatch[1].trim()
         const availableWeightKeys = getAvailableWeightKeysForFont(fontName)
-        
+
         if (availableWeightKeys && availableWeightKeys.size > 0) {
           // Extract current weight key from CSS var (e.g., "--recursica-tokens-font-weights-regular" -> "regular")
           const weightKeyMatch = currentFontWeightToken.match(/--recursica-tokens-font-weights-([a-z0-9-]+)/)
           const currentWeightKey = weightKeyMatch ? weightKeyMatch[1] : null
-          
+
           // If current weight is not available, switch to first available weight
           if (currentWeightKey && !availableWeightKeys.has(currentWeightKey)) {
             // Find the first available weight token
             const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
             const weights = tokensRoot?.font?.weights || tokensRoot?.font?.weight || {}
-            
+
             // Get all available weights sorted by value
             const availableWeights: Array<{ key: string; cssVar: string; value: number }> = []
             Object.keys(weights).forEach(key => {
               if (key.startsWith('$')) return
               if (!availableWeightKeys.has(key)) return
-              
+
               const weightValue = weights[key]
               const weightNum = typeof weightValue === 'object' && weightValue?.$value
                 ? (typeof weightValue.$value === 'number' ? weightValue.$value : Number(weightValue.$value))
                 : (typeof weightValue === 'number' ? weightValue : Number(weightValue))
-              
+
               if (Number.isFinite(weightNum)) {
                 const cssVar = `--recursica-tokens-font-weights-${key}`
                 const cssValue = readCssVar(cssVar)
@@ -1039,10 +1040,10 @@ export default function TextStyleToolbar({
                 }
               }
             })
-            
+
             // Sort by value and use the first one (or closest to current if possible)
             availableWeights.sort((a, b) => a.value - b.value)
-            
+
             if (availableWeights.length > 0) {
               // Try to find closest weight to current, otherwise use first
               let targetWeight = availableWeights[0]
@@ -1051,7 +1052,7 @@ export default function TextStyleToolbar({
                 const currentWeightNum = typeof currentWeightValue === 'object' && currentWeightValue?.$value
                   ? (typeof currentWeightValue.$value === 'number' ? currentWeightValue.$value : Number(currentWeightValue.$value))
                   : (typeof currentWeightValue === 'number' ? currentWeightValue : Number(currentWeightValue))
-                
+
                 if (Number.isFinite(currentWeightNum)) {
                   // Find closest available weight
                   let closest = availableWeights[0]
@@ -1066,7 +1067,7 @@ export default function TextStyleToolbar({
                   targetWeight = closest
                 }
               }
-              
+
               // Update to the target weight directly (inline the handler logic to avoid dependency)
               setCurrentFontWeightToken(targetWeight.cssVar)
               const tokenValue = `var(${targetWeight.cssVar})`
@@ -1081,7 +1082,7 @@ export default function TextStyleToolbar({
         }
       }
     }
-    
+
     // Check if current font style is available for the new font
     if (resolvedValue && currentFontStyle) {
       const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
@@ -1089,7 +1090,7 @@ export default function TextStyleToolbar({
       if (fontNameMatch) {
         const fontName = fontNameMatch[1].trim()
         const availableStyleKeys = getAvailableStyleKeysForFont(fontName)
-        
+
         // If we have variant restrictions and current style is not available, switch to normal
         if (availableStyleKeys && availableStyleKeys.size > 0) {
           const currentStyleKey = currentFontStyle.toLowerCase()
@@ -1108,7 +1109,7 @@ export default function TextStyleToolbar({
         }
       }
     }
-    
+
     requestAnimationFrame(() => {
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
         detail: { cssVars: [fontFamilyVar] }
@@ -1211,31 +1212,22 @@ export default function TextStyleToolbar({
       {/* Font Family - Always visible */}
       {fontFamilies.length > 0 && (
         <div className="text-style-control">
-          <Label layer="layer-3" layout="stacked">Font</Label>
-          <select
+          <Dropdown
+            items={fontFamilies.map(family => ({
+              value: family.cssVar,
+              label: family.label
+            }))}
             value={currentFontFamily}
-            onChange={(e) => {
-              const selectedCssVar = e.target.value
+            onChange={(selectedCssVar) => {
               if (selectedCssVar) {
                 handleFontFamilyChange(selectedCssVar)
               }
             }}
-            style={{
-              padding: '8px',
-              borderRadius: '4px',
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
-              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
-              fontSize: '14px',
-              width: '100%',
-            }}
-          >
-            {fontFamilies.map(family => (
-              <option key={family.cssVar} value={family.cssVar}>
-                {family.label}
-              </option>
-            ))}
-          </select>
+            label="Font"
+            layer="layer-3"
+            layout="stacked"
+            disableTopBottomMargin={true}
+          />
         </div>
       )}
 
@@ -1305,47 +1297,47 @@ export default function TextStyleToolbar({
         <>
           {/* Font Weight */}
           {fontWeights.length > 0 && (
-        <div className="text-style-control">
-          <Slider
-            value={fontWeightIndex >= 0 ? fontWeightIndex : 0}
-            onChange={(val) => {
-              const idx = typeof val === 'number' ? val : val[0]
-              const roundedIdx = Math.round(idx)
-              const token = fontWeights[roundedIdx]
-              if (token) {
-                handleFontWeightChange(token.cssVar)
-              }
-            }}
-            onChangeCommitted={(val) => {
-              const idx = typeof val === 'number' ? val : val[0]
-              const roundedIdx = Math.round(idx)
-              const token = fontWeights[roundedIdx]
-              if (token) {
-                handleFontWeightChange(token.cssVar)
-              }
-            }}
-            min={0}
-            max={fontWeights.length - 1}
-            step={1}
-            layer="layer-3"
-            layout="stacked"
-            showInput={false}
-            showValueLabel={true}
-            valueLabel={(val) => {
-              const token = fontWeights[Math.round(val)]
-              return token?.label || String(val)
-            }}
-            tooltipText={(val) => {
-              const token = fontWeights[Math.round(val)]
-              return token?.label || String(val)
-            }}
-            minLabel={fontWeights[0]?.label || 'Thin'}
-            maxLabel={fontWeights[fontWeights.length - 1]?.label || 'Black'}
-            showMinMaxLabels={false}
-            label={<Label layer="layer-3" layout="stacked">Weight</Label>}
-          />
-        </div>
-      )}
+            <div className="text-style-control">
+              <Slider
+                value={fontWeightIndex >= 0 ? fontWeightIndex : 0}
+                onChange={(val) => {
+                  const idx = typeof val === 'number' ? val : val[0]
+                  const roundedIdx = Math.round(idx)
+                  const token = fontWeights[roundedIdx]
+                  if (token) {
+                    handleFontWeightChange(token.cssVar)
+                  }
+                }}
+                onChangeCommitted={(val) => {
+                  const idx = typeof val === 'number' ? val : val[0]
+                  const roundedIdx = Math.round(idx)
+                  const token = fontWeights[roundedIdx]
+                  if (token) {
+                    handleFontWeightChange(token.cssVar)
+                  }
+                }}
+                min={0}
+                max={fontWeights.length - 1}
+                step={1}
+                layer="layer-3"
+                layout="stacked"
+                showInput={false}
+                showValueLabel={true}
+                valueLabel={(val) => {
+                  const token = fontWeights[Math.round(val)]
+                  return token?.label || String(val)
+                }}
+                tooltipText={(val) => {
+                  const token = fontWeights[Math.round(val)]
+                  return token?.label || String(val)
+                }}
+                minLabel={fontWeights[0]?.label || 'Thin'}
+                maxLabel={fontWeights[fontWeights.length - 1]?.label || 'Black'}
+                showMinMaxLabels={false}
+                label={<Label layer="layer-3" layout="stacked">Weight</Label>}
+              />
+            </div>
+          )}
 
           {/* Letter Spacing */}
           {letterSpacings.length > 0 && (
