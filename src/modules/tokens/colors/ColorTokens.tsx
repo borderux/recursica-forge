@@ -10,6 +10,7 @@ import { getFriendlyNamePreferNtc, getNtcName } from '../../utils/colorNaming'
 import { ColorPickerModal } from '../../pickers/ColorPickerModal'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
+import { TextField } from '../../../components/adapters/TextField'
 import { parseTokenReference, type TokenReferenceContext } from '../../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../../core/resolvers/tokens'
 
@@ -956,24 +957,29 @@ export default function ColorTokens() {
       }}>
         {/* Numerical scale column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          <div style={{ height: 40, marginBottom: 'var(--recursica-brand-dimensions-general-sm)' }} /> {/* Spacer for header */}
-          {levelOrder.map((level) => (
-            <div
-              key={'label-' + level}
-              style={{
-                textAlign: 'center',
-                fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: `var(${layer0Base}-element-text-low-emphasis)`,
-                height: 40,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {level}
-            </div>
-          ))}
+          {/* Use a hidden TextField as spacer to ensure exact height match with scale headers */}
+          <div style={{ marginBottom: 'var(--recursica-brand-dimensions-general-sm)', visibility: 'hidden', pointerEvents: 'none' }}>
+            <TextField value="" onChange={() => { }} layer="layer-1" style={{ width: '100%' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 1 }}> {/* 1px offset to match scale container border */}
+            {levelOrder.map((level) => (
+              <div
+                key={'label-' + level}
+                style={{
+                  textAlign: 'center',
+                  fontSize: 'var(--recursica-brand-typography-caption-font-size)',
+                  color: `var(${layer0Base}-element-text-color)`,
+                  opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                  height: 40,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {level}
+              </div>
+            ))}
+          </div>
         </div>
         {families.map(([family, levels]) => (
           <ColorScale
