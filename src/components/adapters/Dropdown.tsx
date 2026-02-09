@@ -131,6 +131,8 @@ export function Dropdown({
     // Find selected label
     const selectedItem = items.find(item => item.value === currentValue)
     const displayLabel = selectedItem ? selectedItem.label : placeholder
+    const itemLeadingIcon = selectedItem ? (selectedItem.leadingIcon || selectedItem.icon) : null
+    const effectiveLeadingIcon = leadingIcon || itemLeadingIcon
 
     const labelElement = label ? (
         <Label
@@ -200,8 +202,8 @@ export function Dropdown({
                                 opacity: state === 'disabled' ? 0.6 : 1,
                             }}
                         >
-                            {leadingIcon && (
-                                <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${leadingIconVar})` }}>{leadingIcon}</div>
+                            {effectiveLeadingIcon && (
+                                <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${leadingIconVar})` }}>{effectiveLeadingIcon}</div>
                             )}
                             <span style={{ flex: 1 }}>{displayLabel}</span>
                             {trailingIcon || (

@@ -108,6 +108,8 @@ export default function Dropdown({
     // Selected item
     const selectedItem = items.find(item => item.value === value)
     const displayLabel = selectedItem ? selectedItem.label : placeholder
+    const itemLeadingIcon = selectedItem ? (selectedItem.leadingIcon || selectedItem.icon) : null
+    const effectiveLeadingIcon = leadingIcon || itemLeadingIcon
 
     const labelElement = label ? (
         <Label
@@ -172,9 +174,9 @@ export default function Dropdown({
                 transition: 'box-shadow 0.2s, background-color 0.2s',
             }}
         >
-            {leadingIcon && (
+            {effectiveLeadingIcon && (
                 <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${leadingIconVar})`, display: 'flex', alignItems: 'center' }}>
-                    {leadingIcon}
+                    {effectiveLeadingIcon}
                 </div>
             )}
             <Text

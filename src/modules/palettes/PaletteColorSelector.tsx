@@ -8,6 +8,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getVarsStore } from '../../core/store/varsStore'
+import { Dropdown } from '../../components/adapters/Dropdown'
 
 type PaletteColorSelectorProps = {
   paletteKey: string
@@ -35,46 +36,46 @@ function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
 function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'white' | 'black' {
   const AA = 4.5
   const modeLower = modeLabel.toLowerCase()
-  
+
   // Read actual core black and white colors from CSS variables (not hardcoded)
   const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
   const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
   const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
   const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
-  
+
   // Normalize hex values (ensure they start with # and are lowercase)
   const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
   const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
-  
+
   // First, check contrast without opacity (baseline)
   const whiteBaseContrast = contrastRatio(toneHex, white)
   const blackBaseContrast = contrastRatio(toneHex, black)
-  
+
   // Get emphasis opacity values from CSS variables
   const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
   const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
-  
+
   // Blend white and black with tone using both opacity values
   const whiteHighBlended = blendHexOver(white, toneHex, highEmphasisOpacity)
   const whiteLowBlended = blendHexOver(white, toneHex, lowEmphasisOpacity)
   const blackHighBlended = blendHexOver(black, toneHex, highEmphasisOpacity)
   const blackLowBlended = blendHexOver(black, toneHex, lowEmphasisOpacity)
-  
+
   // Calculate contrast ratios with opacity applied
   const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
   const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
   const blackHighContrast = contrastRatio(toneHex, blackHighBlended)
   const blackLowContrast = contrastRatio(toneHex, blackLowBlended)
-  
+
   // Check which option meets AA for both emphasis levels
   const whiteMeetsHighAA = whiteHighContrast >= AA
   const whiteMeetsLowAA = whiteLowContrast >= AA
   const whiteMeetsBothAA = whiteMeetsHighAA && whiteMeetsLowAA
-  
+
   const blackMeetsHighAA = blackHighContrast >= AA
   const blackMeetsLowAA = blackLowContrast >= AA
   const blackMeetsBothAA = blackMeetsHighAA && blackMeetsLowAA
-  
+
   // Priority 1: Both meet AA - choose based on baseline contrast first
   if (whiteMeetsBothAA && blackMeetsBothAA) {
     if (Math.abs(whiteBaseContrast - blackBaseContrast) > 1.0) {
@@ -82,19 +83,19 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
     }
     return whiteLowContrast >= blackLowContrast ? 'white' : 'black'
   }
-  
+
   // Priority 2: Only one meets both AA levels
   if (whiteMeetsBothAA) return 'white'
   if (blackMeetsBothAA) return 'black'
-  
+
   // Priority 3: Check low emphasis (harder case) - prioritize this
   if (whiteMeetsLowAA && !blackMeetsLowAA) return 'white'
   if (blackMeetsLowAA && !whiteMeetsLowAA) return 'black'
-  
+
   // Priority 4: Check high emphasis
   if (whiteMeetsHighAA && !blackMeetsHighAA) return 'white'
   if (blackMeetsHighAA && !whiteMeetsHighAA) return 'black'
-  
+
   // Priority 5: Neither meets AA - choose based on baseline contrast
   if (Math.abs(whiteBaseContrast - blackBaseContrast) > 0.5) {
     return whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
@@ -128,7 +129,7 @@ export default function PaletteColorSelector({
   const familiesUsedByPalettes = useMemo(() => {
     const usedBy: Record<string, string> = {} // paletteKey -> family
     const themeIndex: Record<string, { value: any }> = {}
-    
+
     const visit = (node: any, prefix: string, modeLabel: 'Light' | 'Dark') => {
       if (!node || typeof node !== 'object') return
       if (Object.prototype.hasOwnProperty.call(node, '$value')) {
@@ -137,7 +138,7 @@ export default function PaletteColorSelector({
       }
       Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, modeLabel))
     }
-    
+
     const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
     // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
     const themes = root?.themes || root
@@ -147,20 +148,19 @@ export default function PaletteColorSelector({
     // Also support old structure for backward compatibility
     if (root?.light?.palettes) visit(root.light.palettes, 'palette', 'Light')
     if (root?.dark?.palettes) visit(root.dark.palettes, 'palette', 'Dark')
-    
-    // Build a deterministic map of scale keys to aliases upfront
-    // This ensures consistent mapping regardless of iteration order
+
+    // Build a deterministic map of aliases to scale keys
     const tokensRoot: any = (tokensJson as any)?.tokens || {}
     const colorsRoot: any = tokensRoot?.colors || {}
-    const scaleKeyToAlias: Record<string, string> = {}
+    const aliasToScaleKey: Record<string, string> = {}
     Object.entries(colorsRoot).forEach(([scaleKey, scale]) => {
       if (!scaleKey.startsWith('scale-')) return
       const scaleObj = scale as any
       if (scaleObj?.alias && typeof scaleObj.alias === 'string') {
-        scaleKeyToAlias[scaleKey] = scaleObj.alias
+        aliasToScaleKey[scaleObj.alias] = scaleKey
       }
     })
-    
+
     // Get existing palette keys from palettesState in deterministic order
     // Use array instead of Set to preserve order and ensure correct mapping
     const existingPaletteKeys: string[] = []
@@ -173,23 +173,23 @@ export default function PaletteColorSelector({
     if (!existingPaletteKeys.includes('neutral')) {
       existingPaletteKeys.push('neutral')
     }
-    
+
     const checkLevels = ['200', '500', '400', '300']
-    
+
     // Iterate through existing palettes in deterministic order (from palettesState)
     // This ensures each palette key maps to its correct family
     for (const pk of existingPaletteKeys) {
       let foundFamily = false
-      
+
       // Check both light and dark modes (but a palette should use same family in both)
       for (const modeKey of ['light', 'dark']) {
         if (foundFamily) break
-        
+
         // Check a few levels to detect the family
         for (const lvl of checkLevels) {
           const toneName = `palette/${pk}/${lvl}/color/tone`
           const toneRaw = themeIndex[`${modeKey === 'light' ? 'Light' : 'Dark'}::${toneName}`]?.value
-          
+
           if (typeof toneRaw === 'string') {
             // Use centralized parser to check for token references
             const tokenIndex = buildTokenIndex(tokensJson)
@@ -197,23 +197,23 @@ export default function PaletteColorSelector({
             const parsed = parseTokenReference(toneRaw, context)
             if (parsed && parsed.type === 'token') {
               let familyName: string | null = null
-              
+
               // Handle new colors format (colors.scale-XX.level or colors.alias.level)
               if (parsed.path.length >= 2 && parsed.path[0] === 'colors') {
                 const scaleOrAlias = parsed.path[1]
-                // If it's a scale key, look up the alias from our deterministic map
+                // If it's a scale key, use it directly
                 if (scaleOrAlias.startsWith('scale-')) {
-                  familyName = scaleKeyToAlias[scaleOrAlias] || scaleOrAlias
-                } else {
-                  // It's already an alias - use it directly
                   familyName = scaleOrAlias
+                } else {
+                  // It's an alias - look up the scale key
+                  familyName = aliasToScaleKey[scaleOrAlias] || scaleOrAlias
                 }
-              } 
+              }
               // Handle old color format (color.family.level)
               else if (parsed.path.length >= 2 && parsed.path[0] === 'color') {
                 familyName = parsed.path[1]
               }
-              
+
               if (familyName) {
                 // Store the mapping for this specific palette key
                 usedBy[pk] = familyName
@@ -225,7 +225,7 @@ export default function PaletteColorSelector({
         }
       }
     }
-    
+
     return usedBy
   }, [themeJson, tokensJson, paletteChangeVersion, palettesState])
 
@@ -233,7 +233,7 @@ export default function PaletteColorSelector({
   const allFamilies = useMemo(() => {
     const fams = new Set<string>()
     const tokensRoot: any = (tokensJson as any)?.tokens || {}
-    
+
     // Add families from new colors structure (use scale keys, not aliases, for internal tracking)
     const colorsRoot: any = tokensRoot?.colors || {}
     if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
@@ -243,13 +243,13 @@ export default function PaletteColorSelector({
         }
       })
     }
-    
+
     // Also add from old color structure for backwards compatibility
     const oldColors = tokensRoot?.color || {}
     Object.keys(oldColors).forEach((fam) => {
       if (fam !== 'translucent') fams.add(fam)
     })
-    
+
     // Add from overrides
     try {
       const overrides = readOverrides() as Record<string, any>
@@ -267,8 +267,8 @@ export default function PaletteColorSelector({
           }
         }
       })
-    } catch {}
-    
+    } catch { }
+
     fams.delete('translucent')
     const list = Array.from(fams)
     list.sort((a, b) => {
@@ -286,82 +286,37 @@ export default function PaletteColorSelector({
 
   // Filter families to exclude those used by other palettes
   const families = useMemo(() => {
-    const tokensRoot: any = (tokensJson as any)?.tokens || {}
-    const colorsRoot: any = tokensRoot?.colors || {}
     const familiesUsedByOthers = new Set<string>()
-    
-    // Convert aliases to scale keys for comparison
+
     Object.entries(familiesUsedByPalettes).forEach(([pk, fam]) => {
       if (pk !== paletteKey) {
-        // fam is an alias or old format family name
-        // Convert to scale key if it's an alias, otherwise use as-is
-        if (fam.startsWith('scale-')) {
-          // Already a scale key
-          familiesUsedByOthers.add(fam)
-        } else {
-          // Check if it's an alias that maps to a scale
-          let foundScale = false
-          for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
-            if (!scaleKey.startsWith('scale-')) continue
-            const scaleObj = scale as any
-            if (scaleObj?.alias === fam) {
-              familiesUsedByOthers.add(scaleKey)
-              foundScale = true
-              break
-            }
-          }
-          // If not found as alias, it's an old format family - add it directly
-          if (!foundScale) {
-            familiesUsedByOthers.add(fam)
-          }
-        }
+        familiesUsedByOthers.add(fam)
       }
     })
-    
-    // Get current palette's family as scale key for comparison
+
     const currentPaletteFamily = familiesUsedByPalettes[paletteKey]
-    let currentPaletteFamilyAsScaleKey: string | null = null
-    if (currentPaletteFamily) {
-      if (currentPaletteFamily.startsWith('scale-')) {
-        currentPaletteFamilyAsScaleKey = currentPaletteFamily
-      } else {
-        // Check if it's an alias
-        for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
-          if (!scaleKey.startsWith('scale-')) continue
-          const scaleObj = scale as any
-          if (scaleObj?.alias === currentPaletteFamily) {
-            currentPaletteFamilyAsScaleKey = scaleKey
-            break
-          }
-        }
-        // If not found, use as-is (old format)
-        if (!currentPaletteFamilyAsScaleKey) {
-          currentPaletteFamilyAsScaleKey = currentPaletteFamily
-        }
-      }
-    }
-    
+
     return allFamilies.filter((fam) => {
       // Include if not used by others, or if it's the current palette's family
-      return !familiesUsedByOthers.has(fam) || currentPaletteFamilyAsScaleKey === fam
+      return !familiesUsedByOthers.has(fam) || currentPaletteFamily === fam
     })
-  }, [allFamilies, familiesUsedByPalettes, paletteKey, tokensJson])
+  }, [allFamilies, familiesUsedByPalettes, paletteKey])
 
   // Get token value by name - memoize to prevent unnecessary recalculations
   const getTokenValueByName = useCallback((tokenName: string): string | number | undefined => {
     const parts = tokenName.split('/')
     const overrideMap = readOverrides()
-    
+
     // Check overrides first
     if ((overrideMap as any)[tokenName]) return (overrideMap as any)[tokenName]
-    
+
     // Handle new format: colors/scale-XX/level or colors/alias/level
     if (parts[0] === 'colors' && parts.length >= 3) {
       const scaleOrAlias = parts[1]
       const level = parts[2]
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
       const colorsRoot: any = tokensRoot?.colors || {}
-      
+
       // If it's a scale key (starts with "scale-"), get directly
       if (scaleOrAlias.startsWith('scale-')) {
         return colorsRoot?.[scaleOrAlias]?.[level]?.$value
@@ -376,35 +331,22 @@ export default function PaletteColorSelector({
         }
       }
     }
-    
+
     // Handle old format: color/family/level
     if (parts[0] === 'color' && parts.length >= 3) {
       const family = parts[1]
       const level = parts[2]
       return (tokensJson as any)?.tokens?.color?.[family]?.[level]?.$value
     }
-    
+
     return undefined
   }, [tokensJson, overrideVersion])
 
   // Detect current family from theme (use the already computed familiesUsedByPalettes)
   // Convert scale keys to aliases for display
   const detectFamilyFromTheme = useMemo(() => {
-    const detected = familiesUsedByPalettes[paletteKey]
-    if (!detected) return null
-    
-    // If it's a scale key, find the alias
-    if (detected.startsWith('scale-')) {
-      const tokensRoot: any = (tokensJson as any)?.tokens || {}
-      const colorsRoot: any = tokensRoot?.colors || {}
-      const scale = colorsRoot?.[detected]
-      if (scale && typeof scale === 'object' && scale.alias) {
-        return scale.alias
-      }
-    }
-    
-    return detected
-  }, [familiesUsedByPalettes, paletteKey, tokensJson])
+    return familiesUsedByPalettes[paletteKey] || null
+  }, [familiesUsedByPalettes, paletteKey])
 
   const [selectedFamily, setSelectedFamily] = useState<string>(() => {
     const detected = detectFamilyFromTheme
@@ -419,7 +361,7 @@ export default function PaletteColorSelector({
       setSelectedFamily(detected)
     }
   }, [detectFamilyFromTheme, selectedFamily])
-  
+
   // Also listen for theme reset to force refresh
   useEffect(() => {
     const handleThemeReset = () => {
@@ -428,17 +370,7 @@ export default function PaletteColorSelector({
       setTimeout(() => {
         const currentDetected = familiesUsedByPalettes[paletteKey]
         if (currentDetected) {
-          // If it's a scale key, find the alias
-          let alias = currentDetected
-          if (currentDetected.startsWith('scale-')) {
-            const tokensRoot: any = (tokensJson as any)?.tokens || {}
-            const colorsRoot: any = tokensRoot?.colors || {}
-            const scale = colorsRoot?.[currentDetected]
-            if (scale && typeof scale === 'object' && scale.alias) {
-              alias = scale.alias
-            }
-          }
-          setSelectedFamily(alias)
+          setSelectedFamily(currentDetected)
         } else if (families.length > 0) {
           setSelectedFamily(families[0])
         }
@@ -489,17 +421,17 @@ export default function PaletteColorSelector({
   // If family is not provided (e.g., when core colors or opacities change), always re-check
   const recheckAACompliance = useCallback((family?: string) => {
     if (family !== undefined && family !== selectedFamily) return
-    
+
     // Use selectedFamily if family is not provided
     const familyToUse = family || selectedFamily
     if (!familyToUse) return
-    
+
     const rootEl = document.documentElement
     const modeLower = mode.toLowerCase()
-    
+
     // Store verified on-tone values for theme JSON update
     const verifiedOnTones: Record<string, 'white' | 'black'> = {}
-    
+
     // Calculate on-tone values for all levels first
     headerLevels.forEach((lvl) => {
       // Get the actual token level from Brand.json (not the palette level)
@@ -514,31 +446,31 @@ export default function PaletteColorSelector({
         const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
         const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
         const normalizedWhite = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
-        
+
         // Get emphasis opacity values
         const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
         const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
         const AA = 4.5
-        
+
         // Check both core colors with opacity blending
         const whiteHighBlended = blendHexOver(normalizedWhite, hex, highEmphasisOpacity)
         const whiteLowBlended = blendHexOver(normalizedWhite, hex, lowEmphasisOpacity)
         const blackHighBlended = blendHexOver(normalizedBlack, hex, highEmphasisOpacity)
         const blackLowBlended = blendHexOver(normalizedBlack, hex, lowEmphasisOpacity)
-        
+
         const whiteHighContrast = contrastRatio(hex, whiteHighBlended)
         const whiteLowContrast = contrastRatio(hex, whiteLowBlended)
         const blackHighContrast = contrastRatio(hex, blackHighBlended)
         const blackLowContrast = contrastRatio(hex, blackLowBlended)
-        
+
         const whitePassesHigh = whiteHighContrast >= AA
         const whitePassesLow = whiteLowContrast >= AA
         const whitePassesBoth = whitePassesHigh && whitePassesLow
-        
+
         const blackPassesHigh = blackHighContrast >= AA
         const blackPassesLow = blackLowContrast >= AA
         const blackPassesBoth = blackPassesHigh && blackPassesLow
-        
+
         // Determine best on-tone color based on AA compliance
         // Priority: both pass > low emphasis > high emphasis > baseline contrast
         let onToneCore: 'white' | 'black'
@@ -561,23 +493,23 @@ export default function PaletteColorSelector({
           const blackBaseContrast = contrastRatio(hex, normalizedBlack)
           onToneCore = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
         }
-        
+
         // Store verified value for theme JSON update
         verifiedOnTones[lvl] = onToneCore
       }
     })
-    
+
     // Update theme JSON FIRST before updating CSS vars
     // This ensures recomputeAndApplyAll reads correct values from JSON
     if (setTheme && themeJson) {
       try {
         const themeCopy = JSON.parse(JSON.stringify(themeJson))
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-        
+
         for (const modeKey of ['light', 'dark']) {
           const modeKeyLower = modeKey.toLowerCase()
           if (!root[modeKey]?.palettes?.[paletteKey]) continue
-          
+
           headerLevels.forEach((lvl) => {
             // Get the actual token level from Brand.json (not the palette level)
             const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
@@ -596,28 +528,28 @@ export default function PaletteColorSelector({
                 const otherWhiteHex = readCssVarResolved(otherCoreWhiteVar) || '#ffffff'
                 const otherNormalizedBlack = otherBlackHex.startsWith('#') ? otherBlackHex.toLowerCase() : `#${otherBlackHex.toLowerCase()}`
                 const otherNormalizedWhite = otherWhiteHex.startsWith('#') ? otherWhiteHex.toLowerCase() : `#${otherWhiteHex.toLowerCase()}`
-                
+
                 const otherHighEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeKeyLower}-text-emphasis-high`)
                 const otherLowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeKeyLower}-text-emphasis-low`)
-                
+
                 const otherWhiteHighBlended = blendHexOver(otherNormalizedWhite, hex, otherHighEmphasisOpacity)
                 const otherWhiteLowBlended = blendHexOver(otherNormalizedWhite, hex, otherLowEmphasisOpacity)
                 const otherBlackHighBlended = blendHexOver(otherNormalizedBlack, hex, otherHighEmphasisOpacity)
                 const otherBlackLowBlended = blendHexOver(otherNormalizedBlack, hex, otherLowEmphasisOpacity)
-                
+
                 const otherWhiteHighContrast = contrastRatio(hex, otherWhiteHighBlended)
                 const otherWhiteLowContrast = contrastRatio(hex, otherWhiteLowBlended)
                 const otherBlackHighContrast = contrastRatio(hex, otherBlackHighBlended)
                 const otherBlackLowContrast = contrastRatio(hex, otherBlackLowBlended)
-                
+
                 const otherWhitePassesHigh = otherWhiteHighContrast >= 4.5
                 const otherWhitePassesLow = otherWhiteLowContrast >= 4.5
                 const otherWhitePassesBoth = otherWhitePassesHigh && otherWhitePassesLow
-                
+
                 const otherBlackPassesHigh = otherBlackHighContrast >= 4.5
                 const otherBlackPassesLow = otherBlackLowContrast >= 4.5
                 const otherBlackPassesBoth = otherBlackPassesHigh && otherBlackPassesLow
-                
+
                 if (otherWhitePassesBoth && otherBlackPassesBoth) {
                   onToneCore = otherWhiteLowContrast >= otherBlackLowContrast ? 'white' : 'black'
                 } else if (otherWhitePassesBoth) {
@@ -634,7 +566,7 @@ export default function PaletteColorSelector({
                   onToneCore = otherWhiteBaseContrast >= otherBlackBaseContrast ? 'white' : 'black'
                 }
               }
-              
+
               if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
               if (!root[modeKey].palettes[paletteKey][lvl].color) {
                 root[modeKey].palettes[paletteKey][lvl].color = {}
@@ -645,10 +577,10 @@ export default function PaletteColorSelector({
             }
           })
         }
-        
+
         // Update theme JSON first - this ensures recomputeAndApplyAll reads correct values
         setTheme(themeCopy)
-        
+
         // Then update CSS vars to match JSON (they should already match, but ensure consistency)
         headerLevels.forEach((lvl) => {
           if (verifiedOnTones[lvl]) {
@@ -687,7 +619,7 @@ export default function PaletteColorSelector({
         setOverrideVersion((v) => v + 1)
         return
       }
-      
+
       // Check if a color token was changed
       const tokenName = detail.name
       if (tokenName && typeof tokenName === 'string' && tokenName.startsWith('color/')) {
@@ -700,7 +632,7 @@ export default function PaletteColorSelector({
           }
         }
       }
-      
+
       setOverrideVersion((v) => v + 1)
     }
     window.addEventListener('tokenOverridesChanged', handler as any)
@@ -715,18 +647,18 @@ export default function PaletteColorSelector({
     // Only initialize once or when mode changes, not on every selectedFamily change
     if (!selectedFamily) return
     if (hasInitialized.current && lastMode.current === mode) return
-    
+
     const rootEl = document.documentElement
     const modeLower = mode.toLowerCase()
     headerLevels.forEach((lvl) => {
       // Use palette level directly (getTokenLevelForPaletteLevel is only for reading existing mappings)
       const tokenLevel = lvl
-      
+
       // Determine the correct token name format based on family type
       let tokenName: string = `color/${selectedFamily}/${tokenLevel}` // Default fallback
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
       const colorsRoot: any = tokensRoot?.colors || {}
-      
+
       if (selectedFamily.startsWith('scale-')) {
         // Direct scale reference: use colors format
         tokenName = `colors/${selectedFamily}/${tokenLevel}`
@@ -748,7 +680,7 @@ export default function PaletteColorSelector({
           tokenName = `color/${selectedFamily}/${tokenLevel}`
         }
       }
-      
+
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
         // Set tone CSS variable - only for this specific palette
@@ -756,7 +688,7 @@ export default function PaletteColorSelector({
           `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
           `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`
         )
-        
+
         // Determine on-tone color considering opacity for AA compliance - only for this palette
         const onToneCore = pickOnToneWithOpacity(hex, mode)
         updateCssVar(
@@ -779,7 +711,7 @@ export default function PaletteColorSelector({
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = root?.themes || root
-      
+
       // Update for both light and dark modes
       for (const modeKey of ['light', 'dark']) {
         const modeLabel = modeKey === 'light' ? 'Light' : 'Dark'
@@ -788,22 +720,22 @@ export default function PaletteColorSelector({
         if (!targetRoot[modeKey]) targetRoot[modeKey] = {}
         if (!targetRoot[modeKey].palettes) targetRoot[modeKey].palettes = {}
         if (!targetRoot[modeKey].palettes[paletteKey]) targetRoot[modeKey].palettes[paletteKey] = {}
-        
+
         headerLevels.forEach((lvl) => {
           if (!targetRoot[modeKey].palettes[paletteKey][lvl]) targetRoot[modeKey].palettes[paletteKey][lvl] = {}
           if (!targetRoot[modeKey].palettes[paletteKey][lvl].color) targetRoot[modeKey].palettes[paletteKey][lvl].color = {}
-          
+
           // When switching families, use the palette level directly (don't preserve old family's mapping)
           // The new family should have the same level structure
           const tokenLevel = lvl
-          
+
           // Determine the correct token reference format based on family type
           // If family is a scale key (starts with "scale-"), use colors format
           // Otherwise, check if it's an alias that maps to a scale, or use old color format
           let tokenRef: string = `{tokens.color.${family}.${tokenLevel}}` // Default fallback
           const tokensRoot: any = (tokensJson as any)?.tokens || {}
           const colorsRoot: any = tokensRoot?.colors || {}
-          
+
           if (family.startsWith('scale-')) {
             // Direct scale reference: use colors format
             tokenRef = `{tokens.colors.${family}.${tokenLevel}}`
@@ -825,12 +757,12 @@ export default function PaletteColorSelector({
               tokenRef = `{tokens.color.${family}.${tokenLevel}}`
             }
           }
-          
+
           // Update tone to reference the new family token
           targetRoot[modeKey].palettes[paletteKey][lvl].color.tone = {
             $value: tokenRef
           }
-          
+
           // Determine on-tone color considering opacity for AA compliance
           let tokenName: string = `color/${family}/${tokenLevel}` // Default fallback
           if (family.startsWith('scale-')) {
@@ -862,19 +794,19 @@ export default function PaletteColorSelector({
           }
         })
       }
-      
+
       // Update CSS variables FIRST (before setTheme) to avoid flicker
       // This ensures CSS vars are set before theme update triggers re-renders
       const modeLower = mode.toLowerCase()
       headerLevels.forEach((lvl) => {
         // Use palette level directly when switching families (don't use old family's mapping)
         const tokenLevel = lvl
-        
+
         // Determine the correct token name format based on family type
         let tokenName: string = `color/${family}/${tokenLevel}` // Default fallback
         const tokensRoot: any = (tokensJson as any)?.tokens || {}
         const colorsRoot: any = tokensRoot?.colors || {}
-        
+
         if (family.startsWith('scale-')) {
           // Direct scale reference: use colors format
           tokenName = `colors/${family}/${tokenLevel}`
@@ -896,7 +828,7 @@ export default function PaletteColorSelector({
             tokenName = `color/${family}/${tokenLevel}`
           }
         }
-        
+
         const hex = getTokenValueByName(tokenName)
         if (typeof hex === 'string') {
           // Set tone CSS variable - only for this specific palette
@@ -904,7 +836,7 @@ export default function PaletteColorSelector({
             `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-tone`,
             `var(--recursica-tokens-${tokenName.replace(/\//g, '-')})`
           )
-          
+
           // Determine on-tone color considering opacity for AA compliance - only for this palette
           const onToneCore = pickOnToneWithOpacity(hex, mode)
           updateCssVar(
@@ -913,41 +845,41 @@ export default function PaletteColorSelector({
           )
         }
       })
-      
+
       // Update theme AFTER CSS vars are set to minimize flicker
       // Other palettes will re-render but CSS vars are already correct
       setTheme(themeCopy)
-      
+
       // Trigger AA compliance check for this palette after color scale change
       // The tone colors have changed, so on-tone values need to be recalculated
       setTimeout(() => {
         const varsStore = getVarsStore()
         if (varsStore.aaWatcher) {
           suppressCssVarEvents(true)
-          
+
           // Update watcher with latest state
           varsStore.aaWatcher.updateTokensAndTheme(tokensJson, themeCopy)
-          
+
           // Check all levels for this palette in both modes
-          const levels = ['1000','900','800','700','600','500','400','300','200','100','050','000']
+          const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
           for (const modeKey of ['light', 'dark'] as const) {
             levels.forEach((lvl) => {
               varsStore.aaWatcher?.updatePaletteOnTone(paletteKey, lvl, modeKey)
             })
           }
-          
+
           setTimeout(() => {
             clearPendingCssVars()
             suppressCssVarEvents(false)
           }, 100)
         }
       }, 100)
-      
+
       // Dispatch event to notify that palette vars changed (user-initiated action)
       try {
         window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
-      } catch {}
-      
+      } catch { }
+
       // Call optional callback
       onFamilyChange?.(family)
     } catch (err) {
@@ -968,7 +900,7 @@ export default function PaletteColorSelector({
     const colorsRoot: any = tokensRoot?.colors || {}
     const overrideMap = readOverrides()
     const level500 = '500' // Always use 500 tone for the swatch
-    
+
     // Check if it's a scale key (starts with "scale-")
     if (fam.startsWith('scale-')) {
       const scale = colorsRoot?.[fam]
@@ -1007,7 +939,7 @@ export default function PaletteColorSelector({
         }
       }
     }
-    
+
     // Fallback to old structure
     const overrideTokenName = `color/${fam}/${level500}`
     const overrideValue = (overrideMap as any)[overrideTokenName]
@@ -1044,10 +976,8 @@ function FamilyDropdown({
   getFamilyInfo: (fam: string) => { alias: string; primaryHex: string | undefined }
 }) {
   const { mode } = useThemeMode()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement | null>(null)
   const [tokenVersion, setTokenVersion] = useState(0)
-  
+
   let ntcReadyPromise: Promise<void> | null = null
   function ensureNtcLoaded(): Promise<void> {
     if ((window as any).ntc) return Promise.resolve()
@@ -1062,25 +992,16 @@ function FamilyDropdown({
     })
     return ntcReadyPromise
   }
-  
+
   async function getNtcName(hex: string): Promise<string | null> {
     try {
       await ensureNtcLoaded()
       const res = (window as any).ntc?.name?.(hex)
       if (Array.isArray(res) && typeof res[1] === 'string' && res[1]) return res[1]
-    } catch {}
+    } catch { }
     return null
   }
-  
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      if (!ref.current) return
-      if (!ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onDocClick)
-    return () => document.removeEventListener('mousedown', onDocClick)
-  }, [])
-  
+
   useEffect(() => {
     const handler = () => setTokenVersion((v) => v + 1)
     window.addEventListener('tokenOverridesChanged', handler as any)
@@ -1090,7 +1011,7 @@ function FamilyDropdown({
       window.removeEventListener('familyNamesChanged', handler as any)
     }
   }, [])
-  
+
   useEffect(() => {
     (async () => {
       try {
@@ -1111,16 +1032,16 @@ function FamilyDropdown({
           }
         }
         if (changed) {
-          try { localStorage.setItem('family-friendly-names', JSON.stringify(map)) } catch {}
-          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+          try { localStorage.setItem('family-friendly-names', JSON.stringify(map)) } catch { }
+          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch { }
           setTokenVersion((v) => v + 1)
         }
-      } catch {}
+      } catch { }
     })()
   }, [families, getFamilyInfo])
-  
+
   const titleCase = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
-  
+
   const getFriendlyName = (family: string): string => {
     const { alias } = getFamilyInfo(family)
     try {
@@ -1130,49 +1051,44 @@ function FamilyDropdown({
         const v = map?.[alias]
         if (typeof v === 'string' && v.trim()) return v
       }
-    } catch {}
+    } catch { }
     return titleCase(alias)
   }
-  
+
   const selectedInfo = getFamilyInfo(selectedFamily)
   const currentHex = selectedInfo.primaryHex
-  
+
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} data-token-version={tokenVersion}>
-      <div ref={ref} style={{ position: 'relative' }}>
-        <button
-          id={`family-${paletteKey}`}
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 10px', border: `1px solid var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: 'transparent', borderRadius: 6, cursor: 'pointer', minWidth: 160, justifyContent: 'space-between' }}
-          aria-label="Select color family"
-        >
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-1-property-element-text-color)` }}>
-            <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: currentHex || 'transparent' }} />
-            <span>{getFriendlyName(selectedFamily)}</span>
-          </span>
-          <span aria-hidden style={{ opacity: 0.6 }}>▾</span>
-        </button>
-        {open && (
-          <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', zIndex: 1200, background: `var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-0-property-surface)`, border: `1px solid var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, borderRadius: 8, boxShadow: `var(--recursica-brand-${mode.toLowerCase()}-elevations-elevation-3-shadow-color)`, padding: 6, minWidth: 200 }}>
-            <div style={{ maxHeight: 280, overflow: 'auto', display: 'grid' }}>
-              {families.map((fam) => {
-                const { alias, primaryHex } = getFamilyInfo(fam)
-                return (
-                  <button
-                    key={fam}
-                    onClick={() => { onSelect(fam); setOpen(false) }}
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: 'none', background: 'transparent', textAlign: 'left', cursor: 'pointer', color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-0-property-element-text-color)` }}
-                  >
-                    <span aria-hidden style={{ width: 14, height: 14, borderRadius: 3, border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`, background: primaryHex || 'transparent' }} />
-                    <span>{getFriendlyName(fam)}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+      <Dropdown
+        items={families.map((fam) => {
+          const { alias, primaryHex } = getFamilyInfo(fam)
+          return {
+            value: fam,
+            label: getFriendlyName(fam),
+            leadingIcon: (
+              <span
+                aria-hidden
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: 3,
+                  border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`,
+                  background: primaryHex || 'transparent',
+                  display: 'inline-block'
+                }}
+              />
+            )
+          }
+        })}
+        value={selectedFamily}
+        onChange={(value) => onSelect(value)}
+        placeholder="Select color family..."
+        layer="layer-1"
+        layout="stacked"
+        disableTopBottomMargin={true}
+        zIndex={1200}
+      />
     </div>
   )
 }
