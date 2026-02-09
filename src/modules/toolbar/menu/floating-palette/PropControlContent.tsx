@@ -737,7 +737,7 @@ export default function PropControlContent({
     if (propToCheck.cssVar && propToCheck.path && propToCheck.path.length > 0) {
       // For grouped props, ensure we match the exact path
       // Check if this is a grouped prop by looking for "container" or "selected" in path
-      const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected')
+      const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item')
       if (isGroupedProp) {
         // Use the prop's CSS var directly to ensure we're updating the correct one
         return [propToCheck.cssVar]
@@ -760,7 +760,7 @@ export default function PropControlContent({
       }
       // For grouped props, ensure the path matches exactly
       if (propToCheck.path && propToCheck.path.length > 0) {
-        const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected')
+        const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item')
         if (isGroupedProp) {
           // Match the exact path segments for grouped props
           const propToCheckPathStr = propToCheck.path.join('/')
@@ -1485,25 +1485,12 @@ export default function PropControlContent({
         const LabelWidthSlider = () => {
           const minValue = 0
           const maxValue = 500
-          // #region agent log
-          const layoutVariant = selectedVariants.layout || 'stacked'
-          const sizeVariant = selectedVariants.size || 'default'
-          useEffect(() => {
-            const currentValue = readCssVar(primaryVar)
-            const resolvedValue = readCssVarResolved(primaryVar)
-            const rootValue = window.getComputedStyle(document.documentElement).getPropertyValue(primaryVar.replace('--', ''))
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'PropControlContent.tsx:1490', message: 'Label width debug', data: { primaryVar, layoutVariant, sizeVariant, selectedVariantsSize: selectedVariants.size, currentValue, resolvedValue, rootValue, cssVars }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'A' }) }).catch(() => { });
-          }, [primaryVar, layoutVariant, sizeVariant, selectedVariants.size, cssVars]);
-          // #endregion
           const [value, setValue] = useState(() => {
             const currentValue = readCssVar(primaryVar)
             const resolvedValue = readCssVarResolved(primaryVar)
             const valueStr = resolvedValue || currentValue || '0px'
             const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
             const initialValue = match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 0
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'PropControlContent.tsx:1506', message: 'Label width initial state', data: { primaryVar, currentValue, resolvedValue, valueStr, initialValue, sizeVariant }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'C' }) }).catch(() => { });
-            // #endregion
             return initialValue
           })
 
@@ -1516,9 +1503,6 @@ export default function PropControlContent({
             if (match) {
               const newValue = Math.max(minValue, Math.min(maxValue, parseFloat(match[1])))
               setValue(newValue)
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'PropControlContent.tsx:1520', message: 'Label width reset on primaryVar change', data: { primaryVar, currentValue, resolvedValue, newValue, sizeVariant }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'D' }) }).catch(() => { });
-              // #endregion
             }
           }, [primaryVar, sizeVariant])
 
@@ -1538,9 +1522,6 @@ export default function PropControlContent({
 
           const updateCssVars = useCallback((clampedValue: number) => {
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ location: 'PropControlContent.tsx:1520', message: 'Label width update', data: { clampedValue, cssVarsToUpdate, primaryVar, layoutVariant, sizeVariant, selectedVariantsSize: selectedVariants.size }, timestamp: Date.now(), sessionId: 'debug-session', runId: 'run1', hypothesisId: 'B' }) }).catch(() => { });
-            // #endregion
             cssVarsToUpdate.forEach(cssVar => {
               updateCssVar(cssVar, `${clampedValue}px`)
             })

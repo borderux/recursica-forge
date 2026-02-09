@@ -50,6 +50,7 @@ export type DropdownProps = {
     className?: string
     style?: React.CSSProperties
     disableTopBottomMargin?: boolean
+    zIndex?: number
 } & LibrarySpecificProps
 
 export function Dropdown({
@@ -75,6 +76,7 @@ export function Dropdown({
     className,
     style,
     disableTopBottomMargin = false,
+    zIndex,
     mantine,
     material,
     carbon,
@@ -184,7 +186,7 @@ export function Dropdown({
                                 alignItems: 'center',
                                 gap: `var(${iconTextGapVar}, 8px)`,
                                 minWidth: effectiveMinWidth,
-                                maxWidth: layout === 'stacked' ? '100%' : `var(${maxWidthVar})`,
+                                maxWidth: `var(${maxWidthVar}, 100%)`,
                                 minHeight: `var(${minHeightVar})`,
                                 paddingLeft: `var(${horizontalPaddingVar})`,
                                 paddingRight: `var(${horizontalPaddingVar})`,
@@ -243,6 +245,7 @@ export function Dropdown({
                     errorId={errorId}
                     className={className}
                     style={style}
+                    zIndex={zIndex}
                     mantine={mantine}
                     material={material}
                     carbon={carbon}

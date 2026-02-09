@@ -220,7 +220,7 @@ export default function TextField({
         gap: `var(${iconTextGapVar}, 8px)`,
         width: '100%',
         minWidth: effectiveMinWidth,
-        maxWidth: layout === 'stacked' ? '100%' : `var(${maxWidthVar})`,
+        maxWidth: `var(${maxWidthVar}, 100%)`,
         flexShrink: 0,
         paddingLeft: `var(${horizontalPaddingVar}, 12px)`,
         paddingRight: `var(${horizontalPaddingVar}, 12px)`,

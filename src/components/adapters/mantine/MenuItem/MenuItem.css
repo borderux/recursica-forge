@@ -142,3 +142,22 @@
 .mantine-menu-item-wrapper:last-child .mantine-menu-item-divider {
   display: none;
 }
+
+
+.mantine-menu-item-radio-icon.selected {
+  background-color: var(--menu-item-text);
+  box-shadow: inset 0 0 0 3px var(--menu-item-bg, #ffffff);
+}
+
+.mantine-menu-item-checkbox-icon.selected {
+  background-color: var(--menu-item-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mantine-menu-item-checkbox-icon.selected::after {
+  content: '✓';
+  color: var(--menu-item-bg, #ffffff);
+  font-size: 10px;
+}

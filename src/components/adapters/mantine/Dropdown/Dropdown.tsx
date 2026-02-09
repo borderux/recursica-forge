@@ -44,6 +44,7 @@ export default function Dropdown({
     errorId,
     className,
     style,
+    zIndex,
     mantine,
     material,
     carbon,
@@ -156,7 +157,7 @@ export default function Dropdown({
                 gap: `var(${iconTextGapVar}, 8px)`,
                 width: '100%',
                 minWidth: effectiveMinWidth,
-                maxWidth: layout === 'stacked' ? '100%' : `var(${maxWidthVar})`,
+                maxWidth: `var(${maxWidthVar}, 100%)`,
                 paddingLeft: `var(${horizontalPaddingVar}, 12px)`,
                 paddingRight: `var(${horizontalPaddingVar}, 12px)`,
                 paddingTop: `var(${verticalPaddingVar}, 8px)`,
@@ -211,6 +212,8 @@ export default function Dropdown({
                         position="bottom-start"
                         width="target"
                         offset={4}
+                        transitionProps={{ transition: 'pop', duration: 150 }}
+                        zIndex={zIndex}
                         {...mantine}
                     >
                         <Menu.Target>

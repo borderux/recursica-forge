@@ -221,7 +221,7 @@ export function TextField({
                 style={{
                   flex: 1,
                   minWidth: effectiveMinWidth,
-                  maxWidth: layout === 'stacked' ? '100%' : `var(${maxWidthVar})`,
+                  maxWidth: `var(${maxWidthVar}, 100%)`,
                   width: layout === 'stacked' ? '100%' : undefined,
                   minHeight: `var(${minHeightVar})`,
                   paddingLeft: leadingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,
@@ -282,7 +282,7 @@ export function TextField({
                   style={{
                     flex: 1,
                     minWidth: effectiveMinWidth,
-                    maxWidth: layout !== 'side-by-side' ? '100%' : `var(${maxWidthVar})`,
+                    maxWidth: `var(${maxWidthVar}, 100%)`,
                     width: layout !== 'side-by-side' ? '100%' : undefined,
                     minHeight: `var(${minHeightVar})`,
                     paddingLeft: leadingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,

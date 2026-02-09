@@ -1555,9 +1555,6 @@ class VarsStore {
   }
 
   public recomputeAndApplyAll() {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'recomputeAndApplyAll called',data:{isRecomputing:this.isRecomputing,stackTrace:new Error().stack?.split('\n').slice(0,5).join('|')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
     
     // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
     if (this.isRecomputing) {
@@ -2252,9 +2249,6 @@ class VarsStore {
             const key = `elevation-${level}`
             const modeDirections = this.state.elevation.directions[mode] || {}
             const dir = modeDirections[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:dirForLevel',message:'getting direction',data:{elevationKey:key,mode,dir,hasCustomDir:!!modeDirections[key],baseXDirection:this.state.elevation.baseXDirection,baseYDirection:this.state.elevation.baseYDirection},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-            // #endregion
             return dir
           }
           // Helper to read elevation values directly from Brand.json for the current mode
@@ -2286,10 +2280,6 @@ class VarsStore {
           const modeElevations: any = themes?.[mode]?.elevations || {}
           const baseElevationNode: any = modeElevations?.['elevation-0']?.['$value'] || {}
           
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'processing mode elevations',data:{mode,allElevationControls:JSON.stringify(this.state.elevation.controls)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-          // #endregion
-          
           const vars: Record<string, string> = {}
           // Update tokens with mode-specific elevation values from Brand.json before generating CSS variables
           // This ensures token references resolve to the correct mode-specific values
@@ -2315,10 +2305,6 @@ class VarsStore {
             let yValue: number
             let hasCustomControls = false
             
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'processing elevation',data:{elevationKey:k,mode,hasControl:!!control,controlValue:JSON.stringify(control),lightControl:JSON.stringify(this.state.elevation.controls.light?.[k]),darkControl:JSON.stringify(this.state.elevation.controls.dark?.[k])},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-            
             if (control) {
               // Use user-customized control values for this mode
               blurValue = control.blur
@@ -2326,10 +2312,6 @@ class VarsStore {
               xValue = control.offsetX
               yValue = control.offsetY
               hasCustomControls = true
-              
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'using control values',data:{elevationKey:k,mode,blurValue,spreadValue,xValue,yValue,source:'control'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-              // #endregion
             } else {
               // Read values directly from Brand.json for this mode
               const blurRaw = elevNode?.blur
@@ -2341,10 +2323,6 @@ class VarsStore {
               spreadValue = toNumeric(spreadRaw)
               xValue = toNumeric(xRaw)
               yValue = toNumeric(yRaw)
-              
-              // #region agent log
-              fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'using brand.json values',data:{elevationKey:k,mode,blurValue,spreadValue,xValue,yValue,source:'brand.json'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-              // #endregion
             }
             
             const dir = dirForLevel(i)
@@ -2376,10 +2354,6 @@ class VarsStore {
             const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
             const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
             const alphaTok = modeAlphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
-            
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'processing shadow color',data:{elevationKey:k,mode,existingColor,alphaToken:alphaTok,elevationAlphaToken:modeAlphaTokens[k],shadowColorControlAlphaToken:this.state.elevation.shadowColorControl.alphaToken,paletteSelections:JSON.stringify(this.state.elevation.paletteSelections)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
             // Use tokenToCssVar to properly convert opacity token names to CSS vars (use original state tokens for non-elevation tokens)
             const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
 
@@ -2430,10 +2404,6 @@ class VarsStore {
             const finalYValue = dir.y === 'down' ? yValue : -yValue
             vars[`${prefixedScope}-x-axis`] = `${finalXValue}px`
             vars[`${prefixedScope}-y-axis`] = `${finalYValue}px`
-            
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'varsStore.ts:recomputeAndApplyAll',message:'setting CSS vars',data:{elevationKey:k,mode,cssVarBlur:`${prefixedScope}-blur`,cssVarSpread:`${prefixedScope}-spread`,cssVarX:`${prefixedScope}-x-axis`,cssVarY:`${prefixedScope}-y-axis`,blurValue,spreadValue,finalXValue,finalYValue,dirX:dir.x,dirY:dir.y,hasCustomControls},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
           }
           Object.assign(allVars, vars)
         } catch (e) {

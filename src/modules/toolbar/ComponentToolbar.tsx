@@ -274,10 +274,10 @@ export default function ComponentToolbar({
                 !cachedProp.path.includes(selectedVariants[cachedProp.variantProp]))
 
             if (!groupedProps.has(groupedPropKey) || needsUpdate) {
-              // For nested property groups like "container" and "selected", match props by name AND path
-              // Check if the parent prop name is in the path (e.g., "container" or "selected")
+              // For nested property groups like "container", "selected", "selected-item", and "unselected-item", match props by name AND path
+              // Check if the parent prop name is in the path (e.g., "container", "selected", "selected-item", or "unselected-item")
               const parentPropNameLower = parentPropName.toLowerCase()
-              const isContainerOrSelected = parentPropNameLower === 'container' || parentPropNameLower === 'selected'
+              const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item'
 
 
               let groupedProp = structure.props.find(p => {
@@ -325,7 +325,7 @@ export default function ComponentToolbar({
 
               // For container/selected props, NEVER fall back to name-only match - this would cause wrong props to be selected
               // Only fall back to name-only match for other grouped props
-              if (!groupedProp && !isContainerOrSelected) {
+              if (!groupedProp && !isNestedPropertyGroup) {
                 groupedProp = structure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === groupedPropKey
                   // For color props, also filter by selectedLayer
@@ -356,7 +356,7 @@ export default function ComponentToolbar({
                 })
                 // For container/selected props, NEVER fall back to name-only match
                 // Only fall back to name-only match for other grouped props
-                if (!groupedProp && !isContainerOrSelected) {
+                if (!groupedProp && !isNestedPropertyGroup) {
                   groupedProp = structure.props.find(p => {
                     const nameMatches = p.name.toLowerCase() === 'border' && p.category === 'colors'
                     // For color props, also filter by selectedLayer
@@ -416,8 +416,8 @@ export default function ComponentToolbar({
               }
               // If still not found, try to find it by exact name match (case-insensitive)
               // For variant-specific props, find the first matching prop regardless of variant
-              // BUT: For container/selected props, NEVER fall back to name-only match
-              if (!groupedProp && !isContainerOrSelected) {
+              // BUT: For container/selected/selected-item props, NEVER fall back to name-only match
+              if (!groupedProp && !isNestedPropertyGroup) {
                 groupedProp = structure.props.find(p =>
                   p.name.toLowerCase() === groupedPropKey ||
                   p.name === groupedPropName

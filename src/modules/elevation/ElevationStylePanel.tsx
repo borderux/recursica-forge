@@ -228,10 +228,6 @@ export default function ElevationStylePanel({
       const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
       const tokenValue = opacityRoot[tokenKey]?.$value
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:getCurrentOpacityValue',message:'token value read',data:{elevationKey,mode,alphaTokenName,tokenKey,tokenValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-      // #endregion
-      
       if (tokenValue != null) {
         const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
         if (Number.isFinite(num)) {
@@ -414,9 +410,6 @@ export default function ElevationStylePanel({
   }, [levelsArr, getOpacityTokenName, getShadowColorCssVar, updateToken, elevation, tokensJson, mode])
   
   const handleOpacityChangeCommitted = React.useCallback((value: number) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:handleOpacityChangeCommitted',message:'opacity change committed',data:{value,mode,levelsArr:Array.from(levelsArr),lightAlphaTokens:JSON.stringify(elevation?.alphaTokens?.light),darkAlphaTokens:JSON.stringify(elevation?.alphaTokens?.dark)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-    // #endregion
     
     // Clear any existing timeout
     if (dragTimeoutRef.current) {
@@ -439,10 +432,6 @@ export default function ElevationStylePanel({
       const isSharedToken = !modeAlphaTokens[elevationKey] || 
                            alphaTokenName === elevation?.shadowColorControl?.alphaToken ||
                            alphaTokenName === 'opacity/veiled'
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:handleOpacityChangeCommitted',message:'processing elevation opacity',data:{elevationKey,lvl,mode,alphaTokenName,isSharedToken,modeAlphaToken:modeAlphaTokens[elevationKey],lightAlphaToken:elevation?.alphaTokens?.light?.[elevationKey],darkAlphaToken:elevation?.alphaTokens?.dark?.[elevationKey]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-      // #endregion
       
       if (isSharedToken) {
         // Create a unique token name for this elevation and mode (mode-specific to prevent cross-contamination)
@@ -470,17 +459,9 @@ export default function ElevationStylePanel({
         
         // Set the unique token for this elevation (persist state)
         setElevationAlphaToken(elevationKey, uniqueTokenName)
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:handleOpacityChangeCommitted',message:'created unique token',data:{elevationKey,mode,uniqueTokenName,normalizedValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-        // #endregion
       } else {
         // Update the existing token value
         updateToken(alphaTokenName, normalizedValue)
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/d16cd3f3-655c-4e29-8162-ad6e504c679e',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ElevationStylePanel.tsx:handleOpacityChangeCommitted',message:'updated existing token',data:{elevationKey,mode,alphaTokenName,normalizedValue},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-        // #endregion
       }
       
       // Track the final token name for the first selected elevation
