@@ -6,8 +6,9 @@
  */
 import { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
 import type { CSSProperties } from 'react'
-import { AppShell, Group, MantineProvider, Modal, Tabs as MantineTabs } from '@mantine/core'
+import { AppShell, Group, MantineProvider, Modal as MantineModal, Tabs as MantineTabs } from '@mantine/core'
 import { Dropdown } from '../../../components/adapters/Dropdown'
+import { Modal } from '../../../components/adapters/Modal'
 import '@mantine/core/styles.css'
 import './MantineShell.css'
 import { iconNameToReactComponent } from '../../components/iconUtils'
@@ -405,7 +406,16 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             {children}
           </main>
         </div>
-        <Modal opened={isModalOpen} onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} title="Import JSON Files">
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+          title="Import JSON Files"
+          layer="layer-1"
+          primaryActionLabel="Import"
+          onPrimaryAction={handleImportClick}
+          primaryActionDisabled={selectedFileNames.length === 0}
+          onSecondaryAction={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+        >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
             <div>
               <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
@@ -438,14 +448,6 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-            <Group gap="sm" justify="flex-end" style={{ borderTop: `1px solid var(${layer0Base}-border-color)`, paddingTop: 'var(--recursica-brand-dimensions-general-md)' }}>
-              <Button variant="outline" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
-                Cancel
-              </Button>
-              <Button variant="solid" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
-                Import
-              </Button>
-            </Group>
           </div>
         </Modal>
       </div>

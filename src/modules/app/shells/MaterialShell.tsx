@@ -23,6 +23,7 @@ import { SegmentedControl } from '../../../components/adapters/SegmentedControl'
 import type { SegmentedControlItem } from '../../../components/adapters/SegmentedControl'
 import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
+import { Modal } from '../../../components/adapters/Modal'
 import { Dropdown } from '../../../components/adapters/Dropdown'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getVarsStore } from '../../../core/store/varsStore'
@@ -450,42 +451,40 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             {children}
           </main>
         </div>
-        <Dialog open={isDialogOpen} onClose={() => { setIsDialogOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
-          <DialogTitle>Import JSON Files</DialogTitle>
-          <DialogContent>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)', minWidth: 400 }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
-                <input
-                  type="file"
-                  accept="application/json,.json"
-                  multiple
-                  onChange={(e) => {
-                    onFileSelect(e.currentTarget.files)
-                    e.currentTarget.value = ''
-                  }}
-                  style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)', width: '100%' }}
-                />
-                {selectedFileNames.length > 0 && (
-                  <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
-                    Selected: {selectedFileNames.join(', ')}
-                  </div>
-                )}
-                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
-                  Upload tokens.json, brand.json, and/or uikit.json files
+        <Modal
+          isOpen={isDialogOpen}
+          onClose={() => { setIsDialogOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+          title="Import JSON Files"
+          layer="layer-1"
+          primaryActionLabel="Import"
+          onPrimaryAction={handleImportClick}
+          primaryActionDisabled={selectedFileNames.length === 0}
+          onSecondaryAction={() => { setIsDialogOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)', minWidth: 400 }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
+              <input
+                type="file"
+                accept="application/json,.json"
+                multiple
+                onChange={(e) => {
+                  onFileSelect(e.currentTarget.files)
+                  e.currentTarget.value = ''
+                }}
+                style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)', width: '100%' }}
+              />
+              {selectedFileNames.length > 0 && (
+                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer1Base}-element-text-color)`, opacity: 0.6, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+                  Selected: {selectedFileNames.join(', ')}
                 </div>
+              )}
+              <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer1Base}-element-text-color)`, opacity: 0.4, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+                Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-          </DialogContent>
-          <DialogActions>
-            <Button variant="outline" onClick={() => { setIsDialogOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
-              Cancel
-            </Button>
-            <Button variant="solid" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
-              Import
-            </Button>
-          </DialogActions>
-        </Dialog>
+          </div>
+        </Modal>
         <ExportValidationErrorModal
           show={showValidationModal}
           errors={validationErrors}
