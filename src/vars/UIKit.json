@@ -301,11 +301,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
                     },
                     "text-hover": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.on-tone-hover}"
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
                     },
                     "border-color": {
                       "$type": "color",
