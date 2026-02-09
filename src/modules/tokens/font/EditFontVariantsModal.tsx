@@ -5,6 +5,7 @@ import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { Button } from '../../../components/adapters/Button'
 import { Checkbox } from '../../../components/adapters/Checkbox'
+import { Dropdown } from '../../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 
 export type EditFontVariantsModalProps = {
@@ -22,14 +23,14 @@ export type EditFontVariantsModalProps = {
 const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles: string[] } => {
   const weights: number[] = []
   const styles: string[] = []
-  
+
   try {
     const urlObj = new URL(url)
     const familyParams = urlObj.searchParams.getAll('family')
-    
+
     if (familyParams.length > 0) {
       const param = familyParams[0]
-      
+
       // Parse weights: wght@100..900 or wght@100;200;300
       const wghtMatch = param.match(/wght@([^:&]+)/)
       if (wghtMatch) {
@@ -54,7 +55,7 @@ const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles:
           })
         }
       }
-      
+
       // Parse styles: ital@0;1 or ital@1
       const italMatch = param.match(/ital@([^:&]+)/)
       if (italMatch) {
@@ -67,18 +68,18 @@ const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles:
         }
       }
     }
-  } catch {}
-  
+  } catch { }
+
   // If no weights found, assume regular (400)
   if (weights.length === 0) {
     weights.push(400)
   }
-  
+
   // If no styles found, assume normal
   if (styles.length === 0) {
     styles.push('normal')
   }
-  
+
   return { weights, styles }
 }
 
@@ -86,18 +87,18 @@ const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles:
 const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styles: string[]): string => {
   try {
     const urlObj = new URL(baseUrl)
-    
+
     // Build the family parameter
     // Replace spaces with + for the font name (Google Fonts format)
     const fontNameWithPlus = fontName.replace(/\s+/g, '+')
     let familyParam = fontNameWithPlus
-    
+
     // Add weights
     if (weights.length > 0) {
       const weightsStr = weights.sort((a, b) => a - b).join(';')
       familyParam += `:wght@${weightsStr}`
     }
-    
+
     // Add styles (italic)
     const hasItalic = styles.includes('italic')
     const hasNormal = styles.includes('normal')
@@ -106,12 +107,12 @@ const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styl
     } else if (hasItalic) {
       familyParam += `:ital@1`
     }
-    
+
     // Manually construct the URL to avoid encoding : and @ characters
     // URLSearchParams.set() would encode them, but Google Fonts needs them unencoded
     const baseUrlWithoutSearch = urlObj.origin + urlObj.pathname
     const existingParams = new URLSearchParams(urlObj.search)
-    
+
     // Get all existing params except 'family'
     const otherParams: string[] = []
     existingParams.forEach((value, key) => {
@@ -119,13 +120,13 @@ const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styl
         otherParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
       }
     })
-    
+
     // Build family param: don't encode +, :, or @ characters
     // Google Fonts expects: family=Rubik+Storm:wght@400 (not encoded)
     // Only encode other special characters in the font name if needed
     // For now, just use the familyParam as-is since we've already replaced spaces with +
     const allParams = [`family=${familyParam}`, ...otherParams]
-    
+
     return `${baseUrlWithoutSearch}?${allParams.join('&')}`
   } catch {
     return baseUrl
@@ -145,7 +146,7 @@ export function EditFontVariantsModal({
   const { mode } = useThemeMode()
   const { tokens: tokensJson } = useVars()
   const [selectedSequence, setSelectedSequence] = useState<string>(currentSequence || availableSequences[0])
-  
+
   // All 18 combinations: 9 weights × 2 styles
   const weights = useMemo(() => [100, 200, 300, 400, 500, 600, 700, 800, 900], [])
   const styles = useMemo(() => ['normal', 'italic'], [])
@@ -158,11 +159,11 @@ export function EditFontVariantsModal({
     })
     return combos
   }, [weights, styles])
-  
+
   const [selectedCombos, setSelectedCombos] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
-  
+
   // Calculate "All" checkbox state: checked if all selected, indeterminate if some selected
   const allCheckboxState = useMemo(() => {
     const selectedCount = selectedCombos.size
@@ -179,24 +180,24 @@ export function EditFontVariantsModal({
   // Helper function to get variants for the current font by font name (not sequence)
   const getVariantsForFont = (): Array<{ weight: string; style: string }> | null => {
     if (!fontName) return null
-    
+
     try {
       const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '').toLowerCase()
-      
+
       // Try store state first (most up-to-date)
       const store = getVarsStore()
       const state = store.getState()
       const storeTokens = state.tokens as any
       const storeFontRoot = storeTokens?.tokens?.font || storeTokens?.font || {}
-      
+
       // Check new fontVariants structure
       const fontVariants = storeFontRoot.fontVariants || {}
       const variants = fontVariants[cleanFontName]
-      
+
       if (variants && Array.isArray(variants) && variants.length > 0) {
         return variants
       }
-      
+
       return null
     } catch {
       return null
@@ -213,17 +214,17 @@ export function EditFontVariantsModal({
       const storeTokens = state.tokens as any
       const storeFontRoot = storeTokens?.tokens?.font || storeTokens?.font || {}
       const storeTypefaces = storeFontRoot.typefaces || storeFontRoot.typeface || {}
-      
+
       // Also check tokensJson as fallback
       const jsonFontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
       const jsonTypefaces: any = jsonFontRoot?.typefaces || jsonFontRoot?.typeface || {}
-      
+
       // Combine both sources (store takes precedence)
       const allTypefaces = { ...jsonTypefaces, ...storeTypefaces }
       const typefaceDef = allTypefaces[sequence]
-      
+
       if (!typefaceDef) return null
-      
+
       // Get the font value
       let fontValue = ''
       const rawValue = typefaceDef?.$value
@@ -232,7 +233,7 @@ export function EditFontVariantsModal({
       } else if (typeof rawValue === 'string') {
         fontValue = rawValue.trim().replace(/^["']|["']$/g, '')
       }
-      
+
       // Look up variants by font name (not sequence)
       if (fontValue && fontName && fontValue.toLowerCase() === fontName.toLowerCase()) {
         const cleanFontName = fontValue.toLowerCase()
@@ -240,7 +241,7 @@ export function EditFontVariantsModal({
         const variants = fontVariants[cleanFontName]
         return variants && Array.isArray(variants) && variants.length > 0 ? variants : null
       }
-      
+
       return null
     } catch {
       return null
@@ -272,18 +273,18 @@ export function EditFontVariantsModal({
       'extra-bold': 800,
       'black': 900
     }
-    
+
     const selectedComboIds = new Set<string>()
-    
+
     variants.forEach(variant => {
       const weightKey = variant.weight.replace(/\{tokens?\.font\.weights?\.([a-z0-9\-_]+)\}/i, '$1')
       const styleKey = variant.style.replace(/\{tokens?\.font\.styles?\.([a-z0-9\-_]+)\}/i, '$1')
-      
+
       const weightNum = weightMap[weightKey] || 400
       const comboId = `${weightNum}-${styleKey}`
       selectedComboIds.add(comboId)
     })
-    
+
     return selectedComboIds
   }
 
@@ -294,11 +295,11 @@ export function EditFontVariantsModal({
       if (currentSequence) {
         setSelectedSequence(currentSequence)
       }
-      
+
       // Always look up variants by font value first (works even after resequencing)
       // This is the most reliable method since it finds the font regardless of sequence
       let variants = getVariantsForFont()
-      
+
       // If font lookup returned null (explicitly no variants), use that
       // If font lookup returned undefined (not found), try other methods
       if (variants === undefined) {
@@ -310,7 +311,7 @@ export function EditFontVariantsModal({
           variants = getVariantsForSequence(currentSequence)
         }
       }
-      
+
       // Convert variants to selected combos
       // If variants is null (explicitly no variants), show empty set
       // If variants is undefined (not found), also show empty set to avoid showing all
@@ -335,7 +336,7 @@ export function EditFontVariantsModal({
     // Only require Google Fonts URL if we're actually editing variants for a Google Font
     // Allow sequence changes without requiring a URL
     const isGoogleFont = currentUrl && currentUrl.includes('fonts.googleapis.com')
-    
+
     // Only require variants selection if we're editing a Google Font
     // For custom fonts or sequence-only changes, allow saving without variants
     if (isGoogleFont && selectedCombos.size === 0) {
@@ -356,11 +357,11 @@ export function EditFontVariantsModal({
         const selectedComboArray = Array.from(selectedCombos)
           .map(id => allWeightStyleCombos.find(c => c.id === id))
           .filter((c): c is { weight: number; style: string; id: string } => c !== undefined)
-        
+
         // Extract unique weights and styles from selected combinations
         const weightsArray = [...new Set(selectedComboArray.map(c => c.weight))].sort((a, b) => a - b)
         const stylesArray = [...new Set(selectedComboArray.map(c => c.style))]
-        
+
         // Build URL with selected weights/styles
         finalUrl = buildFontUrl(currentUrl, fontName, weightsArray, stylesArray)
 
@@ -376,7 +377,7 @@ export function EditFontVariantsModal({
           800: 'extra-bold',
           900: 'black'
         }
-        
+
         selectedComboArray.forEach(combo => {
           // Map weight to closest token weight name
           let weightKey = 'regular' // default
@@ -389,7 +390,7 @@ export function EditFontVariantsModal({
           else if (combo.weight <= 750) weightKey = 'bold'
           else if (combo.weight <= 850) weightKey = 'extra-bold'
           else weightKey = 'black'
-          
+
           variants.push({
             weight: `{tokens.font.weights.${weightKey}}`,
             style: `{tokens.font.styles.${combo.style}}`
@@ -401,7 +402,7 @@ export function EditFontVariantsModal({
           const selectedComboArray = Array.from(selectedCombos)
             .map(id => allWeightStyleCombos.find(c => c.id === id))
             .filter((c): c is { weight: number; style: string; id: string } => c !== undefined)
-          
+
           selectedComboArray.forEach(combo => {
             let weightKey = 'regular'
             if (combo.weight <= 150) weightKey = 'thin'
@@ -413,7 +414,7 @@ export function EditFontVariantsModal({
             else if (combo.weight <= 750) weightKey = 'bold'
             else if (combo.weight <= 850) weightKey = 'extra-bold'
             else weightKey = 'black'
-            
+
             variants.push({
               weight: `{tokens.font.weights.${weightKey}}`,
               style: `{tokens.font.styles.${combo.style}}`
@@ -506,38 +507,23 @@ export function EditFontVariantsModal({
           <>
             <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
               {/* Sequence selector */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
-                <label style={{
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  color: `var(${layer2Base}-element-text-color)`,
-                  opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-                }}>
-                  Sequence:
-                </label>
-                <select
-                  value={selectedSequence}
-                  onChange={(e) => {
-                    setSelectedSequence(e.target.value)
-                    setError('')
-                  }}
-                  style={{
-                    padding: 'var(--recursica-brand-dimensions-general-default)',
-                    border: `1px solid var(${layer1Base}-border-color)`,
-                    borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                    background: `var(${layer2Base}-surface)`,
-                    color: `var(${layer2Base}-element-text-color)`,
-                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {availableSequences.map(seq => (
-                    <option key={seq} value={seq}>
-                      {seq.charAt(0).toUpperCase() + seq.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
+              <Dropdown
+                items={availableSequences.map(seq => ({
+                  value: seq,
+                  label: seq.charAt(0).toUpperCase() + seq.slice(1)
+                }))}
+                value={selectedSequence}
+                onChange={(value) => {
+                  setSelectedSequence(value)
+                  setError('')
+                }}
+                label="Sequence"
+                layer="layer-3"
+                layout="stacked"
+                disableTopBottomMargin={false}
+                zIndex={20001}
+              />
+
               <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
                 <span style={{
                   fontSize: 'var(--recursica-brand-typography-body-small-font-size)',

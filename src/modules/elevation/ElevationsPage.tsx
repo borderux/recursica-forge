@@ -188,7 +188,6 @@ export default function ElevationsPage() {
         dark: { ...next.controls.dark }
       }
 
-
       // For offsetX and offsetY, convert signed values to absolute + direction
       if (property === 'offsetX') {
         const absValue = Math.abs(value)
@@ -202,7 +201,6 @@ export default function ElevationsPage() {
         if (!next.directions[mode]) next.directions[mode] = {}
         const currentY = next.directions[mode][elevationKey]?.y ?? getYDirForLevel(elevationKey)
         next.directions[mode] = { ...next.directions[mode], [elevationKey]: { x: direction, y: currentY } }
-
       } else if (property === 'offsetY') {
         const absValue = Math.abs(value)
         const direction = value >= 0 ? 'down' : 'up'
@@ -219,7 +217,6 @@ export default function ElevationsPage() {
         if (!next.directions[mode]) next.directions[mode] = {}
         const currentX = next.directions[mode][elevationKey]?.x ?? getXDirForLevel(elevationKey)
         next.directions[mode] = { ...next.directions[mode], [elevationKey]: { x: currentX, y: direction } }
-
       } else if (property === 'blur') {
         // Get existing control or create new default - ensure we get a copy, not a reference
         const existingControl = next.controls[mode][elevationKey]
@@ -230,14 +227,12 @@ export default function ElevationsPage() {
           [elevationKey]: { ...existing, blur: value }
         }
         const afterUpdate = JSON.stringify({ light: next.controls.light?.[elevationKey], dark: next.controls.dark?.[elevationKey] })
-
       } else if (property === 'spread') {
         const existing = next.controls[mode][elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
         next.controls[mode] = {
           ...next.controls[mode],
           [elevationKey]: { ...existing, spread: value }
         }
-
       }
 
       return next

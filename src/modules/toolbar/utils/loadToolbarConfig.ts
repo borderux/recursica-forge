@@ -20,6 +20,7 @@ import SegmentedControlItemConfig from '../configs/SegmentedControlItem.toolbar.
 import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
 import TextFieldConfig from '../configs/TextField.toolbar.json'
 import ModalConfig from '../configs/Modal.toolbar.json'
+import DropdownConfig from '../configs/Dropdown.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -94,6 +95,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return TextFieldConfig as unknown as ToolbarConfig
       case 'modal':
         return ModalConfig as unknown as ToolbarConfig
+      case 'dropdown':
+        return DropdownConfig as unknown as ToolbarConfig
       default:
         return null
     }

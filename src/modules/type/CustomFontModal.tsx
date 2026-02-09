@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { TextField } from '../../components/adapters/TextField'
+import { Dropdown } from '../../components/adapters/Dropdown'
 
 export type CustomFontModalProps = {
   open: boolean
@@ -144,28 +145,19 @@ export function CustomFontModal({
         </div>
 
         <div style={{ display: 'grid', gap: 12 }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 13, fontWeight: 500 }}>Sequence</span>
-            <select
-              value={selectedSequence}
-              onChange={(e) => setSelectedSequence(e.target.value)}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 6,
-                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
-                background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-                color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
-            >
-              {availableSequences.map(seq => (
-                <option key={seq} value={seq}>
-                  {seq.charAt(0).toUpperCase() + seq.slice(1)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Dropdown
+            items={availableSequences.map(seq => ({
+              value: seq,
+              label: seq.charAt(0).toUpperCase() + seq.slice(1)
+            }))}
+            value={selectedSequence}
+            onChange={(value) => setSelectedSequence(value)}
+            label="Sequence"
+            layer="layer-3"
+            layout="stacked"
+            disableTopBottomMargin={false}
+            zIndex={20001}
+          />
 
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <span style={{ fontSize: 13, fontWeight: 500 }}>Font Name</span>
@@ -178,28 +170,22 @@ export function CustomFontModal({
             />
           </label>
 
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 13, fontWeight: 500 }}>Font Source</span>
-            <select
-              value={fontSourceType}
-              onChange={(e) => {
-                setFontSourceType(e.target.value as 'npm' | 'git')
-                setSourceError('')
-              }}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 6,
-                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
-                background: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-                color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`,
-                fontSize: 14,
-                cursor: 'pointer',
-              }}
-            >
-              <option value="npm">NPM Package</option>
-              <option value="git">Git Repository</option>
-            </select>
-          </label>
+          <Dropdown
+            items={[
+              { value: 'npm', label: 'NPM Package' },
+              { value: 'git', label: 'Git Repository' }
+            ]}
+            value={fontSourceType}
+            onChange={(value) => {
+              setFontSourceType(value as 'npm' | 'git')
+              setSourceError('')
+            }}
+            label="Font Source"
+            layer="layer-3"
+            layout="stacked"
+            disableTopBottomMargin={false}
+            zIndex={20001}
+          />
 
           {fontSourceType === 'npm' && (
             <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>

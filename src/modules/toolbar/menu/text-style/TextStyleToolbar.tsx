@@ -18,6 +18,7 @@ import { Tooltip } from '../../../../components/adapters/Tooltip'
 import { Button } from '../../../../components/adapters/Button'
 import { SegmentedControl } from '../../../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
+import { Dropdown } from '../../../../components/adapters/Dropdown'
 import { getVarsStore } from '../../../../core/store/varsStore'
 import './TextStyleToolbar.css'
 
@@ -1212,31 +1213,22 @@ export default function TextStyleToolbar({
       {/* Font Family - Always visible */}
       {fontFamilies.length > 0 && (
         <div className="text-style-control">
-          <Label layer="layer-3" layout="stacked">Font</Label>
-          <select
+          <Dropdown
+            items={fontFamilies.map(family => ({
+              value: family.cssVar,
+              label: family.label
+            }))}
             value={currentFontFamily}
-            onChange={(e) => {
-              const selectedCssVar = e.target.value
+            onChange={(selectedCssVar) => {
               if (selectedCssVar) {
                 handleFontFamilyChange(selectedCssVar)
               }
             }}
-            style={{
-              padding: '8px',
-              borderRadius: '4px',
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-0-property-border-color)`,
-              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
-              color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)`,
-              fontSize: '14px',
-              width: '100%',
-            }}
-          >
-            {fontFamilies.map(family => (
-              <option key={family.cssVar} value={family.cssVar}>
-                {family.label}
-              </option>
-            ))}
-          </select>
+            label="Font"
+            layer="layer-3"
+            layout="stacked"
+            disableTopBottomMargin={true}
+          />
         </div>
       )}
 

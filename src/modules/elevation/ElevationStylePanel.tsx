@@ -228,7 +228,6 @@ export default function ElevationStylePanel({
       const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
       const tokenValue = opacityRoot[tokenKey]?.$value
 
-
       if (tokenValue != null) {
         const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
         if (Number.isFinite(num)) {
@@ -433,8 +432,6 @@ export default function ElevationStylePanel({
       const isSharedToken = !modeAlphaTokens[elevationKey] ||
         alphaTokenName === elevation?.shadowColorControl?.alphaToken ||
         alphaTokenName === 'opacity/veiled'
-
-
       if (isSharedToken) {
         // Create a unique token name for this elevation and mode (mode-specific to prevent cross-contamination)
         const uniqueTokenName = `opacity/elevation-${mode}-${lvl}`
@@ -461,11 +458,9 @@ export default function ElevationStylePanel({
 
         // Set the unique token for this elevation (persist state)
         setElevationAlphaToken(elevationKey, uniqueTokenName)
-
       } else {
         // Update the existing token value
         updateToken(alphaTokenName, normalizedValue)
-
       }
 
       // Track the final token name for the first selected elevation

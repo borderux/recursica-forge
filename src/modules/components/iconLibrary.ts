@@ -307,6 +307,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'article': Article,
   'paint-brush-broad': PaintBrushBroad,
   'rows': Rows,
+  'shadow': Stack,
 }
 
 /**

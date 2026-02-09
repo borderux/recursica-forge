@@ -21,6 +21,7 @@ import SegmentedControlItemPreview from '../components/SegmentedControlItemPrevi
 import AssistiveElementPreview from '../components/AssistiveElementPreview'
 import TextFieldPreview from '../components/TextFieldPreview'
 import ModalPreview from '../components/ModalPreview'
+import DropdownPreview from '../components/DropdownPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -343,6 +344,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Text field' ? (
                 <TextFieldPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Dropdown' ? (
+                <DropdownPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}

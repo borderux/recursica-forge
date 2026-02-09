@@ -16,7 +16,7 @@ export default function TextFieldPreview({
   componentElevation,
 }: TextFieldPreviewProps) {
   const { mode } = useThemeMode()
-  
+
   // Extract variants from selectedVariants
   const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
   const layout = (selectedVariants.layouts || 'stacked') as 'stacked' | 'side-by-side'
@@ -29,15 +29,15 @@ export default function TextFieldPreview({
   const HeartIcon = iconNameToReactComponent('warning')
 
   // Show both layouts if no specific layout is selected, otherwise show selected layout
-  const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts 
-    ? [layout] 
+  const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts
+    ? [layout]
     : ['stacked', 'side-by-side']
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      gap: 'var(--recursica-brand-dimensions-gutters-vertical)', 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
       width: '100%',
       alignItems: 'center'
     }}>
@@ -70,7 +70,7 @@ export default function TextFieldPreview({
                 />
               </>
             )}
-            
+
             {/* Error state */}
             {state === 'error' && (
               <>
@@ -95,7 +95,7 @@ export default function TextFieldPreview({
                 />
               </>
             )}
-          
+
             {/* Disabled state */}
             {state === 'disabled' && (
               <TextField
@@ -107,14 +107,13 @@ export default function TextFieldPreview({
                 layer={selectedLayer as any}
               />
             )}
-            
+
             {/* Focus state (shows default with focus styling via CSS) */}
             {state === 'focus' && (
               <TextField
                 label="Label"
                 placeholder="Placeholder text"
-                helpText="Help message"
-                state="default"
+                state="focus"
                 layout={layoutVariant}
                 layer={selectedLayer as any}
               />
