@@ -59,6 +59,7 @@ import {
   FileText,
   FrameCorners,
   GridFour,
+  GoogleLogo,
   House,
   Info,
   Layout,
@@ -308,6 +309,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'paint-brush-broad': PaintBrushBroad,
   'rows': Rows,
   'shadow': Stack,
+  'google-logo': GoogleLogo,
 }
 
 /**
