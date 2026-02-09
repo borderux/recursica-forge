@@ -958,7 +958,7 @@ export default function ColorTokens() {
         {/* Numerical scale column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {/* Use a hidden TextField as spacer to ensure exact height match with scale headers */}
-          <div style={{ marginBottom: 'var(--recursica-brand-dimensions-general-sm)', visibility: 'hidden', pointerEvents: 'none' }}>
+          <div style={{ marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)', visibility: 'hidden', pointerEvents: 'none' }}>
             <TextField value="" onChange={() => { }} layer="layer-1" style={{ width: '100%' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 1 }}> {/* 1px offset to match scale container border */}

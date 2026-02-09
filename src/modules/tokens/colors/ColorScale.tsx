@@ -114,7 +114,7 @@ export function ColorScale({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <div style={{ marginBottom: 'var(--recursica-brand-dimensions-general-sm)' }}>
+      <div style={{ marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
         <TextField
           value={localName}
           onChange={(e) => {
@@ -188,7 +188,7 @@ export function ColorScale({
         })}
       </div>
       <div style={{
-        marginTop: 'var(--recursica-brand-dimensions-general-sm)',
+        marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
         display: 'flex',
         justifyContent: 'center',
       }}>
