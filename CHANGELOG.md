@@ -1,5 +1,26 @@
 # recursica-forge
 
+## 0.1.12
+
+### Patch Changes
+
+- 9fc94d0: This update focuses on the implementation and integration of the new Modal and Dropdown component adapters across all theme shells (Material, Carbon, and Mantine), along with several UI refinements and stability fixes:
+
+  - **Universal UI Adapters**: Standardized use of `Modal` and `Dropdown` components across the application, replacing various library-specific implementations with flexible adapters.
+  - **Merge Conflict Resolution**: Resolved complex merge conflicts across core modules including PropControl, Shell components, and theme data files.
+  - **Refined Property Controls**: Refactored `PropControl` to use a delegation pattern for better maintainability and resolved styling bugs in label and color selectors.
+  - **Theme Data Fixes**: Corrected JSON syntax errors in `UIKit.json` and refined dimension tokens for dropdowns and fields.
+  - **Typography & Color Tools**:
+    - Updated Google Fonts modal with improved variant selection and sequence management.
+    - Enhanced color scale visualizations and fixed color picker contrast logic.
+  - **Build & Stability**: Fixed TypeScript errors in shells and store logic, and ensured clean production builds.
+
+- 186bf63: - Fixed "Reset to defaults" functionality in the component toolbar to correctly revert all component-specific CSS variables to their factory settings using the original JSON definitions.
+  - Resolved an issue where "Focus" state variant selections in the toolbar were not reflecting in the live preview for Dropdown and TextField components.
+  - Updated TextField and Dropdown adapters (Mantine, Carbon, and Material) to correctly apply and preview focus-specific styles (border size, color) when the focus state is selected in the toolbar.
+  - Refined component previews by removing assistive text from focus state examples for a clearer layout.
+  - Improved Mantine Dropdown trigger logic to ensure focus styles are visually persistent when the state is forced via props.
+
 ## 0.1.11
 
 ### Patch Changes
