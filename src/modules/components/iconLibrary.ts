@@ -12,6 +12,7 @@ import React from 'react'
 
 // Import only the icons we actually use - this allows Vite to tree-shake unused icons
 import {
+  TextAlignCenter,
   Angle,
   ArrowBendRightDown,
   ArrowClockwise,
