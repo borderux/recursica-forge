@@ -56,5 +56,8 @@ registerComponent('carbon', 'Slider', () => import('../adapters/carbon/Slider/Sl
 // SegmentedControl
 registerComponent('carbon', 'SegmentedControl', () => import('../adapters/carbon/SegmentedControl/SegmentedControl'))
 
+// Tooltip
+registerComponent('carbon', 'Tooltip', () => import('../adapters/carbon/Tooltip/Tooltip'))
+
 // Add more components as they're implemented
 

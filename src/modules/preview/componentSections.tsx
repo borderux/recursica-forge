@@ -10,6 +10,7 @@ import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
 import { Dropdown } from '../../components/adapters/Dropdown'
+import { Tooltip } from '../../components/adapters/Tooltip'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -916,9 +917,36 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Tooltip',
       url: `${base}/tooltip`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <span title="Tooltip text" style={{ textDecoration: 'underline', cursor: 'help' }}>Hover for tooltip</span>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = sortLayers(Array.from(selectedLayers))[0] || 'layer-0'
+        return (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 150,
+            padding: '100px 60px',
+            width: '100%',
+            maxWidth: 600,
+            justifyItems: 'center'
+          }}>
+            <Tooltip label="A curious goblin peeks from the shadows, eyes gleaming with mischief." position="top" alignment="start" layer={layer as any} opened={true}>
+              <button style={{ padding: '8px 16px' }}>Top Start</button>
+            </Tooltip>
+
+            <Tooltip label="Goblins love shiny trinkets." position="right" alignment="middle" layer={layer as any} opened={true}>
+              <button style={{ padding: '8px 16px' }}>Right Middle</button>
+            </Tooltip>
+
+            <Tooltip label="Be wary of the goblin's traps; they are clever and often hidden where you least expect them to be." position="left" alignment="middle" layer={layer as any} opened={true}>
+              <button style={{ padding: '8px 16px' }}>Left Middle</button>
+            </Tooltip>
+
+            <Tooltip label="Sneaky goblin nearby." position="bottom" alignment="end" layer={layer as any} opened={true}>
+              <button style={{ padding: '8px 16px' }}>Bottom End</button>
+            </Tooltip>
+          </div>
+        )
+      },
     },
     {
       name: 'Transfer list',
