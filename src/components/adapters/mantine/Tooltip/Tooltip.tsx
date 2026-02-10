@@ -6,7 +6,7 @@
 
 import { Tooltip as MantineTooltip, Box } from '@mantine/core'
 import type { TooltipProps as AdapterTooltipProps } from '../../Tooltip'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -86,6 +86,19 @@ export default function Tooltip({
         }
     })()
 
+    // Calculate drop-shadow parameters for the beak (omitting spread as drop-shadow doesn't support it)
+    const shadowParams = (() => {
+        if (!elevation || elevation === 'elevation-0') return '0 0 0 rgba(0,0,0,0)'
+        const match = elevation.match(/elevation-(\d+)/)
+        if (!match) return '0 0 0 rgba(0,0,0,0)'
+        const level = match[1]
+        const xAxis = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-x-axis, 0px)`
+        const yAxis = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-y-axis, 0px)`
+        const blur = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-blur, 0px)`
+        const color = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+        return `${xAxis} ${yAxis} ${blur} ${color}`
+    })()
+
     const tooltipStyles = {
         '--tooltip-bg': `var(${tooltipBgVar})`,
         '--tooltip-color': `var(${tooltipColorVar})`,
@@ -108,6 +121,7 @@ export default function Tooltip({
         '--tooltip-text-transform': readCssVar(textTransformVar) || 'none',
         '--tooltip-font-style': readCssVar(fontStyleVar) || 'normal',
         '--tooltip-box-shadow': getElevationBoxShadow(mode, elevation) || 'none',
+        '--tooltip-shadow-params': shadowParams,
 
         transformOrigin,
         ...style,
@@ -135,6 +149,10 @@ export default function Tooltip({
             }}
             styles={{
                 tooltip: tooltipStyles,
+                arrow: {
+                    // Arrow already uses background-color from root via CSS
+                    // We don't need to apply drop-shadow here if we apply it to the root
+                }
             }}
             {...mantine}
             {...props}

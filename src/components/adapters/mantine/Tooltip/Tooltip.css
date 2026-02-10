@@ -31,7 +31,7 @@
   box-sizing: border-box;
 }
 
-/* Ensure elevation updates work - box-shadow is applied via style prop in JS */
+/* Ensure elevation updates work - filter: drop-shadow allows the shadow to wrap the arrow */
 .recursica-tooltip-root {
-  box-shadow: var(--tooltip-box-shadow) !important;
+  filter: drop-shadow(var(--tooltip-shadow-params)) !important;
 }
