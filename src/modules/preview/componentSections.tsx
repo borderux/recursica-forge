@@ -929,21 +929,27 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             maxWidth: 600,
             justifyItems: 'center'
           }}>
+            <Tooltip label="A default goblin, centered and above." position="top" alignment="middle" layer={layer as any} opened={true}>
+              <button style={{ padding: '8px 16px' }}>Default</button>
+            </Tooltip>
+
             <Tooltip label="A curious goblin peeks from the shadows, eyes gleaming with mischief." position="top" alignment="start" layer={layer as any} opened={true}>
               <button style={{ padding: '8px 16px' }}>Top Start</button>
             </Tooltip>
 
-            <Tooltip label="Goblins love shiny trinkets." position="right" alignment="middle" layer={layer as any} opened={true}>
-              <button style={{ padding: '8px 16px' }}>Right Middle</button>
+            <Tooltip label="Be wary of the goblin's traps." position="left" alignment="start" layer={layer as any} opened={true}>
+              <button style={{ padding: '8px 16px' }}>Left Top</button>
             </Tooltip>
 
-            <Tooltip label="Be wary of the goblin's traps; they are clever and often hidden where you least expect them to be." position="left" alignment="middle" layer={layer as any} opened={true}>
-              <button style={{ padding: '8px 16px' }}>Left Middle</button>
+            <Tooltip label="Goblins love shiny trinkets." position="right" alignment="end" layer={layer as any} opened={true}>
+              <button style={{ padding: '8px 16px' }}>Right Bottom</button>
             </Tooltip>
+
 
             <Tooltip label="Sneaky goblin nearby." position="bottom" alignment="end" layer={layer as any} opened={true}>
               <button style={{ padding: '8px 16px' }}>Bottom End</button>
             </Tooltip>
+
           </div>
         )
       },
