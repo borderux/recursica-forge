@@ -31,6 +31,7 @@ import {
   ArrowsOutLineHorizontal,
   ArrowsOutLineVertical,
   ArrowsVertical,
+  Article,
   Asterisk,
   BugBeetle as Bug,
   CaretDoubleRight,
@@ -58,6 +59,7 @@ import {
   FileText,
   FrameCorners,
   GridFour,
+  GoogleLogo,
   House,
   Info,
   Layout,
@@ -66,6 +68,7 @@ import {
   Minus,
   Moon,
   PaintBrush,
+  PaintBrushBroad,
   PaintBucket,
   Palette,
   Pause,
@@ -73,6 +76,7 @@ import {
   Plus,
   Queue,
   Resize,
+  Rows,
   Scales,
   SignOut,
   SlidersHorizontal,
@@ -301,7 +305,11 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'x': X,
   'check-square': CheckSquare,
   'squares-four': SquaresFour,
+  'article': Article,
+  'paint-brush-broad': PaintBrushBroad,
+  'rows': Rows,
   'shadow': Stack,
+  'google-logo': GoogleLogo,
 }
 
 /**

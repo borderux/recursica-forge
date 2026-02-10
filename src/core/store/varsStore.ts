@@ -667,7 +667,10 @@ class VarsStore {
           } catch { return undefined }
         }
         const norm = normalize(tokenValue)
-        if (norm) varsToUpdate[`--recursica-tokens-opacity-${key}`] = norm
+        if (norm) {
+          varsToUpdate[`--recursica-tokens-opacities-${key}`] = norm
+          varsToUpdate[`--recursica-tokens-opacity-${key}`] = norm
+        }
       } else if ((category === 'color' || category === 'colors') && rest.length >= 2) {
         const [scaleOrFamily, level] = rest
         // Preserve 000 and 1000 as-is, pad others to 3 digits
@@ -1150,7 +1153,7 @@ class VarsStore {
         dark: { ...oldControls }
       }
     }
-    
+
     // Migrate old directions format (single object) to new format (per mode)
     if (elevationState && elevationState.directions && !('light' in elevationState.directions)) {
       const oldDirections = elevationState.directions as any as Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>
@@ -1159,7 +1162,7 @@ class VarsStore {
         dark: { ...oldDirections }
       }
     }
-    
+
     // Migrate old alphaTokens format (single object) to new format (per mode)
     if (elevationState && elevationState.alphaTokens && !('light' in elevationState.alphaTokens)) {
       const oldAlphaTokens = elevationState.alphaTokens as any as Record<string, string>
@@ -1196,7 +1199,7 @@ class VarsStore {
         }
         return 0
       }
-      
+
       // Initialize controls for both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
         const modeElevations: any = themes?.[mode]?.elevations || {}
@@ -1352,7 +1355,7 @@ class VarsStore {
       const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
       baseXDirection = baseX >= 0 ? 'right' : 'left'
       baseYDirection = baseY >= 0 ? 'down' : 'up'
-      
+
       // Initialize directions per mode from theme
       for (const mode of ['light', 'dark'] as const) {
         const modeElevations: any = themes?.[mode]?.elevations || {}
@@ -1370,7 +1373,7 @@ class VarsStore {
       paletteSelections = { ...initialPaletteSelections }
       if (this.lsAvailable) {
         try { const raw = localStorage.getItem('elevation-color-tokens'); if (raw) colorTokens = JSON.parse(raw) } catch { }
-        try { 
+        try {
           const raw = localStorage.getItem('elevation-alpha-tokens')
           if (raw) {
             const parsed = JSON.parse(raw)
@@ -1390,7 +1393,7 @@ class VarsStore {
             paletteSelections = { ...initialPaletteSelections, ...savedSelections }
           }
         } catch { }
-        try { 
+        try {
           const raw = localStorage.getItem('elevation-directions')
           if (raw) {
             const parsed = JSON.parse(raw)
@@ -1435,7 +1438,7 @@ class VarsStore {
       directions,
       shadowColorControl
     }
-    
+
     // Ensure mode-specific structures exist even if loaded from localStorage
     if (!finalState.alphaTokens.light) finalState.alphaTokens.light = {}
     if (!finalState.alphaTokens.dark) finalState.alphaTokens.dark = {}
@@ -1555,7 +1558,8 @@ class VarsStore {
   }
 
   public recomputeAndApplyAll() {
-    
+
+    // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
     // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
     if (this.isRecomputing) {
       return
@@ -1757,7 +1761,7 @@ class VarsStore {
       try {
         const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
         const fontRoot: any = tokensRoot?.font || {}
-        
+
         // Generate font cases CSS variables
         const casesRoot: any = fontRoot?.cases || {}
         if (casesRoot && typeof casesRoot === 'object' && !Array.isArray(casesRoot)) {
@@ -1776,7 +1780,7 @@ class VarsStore {
           })
           Object.assign(allVars, vars)
         }
-        
+
         // Generate font decorations CSS variables
         const decorationsRoot: any = fontRoot?.decorations || {}
         if (decorationsRoot && typeof decorationsRoot === 'object' && !Array.isArray(decorationsRoot)) {
@@ -2016,7 +2020,7 @@ class VarsStore {
           // maintain the same value across both light and dark modes
           if (typeof document !== 'undefined') {
             const preservedVars: Record<string, string> = {}
-            
+
             // Helper to check if a CSS variable is mode-independent (not a color property)
             const isModeIndependent = (cssVar: string): boolean => {
               // Mode-independent properties are those NOT under colors
@@ -2024,7 +2028,7 @@ class VarsStore {
               // Colors are under: ...properties-colors-layer-X-{color-prop}
               return !cssVar.includes('-properties-colors-')
             }
-            
+
             // Helper to get the opposite mode's CSS variable name
             const getOppositeModeVar = (cssVar: string): string => {
               if (cssVar.includes('-themes-light-')) {
@@ -2034,28 +2038,28 @@ class VarsStore {
               }
               return cssVar
             }
-            
+
             // Check all generated UIKit variables for manually set values
             for (const [cssVar, generatedValue] of Object.entries(uikitVars)) {
               // Only preserve mode-independent properties
               if (!isModeIndependent(cssVar)) {
                 continue
               }
-              
+
               // Check if this variable has a manually set value (inline style)
               const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
               const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
-              
+
               // If there's a manually set value that differs from generated, preserve it
               if (inlineValue && inlineValue !== generatedValue?.trim()) {
                 preservedVars[cssVar] = inlineValue
-                
+
                 // Also preserve for the opposite mode to maintain consistency
                 const oppositeModeVar = getOppositeModeVar(cssVar)
                 preservedVars[oppositeModeVar] = inlineValue
               }
             }
-            
+
             // Override generated values with preserved values
             Object.assign(uikitVars, preservedVars)
           }
@@ -2130,7 +2134,7 @@ class VarsStore {
           }
         }
       }
-      
+
       for (const mode of ['light', 'dark'] as const) {
         try {
           const tokenIndex = {
@@ -2279,14 +2283,14 @@ class VarsStore {
           const themes = brand?.themes || brand
           const modeElevations: any = themes?.[mode]?.elevations || {}
           const baseElevationNode: any = modeElevations?.['elevation-0']?.['$value'] || {}
-          
+
           const vars: Record<string, string> = {}
           // Update tokens with mode-specific elevation values from Brand.json before generating CSS variables
           // This ensures token references resolve to the correct mode-specific values
           const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
           if (!tokensRoot.sizes) tokensRoot.sizes = {}
           const sizeTokens = tokensRoot.sizes
-          
+
           // Generate elevation variables for levels 0-4
           // Read values directly from Brand.json for the current mode, update tokens, then reference them
           for (let i = 0; i <= 4; i += 1) {
@@ -2295,7 +2299,7 @@ class VarsStore {
             if (!elevNode || Object.keys(elevNode).length === 0) {
               continue
             }
-            
+
             // Check if user has customized this elevation - if so, use control values instead of Brand.json
             // Read controls for the current mode being processed
             const control = this.state.elevation.controls[mode]?.[k]
@@ -2304,7 +2308,7 @@ class VarsStore {
             let xValue: number
             let yValue: number
             let hasCustomControls = false
-            
+
             if (control) {
               // Use user-customized control values for this mode
               blurValue = control.blur
@@ -2318,13 +2322,13 @@ class VarsStore {
               const spreadRaw = elevNode?.spread
               const xRaw = elevNode?.x
               const yRaw = elevNode?.y
-              
+
               blurValue = toNumeric(blurRaw)
               spreadValue = toNumeric(spreadRaw)
               xValue = toNumeric(xRaw)
               yValue = toNumeric(yRaw)
             }
-            
+
             const dir = dirForLevel(i)
             const sxValue = dir.x === 'right' ? xValue : -xValue
             const syValue = dir.y === 'down' ? yValue : -yValue
@@ -2336,7 +2340,7 @@ class VarsStore {
             const spreadTokenName = `size/elevation-${i}-spread`
             const offsetXTokenName = `size/elevation-${i}-offset-x`
             const offsetYTokenName = `size/elevation-${i}-offset-y`
-            
+
             // Always set CSS variables directly to avoid token conflicts between modes
             // Tokens are shared, so we can't use them for mode-specific values
             // Only update tokens when no controls exist in ANY mode (for backwards compatibility)
@@ -2398,7 +2402,7 @@ class VarsStore {
             // Set CSS variables directly from controls (if they exist) or Brand.json defaults
             vars[`${prefixedScope}-blur`] = `${blurValue}px`
             vars[`${prefixedScope}-spread`] = `${spreadValue}px`
-            
+
             // Apply direction for offsets
             const finalXValue = dir.x === 'right' ? xValue : -xValue
             const finalYValue = dir.y === 'down' ? yValue : -yValue

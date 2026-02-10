@@ -1,0 +1,211 @@
+{
+    "variants": {
+        "header": {
+            "icon": "layout",
+            "label": "Header"
+        },
+        "footer": {
+            "icon": "layout",
+            "label": "Footer"
+        },
+        "scrollable": {
+            "icon": "article",
+            "label": "Scrollable"
+        },
+        "padding": {
+            "icon": "square-logo",
+            "label": "Padding"
+        },
+        "size": {
+            "icon": "resize",
+            "label": "Size"
+        }
+    },
+    "props": {
+        "colors": {
+            "icon": "paint-bucket",
+            "label": "Colors",
+            "visible": true,
+            "group": {
+                "background": {
+                    "icon": "paint-bucket",
+                    "label": "Background",
+                    "visible": true
+                },
+                "title": {
+                    "icon": "text-aa",
+                    "label": "Title color",
+                    "visible": true
+                },
+                "content": {
+                    "icon": "text-aa",
+                    "label": "Content color",
+                    "visible": true
+                }
+            }
+        },
+        "widths": {
+            "icon": "arrows-in-line-horizontal",
+            "label": "Sizes",
+            "visible": true,
+            "group": {
+                "min-width": {
+                    "icon": "arrows-in-line-horizontal",
+                    "label": "Min width",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        200,
+                        1000
+                    ],
+                    "step": 8
+                },
+                "max-width": {
+                    "icon": "arrows-out-line-horizontal",
+                    "label": "Max width",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        200,
+                        2000
+                    ],
+                    "step": 8
+                },
+                "min-height": {
+                    "icon": "arrows-in-line-vertical",
+                    "label": "Min height",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        60,
+                        500
+                    ],
+                    "step": 8
+                },
+                "max-height": {
+                    "icon": "arrows-out-line-vertical",
+                    "label": "Max height",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        200,
+                        1000
+                    ],
+                    "step": 8
+                }
+            }
+        },
+        "border": {
+            "icon": "frame-corners",
+            "label": "Border",
+            "visible": true,
+            "group": {
+                "border-color": {
+                    "icon": "paint-brush-broad",
+                    "label": "Border color",
+                    "visible": true
+                },
+                "border-size": {
+                    "icon": "rows",
+                    "label": "Border size",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        8
+                    ],
+                    "step": 1
+                },
+                "border-radius": {
+                    "icon": "corners-out",
+                    "label": "Corner radius",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        48
+                    ],
+                    "step": 4
+                }
+            }
+        },
+        "divider": {
+            "icon": "minus",
+            "label": "Scrolling divider",
+            "visible": true,
+            "group": {
+                "scroll-divider": {
+                    "icon": "paint-brush-broad",
+                    "label": "Color",
+                    "visible": true
+                },
+                "scroll-divider-thickness": {
+                    "icon": "rows",
+                    "label": "Height",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        8
+                    ],
+                    "step": 1
+                }
+            }
+        },
+        "header-text": {
+            "icon": "text-aa",
+            "label": "Header text",
+            "visible": true
+        },
+        "content-text": {
+            "icon": "article",
+            "label": "Content text",
+            "visible": true
+        },
+        "padding": {
+            "icon": "square-logo",
+            "label": "Padding",
+            "visible": true,
+            "group": {
+                "horizontal-padding": {
+                    "icon": "arrows-left-right",
+                    "label": "Horizontal",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        80
+                    ],
+                    "step": 4
+                },
+                "vertical-padding": {
+                    "icon": "arrows-up-down",
+                    "label": "Vertical",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        80
+                    ],
+                    "step": 4
+                }
+            }
+        },
+        "button-gap": {
+            "icon": "split-horizontal",
+            "label": "Button gap",
+            "visible": true,
+            "propertyType": "slider",
+            "range": [
+                0,
+                40
+            ],
+            "step": 4
+        },
+        "elevation": {
+            "icon": "copy-simple",
+            "label": "Elevation",
+            "visible": true
+        }
+    }
+}

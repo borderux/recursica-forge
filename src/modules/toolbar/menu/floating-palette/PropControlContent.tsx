@@ -1,7 +1,7 @@
 // Extract the rendering logic from PropControl for use in accordions
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure, getDimensionPropertyType } from '../../utils/componentToolbarUtils'
-import { getPropLabel, getGroupedProps, type ToolbarPropConfig } from '../../utils/loadToolbarConfig'
+import { getPropLabel, getGroupedProps, getPropConfig, type ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
@@ -1014,7 +1014,7 @@ export default function PropControlContent({
 
       const getValueLabel = useCallback((val: number) => {
         return `${Math.round(val)}px`
-      }, [])
+      }, [minValue, maxValue]) // Added minValue, maxValue to dependencies
 
       return (
         <Slider
@@ -1040,9 +1040,170 @@ export default function PropControlContent({
     return <SwitchDimensionSlider key={`${primaryVar}-${selectedVariants.size || ''}`} />
   }
 
-  const renderControl = (propToRender: ComponentProp, cssVars: string[], primaryVar: string, label: string) => {
+  // This function is responsible for rendering one or more controls for a given property.
+  // It handles "combined" props like border (border-color, border-thickness, border-radius)
+  // as well as any generic groups defined in the toolbar JSON
+  const renderPropControl = (prop: ComponentProp) => {
+    // 1. Handle combined "border" props (legacy specialized handling)
+    if (prop.name.toLowerCase() === 'border' && prop.borderProps) {
+      return (
+        <>
+          {Array.from(prop.borderProps.entries()).map(([key, borderProp], index) => {
+            const cssVars = getCssVarsForProp(borderProp)
+            const primaryVar = cssVars[0] || borderProp.cssVar
+            const label = getPropLabel(componentName, key) || toSentenceCase(key)
+            const config = getPropConfig(componentName, key) || undefined
+
+            return (
+              <div
+                key={key}
+                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
+              >
+                {renderControl(borderProp, cssVars, primaryVar, label, config)}
+              </div>
+            )
+          })}
+        </>
+      )
+    }
+
+    // 2. Handle combined "thumb" or "track" props (legacy specialized handling)
+    if ((prop.name.toLowerCase() === 'thumb' || prop.name.toLowerCase() === 'track') && prop.thumbProps) {
+      return (
+        <>
+          {Array.from(prop.thumbProps.entries()).map(([key, thumbProp], index) => {
+            const cssVars = getCssVarsForProp(thumbProp)
+            const primaryVar = cssVars[0] || thumbProp.cssVar
+            const label = getPropLabel(componentName, key) || toSentenceCase(key)
+            const config = getPropConfig(componentName, key) || undefined
+
+            return (
+              <div
+                key={key}
+                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
+              >
+                {renderControl(thumbProp, cssVars, primaryVar, label, config)}
+              </div>
+            )
+          })}
+        </>
+      )
+    }
+
+    // 3. Handle GENERIC groups defined in the toolbar JSON (e.g., "Widths" or "Padding" groups)
+    const groupedConfigs = getGroupedProps(componentName, prop.name)
+    if (groupedConfigs) {
+      const structure = parseComponentStructure(componentName)
+      return (
+        <>
+          {Object.entries(groupedConfigs).map(([childPropName, childConfig], index) => {
+            // Find the child property in the component structure
+            const childProp = structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase())
+            if (!childProp) return null
+
+            const cssVars = getCssVarsForProp(childProp)
+            const primaryVar = cssVars[0] || childProp.cssVar
+            const label = childConfig.label || getPropLabel(componentName, childPropName) || toSentenceCase(childPropName)
+
+            return (
+              <div
+                key={childPropName}
+                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
+              >
+                {renderControl(childProp, cssVars, primaryVar, label, childConfig)}
+              </div>
+            )
+          })}
+        </>
+      )
+    }
+
+    // Fallback: use getCssVarsForProp to find the correct CSS var based on variants/layer
+    const cssVarsForControl = getCssVarsForProp(prop)
+    const primaryCssVar = cssVarsForControl[0] || prop.cssVar
+    const baseLabel = getPropLabel(componentName, prop.name) || toSentenceCase(prop.name)
+    const basePropConfig = getPropConfig(componentName, prop.name) || undefined
+
+    // Render the base control
+    return renderControl(prop, cssVarsForControl, primaryCssVar, baseLabel, basePropConfig)
+  }
+
+  const renderControl = (propToRender: ComponentProp, cssVars: string[], primaryVar: string, label: string, config?: ToolbarPropConfig) => {
     // Normalize component name for comparison (same as loadToolbarConfig) - must be defined at top of function
     const normalizedComponentName = componentName.toLowerCase().replace(/\s+/g, '-')
+    // Use config to hydrate propToRender with custom settings
+    if (config) {
+      if (config.propertyType) propToRender.propertyType = config.propertyType
+      if (config.range) propToRender.range = config.range
+      if (config.step) propToRender.step = config.step
+    }
+
+    // Generic Slider implementation for propertyType: 'slider'
+    if (propToRender.propertyType === 'slider' || propToRender.type === 'slider') {
+      const CustomDimensionSlider = () => {
+        const minValue = propToRender.range ? propToRender.range[0] : 0
+        const maxValue = propToRender.range ? propToRender.range[1] : 500
+        const step = propToRender.step || 1
+
+        const [value, setValue] = useState(() => {
+          const currentValue = readCssVar(primaryVar)
+          const resolvedValue = readCssVarResolved(primaryVar)
+          const valueStr = resolvedValue || currentValue || `${minValue}px`
+          const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+          return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
+        })
+
+        useEffect(() => {
+          const handleUpdate = () => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || `${minValue}px`
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            if (match) {
+              setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+            }
+          }
+          window.addEventListener('cssVarsUpdated', handleUpdate)
+          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+        }, [primaryVar, minValue, maxValue])
+
+        const handleChange = (val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.round(numValue / step) * step
+          setValue(clampedValue)
+
+          const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+          cssVarsToUpdate.forEach(cssVar => {
+            updateCssVar(cssVar, `${clampedValue}px`)
+          })
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: cssVarsToUpdate }
+          }))
+        }
+
+        return (
+          <Slider
+            value={value}
+            onChange={handleChange}
+            onChangeCommitted={handleChange}
+            min={minValue}
+            max={maxValue}
+            step={step}
+            layer={selectedLayer as any}
+            layout="stacked"
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${Math.round(val)}px`}
+            minLabel={`${minValue}px`}
+            maxLabel={`${maxValue}px`}
+            showMinMaxLabels={false}
+            label={<Label layer={selectedLayer as any} layout="stacked">{label}</Label>}
+          />
+        )
+      }
+      return <CustomDimensionSlider key={primaryVar} />
+    }
+
     const propNameLower = propToRender.name.toLowerCase()
 
     // Component type checks - defined at top so they're available throughout the function
@@ -1484,7 +1645,7 @@ export default function PropControlContent({
               const newValue = Math.max(minValue, Math.min(maxValue, parseFloat(match[1])))
               setValue(newValue)
             }
-          }, [primaryVar, sizeVariant])
+          }, [primaryVar])
 
           useEffect(() => {
             const handleUpdate = () => {
@@ -1509,7 +1670,7 @@ export default function PropControlContent({
             window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
               detail: { cssVars: cssVarsToUpdate }
             }))
-          }, [cssVars, primaryVar, layoutVariant, sizeVariant, selectedVariants.size])
+          }, [cssVars, primaryVar])
 
           const handleChange = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
@@ -1638,6 +1799,109 @@ export default function PropControlContent({
 
         return (
           <AccordionWidthSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+          />
+        )
+      }
+
+      // Use pixel slider for modal dimensions
+      if (componentName.toLowerCase() === 'modal' && (
+        propNameLower === 'min-width' ||
+        propNameLower === 'max-width' ||
+        propNameLower === 'min-height' ||
+        propNameLower === 'max-height'
+      )) {
+        const ModalDimensionSlider = () => {
+          let minValue = 0
+          let maxValue = 1000
+
+          if (propNameLower === 'min-width') {
+            minValue = 200
+            maxValue = 1000
+          } else if (propNameLower === 'max-width') {
+            minValue = 200
+            maxValue = 2000
+          } else if (propNameLower === 'min-height') {
+            minValue = 60
+            maxValue = 500
+          } else if (propNameLower === 'max-height') {
+            minValue = 200
+            maxValue = 1000
+          }
+
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || `${minValue}px`
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
+          })
+
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || `${minValue}px`
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+
+          const updateCssVars = useCallback((clampedValue: number) => {
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [cssVars, primaryVar])
+
+          const handleChange = (newValue: number | [number, number]) => {
+            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
+            setValue(clampedValue)
+            updateCssVars(clampedValue)
+          }
+
+          const handleChangeCommitted = (newValue: number | [number, number]) => {
+            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
+            updateCssVars(clampedValue)
+          }
+
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={8}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+
+        return (
+          <ModalDimensionSlider
             key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           />
         )
@@ -4018,6 +4282,6 @@ export default function PropControlContent({
     )
   }
 
-  return renderControl(prop, cssVarsForControl, primaryCssVar, baseLabel)
+  return renderPropControl(prop)
 }
 

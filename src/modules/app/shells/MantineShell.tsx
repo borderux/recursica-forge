@@ -6,8 +6,9 @@
  */
 import { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
 import type { CSSProperties } from 'react'
-import { AppShell, Group, MantineProvider, Modal, Tabs as MantineTabs } from '@mantine/core'
+import { AppShell, Group, MantineProvider, Modal as MantineModal, Tabs as MantineTabs } from '@mantine/core'
 import { Dropdown } from '../../../components/adapters/Dropdown'
+import { Modal } from '../../../components/adapters/Modal'
 import '@mantine/core/styles.css'
 import './MantineShell.css'
 import { iconNameToReactComponent } from '../../components/iconUtils'
@@ -405,96 +406,94 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             {children}
           </main>
         </div>
-        <Modal opened={isModalOpen} onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} title="Import JSON Files">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
-              <input
-                type="file"
-                accept="application/json,.json"
-                multiple
-                onChange={(e) => {
-                  onFileSelect(e.currentTarget.files)
-                  e.currentTarget.value = ''
-                }}
-                style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
-              />
-              {selectedFileNames.length > 0 && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+          title="Import JSON Files"
+          layer="layer-1"
+          primaryActionLabel="Import"
+          onPrimaryAction={handleImportClick}
+          primaryActionDisabled={selectedFileNames.length === 0}
+          onSecondaryAction={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+          content={
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  multiple
+                  onChange={(e) => {
+                    onFileSelect(e.currentTarget.files)
+                    e.currentTarget.value = ''
+                  }}
+                  style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
+                />
+                {selectedFileNames.length > 0 && (
+                  <div style={{
+                    fontSize: 'var(--recursica-brand-typography-caption-font-size)',
+                    color: `var(${layer0Base}-element-text-color)`,
+                    opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
+                    marginTop: 'var(--recursica-brand-dimensions-general-sm)'
+                  }}>
+                    Selected: {selectedFileNames.join(', ')}
+                  </div>
+                )}
                 <div style={{
                   fontSize: 'var(--recursica-brand-typography-caption-font-size)',
                   color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
+                  opacity: `var(${layer0Base}-element-text-low-emphasis)`,
                   marginTop: 'var(--recursica-brand-dimensions-general-sm)'
                 }}>
-                  Selected: {selectedFileNames.join(', ')}
+                  Upload tokens.json, brand.json, and/or uikit.json files
                 </div>
-              )}
-              <div style={{
-                fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: `var(${layer0Base}-element-text-low-emphasis)`,
-                marginTop: 'var(--recursica-brand-dimensions-general-sm)'
-              }}>
-                Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-            <Group gap="sm" justify="flex-end" style={{ borderTop: `1px solid var(${layer0Base}-border-color)`, paddingTop: 'var(--recursica-brand-dimensions-general-md)' }}>
-              <Button variant="outline" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
-                Cancel
-              </Button>
-              <Button variant="solid" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
-                Import
-              </Button>
-            </Group>
-          </div>
-        </Modal>
-      </div>
-      <ExportValidationErrorModal
-        show={showValidationModal}
-        errors={validationErrors}
-        onClose={handleValidationModalClose}
-      />
-      <ExportSelectionModalWrapper
-        show={showSelectionModal}
-        onConfirm={handleSelectionConfirm}
-        onCancel={handleSelectionCancel}
-        onExportToGithub={handleExportToGithub}
-      />
-      <GitHubExportModalWrapper
-        show={showGitHubModal}
-        selectedFiles={githubExportFiles}
-        onCancel={handleGitHubExportCancel}
-        onSuccess={handleGitHubExportSuccess}
-      />
-      <ExportComplianceModal
-        show={showComplianceModal}
-        issues={complianceIssues}
-        onAcknowledge={handleAcknowledge}
-        onCancel={handleCancel}
-      />
-      {process.env.NODE_ENV === 'development' && (
-        <RandomizeOptionsModal
-          show={showRandomizeModal}
-          onRandomize={(options) => {
-            randomizeAllVariables(options)
-            setShowRandomizeModal(false)
-          }}
-          onCancel={() => setShowRandomizeModal(false)}
+          }
         />
-      )}
-      <ExportValidationErrorModal
-        show={showValidationModal}
-        errors={validationErrors}
-        onClose={handleValidationModalClose}
-      />
-      <ImportDirtyDataModal
-        show={showDirtyModal}
-        filesToImport={filesToImport}
-        onAcknowledge={handleDirtyAcknowledgeWithClose}
-        onCancel={handleDirtyCancel}
-      />
+        <ExportValidationErrorModal
+          show={showValidationModal}
+          errors={validationErrors}
+          onClose={handleValidationModalClose}
+        />
+        <ExportSelectionModalWrapper
+          show={showSelectionModal}
+          onConfirm={handleSelectionConfirm}
+          onCancel={handleSelectionCancel}
+          onExportToGithub={handleExportToGithub}
+        />
+        <GitHubExportModalWrapper
+          show={showGitHubModal}
+          selectedFiles={githubExportFiles}
+          onCancel={handleGitHubExportCancel}
+          onSuccess={handleGitHubExportSuccess}
+        />
+        <ExportComplianceModal
+          show={showComplianceModal}
+          issues={complianceIssues}
+          onAcknowledge={handleAcknowledge}
+          onCancel={handleCancel}
+        />
+        {process.env.NODE_ENV === 'development' && (
+          <RandomizeOptionsModal
+            show={showRandomizeModal}
+            onRandomize={(options) => {
+              randomizeAllVariables(options)
+              setShowRandomizeModal(false)
+            }}
+            onCancel={() => setShowRandomizeModal(false)}
+          />
+        )}
+        <ImportDirtyDataModal
+          show={showDirtyModal}
+          filesToImport={filesToImport}
+          onAcknowledge={handleDirtyAcknowledgeWithClose}
+          onCancel={handleDirtyCancel}
+        />
+          </div>
     </MantineProvider>
   )
 }
+
 
 

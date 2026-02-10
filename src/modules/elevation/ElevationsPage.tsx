@@ -13,7 +13,7 @@ export default function ElevationsPage() {
   const { tokens: tokensJson, theme, elevation, updateElevation, updateToken } = useVars()
   const { mode } = useThemeMode()
   const [selectedLevels, setSelectedLevels] = useState<Set<number>>(() => new Set<number>())
-  
+
 
   // Close panels when mode changes
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function ElevationsPage() {
           tokens.push({ name: `size/${k}`, value: num, label })
         }
       })
-    } catch {}
+    } catch { }
     return tokens.sort((a, b) => a.value - b.value)
   }, [tokensJson])
 
@@ -55,7 +55,7 @@ export default function ElevationsPage() {
           out.push({ name: `opacity/${k}`, value: num, label: k.charAt(0).toUpperCase() + k.slice(1) })
         }
       })
-    } catch {}
+    } catch { }
     return out.sort((a, b) => a.value - b.value)
   }, [tokensJson])
 
@@ -63,12 +63,12 @@ export default function ElevationsPage() {
   const updateElevationControlsBatch = (elevationKeys: string[], property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
     // Determine token names and final values BEFORE updating state
     const updates: Array<{ elevationKey: string; tokenName: string; finalValue: number; level: string }> = []
-    
+
     elevationKeys.forEach((elevationKey) => {
       const level = elevationKey.replace('elevation-', '')
       let tokenName: string | null = null
       let finalValue = value
-      
+
       if (property === 'offsetX') {
         finalValue = Math.abs(value)
         tokenName = elevation?.offsetXTokens[elevationKey] || `size/elevation-${level}-offset-x`
@@ -80,28 +80,28 @@ export default function ElevationsPage() {
       } else if (property === 'spread') {
         tokenName = elevation?.spreadTokens[elevationKey] || `size/elevation-${level}-spread`
       }
-      
+
       if (tokenName) {
         updates.push({ elevationKey, tokenName, finalValue, level })
       }
     })
-    
+
     // Update ALL elevations in a single updateElevation call (triggers only ONE recomputeAndApplyAll)
     // Use mode-specific controls
     updateElevation((prev) => {
       const next = { ...prev }
-      
+
       // Ensure controls structure exists for both modes
       if (!next.controls.light) next.controls.light = {}
       if (!next.controls.dark) next.controls.dark = {}
-      
+
       // CRITICAL: Ensure we're working with a copy of the controls object, not a reference
       // This prevents accidentally modifying the other mode's controls
       next.controls = {
         light: { ...next.controls.light },
         dark: { ...next.controls.dark }
       }
-      
+
       updates.forEach(({ elevationKey, finalValue: finalVal, level: lvl }) => {
         if (property === 'offsetX') {
           const absValue = Math.abs(value)
@@ -143,10 +143,10 @@ export default function ElevationsPage() {
           }
         }
       })
-      
+
       return next
     })
-    
+
     // Don't update tokens when controls exist - recomputeAndApplyAll will set CSS variables directly from controls
     // This prevents token conflicts between light and dark modes
     // Tokens are only updated when reverting to defaults (removing custom controls)
@@ -154,12 +154,12 @@ export default function ElevationsPage() {
 
   // Helper functions that update elevation state directly
   const updateElevationControl = (elevationKey: string, property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
-    
+
     // Determine token name and final value BEFORE updating state
     const level = elevationKey.replace('elevation-', '')
     let tokenName: string | null = null
     let finalValue = value
-    
+
     // For offsetX and offsetY, convert signed values to absolute + direction
     if (property === 'offsetX') {
       finalValue = Math.abs(value)
@@ -172,22 +172,22 @@ export default function ElevationsPage() {
     } else if (property === 'spread') {
       tokenName = elevation?.spreadTokens[elevationKey] || `size/elevation-${level}-spread`
     }
-    
+
     // Update elevation state FIRST (synchronously) - use mode-specific controls
     updateElevation((prev) => {
       const next = { ...prev }
-      
+
       // Ensure controls structure exists for both modes (create new objects to avoid reference sharing)
       if (!next.controls.light) next.controls.light = {}
       if (!next.controls.dark) next.controls.dark = {}
-      
+
       // CRITICAL: Ensure we're working with a copy of the controls object, not a reference
       // This prevents accidentally modifying the other mode's controls
       next.controls = {
         light: { ...next.controls.light },
         dark: { ...next.controls.dark }
       }
-      
+
       // For offsetX and offsetY, convert signed values to absolute + direction
       if (property === 'offsetX') {
         const absValue = Math.abs(value)
@@ -234,10 +234,10 @@ export default function ElevationsPage() {
           [elevationKey]: { ...existing, spread: value }
         }
       }
-      
+
       return next
     })
-    
+
     // Don't update tokens when controls exist - recomputeAndApplyAll will set CSS variables directly from controls
     // This prevents token conflicts between light and dark modes
     // Tokens are only updated when reverting to defaults (removing custom controls)
@@ -257,12 +257,12 @@ export default function ElevationsPage() {
     const modeDirections = elevation?.directions[mode] || {}
     return modeDirections[elevationKey]?.x ?? elevation?.baseXDirection ?? 'right'
   }
-  
+
   const getYDirForLevel = (elevationKey: string): 'up' | 'down' => {
     const modeDirections = elevation?.directions[mode] || {}
     return modeDirections[elevationKey]?.y ?? elevation?.baseYDirection ?? 'down'
   }
-  
+
   const getAlphaTokenForLevel = (level: number): string => {
     const key = `elevation-${level}`
     const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
@@ -274,7 +274,7 @@ export default function ElevationsPage() {
     const brand: any = (theme as any)?.brand || (theme as any)
     const themes = brand?.themes || brand
     const light: any = themes?.[mode]?.elevations || brand?.[mode]?.elevations || {}
-    
+
     const toNumeric = (ref?: any): number => {
       // Handle new structure: { $value: { value: number, unit: "px" }, $type: "number" }
       if (ref && typeof ref === 'object' && '$value' in ref) {
@@ -320,31 +320,31 @@ export default function ElevationsPage() {
 
     updateElevation((prev) => {
       const next = { ...prev }
-      
+
       // Ensure controls structure exists for both modes
       if (!next.controls.light) next.controls.light = {}
       if (!next.controls.dark) next.controls.dark = {}
-      
+
       // CRITICAL: Ensure we're working with a copy of the controls object, not a reference
       // This prevents accidentally modifying the other mode's controls
       next.controls = {
         light: { ...next.controls.light },
         dark: { ...next.controls.dark }
       }
-      
+
       const baseX = Number((light['elevation-1']?.['$value']?.['x-direction']?.['$value'] ?? 1))
       const baseY = Number((light['elevation-1']?.['$value']?.['y-direction']?.['$value'] ?? 1))
 
       levels.forEach((lvl) => {
         const key = `elevation-${lvl}`
         const node: any = light[key]?.['$value'] || {}
-        
+
         // Get default values from theme
         const defaultBlur = toNumeric(node?.blur)
         const defaultSpread = toNumeric(node?.spread)
         const defaultOffsetX = toNumeric(node?.x)
         const defaultOffsetY = toNumeric(node?.y)
-        
+
         // Remove controls for current mode (revert to Brand.json defaults)
         // This allows recomputeAndApplyAll to use Brand.json defaults and update tokens
         const { [key]: _, ...restControls } = next.controls[mode]
@@ -356,7 +356,7 @@ export default function ElevationsPage() {
         const spreadTokenName = next.spreadTokens[key] || `size/elevation-${lvl}-spread`
         const offsetXTokenName = next.offsetXTokens[key] || `size/elevation-${lvl}-offset-x`
         const offsetYTokenName = next.offsetYTokens[key] || `size/elevation-${lvl}-offset-y`
-        
+
         // Update the actual token values (these will be used when controls don't exist)
         updateToken(blurTokenName, defaultBlur)
         updateToken(spreadTokenName, defaultSpread)
@@ -385,7 +385,7 @@ export default function ElevationsPage() {
         if (!next.alphaTokens[mode]) next.alphaTokens[mode] = {}
         if (alphaToken) {
           next.alphaTokens[mode] = { ...next.alphaTokens[mode], [key]: alphaToken }
-          
+
           // Also revert the opacity token value if it exists
           try {
             const tokensRoot: any = (tokensJson as any)?.tokens || {}
@@ -400,7 +400,7 @@ export default function ElevationsPage() {
                 updateToken(uniqueTokenName, defaultOpacityValue)
               }
             }
-          } catch {}
+          } catch { }
         } else {
           const { [key]: ___, ...alphaRest } = next.alphaTokens[mode]
           next.alphaTokens[mode] = alphaRest
@@ -410,10 +410,12 @@ export default function ElevationsPage() {
         if (!next.directions[mode]) next.directions[mode] = {}
         const xraw = Number((node?.['x-direction']?.['$value'] ?? baseX))
         const yraw = Number((node?.['y-direction']?.['$value'] ?? baseY))
-        next.directions[mode] = { ...next.directions[mode], [key]: { 
-          x: xraw >= 0 ? 'right' : 'left', 
-          y: yraw >= 0 ? 'down' : 'up' 
-        }}
+        next.directions[mode] = {
+          ...next.directions[mode], [key]: {
+            x: xraw >= 0 ? 'right' : 'left',
+            y: yraw >= 0 ? 'down' : 'up'
+          }
+        }
       })
 
       return next
@@ -421,12 +423,12 @@ export default function ElevationsPage() {
   }
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property-element`
-  
+
   const handleResetAll = () => {
     // Reset all elevations (0-4) to theme defaults
     revertSelected(new Set([0, 1, 2, 3, 4]))
   }
-  
+
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
@@ -456,7 +458,7 @@ export default function ElevationsPage() {
           </div>
           <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
             <div className="elevation-grid" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
-              {[0,1,2,3,4].map((i) => (
+              {[0, 1, 2, 3, 4].map((i) => (
                 <div key={i} style={{ width: '100%' }}>
                   <ElevationModule
                     label={i === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${i}`}
@@ -481,7 +483,7 @@ export default function ElevationsPage() {
             availableOpacityTokens={availableOpacityTokens}
             shadowColorControl={elevation.shadowColorControl}
             getAlphaTokenForLevel={(key: string) => {
-              const lvl = Number(key.replace('elevation-',''))
+              const lvl = Number(key.replace('elevation-', ''))
               return getAlphaTokenForLevel(lvl)
             }}
             setElevationAlphaToken={setElevationAlphaToken}

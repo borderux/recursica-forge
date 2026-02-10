@@ -23,7 +23,7 @@ import tokensImport from '../../../vars/Tokens.json'
 
 type FamilyRow = { name: string; value: string; position: number }
 
-const ORDER = ['primary','secondary','tertiary','quaternary','quinary','senary','septenary','octonary']
+const ORDER = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary']
 const FONT_WEIGHTS = ['thin', 'extra-light', 'light', 'regular', 'medium', 'semi-bold', 'bold', 'extra-bold', 'black']
 const FONT_WEIGHT_MAP: Record<string, number> = {
   'thin': 100,
@@ -43,18 +43,18 @@ function isFontWeightAvailable(fontFamily: string, weight: number): boolean {
   if (!fontFamily || typeof document === 'undefined' || !document.fonts) {
     return true // Assume available if we can't check
   }
-  
+
   try {
     // Check if the font is loaded and the weight is available
     const fontFace = Array.from(document.fonts).find(
       (ff) => ff.family.toLowerCase() === fontFamily.toLowerCase()
     )
-    
+
     if (!fontFace) {
       // Font not loaded yet, assume all weights are available
       return true
     }
-    
+
     // For Google Fonts and most web fonts, if the font is loaded, 
     // we assume the weight is available (browsers will synthesize if needed)
     // But we can check the actual weight if available
@@ -95,7 +95,7 @@ export function AddButtonWrapper() {
 // Wrapper to handle font addition from modal
 function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { updateToken, tokens: tokensJson } = useVars()
-  
+
   // Get current font count to determine available sequences
   const getCurrentFontCount = (): number => {
     try {
@@ -106,12 +106,12 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
       return 0
     }
   }
-  
+
   // Get list of existing font families to prevent duplicates
   const getExistingFonts = (): string[] => {
     const overrides = readOverrides()
     const existing: string[] = []
-    
+
     // Get fonts from JSON
     try {
       const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
@@ -122,8 +122,8 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           existing.push(val.trim())
         }
       })
-    } catch {}
-    
+    } catch { }
+
     // Get fonts from overrides
     Object.keys(overrides).forEach((name) => {
       if (name.startsWith('font/typeface/')) {
@@ -133,15 +133,15 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
         }
       }
     })
-    
+
     return existing
   }
-  
+
   const buildRows = (): FamilyRow[] => {
     const overrides = readOverrides()
     const rows: FamilyRow[] = []
     const typefaceEntries: Array<{ name: string; value: string; key: string }> = []
-    
+
     try {
       const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
       const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
@@ -150,14 +150,14 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
         const val = typefaces[k]?.$value
         const value = typeof val === 'string' && val ? val : ''
         const overrideValue = overrides[name]
-        typefaceEntries.push({ 
-          name, 
+        typefaceEntries.push({
+          name,
           value: typeof overrideValue === 'string' && overrideValue ? overrideValue : value,
           key: k
         })
       })
-    } catch {}
-    
+    } catch { }
+
     Object.keys(overrides).forEach((name) => {
       if (name.startsWith('font/typeface/')) {
         const key = name.replace('font/typeface/', '')
@@ -167,7 +167,7 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
         }
       }
     })
-    
+
     typefaceEntries.sort((a, b) => {
       const aIndex = ORDER.indexOf(a.key)
       const bIndex = ORDER.indexOf(b.key)
@@ -176,7 +176,7 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
       if (bIndex !== -1) return 1
       return a.key.localeCompare(b.key)
     })
-    
+
     typefaceEntries.forEach((entry) => {
       const name = `font/typeface/${entry.key}`
       rows.push({
@@ -185,15 +185,15 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
         position: typefaceEntries.indexOf(entry)
       })
     })
-    
+
     return rows
   }
-  
+
   // Calculate available sequences: current font count + 1 (for the new font)
   const currentFontCount = getCurrentFontCount()
   const availableSequences = ORDER.slice(0, currentFontCount + 1)
   const defaultSequence = availableSequences[availableSequences.length - 1] || ORDER[0]
-  
+
   return (
     <GoogleFontsModal
       open={open}
@@ -204,7 +204,7 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
       onAccept={async (fontName, url, variants, sequence) => {
         try {
           const all = readOverrides()
-          
+
           // Use provided sequence or find next available
           let sequentialName: string
           if (sequence && ORDER.includes(sequence)) {
@@ -218,25 +218,25 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
                 const key = k.replace('font/typeface/', '')
                 return ORDER.indexOf(key)
               }).filter(idx => idx !== -1)
-              
+
               let nextIndex = 0
               while (existingIndices.includes(nextIndex) && nextIndex < ORDER.length) {
                 nextIndex++
               }
-              
+
               // Move existing font to next available position
               const existingValue = all[existingKey]
               const newName = `font/typeface/${ORDER[nextIndex] || `custom-${nextIndex + 1}`}`
               delete all[existingKey]
               all[newName] = existingValue
-              
+
               // Also update the token in the store
               const store = getVarsStore()
               const state = store.getState()
               const tokens = state.tokens as any
               const fontRoot = tokens?.tokens?.font || tokens?.font || {}
               const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
-              
+
               if (typefaces[sequence]) {
                 const existingTypeface = typefaces[sequence]
                 delete typefaces[sequence]
@@ -251,22 +251,22 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
               const key = k.replace('font/typeface/', '')
               return ORDER.indexOf(key)
             }).filter(idx => idx !== -1)
-            
+
             let nextIndex = 0
             while (existingIndices.includes(nextIndex) && nextIndex < ORDER.length) {
               nextIndex++
             }
-            
+
             sequentialName = ORDER[nextIndex] || `custom-${nextIndex + 1}`
           }
-          
+
           const name = `font/typeface/${sequentialName}`
           // Strip any quotes from font name before storing (should be clean name like "Rubik Storm")
           const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '')
           const updated = { ...all, [name]: cleanFontName }
           writeOverrides(updated)
           updateToken(name, cleanFontName)
-          
+
           // Update token extensions with URL and variants FIRST, before loading font
           // This ensures ensureFontLoaded can find the custom URL
           if (url || variants) {
@@ -276,85 +276,85 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
               const tokens = state.tokens as any
               const fontRoot = tokens?.tokens?.font || tokens?.font || {}
               const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
-              
+
               // Create the typeface entry if it doesn't exist
               if (!typefaces[sequentialName]) {
                 typefaces[sequentialName] = {}
               }
-              
+
               // Ensure $value is set to the font name (populateFontUrlMapFromTokens reads from $value)
               // Always set it to ensure it matches what we're looking up
               typefaces[sequentialName].$value = cleanFontName
-                
-                if (!typefaces[sequentialName].$extensions) {
-                  typefaces[sequentialName].$extensions = {}
+
+              if (!typefaces[sequentialName].$extensions) {
+                typefaces[sequentialName].$extensions = {}
+              }
+              if (!typefaces[sequentialName].$extensions['com.google.fonts']) {
+                typefaces[sequentialName].$extensions['com.google.fonts'] = {}
+              }
+
+              if (url) {
+                typefaces[sequentialName].$extensions['com.google.fonts'].url = url
+              }
+
+              // Store variants by font name, not sequence
+              if (variants) {
+                if (!fontRoot.fontVariants) {
+                  fontRoot.fontVariants = {}
                 }
-                if (!typefaces[sequentialName].$extensions['com.google.fonts']) {
-                  typefaces[sequentialName].$extensions['com.google.fonts'] = {}
+
+                if (variants.length > 0) {
+                  fontRoot.fontVariants[cleanFontName.toLowerCase()] = variants
+                } else {
+                  delete fontRoot.fontVariants[cleanFontName.toLowerCase()]
                 }
-                
-                if (url) {
-                  typefaces[sequentialName].$extensions['com.google.fonts'].url = url
-                }
-                
-                // Store variants by font name, not sequence
-                if (variants) {
-                  if (!fontRoot.fontVariants) {
-                    fontRoot.fontVariants = {}
+              }
+
+              store.setTokens(tokens)
+
+              // Populate fontUrlMap and window.__fontUrlMap with the URL immediately
+              // so ensureFontLoaded can find it
+              if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
+                const { populateFontUrlMapFromTokens, setFontUrl } = await import('../../type/fontUtils')
+
+                // First, directly set the URL in the map for immediate access
+                // This ensures the URL is available even if populateFontUrlMapFromTokens has issues
+                setFontUrl(cleanFontName, url)
+                setFontUrl(fontName.trim(), url)
+
+                // Also set with quoted version
+                setFontUrl(`"${cleanFontName}"`, url)
+
+                // Re-populate the map with the updated tokens (this will also set it, but direct set is faster)
+                populateFontUrlMapFromTokens(tokens)
+
+                // Also update window.__fontUrlMap directly for immediate access
+                // and ensure all font name variations are mapped
+                if (typeof window !== 'undefined') {
+                  if (!(window as any).__fontUrlMap) {
+                    (window as any).__fontUrlMap = new Map<string, string>()
                   }
-                  
-                  if (variants.length > 0) {
-                    fontRoot.fontVariants[cleanFontName.toLowerCase()] = variants
-                  } else {
-                    delete fontRoot.fontVariants[cleanFontName.toLowerCase()]
-                  }
+                  const urlMap = (window as any).__fontUrlMap as Map<string, string>
+
+                  // Set with all variations to ensure lookup works
+                  const fontNameVariations = [
+                    cleanFontName,
+                    `"${cleanFontName}"`,
+                    fontName.trim(),
+                    fontName.trim().replace(/^["']|["']$/g, ''),
+                  ]
+                  // Remove duplicates
+                  const uniqueVariations = [...new Set(fontNameVariations.filter(v => v))]
+                  uniqueVariations.forEach(v => {
+                    urlMap.set(v, url)
+                  })
                 }
-                
-                store.setTokens(tokens)
-                
-                // Populate fontUrlMap and window.__fontUrlMap with the URL immediately
-                // so ensureFontLoaded can find it
-                if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
-                  const { populateFontUrlMapFromTokens, setFontUrl } = await import('../../type/fontUtils')
-                  
-                  // First, directly set the URL in the map for immediate access
-                  // This ensures the URL is available even if populateFontUrlMapFromTokens has issues
-                  setFontUrl(cleanFontName, url)
-                  setFontUrl(fontName.trim(), url)
-                  
-                  // Also set with quoted version
-                  setFontUrl(`"${cleanFontName}"`, url)
-                  
-                  // Re-populate the map with the updated tokens (this will also set it, but direct set is faster)
-                  populateFontUrlMapFromTokens(tokens)
-                  
-                  // Also update window.__fontUrlMap directly for immediate access
-                  // and ensure all font name variations are mapped
-                  if (typeof window !== 'undefined') {
-                    if (!(window as any).__fontUrlMap) {
-                      (window as any).__fontUrlMap = new Map<string, string>()
-                    }
-                    const urlMap = (window as any).__fontUrlMap as Map<string, string>
-                    
-                    // Set with all variations to ensure lookup works
-                    const fontNameVariations = [
-                      cleanFontName,
-                      `"${cleanFontName}"`,
-                      fontName.trim(),
-                      fontName.trim().replace(/^["']|["']$/g, ''),
-                    ]
-                    // Remove duplicates
-                    const uniqueVariations = [...new Set(fontNameVariations.filter(v => v))]
-                    uniqueVariations.forEach(v => {
-                      urlMap.set(v, url)
-                    })
-                  }
-                }
+              }
             } catch (err) {
               console.warn('Failed to update token extensions:', err)
             }
           }
-          
+
           // Remove any existing link for this font before loading with new URL
           const cleanFontNameForId = cleanFontName.toLowerCase().replace(/[^a-z0-9]+/g, '-')
           const linkId = `gf-${cleanFontNameForId}`
@@ -362,14 +362,14 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           if (existingLink) {
             existingLink.remove()
           }
-          
+
           // Now load the font - it will use the custom URL from fontUrlMap
           // Use cleanFontName to ensure consistent lookup
           await ensureFontLoaded(cleanFontName)
-          
+
           // Wait a bit for font cache to be populated
           await new Promise(resolve => setTimeout(resolve, 300))
-          
+
           // Import getActualFontFamilyName to ensure cache is populated
           const { getActualFontFamilyName } = await import('../../type/fontUtils')
           try {
@@ -377,20 +377,20 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           } catch (err) {
             console.warn('Failed to get actual font family name:', err)
           }
-          
+
           setTimeout(() => {
             try {
               const store = getVarsStore()
               store.setTokens(store.getState().tokens)
               // Trigger recompute to update CSS variables with cached font name
               store.recomputeAndApplyAll()
-            } catch {}
+            } catch { }
           }, 100)
-          
+
           try {
             window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { name, value: fontName, all: updated } }))
-          } catch {}
-          
+          } catch { }
+
           // Don't close here - let the modal handle closing after onAccept completes
         } catch (error) {
           console.error('Failed to add Google Font:', error)
@@ -405,7 +405,7 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
 export default function FontFamiliesTokens() {
   const { tokens: tokensJson, updateToken } = useVars()
   const { mode } = useThemeMode()
-  const [fonts, setFonts] = useState<string[]>(["Inter","Roboto","Open Sans","Lato","Montserrat","Poppins","Source Sans 3","Nunito","Raleway","Merriweather","PT Sans","Ubuntu","Noto Sans","Playfair Display","Work Sans","Rubik","Fira Sans","Manrope","Crimson Pro","Space Grotesk","Custom..."])
+  const [fonts, setFonts] = useState<string[]>(["Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Source Sans 3", "Nunito", "Raleway", "Merriweather", "PT Sans", "Ubuntu", "Noto Sans", "Playfair Display", "Work Sans", "Rubik", "Fira Sans", "Manrope", "Crimson Pro", "Space Grotesk", "Custom..."])
   const [customModalOpen, setCustomModalOpen] = useState(false)
   const [customModalRowName, setCustomModalRowName] = useState<string | null>(null)
   const [showInspiration, setShowInspiration] = useState(true)
@@ -421,7 +421,7 @@ export default function FontFamiliesTokens() {
     const overrides = readOverrides()
     const rows: FamilyRow[] = []
     const typefaceEntries: Array<{ name: string; value: string; key: string }> = []
-    
+
     // First, read from Tokens.json (always read from source of truth)
     try {
       const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
@@ -439,14 +439,14 @@ export default function FontFamiliesTokens() {
         }
         // Check if override exists, otherwise use JSON value
         const overrideValue = overrides[name]
-        typefaceEntries.push({ 
-          name, 
+        typefaceEntries.push({
+          name,
           value: typeof overrideValue === 'string' && overrideValue ? overrideValue : value,
           key: k
         })
       })
-    } catch {}
-    
+    } catch { }
+
     // Also include any overrides that aren't in the JSON (custom additions)
     Object.keys(overrides).forEach((name) => {
       if (name.startsWith('font/typeface/')) {
@@ -458,7 +458,7 @@ export default function FontFamiliesTokens() {
         }
       }
     })
-    
+
     typefaceEntries.sort((a, b) => {
       const aIndex = ORDER.indexOf(a.key)
       const bIndex = ORDER.indexOf(b.key)
@@ -467,7 +467,7 @@ export default function FontFamiliesTokens() {
       if (bIndex !== -1) return 1
       return a.key.localeCompare(b.key)
     })
-    
+
     typefaceEntries.forEach((entry, index) => {
       // Use the key from JSON (primary, secondary, tertiary) instead of sequential naming
       const name = `font/typeface/${entry.key}`
@@ -477,7 +477,7 @@ export default function FontFamiliesTokens() {
         position: index
       })
     })
-    
+
     return rows
   }
 
@@ -498,7 +498,7 @@ export default function FontFamiliesTokens() {
       setRows([{ name, value: '', position: 0 }])
       try {
         window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated } }))
-      } catch {}
+      } catch { }
     }
   }, [rows.length])
 
@@ -509,7 +509,7 @@ export default function FontFamiliesTokens() {
         if (row.value && row.value.trim()) {
           const fontName = row.value.trim().replace(/^["']|["']$/g, '')
           if (fontName) {
-            ensureFontLoaded(fontName).catch(() => {})
+            ensureFontLoaded(fontName).catch(() => { })
           }
         }
       })
@@ -532,14 +532,14 @@ export default function FontFamiliesTokens() {
               updated[k] = allOverrides[k]
             }
           })
-          
+
           try {
             // Use original tokensImport instead of tokensJson which might be stale
             // tokensJson comes from the store which is updated asynchronously by resetAll()
             const fontRoot: any = (tokensImport as any)?.tokens?.font || (tokensImport as any)?.font || {}
             // Check for both plural (typefaces) and singular (typeface) for backwards compatibility
             const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
-            
+
             // Collect all typeface entries from JSON
             const typefaceEntries: Array<{ key: string; value: string }> = []
             Object.keys(typefaces).filter((k) => !k.startsWith('$')).forEach((k) => {
@@ -553,7 +553,7 @@ export default function FontFamiliesTokens() {
               }
               typefaceEntries.push({ key: k, value })
             })
-            
+
             // Sort by original ORDER to restore sequence
             typefaceEntries.sort((a, b) => {
               const aIndex = ORDER.indexOf(a.key)
@@ -563,25 +563,25 @@ export default function FontFamiliesTokens() {
               if (bIndex !== -1) return 1
               return a.key.localeCompare(b.key)
             })
-            
+
             // Reassign to ORDER sequence (primary, secondary, tertiary, etc.)
             // This ensures the sequence is restored even if user reordered them
             typefaceEntries.forEach((entry, index) => {
               const sequentialName = ORDER[index] || `custom-${index + 1}`
               const newName = `font/typeface/${sequentialName}`
-              
+
               // Remove old CSS variables if key changed
               if (entry.key !== sequentialName) {
                 removeCssVar(`--tokens-font-typeface-${entry.key}`)
                 removeCssVar(`--recursica-tokens-font-typefaces-${entry.key}`)
               }
-              
+
               updated[newName] = entry.value
             })
-          } catch {}
-          
+          } catch { }
+
           writeOverrides(updated)
-          
+
           // Update tokens in store
           setTimeout(() => {
             try {
@@ -593,9 +593,9 @@ export default function FontFamiliesTokens() {
                 }
               })
               store.setTokens(store.getState().tokens)
-            } catch {}
+            } catch { }
           }, 0)
-          
+
           // Rebuild rows after reset is complete
           setRows(buildRows())
         } else if (!detail.skipRebuild) {
@@ -618,7 +618,7 @@ export default function FontFamiliesTokens() {
         const names = data.items.map((it: any) => String(it.family)).filter(Boolean).sort((a: string, b: string) => a.localeCompare(b))
         setFonts([...names, 'Custom...'])
       }
-    }).catch(() => {})
+    }).catch(() => { })
   }, [])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
@@ -626,7 +626,7 @@ export default function FontFamiliesTokens() {
   // Detect available font weights for a font family
   const detectAvailableWeights = async (fontFamily: string): Promise<string[]> => {
     if (!fontFamily) return []
-    
+
     // Try to get weights from Google Fonts API
     const apiKey = (import.meta as any).env?.VITE_GOOGLE_FONTS_API_KEY as string | undefined
     if (apiKey) {
@@ -675,7 +675,7 @@ export default function FontFamiliesTokens() {
         console.warn('Failed to fetch font weights from Google Fonts API:', error)
       }
     }
-    
+
     // Fallback: check if font is loaded via document.fonts
     if (typeof document !== 'undefined' && document.fonts) {
       const fontFaces = Array.from(document.fonts).filter(
@@ -686,7 +686,7 @@ export default function FontFamiliesTokens() {
         return FONT_WEIGHTS
       }
     }
-    
+
     // Default: return all weights (they'll be available when loaded or browser will synthesize)
     return FONT_WEIGHTS
   }
@@ -698,17 +698,17 @@ export default function FontFamiliesTokens() {
   const getVariantsByFontName = (fontName: string): Array<{ weight: string; style: string }> | null => {
     try {
       if (!fontName || !fontName.trim()) return null
-      
+
       const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '').toLowerCase()
       const store = getVarsStore()
       const state = store.getState()
       const tokens = state.tokens as any
       const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-      
+
       // Check new fontVariants structure
       const fontVariants = fontRoot.fontVariants || {}
       const variants = fontVariants[cleanFontName]
-      
+
       if (variants && Array.isArray(variants) && variants.length > 0) {
         // Resolve token references in variants to get weight and style keys
         const resolvedVariants: Array<{ weight: string; style: string }> = []
@@ -716,7 +716,7 @@ export default function FontFamiliesTokens() {
           if (variant && typeof variant === 'object') {
             let weight = ''
             let style = ''
-            
+
             // Extract weight key from token reference like {tokens.font.weights.regular}
             if (typeof variant.weight === 'string') {
               const weightMatch = variant.weight.match(/\{tokens?\.font\.weights?\.([a-z0-9\-_]+)\}/i)
@@ -724,7 +724,7 @@ export default function FontFamiliesTokens() {
                 weight = weightMatch[1]
               }
             }
-            
+
             // Extract style key from token reference like {tokens.font.styles.normal}
             if (typeof variant.style === 'string') {
               const styleMatch = variant.style.match(/\{tokens?\.font\.styles?\.([a-z0-9\-_]+)\}/i)
@@ -732,7 +732,7 @@ export default function FontFamiliesTokens() {
                 style = styleMatch[1]
               }
             }
-            
+
             if (weight && style) {
               resolvedVariants.push({ weight, style })
             }
@@ -740,31 +740,31 @@ export default function FontFamiliesTokens() {
         })
         return resolvedVariants.length > 0 ? resolvedVariants : null
       }
-    } catch {}
+    } catch { }
     return null
   }
-  
+
   // Helper function to set variants by font name (not sequence)
   const setVariantsByFontName = (fontName: string, variants: Array<{ weight: string; style: string }> | null): void => {
     try {
       if (!fontName || !fontName.trim()) return
-      
+
       const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '').toLowerCase()
       const store = getVarsStore()
       const state = store.getState()
       const tokens = JSON.parse(JSON.stringify(state.tokens)) as any // Deep clone
       const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-      
+
       if (!fontRoot.fontVariants) {
         fontRoot.fontVariants = {}
       }
-      
+
       if (variants && variants.length > 0) {
         fontRoot.fontVariants[cleanFontName] = variants
       } else {
         delete fontRoot.fontVariants[cleanFontName]
       }
-      
+
       store.setTokens(tokens)
     } catch (err) {
       console.warn('Failed to set variants by font name:', err)
@@ -779,15 +779,15 @@ export default function FontFamiliesTokens() {
       const tokens = JSON.parse(JSON.stringify(state.tokens)) as any // Deep clone
       const fontRoot = tokens?.tokens?.font || tokens?.font || {}
       const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
-      
+
       let needsMigration = false
       const migrations: Array<{ fontName: string; variants: any[] }> = []
-      
+
       // Check for variants in old structure
       for (const key of Object.keys(typefaces).filter(k => !k.startsWith('$'))) {
         const def = typefaces[key]
         if (!def) continue
-        
+
         if (def?.$extensions?.variants && Array.isArray(def.$extensions.variants) && def.$extensions.variants.length > 0) {
           // Get the font value
           let fontValue = ''
@@ -797,7 +797,7 @@ export default function FontFamiliesTokens() {
           } else if (typeof rawValue === 'string') {
             fontValue = rawValue.trim().replace(/^["']|["']$/g, '')
           }
-          
+
           if (fontValue) {
             const cleanFontName = fontValue.toLowerCase()
             // Check if already migrated
@@ -809,23 +809,23 @@ export default function FontFamiliesTokens() {
           }
         }
       }
-      
+
       // Perform migration if needed
       if (needsMigration) {
         if (!fontRoot.fontVariants) {
           fontRoot.fontVariants = {}
         }
-        
+
         migrations.forEach(({ fontName, variants }) => {
           fontRoot.fontVariants[fontName] = variants
         })
-        
+
         // Remove variants from old locations
         migrations.forEach(({ fontName }) => {
           for (const key of Object.keys(typefaces).filter(k => !k.startsWith('$'))) {
             const def = typefaces[key]
             if (!def) continue
-            
+
             let fontValue = ''
             const rawValue = def?.$value
             if (Array.isArray(rawValue) && rawValue.length > 0) {
@@ -833,32 +833,32 @@ export default function FontFamiliesTokens() {
             } else if (typeof rawValue === 'string') {
               fontValue = rawValue.trim().replace(/^["']|["']$/g, '')
             }
-            
+
             if (fontValue && fontValue.toLowerCase() === fontName && def?.$extensions?.variants) {
               delete def.$extensions.variants
             }
           }
         })
-        
+
         store.setTokens(tokens)
       }
     } catch (err) {
       console.warn('Failed to migrate variants:', err)
     }
   }, [tokensJson])
-  
+
   // Legacy function for backwards compatibility - now uses font name lookup
   const getVariantsFromJson = (fontValue: string): Array<{ weight: string; style: string }> | null => {
     return getVariantsByFontName(fontValue)
   }
-  
+
   // Get all available styles from tokens
   const getAllStyles = (): string[] => {
     try {
       const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
       const styles: any = fontRoot?.styles || {}
       return Object.keys(styles).filter(k => !k.startsWith('$'))
-    } catch {}
+    } catch { }
     return ['normal', 'italic'] // Default fallback
   }
 
@@ -868,11 +868,11 @@ export default function FontFamiliesTokens() {
       const newAvailableVariants: Record<string, Array<{ weight: string; style: string }>> = {}
       const newAvailableWeights: Record<string, string[]> = {}
       const allStyles = getAllStyles()
-      
+
       for (const row of rows) {
         // Get variants by font value (not row name) so it works after resequencing
         const jsonVariants = getVariantsFromJson(row.value)
-        
+
         if (jsonVariants && jsonVariants.length > 0) {
           // Use variants from JSON
           newAvailableVariants[row.name] = jsonVariants
@@ -919,7 +919,7 @@ export default function FontFamiliesTokens() {
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault()
     e.stopPropagation()
-    
+
     if (draggedIndex === null || draggedIndex === dropIndex) {
       setDraggedIndex(null)
       return
@@ -927,42 +927,42 @@ export default function FontFamiliesTokens() {
 
     const all = readOverrides()
     const updated: Record<string, any> = {}
-    
+
     // Keep all non-font/typeface overrides
     Object.keys(all).forEach((k) => {
       if (!k.startsWith('font/typeface/')) {
         updated[k] = all[k]
       }
     })
-    
+
     // Create new rows array with reordered items
     const newRows = [...rows]
     const [draggedRow] = newRows.splice(draggedIndex, 1)
     newRows.splice(dropIndex, 0, draggedRow)
-    
+
     // Get tokens before resequencing to preserve extensions
     const store = getVarsStore()
     const state = store.getState()
     const tokens = state.tokens as any
     const fontRoot = tokens?.tokens?.font || tokens?.font || {}
     const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
-    
+
     // Reassign ORDER names based on new positions
     const reorderedRows = newRows.map((row, newIndex) => {
       const sequentialName = ORDER[newIndex] || `custom-${newIndex + 1}`
       const newName = `font/typeface/${sequentialName}`
       const oldKey = row.name.replace('font/typeface/', '')
       const newKey = sequentialName
-      
+
       // If the name changed, remove old CSS variables
       if (row.name !== newName) {
         removeCssVar(`--tokens-font-typeface-${oldKey}`)
         removeCssVar(`--recursica-tokens-font-typefaces-${oldKey}`)
       }
-      
+
       // Update override with new name
       updated[newName] = row.value
-      
+
       return {
         name: newName,
         value: row.value,
@@ -971,11 +971,11 @@ export default function FontFamiliesTokens() {
         newKey
       }
     })
-    
+
     writeOverrides(updated)
     setRows(reorderedRows.map(({ oldKey, newKey, ...rest }) => rest))
     setDraggedIndex(null)
-    
+
     // Update tokens in store and trigger typography recompute
     setTimeout(() => {
       try {
@@ -984,7 +984,7 @@ export default function FontFamiliesTokens() {
         const freshTokens = JSON.parse(JSON.stringify(freshState.tokens)) as any // Deep clone
         const freshFontRoot = freshTokens?.tokens?.font || freshTokens?.font || {}
         const freshTypefaces = freshFontRoot.typefaces || freshFontRoot.typeface || {}
-        
+
         // Collect Google Fonts URLs by font value (not sequence) before resequencing
         const fontUrlMap: Record<string, string> = {}
         reorderedRows.forEach((row) => {
@@ -996,7 +996,7 @@ export default function FontFamiliesTokens() {
             }
           }
         })
-        
+
         // Now update each token with its new name
         // Variants are stored by font name, so they don't need to be moved
         reorderedRows.forEach((row) => {
@@ -1004,10 +1004,10 @@ export default function FontFamiliesTokens() {
           if (!freshTypefaces[row.newKey]) {
             freshTypefaces[row.newKey] = {}
           }
-          
+
           // Set the value
           freshTypefaces[row.newKey].$value = Array.isArray(row.value) ? row.value : row.value
-          
+
           // Preserve Google Fonts URL extension if it exists for this font
           const fontValue = Array.isArray(row.value) ? row.value[0] : row.value
           if (fontValue && fontUrlMap[fontValue]) {
@@ -1019,14 +1019,14 @@ export default function FontFamiliesTokens() {
             }
             freshTypefaces[row.newKey].$extensions['com.google.fonts'].url = fontUrlMap[fontValue]
           }
-          
+
           // Also update via updateToken for CSS var updates
           updateToken(row.name, row.value)
         })
-        
+
         // Final update to ensure everything is synced
         store.setTokens(store.getState().tokens)
-        
+
         // Clear typography font-family CSS variables so they get regenerated with new token assignments
         // This ensures typography updates when token sequence changes
         const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
@@ -1036,17 +1036,17 @@ export default function FontFamiliesTokens() {
             document.documentElement.style.removeProperty(cssVar)
           }
         })
-        
+
         // Trigger recompute of all CSS variables (including typography) to pick up new token assignments
         store.recomputeAndApplyAll()
-      } catch {}
+      } catch { }
     }, 0)
-    
+
     try {
       window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, skipRebuild: true } }))
       // Also dispatch cssVarsUpdated to notify components that typography may have changed
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: [] } }))
-    } catch {}
+    } catch { }
   }
 
   const handleDragEnd = () => {
@@ -1057,7 +1057,7 @@ export default function FontFamiliesTokens() {
   const handleDelete = (index: number) => {
     if (index === 0) return
     if (rows.length <= 1) return
-    
+
     const all = readOverrides()
     const updated: Record<string, any> = {}
     Object.keys(all).forEach((k) => {
@@ -1065,7 +1065,7 @@ export default function FontFamiliesTokens() {
         updated[k] = all[k]
       }
     })
-    
+
     const rowsToKeep = rows.filter((_, idx) => idx !== index)
     if (index < rows.length) {
       const deletedRow = rows[index]
@@ -1073,7 +1073,7 @@ export default function FontFamiliesTokens() {
       removeCssVar(`--tokens-font-typeface-${deletedKey}`)
       removeCssVar(`--recursica-tokens-font-typefaces-${deletedKey}`)
     }
-    
+
     rowsToKeep.forEach((row, newIndex) => {
       const sequentialName = ORDER[newIndex] || `custom-${newIndex + 1}`
       const newName = `font/typeface/${sequentialName}`
@@ -1083,7 +1083,7 @@ export default function FontFamiliesTokens() {
         removeCssVar(`--recursica-tokens-font-typefaces-${oldKey}`)
       }
     })
-    
+
     const newRows = rowsToKeep.map((row, newIndex) => {
       const sequentialName = ORDER[newIndex] || `custom-${newIndex + 1}`
       const newName = `font/typeface/${sequentialName}`
@@ -1094,20 +1094,20 @@ export default function FontFamiliesTokens() {
         position: newIndex
       }
     })
-    
+
     writeOverrides(updated)
     setRows(newRows)
-    
+
     setTimeout(() => {
       try {
         const store = getVarsStore()
         store.setTokens(store.getState().tokens)
-      } catch {}
+      } catch { }
     }, 0)
-    
+
     try {
       window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, skipRebuild: true } }))
-    } catch {}
+    } catch { }
   }
 
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
@@ -1131,7 +1131,7 @@ export default function FontFamiliesTokens() {
           const label = toTitle(key)
           const fontFamilyVar = `--recursica-tokens-font-typefaces-${key}`
           const selectedWeight = selectedWeights[r.name] || 'regular'
-          
+
           return (
             <div
               key={r.name}
@@ -1149,13 +1149,12 @@ export default function FontFamiliesTokens() {
               onDragEnd={handleDragEnd}
               style={{
                 background: `var(${layer1Base}-surface)`,
-                border: `1px solid ${
-                  draggedIndex === index 
+                border: `1px solid ${draggedIndex === index
                     ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
                     : dragOverIndex === index
-                    ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
-                    : `var(${layer1Base}-border-color)`
-                }`,
+                      ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
+                      : `var(${layer1Base}-border-color)`
+                  }`,
                 borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
                 padding: `var(${layer1Base}-padding)`,
                 display: 'flex',
@@ -1166,7 +1165,7 @@ export default function FontFamiliesTokens() {
                 opacity: draggedIndex === index ? 0.5 : 1,
                 transition: 'all 0.2s',
                 transform: dragOverIndex === index ? 'translateY(-4px)' : 'none',
-                boxShadow: dragOverIndex === index 
+                boxShadow: dragOverIndex === index
                   ? `0 4px 8px rgba(0, 0, 0, 0.1)`
                   : layer1Elevation || undefined,
                 minHeight: 0, // Allow flexbox to control height
@@ -1217,7 +1216,7 @@ export default function FontFamiliesTokens() {
                 >
                   {label}
                 </Chip>
-                <h2 style={{ 
+                <h2 style={{
                   margin: 0,
                   fontFamily: `var(${fontFamilyVar})`,
                   fontSize: 'var(--recursica-brand-typography-h2-font-size)',
@@ -1243,9 +1242,9 @@ export default function FontFamiliesTokens() {
               }}>
                 {EXAMPLE_TEXT}
               </div>
-              <div style={{ 
-                display: 'flex', 
-                flexWrap: 'wrap', 
+              <div style={{
+                display: 'flex',
+                flexWrap: 'wrap',
                 gap: 'var(--recursica-brand-dimensions-general-default)',
                 flexShrink: 0,
                 alignSelf: 'stretch',
@@ -1260,8 +1259,8 @@ export default function FontFamiliesTokens() {
                     if (styleDef?.$value && typeof styleDef.$value === 'string') {
                       fontStyle = styleDef.$value
                     }
-                  } catch {}
-                  
+                  } catch { }
+
                   // Get the actual weight value from tokens (numeric value like 400, 700, 900)
                   let fontWeight: number | string = 400 // Default fallback
                   try {
@@ -1285,12 +1284,12 @@ export default function FontFamiliesTokens() {
                       }
                       fontWeight = weightMap[variant.weight] || 400
                     }
-                  } catch {}
-                  
-                  const chipLabel = variant.style === 'normal' 
+                  } catch { }
+
+                  const chipLabel = variant.style === 'normal'
                     ? toTitle(variant.weight)
                     : `${toTitle(variant.weight)} ${toTitle(variant.style)}`
-                  
+
                   return (
                     <Chip
                       key={`${variant.weight}-${variant.style}-${idx}`}
@@ -1330,70 +1329,70 @@ export default function FontFamiliesTokens() {
                 minHeight: '326px',
               }}
             >
-            {(() => {
-              const XIcon = iconNameToReactComponent('x-mark')
-              return XIcon ? (
-                <Button
-                  variant="text"
-                  size="small"
-                  layer="layer-1"
-                  icon={<XIcon />}
-                  onClick={() => setShowInspiration(false)}
-                  style={{
-                    position: 'absolute',
-                    top: 'var(--recursica-brand-dimensions-general-md)',
-                    right: 'var(--recursica-brand-dimensions-general-md)',
-                  }}
-                />
-              ) : null
-            })()}
-            <div>
-              <h3 style={{
-                margin: 0,
-                fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
-                fontSize: 'var(--recursica-brand-typography-h3-font-size)',
-                fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
-                letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
-                lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
-                color: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-on-tone)`,
-              }}>
-                Need inspiration?
-              </h3>
-              <p style={{
-                margin: 0,
-                marginTop: 'var(--recursica-brand-dimensions-general-md)',
-                fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-                fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-                letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-                lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-                color: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-on-tone)`,
-                opacity: `var(--recursica-brand-themes-${mode}-text-emphasis-high)`,
-              }}>
-                Browse the Google Fonts library to find the perfect typeface.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="default"
-              layer="layer-1"
-              onClick={() => window.open('https://fonts.google.com', '_blank')}
-              icon={(() => {
-                const LinkIcon = iconNameToReactComponent('arrow-top-right-on-square')
-                return LinkIcon ? <LinkIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+              {(() => {
+                const XIcon = iconNameToReactComponent('x-mark')
+                return XIcon ? (
+                  <Button
+                    variant="text"
+                    size="small"
+                    layer="layer-1"
+                    icon={<XIcon />}
+                    onClick={() => setShowInspiration(false)}
+                    style={{
+                      position: 'absolute',
+                      top: 'var(--recursica-brand-dimensions-general-md)',
+                      right: 'var(--recursica-brand-dimensions-general-md)',
+                    }}
+                  />
+                ) : null
               })()}
-              style={{
-                marginTop: 'var(--recursica-brand-dimensions-general-md)',
-                alignSelf: 'flex-start',
-              }}
-            >
-              Explore Google Fonts
-            </Button>
-          </div>
+              <div>
+                <h3 style={{
+                  margin: 0,
+                  fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
+                  fontSize: 'var(--recursica-brand-typography-h3-font-size)',
+                  fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
+                  letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
+                  lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
+                  color: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-on-tone)`,
+                }}>
+                  Need inspiration?
+                </h3>
+                <p style={{
+                  margin: 0,
+                  marginTop: 'var(--recursica-brand-dimensions-general-md)',
+                  fontFamily: 'var(--recursica-brand-typography-body-font-family)',
+                  fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                  fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                  letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
+                  lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+                  color: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-on-tone)`,
+                  opacity: `var(--recursica-brand-themes-${mode}-text-emphasis-high)`,
+                }}>
+                  Browse the Google Fonts library to find the perfect typeface.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="default"
+                layer="layer-1"
+                onClick={() => window.open('https://fonts.google.com', '_blank')}
+                icon={(() => {
+                  const GoogleIcon = iconNameToReactComponent('google-logo')
+                  return GoogleIcon ? <GoogleIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                })()}
+                style={{
+                  marginTop: 'var(--recursica-brand-dimensions-general-md)',
+                  alignSelf: 'flex-start',
+                }}
+              >
+                Explore Google Fonts
+              </Button>
+            </div>
           )
         })()}
       </div>
-      
+
       <EditFontVariantsModal
         open={editModalOpen}
         onClose={() => {
@@ -1430,7 +1429,7 @@ export default function FontFamiliesTokens() {
         availableSequences={rows.map(r => r.name.replace('font/typeface/', ''))}
         onAccept={async (url, variants, sequence) => {
           if (!editModalRow) return
-          
+
           try {
             const oldKey = editModalRow.name.replace('font/typeface/', '')
             const newKey = sequence || oldKey
@@ -1439,45 +1438,45 @@ export default function FontFamiliesTokens() {
             const tokens = state.tokens as any
             const fontRoot = tokens?.tokens?.font || tokens?.font || {}
             const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
-            
+
             // Handle sequence change if needed
             if (newKey !== oldKey && typefaces[oldKey]) {
               const all = readOverrides()
               const oldName = `font/typeface/${oldKey}`
               const newName = `font/typeface/${newKey}`
-              
+
               // Check if new sequence is already taken
               if (typefaces[newKey]) {
                 // Swap: move existing font at newKey to oldKey
                 const tempTypeface = JSON.parse(JSON.stringify(typefaces[newKey])) // Deep clone with extensions
                 const tempValue = all[newName]
-                
+
                 // Move current font to newKey (with all extensions)
                 typefaces[newKey] = JSON.parse(JSON.stringify(typefaces[oldKey])) // Deep clone with extensions
                 if (all[oldName] !== undefined) {
                   all[newName] = all[oldName]
                   updateToken(newName, all[oldName])
                 }
-                
+
                 // Move existing font to oldKey (with all extensions)
                 typefaces[oldKey] = tempTypeface
                 if (tempValue !== undefined) {
                   all[oldName] = tempValue
                   updateToken(oldName, tempValue)
                 }
-                
+
                 // Remove old CSS variables
                 removeCssVar(`--tokens-font-typeface-${oldKey}`)
                 removeCssVar(`--recursica-tokens-font-typefaces-${oldKey}`)
                 removeCssVar(`--tokens-font-typeface-${newKey}`)
                 removeCssVar(`--recursica-tokens-font-typefaces-${newKey}`)
-                
+
                 writeOverrides(all)
               } else {
                 // Move font to new sequence (no conflict)
                 typefaces[newKey] = JSON.parse(JSON.stringify(typefaces[oldKey])) // Deep clone with extensions
                 delete typefaces[oldKey]
-                
+
                 // Update overrides
                 const value = all[oldName]
                 if (value !== undefined) {
@@ -1485,23 +1484,23 @@ export default function FontFamiliesTokens() {
                   all[newName] = value
                   writeOverrides(all)
                   updateToken(newName, value)
-                  
+
                   // Remove old CSS variables
                   removeCssVar(`--tokens-font-typeface-${oldKey}`)
                   removeCssVar(`--recursica-tokens-font-typefaces-${oldKey}`)
                 }
               }
-              
+
               // Update store with resequenced tokens
               store.setTokens(tokens)
             }
-            
+
             const key = newKey
             if (typefaces[key]) {
               if (!typefaces[key].$extensions) {
                 typefaces[key].$extensions = {}
               }
-              
+
               // Only update URL if provided (custom fonts don't have URLs)
               if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
                 if (!typefaces[key].$extensions['com.google.fonts']) {
@@ -1509,32 +1508,32 @@ export default function FontFamiliesTokens() {
                 }
                 typefaces[key].$extensions['com.google.fonts'].url = url
               }
-              
+
               // Store variants by font name, not sequence
               const fontName = editModalRow?.value || ''
               if (fontName) {
                 const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '').toLowerCase()
-                
+
                 // Update variants in the tokens object before saving
                 if (!fontRoot.fontVariants) {
                   fontRoot.fontVariants = {}
                 }
-                
+
                 if (variants && variants.length > 0) {
                   fontRoot.fontVariants[cleanFontName] = variants
                 } else {
                   delete fontRoot.fontVariants[cleanFontName]
                 }
               }
-              
+
               // Save all changes (URL and variants) at once
               store.setTokens(tokens)
-              
+
               // Update fontUrlMap with the new URL
               if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
                 const { populateFontUrlMapFromTokens } = await import('../../type/fontUtils')
                 populateFontUrlMapFromTokens(tokens)
-                
+
                 // Also update window.__fontUrlMap directly
                 if (typeof window !== 'undefined') {
                   if (!(window as any).__fontUrlMap) {
@@ -1557,7 +1556,7 @@ export default function FontFamiliesTokens() {
                   })
                 }
               }
-              
+
               // Reload font with new URL (only if URL was provided)
               if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
                 const fontName = editModalRow.value.trim().replace(/^["']|["']$/g, '')
@@ -1568,25 +1567,25 @@ export default function FontFamiliesTokens() {
                   if (oldLink) {
                     oldLink.remove()
                   }
-                  
+
                   // Load font with new URL
                   await ensureFontLoaded(fontName)
                 }
               }
-              
+
               setTimeout(() => {
                 try {
                   store.setTokens(store.getState().tokens)
                   store.recomputeAndApplyAll()
-                  
+
                   // Dispatch event to trigger rebuild of rows and availableVariants
                   try {
                     const all = readOverrides()
                     window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all, skipRebuild: false } }))
-                  } catch {}
-                } catch {}
+                  } catch { }
+                } catch { }
               }, 100)
-              
+
               setEditModalOpen(false)
               setEditModalRow(null)
             }
@@ -1596,7 +1595,7 @@ export default function FontFamiliesTokens() {
           }
         }}
       />
-      
+
       <CustomFontModal
         open={customModalOpen}
         onClose={() => {
@@ -1613,32 +1612,32 @@ export default function FontFamiliesTokens() {
               const [repoUrl, fontPath] = fontSource.url.split('#')
               await loadFontFromGit(fontName, repoUrl, fontPath || 'fonts')
             }
-            
+
             storeCustomFont(fontName, undefined, fontSource)
             const all = readOverrides()
-            
+
             // Use provided sequence or fall back to customModalRowName
             const targetSequence = sequence || (customModalRowName ? customModalRowName.replace('font/typeface/', '') : 'primary')
             const targetName = `font/typeface/${targetSequence}`
-            
+
             // If sequence is already taken, swap fonts
             const store = getVarsStore()
             const state = store.getState()
             const tokens = state.tokens as any
             const fontRoot = tokens?.tokens?.font || tokens?.font || {}
             const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
-            
+
             if (typefaces[targetSequence] && customModalRowName && customModalRowName !== targetName) {
               // Swap: move existing font at targetSequence to customModalRowName's sequence
               const existingValue = all[targetName]
               const oldKey = customModalRowName.replace('font/typeface/', '')
-              
+
               if (existingValue !== undefined) {
                 all[customModalRowName] = existingValue
                 updateToken(customModalRowName, existingValue)
               }
             }
-            
+
             const updated = { ...all, [targetName]: fontName }
             writeOverrides(updated)
             setRows(buildRows())
@@ -1647,7 +1646,7 @@ export default function FontFamiliesTokens() {
               try {
                 const store = getVarsStore()
                 store.setTokens(store.getState().tokens)
-              } catch {}
+              } catch { }
             }, 0)
             setCustomModalOpen(false)
             setCustomModalRowName(null)

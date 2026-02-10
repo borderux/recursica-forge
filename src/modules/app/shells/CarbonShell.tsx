@@ -31,7 +31,8 @@ import { RandomizeOptionsModal } from '../../../core/utils/RandomizeOptionsModal
 import { getCssAuditAutoRun, setCssAuditAutoRun } from '../../../core/utils/cssAuditPreference'
 import { runCssVarAudit } from '../../../core/utils/runCssVarAudit'
 // Use static imports for Carbon React components (same pattern as other adapters)
-import { SelectItem, Theme, ComposedModal, ModalHeader, ModalBody, ModalFooter } from '@carbon/react'
+import { SelectItem, Theme } from '@carbon/react'
+import { Modal } from '../../../components/adapters/Modal'
 import { Dropdown } from '../../../components/adapters/Dropdown'
 import '@carbon/styles/css/styles.css'
 
@@ -424,9 +425,16 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             {children}
           </main>
         </div>
-        <ComposedModal open={isOpen} onClose={() => { setIsOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} size="sm">
-          <ModalHeader label="Import JSON Files" title="Import JSON Files" />
-          <ModalBody hasForm>
+        <Modal
+          isOpen={isOpen}
+          onClose={() => { setIsOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+          title="Import JSON Files"
+          layer="layer-1"
+          primaryActionLabel="Import"
+          onPrimaryAction={handleImportClick}
+          primaryActionDisabled={selectedFileNames.length === 0}
+          onSecondaryAction={() => { setIsOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+          content={
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
@@ -441,25 +449,17 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                   style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
                 />
                 {selectedFileNames.length > 0 && (
-                  <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#666', marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+                  <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer1Base}-element-text-color)`, opacity: 0.6, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
                     Selected: {selectedFileNames.join(', ')}
                   </div>
                 )}
-                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: '#888', marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer1Base}-element-text-color)`, opacity: 0.4, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
                   Upload tokens.json, brand.json, and/or uikit.json files
                 </div>
               </div>
             </div>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="outline" onClick={() => { setIsOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
-              Cancel
-            </Button>
-            <Button variant="solid" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
-              Import
-            </Button>
-          </ModalFooter>
-        </ComposedModal>
+          }
+        />
         <ExportValidationErrorModal
           show={showValidationModal}
           errors={validationErrors}
@@ -493,18 +493,13 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             onCancel={() => setShowRandomizeModal(false)}
           />
         )}
-        <ExportValidationErrorModal
-          show={showValidationModal}
-          errors={validationErrors}
-          onClose={handleValidationModalClose}
-        />
         <ImportDirtyDataModal
           show={showDirtyModal}
           filesToImport={filesToImport}
           onAcknowledge={handleDirtyAcknowledgeWithClose}
           onCancel={handleDirtyCancel}
         />
-      </div>
+          </div>
     </Theme>
   )
 }

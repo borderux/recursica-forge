@@ -36,17 +36,17 @@ function pascalToKebabCase(str: string): string {
 export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // Remove leading/trailing dots and split
   const parts = path.replace(/^\.+|\.+$/g, '').split('.')
-  
+
   // Build CSS variable name
   const varName = parts
     .map(part => part.replace(/-/g, '-')) // Keep hyphens
     .join('-')
-  
+
   // Include mode in the name if provided (like palette vars: --recursica-brand-themes-light-...)
   if (mode) {
     return `--recursica-ui-kit-themes-${mode}-${varName}`
   }
-  
+
   return `--recursica-ui-kit-${varName}`
 }
 
@@ -74,7 +74,7 @@ export function buildComponentCssVarPath(
   // Extract mode if it's the last argument and is 'light' or 'dark'
   let mode: 'light' | 'dark' | undefined
   let pathSegments: string[]
-  
+
   const lastArg = args[args.length - 1]
   if (lastArg === 'light' || lastArg === 'dark') {
     mode = lastArg
@@ -89,25 +89,25 @@ export function buildComponentCssVarPath(
       mode = 'light'
     }
   }
-  
+
   // Guard against invalid segments
-  const validSegments = pathSegments.filter(segment => 
-    segment && 
-    !segment.includes('undefined') && 
+  const validSegments = pathSegments.filter(segment =>
+    segment &&
+    !segment.includes('undefined') &&
     !segment.includes('null')
   )
-  
+
   if (validSegments.length === 0) {
     console.warn(`[buildComponentCssVarPath] No valid path segments for ${component}`)
     const componentKebab = pascalToKebabCase(component)
     return `--recursica-ui-kit-themes-${mode}-components-${componentKebab}-invalid-path`
   }
-  
+
   // Normalize segments: replace dots/spaces with hyphens, lowercase
-  const normalizedSegments = validSegments.map(segment => 
+  const normalizedSegments = validSegments.map(segment =>
     segment.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
   )
-  
+
   // Build path: components.{component}.{path-segments}
   // Convert component name from PascalCase to kebab-case (e.g., 'MenuItem' -> 'menu-item')
   const componentKebab = pascalToKebabCase(component)
@@ -143,29 +143,29 @@ export function getComponentCssVar(
     const componentKebab = pascalToKebabCase(component)
     return `--recursica-ui-kit-components-${componentKebab}-invalid-property`
   }
-  
+
   // Normalize 'color' (singular) to 'colors' (plural) for backward compatibility
   if (category === 'color' as any) {
     category = 'colors'
   }
-  
+
   // Component-specific logic - this should be moved to component code
   // For now, we maintain backward compatibility by attempting to parse variants
-  
+
   // Properties that are direct children of the component (not under a category)
   const componentLevelProperties = ['font-size', 'text-size', 'border-radius', 'max-width', 'elevation', 'label-switch-gap', 'thumb-height', 'thumb-width', 'thumb-border-radius', 'track-border-radius', 'thumb-icon-size', 'track-width', 'thumb-icon-selected', 'thumb-icon-unselected', 'thumb-elevation', 'track-elevation', 'track-inner-padding', 'padding', 'border-size']
-  
+
   // Toast-specific: size properties are directly under toast (not under toast.size)
   const toastSizeProperties = ['vertical-padding', 'horizontal-padding', 'spacing', 'min-width', 'max-width', 'icon']
   const isToastSizeProperty = component.toLowerCase() === 'toast' && category === 'size' && toastSizeProperties.includes(property.toLowerCase())
-  
+
   // Check if this is a component-level property
   const isComponentLevel = componentLevelProperties.includes(property.toLowerCase()) || isToastSizeProperty
-  
+
   if (isComponentLevel) {
     return buildComponentCssVarPath(component, 'properties', property)
   }
-  
+
   // For size category
   if (category === 'size') {
     const variantMatch = property.match(/^(default|small|large)-(.+)$/)
@@ -178,7 +178,7 @@ export function getComponentCssVar(
       return buildComponentCssVarPath(component, 'properties', property)
     }
   }
-  
+
   // For colors category
   // Switch has colors directly under properties (not under variants)
   if (component.toLowerCase() === 'switch') {
@@ -193,7 +193,7 @@ export function getComponentCssVar(
     pathSegments.push(propName)
     return buildComponentCssVarPath(component, ...pathSegments)
   }
-  
+
   // Check for nested variants (e.g., "text-solid-background" for Avatar)
   const nestedVariantMatch = property.match(/^(text|icon)-(solid|ghost)-(.+)$/)
   if (nestedVariantMatch) {
@@ -203,7 +203,7 @@ export function getComponentCssVar(
     pathSegments.push(propName)
     return buildComponentCssVarPath(component, ...pathSegments)
   }
-  
+
   // Check for image variant
   const imageVariantMatch = property.match(/^image-(.+)$/)
   if (imageVariantMatch) {
@@ -213,7 +213,7 @@ export function getComponentCssVar(
     pathSegments.push(propName)
     return buildComponentCssVarPath(component, ...pathSegments)
   }
-  
+
   // Try to parse single-level variant from property string
   // NOTE: This requires hardcoded variant names - components should use buildComponentCssVarPath directly
   const knownVariants = ['solid', 'text', 'outline', 'default', 'primary-color', 'primary', 'success', 'error-selected', 'error', 'warning', 'alert', 'unselected', 'selected', 'hover', 'focused', 'disabled']
@@ -227,9 +227,12 @@ export function getComponentCssVar(
       return buildComponentCssVarPath(component, ...pathSegments)
     }
   }
-  
+
   // Fallback: legacy support
-  return buildComponentCssVarPath(component, category, property)
+  const pathSegments: string[] = [category]
+  if (layer) pathSegments.push(layer)
+  pathSegments.push(property)
+  return buildComponentCssVarPath(component, ...pathSegments)
 }
 
 /**
@@ -242,7 +245,7 @@ export function getGlobalCssVar(
   // Extract mode if it's the last argument and is 'light' or 'dark'
   let mode: 'light' | 'dark' | undefined
   let path: string[]
-  
+
   const lastArg = args[args.length - 1]
   if (lastArg === 'light' || lastArg === 'dark') {
     mode = lastArg
@@ -257,11 +260,11 @@ export function getGlobalCssVar(
       mode = 'light'
     }
   }
-  
+
   // UIKit structure: ui-kit.globals.form.field.size.single-line-input-height
   // So for 'form' category, we need: globals.form.field.size.single-line-input-height
   // For 'globals' category, we need: globals.{path}
-  const parts = category === 'form' 
+  const parts = category === 'form'
     ? ['globals', 'form', ...path]
     : ['globals', ...path]
   return toCssVarName(parts.join('.'), mode)

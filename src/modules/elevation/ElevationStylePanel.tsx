@@ -54,13 +54,13 @@ export default function ElevationStylePanel({
   const levelsArr = React.useMemo(() => Array.from(selectedLevels), [selectedLevels])
   const { mode } = useThemeMode()
   const { tokens: tokensJson, updateToken, elevation } = useVars()
-  
+
   // Local state for slider values during drag (prevents prop mismatch)
   const [localBlur, setLocalBlur] = React.useState<number | null>(null)
   const [localSpread, setLocalSpread] = React.useState<number | null>(null)
   const [localOffsetX, setLocalOffsetX] = React.useState<number | null>(null)
   const [localOffsetY, setLocalOffsetY] = React.useState<number | null>(null)
-  
+
   // Reset local state when selected levels change
   React.useEffect(() => {
     setLocalBlur(null)
@@ -68,12 +68,12 @@ export default function ElevationStylePanel({
     setLocalOffsetX(null)
     setLocalOffsetY(null)
   }, [levelsArr])
-  
+
   // Helper to get CSS variable name for elevation property
   const getElevationCssVar = React.useCallback((level: number, property: 'blur' | 'spread' | 'x-axis' | 'y-axis'): string => {
     return `--recursica-brand-themes-${mode}-elevations-elevation-${level}-${property}`
   }, [mode])
-  
+
   // Helper to get token name for elevation property
   const getElevationTokenName = React.useCallback((level: number, property: 'blur' | 'spread' | 'offsetX' | 'offsetY'): string => {
     const elevationKey = `elevation-${level}`
@@ -87,27 +87,27 @@ export default function ElevationStylePanel({
       return elevation?.offsetYTokens[elevationKey] || `size/elevation-${level}-offset-y`
     }
   }, [elevation])
-  
+
   // Handlers for slider changes - update CSS vars directly AND tokens for real-time updates
   const handleBlurChange = React.useCallback((value: number) => {
     // Update local state immediately for slider visual feedback
     setLocalBlur(value)
-    
+
     // Update CSS vars directly AND tokens for real-time shadow updates
     levelsArr.forEach((lvl) => {
       const tokenName = getElevationTokenName(lvl, 'blur')
       const cssVar = getElevationCssVar(lvl, 'blur')
-      
+
       // Update token (for persistence)
       updateToken(tokenName, value)
-      
+
       // Update CSS var directly (for immediate visual feedback)
       const tokenCssVar = `--recursica-tokens-size-elevation-${lvl}-blur`
       document.documentElement.style.setProperty(cssVar, `var(${tokenCssVar})`)
       document.documentElement.style.setProperty(tokenCssVar, `${value}px`)
     })
   }, [levelsArr, getElevationTokenName, getElevationCssVar, updateToken])
-  
+
   const handleBlurChangeCommitted = React.useCallback((value: number) => {
     // Clear local state and persist to state (tokens already updated, just sync state)
     setLocalBlur(null)
@@ -119,7 +119,7 @@ export default function ElevationStylePanel({
       levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'blur', value))
     }
   }, [levelsArr, updateElevationControl, updateElevationControlsBatch])
-  
+
   const handleSpreadChange = React.useCallback((value: number) => {
     setLocalSpread(value)
     levelsArr.forEach((lvl) => {
@@ -131,7 +131,7 @@ export default function ElevationStylePanel({
       document.documentElement.style.setProperty(tokenCssVar, `${value}px`)
     })
   }, [levelsArr, getElevationTokenName, getElevationCssVar, updateToken])
-  
+
   const handleSpreadChangeCommitted = React.useCallback((value: number) => {
     setLocalSpread(null)
     const elevationKeys = levelsArr.map(lvl => `elevation-${lvl}`)
@@ -141,7 +141,7 @@ export default function ElevationStylePanel({
       levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'spread', value))
     }
   }, [levelsArr, updateElevationControl, updateElevationControlsBatch])
-  
+
   const handleOffsetXChange = React.useCallback((value: number) => {
     setLocalOffsetX(value)
     // For offsetX, convert signed value to absolute for token (direction is stored separately)
@@ -152,9 +152,9 @@ export default function ElevationStylePanel({
       const tokenName = getElevationTokenName(lvl, 'offsetX')
       const cssVar = getElevationCssVar(lvl, 'x-axis')
       const dir = getDirectionForLevel(elevationKey).x
-      
+
       updateToken(tokenName, absValue)
-      
+
       // Update CSS vars directly - use current direction, don't change it during drag
       const tokenCssVar = `--recursica-tokens-size-elevation-${lvl}-offset-x`
       const cssValue = dir === 'right' ? `${value}px` : `calc(-1 * ${absValue}px)`
@@ -162,7 +162,7 @@ export default function ElevationStylePanel({
       document.documentElement.style.setProperty(tokenCssVar, `${absValue}px`)
     })
   }, [levelsArr, getElevationTokenName, getElevationCssVar, getDirectionForLevel, updateToken])
-  
+
   const handleOffsetXChangeCommitted = React.useCallback((value: number) => {
     setLocalOffsetX(null)
     const elevationKeys = levelsArr.map(lvl => `elevation-${lvl}`)
@@ -172,7 +172,7 @@ export default function ElevationStylePanel({
       levelsArr.forEach((lvl) => updateElevationControl(`elevation-${lvl}`, 'offsetX', value))
     }
   }, [levelsArr, updateElevationControl, updateElevationControlsBatch])
-  
+
   const handleOffsetYChange = React.useCallback((value: number) => {
     setLocalOffsetY(value)
     // For offsetY, convert signed value to absolute for token (direction is stored separately)
@@ -183,9 +183,9 @@ export default function ElevationStylePanel({
       const tokenName = getElevationTokenName(lvl, 'offsetY')
       const cssVar = getElevationCssVar(lvl, 'y-axis')
       const dir = getDirectionForLevel(elevationKey).y
-      
+
       updateToken(tokenName, absValue)
-      
+
       // Update CSS vars directly - use current direction, don't change it during drag
       const tokenCssVar = `--recursica-tokens-size-elevation-${lvl}-offset-y`
       const cssValue = dir === 'down' ? `${value}px` : `calc(-1 * ${absValue}px)`
@@ -193,7 +193,7 @@ export default function ElevationStylePanel({
       document.documentElement.style.setProperty(tokenCssVar, `${absValue}px`)
     })
   }, [levelsArr, getElevationTokenName, getElevationCssVar, getDirectionForLevel, updateToken])
-  
+
   const handleOffsetYChangeCommitted = React.useCallback((value: number) => {
     setLocalOffsetY(null)
     const elevationKeys = levelsArr.map(lvl => `elevation-${lvl}`)
@@ -218,16 +218,16 @@ export default function ElevationStylePanel({
     // Pass elevationKey as string - getAlphaTokenForLevel expects a string and will convert internally
     const alphaTokenName = getAlphaTokenForLevel(elevationKey)
     if (!alphaTokenName) return 0
-    
+
     // Extract token key from "opacity/veiled" or "opacity/elevation-light-1" format
     const tokenKey = alphaTokenName.replace('opacity/', '')
-    
+
     // Read token value from tokens.json
     try {
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
       const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
       const tokenValue = opacityRoot[tokenKey]?.$value
-      
+
       if (tokenValue != null) {
         const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
         if (Number.isFinite(num)) {
@@ -236,8 +236,8 @@ export default function ElevationStylePanel({
           return Math.round(normalized * 100)
         }
       }
-    } catch {}
-    
+    } catch { }
+
     return 0
   }, [tokensJson, getAlphaTokenForLevel, mode])
 
@@ -251,11 +251,11 @@ export default function ElevationStylePanel({
   // Update local value when selected levels or tokens change (but not while dragging)
   React.useEffect(() => {
     if (isDragging) return // Don't update while user is dragging
-    
+
     if (levelsArr.length > 0) {
       const elevationKey = `elevation-${levelsArr[0]}`
       const alphaTokenName = getAlphaTokenForLevel(elevationKey)
-      
+
       // If we just updated a token, check if it matches the current token name
       // This handles the case where we created a unique token but elevation state hasn't updated yet
       if (lastUpdatedTokenRef.current && lastUpdatedValueRef.current !== null) {
@@ -279,7 +279,7 @@ export default function ElevationStylePanel({
           }
         }
       }
-      
+
       const currentValue = getCurrentOpacityValue(elevationKey)
       // Only update if we got a valid value (not 0 unless it's actually 0)
       if (currentValue !== 0 || localOpacityValue === 0 || localOpacityValue === null) {
@@ -299,7 +299,7 @@ export default function ElevationStylePanel({
             setLocalOpacityValue(Math.round(normalized * 100))
           }
         }
-      } catch {}
+      } catch { }
     }
   }, [levelsArr, tokensJson, getCurrentOpacityValue, shadowColorControl.alphaToken, isDragging, getAlphaTokenForLevel, localOpacityValue])
 
@@ -310,44 +310,44 @@ export default function ElevationStylePanel({
         clearTimeout(dragTimeoutRef.current)
       }
     }
-    }, [])
-  
-    // Update opacity token value (convert 0-100 to 0-1)
-    // Ensure each selected elevation has its own unique opacity token
-    // Helper to get opacity token name for elevation
-    const getOpacityTokenName = React.useCallback((level: number): string => {
-      const elevationKey = `elevation-${level}`
-      const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
-      return modeAlphaTokens[elevationKey] || elevation?.shadowColorControl?.alphaToken || 'opacity/veiled'
-    }, [elevation, mode])
-  
+  }, [])
+
+  // Update opacity token value (convert 0-100 to 0-1)
+  // Ensure each selected elevation has its own unique opacity token
+  // Helper to get opacity token name for elevation
+  const getOpacityTokenName = React.useCallback((level: number): string => {
+    const elevationKey = `elevation-${level}`
+    const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
+    return modeAlphaTokens[elevationKey] || elevation?.shadowColorControl?.alphaToken || 'opacity/veiled'
+  }, [elevation, mode])
+
   const handleOpacityChange = React.useCallback((value: number) => {
     // Update local state immediately for UI feedback
     setLocalOpacityValue(value)
     setIsDragging(true)
-    
+
     // Convert 0-100 to 0-1
     const normalizedValue = value / 100
-    
+
     // Update opacity tokens and CSS vars directly for real-time shadow updates
     levelsArr.forEach((lvl) => {
       const elevationKey = `elevation-${lvl}`
       let alphaTokenName = getOpacityTokenName(lvl)
-      
+
       // Ensure unique token exists (create if needed, but don't update state during drag)
       // Use mode-specific token names to prevent cross-mode contamination
       const uniqueTokenName = `opacity/elevation-${mode}-${lvl}`
       const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
-      if (!modeAlphaTokens[elevationKey] || 
-          alphaTokenName === elevation?.shadowColorControl?.alphaToken ||
-          alphaTokenName === 'opacity/veiled') {
+      if (!modeAlphaTokens[elevationKey] ||
+        alphaTokenName === elevation?.shadowColorControl?.alphaToken ||
+        alphaTokenName === 'opacity/veiled') {
         // Use unique token name for this elevation and mode
         alphaTokenName = uniqueTokenName
       }
-      
+
       // Update token
       updateToken(alphaTokenName, normalizedValue)
-      
+
       // Update opacity token CSS var directly (shadow-color CSS var uses color-mix() which references this)
       const tokenKey = alphaTokenName.replace('opacity/', '').replace('opacities/', '')
       const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
@@ -355,26 +355,26 @@ export default function ElevationStylePanel({
       const normalized = normalizedValue <= 1 ? normalizedValue : normalizedValue / 100
       const normalizedStr = String(Math.max(0, Math.min(1, normalized)))
       document.documentElement.style.setProperty(opacityCssVar, normalizedStr)
-      
+
       // Also update shadow-color CSS var directly for immediate visual feedback
       const shadowColorCssVar = getShadowColorCssVar(lvl)
-      
+
       // Read existing shadow color to preserve palette references
       const existingShadowColor = readCssVar(shadowColorCssVar)
-      
+
       // Check if existing color contains a palette reference
       const hasPaletteRef = existingShadowColor && (
         (existingShadowColor.startsWith('var(') && existingShadowColor.includes('palettes')) ||
         (existingShadowColor.includes('color-mix') && existingShadowColor.includes('palettes'))
       )
-      
+
       let newShadowColor: string
       const alphaVarRef = `var(${opacityCssVar})`
-      
+
       if (hasPaletteRef) {
         // Extract the palette var reference from existingShadowColor
         let paletteVarRef: string | null = null
-        
+
         // If it's a direct var() reference to a palette
         const varMatch = existingShadowColor.match(/var\s*\(\s*(--recursica-brand-themes-(?:light|dark)-palettes-[^)]+)\s*\)/)
         if (varMatch) {
@@ -387,7 +387,7 @@ export default function ElevationStylePanel({
             paletteVarRef = colorMixMatch[1]
           }
         }
-        
+
         if (paletteVarRef) {
           // Preserve palette CSS variable and apply current opacity
           newShadowColor = `color-mix(in srgb, ${paletteVarRef} calc(${alphaVarRef} * 100%), transparent)`
@@ -399,45 +399,44 @@ export default function ElevationStylePanel({
         // No palette reference - use color token from state
         const colorToken = elevation?.colorTokens?.[elevationKey] || elevation?.shadowColorControl?.colorToken || 'color/gray/900'
         const colorVarRef = tokenToCssVar(colorToken, tokensJson) || `var(--recursica-tokens-${colorToken.replace(/\//g, '-')})`
-        
+
         // Rebuild color-mix with new opacity
         newShadowColor = `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
       }
-      
+
       document.documentElement.style.setProperty(opacityCssVar, normalizedStr)
       document.documentElement.style.setProperty(shadowColorCssVar, newShadowColor)
     })
   }, [levelsArr, getOpacityTokenName, getShadowColorCssVar, updateToken, elevation, tokensJson, mode])
-  
+
   const handleOpacityChangeCommitted = React.useCallback((value: number) => {
-    
+
     // Clear any existing timeout
     if (dragTimeoutRef.current) {
       clearTimeout(dragTimeoutRef.current)
     }
-    
+
     // Convert 0-100 to 0-1
     const normalizedValue = value / 100
-    
+
     // Track the final token name and value for the first selected elevation
     let finalTokenName: string | null = null
-    
+
     // For each selected elevation, ensure it has its own unique opacity token and persist state
     levelsArr.forEach((lvl) => {
       const elevationKey = `elevation-${lvl}`
       let alphaTokenName = getOpacityTokenName(lvl)
-      
+
       // Check if this elevation shares a token with other elevations (mode-specific check)
       const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
-      const isSharedToken = !modeAlphaTokens[elevationKey] || 
-                           alphaTokenName === elevation?.shadowColorControl?.alphaToken ||
-                           alphaTokenName === 'opacity/veiled'
-      
+      const isSharedToken = !modeAlphaTokens[elevationKey] ||
+        alphaTokenName === elevation?.shadowColorControl?.alphaToken ||
+        alphaTokenName === 'opacity/veiled'
       if (isSharedToken) {
         // Create a unique token name for this elevation and mode (mode-specific to prevent cross-contamination)
         const uniqueTokenName = `opacity/elevation-${mode}-${lvl}`
         alphaTokenName = uniqueTokenName
-        
+
         // Get current value from shared token to initialize the new unique token
         let initialValue = normalizedValue
         try {
@@ -452,30 +451,30 @@ export default function ElevationStylePanel({
               initialValue = num <= 1 ? num : num / 100
             }
           }
-        } catch {}
-        
+        } catch { }
+
         // Create the unique token with the new value (updateToken will create it if it doesn't exist)
         updateToken(uniqueTokenName, normalizedValue)
-        
+
         // Set the unique token for this elevation (persist state)
         setElevationAlphaToken(elevationKey, uniqueTokenName)
       } else {
         // Update the existing token value
         updateToken(alphaTokenName, normalizedValue)
       }
-      
+
       // Track the final token name for the first selected elevation
       if (lvl === levelsArr[0]) {
         finalTokenName = alphaTokenName
       }
     })
-    
+
     // Track the token and value we just updated
     if (finalTokenName) {
       lastUpdatedTokenRef.current = finalTokenName
       lastUpdatedValueRef.current = value
     }
-    
+
     // Reset dragging flag after a delay to allow token updates to propagate
     dragTimeoutRef.current = setTimeout(() => {
       setIsDragging(false)
@@ -484,14 +483,14 @@ export default function ElevationStylePanel({
         lastUpdatedValueRef.current = null
       }, 300)
     }, 600)
-    }, [levelsArr, getOpacityTokenName, updateToken, setElevationAlphaToken, elevation, tokensJson, mode])
+  }, [levelsArr, getOpacityTokenName, updateToken, setElevationAlphaToken, elevation, tokensJson, mode])
 
   const CloseIcon = iconNameToReactComponent('x-mark')
-  
+
   return (
     <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h3 style={{ 
+        <h3 style={{
           margin: 0,
           fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
           fontSize: 'var(--recursica-brand-typography-h3-font-size)',
@@ -503,14 +502,14 @@ export default function ElevationStylePanel({
           {(() => {
             if (levelsArr.length === 0) return 'Elevation'
             if (levelsArr.length === 1) return `Elevation ${levelsArr[0]}`
-            const list = levelsArr.slice().sort((a,b) => a-b).join(', ')
+            const list = levelsArr.slice().sort((a, b) => a - b).join(', ')
             return `Elevations ${list}`
           })()}
         </h3>
-        <Button 
-          onClick={onClose} 
-          variant="text" 
-          layer="layer-2" 
+        <Button
+          onClick={onClose}
+          variant="text"
+          layer="layer-2"
           aria-label="Close"
           icon={CloseIcon ? <CloseIcon /> : undefined}
         />
@@ -634,28 +633,28 @@ export default function ElevationStylePanel({
         <div style={{ width: '100%', margin: 0, padding: 0 }}>
           {(() => {
             // Use local state if available, otherwise compute from tokens
-            const currentOpacityValue = localOpacityValue !== null 
+            const currentOpacityValue = localOpacityValue !== null
               ? localOpacityValue
-              : (levelsArr.length 
-                  ? getCurrentOpacityValue(`elevation-${levelsArr[0]}`)
-                  : (() => {
-                      // Fallback: read from shadowColorControl.alphaToken
-                      const tokenKey = shadowColorControl.alphaToken.replace('opacity/', '')
-                      try {
-                        const tokensRoot: any = (tokensJson as any)?.tokens || {}
-                        const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
-                        const tokenValue = opacityRoot[tokenKey]?.$value
-                        if (tokenValue != null) {
-                          const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
-                          if (Number.isFinite(num)) {
-                            const normalized = num <= 1 ? num : num / 100
-                            return Math.round(normalized * 100)
-                          }
-                        }
-                      } catch {}
-                      return 0
-                    })())
-            
+              : (levelsArr.length
+                ? getCurrentOpacityValue(`elevation-${levelsArr[0]}`)
+                : (() => {
+                  // Fallback: read from shadowColorControl.alphaToken
+                  const tokenKey = shadowColorControl.alphaToken.replace('opacity/', '')
+                  try {
+                    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+                    const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+                    const tokenValue = opacityRoot[tokenKey]?.$value
+                    if (tokenValue != null) {
+                      const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
+                      if (Number.isFinite(num)) {
+                        const normalized = num <= 1 ? num : num / 100
+                        return Math.round(normalized * 100)
+                      }
+                    }
+                  } catch { }
+                  return 0
+                })())
+
             return (
               <Slider
                 value={currentOpacityValue}

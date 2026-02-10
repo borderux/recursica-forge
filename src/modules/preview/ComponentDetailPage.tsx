@@ -20,6 +20,7 @@ import SegmentedControlPreview from '../components/SegmentedControlPreview'
 import SegmentedControlItemPreview from '../components/SegmentedControlItemPreview'
 import AssistiveElementPreview from '../components/AssistiveElementPreview'
 import TextFieldPreview from '../components/TextFieldPreview'
+import ModalPreview from '../components/ModalPreview'
 import DropdownPreview from '../components/DropdownPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -393,6 +394,12 @@ export default function ComponentDetailPage() {
                     componentElevation={componentElevation}
                   />
                 </div>
+              ) : component.name === 'Modal' ? (
+                <ModalPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
               ) : (
                 <div style={{
                   minHeight: 200,

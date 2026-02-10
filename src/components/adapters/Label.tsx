@@ -145,6 +145,7 @@ export function Label({
 
 
   // Get CSS variables for layout-specific spacing
+  // Get CSS variables for layout-specific spacing
   let layoutStyles: Record<string, string> = {}
 
   if (layout === 'stacked') {

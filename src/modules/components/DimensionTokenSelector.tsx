@@ -825,13 +825,18 @@ export default function DimensionTokenSelector({
       <Slider
         value={pixelValue}
         onChange={(val) => handlePixelChange(typeof val === 'number' ? val : val[0])}
+        onChangeCommitted={(val) => handlePixelChange(typeof val === 'number' ? val : val[0])}
         min={minPixelValue}
         max={maxPixelValue}
         step={1}
         layer="layer-3"
         layout="stacked"
-        showInput={true}
-        showValueLabel={false}
+        showInput={false}
+        showValueLabel={true}
+        valueLabel={(val) => `${Math.round(val)}px`}
+        minLabel={`${minPixelValue}px`}
+        maxLabel={`${maxPixelValue}px`}
+        showMinMaxLabels={false}
         label={<Label layer="layer-3" layout="stacked">{label}</Label>}
       />
     )
@@ -843,21 +848,26 @@ export default function DimensionTokenSelector({
     // No tokens, use pixel mode
     const resolvedValue = readCssVarResolved(targetCssVar)
     const pxValue = resolvedValue ? extractPixelValue(resolvedValue) : (pixelValue || 8)
-    const maxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
-    const minPixelValue = minPixelValueProp ?? 0
-    const currentPixelValue = Math.max(minPixelValue, Math.min(maxPixelValue, pxValue || 8))
+    const currentMaxPixelValue = propName.toLowerCase() === 'max-width' ? 500 : 200
+    const currentMinPixelValue = minPixelValueProp ?? 0
+    const currentPixelValue = Math.max(currentMinPixelValue, Math.min(currentMaxPixelValue, pxValue || 8))
 
     return (
       <Slider
         value={currentPixelValue}
         onChange={(val) => handlePixelChange(typeof val === 'number' ? val : val[0])}
-        min={minPixelValue}
-        max={maxPixelValue}
+        onChangeCommitted={(val) => handlePixelChange(typeof val === 'number' ? val : val[0])}
+        min={currentMinPixelValue}
+        max={currentMaxPixelValue}
         step={1}
         layer="layer-3"
         layout="stacked"
-        showInput={true}
-        showValueLabel={false}
+        showInput={false}
+        showValueLabel={true}
+        valueLabel={(val) => `${Math.round(val)}px`}
+        minLabel={`${currentMinPixelValue}px`}
+        maxLabel={`${currentMaxPixelValue}px`}
+        showMinMaxLabels={false}
         label={<Label layer="layer-3" layout="stacked">{label}</Label>}
       />
     )

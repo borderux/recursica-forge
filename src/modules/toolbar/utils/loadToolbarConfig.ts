@@ -19,6 +19,7 @@ import SegmentedControlConfig from '../configs/SegmentedControl.toolbar.json'
 import SegmentedControlItemConfig from '../configs/SegmentedControlItem.toolbar.json'
 import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
 import TextFieldConfig from '../configs/TextField.toolbar.json'
+import ModalConfig from '../configs/Modal.toolbar.json'
 import DropdownConfig from '../configs/Dropdown.toolbar.json'
 
 export interface ToolbarPropConfig {
@@ -26,6 +27,9 @@ export interface ToolbarPropConfig {
   label: string
   visible?: boolean
   group?: Record<string, ToolbarPropConfig> // Props that are grouped under this icon
+  propertyType?: 'slider' | 'select' | 'color' | 'text' // Custom property type override
+  range?: [number, number] // For slider
+  step?: number // For slider
 }
 
 export interface ToolbarVariantConfig {
@@ -89,6 +93,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'text-field':
       case 'text field':
         return TextFieldConfig as unknown as ToolbarConfig
+      case 'modal':
+        return ModalConfig as unknown as ToolbarConfig
       case 'dropdown':
         return DropdownConfig as unknown as ToolbarConfig
       default:
@@ -101,7 +107,7 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
 }
 
 /**
- * Gets the config for a specific prop
+ * Gets the config for a specific prop, including searching inside groups
  */
 export function getPropConfig(
   componentName: string,
@@ -111,7 +117,20 @@ export function getPropConfig(
   if (!config) return null
 
   const propKey = propName.toLowerCase()
-  return config.props[propKey] || null
+
+  // First check at the root level
+  if (config.props[propKey]) {
+    return config.props[propKey]
+  }
+
+  // Then check inside groups
+  for (const parentPropConfig of Object.values(config.props)) {
+    if (parentPropConfig.group && parentPropConfig.group[propKey]) {
+      return parentPropConfig.group[propKey]
+    }
+  }
+
+  return null
 }
 
 /**
