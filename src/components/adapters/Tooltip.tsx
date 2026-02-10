@@ -1,36 +1,42 @@
 /**
  * Tooltip Component Adapter
  * 
- * Unified Tooltip component that wraps children and displays a tooltip on hover.
- * Follows the component adapter pattern for consistency with other components.
+ * Unified Tooltip component that renders the appropriate library implementation
+ * based on the current UI kit selection.
  */
 
-import { ReactNode, useState, useEffect, useRef, Suspense } from 'react'
-import { createPortal } from 'react-dom'
+import { Suspense, useState, useEffect, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
-import { getBrandTypographyCssVar } from '../utils/brandCssVars'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
+import { parseElevationValue, getElevationBoxShadow } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type TooltipProps = {
-  children: ReactNode
-  label: string
-  position?: 'top' | 'bottom' | 'left' | 'right'
-  delay?: number
+  children?: React.ReactNode
+  label?: string
+  position?: 'top' | 'right' | 'bottom' | 'left'
+  alignment?: 'start' | 'middle' | 'end'
   layer?: ComponentLayer
-  disabled?: boolean
+  elevation?: string
+  opened?: boolean
+  zIndex?: number
+  withinPortal?: boolean
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
 
-export function Tooltip({ 
-  children, 
-  label, 
+export function Tooltip({
+  children,
+  label,
   position = 'top',
-  delay = 300,
-  layer = 'layer-1',
-  disabled = false,
+  alignment = 'middle',
+  layer = 'layer-0',
+  elevation,
+  opened,
+  zIndex,
+  withinPortal,
   className,
   style,
   mantine,
@@ -39,226 +45,134 @@ export function Tooltip({
 }: TooltipProps) {
   const Component = useComponent('Tooltip')
   const { mode } = useThemeMode()
-  const [isVisible, setIsVisible] = useState(false)
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number; transform: string } | null>(null)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const tooltipRef = useRef<HTMLDivElement>(null)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Get CSS variables for tooltip styling
-  // Tooltip doesn't exist in UIKit.json, so use brand CSS variables directly
-  const layerBase = `--recursica-brand-themes-${mode}-layer-${layer}-property`
-  const bgVar = `${layerBase}-surface`
-  const textVar = `${layerBase}-element-text-color`
-  const borderColorVar = `${layerBase}-border-color`
-  const borderRadiusVar = `${layerBase}-border-radius`
-  const paddingVar = `${layerBase}-padding`
-  const tooltipFontSizeVar = getBrandTypographyCssVar('caption', 'font-size')
-  const fallbackOpacity = `var(--recursica-brand-themes-${mode}-text-emphasis-high)`
+  // Get elevation from CSS vars if not provided as props
+  // Elevation is resolved per layer and mode
+  const elevationVar = useMemo(() => {
+    return buildComponentCssVarPath('Tooltip', 'properties', 'elevation', mode)
+  }, [mode])
 
+  // Reactively read elevation from CSS variable
+  const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
+    const value = readCssVar(elevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+
+  // State to force re-renders when layout/text CSS variables change
+  const [layoutUpdateCounter, setLayoutUpdateCounter] = useState(0)
+
+  // Listen for CSS variable updates from the toolbar
   useEffect(() => {
-    if (!isVisible || !wrapperRef.current || disabled) {
-      setTooltipPosition(null)
-      return
+    // Get text CSS variables for reactive updates (standard structure)
+    const textPath = ['properties', 'text']
+    const textCssVars = [
+      buildComponentCssVarPath('Tooltip', ...textPath, 'font-family', mode),
+      buildComponentCssVarPath('Tooltip', ...textPath, 'font-size', mode),
+      buildComponentCssVarPath('Tooltip', ...textPath, 'font-weight', mode),
+      buildComponentCssVarPath('Tooltip', ...textPath, 'letter-spacing', mode),
+      buildComponentCssVarPath('Tooltip', ...textPath, 'line-height', mode),
+      buildComponentCssVarPath('Tooltip', ...textPath, 'text-decoration', mode),
+      buildComponentCssVarPath('Tooltip', ...textPath, 'text-transform', mode),
+      buildComponentCssVarPath('Tooltip', ...textPath, 'font-style', mode),
+    ]
+
+    const propPath = ['properties']
+    const layoutCssVars = [
+      buildComponentCssVarPath('Tooltip', ...propPath, 'vertical-padding', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'horizontal-padding', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'border-radius', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'border-size', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'min-width', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'max-width', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'beak-size', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'beak-inset', mode),
+    ]
+
+    const allVarsToTriggerRender = [...textCssVars, ...layoutCssVars]
+
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(elevationVar)
+      const shouldUpdateLayout = !detail?.cssVars || detail.cssVars.some((cssVar: string) => allVarsToTriggerRender.includes(cssVar))
+
+      if (shouldUpdateElevation) {
+        const value = readCssVar(elevationVar)
+        setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+
+      if (shouldUpdateLayout) {
+        setLayoutUpdateCounter(prev => prev + 1)
+      }
     }
 
-    const updatePosition = () => {
-      if (!wrapperRef.current) return
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
 
-      const rect = wrapperRef.current.getBoundingClientRect()
-      const scrollX = window.scrollX || window.pageXOffset
-      const scrollY = window.scrollY || window.pageYOffset
-      const viewportWidth = window.innerWidth
-      const viewportHeight = window.innerHeight
-      const offset = 8
-      const viewportPadding = 8 // Minimum distance from viewport edges
-
-      // Estimate tooltip dimensions (we'll measure after first render)
-      const estimatedTooltipHeight = 32 // Approximate height including padding
-      const estimatedTooltipWidth = Math.max(label.length * 7 + 20, 80) // Rough estimate, minimum 80px
-
-      let top = 0
-      let left = 0
-      let actualPosition = position
-      let transform = ''
-
-      // Determine best position based on available space
-      const spaceAbove = rect.top
-      const spaceBelow = viewportHeight - rect.bottom
-      const spaceLeft = rect.left
-      const spaceRight = viewportWidth - rect.right
-
-      // Auto-adjust vertical position if requested position doesn't fit
-      if (position === 'top' && spaceAbove < estimatedTooltipHeight + offset + viewportPadding) {
-        actualPosition = 'bottom'
-      } else if (position === 'bottom' && spaceBelow < estimatedTooltipHeight + offset + viewportPadding) {
-        actualPosition = 'top'
-      }
-
-      // Auto-adjust horizontal position if requested position doesn't fit
-      if (position === 'left' && spaceLeft < estimatedTooltipWidth + offset + viewportPadding) {
-        actualPosition = 'right'
-      } else if (position === 'right' && spaceRight < estimatedTooltipWidth + offset + viewportPadding) {
-        actualPosition = 'left'
-      }
-
-      // Calculate position based on actual position
-      switch (actualPosition) {
-        case 'top':
-          top = rect.top + scrollY - offset
-          left = rect.left + scrollX + rect.width / 2
-          transform = 'translateX(-50%) translateY(-100%)'
-          break
-        case 'bottom':
-          top = rect.bottom + scrollY + offset
-          left = rect.left + scrollX + rect.width / 2
-          transform = 'translateX(-50%)'
-          break
-        case 'left':
-          top = rect.top + scrollY + rect.height / 2
-          left = rect.left + scrollX - offset
-          transform = 'translateX(-100%) translateY(-50%)'
-          break
-        case 'right':
-          top = rect.top + scrollY + rect.height / 2
-          left = rect.right + scrollX + offset
-          transform = 'translateY(-50%)'
-          break
-      }
-
-      // Adjust horizontal position to keep tooltip within viewport (for top/bottom tooltips)
-      if (actualPosition === 'top' || actualPosition === 'bottom') {
-        const tooltipHalfWidth = estimatedTooltipWidth / 2
-        const tooltipLeft = left - tooltipHalfWidth
-        const tooltipRight = left + tooltipHalfWidth
-        
-        if (tooltipLeft < scrollX + viewportPadding) {
-          // Tooltip would overflow left, align to left edge with padding
-          left = scrollX + viewportPadding + tooltipHalfWidth
-          transform = actualPosition === 'top' ? 'translateY(-100%)' : ''
-        } else if (tooltipRight > scrollX + viewportWidth - viewportPadding) {
-          // Tooltip would overflow right, align to right edge with padding
-          left = scrollX + viewportWidth - viewportPadding - tooltipHalfWidth
-          transform = actualPosition === 'top' ? 'translateX(-100%) translateY(-100%)' : 'translateX(-100%)'
-        }
-      }
-
-      // Adjust vertical position to keep tooltip within viewport (for left/right tooltips)
-      if (actualPosition === 'left' || actualPosition === 'right') {
-        const tooltipHalfHeight = estimatedTooltipHeight / 2
-        const tooltipTop = top - tooltipHalfHeight
-        const tooltipBottom = top + tooltipHalfHeight
-        
-        if (tooltipTop < scrollY + viewportPadding) {
-          // Tooltip would overflow top, align to top edge
-          top = scrollY + viewportPadding + tooltipHalfHeight
-          transform = actualPosition === 'left' ? 'translateX(-100%)' : ''
-        } else if (tooltipBottom > scrollY + viewportHeight - viewportPadding) {
-          // Tooltip would overflow bottom, align to bottom edge
-          top = scrollY + viewportHeight - viewportPadding - tooltipHalfHeight
-          transform = actualPosition === 'left' ? 'translateX(-100%) translateY(-100%)' : 'translateY(-100%)'
-        }
-      }
-
-      setTooltipPosition({ top, left, transform })
-    }
-
-    // Use requestAnimationFrame to ensure DOM is ready
-    const rafId = requestAnimationFrame(() => {
-      updatePosition()
+    const observer = new MutationObserver(() => {
+      const elevationValue = readCssVar(elevationVar)
+      setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
+      setLayoutUpdateCounter(prev => prev + 1)
     })
 
-    window.addEventListener('scroll', updatePosition, true)
-    window.addEventListener('resize', updatePosition)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
 
     return () => {
-      cancelAnimationFrame(rafId)
-      window.removeEventListener('scroll', updatePosition, true)
-      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      observer.disconnect()
     }
-  }, [isVisible, position, disabled, label])
+  }, [elevationVar, mode])
 
-  const handleMouseEnter = () => {
-    if (disabled) return
-    timeoutRef.current = setTimeout(() => {
-      setIsVisible(true)
-    }, delay)
-  }
+  const componentElevation = elevation ?? elevationFromVar ?? 'elevation-4'
 
-  const handleMouseLeave = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = null
-    }
-    setIsVisible(false)
-  }
-
-
-  // If library-specific component is available, use it
-  if (Component) {
+  if (!Component) {
     return (
-      <Suspense fallback={
-        <div ref={wrapperRef} className={className} style={style}>
-          {children}
-        </div>
-      }>
-        <Component
-          label={label}
-          position={position}
-          delay={delay}
-          layer={layer}
-          disabled={disabled}
-          className={className}
-          style={style}
-          mantine={mantine}
-          material={material}
-          carbon={carbon}
-        >
-          {children}
-        </Component>
-      </Suspense>
+      <div className={className} style={{ display: 'inline-block', position: 'relative', ...style }}>
+        {label && opened && (
+          <div style={{
+            position: 'absolute',
+            bottom: '100%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            padding: '4px 8px',
+            backgroundColor: '#333',
+            color: '#fff',
+            borderRadius: 4,
+            fontSize: 12,
+            whiteSpace: 'nowrap',
+            marginBottom: 8,
+            zIndex: zIndex ?? 300,
+            boxShadow: getElevationBoxShadow(mode, componentElevation)
+          }}>
+            {label}
+          </div>
+        )}
+        {children}
+      </div>
     )
   }
 
-  // Fallback implementation using portal
   return (
-    <>
-      <div
-        ref={wrapperRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+    <Suspense fallback={<div>Loading...</div>}>
+      <Component
+        key={`${mode}-${layoutUpdateCounter}`}
+        label={label}
+        position={position}
+        alignment={alignment}
+        layer={layer}
+        elevation={componentElevation}
+        opened={opened}
+        zIndex={zIndex}
+        withinPortal={withinPortal}
         className={className}
-        style={{ display: 'inline-flex', ...style }}
+        style={style}
+        mantine={mantine}
+        material={material}
+        carbon={carbon}
       >
         {children}
-      </div>
-      {!disabled && isVisible && tooltipPosition && createPortal(
-        <div
-          ref={tooltipRef}
-          style={{
-            position: 'absolute',
-            top: `${tooltipPosition.top}px`,
-            left: `${tooltipPosition.left}px`,
-            transform: tooltipPosition.transform,
-            padding: `var(${paddingVar}, 6px 10px)`,
-            backgroundColor: `var(${bgVar})`,
-            border: `1px solid var(${borderColorVar})`,
-            borderRadius: `var(${borderRadiusVar}, 6px)`,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 9999,
-            fontSize: `var(${tooltipFontSizeVar})`,
-            color: `var(${textVar})`,
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-            opacity: fallbackOpacity,
-          }}
-          onMouseEnter={() => !disabled && setIsVisible(true)}
-          onMouseLeave={() => setIsVisible(false)}
-        >
-          {label}
-        </div>,
-        document.body
-      )}
-    </>
+      </Component>
+    </Suspense>
   )
 }

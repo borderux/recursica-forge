@@ -1,0 +1,216 @@
+/**
+ * Mantine Tooltip Implementation
+ * 
+ * Mantine-specific Tooltip component that uses CSS variables for theming.
+ */
+
+import React, { useState, useEffect } from 'react'
+import { Tooltip as MantineTooltip, Box } from '@mantine/core'
+import type { TooltipProps as AdapterTooltipProps } from '../../Tooltip'
+import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getElevationBoxShadow } from '../../../utils/brandCssVars'
+import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { readCssVar } from '../../../../core/css/readCssVar'
+import './Tooltip.css'
+
+export default function Tooltip({
+    children,
+    label,
+    position = 'top',
+    alignment = 'middle',
+    layer = 'layer-0',
+    elevation,
+    opened,
+    zIndex,
+    withinPortal = false,
+    className,
+    style,
+    mantine,
+    ...props
+}: AdapterTooltipProps) {
+    const { mode } = useThemeMode()
+
+    // Force re-render when CSS vars change
+    const [, setUpdateKey] = useState(0)
+    const [layoutUpdateCounter, setLayoutUpdateCounter] = useState(0)
+
+    // Map unified position + alignment to Mantine position
+    const mantinePosition = (() => {
+        if (alignment === 'middle') return position
+        const suffix = alignment === 'start' ? 'start' : 'end'
+        return `${position}-${suffix}`
+    })() as any
+
+    // Get CSS variables from UIKit.json (explicit paths)
+    const colorPath = ['properties', 'colors', layer]
+    const propPath = ['properties']
+    const textPath = ['properties', 'text']
+
+    const tooltipBgVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'background', mode)
+    const tooltipColorVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'text', mode)
+    const tooltipBorderColorVar = buildComponentCssVarPath('Tooltip', ...colorPath, 'border-color', mode)
+
+    const verticalPaddingVar = buildComponentCssVarPath('Tooltip', ...propPath, 'vertical-padding', mode)
+    const horizontalPaddingVar = buildComponentCssVarPath('Tooltip', ...propPath, 'horizontal-padding', mode)
+    const borderRadiusVar = buildComponentCssVarPath('Tooltip', ...propPath, 'border-radius', mode)
+    const borderSizeVar = buildComponentCssVarPath('Tooltip', ...propPath, 'border-size', mode)
+    const minWidthVar = buildComponentCssVarPath('Tooltip', ...propPath, 'min-width', mode)
+    const maxWidthVar = buildComponentCssVarPath('Tooltip', ...propPath, 'max-width', mode)
+    const beakSizeVar = buildComponentCssVarPath('Tooltip', ...propPath, 'beak-size', mode)
+    const beakInsetVar = buildComponentCssVarPath('Tooltip', ...propPath, 'beak-inset', mode)
+    const minHeightVar = buildComponentCssVarPath('Tooltip', ...propPath, 'min-height', mode)
+
+    // Text properties
+    const fontFamilyVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-family', mode)
+    const fontSizeVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-size', mode)
+    const fontWeightVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-weight', mode)
+    const letterSpacingVar = buildComponentCssVarPath('Tooltip', ...textPath, 'letter-spacing', mode)
+    const lineHeightVar = buildComponentCssVarPath('Tooltip', ...textPath, 'line-height', mode)
+    const textDecorationVar = buildComponentCssVarPath('Tooltip', ...textPath, 'text-decoration', mode)
+    const textTransformVar = buildComponentCssVarPath('Tooltip', ...textPath, 'text-transform', mode)
+    const fontStyleVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-style', mode)
+
+    useEffect(() => {
+        const allVarsToTriggerRender = [
+            tooltipBgVar, tooltipColorVar, tooltipBorderColorVar,
+            verticalPaddingVar, horizontalPaddingVar, borderRadiusVar, borderSizeVar,
+            minWidthVar, maxWidthVar, minHeightVar, beakSizeVar, beakInsetVar,
+            fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar,
+            textDecorationVar, textTransformVar, fontStyleVar
+        ]
+
+        const handleUpdate = (e: Event) => {
+            const detail = (e as CustomEvent).detail
+            const updatedVars = detail?.cssVars || []
+            const shouldUpdate = updatedVars.length === 0 ||
+                updatedVars.some((v: string) => allVarsToTriggerRender.includes(v) || v.includes('tooltip'))
+
+            if (shouldUpdate) {
+                setUpdateKey(prev => prev + 1)
+                setLayoutUpdateCounter(prev => prev + 1)
+            }
+        }
+        window.addEventListener('cssVarsUpdated', handleUpdate)
+
+        const observer = new MutationObserver(() => {
+            setUpdateKey(prev => prev + 1)
+            setLayoutUpdateCounter(prev => prev + 1)
+        })
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style'],
+        })
+
+        return () => {
+            window.removeEventListener('cssVarsUpdated', handleUpdate)
+            observer.disconnect()
+        }
+    }, [mode, tooltipBgVar, tooltipColorVar, tooltipBorderColorVar, verticalPaddingVar, horizontalPaddingVar, borderRadiusVar, borderSizeVar, minWidthVar, maxWidthVar, minHeightVar, beakSizeVar, beakInsetVar, fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar])
+
+    const beakSizeValue = parseInt(readCssVar(beakSizeVar) || '8')
+    const beakInsetValue = parseInt(readCssVar(beakInsetVar) || '8')
+
+    const transformOrigin = (() => {
+        const [pos, align] = mantinePosition.split('-')
+        switch (pos) {
+            case 'top':
+                if (!align) return 'bottom center'
+                return align === 'start' ? 'bottom left' : 'bottom right'
+            case 'bottom':
+                if (!align) return 'top center'
+                return align === 'start' ? 'top left' : 'top right'
+            case 'left':
+                if (!align) return 'center right'
+                return align === 'start' ? 'top right' : 'bottom right'
+            case 'right':
+                if (!align) return 'center left'
+                return align === 'start' ? 'top left' : 'bottom left'
+            default:
+                return 'center center'
+        }
+    })()
+
+    // Calculate drop-shadow parameters for the beak (omitting spread as drop-shadow doesn't support it)
+    const shadowParams = (() => {
+        if (!elevation || elevation === 'elevation-0') return '0 0 0 rgba(0,0,0,0)'
+        const match = elevation.match(/elevation-(\d+)/)
+        if (!match) return '0 0 0 rgba(0,0,0,0)'
+        const level = match[1]
+        const xAxis = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-x-axis, 0px)`
+        const yAxis = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-y-axis, 0px)`
+        const blur = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-blur, 0px)`
+        const color = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+        return `${xAxis} ${yAxis} ${blur} ${color}`
+    })()
+
+    const tooltipStyles = {
+        '--tooltip-bg': `var(${tooltipBgVar})`,
+        '--tooltip-color': `var(${tooltipColorVar})`,
+        '--tooltip-border-color': `var(${tooltipBorderColorVar})`,
+        '--tooltip-padding-y': `var(${verticalPaddingVar})`,
+        '--tooltip-padding-x': `var(${horizontalPaddingVar})`,
+        '--tooltip-border-radius': `var(${borderRadiusVar})`,
+        '--tooltip-border-size': `var(${borderSizeVar})`,
+        '--tooltip-min-width': `var(${minWidthVar})`,
+        '--tooltip-max-width': `var(${maxWidthVar})`,
+        '--tooltip-min-height': `var(${minHeightVar})`,
+        '--tooltip-beak-size': `var(${beakSizeVar})`,
+        '--tooltip-beak-inset': `var(${beakInsetVar})`,
+
+        '--tooltip-font-family': `var(${fontFamilyVar})`,
+        '--tooltip-font-size': `var(${fontSizeVar})`,
+        '--tooltip-font-weight': `var(${fontWeightVar})`,
+        '--tooltip-letter-spacing': `var(${letterSpacingVar})`,
+        '--tooltip-line-height': `var(${lineHeightVar})`,
+        '--tooltip-text-decoration': readCssVar(textDecorationVar) || 'none',
+        '--tooltip-text-transform': readCssVar(textTransformVar) || 'none',
+        '--tooltip-font-style': readCssVar(fontStyleVar) || 'normal',
+        '--tooltip-box-shadow': getElevationBoxShadow(mode, elevation) || 'none',
+        '--tooltip-shadow-params': shadowParams,
+
+        transformOrigin,
+        ...style,
+    } as React.CSSProperties
+
+    const content = label ? (
+        <Box className="recursica-tooltip-content">
+            {label}
+        </Box>
+    ) : children
+
+    return (
+        <MantineTooltip
+            label={content}
+            position={mantinePosition}
+            withArrow
+            arrowSize={beakSizeValue}
+            arrowOffset={beakInsetValue}
+            opened={opened}
+            key={`tooltip-${mode}-${layoutUpdateCounter}`}
+            zIndex={zIndex ?? 100}
+            withinPortal={withinPortal}
+            classNames={{
+                tooltip: 'recursica-tooltip-root',
+                arrow: 'recursica-tooltip-arrow',
+                ...mantine?.classNames,
+            }}
+            styles={{
+                tooltip: tooltipStyles,
+                arrow: {
+                    // Arrow already uses background-color from root via CSS
+                    // We don't need to apply drop-shadow here if we apply it to the root
+                }
+            }}
+            {...mantine}
+            {...props}
+        >
+            <Box
+                component="span"
+                className={className}
+                style={{ display: 'inline-block' }}
+            >
+                {children}
+            </Box>
+        </MantineTooltip>
+    )
+}
