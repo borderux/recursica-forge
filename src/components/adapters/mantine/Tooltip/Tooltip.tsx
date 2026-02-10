@@ -4,6 +4,7 @@
  * Mantine-specific Tooltip component that uses CSS variables for theming.
  */
 
+import React, { useState, useEffect } from 'react'
 import { Tooltip as MantineTooltip, Box } from '@mantine/core'
 import type { TooltipProps as AdapterTooltipProps } from '../../Tooltip'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
@@ -21,12 +22,17 @@ export default function Tooltip({
     elevation,
     opened,
     zIndex,
+    withinPortal = false,
     className,
     style,
     mantine,
     ...props
 }: AdapterTooltipProps) {
     const { mode } = useThemeMode()
+
+    // Force re-render when CSS vars change
+    const [, setUpdateKey] = useState(0)
+    const [layoutUpdateCounter, setLayoutUpdateCounter] = useState(0)
 
     // Map unified position + alignment to Mantine position
     const mantinePosition = (() => {
@@ -52,6 +58,7 @@ export default function Tooltip({
     const maxWidthVar = buildComponentCssVarPath('Tooltip', ...propPath, 'max-width', mode)
     const beakSizeVar = buildComponentCssVarPath('Tooltip', ...propPath, 'beak-size', mode)
     const beakInsetVar = buildComponentCssVarPath('Tooltip', ...propPath, 'beak-inset', mode)
+    const minHeightVar = buildComponentCssVarPath('Tooltip', ...propPath, 'min-height', mode)
 
     // Text properties
     const fontFamilyVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-family', mode)
@@ -62,6 +69,43 @@ export default function Tooltip({
     const textDecorationVar = buildComponentCssVarPath('Tooltip', ...textPath, 'text-decoration', mode)
     const textTransformVar = buildComponentCssVarPath('Tooltip', ...textPath, 'text-transform', mode)
     const fontStyleVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-style', mode)
+
+    useEffect(() => {
+        const allVarsToTriggerRender = [
+            tooltipBgVar, tooltipColorVar, tooltipBorderColorVar,
+            verticalPaddingVar, horizontalPaddingVar, borderRadiusVar, borderSizeVar,
+            minWidthVar, maxWidthVar, minHeightVar, beakSizeVar, beakInsetVar,
+            fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar,
+            textDecorationVar, textTransformVar, fontStyleVar
+        ]
+
+        const handleUpdate = (e: Event) => {
+            const detail = (e as CustomEvent).detail
+            const updatedVars = detail?.cssVars || []
+            const shouldUpdate = updatedVars.length === 0 ||
+                updatedVars.some((v: string) => allVarsToTriggerRender.includes(v) || v.includes('tooltip'))
+
+            if (shouldUpdate) {
+                setUpdateKey(prev => prev + 1)
+                setLayoutUpdateCounter(prev => prev + 1)
+            }
+        }
+        window.addEventListener('cssVarsUpdated', handleUpdate)
+
+        const observer = new MutationObserver(() => {
+            setUpdateKey(prev => prev + 1)
+            setLayoutUpdateCounter(prev => prev + 1)
+        })
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style'],
+        })
+
+        return () => {
+            window.removeEventListener('cssVarsUpdated', handleUpdate)
+            observer.disconnect()
+        }
+    }, [mode, tooltipBgVar, tooltipColorVar, tooltipBorderColorVar, verticalPaddingVar, horizontalPaddingVar, borderRadiusVar, borderSizeVar, minWidthVar, maxWidthVar, minHeightVar, beakSizeVar, beakInsetVar, fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar])
 
     const beakSizeValue = parseInt(readCssVar(beakSizeVar) || '8')
     const beakInsetValue = parseInt(readCssVar(beakInsetVar) || '8')
@@ -109,6 +153,7 @@ export default function Tooltip({
         '--tooltip-border-size': `var(${borderSizeVar})`,
         '--tooltip-min-width': `var(${minWidthVar})`,
         '--tooltip-max-width': `var(${maxWidthVar})`,
+        '--tooltip-min-height': `var(${minHeightVar})`,
         '--tooltip-beak-size': `var(${beakSizeVar})`,
         '--tooltip-beak-inset': `var(${beakInsetVar})`,
 
@@ -141,7 +186,9 @@ export default function Tooltip({
             arrowSize={beakSizeValue}
             arrowOffset={beakInsetValue}
             opened={opened}
-            zIndex={zIndex ?? 300}
+            key={`tooltip-${mode}-${layoutUpdateCounter}`}
+            zIndex={zIndex ?? 100}
+            withinPortal={withinPortal}
             classNames={{
                 tooltip: 'recursica-tooltip-root',
                 arrow: 'recursica-tooltip-arrow',

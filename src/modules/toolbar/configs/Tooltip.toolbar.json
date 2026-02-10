@@ -82,6 +82,10 @@
                 "max-width": {
                     "label": "Max width",
                     "visible": true
+                },
+                "min-height": {
+                    "label": "Min height",
+                    "visible": true
                 }
             }
         }

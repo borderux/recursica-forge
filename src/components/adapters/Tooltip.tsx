@@ -22,6 +22,7 @@ export type TooltipProps = {
   elevation?: string
   opened?: boolean
   zIndex?: number
+  withinPortal?: boolean
   className?: string
   style?: React.CSSProperties
 } & LibrarySpecificProps
@@ -35,6 +36,7 @@ export function Tooltip({
   elevation,
   opened,
   zIndex,
+  withinPortal,
   className,
   style,
   mantine,
@@ -162,6 +164,7 @@ export function Tooltip({
         elevation={componentElevation}
         opened={opened}
         zIndex={zIndex}
+        withinPortal={withinPortal}
         className={className}
         style={style}
         mantine={mantine}

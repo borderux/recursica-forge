@@ -10,6 +10,12 @@
   border: var(--tooltip-border-size) solid var(--tooltip-border-color) !important;
   max-width: var(--tooltip-max-width) !important;
   min-width: var(--tooltip-min-width) !important;
+  min-height: var(--tooltip-min-height) !important;
+
+  /* Vertical centering */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 
   /* Typography */
   font-family: var(--tooltip-font-family) !important;
