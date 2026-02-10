@@ -12,6 +12,7 @@ import React from 'react'
 
 // Import only the icons we actually use - this allows Vite to tree-shake unused icons
 import {
+  TextAlignCenter,
   Angle,
   ArrowBendRightDown,
   ArrowClockwise,
@@ -58,8 +59,8 @@ import {
   FileSvg,
   FileText,
   FrameCorners,
-  GridFour,
   GoogleLogo,
+  GridFour,
   House,
   Info,
   Layout,
@@ -310,6 +311,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'rows': Rows,
   'shadow': Stack,
   'google-logo': GoogleLogo,
+  'align-center': TextAlignCenter,
 }
 
 /**

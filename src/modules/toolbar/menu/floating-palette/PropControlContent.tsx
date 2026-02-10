@@ -1222,6 +1222,8 @@ export default function PropControlContent({
     const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item'
     const isBadge = componentName.toLowerCase() === 'badge'
     const isTextField = normalizedComponentName === 'text-field' || normalizedComponentName === 'text field'
+    const isTooltip = componentName.toLowerCase() === 'tooltip'
+
 
     if (propToRender.type === 'color') {
       const contrastColorVar = getContrastColorVar(propToRender)
@@ -3386,7 +3388,11 @@ export default function PropControlContent({
       } else if (isLabelWidth) {
         // Default maxPixelValue for label-width
         maxPixelValue = 500
+      } else if (isTooltip && (propNameLower === 'beak-size' || propNameLower === 'beak-inset')) {
+        minPixelValue = 0
+        maxPixelValue = 50
       }
+
 
       return (
         <DimensionTokenSelector
