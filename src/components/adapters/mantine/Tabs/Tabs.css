@@ -1,0 +1,107 @@
+/* Import the CSS file to enable Recursica theming */
+@import './Tabs.css';
+
+/* Base tab styling */
+.mantine-Tabs-tab {
+    font-family: var(--recursica-tabs-font-family, inherit) !important;
+    font-size: var(--recursica-tabs-font-size, 14px) !important;
+    font-weight: var(--recursica-tabs-font-weight, 500) !important;
+    letter-spacing: var(--recursica-tabs-letter-spacing, normal) !important;
+    line-height: var(--recursica-tabs-line-height, 1.5) !important;
+    text-decoration: var(--recursica-tabs-text-decoration, none) !important;
+    text-transform: var(--recursica-tabs-text-transform, none) !important;
+    font-style: var(--recursica-tabs-font-style, normal) !important;
+    padding-left: var(--recursica-tabs-horizontal-padding, 16px) !important;
+    padding-right: var(--recursica-tabs-horizontal-padding, 16px) !important;
+    padding-top: var(--recursica-tabs-vertical-padding, 12px) !important;
+    padding-bottom: var(--recursica-tabs-vertical-padding, 12px) !important;
+}
+
+/* Unselected tab state */
+.mantine-Tabs-tab:not([data-active="true"]) {
+    background: var(--recursica-tabs-unselected-background, transparent) !important;
+    color: var(--recursica-tabs-unselected-text-color, inherit) !important;
+    border-bottom-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
+    border-bottom-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
+}
+
+.mantine-Tabs-tab:not([data-active="true"]):hover {
+    background: var(--recursica-tabs-unselected-background-hover, rgba(0, 0, 0, 0.05)) !important;
+}
+
+/* Selected tab state */
+.mantine-Tabs-tab[data-active="true"] {
+    background: var(--recursica-tabs-selected-background, transparent) !important;
+    color: var(--recursica-tabs-selected-text-color, inherit) !important;
+    border-bottom-width: var(--recursica-tabs-selected-border-size, 2px) !important;
+    border-bottom-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
+}
+
+/* Pills variant */
+.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab {
+    border-radius: var(--recursica-tabs-border-radius, 8px) !important;
+    border-bottom: none !important;
+}
+
+.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab[data-active="true"] {
+    background: var(--recursica-tabs-selected-background, currentColor) !important;
+}
+
+.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab:not([data-active="true"]):hover {
+    background: var(--recursica-tabs-unselected-background-hover, rgba(0, 0, 0, 0.05)) !important;
+}
+
+/* Outline variant */
+.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab {
+    border-radius: var(--recursica-tabs-border-radius, 6px) !important;
+    border: 1px solid transparent !important;
+    border-bottom: none !important;
+}
+
+.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active="true"]) {
+    border-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
+    background: var(--recursica-tabs-unselected-background, transparent) !important;
+}
+
+.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active="true"]):hover {
+    background: var(--recursica-tabs-unselected-background-hover, rgba(0, 0, 0, 0.05)) !important;
+}
+
+.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab[data-active="true"] {
+    border-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
+    background: var(--recursica-tabs-selected-background, transparent) !important;
+}
+
+/* Icon styling */
+.mantine-Tabs-tab svg,
+.mantine-Tabs-tab .mantine-Tabs-tabIcon {
+    width: var(--recursica-tabs-icon-size, 16px) !important;
+    height: var(--recursica-tabs-icon-size, 16px) !important;
+}
+
+/* Element gap - applies to icon-text and text-badge spacing */
+.mantine-Tabs-tab .mantine-Tabs-tabLabel {
+    margin-left: var(--recursica-tabs-element-gap, 8px) !important;
+}
+
+/* Gap for inline elements (badges, etc.) */
+.mantine-Tabs-tab>div {
+    gap: var(--recursica-tabs-element-gap, 8px);
+}
+
+/* Vertical orientation */
+.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab {
+    border-bottom: none !important;
+    border-right-width: var(--recursica-tabs-border-size, 2px) !important;
+    border-right-style: solid !important;
+}
+
+.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab:not([data-active="true"]) {
+    border-right-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
+    border-right-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
+}
+
+.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab[data-active="true"] {
+    border-right-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
+    border-right-width: var(--recursica-tabs-selected-border-size, 2px) !important;
+}

@@ -21,6 +21,7 @@ import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
 import TextFieldConfig from '../configs/TextField.toolbar.json'
 import ModalConfig from '../configs/Modal.toolbar.json'
 import DropdownConfig from '../configs/Dropdown.toolbar.json'
+import TabsConfig from '../configs/Tabs.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -97,6 +98,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return ModalConfig as unknown as ToolbarConfig
       case 'dropdown':
         return DropdownConfig as unknown as ToolbarConfig
+      case 'tabs':
+        return TabsConfig as unknown as ToolbarConfig
       default:
         return null
     }

@@ -142,7 +142,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         // Check if this variants object contains category containers (styles, sizes, layouts, types, states)
         // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left or variants.types.help or variants.states.default
         // Also handles nested: variants.layouts.side-by-side.variants.sizes.default
-        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states'))
+        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states' || k === 'orientation' || k === 'fill-width'))
 
         if (categoryKeys.length > 0) {
           // NEW STRUCTURE: variants.styles, variants.sizes, and variants.layouts are category containers

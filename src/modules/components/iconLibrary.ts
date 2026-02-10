@@ -28,6 +28,7 @@ import {
   ArrowsInLineHorizontal,
   ArrowsInLineVertical,
   ArrowsOut,
+  ArrowsOutCardinal,
   ArrowsOutLineHorizontal,
   ArrowsOutLineVertical,
   ArrowsVertical,
@@ -58,8 +59,8 @@ import {
   FileSvg,
   FileText,
   FrameCorners,
-  GridFour,
   GoogleLogo,
+  GridFour,
   House,
   Info,
   Layout,
@@ -310,6 +311,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'rows': Rows,
   'shadow': Stack,
   'google-logo': GoogleLogo,
+  'arrows-out-cardinal': ArrowsOutCardinal,
 }
 
 /**

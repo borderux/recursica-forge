@@ -1,0 +1,158 @@
+{
+    "variants": {
+        "style": {
+            "icon": "diamonds-four",
+            "label": "Style",
+            "visible": true,
+            "options": [
+                "default",
+                "pills",
+                "outline"
+            ]
+        },
+        "orientation": {
+            "icon": "arrows-out-cardinal",
+            "label": "Orientation",
+            "visible": true,
+            "options": [
+                "horizontal",
+                "vertical"
+            ]
+        }
+    },
+    "props": {
+        "selected": {
+            "icon": "check-square",
+            "label": "Selected",
+            "visible": true,
+            "group": {
+                "background": {
+                    "icon": "paint-bucket",
+                    "label": "Background",
+                    "visible": true
+                },
+                "border-color": {
+                    "icon": "paint-bucket",
+                    "label": "Border color",
+                    "visible": true
+                },
+                "border-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Border size",
+                    "visible": true
+                },
+                "text-color": {
+                    "icon": "text-aa",
+                    "label": "Text color",
+                    "visible": true
+                }
+            }
+        },
+        "unselected": {
+            "icon": "squares-four",
+            "label": "Unselected",
+            "visible": true,
+            "group": {
+                "background": {
+                    "icon": "paint-bucket",
+                    "label": "Background",
+                    "visible": true
+                },
+                "background-hover": {
+                    "icon": "paint-bucket",
+                    "label": "Background hover",
+                    "visible": true
+                },
+                "border-color": {
+                    "icon": "paint-bucket",
+                    "label": "Border color",
+                    "visible": true
+                },
+                "border-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Border size",
+                    "visible": true
+                },
+                "text-color": {
+                    "icon": "text-aa",
+                    "label": "Text color",
+                    "visible": true
+                }
+            }
+        },
+        "text": {
+            "icon": "text-aa",
+            "label": "Text style",
+            "visible": true,
+            "group": {
+                "font-family": {
+                    "icon": "text-aa",
+                    "label": "Font family",
+                    "visible": true
+                },
+                "font-size": {
+                    "icon": "text-aa",
+                    "label": "Font size",
+                    "visible": true
+                },
+                "font-weight": {
+                    "icon": "text-aa",
+                    "label": "Font weight",
+                    "visible": true
+                },
+                "letter-spacing": {
+                    "icon": "text-aa",
+                    "label": "Letter spacing",
+                    "visible": true
+                },
+                "line-height": {
+                    "icon": "text-aa",
+                    "label": "Line height",
+                    "visible": true
+                },
+                "text-decoration": {
+                    "icon": "text-aa",
+                    "label": "Text decoration",
+                    "visible": true
+                },
+                "text-transform": {
+                    "icon": "text-aa",
+                    "label": "Text transform",
+                    "visible": true
+                },
+                "font-style": {
+                    "icon": "text-aa",
+                    "label": "Font style",
+                    "visible": true
+                }
+            }
+        },
+        "spacing": {
+            "icon": "split-horizontal",
+            "label": "Spacing",
+            "visible": true,
+            "group": {
+                "horizontal-padding": {
+                    "icon": "arrows-left-right",
+                    "label": "Horizontal padding",
+                    "visible": true
+                },
+                "vertical-padding": {
+                    "icon": "arrows-up-down",
+                    "label": "Vertical padding",
+                    "visible": true
+                },
+                "element-gap": {
+                    "icon": "split-horizontal",
+                    "label": "Element gap",
+                    "visible": true
+                }
+            }
+        },
+        "icon-size": {
+            "icon": "diamond",
+            "label": "Icon size",
+            "visible": true
+        }
+    }
+}
