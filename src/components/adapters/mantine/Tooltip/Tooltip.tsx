@@ -51,6 +51,7 @@ export default function Tooltip({
     const minWidthVar = buildComponentCssVarPath('Tooltip', ...propPath, 'min-width', mode)
     const maxWidthVar = buildComponentCssVarPath('Tooltip', ...propPath, 'max-width', mode)
     const beakSizeVar = buildComponentCssVarPath('Tooltip', ...propPath, 'beak-size', mode)
+    const beakInsetVar = buildComponentCssVarPath('Tooltip', ...propPath, 'beak-inset', mode)
 
     // Text properties
     const fontFamilyVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-family', mode)
@@ -63,6 +64,7 @@ export default function Tooltip({
     const fontStyleVar = buildComponentCssVarPath('Tooltip', ...textPath, 'font-style', mode)
 
     const beakSizeValue = parseInt(readCssVar(beakSizeVar) || '8')
+    const beakInsetValue = parseInt(readCssVar(beakInsetVar) || '8')
 
     const transformOrigin = (() => {
         const [pos, align] = mantinePosition.split('-')
@@ -95,6 +97,7 @@ export default function Tooltip({
         '--tooltip-min-width': `var(${minWidthVar})`,
         '--tooltip-max-width': `var(${maxWidthVar})`,
         '--tooltip-beak-size': `var(${beakSizeVar})`,
+        '--tooltip-beak-inset': `var(${beakInsetVar})`,
 
         '--tooltip-font-family': `var(${fontFamilyVar})`,
         '--tooltip-font-size': `var(${fontSizeVar})`,
@@ -122,6 +125,7 @@ export default function Tooltip({
             position={mantinePosition}
             withArrow
             arrowSize={beakSizeValue}
+            arrowOffset={beakInsetValue}
             opened={opened}
             zIndex={zIndex ?? 300}
             classNames={{
