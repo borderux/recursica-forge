@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Tabs } from '../../components/adapters/Tabs'
 import { Tabs as MantineTabs } from '@mantine/core'
 import { Image, ChatCircle, Gear } from '@phosphor-icons/react'
+import { Badge } from '../../components/adapters/Badge'
 
 interface TabsPreviewProps {
     selectedVariants: Record<string, string>
@@ -19,7 +20,7 @@ export default function TabsPreview({
     const orientation = (selectedVariants.orientation || 'horizontal') as 'horizontal' | 'vertical'
 
     return (
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '32px', width: '600px' }}>
             {/* Basic Tabs */}
             <div>
                 <h2 style={{ marginBottom: '16px' }}>Text</h2>
@@ -84,47 +85,20 @@ export default function TabsPreview({
                     <MantineTabs.List>
                         <MantineTabs.Tab value="gallery">
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                Gallery
-                                <span style={{
-                                    background: 'var(--recursica-brand-palettes-core-colors-primary-default-tone)',
-                                    color: 'var(--recursica-brand-palettes-core-colors-primary-default-on-tone)',
-                                    borderRadius: '12px',
-                                    padding: '2px 8px',
-                                    fontSize: '11px',
-                                    fontWeight: 600,
-                                    minWidth: '20px',
-                                    textAlign: 'center'
-                                }}>42</span>
+                                <span>Gallery</span>
+                                <Badge variant="primary-color">42</Badge>
                             </div>
                         </MantineTabs.Tab>
                         <MantineTabs.Tab value="messages">
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                Messages
-                                <span style={{
-                                    background: 'var(--recursica-brand-palettes-core-colors-primary-default-tone)',
-                                    color: 'var(--recursica-brand-palettes-core-colors-primary-default-on-tone)',
-                                    borderRadius: '12px',
-                                    padding: '2px 8px',
-                                    fontSize: '11px',
-                                    fontWeight: 600,
-                                    minWidth: '20px',
-                                    textAlign: 'center'
-                                }}>7</span>
+                                <span>Messages</span>
+                                <Badge variant="primary-color">7</Badge>
                             </div>
                         </MantineTabs.Tab>
                         <MantineTabs.Tab value="settings">
                             <div style={{ display: 'flex', alignItems: 'center' }}>
-                                Settings
-                                <span style={{
-                                    background: 'var(--recursica-brand-palettes-core-colors-primary-default-tone)',
-                                    color: 'var(--recursica-brand-palettes-core-colors-primary-default-on-tone)',
-                                    borderRadius: '12px',
-                                    padding: '2px 8px',
-                                    fontSize: '11px',
-                                    fontWeight: 600,
-                                    minWidth: '20px',
-                                    textAlign: 'center'
-                                }}>104</span>
+                                <span>Settings</span>
+                                <Badge variant="primary-color">104</Badge>
                             </div>
                         </MantineTabs.Tab>
                     </MantineTabs.List>

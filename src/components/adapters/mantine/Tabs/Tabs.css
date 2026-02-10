@@ -79,14 +79,16 @@
     height: var(--recursica-tabs-icon-size, 16px) !important;
 }
 
-/* Element gap - applies to icon-text and text-badge spacing */
-.mantine-Tabs-tab .mantine-Tabs-tabLabel {
+/* Element gap - only applies after an icon */
+.mantine-Tabs-tab .mantine-Tabs-tabSection+.mantine-Tabs-tabLabel {
     margin-left: var(--recursica-tabs-element-gap, 8px) !important;
 }
 
-/* Gap for inline elements (badges, etc.) */
-.mantine-Tabs-tab>div {
-    gap: var(--recursica-tabs-element-gap, 8px);
+/* Gap for inline flex containers (badges, etc.) */
+.mantine-Tabs-tab .mantine-Tabs-tabLabel>div {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--recursica-tabs-element-gap, 8px) !important;
 }
 
 /* Vertical orientation */
