@@ -1,16 +1,13 @@
 /* Import the CSS file to enable Recursica theming */
 @import './Tabs.css';
 
+/* Tabs list - apply gap between tabs */
+.mantine-Tabs-list {
+    gap: var(--recursica-tabs-space-between-tabs, 0px) !important;
+}
+
 /* Base tab styling */
 .mantine-Tabs-tab {
-    font-family: var(--recursica-tabs-font-family, inherit) !important;
-    font-size: var(--recursica-tabs-font-size, 14px) !important;
-    font-weight: var(--recursica-tabs-font-weight, 500) !important;
-    letter-spacing: var(--recursica-tabs-letter-spacing, normal) !important;
-    line-height: var(--recursica-tabs-line-height, 1.5) !important;
-    text-decoration: var(--recursica-tabs-text-decoration, none) !important;
-    text-transform: var(--recursica-tabs-text-transform, none) !important;
-    font-style: var(--recursica-tabs-font-style, normal) !important;
     padding-left: var(--recursica-tabs-horizontal-padding, 16px) !important;
     padding-right: var(--recursica-tabs-horizontal-padding, 16px) !important;
     padding-top: var(--recursica-tabs-vertical-padding, 12px) !important;
@@ -23,6 +20,15 @@
     color: var(--recursica-tabs-unselected-text-color, inherit) !important;
     border-bottom-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
     border-bottom-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
+    /* Unselected text styles */
+    font-family: var(--recursica-tabs-unselected-font-family, inherit) !important;
+    font-size: var(--recursica-tabs-unselected-font-size, 14px) !important;
+    font-weight: var(--recursica-tabs-unselected-font-weight, 500) !important;
+    letter-spacing: var(--recursica-tabs-unselected-letter-spacing, normal) !important;
+    line-height: var(--recursica-tabs-unselected-line-height, 1.5) !important;
+    text-decoration: var(--recursica-tabs-unselected-text-decoration, none) !important;
+    text-transform: var(--recursica-tabs-unselected-text-transform, none) !important;
+    font-style: var(--recursica-tabs-unselected-font-style, normal) !important;
 }
 
 .mantine-Tabs-tab:not([data-active="true"]):hover {
@@ -35,6 +41,15 @@
     color: var(--recursica-tabs-selected-text-color, inherit) !important;
     border-bottom-width: var(--recursica-tabs-selected-border-size, 2px) !important;
     border-bottom-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
+    /* Selected text styles */
+    font-family: var(--recursica-tabs-selected-font-family, inherit) !important;
+    font-size: var(--recursica-tabs-selected-font-size, 14px) !important;
+    font-weight: var(--recursica-tabs-selected-font-weight, 600) !important;
+    letter-spacing: var(--recursica-tabs-selected-letter-spacing, normal) !important;
+    line-height: var(--recursica-tabs-selected-line-height, 1.5) !important;
+    text-decoration: var(--recursica-tabs-selected-text-decoration, none) !important;
+    text-transform: var(--recursica-tabs-selected-text-transform, none) !important;
+    font-style: var(--recursica-tabs-selected-font-style, normal) !important;
 }
 
 /* Pills variant */

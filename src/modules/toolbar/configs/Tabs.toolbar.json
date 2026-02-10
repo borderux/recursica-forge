@@ -23,7 +23,7 @@
     "props": {
         "selected": {
             "icon": "check-square",
-            "label": "Selected",
+            "label": "Selected colors",
             "visible": true,
             "group": {
                 "background": {
@@ -50,7 +50,7 @@
         },
         "unselected": {
             "icon": "squares-four",
-            "label": "Unselected",
+            "label": "Unselected colors",
             "visible": true,
             "group": {
                 "background": {
@@ -80,9 +80,56 @@
                 }
             }
         },
-        "text": {
-            "icon": "text-aa",
-            "label": "Text style",
+        "selected-text": {
+            "icon": "check-square",
+            "label": "Selected text style",
+            "visible": true,
+            "group": {
+                "font-family": {
+                    "icon": "text-aa",
+                    "label": "Font family",
+                    "visible": true
+                },
+                "font-size": {
+                    "icon": "text-aa",
+                    "label": "Font size",
+                    "visible": true
+                },
+                "font-weight": {
+                    "icon": "text-aa",
+                    "label": "Font weight",
+                    "visible": true
+                },
+                "letter-spacing": {
+                    "icon": "text-aa",
+                    "label": "Letter spacing",
+                    "visible": true
+                },
+                "line-height": {
+                    "icon": "text-aa",
+                    "label": "Line height",
+                    "visible": true
+                },
+                "text-decoration": {
+                    "icon": "text-aa",
+                    "label": "Text decoration",
+                    "visible": true
+                },
+                "text-transform": {
+                    "icon": "text-aa",
+                    "label": "Text transform",
+                    "visible": true
+                },
+                "font-style": {
+                    "icon": "text-aa",
+                    "label": "Font style",
+                    "visible": true
+                }
+            }
+        },
+        "unselected-text": {
+            "icon": "squares-four",
+            "label": "Unselected text style",
             "visible": true,
             "group": {
                 "font-family": {
@@ -145,6 +192,11 @@
                 "element-gap": {
                     "icon": "split-horizontal",
                     "label": "Element gap",
+                    "visible": true
+                },
+                "space-between-tabs": {
+                    "icon": "arrows-out-cardinal",
+                    "label": "Space between tabs",
                     "visible": true
                 }
             }
