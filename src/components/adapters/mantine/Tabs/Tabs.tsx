@@ -32,6 +32,7 @@ export default function Tabs({
   const selectedBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'colors', layer, 'background')
   const selectedBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'colors', layer, 'border-color')
   const selectedTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'colors', layer, 'text-color')
+  const selectedIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'colors', layer, 'icon-color')
   const selectedBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'border-size')
 
   // Get unselected state colors
@@ -39,30 +40,31 @@ export default function Tabs({
   const unselectedBackgroundHoverVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'background-hover')
   const unselectedBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'border-color')
   const unselectedTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'text-color')
+  const unselectedIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'icon-color')
   const unselectedBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'border-size')
 
   // Get variant-specific properties
   const borderRadiusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'border-radius')
 
   // Get selected text properties
-  const selectedFontFamilyVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected-text', 'font-family')
-  const selectedFontSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected-text', 'font-size')
-  const selectedFontWeightVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected-text', 'font-weight')
-  const selectedLetterSpacingVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected-text', 'letter-spacing')
-  const selectedLineHeightVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected-text', 'line-height')
-  const selectedTextDecorationVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected-text', 'text-decoration')
-  const selectedTextTransformVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected-text', 'text-transform')
-  const selectedFontStyleVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected-text', 'font-style')
+  const selectedFontFamilyVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'font-family')
+  const selectedFontSizeVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'font-size')
+  const selectedFontWeightVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'font-weight')
+  const selectedLetterSpacingVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'letter-spacing')
+  const selectedLineHeightVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'line-height')
+  const selectedTextDecorationVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'text-decoration')
+  const selectedTextTransformVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'text-transform')
+  const selectedFontStyleVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'font-style')
 
   // Get unselected text properties
-  const unselectedFontFamilyVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected-text', 'font-family')
-  const unselectedFontSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected-text', 'font-size')
-  const unselectedFontWeightVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected-text', 'font-weight')
-  const unselectedLetterSpacingVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected-text', 'letter-spacing')
-  const unselectedLineHeightVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected-text', 'line-height')
-  const unselectedTextDecorationVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected-text', 'text-decoration')
-  const unselectedTextTransformVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected-text', 'text-transform')
-  const unselectedFontStyleVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected-text', 'font-style')
+  const unselectedFontFamilyVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'font-family')
+  const unselectedFontSizeVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'font-size')
+  const unselectedFontWeightVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'font-weight')
+  const unselectedLetterSpacingVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'letter-spacing')
+  const unselectedLineHeightVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'line-height')
+  const unselectedTextDecorationVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'text-decoration')
+  const unselectedTextTransformVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'text-transform')
+  const unselectedFontStyleVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'font-style')
 
   // Get spacing properties from orientation variant
   const horizontalPaddingVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'horizontal-padding')
@@ -86,12 +88,14 @@ export default function Tabs({
       '--recursica-tabs-selected-background': selectedBackgroundVar ? `var(${selectedBackgroundVar})` : undefined,
       '--recursica-tabs-selected-border-color': selectedBorderColorVar ? `var(${selectedBorderColorVar})` : undefined,
       '--recursica-tabs-selected-text-color': selectedTextColorVar ? `var(${selectedTextColorVar})` : undefined,
+      '--recursica-tabs-selected-icon-color': selectedIconColorVar ? `var(${selectedIconColorVar})` : undefined,
       '--recursica-tabs-selected-border-size': selectedBorderSizeVar ? `var(${selectedBorderSizeVar})` : undefined,
       // Unselected state
       '--recursica-tabs-unselected-background': unselectedBackgroundVar ? `var(${unselectedBackgroundVar})` : undefined,
       '--recursica-tabs-unselected-background-hover': unselectedBackgroundHoverVar ? `var(${unselectedBackgroundHoverVar})` : undefined,
       '--recursica-tabs-unselected-border-color': unselectedBorderColorVar ? `var(${unselectedBorderColorVar})` : undefined,
       '--recursica-tabs-unselected-text-color': unselectedTextColorVar ? `var(${unselectedTextColorVar})` : undefined,
+      '--recursica-tabs-unselected-icon-color': unselectedIconColorVar ? `var(${unselectedIconColorVar})` : undefined,
       '--recursica-tabs-unselected-border-size': unselectedBorderSizeVar ? `var(${unselectedBorderSizeVar})` : undefined,
       // Variant-specific
       '--recursica-tabs-border-radius': borderRadiusVar ? `var(${borderRadiusVar})` : undefined,

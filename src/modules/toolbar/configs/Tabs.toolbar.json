@@ -45,6 +45,11 @@
                     "icon": "text-aa",
                     "label": "Text color",
                     "visible": true
+                },
+                "icon-color": {
+                    "icon": "diamond",
+                    "label": "Icon color",
+                    "visible": true
                 }
             }
         },
@@ -76,6 +81,11 @@
                 "text-color": {
                     "icon": "text-aa",
                     "label": "Text color",
+                    "visible": true
+                },
+                "icon-color": {
+                    "icon": "diamond",
+                    "label": "Icon color",
                     "visible": true
                 }
             }
@@ -200,6 +210,11 @@
                     "visible": true
                 }
             }
+        },
+        "border-radius": {
+            "icon": "corners-out",
+            "label": "Border radius",
+            "visible": true
         },
         "icon-size": {
             "icon": "diamond",

@@ -12,6 +12,7 @@
     padding-right: var(--recursica-tabs-horizontal-padding, 16px) !important;
     padding-top: var(--recursica-tabs-vertical-padding, 12px) !important;
     padding-bottom: var(--recursica-tabs-vertical-padding, 12px) !important;
+    border-radius: var(--recursica-tabs-border-radius, 0px) !important;
 }
 
 /* Unselected tab state */
@@ -54,7 +55,6 @@
 
 /* Pills variant */
 .mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab {
-    border-radius: var(--recursica-tabs-border-radius, 8px) !important;
     border-bottom: none !important;
 }
 
@@ -68,7 +68,6 @@
 
 /* Outline variant */
 .mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab {
-    border-radius: var(--recursica-tabs-border-radius, 6px) !important;
     border: 1px solid transparent !important;
     border-bottom: none !important;
 }
@@ -94,9 +93,21 @@
     height: var(--recursica-tabs-icon-size, 16px) !important;
 }
 
-/* Element gap - only applies after an icon */
-.mantine-Tabs-tab .mantine-Tabs-tabSection+.mantine-Tabs-tabLabel {
-    margin-left: var(--recursica-tabs-element-gap, 8px) !important;
+/* Icon color - unselected */
+.mantine-Tabs-tab:not([data-active="true"]) svg,
+.mantine-Tabs-tab:not([data-active="true"]) .mantine-Tabs-tabIcon {
+    color: var(--recursica-tabs-unselected-icon-color, inherit) !important;
+}
+
+/* Icon color - selected */
+.mantine-Tabs-tab[data-active="true"] svg,
+.mantine-Tabs-tab[data-active="true"] .mantine-Tabs-tabIcon {
+    color: var(--recursica-tabs-selected-icon-color, inherit) !important;
+}
+
+/* Override Mantine's default icon section margin and use our element-gap */
+.mantine-Tabs-tab .mantine-Tabs-tabSection[data-position="left"] {
+    margin-inline-end: var(--recursica-tabs-element-gap, 8px) !important;
 }
 
 /* Gap for inline flex containers (badges, etc.) */
@@ -105,6 +116,7 @@
     align-items: center !important;
     gap: var(--recursica-tabs-element-gap, 8px) !important;
 }
+
 
 /* Vertical orientation */
 .mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab {
