@@ -7,7 +7,7 @@
   color: var(--tooltip-color) !important;
   border-radius: var(--tooltip-border-radius) !important;
   padding: var(--tooltip-padding-y) var(--tooltip-padding-x) !important;
-  border: 1px solid var(--tooltip-border-color) !important;
+  border: var(--tooltip-border-size) solid var(--tooltip-border-color) !important;
   max-width: var(--tooltip-max-width) !important;
   min-width: var(--tooltip-min-width) !important;
 
@@ -27,7 +27,7 @@
 /* Caret (Beak) styling */
 .recursica-tooltip-arrow {
   background-color: var(--tooltip-bg) !important;
-  border: 1px solid var(--tooltip-border-color) !important;
+  border: var(--tooltip-border-size) solid var(--tooltip-border-color) !important;
   box-sizing: border-box;
 }
 

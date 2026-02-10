@@ -851,6 +851,13 @@
             "$type": "elevation",
             "$value": "{brand.elevations.elevation-4}"
           },
+          "border-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
           "vertical-padding": {
             "$type": "dimension",
             "$value": {

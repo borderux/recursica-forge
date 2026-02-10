@@ -20,6 +20,25 @@
             "label": "Elevation",
             "visible": true
         },
+        "border": {
+            "icon": "square",
+            "label": "Border",
+            "visible": true,
+            "group": {
+                "border-color": {
+                    "label": "Border color",
+                    "visible": true
+                },
+                "border-size": {
+                    "label": "Border thickness",
+                    "visible": true
+                },
+                "border-radius": {
+                    "label": "Border radius",
+                    "visible": true
+                }
+            }
+        },
         "colors": {
             "icon": "paint-bucket",
             "label": "Colors",
@@ -31,10 +50,6 @@
                 },
                 "text": {
                     "label": "Text",
-                    "visible": true
-                },
-                "border-color": {
-                    "label": "Border color",
                     "visible": true
                 }
             }
@@ -50,10 +65,6 @@
                 },
                 "horizontal-padding": {
                     "label": "Horizontal padding",
-                    "visible": true
-                },
-                "border-radius": {
-                    "label": "Border radius",
                     "visible": true
                 },
                 "beak-size": {

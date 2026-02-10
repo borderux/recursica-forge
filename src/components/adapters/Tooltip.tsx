@@ -56,8 +56,8 @@ export function Tooltip({
     return value ? parseElevationValue(value) : undefined
   })
 
-  // State to force re-renders when text CSS variables change
-  const [, setTextVarsUpdate] = useState(0)
+  // State to force re-renders when layout/text CSS variables change
+  const [layoutUpdateCounter, setLayoutUpdateCounter] = useState(0)
 
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
@@ -74,18 +74,32 @@ export function Tooltip({
       buildComponentCssVarPath('Tooltip', ...textPath, 'font-style', mode),
     ]
 
+    const propPath = ['properties']
+    const layoutCssVars = [
+      buildComponentCssVarPath('Tooltip', ...propPath, 'vertical-padding', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'horizontal-padding', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'border-radius', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'border-size', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'min-width', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'max-width', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'beak-size', mode),
+      buildComponentCssVarPath('Tooltip', ...propPath, 'beak-inset', mode),
+    ]
+
+    const allVarsToTriggerRender = [...textCssVars, ...layoutCssVars]
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(elevationVar)
-      const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      const shouldUpdateLayout = !detail?.cssVars || detail.cssVars.some((cssVar: string) => allVarsToTriggerRender.includes(cssVar))
 
       if (shouldUpdateElevation) {
         const value = readCssVar(elevationVar)
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
       }
 
-      if (shouldUpdateText) {
-        setTextVarsUpdate(prev => prev + 1)
+      if (shouldUpdateLayout) {
+        setLayoutUpdateCounter(prev => prev + 1)
       }
     }
 
@@ -94,7 +108,7 @@ export function Tooltip({
     const observer = new MutationObserver(() => {
       const elevationValue = readCssVar(elevationVar)
       setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
-      setTextVarsUpdate(prev => prev + 1)
+      setLayoutUpdateCounter(prev => prev + 1)
     })
 
     observer.observe(document.documentElement, {
@@ -140,6 +154,7 @@ export function Tooltip({
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <Component
+        key={`${mode}-${layoutUpdateCounter}`}
         label={label}
         position={position}
         alignment={alignment}

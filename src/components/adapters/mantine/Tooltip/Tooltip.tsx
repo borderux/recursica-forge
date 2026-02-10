@@ -47,6 +47,7 @@ export default function Tooltip({
     const verticalPaddingVar = buildComponentCssVarPath('Tooltip', ...propPath, 'vertical-padding', mode)
     const horizontalPaddingVar = buildComponentCssVarPath('Tooltip', ...propPath, 'horizontal-padding', mode)
     const borderRadiusVar = buildComponentCssVarPath('Tooltip', ...propPath, 'border-radius', mode)
+    const borderSizeVar = buildComponentCssVarPath('Tooltip', ...propPath, 'border-size', mode)
     const minWidthVar = buildComponentCssVarPath('Tooltip', ...propPath, 'min-width', mode)
     const maxWidthVar = buildComponentCssVarPath('Tooltip', ...propPath, 'max-width', mode)
     const beakSizeVar = buildComponentCssVarPath('Tooltip', ...propPath, 'beak-size', mode)
@@ -63,6 +64,26 @@ export default function Tooltip({
 
     const beakSizeValue = parseInt(readCssVar(beakSizeVar) || '8')
 
+    const transformOrigin = (() => {
+        const [pos, align] = mantinePosition.split('-')
+        switch (pos) {
+            case 'top':
+                if (!align) return 'bottom center'
+                return align === 'start' ? 'bottom left' : 'bottom right'
+            case 'bottom':
+                if (!align) return 'top center'
+                return align === 'start' ? 'top left' : 'top right'
+            case 'left':
+                if (!align) return 'center right'
+                return align === 'start' ? 'top right' : 'bottom right'
+            case 'right':
+                if (!align) return 'center left'
+                return align === 'start' ? 'top left' : 'bottom left'
+            default:
+                return 'center center'
+        }
+    })()
+
     const tooltipStyles = {
         '--tooltip-bg': `var(${tooltipBgVar})`,
         '--tooltip-color': `var(${tooltipColorVar})`,
@@ -70,6 +91,7 @@ export default function Tooltip({
         '--tooltip-padding-y': `var(${verticalPaddingVar})`,
         '--tooltip-padding-x': `var(${horizontalPaddingVar})`,
         '--tooltip-border-radius': `var(${borderRadiusVar})`,
+        '--tooltip-border-size': `var(${borderSizeVar})`,
         '--tooltip-min-width': `var(${minWidthVar})`,
         '--tooltip-max-width': `var(${maxWidthVar})`,
         '--tooltip-beak-size': `var(${beakSizeVar})`,
@@ -84,6 +106,7 @@ export default function Tooltip({
         '--tooltip-font-style': readCssVar(fontStyleVar) || 'normal',
         '--tooltip-box-shadow': getElevationBoxShadow(mode, elevation) || 'none',
 
+        transformOrigin,
         ...style,
     } as React.CSSProperties
 
