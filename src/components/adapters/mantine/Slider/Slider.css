@@ -38,3 +38,28 @@
   height: var(--slider-thumb-size, 20px) !important;
   border-radius: var(--slider-thumb-radius) !important;
 }
+
+/* Style Mantine's slider tooltip to match our unified Tooltip component */
+.mantine-Slider-label {
+  /* Use Tooltip component's CSS variables for consistent styling */
+  background-color: var(--recursica-ui-kit-components-tooltip-properties-colors-layer-1-background, #000) !important;
+  color: var(--recursica-ui-kit-components-tooltip-properties-colors-layer-1-text-color, #fff) !important;
+  border: var(--recursica-ui-kit-components-tooltip-properties-border-size, 1px) solid var(--recursica-ui-kit-components-tooltip-properties-colors-layer-1-border-color, transparent) !important;
+  border-radius: var(--recursica-ui-kit-components-tooltip-properties-border-radius, 4px) !important;
+  padding: var(--recursica-ui-kit-components-tooltip-properties-vertical-padding, 4px) var(--recursica-ui-kit-components-tooltip-properties-horizontal-padding, 8px) !important;
+  min-width: var(--recursica-ui-kit-components-tooltip-properties-min-width, auto) !important;
+  max-width: var(--recursica-ui-kit-components-tooltip-properties-max-width, 300px) !important;
+  min-height: var(--recursica-ui-kit-components-tooltip-properties-min-height, auto) !important;
+
+  /* Typography */
+  font-family: var(--recursica-ui-kit-components-tooltip-text-font-family, inherit) !important;
+  font-size: var(--recursica-ui-kit-components-tooltip-text-font-size, 12px) !important;
+  font-weight: var(--recursica-ui-kit-components-tooltip-text-font-weight, 400) !important;
+  letter-spacing: var(--recursica-ui-kit-components-tooltip-text-letter-spacing, normal) !important;
+  line-height: var(--recursica-ui-kit-components-tooltip-text-line-height, 1.5) !important;
+
+  /* Centering */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
