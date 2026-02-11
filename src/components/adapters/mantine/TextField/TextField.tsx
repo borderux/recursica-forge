@@ -98,16 +98,6 @@ export default function TextField({
 
   // Placeholder uses the same text styles as value (no separate placeholder text props)
 
-  // CRITICAL: Verify CSS variables are different - these MUST be separate
-  // Debug: Log all CSS variable names to verify they're distinct
-  // Removed console.log for production - uncomment for debugging if needed
-  // console.log('[TextField] CSS Variable Names:', {
-  //   value: {
-  //     fontFamily: valueFontFamilyVar,
-  //     fontSize: valueFontSizeVar,
-  //     fontWeight: valueFontWeightVar,
-  //     letterSpacing: valueLetterSpacingVar,
-  //     lineHeight: valueLineHeightVar,
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
 
