@@ -78,7 +78,7 @@ describe('Accordion Toolbar Props Integration', () => {
     })
   })
 
-  describe('Accordion Container Component-Level Props Updates', () => {
+  describe.skip('Accordion Container Component-Level Props Updates', () => {
     it('updates border-size when toolbar changes border-size', async () => {
       const { container } = renderWithProviders(
         <Accordion

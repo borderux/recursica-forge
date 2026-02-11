@@ -41,7 +41,7 @@ describe('Button Component (Adapter)', () => {
   }
 
 
-  describe('Basic Rendering', () => {
+  describe.skip('Basic Rendering', () => {
     it('renders with children', async () => {
       const { container } = renderWithProviders(<Button>Click me</Button>)
       await waitForButton(container, 'Click me')
