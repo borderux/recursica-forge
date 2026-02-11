@@ -154,7 +154,7 @@ export function AssistiveElement({
   }
   
   return (
-    <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center' }}>{text}</div>}>
+    <Suspense fallback={<span />}>
       <Component
         text={text}
         variant={variant}

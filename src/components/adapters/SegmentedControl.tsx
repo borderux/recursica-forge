@@ -346,7 +346,7 @@ export function SegmentedControl({
   }
   
   return (
-    <Suspense fallback={<div style={{ width: fullWidth ? '100%' : 'auto', height: '40px' }} />}>
+    <Suspense fallback={<span />}>
       <Component
         items={items}
         value={value}

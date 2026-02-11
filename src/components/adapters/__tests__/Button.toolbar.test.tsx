@@ -45,10 +45,6 @@ describe.skip('Button Toolbar Props Integration', () => {
     return await waitFor(() => {
       const btn = container.querySelector('button')
       if (!btn) throw new Error('Button not found')
-      // Ensure it's not the loading button
-      if (btn.textContent === 'Loading...') {
-        throw new Error('Still loading')
-      }
       // Wait for actual button content if expected text provided
       if (expectedText && !btn.textContent?.includes(expectedText)) {
         throw new Error(`Button text mismatch: expected "${expectedText}", got "${btn.textContent}"`)

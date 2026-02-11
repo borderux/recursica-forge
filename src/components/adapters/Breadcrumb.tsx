@@ -114,7 +114,7 @@ export function Breadcrumb({
   }
   
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<span />}>
       <Component {...libraryProps} />
     </Suspense>
   )

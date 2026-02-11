@@ -597,7 +597,7 @@ export function Slider({
   const shouldHandleLabelRow = showValueLabel && label
   
   const sliderComponent = (
-    <Suspense fallback={<div style={{ width: '100%', height: 20 }} />}>
+    <Suspense fallback={<span />}>
       <Component
         value={value}
         onChange={onChange}
@@ -732,7 +732,7 @@ export function Slider({
         minWidth: 0,
         ...style,
       }}>
-        <Suspense fallback={<div style={{ width: '100%', height: 20 }} />}>
+        <Suspense fallback={<span />}>
           <Component
             value={value}
             onChange={onChange}

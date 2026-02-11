@@ -155,7 +155,7 @@ export function Avatar({
   }
   
   return (
-    <Suspense fallback={<div style={{ width: 32, height: 32, borderRadius: '50%' }} />}>
+    <Suspense fallback={<span />}>
       <Component
         src={resolvedSrc}
         alt={alt}
