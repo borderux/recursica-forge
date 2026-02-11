@@ -63,11 +63,6 @@
                     "label": "Background",
                     "visible": true
                 },
-                "background-hover": {
-                    "icon": "paint-bucket",
-                    "label": "Background hover",
-                    "visible": true
-                },
                 "border-color": {
                     "icon": "paint-bucket",
                     "label": "Border color",
@@ -219,6 +214,23 @@
                         {"value": "center", "icon": "text-align-center"},
                         {"value": "right", "icon": "text-align-right"}
                     ]
+                }
+            }
+        },
+        "tabs": {
+            "icon": "squares-four",
+            "label": "Tabs",
+            "visible": true,
+            "group": {
+                "min-width": {
+                    "icon": "arrows-left-right",
+                    "label": "Min width",
+                    "visible": true
+                },
+                "max-width": {
+                    "icon": "arrows-left-right",
+                    "label": "Max width",
+                    "visible": true
                 }
             }
         },

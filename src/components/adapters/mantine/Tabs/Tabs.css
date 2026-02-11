@@ -3,17 +3,60 @@
     gap: var(--recursica-tabs-space-between-tabs, 0px) !important;
 }
 
+/* Default variant: list::before = full-width track line. Tab borders overlay (selected = red, unselected = transparent) */
+.recursica-tabs.mantine-Tabs-root[data-variant="default"]:not([data-inverted]) .mantine-Tabs-list::before {
+    border-top: none !important;
+    border-bottom-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
+    border-bottom-style: solid !important;
+    border-bottom-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
+}
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-inverted] .mantine-Tabs-list::before {
+    border-bottom: none !important;
+    border-top-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
+    border-top-style: solid !important;
+    border-top-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
+}
+
+
+/* Default variant bottom tabs: indicator on TOP of tabs (between content and tab strip), not bottom */
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-inverted][data-orientation="horizontal"] .mantine-Tabs-tab:not([data-active]) {
+    border-bottom: none !important;
+    border-top-style: solid !important;
+    border-top-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
+    border-top-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
+}
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-inverted][data-orientation="horizontal"] .mantine-Tabs-tab[data-active] {
+    border-bottom: none !important;
+    border-top-style: solid !important;
+    border-top-width: var(--recursica-tabs-selected-border-size, 2px) !important;
+    border-top-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
+}
+
 /* Base tab styling */
 .recursica-tabs .mantine-Tabs-tab {
     padding-left: var(--recursica-tabs-horizontal-padding, 16px) !important;
     padding-right: var(--recursica-tabs-horizontal-padding, 16px) !important;
     padding-top: var(--recursica-tabs-vertical-padding, 12px) !important;
     padding-bottom: var(--recursica-tabs-vertical-padding, 12px) !important;
+    min-width: var(--recursica-tabs-min-width, 0) !important;
+    max-width: var(--recursica-tabs-max-width, none) !important;
+}
+
+/* Default variant: border radius - top tabs use only top corners, bottom tabs use only bottom corners */
+.recursica-tabs.mantine-Tabs-root[data-variant="default"]:not([data-inverted]) .mantine-Tabs-tab {
+    border-radius: var(--recursica-tabs-border-radius, 0px) var(--recursica-tabs-border-radius, 0px) 0 0 !important;
+}
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-inverted] .mantine-Tabs-tab {
+    border-radius: 0 0 var(--recursica-tabs-border-radius, 0px) var(--recursica-tabs-border-radius, 0px) !important;
+}
+/* Pills and outline variants keep uniform border-radius */
+.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab,
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab {
     border-radius: var(--recursica-tabs-border-radius, 0px) !important;
 }
 
 /* Unselected tab state */
-.recursica-tabs .mantine-Tabs-tab:not([data-active="true"]) {
+.recursica-tabs .mantine-Tabs-tab:not([data-active]) {
     background: var(--recursica-tabs-unselected-background, transparent) !important;
     color: var(--recursica-tabs-unselected-text-color, inherit) !important;
     border-bottom-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
@@ -29,12 +72,12 @@
     font-style: var(--recursica-tabs-unselected-font-style, normal) !important;
 }
 
-.recursica-tabs .mantine-Tabs-tab:not([data-active="true"]):hover {
-    background: var(--recursica-tabs-unselected-background-hover, rgba(0, 0, 0, 0.05)) !important;
+.recursica-tabs .mantine-Tabs-tab:not([data-active]):hover {
+    background: var(--recursica-tabs-unselected-background, transparent) !important;
 }
 
 /* Selected tab state */
-.recursica-tabs .mantine-Tabs-tab[data-active="true"] {
+.recursica-tabs .mantine-Tabs-tab[data-active] {
     background: var(--recursica-tabs-selected-background, transparent) !important;
     color: var(--recursica-tabs-selected-text-color, inherit) !important;
     border-bottom-width: var(--recursica-tabs-selected-border-size, 2px) !important;
@@ -55,12 +98,12 @@
     border-bottom: none !important;
 }
 
-.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab[data-active="true"] {
+.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab[data-active] {
     background: var(--recursica-tabs-selected-background, currentColor) !important;
 }
 
-.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab:not([data-active="true"]):hover {
-    background: var(--recursica-tabs-unselected-background-hover, rgba(0, 0, 0, 0.05)) !important;
+.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab:not([data-active]):hover {
+    background: var(--recursica-tabs-unselected-background, transparent) !important;
 }
 
 /* Outline variant */
@@ -69,16 +112,16 @@
     border-bottom: none !important;
 }
 
-.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active="true"]) {
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active]) {
     border-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
     background: var(--recursica-tabs-unselected-background, transparent) !important;
 }
 
-.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active="true"]):hover {
-    background: var(--recursica-tabs-unselected-background-hover, rgba(0, 0, 0, 0.05)) !important;
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active]):hover {
+    background: var(--recursica-tabs-unselected-background, transparent) !important;
 }
 
-.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab[data-active="true"] {
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab[data-active] {
     border-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
     background: var(--recursica-tabs-selected-background, transparent) !important;
 }
@@ -91,14 +134,14 @@
 }
 
 /* Icon color - unselected */
-.recursica-tabs .mantine-Tabs-tab:not([data-active="true"]) svg,
-.recursica-tabs .mantine-Tabs-tab:not([data-active="true"]) .mantine-Tabs-tabIcon {
+.recursica-tabs .mantine-Tabs-tab:not([data-active]) svg,
+.recursica-tabs .mantine-Tabs-tab:not([data-active]) .mantine-Tabs-tabIcon {
     color: var(--recursica-tabs-unselected-icon-color, inherit) !important;
 }
 
 /* Icon color - selected */
-.recursica-tabs .mantine-Tabs-tab[data-active="true"] svg,
-.recursica-tabs .mantine-Tabs-tab[data-active="true"] .mantine-Tabs-tabIcon {
+.recursica-tabs .mantine-Tabs-tab[data-active] svg,
+.recursica-tabs .mantine-Tabs-tab[data-active] .mantine-Tabs-tabIcon {
     color: var(--recursica-tabs-selected-icon-color, inherit) !important;
 }
 
@@ -138,12 +181,12 @@
     border-right-style: solid !important;
 }
 
-.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab:not([data-active="true"]) {
+.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab:not([data-active]) {
     border-right-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
     border-right-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
 }
 
-.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab[data-active="true"] {
+.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab[data-active] {
     border-right-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
     border-right-width: var(--recursica-tabs-selected-border-size, 2px) !important;
 }

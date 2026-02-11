@@ -38,7 +38,6 @@ export default function Tabs({
 
   // Get unselected state colors
   const unselectedBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'background')
-  const unselectedBackgroundHoverVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'background-hover')
   const unselectedBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'border-color')
   const unselectedTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'text-color')
   const unselectedIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'icon-color')
@@ -75,6 +74,8 @@ export default function Tabs({
 
   // Get icon size from orientation variant
   const iconSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'icon-size')
+  const minWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'min-width')
+  const maxWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'max-width')
 
   const mantineProps = {
     value,
@@ -93,7 +94,6 @@ export default function Tabs({
       '--recursica-tabs-selected-border-size': selectedBorderSizeVar ? `var(${selectedBorderSizeVar})` : undefined,
       // Unselected state
       '--recursica-tabs-unselected-background': unselectedBackgroundVar ? `var(${unselectedBackgroundVar})` : undefined,
-      '--recursica-tabs-unselected-background-hover': unselectedBackgroundHoverVar ? `var(${unselectedBackgroundHoverVar})` : undefined,
       '--recursica-tabs-unselected-border-color': unselectedBorderColorVar ? `var(${unselectedBorderColorVar})` : undefined,
       '--recursica-tabs-unselected-text-color': unselectedTextColorVar ? `var(${unselectedTextColorVar})` : undefined,
       '--recursica-tabs-unselected-icon-color': unselectedIconColorVar ? `var(${unselectedIconColorVar})` : undefined,
@@ -125,6 +125,9 @@ export default function Tabs({
       '--recursica-tabs-space-between-tabs': spaceBetweenTabsVar ? `var(${spaceBetweenTabsVar})` : undefined,
       // Icon
       '--recursica-tabs-icon-size': iconSizeVar ? `var(${iconSizeVar})` : undefined,
+      // Tab sizing
+      '--recursica-tabs-min-width': minWidthVar ? `var(${minWidthVar})` : undefined,
+      '--recursica-tabs-max-width': maxWidthVar ? `var(${maxWidthVar})` : undefined,
       // Tab content alignment (icon/text/badge inside tab button)
       '--recursica-tabs-content-align': tabContentAlignment,
       '--recursica-tabs-content-justify': tabContentAlignment === 'center' ? 'center' : tabContentAlignment === 'right' ? 'flex-end' : 'flex-start',

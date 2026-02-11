@@ -32,6 +32,8 @@ type VarsContextValue = {
   setElevation: (next: import('../../core/store/varsStore').ElevationState) => void
   updateElevation: (mutator: (prev: import('../../core/store/varsStore').ElevationState) => import('../../core/store/varsStore').ElevationState) => void
   resetAll: () => void
+  /** Clears UIKit from localStorage and reloads with cache bust to pick up UIKit.json file changes */
+  reloadFromFile: () => void
 }
 
 const VarsContext = createContext<VarsContextValue | undefined>(undefined)
@@ -40,6 +42,17 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
   // Ensure store is initialized before using it
   const store = useMemo(() => getVarsStore(), [])
   const [state, setState] = useState(() => store.getState())
+
+  // Strip cache-bust param from URL after reloadFromFile()
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    if (url.searchParams.has('_cb')) {
+      url.searchParams.delete('_cb')
+      const cleanUrl = url.pathname + (url.search || '') + url.hash
+      window.history.replaceState(null, '', cleanUrl)
+    }
+  }, [])
 
   useEffect(() => {
     return store.subscribe(() => {
@@ -86,6 +99,7 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       setElevation: (next) => store.setElevation(next),
       updateElevation: (mutator) => store.updateElevation(mutator),
       resetAll: () => store.resetAll(),
+      reloadFromFile: () => store.reloadFromFile(),
     }
   }, [state, store, resolvedTheme])
 
