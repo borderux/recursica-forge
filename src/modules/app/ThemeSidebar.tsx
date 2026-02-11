@@ -6,8 +6,10 @@
  */
 
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Tabs as MantineTabs } from '@mantine/core'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { Button } from '../../components/adapters/Button'
+import { Tabs } from '../../components/adapters/Tabs'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import packageJson from '../../../package.json'
 
@@ -32,9 +34,9 @@ export function ThemeSidebar() {
   const currentNavItem = getCurrentNavItem()
   
   const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
   
-  const handleNavClick = (item: ThemeNavItem) => {
+  const handleNavClick = (value: string | null) => {
+    const item = (value || 'core-properties') as ThemeNavItem
     navigate(`/theme/${item}`)
   }
   
@@ -66,74 +68,24 @@ export function ThemeSidebar() {
         position: 'relative',
       }}
     >
-      {/* Theme Heading */}
-      <h2
-        style={{
-          margin: 0,
-          marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
-          fontSize: 'var(--recursica-brand-typography-body-font-size)',
-          fontWeight: 600,
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-high-emphasis)`,
-        }}
-      >
-        Theme
-      </h2>
-      
       {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
-        {navItems.map((item) => {
-          const isActive = currentNavItem === item.key
-          
-          return (
-            <button
-              key={item.key}
-              onClick={() => handleNavClick(item.key)}
-              style={{
-                textAlign: 'left',
-                padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
-                borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
-                border: 'none',
-                background: 'transparent',
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: isActive 
-                  ? `var(${layer0Base}-element-text-high-emphasis)` 
-                  : `var(${layer0Base}-element-text-low-emphasis)`,
-                cursor: 'pointer',
-                transition: 'opacity 0.2s',
-                position: 'relative',
-                fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                fontWeight: isActive ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.opacity = `var(${layer0Base}-element-text-high-emphasis)`
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.opacity = `var(${layer0Base}-element-text-low-emphasis)`
-                }
-              }}
-            >
-              {/* Active indicator - red vertical bar */}
-              {isActive && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: '3px',
-                    backgroundColor: `var(${interactiveColor})`,
-                    borderRadius: '0 2px 2px 0',
-                  }}
-                />
-              )}
-              {item.label}
-            </button>
-          )
-        })}
+      <nav style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <Tabs
+          value={currentNavItem}
+          variant="default"
+          orientation="vertical"
+          layer="layer-0"
+          onChange={handleNavClick}
+          style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+        >
+          <MantineTabs.List style={{ flexDirection: 'column', flex: 1 }}>
+            {navItems.map((item) => (
+              <MantineTabs.Tab key={item.key} value={item.key}>
+                {item.label}
+              </MantineTabs.Tab>
+            ))}
+          </MantineTabs.List>
+        </Tabs>
       </nav>
       
       {/* Footer Links - Fixed at bottom */}

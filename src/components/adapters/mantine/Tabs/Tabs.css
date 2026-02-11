@@ -153,10 +153,12 @@
 .recursica-tabs[data-variant="default"][data-orientation="vertical"][data-placement="right"] [role="tab"] {
     border-radius: 0 var(--recursica-tabs-border-radius, 0px) var(--recursica-tabs-border-radius, 0px) 0 !important;
 }
-/* Pills variant keeps uniform border-radius */
+/* Pills variant: uniform border-radius, size to content (no min/max width forcing extra space) */
 .recursica-tabs[data-variant="pills"] .mantine-Tabs-tab,
 .recursica-tabs[data-variant="pills"] [role="tab"] {
     border-radius: var(--recursica-tabs-border-radius, 0px) !important;
+    min-width: 0 !important;
+    max-width: none !important;
 }
 /* Outline variant: border-radius matches default (orientation/placement specific) */
 .recursica-tabs[data-variant="outline"][data-orientation="horizontal"]:not([data-inverted]) .mantine-Tabs-tab,
@@ -498,8 +500,16 @@
 
 
 /* Vertical orientation - default variant only: indicator on right/left edge of tabs */
+/* List and tabs fill container width. When tab has max-width, constrain list to match. */
+.recursica-tabs[data-variant="default"][data-orientation="vertical"] .mantine-Tabs-list,
+.recursica-tabs[data-variant="default"][data-orientation="vertical"] [role="tablist"] {
+    width: 100% !important;
+    max-width: var(--recursica-tabs-max-width, none) !important;
+}
 .recursica-tabs[data-variant="default"][data-orientation="vertical"] .mantine-Tabs-tab,
 .recursica-tabs[data-variant="default"][data-orientation="vertical"] [role="tab"] {
+    width: 100% !important;
+    box-sizing: border-box !important;
     border-bottom: none !important;
 }
 .recursica-tabs[data-variant="default"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab,

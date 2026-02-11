@@ -7,6 +7,7 @@
 import { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { AppShell, Group, MantineProvider, Modal as MantineModal, Tabs as MantineTabs } from '@mantine/core'
+import { Tabs } from '../../../components/adapters/Tabs'
 import { Dropdown } from '../../../components/adapters/Dropdown'
 import { Modal } from '../../../components/adapters/Modal'
 import '@mantine/core/styles.css'
@@ -177,72 +178,23 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             </div>
 
             {/* Chunk 2: Navigation Tabs */}
-            {(() => {
-              const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
-              const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
-              const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
-              const buttonSolidText = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
-              const buttonHeight = getComponentCssVar('Button', 'size', 'default-height', undefined)
-              const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
-              const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
-
-              return (
-                <div
-                  style={{
-                    '--header-tab-active-bg': `var(${buttonSolidBg})`,
-                    '--header-tab-active-text': `var(${buttonSolidText})`,
-                  } as CSSProperties}
-                >
-                  <MantineTabs
-                    value={currentRoute}
-                    variant="pills"
-                    onChange={(value) => {
-                      if (value === 'tokens') navigate('/tokens')
-                      else if (value === 'theme') navigate('/theme')
-                      else if (value === 'components') navigate('/components')
-                    }}
-                    classNames={{
-                      tab: 'header-nav-tab',
-                    }}
-                    styles={{
-                      root: {
-                        flex: 1,
-                      },
-                      list: {
-                        gap: 'var(--recursica-brand-dimensions-general-default)',
-                      },
-                      tab: {
-                        color: `var(${buttonTextText})`,
-                        backgroundColor: `var(${buttonTextBg})`,
-                        opacity: `var(${layer0Base}-element-text-low-emphasis)`,
-                        fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-                        fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                        height: `var(${buttonHeight})`,
-                        paddingLeft: `var(${buttonPadding})`,
-                        paddingRight: `var(${buttonPadding})`,
-                        borderRadius: `var(${buttonBorderRadius})`,
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          opacity: `var(${layer0Base}-element-text-high-emphasis)`,
-                        },
-                        '&[dataActive]': {
-                          color: `var(${buttonSolidText})`,
-                          backgroundColor: `var(${buttonSolidBg})`,
-                          opacity: 1,
-                          fontWeight: 600,
-                        },
-                      },
-                    }}
-                  >
-                    <MantineTabs.List>
-                      <MantineTabs.Tab value="tokens">Tokens</MantineTabs.Tab>
-                      <MantineTabs.Tab value="theme">Theme</MantineTabs.Tab>
-                      <MantineTabs.Tab value="components">Components</MantineTabs.Tab>
-                    </MantineTabs.List>
-                  </MantineTabs>
-                </div>
-              )
-            })()}
+            <Tabs
+              value={currentRoute}
+              variant="pills"
+              layer="layer-0"
+              style={{ flex: 1 }}
+              onChange={(value) => {
+                if (value === 'tokens') navigate('/tokens')
+                else if (value === 'theme') navigate('/theme')
+                else if (value === 'components') navigate('/components')
+              }}
+            >
+              <MantineTabs.List>
+                <MantineTabs.Tab value="tokens">Tokens</MantineTabs.Tab>
+                <MantineTabs.Tab value="theme">Theme</MantineTabs.Tab>
+                <MantineTabs.Tab value="components">Components</MantineTabs.Tab>
+              </MantineTabs.List>
+            </Tabs>
 
             {/* Chunk 3: Action Buttons and Framework Dropdown */}
             <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-general-default)', alignItems: 'center', marginLeft: 'auto' }}>

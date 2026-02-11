@@ -2540,13 +2540,13 @@
             "font-size": {
               "$type": "dimension",
               "$value": {
-                "value": "{tokens.font.sizes.lg}",
+                "value": "{tokens.font.sizes.me}",
                 "unit": "px"
               }
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.semibold}"
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
@@ -2577,13 +2577,13 @@
             "font-size": {
               "$type": "dimension",
               "$value": {
-                "value": "{tokens.font.sizes.lg}",
+                "value": "{tokens.font.sizes.me}",
                 "unit": "px"
               }
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.medium}"
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
