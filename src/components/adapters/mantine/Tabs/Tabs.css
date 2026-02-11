@@ -15,6 +15,7 @@
 .recursica-tabs[data-variant="default"] .mantine-Tabs-list,
 .recursica-tabs[data-variant="default"] [role="tablist"] {
     position: relative !important;
+    isolation: isolate !important;
 }
 .recursica-tabs[data-variant="default"] .mantine-Tabs-list::before,
 .recursica-tabs[data-variant="default"] [role="tablist"]::before {
@@ -166,6 +167,27 @@
     border-radius: 0 var(--recursica-tabs-border-radius, 0px) var(--recursica-tabs-border-radius, 0px) 0 !important;
 }
 
+/* Outline variant: same stacking as default – track (list::before) on top of unselected tabs */
+.recursica-tabs[data-variant="outline"] .mantine-Tabs-list,
+.recursica-tabs[data-variant="outline"] [role="tablist"] {
+    position: relative !important;
+    isolation: isolate !important;
+}
+.recursica-tabs[data-variant="outline"] .mantine-Tabs-list::before,
+.recursica-tabs[data-variant="outline"] [role="tablist"]::before {
+    z-index: 1 !important;
+}
+.recursica-tabs[data-variant="outline"] .mantine-Tabs-tab:not([data-active]),
+.recursica-tabs[data-variant="outline"] [role="tab"]:not([data-active]) {
+    position: relative !important;
+    z-index: 0 !important;
+}
+.recursica-tabs[data-variant="outline"] .mantine-Tabs-tab[data-active],
+.recursica-tabs[data-variant="outline"] [role="tab"][data-active] {
+    position: relative !important;
+    z-index: 2 !important;
+}
+
 /* Unselected tab state */
 .recursica-tabs .mantine-Tabs-tab:not([data-active]),
 .recursica-tabs [role="tab"]:not([data-active]) {
@@ -239,6 +261,10 @@
 /* Outline: Mantine uses list::before for top border (track). We mask it to create gap under selected tab. */
 .recursica-tabs[data-variant="outline"][data-orientation="horizontal"]:not([data-inverted]) .mantine-Tabs-list::before,
 .recursica-tabs[data-variant="outline"][data-orientation="horizontal"]:not([data-inverted]) [role="tablist"]::before {
+    border-top: none !important;
+    border-bottom-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
+    border-bottom-style: solid !important;
+    border-bottom-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
     --gap-left: var(--recursica-tabs-track-gap-left, 0px);
     --gap-width: var(--recursica-tabs-track-gap-width, 0px);
     -webkit-mask-image: linear-gradient(to right, black 0, black var(--gap-left), transparent var(--gap-left), transparent calc(var(--gap-left) + var(--gap-width)), black calc(var(--gap-left) + var(--gap-width)), black 100%) !important;
