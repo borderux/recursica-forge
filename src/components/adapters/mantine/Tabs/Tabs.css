@@ -151,12 +151,17 @@
     font-style: var(--recursica-tabs-selected-font-style, normal) !important;
 }
 
-/* Pills variant */
+/* Pills variant: border on all four sides (outside), using respective border size for each state */
 .recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab {
-    border-bottom: none !important;
+    border: none !important;
+}
+
+.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab:not([data-active]) {
+    box-shadow: 0 0 0 var(--recursica-tabs-unselected-border-size, 2px) var(--recursica-tabs-unselected-border-color, transparent) !important;
 }
 
 .recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab[data-active] {
+    box-shadow: 0 0 0 var(--recursica-tabs-selected-border-size, 2px) var(--recursica-tabs-selected-border-color, currentColor) !important;
     background: var(--recursica-tabs-selected-background, currentColor) !important;
 }
 
@@ -232,35 +237,34 @@
 }
 
 
-/* Vertical orientation - placement left: indicator on right edge of tabs */
-.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab {
+/* Vertical orientation - default variant only: indicator on right/left edge of tabs */
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="vertical"] .mantine-Tabs-tab {
     border-bottom: none !important;
 }
-.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab {
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab {
     border-left: none !important;
     border-right-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
     border-right-style: solid !important;
 }
-.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab:not([data-active]) {
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab:not([data-active]) {
     border-right-color: transparent !important;
     border-right-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
 }
-.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab[data-active] {
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab[data-active] {
     border-right-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
     border-right-width: var(--recursica-tabs-selected-border-size, 2px) !important;
 }
 
-/* Vertical orientation - placement right: indicator on left edge of tabs */
-.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab {
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab {
     border-right: none !important;
     border-left-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
     border-left-style: solid !important;
 }
-.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab:not([data-active]) {
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab:not([data-active]) {
     border-left-color: transparent !important;
     border-left-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
 }
-.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab[data-active] {
+.recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab[data-active] {
     border-left-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
     border-left-width: var(--recursica-tabs-selected-border-size, 2px) !important;
 }
