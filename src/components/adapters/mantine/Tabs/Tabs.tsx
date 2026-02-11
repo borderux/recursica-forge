@@ -81,7 +81,7 @@ export default function Tabs({
     onChange,
     orientation,
     variant: variant === 'pills' ? 'pills' : variant === 'outline' ? 'outline' : 'default',
-    className,
+    className: `recursica-tabs ${className || ''}`.trim(),
     style: {
       // Set all CSS variables for the Tabs component
       // Selected state

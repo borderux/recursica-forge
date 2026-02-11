@@ -1,13 +1,10 @@
-/* Import the CSS file to enable Recursica theming */
-@import './Tabs.css';
-
 /* Tabs list - apply gap between tabs */
-.mantine-Tabs-list {
+.recursica-tabs .mantine-Tabs-list {
     gap: var(--recursica-tabs-space-between-tabs, 0px) !important;
 }
 
 /* Base tab styling */
-.mantine-Tabs-tab {
+.recursica-tabs .mantine-Tabs-tab {
     padding-left: var(--recursica-tabs-horizontal-padding, 16px) !important;
     padding-right: var(--recursica-tabs-horizontal-padding, 16px) !important;
     padding-top: var(--recursica-tabs-vertical-padding, 12px) !important;
@@ -16,7 +13,7 @@
 }
 
 /* Unselected tab state */
-.mantine-Tabs-tab:not([data-active="true"]) {
+.recursica-tabs .mantine-Tabs-tab:not([data-active="true"]) {
     background: var(--recursica-tabs-unselected-background, transparent) !important;
     color: var(--recursica-tabs-unselected-text-color, inherit) !important;
     border-bottom-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
@@ -32,12 +29,12 @@
     font-style: var(--recursica-tabs-unselected-font-style, normal) !important;
 }
 
-.mantine-Tabs-tab:not([data-active="true"]):hover {
+.recursica-tabs .mantine-Tabs-tab:not([data-active="true"]):hover {
     background: var(--recursica-tabs-unselected-background-hover, rgba(0, 0, 0, 0.05)) !important;
 }
 
 /* Selected tab state */
-.mantine-Tabs-tab[data-active="true"] {
+.recursica-tabs .mantine-Tabs-tab[data-active="true"] {
     background: var(--recursica-tabs-selected-background, transparent) !important;
     color: var(--recursica-tabs-selected-text-color, inherit) !important;
     border-bottom-width: var(--recursica-tabs-selected-border-size, 2px) !important;
@@ -54,64 +51,64 @@
 }
 
 /* Pills variant */
-.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab {
+.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab {
     border-bottom: none !important;
 }
 
-.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab[data-active="true"] {
+.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab[data-active="true"] {
     background: var(--recursica-tabs-selected-background, currentColor) !important;
 }
 
-.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab:not([data-active="true"]):hover {
+.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab:not([data-active="true"]):hover {
     background: var(--recursica-tabs-unselected-background-hover, rgba(0, 0, 0, 0.05)) !important;
 }
 
 /* Outline variant */
-.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab {
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab {
     border: 1px solid transparent !important;
     border-bottom: none !important;
 }
 
-.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active="true"]) {
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active="true"]) {
     border-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
     background: var(--recursica-tabs-unselected-background, transparent) !important;
 }
 
-.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active="true"]):hover {
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active="true"]):hover {
     background: var(--recursica-tabs-unselected-background-hover, rgba(0, 0, 0, 0.05)) !important;
 }
 
-.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab[data-active="true"] {
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab[data-active="true"] {
     border-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
     background: var(--recursica-tabs-selected-background, transparent) !important;
 }
 
 /* Icon styling */
-.mantine-Tabs-tab svg,
-.mantine-Tabs-tab .mantine-Tabs-tabIcon {
+.recursica-tabs .mantine-Tabs-tab svg,
+.recursica-tabs .mantine-Tabs-tab .mantine-Tabs-tabIcon {
     width: var(--recursica-tabs-icon-size, 16px) !important;
     height: var(--recursica-tabs-icon-size, 16px) !important;
 }
 
 /* Icon color - unselected */
-.mantine-Tabs-tab:not([data-active="true"]) svg,
-.mantine-Tabs-tab:not([data-active="true"]) .mantine-Tabs-tabIcon {
+.recursica-tabs .mantine-Tabs-tab:not([data-active="true"]) svg,
+.recursica-tabs .mantine-Tabs-tab:not([data-active="true"]) .mantine-Tabs-tabIcon {
     color: var(--recursica-tabs-unselected-icon-color, inherit) !important;
 }
 
 /* Icon color - selected */
-.mantine-Tabs-tab[data-active="true"] svg,
-.mantine-Tabs-tab[data-active="true"] .mantine-Tabs-tabIcon {
+.recursica-tabs .mantine-Tabs-tab[data-active="true"] svg,
+.recursica-tabs .mantine-Tabs-tab[data-active="true"] .mantine-Tabs-tabIcon {
     color: var(--recursica-tabs-selected-icon-color, inherit) !important;
 }
 
 /* Override Mantine's default icon section margin and use our element-gap */
-.mantine-Tabs-tab .mantine-Tabs-tabSection[data-position="left"] {
+.recursica-tabs .mantine-Tabs-tab .mantine-Tabs-tabSection[data-position="left"] {
     margin-inline-end: var(--recursica-tabs-element-gap, 8px) !important;
 }
 
 /* Gap for inline flex containers (badges, etc.) */
-.mantine-Tabs-tab .mantine-Tabs-tabLabel>div {
+.recursica-tabs .mantine-Tabs-tab .mantine-Tabs-tabLabel>div {
     display: flex !important;
     align-items: center !important;
     gap: var(--recursica-tabs-element-gap, 8px) !important;
@@ -119,18 +116,18 @@
 
 
 /* Vertical orientation */
-.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab {
+.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab {
     border-bottom: none !important;
     border-right-width: var(--recursica-tabs-border-size, 2px) !important;
     border-right-style: solid !important;
 }
 
-.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab:not([data-active="true"]) {
+.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab:not([data-active="true"]) {
     border-right-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
     border-right-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
 }
 
-.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab[data-active="true"] {
+.recursica-tabs.mantine-Tabs-root[data-orientation="vertical"] .mantine-Tabs-tab[data-active="true"] {
     border-right-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
     border-right-width: var(--recursica-tabs-selected-border-size, 2px) !important;
 }

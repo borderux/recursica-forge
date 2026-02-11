@@ -24,6 +24,11 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const firstHexMatchRef = useRef<string | null>(null)
 
 
+  // Reset firstHexMatchRef when target changes so hex-based selection works correctly for each picker session
+  useEffect(() => {
+    firstHexMatchRef.current = null
+  }, [targetCssVar])
+
   // Close picker when mode changes or event received
   useEffect(() => {
     const handleCloseAll = () => {
@@ -135,21 +140,32 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
   const selectedPaletteSwatch = useMemo(() => {
     if (!targetResolvedValue || !targetCssVar) return null
-    const directValue = readCssVar(targetCssVar)
-    if (!directValue) return null
-    const trimmed = directValue.trim()
+    let currentValue: string | undefined = readCssVar(targetCssVar)
+    if (!currentValue) return null
 
-    // Match palette pattern
-    const paletteMatch = trimmed.match(/var\(--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone\)/)
-    if (paletteMatch) return `${paletteMatch[1]}-${paletteMatch[2]}`
+    // Follow var() chain to find palette ref (handles UIKit vars that chain through layers/tokens)
+    for (let depth = 0; depth < 10 && currentValue; depth++) {
+      const trimmed = currentValue.trim()
 
-    // Match core color pattern
-    const coreMatch = trimmed.match(/var\(--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\)/i)
-    if (coreMatch) {
-      let key = coreMatch[1].replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
-      return `core-${key}`
+      // Match palette pattern: palettes-{name}-{level}-tone
+      const paletteMatch = trimmed.match(/var\(--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|primary|000|1000)-tone\)/)
+      if (paletteMatch) return `${paletteMatch[1]}-${paletteMatch[2]}`
+
+      // Match core color pattern
+      const coreMatch = trimmed.match(/var\(--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\)/i)
+      if (coreMatch) {
+        let key = coreMatch[1].replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
+        return `core-${key}`
+      }
+
+      // Follow chain: extract inner var and resolve
+      const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+      if (varMatch) {
+        currentValue = readCssVar(varMatch[1].trim())
+      } else {
+        break
+      }
     }
-
     return null
   }, [targetResolvedValue, targetCssVar])
 

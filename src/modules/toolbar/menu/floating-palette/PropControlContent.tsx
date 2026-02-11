@@ -741,7 +741,7 @@ export default function PropControlContent({
     if (propToCheck.cssVar && propToCheck.path && propToCheck.path.length > 0) {
       // For grouped props, ensure we match the exact path
       // Check if this is a grouped prop by looking for "container" or "selected" in path
-      const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item')
+      const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('unselected') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item') || propToCheck.path.includes('thumb-selected') || propToCheck.path.includes('thumb-unselected') || propToCheck.path.includes('track-selected') || propToCheck.path.includes('track-unselected')
       if (isGroupedProp) {
         // Use the prop's CSS var directly to ensure we're updating the correct one
         return [propToCheck.cssVar]
@@ -764,7 +764,7 @@ export default function PropControlContent({
       }
       // For grouped props, ensure the path matches exactly
       if (propToCheck.path && propToCheck.path.length > 0) {
-        const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item')
+        const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('unselected') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item') || propToCheck.path.includes('thumb-selected') || propToCheck.path.includes('thumb-unselected') || propToCheck.path.includes('track-selected') || propToCheck.path.includes('track-unselected') || propToCheck.path.includes('thumb-selected') || propToCheck.path.includes('thumb-unselected') || propToCheck.path.includes('track-selected') || propToCheck.path.includes('track-unselected')
         if (isGroupedProp) {
           // Match the exact path segments for grouped props
           const propToCheckPathStr = propToCheck.path.join('/')
@@ -3985,7 +3985,7 @@ export default function PropControlContent({
           // - If grouped prop path contains "container" or "selected", use the prop's CSS var directly to ensure we're updating the correct grouped prop
           // - Otherwise (component-level props like Avatar border-radius), always use getCssVarsForProp to ensure correct CSS var resolution
           let cssVars: string[]
-          const isGroupedContainerOrSelected = groupedProp.path && (groupedProp.path.includes('container') || groupedProp.path.includes('selected'))
+          const isGroupedContainerOrSelected = groupedProp.path && (groupedProp.path.includes('container') || groupedProp.path.includes('selected') || groupedProp.path.includes('unselected'))
           if (groupedProp.isVariantSpecific && groupedProp.variantProp) {
             // Variant-specific prop: always resolve based on selected variant
             cssVars = getCssVarsForProp(groupedProp)

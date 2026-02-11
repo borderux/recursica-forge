@@ -149,8 +149,9 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         }
     }
 
-    // Update the store
-    getVarsStore().setUiKit(updatedUIKit)
+    // Update the store without triggering recompute - we already set the CSS var via updateCssVar
+    // This prevents recomputeAndApplyAll from overwriting our DOM update (fixes toolbar color updates for Tabs, etc.)
+    getVarsStore().setUiKitSilent(updatedUIKit)
 
     return true
 }

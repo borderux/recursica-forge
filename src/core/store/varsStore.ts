@@ -569,6 +569,8 @@ class VarsStore {
   setTokens(next: JsonLike) { this.writeState({ tokens: next }) }
   setTheme(next: JsonLike) { this.writeState({ theme: next }) }
   setUiKit(next: JsonLike) { this.writeState({ uikit: next }) }
+  /** Update UIKit without triggering recomputeAndApplyAll. Use when CSS var was already set via updateCssVar (e.g. toolbar color picker). */
+  setUiKitSilent(next: JsonLike) { this.writeState({ uikit: next }, true) }
   setPalettes(next: PaletteStore) { this.writeState({ palettes: next }) }
   setElevation(next: ElevationState) { this.writeState({ elevation: next }) }
   updateElevation(mutator: (prev: ElevationState) => ElevationState) { this.writeState({ elevation: mutator(this.state.elevation) }) }
