@@ -123,12 +123,24 @@ export default function ComponentToolbar({
 
       // Check if this prop is part of a group in the config (but not if it's the parent prop itself)
       // IMPORTANT: Skip grouping check for text-group props - they are always standalone
+      // For nested groups like selected/unselected (Tabs), match by path so border-size under "selected" goes to selected, not unselected
       let groupedParent: string | null = null
       if (prop.type !== 'text-group' && toolbarConfig?.props) {
         for (const [key, propConfig] of Object.entries(toolbarConfig.props)) {
           if (propConfig.group && propConfig.group[propNameLower]) {
-            groupedParent = key
-            break
+            const keyLower = key.toLowerCase()
+            if (prop.path.includes(keyLower)) {
+              groupedParent = key
+              break
+            }
+          }
+        }
+        if (!groupedParent) {
+          for (const [key, propConfig] of Object.entries(toolbarConfig.props)) {
+            if (propConfig.group && propConfig.group[propNameLower]) {
+              groupedParent = key
+              break
+            }
           }
         }
       }
