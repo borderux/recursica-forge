@@ -2034,7 +2034,7 @@
                 "border-radius": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.border-radii.xl}",
+                    "value": "{brand.dimensions.border-radii.default}",
                     "unit": "px"
                   }
                 },
@@ -2116,7 +2116,7 @@
                   "border-size": {
                     "$type": "dimension",
                     "$value": {
-                      "value": 2,
+                      "value": 1,
                       "unit": "px"
                     }
                   }
@@ -2317,7 +2317,7 @@
                   "border-size": {
                     "$type": "dimension",
                     "$value": {
-                      "value": 2,
+                      "value": 1,
                       "unit": "px"
                     }
                   }
@@ -2459,7 +2459,7 @@
                 "element-gap": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.general.sm}",
+                    "value": "{brand.dimensions.general.default}",
                     "unit": "px"
                   }
                 },
@@ -2498,7 +2498,7 @@
                 "element-gap": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.general.sm}",
+                    "value": "{brand.dimensions.general.default}",
                     "unit": "px"
                   }
                 },

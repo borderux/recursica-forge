@@ -152,9 +152,6 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottomWidth: '1px',
-            borderBottomStyle: 'solid',
-            borderBottomColor: `var(--recursica-brand-themes-${mode}-palettes-neutral-primary-tone)`,
           }}
         >
           {/* Logo, Brand, and Navigation Buttons */}

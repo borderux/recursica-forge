@@ -143,9 +143,6 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
             height: 'auto',
             flexShrink: 0,
-            borderBottomWidth: '1px',
-            borderBottomStyle: 'solid',
-            borderBottomColor: `var(--recursica-brand-themes-${mode}-palettes-neutral-primary-tone)`,
           }}
         >
           <Group gap="var(--recursica-brand-dimensions-general-xl)" wrap="nowrap" style={{ width: '100%' }}>

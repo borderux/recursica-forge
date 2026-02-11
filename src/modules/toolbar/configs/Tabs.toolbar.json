@@ -16,7 +16,7 @@
   "props": {
     "active": {
       "icon": "check-square",
-      "label": "Active tab colors",
+      "label": "Active tab",
       "visible": true,
       "group": {
         "icon-color": {
@@ -48,7 +48,7 @@
     },
     "inactive": {
       "icon": "squares-four",
-      "label": "Inactive tab colors",
+      "label": "Inactive tab",
       "visible": true,
       "group": {
         "icon-color": {
@@ -119,7 +119,7 @@
     },
     "tabs": {
       "icon": "squares-four",
-      "label": "Tab",
+      "label": "Tab size and style",
       "visible": true,
       "group": {
         "min-width": {"icon": "arrows-left-right", "label": "Min width", "visible": true},

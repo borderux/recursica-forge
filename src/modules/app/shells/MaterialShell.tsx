@@ -157,9 +157,6 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             height: 'auto',
             flexShrink: 0,
             boxShadow: 'none',
-            borderBottomWidth: '1px',
-            borderBottomStyle: 'solid',
-            borderBottomColor: `var(--recursica-brand-themes-${mode}-palettes-neutral-primary-tone)`,
           }}
         >
           <Toolbar sx={{ gap: 'var(--recursica-brand-dimensions-general-xl)', justifyContent: 'space-between', minHeight: 'auto !important', width: '100%' }}>
