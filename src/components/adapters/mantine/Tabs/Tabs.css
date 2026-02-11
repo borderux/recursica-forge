@@ -27,12 +27,14 @@
     border-bottom-style: solid !important;
     border-bottom-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
 }
-/* Horizontal bottom (inverted) */
+/* Horizontal bottom (inverted): line above tabs (content edge) AND below tabs (bottom of strip) */
 .recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-list::before {
-    border-bottom: none !important;
     border-top-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
     border-top-style: solid !important;
     border-top-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
+    border-bottom-width: var(--recursica-tabs-unselected-border-size, 2px) !important;
+    border-bottom-style: solid !important;
+    border-bottom-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
 }
 /* Vertical left: show only inline-end (right) border - full-height track (default when placement is left or unset) */
 .recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-list::before {
@@ -54,7 +56,7 @@
 }
 
 
-/* Default variant bottom tabs: indicator on TOP of tabs; unselected transparent so list::before = full-width track */
+/* Default variant bottom tabs: unselected have transparent top border so list::before shows; selected has NO top border */
 .recursica-tabs.mantine-Tabs-root[data-variant="default"][data-inverted][data-orientation="horizontal"] .mantine-Tabs-tab:not([data-active]) {
     border-bottom: none !important;
     border-top-style: solid !important;
@@ -63,9 +65,9 @@
 }
 .recursica-tabs.mantine-Tabs-root[data-variant="default"][data-inverted][data-orientation="horizontal"] .mantine-Tabs-tab[data-active] {
     border-bottom: none !important;
-    border-top-style: solid !important;
-    border-top-width: var(--recursica-tabs-selected-border-size, 2px) !important;
-    border-top-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
+    border-top: none !important;
+    border-top-width: 0 !important;
+    border-top-color: transparent !important;
 }
 
 /* Base tab styling */
@@ -182,6 +184,14 @@
 }
 
 /* Outline variant */
+/* Outline inverted (bottom tabs): list::before needs bottom border - Mantine only draws top */
+.recursica-tabs[data-variant="outline"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-list::before,
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-list::before {
+    border-bottom-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
+    border-bottom-style: solid !important;
+    border-bottom-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
+}
+
 .recursica-tabs[data-variant="outline"] .mantine-Tabs-tab,
 .recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab {
     border: 1px solid transparent !important;
@@ -192,6 +202,16 @@
 .recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active]) {
     border-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
     background: var(--recursica-tabs-unselected-background, transparent) !important;
+}
+/* Outline inverted: unselected tabs have transparent top so list::before line shows; all tabs need bottom border */
+.recursica-tabs[data-variant="outline"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-tab:not([data-active]),
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-tab:not([data-active]) {
+    border-top-color: transparent !important;
+    border-bottom: 1px solid var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
+}
+.recursica-tabs[data-variant="outline"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-tab[data-active],
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-tab[data-active] {
+    border-bottom: 1px solid var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
 }
 
 .recursica-tabs[data-variant="outline"] .mantine-Tabs-tab:not([data-active]):hover,
@@ -208,6 +228,14 @@
     --tab-border-bottom-color: transparent !important;
     /* Use body-color background so list::before line doesn't show through (matches content area) */
     background-color: var(--mantine-color-body, #fff) !important;
+}
+/* Outline inverted (bottom tabs): selected tab has NO top border, all tabs have bottom border */
+.recursica-tabs[data-variant="outline"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-tab[data-active],
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-tab[data-active] {
+    border-top: none !important;
+    border-top-width: 0 !important;
+    border-top-color: transparent !important;
+    --tab-border-top-color: transparent !important;
 }
 
 /* Icon styling */
