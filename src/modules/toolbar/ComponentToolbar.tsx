@@ -286,7 +286,7 @@ export default function ComponentToolbar({
               // For nested property groups like "container", "selected", "selected-item", and "unselected-item", match props by name AND path
               // Check if the parent prop name is in the path (e.g., "container", "selected", "selected-item", or "unselected-item")
               const parentPropNameLower = parentPropName.toLowerCase()
-              const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'unselected' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item' || parentPropNameLower === 'thumb-selected' || parentPropNameLower === 'thumb-unselected' || parentPropNameLower === 'track-selected' || parentPropNameLower === 'track-unselected'
+              const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'unselected' || parentPropNameLower === 'active' || parentPropNameLower === 'inactive' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item' || parentPropNameLower === 'thumb-selected' || parentPropNameLower === 'thumb-unselected' || parentPropNameLower === 'track-selected' || parentPropNameLower === 'track-unselected'
 
 
               let groupedProp = structure.props.find(p => {

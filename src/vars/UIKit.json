@@ -1830,7 +1830,7 @@
           "styles": {
             "default": {
               "properties": {
-                "selected": {
+                "active": {
                   "colors": {
                     "layer-0": {
                       "background": {
@@ -1913,7 +1913,7 @@
                     }
                   }
                 },
-                "unselected": {
+                "inactive": {
                   "colors": {
                     "layer-0": {
                       "background": {
@@ -2038,7 +2038,7 @@
                     "unit": "px"
                   }
                 },
-                "selected": {
+                "active": {
                   "colors": {
                     "layer-0": {
                       "background": {
@@ -2121,7 +2121,7 @@
                     }
                   }
                 },
-                "unselected": {
+                "inactive": {
                   "colors": {
                     "layer-0": {
                       "background": {
@@ -2239,7 +2239,7 @@
                     "unit": "px"
                   }
                 },
-                "selected": {
+                "active": {
                   "colors": {
                     "layer-0": {
                       "background": {
@@ -2322,7 +2322,7 @@
                     }
                   }
                 },
-                "unselected": {
+                "inactive": {
                   "colors": {
                     "layer-0": {
                       "background": {
@@ -2532,7 +2532,7 @@
             "$type": "string",
             "$value": "left"
           },
-          "selected-text": {
+          "active-text": {
             "font-family": {
               "$type": "string",
               "$value": "{tokens.font.typefaces.primary}"
@@ -2569,7 +2569,7 @@
               "$value": "normal"
             }
           },
-          "unselected-text": {
+          "inactive-text": {
             "font-family": {
               "$type": "string",
               "$value": "{tokens.font.typefaces.primary}"

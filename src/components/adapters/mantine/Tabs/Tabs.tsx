@@ -32,42 +32,42 @@ export default function Tabs({
   // Determine the variant style (default to 'default' if not specified)
   const variantStyle = variant || 'default'
 
-  // Get selected state colors
-  const selectedBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'colors', layer, 'background')
-  const selectedBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'colors', layer, 'border-color')
-  const selectedTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'colors', layer, 'text-color')
-  const selectedIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'colors', layer, 'icon-color')
-  const selectedBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'selected', 'border-size')
+  // Get active state colors
+  const activeBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'background')
+  const activeBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'border-color')
+  const activeTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'text-color')
+  const activeIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'icon-color')
+  const activeBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'border-size')
 
-  // Get unselected state colors
-  const unselectedBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'background')
-  const unselectedBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'border-color')
-  const unselectedTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'text-color')
-  const unselectedIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'colors', layer, 'icon-color')
-  const unselectedBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'unselected', 'border-size')
+  // Get inactive state colors
+  const inactiveBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'background')
+  const inactiveBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'border-color')
+  const inactiveTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'text-color')
+  const inactiveIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'icon-color')
+  const inactiveBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'border-size')
 
   // Get variant-specific properties
   const borderRadiusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'border-radius')
 
-  // Get selected text properties
-  const selectedFontFamilyVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'font-family')
-  const selectedFontSizeVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'font-size')
-  const selectedFontWeightVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'font-weight')
-  const selectedLetterSpacingVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'letter-spacing')
-  const selectedLineHeightVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'line-height')
-  const selectedTextDecorationVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'text-decoration')
-  const selectedTextTransformVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'text-transform')
-  const selectedFontStyleVar = buildComponentCssVarPath('Tabs', 'properties', 'selected-text', 'font-style')
+  // Get active text properties
+  const activeFontFamilyVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'font-family')
+  const activeFontSizeVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'font-size')
+  const activeFontWeightVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'font-weight')
+  const activeLetterSpacingVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'letter-spacing')
+  const activeLineHeightVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'line-height')
+  const activeTextDecorationVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'text-decoration')
+  const activeTextTransformVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'text-transform')
+  const activeFontStyleVar = buildComponentCssVarPath('Tabs', 'properties', 'active-text', 'font-style')
 
-  // Get unselected text properties
-  const unselectedFontFamilyVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'font-family')
-  const unselectedFontSizeVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'font-size')
-  const unselectedFontWeightVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'font-weight')
-  const unselectedLetterSpacingVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'letter-spacing')
-  const unselectedLineHeightVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'line-height')
-  const unselectedTextDecorationVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'text-decoration')
-  const unselectedTextTransformVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'text-transform')
-  const unselectedFontStyleVar = buildComponentCssVarPath('Tabs', 'properties', 'unselected-text', 'font-style')
+  // Get inactive text properties
+  const inactiveFontFamilyVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'font-family')
+  const inactiveFontSizeVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'font-size')
+  const inactiveFontWeightVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'font-weight')
+  const inactiveLetterSpacingVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'letter-spacing')
+  const inactiveLineHeightVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'line-height')
+  const inactiveTextDecorationVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'text-decoration')
+  const inactiveTextTransformVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'text-transform')
+  const inactiveFontStyleVar = buildComponentCssVarPath('Tabs', 'properties', 'inactive-text', 'font-style')
 
   // Get spacing properties from orientation variant
   const horizontalPaddingVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'horizontal-padding')
@@ -142,38 +142,38 @@ export default function Tabs({
     className: `recursica-tabs ${className || ''}`.trim(),
     style: {
       // Set all CSS variables for the Tabs component
-      // Selected state
-      '--recursica-tabs-selected-background': selectedBackgroundVar ? `var(${selectedBackgroundVar})` : undefined,
-      '--recursica-tabs-selected-border-color': selectedBorderColorVar ? `var(${selectedBorderColorVar})` : undefined,
-      '--recursica-tabs-selected-text-color': selectedTextColorVar ? `var(${selectedTextColorVar})` : undefined,
-      '--recursica-tabs-selected-icon-color': selectedIconColorVar ? `var(${selectedIconColorVar})` : undefined,
-      '--recursica-tabs-selected-border-size': selectedBorderSizeVar ? `var(${selectedBorderSizeVar})` : undefined,
-      // Unselected state
-      '--recursica-tabs-unselected-background': unselectedBackgroundVar ? `var(${unselectedBackgroundVar})` : undefined,
-      '--recursica-tabs-unselected-border-color': unselectedBorderColorVar ? `var(${unselectedBorderColorVar})` : undefined,
-      '--recursica-tabs-unselected-text-color': unselectedTextColorVar ? `var(${unselectedTextColorVar})` : undefined,
-      '--recursica-tabs-unselected-icon-color': unselectedIconColorVar ? `var(${unselectedIconColorVar})` : undefined,
-      '--recursica-tabs-unselected-border-size': unselectedBorderSizeVar ? `var(${unselectedBorderSizeVar})` : undefined,
+      // Active state
+      '--recursica-tabs-active-background': activeBackgroundVar ? `var(${activeBackgroundVar})` : undefined,
+      '--recursica-tabs-active-border-color': activeBorderColorVar ? `var(${activeBorderColorVar})` : undefined,
+      '--recursica-tabs-active-text-color': activeTextColorVar ? `var(${activeTextColorVar})` : undefined,
+      '--recursica-tabs-active-icon-color': activeIconColorVar ? `var(${activeIconColorVar})` : undefined,
+      '--recursica-tabs-active-border-size': activeBorderSizeVar ? `var(${activeBorderSizeVar})` : undefined,
+      // Inactive state
+      '--recursica-tabs-inactive-background': inactiveBackgroundVar ? `var(${inactiveBackgroundVar})` : undefined,
+      '--recursica-tabs-inactive-border-color': inactiveBorderColorVar ? `var(${inactiveBorderColorVar})` : undefined,
+      '--recursica-tabs-inactive-text-color': inactiveTextColorVar ? `var(${inactiveTextColorVar})` : undefined,
+      '--recursica-tabs-inactive-icon-color': inactiveIconColorVar ? `var(${inactiveIconColorVar})` : undefined,
+      '--recursica-tabs-inactive-border-size': inactiveBorderSizeVar ? `var(${inactiveBorderSizeVar})` : undefined,
       // Variant-specific
       '--recursica-tabs-border-radius': borderRadiusVar ? `var(${borderRadiusVar})` : undefined,
-      // Selected text typography
-      '--recursica-tabs-selected-font-family': selectedFontFamilyVar ? `var(${selectedFontFamilyVar})` : undefined,
-      '--recursica-tabs-selected-font-size': selectedFontSizeVar ? `var(${selectedFontSizeVar})` : undefined,
-      '--recursica-tabs-selected-font-weight': selectedFontWeightVar ? `var(${selectedFontWeightVar})` : undefined,
-      '--recursica-tabs-selected-letter-spacing': selectedLetterSpacingVar ? `var(${selectedLetterSpacingVar})` : undefined,
-      '--recursica-tabs-selected-line-height': selectedLineHeightVar ? `var(${selectedLineHeightVar})` : undefined,
-      '--recursica-tabs-selected-text-decoration': selectedTextDecorationVar ? `var(${selectedTextDecorationVar})` : undefined,
-      '--recursica-tabs-selected-text-transform': selectedTextTransformVar ? `var(${selectedTextTransformVar})` : undefined,
-      '--recursica-tabs-selected-font-style': selectedFontStyleVar ? `var(${selectedFontStyleVar})` : undefined,
-      // Unselected text typography
-      '--recursica-tabs-unselected-font-family': unselectedFontFamilyVar ? `var(${unselectedFontFamilyVar})` : undefined,
-      '--recursica-tabs-unselected-font-size': unselectedFontSizeVar ? `var(${unselectedFontSizeVar})` : undefined,
-      '--recursica-tabs-unselected-font-weight': unselectedFontWeightVar ? `var(${unselectedFontWeightVar})` : undefined,
-      '--recursica-tabs-unselected-letter-spacing': unselectedLetterSpacingVar ? `var(${unselectedLetterSpacingVar})` : undefined,
-      '--recursica-tabs-unselected-line-height': unselectedLineHeightVar ? `var(${unselectedLineHeightVar})` : undefined,
-      '--recursica-tabs-unselected-text-decoration': unselectedTextDecorationVar ? `var(${unselectedTextDecorationVar})` : undefined,
-      '--recursica-tabs-unselected-text-transform': unselectedTextTransformVar ? `var(${unselectedTextTransformVar})` : undefined,
-      '--recursica-tabs-unselected-font-style': unselectedFontStyleVar ? `var(${unselectedFontStyleVar})` : undefined,
+      // Active text typography
+      '--recursica-tabs-active-font-family': activeFontFamilyVar ? `var(${activeFontFamilyVar})` : undefined,
+      '--recursica-tabs-active-font-size': activeFontSizeVar ? `var(${activeFontSizeVar})` : undefined,
+      '--recursica-tabs-active-font-weight': activeFontWeightVar ? `var(${activeFontWeightVar})` : undefined,
+      '--recursica-tabs-active-letter-spacing': activeLetterSpacingVar ? `var(${activeLetterSpacingVar})` : undefined,
+      '--recursica-tabs-active-line-height': activeLineHeightVar ? `var(${activeLineHeightVar})` : undefined,
+      '--recursica-tabs-active-text-decoration': activeTextDecorationVar ? `var(${activeTextDecorationVar})` : undefined,
+      '--recursica-tabs-active-text-transform': activeTextTransformVar ? `var(${activeTextTransformVar})` : undefined,
+      '--recursica-tabs-active-font-style': activeFontStyleVar ? `var(${activeFontStyleVar})` : undefined,
+      // Inactive text typography
+      '--recursica-tabs-inactive-font-family': inactiveFontFamilyVar ? `var(${inactiveFontFamilyVar})` : undefined,
+      '--recursica-tabs-inactive-font-size': inactiveFontSizeVar ? `var(${inactiveFontSizeVar})` : undefined,
+      '--recursica-tabs-inactive-font-weight': inactiveFontWeightVar ? `var(${inactiveFontWeightVar})` : undefined,
+      '--recursica-tabs-inactive-letter-spacing': inactiveLetterSpacingVar ? `var(${inactiveLetterSpacingVar})` : undefined,
+      '--recursica-tabs-inactive-line-height': inactiveLineHeightVar ? `var(${inactiveLineHeightVar})` : undefined,
+      '--recursica-tabs-inactive-text-decoration': inactiveTextDecorationVar ? `var(${inactiveTextDecorationVar})` : undefined,
+      '--recursica-tabs-inactive-text-transform': inactiveTextTransformVar ? `var(${inactiveTextTransformVar})` : undefined,
+      '--recursica-tabs-inactive-font-style': inactiveFontStyleVar ? `var(${inactiveFontStyleVar})` : undefined,
       // Spacing
       '--recursica-tabs-horizontal-padding': horizontalPaddingVar ? `var(${horizontalPaddingVar})` : undefined,
       '--recursica-tabs-vertical-padding': verticalPaddingVar ? `var(${verticalPaddingVar})` : undefined,
