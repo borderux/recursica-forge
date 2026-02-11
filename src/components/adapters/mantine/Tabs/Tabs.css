@@ -102,10 +102,22 @@
 .recursica-tabs.mantine-Tabs-root[data-variant="default"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab {
     border-radius: 0 var(--recursica-tabs-border-radius, 0px) var(--recursica-tabs-border-radius, 0px) 0 !important;
 }
-/* Pills and outline variants keep uniform border-radius */
-.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab,
-.recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab {
+/* Pills variant keeps uniform border-radius */
+.recursica-tabs.mantine-Tabs-root[data-variant="pills"] .mantine-Tabs-tab {
     border-radius: var(--recursica-tabs-border-radius, 0px) !important;
+}
+/* Outline variant: border-radius matches default (orientation/placement specific) */
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"][data-orientation="horizontal"]:not([data-inverted]) .mantine-Tabs-tab {
+    border-radius: var(--recursica-tabs-border-radius, 0px) var(--recursica-tabs-border-radius, 0px) 0 0 !important;
+}
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-tab {
+    border-radius: 0 0 var(--recursica-tabs-border-radius, 0px) var(--recursica-tabs-border-radius, 0px) !important;
+}
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab {
+    border-radius: var(--recursica-tabs-border-radius, 0px) 0 0 var(--recursica-tabs-border-radius, 0px) !important;
+}
+.recursica-tabs.mantine-Tabs-root[data-variant="outline"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab {
+    border-radius: 0 var(--recursica-tabs-border-radius, 0px) var(--recursica-tabs-border-radius, 0px) 0 !important;
 }
 
 /* Unselected tab state */
@@ -170,23 +182,32 @@
 }
 
 /* Outline variant */
+.recursica-tabs[data-variant="outline"] .mantine-Tabs-tab,
 .recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab {
     border: 1px solid transparent !important;
     border-bottom: none !important;
 }
 
+.recursica-tabs[data-variant="outline"] .mantine-Tabs-tab:not([data-active]),
 .recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active]) {
     border-color: var(--recursica-tabs-unselected-border-color, transparent) !important;
     background: var(--recursica-tabs-unselected-background, transparent) !important;
 }
 
+.recursica-tabs[data-variant="outline"] .mantine-Tabs-tab:not([data-active]):hover,
 .recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab:not([data-active]):hover {
     background: var(--recursica-tabs-unselected-background, transparent) !important;
 }
 
+.recursica-tabs[data-variant="outline"] .mantine-Tabs-tab[data-active],
 .recursica-tabs.mantine-Tabs-root[data-variant="outline"] .mantine-Tabs-tab[data-active] {
     border-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
-    background: var(--recursica-tabs-selected-background, transparent) !important;
+    border-bottom: none !important;
+    border-bottom-width: 0 !important;
+    border-bottom-color: transparent !important;
+    --tab-border-bottom-color: transparent !important;
+    /* Use body-color background so list::before line doesn't show through (matches content area) */
+    background-color: var(--mantine-color-body, #fff) !important;
 }
 
 /* Icon styling */
