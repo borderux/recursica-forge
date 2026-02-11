@@ -299,6 +299,43 @@
     border-bottom-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
 }
 
+/* Outline vertical left: list::before = full-height track on right edge. Mask creates gap at selected tab. */
+.recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-list::before,
+.recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) [role="tablist"]::before {
+    border-top: none !important;
+    border-bottom: none !important;
+    border-inline-start: none !important;
+    border-inline-end-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
+    border-inline-end-style: solid !important;
+    border-inline-end-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
+    --gap-top: var(--recursica-tabs-track-gap-top, 0px);
+    --gap-height: var(--recursica-tabs-track-gap-height, 0px);
+    -webkit-mask-image: linear-gradient(to bottom, black 0, black var(--gap-top), transparent var(--gap-top), transparent calc(var(--gap-top) + var(--gap-height)), black calc(var(--gap-top) + var(--gap-height)), black 100%) !important;
+    mask-image: linear-gradient(to bottom, black 0, black var(--gap-top), transparent var(--gap-top), transparent calc(var(--gap-top) + var(--gap-height)), black calc(var(--gap-top) + var(--gap-height)), black 100%) !important;
+    -webkit-mask-size: 100% 100% !important;
+    mask-size: 100% 100% !important;
+    -webkit-mask-repeat: no-repeat !important;
+    mask-repeat: no-repeat !important;
+}
+/* Outline vertical right: list::before = full-height track on left edge. Mask creates gap at selected tab. */
+.recursica-tabs[data-variant="outline"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-list::before,
+.recursica-tabs[data-variant="outline"][data-orientation="vertical"][data-placement="right"] [role="tablist"]::before {
+    border-top: none !important;
+    border-bottom: none !important;
+    border-inline-end: none !important;
+    border-inline-start-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
+    border-inline-start-style: solid !important;
+    border-inline-start-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
+    --gap-top: var(--recursica-tabs-track-gap-top, 0px);
+    --gap-height: var(--recursica-tabs-track-gap-height, 0px);
+    -webkit-mask-image: linear-gradient(to bottom, black 0, black var(--gap-top), transparent var(--gap-top), transparent calc(var(--gap-top) + var(--gap-height)), black calc(var(--gap-top) + var(--gap-height)), black 100%) !important;
+    mask-image: linear-gradient(to bottom, black 0, black var(--gap-top), transparent var(--gap-top), transparent calc(var(--gap-top) + var(--gap-height)), black calc(var(--gap-top) + var(--gap-height)), black 100%) !important;
+    -webkit-mask-size: 100% 100% !important;
+    mask-size: 100% 100% !important;
+    -webkit-mask-repeat: no-repeat !important;
+    mask-repeat: no-repeat !important;
+}
+
 /* Outline: use actual borders (take up space) - horizontal top: top/left/right only, no bottom (track) */
 .recursica-tabs[data-variant="outline"][data-orientation="horizontal"]:not([data-inverted]) .mantine-Tabs-tab,
 .recursica-tabs[data-variant="outline"][data-orientation="horizontal"]:not([data-inverted]) [role="tab"] {
@@ -351,15 +388,17 @@
     background: var(--recursica-tabs-selected-background, transparent) !important;
 }
 
-/* Outline vertical: right or left border depending on placement */
+/* Outline vertical left (tabs on left): top, left, bottom on tabs; list::before provides right track */
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab,
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) [role="tab"] {
     border-style: solid !important;
     border-top-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
-    border-right-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
+    border-left-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
     border-bottom-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
-    border-left-width: 0 !important;
+    border-right-width: 0 !important;
     border-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
+    padding-inline-start: var(--recursica-tabs-horizontal-padding, 16px) !important;
+    padding-inline-end: calc(var(--recursica-tabs-horizontal-padding, 16px) + var(--recursica-tabs-unselected-border-size, 1px)) !important;
 }
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab:not([data-active]),
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) [role="tab"]:not([data-active]) {
@@ -368,19 +407,22 @@
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab[data-active],
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) [role="tab"][data-active] {
     border-top-width: var(--recursica-tabs-selected-border-size, 1px) !important;
-    border-right-width: var(--recursica-tabs-selected-border-size, 1px) !important;
+    border-left-width: var(--recursica-tabs-selected-border-size, 1px) !important;
     border-bottom-width: var(--recursica-tabs-selected-border-size, 1px) !important;
     border-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
     background: var(--recursica-tabs-selected-background, transparent) !important;
 }
+/* Outline vertical right (tabs on right): top, right, bottom on tabs; list::before provides left track */
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab,
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"][data-placement="right"] [role="tab"] {
     border-style: solid !important;
     border-top-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
-    border-left-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
+    border-right-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
     border-bottom-width: var(--recursica-tabs-unselected-border-size, 1px) !important;
-    border-right-width: 0 !important;
+    border-left-width: 0 !important;
     border-color: var(--recursica-tabs-unselected-border-color, rgba(0, 0, 0, 0.12)) !important;
+    padding-inline-start: calc(var(--recursica-tabs-horizontal-padding, 16px) + var(--recursica-tabs-unselected-border-size, 1px)) !important;
+    padding-inline-end: var(--recursica-tabs-horizontal-padding, 16px) !important;
 }
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab:not([data-active]),
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"][data-placement="right"] [role="tab"]:not([data-active]) {
@@ -389,7 +431,7 @@
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-tab[data-active],
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"][data-placement="right"] [role="tab"][data-active] {
     border-top-width: var(--recursica-tabs-selected-border-size, 1px) !important;
-    border-left-width: var(--recursica-tabs-selected-border-size, 1px) !important;
+    border-right-width: var(--recursica-tabs-selected-border-size, 1px) !important;
     border-bottom-width: var(--recursica-tabs-selected-border-size, 1px) !important;
     border-color: var(--recursica-tabs-selected-border-color, currentColor) !important;
     background: var(--recursica-tabs-selected-background, transparent) !important;

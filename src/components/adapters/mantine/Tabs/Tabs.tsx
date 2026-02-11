@@ -85,22 +85,41 @@ export default function Tabs({
 
   useEffect(() => {
     const root = rootRef.current
-    if (!root || orientation !== 'horizontal' || variant === 'pills') return
+    if (!root || variant === 'pills') return
     const list = root.querySelector<HTMLElement>('[role="tablist"]')
     if (!list) return
     const updateTrackGap = () => {
       const selectedTab = root!.querySelector<HTMLElement>('[role="tab"][data-active]')
-      if (!selectedTab) {
+      if (orientation === 'horizontal') {
+        root!.style.removeProperty('--recursica-tabs-track-gap-top')
+        root!.style.removeProperty('--recursica-tabs-track-gap-height')
+        if (!selectedTab) {
+          root!.style.removeProperty('--recursica-tabs-track-gap-left')
+          root!.style.removeProperty('--recursica-tabs-track-gap-width')
+          return
+        }
+        const listRect = list.getBoundingClientRect()
+        const tabRect = selectedTab.getBoundingClientRect()
+        const left = tabRect.left - listRect.left + list.scrollLeft
+        const width = tabRect.width
+        root!.style.setProperty('--recursica-tabs-track-gap-left', `${left}px`)
+        root!.style.setProperty('--recursica-tabs-track-gap-width', `${width}px`)
+      } else {
+        /* vertical outline: gap in track where selected tab is */
         root!.style.removeProperty('--recursica-tabs-track-gap-left')
         root!.style.removeProperty('--recursica-tabs-track-gap-width')
-        return
+        if (!selectedTab || variant !== 'outline') {
+          root!.style.removeProperty('--recursica-tabs-track-gap-top')
+          root!.style.removeProperty('--recursica-tabs-track-gap-height')
+          return
+        }
+        const listRect = list.getBoundingClientRect()
+        const tabRect = selectedTab.getBoundingClientRect()
+        const top = tabRect.top - listRect.top + list.scrollTop
+        const height = tabRect.height
+        root!.style.setProperty('--recursica-tabs-track-gap-top', `${top}px`)
+        root!.style.setProperty('--recursica-tabs-track-gap-height', `${height}px`)
       }
-      const listRect = list.getBoundingClientRect()
-      const tabRect = selectedTab.getBoundingClientRect()
-      const left = tabRect.left - listRect.left + list.scrollLeft
-      const width = tabRect.width
-      root!.style.setProperty('--recursica-tabs-track-gap-left', `${left}px`)
-      root!.style.setProperty('--recursica-tabs-track-gap-width', `${width}px`)
     }
     updateTrackGap()
     const ro = new ResizeObserver(updateTrackGap)
