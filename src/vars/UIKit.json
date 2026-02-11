@@ -2003,6 +2003,30 @@
                     "unit": "px"
                   }
                 }
+              },
+              "orientation": {
+                "horizontal": {
+                  "properties": {
+                    "tabs-content-gap": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.gutters.vertical}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                },
+                "vertical": {
+                  "properties": {
+                    "tabs-content-gap": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.gutters.horizontal}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                }
               }
             },
             "pills": {
@@ -2180,6 +2204,30 @@
                     }
                   }
                 }
+              },
+              "orientation": {
+                "horizontal": {
+                  "properties": {
+                    "tabs-content-gap": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.gutters.vertical}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                },
+                "vertical": {
+                  "properties": {
+                    "tabs-content-gap": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.gutters.horizontal}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                }
               }
             },
             "outline": {
@@ -2354,6 +2402,30 @@
                     "$value": {
                       "value": 1,
                       "unit": "px"
+                    }
+                  }
+                }
+              },
+              "orientation": {
+                "horizontal": {
+                  "properties": {
+                    "tabs-content-gap": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.gutters.vertical}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                },
+                "vertical": {
+                  "properties": {
+                    "tabs-content-gap": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.gutters.horizontal}",
+                        "unit": "px"
+                      }
                     }
                   }
                 }

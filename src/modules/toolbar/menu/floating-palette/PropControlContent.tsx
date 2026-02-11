@@ -838,6 +838,16 @@ export default function PropControlContent({
         const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
         if (!variantInPath) return false
       }
+      // Props under both style and orientation (e.g. tabs-content-gap under styles.pills.orientation.horizontal)
+      // must match BOTH selectedVariants.style and selectedVariants.orientation
+      // Require path structure variants.styles.X.orientation.Y (not variants.orientation which is component-level)
+      const stylesIdx = p.path.indexOf('styles')
+      const orientationIdx = p.path.indexOf('orientation')
+      const hasStyleAndOrientationInPath = stylesIdx >= 0 && orientationIdx >= 0 && stylesIdx < orientationIdx
+      if (hasStyleAndOrientationInPath) {
+        if (selectedVariants.style && !p.path.includes(selectedVariants.style)) return false
+        if (selectedVariants.orientation && !p.path.includes(selectedVariants.orientation)) return false
+      }
       if (propToCheck.category === 'colors') {
         const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
         if (layerInPath) {
@@ -1356,12 +1366,13 @@ export default function PropControlContent({
         } else if (propNameLower === 'text-size' || propNameLower === 'font-size') {
           dimensionCategory = 'text-size'
         }
-        // Default to 'general' for padding, gap, spacing, etc.
+        // Default to 'general' for padding, gap, spacing (including tabs-content-gap)
 
         // Use token slider for properties that UIKit.json says use tokens
+        // Key includes style+orientation for variant-specific props (e.g. tabs-content-gap)
         return (
           <BrandDimensionSliderInline
-            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            key={`${primaryVar}-${selectedVariants.style || ''}-${selectedVariants.orientation || ''}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
             targetCssVar={primaryVar}
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
@@ -3926,6 +3937,27 @@ export default function PropControlContent({
             })
             if (groupedProp) {
               prop.borderProps!.set(groupedPropKey, groupedProp)
+            }
+          }
+
+          // tabs-content-gap is under both style and orientation; match by both
+          // CRITICAL: Always re-find - never use cache. The cache key doesn't include variant,
+          // so switching orientation would reuse the wrong prop (e.g. horizontal when vertical selected).
+          if (groupedPropKey === 'tabs-content-gap' && componentName.toLowerCase() === 'tabs') {
+            const structure = parseComponentStructure(componentName)
+            const tabsContentGapProp = structure.props.find(p => {
+              const nameMatches = p.name.toLowerCase() === 'tabs-content-gap'
+              const styleMatches = !selectedVariants.style || p.path.includes(selectedVariants.style)
+              const orientationMatches = !selectedVariants.orientation || p.path.includes(selectedVariants.orientation)
+              // Must be from variants.styles.X.orientation.Y, not variants.orientation (component-level)
+              const stylesIdx = p.path.indexOf('styles')
+              const orientationIdx = p.path.indexOf('orientation')
+              const isStyleSpecific = stylesIdx >= 0 && orientationIdx >= 0 && stylesIdx < orientationIdx
+              return nameMatches && styleMatches && orientationMatches && isStyleSpecific
+            })
+            if (tabsContentGapProp) {
+              groupedProp = tabsContentGapProp
+              prop.borderProps!.set(groupedPropKey, tabsContentGapProp)
             }
           }
 

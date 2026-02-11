@@ -204,6 +204,11 @@
                     "label": "Space between tabs",
                     "visible": true
                 },
+                "tabs-content-gap": {
+                    "icon": "arrows-out-cardinal",
+                    "label": "Gap between tabs and content",
+                    "visible": true
+                },
                 "tab-content-alignment": {
                     "icon": "text-align-left",
                     "label": "Content alignment",

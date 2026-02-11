@@ -329,6 +329,15 @@ export default function ComponentToolbar({
                   return nameMatches && isComponentLevel
                 })
               }
+              // tabs-content-gap is under both style and orientation; match by both
+              if (!groupedProp && groupedPropKey === 'tabs-content-gap' && componentName.toLowerCase() === 'tabs') {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === 'tabs-content-gap'
+                  const styleMatches = !selectedVariants.style || p.path.includes(selectedVariants.style)
+                  const orientationMatches = !selectedVariants.orientation || p.path.includes(selectedVariants.orientation)
+                  return nameMatches && styleMatches && orientationMatches
+                })
+              }
 
               // For container/selected props, NEVER fall back to name-only match - this would cause wrong props to be selected
               // Only fall back to name-only match for other grouped props

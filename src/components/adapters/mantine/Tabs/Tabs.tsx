@@ -74,6 +74,7 @@ export default function Tabs({
   const verticalPaddingVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'vertical-padding')
   const elementGapVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'element-gap')
   const spaceBetweenTabsVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'space-between-tabs')
+  const gapBetweenTabsAndContentVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'orientation', orientation, 'properties', 'tabs-content-gap')
 
   // Get icon size from orientation variant
   const iconSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'icon-size')
@@ -159,6 +160,8 @@ export default function Tabs({
       '--recursica-tabs-vertical-padding': verticalPaddingVar ? `var(${verticalPaddingVar})` : undefined,
       '--recursica-tabs-element-gap': elementGapVar ? `var(${elementGapVar})` : undefined,
       '--recursica-tabs-space-between-tabs': spaceBetweenTabsVar ? `var(${spaceBetweenTabsVar})` : undefined,
+      '--recursica-tabs-content-gap': gapBetweenTabsAndContentVar ? `var(${gapBetweenTabsAndContentVar})` : undefined,
+      gap: gapBetweenTabsAndContentVar ? `var(${gapBetweenTabsAndContentVar})` : undefined,
       // Icon
       '--recursica-tabs-icon-size': iconSizeVar ? `var(${iconSizeVar})` : undefined,
       // Tab sizing
