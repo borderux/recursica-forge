@@ -100,8 +100,8 @@ export default function Tabs({
         }
         const listRect = list.getBoundingClientRect()
         const tabRect = selectedTab.getBoundingClientRect()
-        const left = tabRect.left - listRect.left + list.scrollLeft
-        const width = tabRect.width
+        const left = Math.round(tabRect.left - listRect.left + list.scrollLeft)
+        const width = Math.round(tabRect.width)
         root!.style.setProperty('--recursica-tabs-track-gap-left', `${left}px`)
         root!.style.setProperty('--recursica-tabs-track-gap-width', `${width}px`)
       } else {

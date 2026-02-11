@@ -32,20 +32,13 @@
     z-index: 2 !important;
 }
 
-/* Reserve space for track so it doesn't overlap tabs (default variant) */
-.recursica-tabs[data-variant="default"][data-orientation="horizontal"]:not([data-inverted]) .mantine-Tabs-list,
-.recursica-tabs[data-variant="default"][data-orientation="horizontal"]:not([data-inverted]) [role="tablist"] {
-    padding-bottom: 2px !important;
-}
-.recursica-tabs[data-variant="default"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-list,
-.recursica-tabs[data-variant="default"][data-orientation="horizontal"][data-inverted] [role="tablist"] {
-    padding-top: 2px !important;
-}
-/* Horizontal top - mask creates gap under selected tab. Track uses fixed 2px; unselected-border-size only affects tab borders. */
+/* Default horizontal: no extra padding - track and tab borders share the same baseline */
+/* Horizontal top - track and selected tab share same baseline (no padding). Mask creates gap under selected tab. */
 .recursica-tabs[data-variant="default"][data-orientation="horizontal"]:not([data-inverted]) .mantine-Tabs-list::before,
 .recursica-tabs[data-variant="default"][data-orientation="horizontal"]:not([data-inverted]) [role="tablist"]::before {
     border-top: none !important;
-    border-bottom-width: 2px !important;
+    bottom: 0 !important;
+    border-bottom-width: var(--recursica-tabs-inactive-border-size, 2px) !important;
     border-bottom-style: solid !important;
     border-bottom-color: var(--recursica-tabs-inactive-border-color, rgba(0, 0, 0, 0.12)) !important;
     --gap-left: var(--recursica-tabs-track-gap-left, 0px);
@@ -57,9 +50,10 @@
     -webkit-mask-repeat: no-repeat !important;
     mask-repeat: no-repeat !important;
 }
-/* Horizontal bottom (inverted) - mask creates gap above selected tab. Track uses fixed 2px. */
+/* Horizontal bottom (inverted) - track and selected tab share same baseline. Mask creates gap above selected tab. */
 .recursica-tabs[data-variant="default"][data-orientation="horizontal"][data-inverted] .mantine-Tabs-list::before,
 .recursica-tabs[data-variant="default"][data-orientation="horizontal"][data-inverted] [role="tablist"]::before {
+    top: 0 !important;
     --gap-left: var(--recursica-tabs-track-gap-left, 0px);
     --gap-width: var(--recursica-tabs-track-gap-width, 0px);
     -webkit-mask-image: linear-gradient(to right, black 0, black var(--gap-left), transparent var(--gap-left), transparent calc(var(--gap-left) + var(--gap-width)), black calc(var(--gap-left) + var(--gap-width)), black 100%) !important;
@@ -68,12 +62,10 @@
     mask-size: 100% 100% !important;
     -webkit-mask-repeat: no-repeat !important;
     mask-repeat: no-repeat !important;
-    border-top-width: 2px !important;
+    border-top-width: var(--recursica-tabs-inactive-border-size, 2px) !important;
     border-top-style: solid !important;
     border-top-color: var(--recursica-tabs-inactive-border-color, rgba(0, 0, 0, 0.12)) !important;
-    border-bottom-width: 2px !important;
-    border-bottom-style: solid !important;
-    border-bottom-color: var(--recursica-tabs-inactive-border-color, rgba(0, 0, 0, 0.12)) !important;
+    border-bottom: none !important;
 }
 /* Vertical left: show only inline-end (right) border - full-height track. Track uses fixed 2px. */
 .recursica-tabs[data-variant="default"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-list::before,
