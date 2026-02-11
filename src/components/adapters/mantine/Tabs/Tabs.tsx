@@ -1,9 +1,12 @@
 /**
  * Mantine Tabs Implementation
- * 
+ *
  * Mantine-specific Tabs component that uses CSS variables for theming.
+ * Uses CSS mask on list::before to create a gap under the selected tab (so we don't need
+ * opaque bg to cover the track line when selected background is null).
  */
 
+import { useRef, useEffect } from 'react'
 import { Tabs as MantineTabs } from '@mantine/core'
 import type { TabsProps as AdapterTabsProps } from '../../Tabs'
 import { getComponentCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
@@ -77,7 +80,40 @@ export default function Tabs({
   const minWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'min-width')
   const maxWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'max-width')
 
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const root = rootRef.current
+    if (!root || orientation !== 'horizontal' || variant === 'pills') return
+    const list = root.querySelector<HTMLElement>('[role="tablist"]')
+    if (!list) return
+    const updateTrackGap = () => {
+      const selectedTab = root!.querySelector<HTMLElement>('[role="tab"][data-active]')
+      if (!selectedTab) {
+        root!.style.removeProperty('--recursica-tabs-track-gap-left')
+        root!.style.removeProperty('--recursica-tabs-track-gap-width')
+        return
+      }
+      const listRect = list.getBoundingClientRect()
+      const tabRect = selectedTab.getBoundingClientRect()
+      const left = tabRect.left - listRect.left + list.scrollLeft
+      const width = tabRect.width
+      root!.style.setProperty('--recursica-tabs-track-gap-left', `${left}px`)
+      root!.style.setProperty('--recursica-tabs-track-gap-width', `${width}px`)
+    }
+    updateTrackGap()
+    const ro = new ResizeObserver(updateTrackGap)
+    const mo = new MutationObserver(updateTrackGap)
+    ro.observe(list)
+    mo.observe(list, { attributes: true, attributeFilter: ['data-active'], subtree: true })
+    return () => {
+      ro.disconnect()
+      mo.disconnect()
+    }
+  }, [value, defaultValue, orientation, variant, children])
+
   const mantineProps = {
+    ref: rootRef,
     value,
     defaultValue,
     onChange,
