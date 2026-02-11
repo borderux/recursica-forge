@@ -2490,6 +2490,10 @@
           }
         },
         "properties": {
+          "tab-content-alignment": {
+            "$type": "string",
+            "$value": "left"
+          },
           "selected-text": {
             "font-family": {
               "$type": "string",

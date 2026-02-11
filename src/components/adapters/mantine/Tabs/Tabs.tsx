@@ -16,6 +16,7 @@ export default function Tabs({
   onChange,
   orientation = 'horizontal',
   variant = 'default',
+  tabContentAlignment = 'left',
   children,
   className,
   style,
@@ -124,6 +125,9 @@ export default function Tabs({
       '--recursica-tabs-space-between-tabs': spaceBetweenTabsVar ? `var(${spaceBetweenTabsVar})` : undefined,
       // Icon
       '--recursica-tabs-icon-size': iconSizeVar ? `var(${iconSizeVar})` : undefined,
+      // Tab content alignment (icon/text/badge inside tab button)
+      '--recursica-tabs-content-align': tabContentAlignment,
+      '--recursica-tabs-content-justify': tabContentAlignment === 'center' ? 'center' : tabContentAlignment === 'right' ? 'flex-end' : 'flex-start',
       ...style,
       ...mantine?.style,
     },

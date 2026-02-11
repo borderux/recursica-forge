@@ -208,6 +208,17 @@
                     "icon": "arrows-out-cardinal",
                     "label": "Space between tabs",
                     "visible": true
+                },
+                "tab-content-alignment": {
+                    "icon": "text-align-left",
+                    "label": "Content alignment",
+                    "visible": true,
+                    "control": "segmented",
+                    "options": [
+                        {"value": "left", "icon": "text-align-left"},
+                        {"value": "center", "icon": "text-align-center"},
+                        {"value": "right", "icon": "text-align-right"}
+                    ]
                 }
             }
         },

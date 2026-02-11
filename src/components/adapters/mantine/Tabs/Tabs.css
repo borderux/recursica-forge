@@ -107,10 +107,26 @@
     margin-inline-end: var(--recursica-tabs-element-gap, 8px) !important;
 }
 
-/* Gap for inline flex containers (badges, etc.) */
+/* Tab content alignment (icon/text/badge inside the tab button) */
+.recursica-tabs .mantine-Tabs-tab {
+    display: flex !important;
+    justify-content: var(--recursica-tabs-content-justify, flex-start) !important;
+    text-align: var(--recursica-tabs-content-align, left) !important;
+}
+.recursica-tabs .mantine-Tabs-tab .mantine-Tabs-tabSection {
+    flex-shrink: 0 !important;
+}
+/* Override Mantine's flex: 1 on tabLabel so icon + label move together with justify-content */
+.recursica-tabs .mantine-Tabs-tab .mantine-Tabs-tabLabel {
+    flex: 0 0 auto !important;
+    text-align: var(--recursica-tabs-content-align, left) !important;
+}
+
+/* Gap for inline flex containers (badges, etc.) - also apply alignment */
 .recursica-tabs .mantine-Tabs-tab .mantine-Tabs-tabLabel>div {
     display: flex !important;
     align-items: center !important;
+    justify-content: var(--recursica-tabs-content-justify, flex-start) !important;
     gap: var(--recursica-tabs-element-gap, 8px) !important;
 }
 

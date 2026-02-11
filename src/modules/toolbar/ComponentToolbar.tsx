@@ -320,6 +320,16 @@ export default function ComponentToolbar({
                 })
               }
 
+              // Special case: tab-content-alignment is a component-level property for Tabs
+              // It's in the "spacing" group but doesn't have "spacing" in its path
+              if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
+                  const isComponentLevel = !p.isVariantSpecific
+                  return nameMatches && isComponentLevel
+                })
+              }
+
               // For container/selected props, NEVER fall back to name-only match - this would cause wrong props to be selected
               // Only fall back to name-only match for other grouped props
               if (!groupedProp && !isNestedPropertyGroup) {

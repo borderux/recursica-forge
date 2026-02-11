@@ -23,6 +23,9 @@ import BackgroundToolbar from '../background/BackgroundToolbar'
 import IconGroupToolbar from '../icon-group/IconGroupToolbar'
 import TopBottomMarginToolbar from '../top-bottom-margin-group/TopBottomMarginToolbar'
 import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
+import { SegmentedControl } from '../../../../components/adapters/SegmentedControl'
+import { iconNameToReactComponent } from '../../../components/iconUtils'
+import { useCssVar } from '../../../../components/hooks/useCssVar'
 import uikitJson from '../../../../vars/UIKit.json'
 import './PropControl.css'
 
@@ -44,6 +47,44 @@ const formatDimensionLabel = (key: string): string => {
   if (sizeMap[key]) return sizeMap[key]
 
   return key.charAt(0).toUpperCase() + key.slice(1)
+}
+
+/** Segmented control that reads/writes a CSS var - re-renders when the var changes */
+function SegmentedControlFromCssVar({
+  primaryVar,
+  cssVars,
+  label,
+  options,
+}: {
+  primaryVar: string
+  cssVars: string[]
+  label: string
+  options: Array<{ value: string; icon?: string }>
+}) {
+  const currentValue = useCssVar(primaryVar, options[0]?.value ?? '')
+  const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || (options[0]?.value ?? '')
+  const items = options.map((opt) => {
+    const IconComp = opt.icon ? iconNameToReactComponent(opt.icon) : null
+    return {
+      value: opt.value,
+      icon: IconComp ? React.createElement(IconComp, { size: 16 }) : undefined,
+      tooltip: opt.value.charAt(0).toUpperCase() + opt.value.slice(1),
+    }
+  })
+  return (
+    <div>
+      <Label layer="layer-3" layout="stacked">{label}</Label>
+      <SegmentedControl
+        items={items}
+        value={cleanValue}
+        onChange={(value) => {
+          cssVars.forEach((v) => updateCssVar(v, value))
+        }}
+        layer="layer-1"
+        showLabel={false}
+      />
+    </div>
+  )
 }
 
 // Inline brand dimension slider component (deprecated - use BrandDimensionSliderInline from utils)
@@ -1136,6 +1177,20 @@ export default function PropControlContent({
       if (config.propertyType) propToRender.propertyType = config.propertyType
       if (config.range) propToRender.range = config.range
       if (config.step) propToRender.step = config.step
+    }
+
+    // Segmented control with icon-only options (e.g., tab-content-alignment)
+    // Use a wrapper component with useCssVar so it re-renders when the value changes
+    const configWithControl = config as (ToolbarPropConfig & { control?: string; options?: Array<{ value: string; icon?: string }> }) | undefined
+    if (configWithControl?.control === 'segmented' && configWithControl?.options?.length) {
+      return (
+        <SegmentedControlFromCssVar
+          primaryVar={primaryVar}
+          cssVars={cssVars}
+          label={label}
+          options={configWithControl.options}
+        />
+      )
     }
 
     // Generic Slider implementation for propertyType: 'slider'
@@ -3861,6 +3916,19 @@ export default function PropControlContent({
             }
           }
 
+          // Special case: tab-content-alignment is a component-level property for Tabs
+          if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
+            const structure = parseComponentStructure(componentName)
+            groupedProp = structure.props.find(p => {
+              const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
+              const isComponentLevel = !p.isVariantSpecific
+              return nameMatches && isComponentLevel
+            })
+            if (groupedProp) {
+              prop.borderProps!.set(groupedPropKey, groupedProp)
+            }
+          }
+
           if (!groupedProp && groupedPropKey === 'border-color') {
             groupedProp = prop.borderProps!.get('border')
           }
@@ -4071,7 +4139,7 @@ export default function PropControlContent({
             <div
               key={groupedPropName}
             >
-              {renderControl(groupedProp, cssVars, primaryVar, label)}
+              {renderControl(groupedProp, cssVars, primaryVar, label, groupedPropConfig)}
             </div>
           )
         })}

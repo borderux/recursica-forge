@@ -15,6 +15,7 @@ export type TabsProps = {
   onChange?: (value: string | null) => void
   orientation?: 'horizontal' | 'vertical'
   variant?: 'default' | 'pills' | 'outline'
+  tabContentAlignment?: 'left' | 'center' | 'right'
   layer?: string
   children: ReactNode
   className?: string
@@ -27,6 +28,7 @@ export function Tabs({
   onChange,
   orientation = 'horizontal',
   variant = 'default',
+  tabContentAlignment = 'left',
   layer,
   children,
   className,
@@ -52,6 +54,7 @@ export function Tabs({
     onChange,
     orientation,
     variant,
+    tabContentAlignment,
     layer,
     className,
     style,
