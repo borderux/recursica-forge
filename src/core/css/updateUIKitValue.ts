@@ -38,7 +38,6 @@ function cssVarToUIKitPath(cssVar: string): string[] | null {
             path.push('border-color')
             i += 2
         } else if (part === 'tabs' && i + 2 < parts.length && parts[i + 1] === 'content' && parts[i + 2] === 'gap') {
-            // tabs-content-gap (property name under orientation)
             path.push('tabs-content-gap')
             i += 3
         } else {
@@ -141,8 +140,6 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
             tokenValue = `{tokens.${tokenPath}}`
         }
     } else if (value.startsWith('var(--recursica-brand-dimensions-')) {
-        // Extract: var(--recursica-brand-dimensions-gutters-vertical) or --recursica-brand-dimensions-general-default
-        // Convert to: {brand.dimensions.gutters.vertical} or {brand.dimensions.general.default}
         const varMatch = value.match(/var\(--recursica-brand-dimensions-(.+)\)/)
         if (varMatch) {
             const dimPath = varMatch[1].replace(/-/g, '.')
@@ -153,12 +150,8 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     // Update the value, preserving $type if it exists
     if (current[finalKey] && typeof current[finalKey] === 'object' && '$type' in current[finalKey]) {
         const existingType = (current[finalKey] as any).$type
-        // For dimension type, $value must be { value, unit }
         if (existingType === 'dimension') {
-            (current[finalKey] as any).$value = {
-                value: tokenValue,
-                unit: 'px',
-            }
+            (current[finalKey] as any).$value = { value: tokenValue, unit: 'px' }
         } else {
             (current[finalKey] as any).$value = tokenValue
         }
@@ -170,8 +163,6 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         }
     }
 
-    // Update the store without triggering recompute - we already set the CSS var via updateCssVar
-    // This prevents recomputeAndApplyAll from overwriting our DOM update (fixes toolbar color updates for Tabs, etc.)
     getVarsStore().setUiKitSilent(updatedUIKit)
 
     return true
