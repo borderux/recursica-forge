@@ -26,12 +26,12 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
   }
 
   const broken = auditRecursicaCssVars()
-  
+
   // Collect all CSS variables found
   const root = document.documentElement
   const computedStyle = getComputedStyle(root)
   const allVars = new Set<string>()
-  
+
   // Get all CSS variables from root
   for (let i = 0; i < computedStyle.length; i++) {
     const prop = computedStyle[i]
@@ -39,13 +39,13 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
       allVars.add(prop)
     }
   }
-  
+
   // Get all CSS variables from all elements
   const allElements = document.querySelectorAll('*')
   for (const el of allElements) {
     const elComputed = getComputedStyle(el)
     const elInline = (el as HTMLElement).style
-    
+
     // Check computed styles
     for (let i = 0; i < elComputed.length; i++) {
       const prop = elComputed[i]
@@ -53,7 +53,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
         allVars.add(prop)
       }
     }
-    
+
     // Check inline styles
     if (elInline && elInline.length > 0) {
       for (let i = 0; i < elInline.length; i++) {
@@ -64,7 +64,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
       }
     }
   }
-  
+
   // Check stylesheets
   try {
     const allStyles = Array.from(document.styleSheets)
@@ -89,92 +89,92 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
   } catch (e) {
     // Ignore errors
   }
-  
+
   const allVarsArray = Array.from(allVars).sort()
-  
+
   // Run deep audit for detailed issues with fix instructions
   const deepIssues = deepAuditCssVars()
   const totalIssues = Math.max(broken.length, deepIssues.length)
-  
+
   if (!silent) {
     if (totalIssues > 0) {
       console.log(`❌ Found ${totalIssues} CSS variable issue(s):\n`)
-    
-    // Use deep audit results if available (more detailed)
-    if (deepIssues.length > 0) {
-      // Group by source file for better organization
-      const byFile = new Map<string, DeepAuditIssue[]>()
-      for (const issue of deepIssues) {
-        const file = issue.sourceFile || 'unknown'
-        if (!byFile.has(file)) {
-          byFile.set(file, [])
-        }
-        byFile.get(file)!.push(issue)
-      }
 
-      // Collect all unique fix instructions to output once at the end
-      const allFixInstructions = new Set<string>()
-      
-      for (const [file, fileIssues] of Array.from(byFile.entries()).sort()) {
-        console.log(`\n📁 ${file} (${fileIssues.length} issue${fileIssues.length > 1 ? 's' : ''}):`)
-        console.log('='.repeat(80))
-        
-        for (const issue of fileIssues) {
-          console.log(`\n🔴 CSS Variable: ${issue.cssVar}`)
-          console.log(`   Property: ${issue.cssProperty}`)
-          console.log(`   Value: ${issue.value}`)
-          console.log(`   Element: ${issue.elementPath}`)
-          console.log(`   Issue Type: ${issue.issueType}`)
-          
-          if (issue.similarVars && issue.similarVars.length > 0) {
-            console.log(`   Similar variables found: ${issue.similarVars.join(', ')}`)
+      // Use deep audit results if available (more detailed)
+      if (deepIssues.length > 0) {
+        // Group by source file for better organization
+        const byFile = new Map<string, DeepAuditIssue[]>()
+        for (const issue of deepIssues) {
+          const file = issue.sourceFile || 'unknown'
+          if (!byFile.has(file)) {
+            byFile.set(file, [])
           }
-          
-          // Collect fix instructions instead of outputting them immediately
-          issue.suggestedFix.forEach((instruction) => {
-            allFixInstructions.add(instruction)
+          byFile.get(file)!.push(issue)
+        }
+
+        // Collect all unique fix instructions to output once at the end
+        const allFixInstructions = new Set<string>()
+
+        for (const [file, fileIssues] of Array.from(byFile.entries()).sort()) {
+          console.log(`\n📁 ${file} (${fileIssues.length} issue${fileIssues.length > 1 ? 's' : ''}):`)
+          console.log('='.repeat(80))
+
+          for (const issue of fileIssues) {
+            console.log(`\n🔴 CSS Variable: ${issue.cssVar}`)
+            console.log(`   Property: ${issue.cssProperty}`)
+            console.log(`   Value: ${issue.value}`)
+            console.log(`   Element: ${issue.elementPath}`)
+            console.log(`   Issue Type: ${issue.issueType}`)
+
+            if (issue.similarVars && issue.similarVars.length > 0) {
+              console.log(`   Similar variables found: ${issue.similarVars.join(', ')}`)
+            }
+
+            // Collect fix instructions instead of outputting them immediately
+            issue.suggestedFix.forEach((instruction) => {
+              allFixInstructions.add(instruction)
+            })
+          }
+        }
+
+        // Output all fix instructions once at the end
+        if (allFixInstructions.size > 0) {
+          console.log(`\n${'='.repeat(80)}`)
+          console.log(`\n🤖 FIX INSTRUCTIONS:`)
+          Array.from(allFixInstructions).sort().forEach((instruction) => {
+            console.log(`   ${instruction}`)
           })
         }
-      }
-      
-      // Output all fix instructions once at the end
-      if (allFixInstructions.size > 0) {
-        console.log(`\n${'='.repeat(80)}`)
-        console.log(`\n🤖 FIX INSTRUCTIONS:`)
-        Array.from(allFixInstructions).sort().forEach((instruction) => {
-          console.log(`   ${instruction}`)
-        })
-      }
-    } else {
-      // Fall back to basic audit if deep audit didn't find issues
-      for (const ref of broken) {
-        let location = 'unknown'
-        if (ref.element) {
-          if (ref.element.includes('root')) {
-            location = 'root'
-          } else if (ref.element.includes('stylesheet:')) {
-            const match = ref.element.match(/stylesheet:(.+)/)
-            location = match ? `stylesheet: ${match[1]}` : 'stylesheet'
-          } else if (ref.element.includes('element-')) {
-            const match = ref.element.match(/element-(?:inline|computed):(.+)/)
-            location = match ? match[1] : 'element'
-          } else {
-            location = ref.element
+      } else {
+        // Fall back to basic audit if deep audit didn't find issues
+        for (const ref of broken) {
+          let location = 'unknown'
+          if (ref.element) {
+            if (ref.element.includes('root')) {
+              location = 'root'
+            } else if (ref.element.includes('stylesheet:')) {
+              const match = ref.element.match(/stylesheet:(.+)/)
+              location = match ? `stylesheet: ${match[1]}` : 'stylesheet'
+            } else if (ref.element.includes('element-')) {
+              const match = ref.element.match(/element-(?:inline|computed):(.+)/)
+              location = match ? match[1] : 'element'
+            } else {
+              location = ref.element
+            }
+          } else if (ref.location) {
+            location = ref.location
           }
-        } else if (ref.location) {
-          location = ref.location
+
+          console.log(`${ref.variable}`)
+          console.log(`  → ${location}`)
         }
-        
-        console.log(`${ref.variable}`)
-        console.log(`  → ${location}`)
       }
-    }
-    
+
       console.log(`\n${'='.repeat(80)}`)
       console.log(`\n📋 SUMMARY:`)
       console.log(`   Total issues: ${totalIssues}`)
       console.log(`   Files affected: ${deepIssues.length > 0 ? new Set(deepIssues.map(i => i.sourceFile).filter(Boolean)).size : 'unknown'}`)
-      
+
       // Only output "Remember" section if there are issues
       if (totalIssues > 0) {
         console.log(`\n💡 Remember:`)
@@ -190,7 +190,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
       console.log('✅ No CSS variable issues found!')
     }
   }
-  
+
   const summary: AuditSummary = {
     totalVars: allVarsArray.length,
     brokenRefs: broken.length,
@@ -199,18 +199,18 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
     deepIssues,
     broken,
   }
-  
+
   return summary as any
 }
 
 // Helper function to get all CSS variables
 function getAllCssVars(): string[] {
   if (typeof window === 'undefined') return []
-  
+
   const allVars = new Set<string>()
   const root = document.documentElement
   const computedStyle = getComputedStyle(root)
-  
+
   // Get all CSS variables from root
   for (let i = 0; i < computedStyle.length; i++) {
     const prop = computedStyle[i]
@@ -218,13 +218,13 @@ function getAllCssVars(): string[] {
       allVars.add(prop)
     }
   }
-  
+
   // Get all CSS variables from all elements
   const allElements = document.querySelectorAll('*')
   for (const el of allElements) {
     const elComputed = getComputedStyle(el)
     const elInline = (el as HTMLElement).style
-    
+
     // Check computed styles
     for (let i = 0; i < elComputed.length; i++) {
       const prop = elComputed[i]
@@ -232,7 +232,7 @@ function getAllCssVars(): string[] {
         allVars.add(prop)
       }
     }
-    
+
     // Check inline styles
     if (elInline && elInline.length > 0) {
       for (let i = 0; i < elInline.length; i++) {
@@ -243,7 +243,7 @@ function getAllCssVars(): string[] {
       }
     }
   }
-  
+
   // Check stylesheets
   try {
     const allStyles = Array.from(document.styleSheets)
@@ -268,7 +268,7 @@ function getAllCssVars(): string[] {
   } catch (e) {
     // Ignore errors
   }
-  
+
   return Array.from(allVars).sort()
 }
 
@@ -278,7 +278,7 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
   win.auditCssVars = runCssVarAudit
   win.deepAuditCssVars = deepAuditCssVars
   win.getAllCssVars = getAllCssVars
-  
+
   // Helper to run audit on multiple routes
   win.auditAllRoutes = async function auditAllRoutes(routes?: string[]) {
     // Default routes include all main routes and sub-routes from left navigation
@@ -296,59 +296,66 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
       '/theme/dimensions',
       // Components base
       '/components',
-      // Component detail pages
-      '/components/avatar',
-      '/components/badge',
-      '/components/breadcrumb',
-      '/components/button',
-      '/components/chip',
-      '/components/label',
-      '/components/menu',
-      '/components/menu-item',
-      '/components/slider',
-      '/components/switch',
-      '/components/toast',
     ]
-    
+
+    // Dynamically get component routes from UIKit.json
+    try {
+      // Fetch UIKit.json to get the list of mapped components
+      const response = await fetch('/src/vars/UIKit.json')
+      const uikitJson = await response.json()
+      const components = uikitJson?.['ui-kit']?.components || {}
+
+      // Convert component keys to routes (e.g., "button" -> "/components/button")
+      const componentRoutes = Object.keys(components)
+        .sort()
+        .map(name => `/components/${name}`)
+
+      defaultRoutes.push(...componentRoutes)
+    } catch (error) {
+      console.warn('Failed to load UIKit.json for component routes, using base routes only:', error)
+    }
+
     const routesToAudit = routes || defaultRoutes
     const results: Record<string, AuditSummary> = {}
-    
+
     console.log(`🚀 Starting CSS variable audit on ${routesToAudit.length} route(s)...\n`)
-    
-    // Collect all issues across routes
-    const allDeepIssues: DeepAuditIssue[] = []
+
+    // Collect all issues across routes with route tracking
+    const allDeepIssues: (DeepAuditIssue & { routes: string[] })[] = []
     const allBroken: any[] = []
-    
+
     for (let i = 0; i < routesToAudit.length; i++) {
       const route = routesToAudit[i]
       console.log(`📍 Auditing route: ${route} (${i + 1}/${routesToAudit.length})`)
-      
+
       // Navigate to route (all routes are now path-based)
       window.history.pushState({}, '', route)
       // Trigger popstate event for React Router
       window.dispatchEvent(new PopStateEvent('popstate', { state: {} }))
-      
+
       // Wait for page to load and CSS vars to be applied
       await new Promise(resolve => setTimeout(resolve, 3000))
-      
+
       // Run audit silently
       const result = runCssVarAudit(true)
       results[route] = result
-      
-      // Collect issues
+
+      // Collect issues with route information
       if (result.deepIssues) {
-        allDeepIssues.push(...result.deepIssues)
+        result.deepIssues.forEach(issue => {
+          allDeepIssues.push({ ...issue, routes: [route] })
+        })
       }
       if (result.broken) {
         allBroken.push(...result.broken)
       }
     }
-    
+
     // Output all issues at the end
     console.log(`\n${'='.repeat(80)}`)
     console.log(`\n📊 CROSS-ROUTE AUDIT RESULTS:`)
     console.log('='.repeat(80))
-    
+
     // Deduplicate broken references
     const brokenKey = (ref: any) => `${ref.variable}|${ref.element || ref.location || 'unknown'}`
     const seenBroken = new Set<string>()
@@ -360,33 +367,36 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
         uniqueBroken.push(ref)
       }
     }
-    
-    // Deduplicate deep issues
-    const issueKey = (issue: DeepAuditIssue) => 
+
+    // Deduplicate deep issues while preserving route information
+    const issueKey = (issue: DeepAuditIssue) =>
       `${issue.sourceFile || 'unknown'}|${issue.cssVar}|${issue.elementPath}`
-    const seenIssues = new Set<string>()
-    const uniqueDeepIssues: DeepAuditIssue[] = []
+    const issueMap = new Map<string, DeepAuditIssue & { routes: string[] }>()
     for (const issue of allDeepIssues) {
       const key = issueKey(issue)
-      if (!seenIssues.has(key)) {
-        seenIssues.add(key)
-        uniqueDeepIssues.push(issue)
+      if (issueMap.has(key)) {
+        // Merge routes for duplicate issues
+        const existing = issueMap.get(key)!
+        existing.routes = [...new Set([...existing.routes, ...issue.routes])]
+      } else {
+        issueMap.set(key, issue)
       }
     }
-    
+    const uniqueDeepIssues = Array.from(issueMap.values())
+
     const totalIssues = uniqueDeepIssues.length || uniqueBroken.length
     const routesWithIssues = Object.entries(results).filter(([_, r]) => r.brokenRefs > 0)
-    
+
     if (totalIssues === 0) {
       console.log(`✅ No CSS variable issues found across all ${routesToAudit.length} route(s)!`)
     } else {
       console.log(`❌ Found ${totalIssues} unique issue(s) across ${routesWithIssues.length} route(s):\n`)
-      
+
       // Group issues by route for summary
       routesWithIssues.forEach(([route, result]) => {
         console.log(`   ${route}: ${result.brokenRefs} issue(s)`)
       })
-      
+
       // Output all deep issues grouped by file (already deduplicated above)
       if (uniqueDeepIssues.length > 0) {
         const byFile = new Map<string, DeepAuditIssue[]>()
@@ -400,29 +410,39 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
 
         // Collect all unique fix instructions
         const allFixInstructions = new Set<string>()
-        
+
         for (const [file, fileIssues] of Array.from(byFile.entries()).sort()) {
           console.log(`\n📁 ${file} (${fileIssues.length} issue${fileIssues.length > 1 ? 's' : ''}):`)
           console.log('='.repeat(80))
-          
+
           for (const issue of fileIssues) {
             console.log(`\n🔴 CSS Variable: ${issue.cssVar}`)
             console.log(`   Property: ${issue.cssProperty}`)
             console.log(`   Value: ${issue.value}`)
             console.log(`   Element: ${issue.elementPath}`)
             console.log(`   Issue Type: ${issue.issueType}`)
-            
+
+            // Display routes where this issue was found
+            if ((issue as any).routes && (issue as any).routes.length > 0) {
+              const routes = (issue as any).routes
+              if (routes.length === 1) {
+                console.log(`   Found on route: ${routes[0]}`)
+              } else {
+                console.log(`   Found on ${routes.length} routes: ${routes.join(', ')}`)
+              }
+            }
+
             if (issue.similarVars && issue.similarVars.length > 0) {
               console.log(`   Similar variables found: ${issue.similarVars.join(', ')}`)
             }
-            
+
             // Collect fix instructions
             issue.suggestedFix.forEach((instruction) => {
               allFixInstructions.add(instruction)
             })
           }
         }
-        
+
         // Output all fix instructions once at the end
         if (allFixInstructions.size > 0) {
           console.log(`\n${'='.repeat(80)}`)
@@ -450,18 +470,18 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
           } else if (ref.location) {
             location = ref.location
           }
-          
+
           console.log(`${ref.variable}`)
           console.log(`  → ${location}`)
         }
       }
-      
+
       console.log(`\n${'='.repeat(80)}`)
       console.log(`\n📋 SUMMARY:`)
       console.log(`   Total unique issues: ${totalIssues}`)
       console.log(`   Routes with issues: ${routesWithIssues.length}`)
       console.log(`   Files affected: ${uniqueDeepIssues.length > 0 ? new Set(uniqueDeepIssues.map(i => i.sourceFile).filter(Boolean)).size : 'unknown'}`)
-      
+
       console.log(`\n💡 Remember:`)
       console.log(`   - NEVER add fallback values`)
       console.log(`   - NEVER modify Tokens.json, Brand.json, or UIKit.json`)
@@ -470,10 +490,10 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
       console.log(`   - Always normalize CSS variables using utility functions`)
       console.log(`   - ALWAYS use scale-n CSS variable references (e.g., scale-01, scale-02), NEVER use alias references (e.g., cornflower, gray, greensheen)`)
     }
-    
+
     return results
   }
-  
+
   // Auto-run audit only in development mode after app fully initializes
   // and only if the user has enabled auto-run via the header switch
   if ((import.meta.env.DEV || process.env.NODE_ENV === 'development') && getCssAuditAutoRun()) {
@@ -484,7 +504,7 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
         runCssVarAudit(false)
       }, 2000) // 2 second delay to ensure all CSS vars are applied
     }
-    
+
     // Start after DOM is ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', runAuditWhenReady)
