@@ -5,6 +5,7 @@ import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Accordion } from '../Accordion'
 import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../utils/cssVarNames'
+import { itDom } from '../../../test-utils/conditionalTests'
 
 describe('Accordion CSS Variables', () => {
   beforeEach(() => {
@@ -31,7 +32,7 @@ describe('Accordion CSS Variables', () => {
     }, { timeout: 15000 })
   }
 
-  it.skip('sets CSS custom properties for Accordion container using UIKit variables', async () => {
+  itDom('sets CSS custom properties for Accordion container using UIKit variables', async () => {
     const { container } = renderWithProviders(
       <Accordion
         items={[
@@ -65,7 +66,7 @@ describe('Accordion CSS Variables', () => {
     }, { timeout: 10000 })
   })
 
-  it.skip('sets CSS custom properties for AccordionItem using UIKit variables', async () => {
+  itDom('sets CSS custom properties for AccordionItem using UIKit variables', async () => {
     const { container } = renderWithProviders(
       <Accordion
         items={[

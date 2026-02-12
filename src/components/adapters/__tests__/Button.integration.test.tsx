@@ -5,6 +5,7 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider, useUiKit } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
+import { itDom, describeDom } from '../../../test-utils/conditionalTests'
 
 // Helper component to switch kits
 function KitSwitcher({ kit }: { kit: 'mantine' | 'material' | 'carbon' }) {
@@ -53,7 +54,7 @@ describe('Button Integration', () => {
     }, { timeout: 20000 }) // Increased timeout for full test suite runs
   }
 
-  it.skip('renders Mantine button when Mantine is selected', async () => {
+  itDom('renders Mantine button when Mantine is selected', async () => {
     const { container } = await renderWithKit('mantine')
 
     const button = await waitForButton(container, 'Test Button')
@@ -61,7 +62,7 @@ describe('Button Integration', () => {
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it.skip('renders Material button when Material is selected', { timeout: 30000 }, async () => {
+  itDom('renders Material button when Material is selected', { timeout: 30000 }, async () => {
     const { container } = await renderWithKit('material')
 
     // Material UI can take longer to initialize, especially in full test suite
@@ -79,7 +80,7 @@ describe('Button Integration', () => {
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it.skip('renders Carbon button when Carbon is selected', async () => {
+  itDom('renders Carbon button when Carbon is selected', async () => {
     const { container } = await renderWithKit('carbon')
 
     // Carbon can take longer to initialize in CI environments
@@ -96,7 +97,7 @@ describe('Button Integration', () => {
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it.skip('maintains consistent props across libraries', { timeout: 60000 }, async () => {
+  itDom('maintains consistent props across libraries', { timeout: 60000 }, async () => {
     // This test runs 72 combinations (3 variants × 2 sizes × 4 layers × 3 kits)
     // Disabled in CI due to timeout issues - too slow for CI environment
     const variants: Array<'solid' | 'outline' | 'text'> = ['solid', 'outline', 'text']
@@ -143,7 +144,7 @@ describe('Button Integration', () => {
     }
   })
 
-  it.skip('handles disabled state consistently across libraries', { timeout: 15000 }, async () => {
+  itDom('handles disabled state consistently across libraries', { timeout: 15000 }, async () => {
     for (const kit of ['mantine', 'material', 'carbon'] as const) {
       let container: HTMLElement
       let unmount: () => void
@@ -172,7 +173,7 @@ describe('Button Integration', () => {
     }
   })
 
-  it.skip('handles icon prop consistently across libraries', { timeout: 15000 }, async () => {
+  itDom('handles icon prop consistently across libraries', { timeout: 15000 }, async () => {
     const TestIcon = () => <svg data-testid="icon"><circle /></svg>
 
     for (const kit of ['mantine', 'material', 'carbon'] as const) {
