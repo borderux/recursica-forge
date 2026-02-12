@@ -16,10 +16,38 @@
             "label": "Size",
             "visible": true
         },
-        "icon-text-gap": {
+        "icon": {
             "icon": "arrows-horizontal",
-            "label": "Icon gap",
-            "visible": true
+            "label": "Icon Settings",
+            "visible": true,
+            "group": {
+                "showIcon": {
+                    "label": "Show Icon",
+                    "type": "boolean",
+                    "visible": true,
+                    "default": false
+                },
+                "iconPosition": {
+                    "label": "Position",
+                    "type": "select",
+                    "visible": true,
+                    "options": [
+                        {
+                            "label": "Start",
+                            "value": "start"
+                        },
+                        {
+                            "label": "End",
+                            "value": "end"
+                        }
+                    ],
+                    "default": "end"
+                },
+                "icon-text-gap": {
+                    "label": "Gap",
+                    "visible": true
+                }
+            }
         },
         "colors": {
             "icon": "palette",

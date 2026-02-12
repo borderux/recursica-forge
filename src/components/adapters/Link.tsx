@@ -14,6 +14,8 @@ import { readCssVar } from '../../core/css/readCssVar'
 import { useCssVar } from '../hooks/useCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
+import { iconNameToReactComponent } from '../../modules/components/iconUtils'
+
 export type LinkProps = {
   children?: React.ReactNode
   href?: string
@@ -29,6 +31,8 @@ export type LinkProps = {
   startIcon?: React.ReactNode
   endIcon?: React.ReactNode
   title?: string
+  showIcon?: boolean
+  iconPosition?: 'start' | 'end'
 } & LibrarySpecificProps
 
 export function Link({
@@ -46,12 +50,31 @@ export function Link({
   startIcon,
   endIcon,
   title,
+  showIcon,
+  iconPosition = 'end',
   mantine,
   material,
   carbon,
 }: LinkProps) {
   const Component = useComponent('Link')
   const { mode } = useThemeMode()
+
+  // Resolve default icon
+  const DefaultIconComponent = iconNameToReactComponent('arrow-right')
+
+  let renderedStartIcon = startIcon
+  let renderedEndIcon = endIcon
+
+  if (showIcon === true) {
+    if (iconPosition === 'start' && !renderedStartIcon) {
+      renderedStartIcon = DefaultIconComponent ? <DefaultIconComponent /> : null
+    } else if (iconPosition === 'end' && !renderedEndIcon) {
+      renderedEndIcon = DefaultIconComponent ? <DefaultIconComponent /> : null
+    }
+  } else if (showIcon === false) {
+    renderedStartIcon = undefined
+    renderedEndIcon = undefined
+  }
 
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
@@ -121,20 +144,20 @@ export function Link({
           ...getLinkStyles(variant, size, layer, underline, mode),
           display: 'inline-flex',
           alignItems: 'center',
-          gap: startIcon || endIcon ? `var(${iconGapVar})` : 0,
+          gap: renderedStartIcon || renderedEndIcon ? `var(${iconGapVar})` : 0,
           cursor: 'pointer',
           ...style,
         }}
       >
-        {startIcon && (
+        {renderedStartIcon && (
           <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-            {startIcon}
+            {renderedStartIcon}
           </span>
         )}
         {children}
-        {endIcon && (
+        {renderedEndIcon && (
           <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-            {endIcon}
+            {renderedEndIcon}
           </span>
         )}
       </a>
@@ -153,9 +176,11 @@ export function Link({
     onClick,
     className,
     style,
-    startIcon,
-    endIcon,
+    startIcon: renderedStartIcon,
+    endIcon: renderedEndIcon,
     title,
+    showIcon,
+    iconPosition,
     mantine,
     material,
     carbon,
