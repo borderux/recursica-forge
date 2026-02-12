@@ -328,7 +328,7 @@ export class AAComplianceWatcher {
     const surfaceHex = resolveCssVarToHex(surfaceValue, this.tokenIndex)
     if (!surfaceHex) return
 
-    const brandBase = `--recursica-brand-themes-${mode}-layers-layer-${layerNumber}-properties-`
+    const brandBase = `--recursica-brand-themes-${mode}-layers-layer-${layerNumber}-`
 
     // Update each element type
     const elements = [

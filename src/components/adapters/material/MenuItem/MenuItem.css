@@ -13,7 +13,7 @@
 
 .mui-menu-item {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
   width: 100%;
   min-width: var(--menu-item-min-width, 140px);
@@ -98,25 +98,35 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 4px;
-  min-width: 0; /* Allow text truncation */
+  min-width: 0;
+  /* Allow text truncation */
 }
 
 .mui-menu-item-text {
   color: var(--menu-item-text);
   /* Text styles are applied via inline styles from text style toolbar */
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* Ensure descenders aren't clipped */
+  padding-bottom: 2px;
+  margin-bottom: -2px;
 }
 
 .mui-menu-item-supporting-text {
   color: var(--menu-item-supporting-text-color, var(--menu-item-text, #666));
   opacity: var(--menu-item-supporting-text-opacity, 0.7);
   /* Supporting text styles are applied via inline styles from text style toolbar */
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  /* Ensure descenders aren't clipped */
+  padding-bottom: 2px;
+  margin-bottom: -2px;
 }
 
 .mui-menu-item-trailing-icon {
@@ -139,4 +149,3 @@
   background-color: var(--menu-item-divider-color, #e0e0e0);
   opacity: var(--menu-item-divider-opacity, 1);
 }
-
