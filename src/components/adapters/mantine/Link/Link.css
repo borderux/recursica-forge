@@ -1,0 +1,28 @@
+/* Mantine Link CSS Overrides */
+
+/* Use high specificity to ensure our styles apply */
+.mantine-Anchor-root {
+  color: var(--link-color) !important;
+  font-family: var(--link-font-family);
+  font-size: var(--link-font-size);
+  font-weight: var(--link-font-weight);
+  letter-spacing: var(--link-letter-spacing);
+  line-height: var(--link-line-height);
+}
+
+.mantine-Anchor-root:hover {
+  text-decoration-color: currentColor !important;
+}
+
+/* Icons */
+.recursica-link-icon-start,
+.recursica-link-icon-end {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.recursica-link-icon-start svg,
+.recursica-link-icon-end svg {
+  display: block;
+}

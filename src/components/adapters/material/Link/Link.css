@@ -1,0 +1,20 @@
+/* Material Link CSS Overrides */
+
+/* Use high specificity to ensure our styles apply */
+.MuiLink-root {
+    /* Ensure CSS variables take precedence if set */
+    /* Note: We rely on sx prop in component mostly, this is backup */
+}
+
+/* Icons */
+.recursica-link-icon-start,
+.recursica-link-icon-end {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recursica-link-icon-start svg,
+.recursica-link-icon-end svg {
+    display: block;
+}

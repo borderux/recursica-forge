@@ -1,0 +1,33 @@
+/* Carbon Link CSS Overrides */
+
+/* Use high specificity to ensure our styles apply */
+.cds--link {
+    color: var(--link-color) !important;
+    font-family: var(--link-font-family);
+    font-size: var(--link-font-size);
+    font-weight: var(--link-font-weight);
+    letter-spacing: var(--link-letter-spacing);
+    line-height: var(--link-line-height);
+}
+
+.cds--link:visited {
+    color: var(--link-color) !important;
+}
+
+.cds--link:hover {
+    color: var(--link-color) !important;
+    text-decoration-color: currentColor !important;
+}
+
+/* Icons */
+.recursica-link-icon-start,
+.recursica-link-icon-end {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recursica-link-icon-start svg,
+.recursica-link-icon-end svg {
+    display: block;
+}

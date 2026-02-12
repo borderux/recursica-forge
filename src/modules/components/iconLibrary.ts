@@ -31,6 +31,7 @@ import {
   ArrowsOutCardinal,
   ArrowsOutLineHorizontal,
   ArrowsOutLineVertical,
+  ArrowsOutSimple,
   ArrowsVertical,
   Article,
   Asterisk,
@@ -319,6 +320,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'text-align-left': TextAlignLeft,
   'text-align-center': TextAlignCenter,
   'text-align-right': TextAlignRight,
+  'arrows-out-simple': ArrowsOutSimple,
 }
 
 /**
