@@ -33,7 +33,7 @@ import { getCssAuditAutoRun, setCssAuditAutoRun } from '../../../core/utils/cssA
 import { runCssVarAudit } from '../../../core/utils/runCssVarAudit'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
-  const { resetAll, reloadFromFile } = useVars()
+  const { resetAll } = useVars()
   const { mode, setMode } = useThemeMode()
   const location = useLocation()
   const navigate = useNavigate()
@@ -302,17 +302,6 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                   }}
                 />
               </Tooltip>
-              <Tooltip label="Reload UIKit from file (pick up UIKit.json changes)">
-                <Button
-                  variant="outline"
-                  size="small"
-                  icon={(() => {
-                    const FileIcon = iconNameToReactComponent('document-text')
-                    return FileIcon ? <FileIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                  })()}
-                  onClick={() => reloadFromFile()}
-                />
-              </Tooltip>
               <Tooltip label="Import theme">
                 <Button
                   variant="outline"
@@ -373,7 +362,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     />
                   </Tooltip>
                   <Tooltip label="Auto-run CSS audit (dev only)">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
                       <Switch
                         checked={cssAuditAutoRun}
                         onChange={(checked: boolean) => {

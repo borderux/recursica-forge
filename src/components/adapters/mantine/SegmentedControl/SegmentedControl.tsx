@@ -347,19 +347,19 @@ export default function SegmentedControl({
       // Use the same CSS variables as the Tooltip component for consistent styling
       tooltipEl.style.cssText = `
         position: fixed;
-        background-color: var(--recursica-ui-kit-components-tooltip-properties-colors-layer-1-background, #000);
-        color: var(--recursica-ui-kit-components-tooltip-properties-colors-layer-1-text-color, #fff);
-        border: var(--recursica-ui-kit-components-tooltip-properties-border-size, 1px) solid var(--recursica-ui-kit-components-tooltip-properties-colors-layer-1-border-color, transparent);
+        background-color: var(--recursica-ui-kit-components-tooltip-properties-colors-layer-0-background, #000);
+        color: var(--recursica-ui-kit-components-tooltip-properties-colors-layer-0-text, #fff);
+        border: var(--recursica-ui-kit-components-tooltip-properties-border-size, 1px) solid var(--recursica-ui-kit-components-tooltip-properties-colors-layer-0-border-color, transparent);
         border-radius: var(--recursica-ui-kit-components-tooltip-properties-border-radius, 4px);
         padding: var(--recursica-ui-kit-components-tooltip-properties-vertical-padding, 4px) var(--recursica-ui-kit-components-tooltip-properties-horizontal-padding, 8px);
         min-width: var(--recursica-ui-kit-components-tooltip-properties-min-width, auto);
         max-width: var(--recursica-ui-kit-components-tooltip-properties-max-width, 300px);
         min-height: var(--recursica-ui-kit-components-tooltip-properties-min-height, auto);
-        font-family: var(--recursica-ui-kit-components-tooltip-text-font-family, inherit);
-        font-size: var(--recursica-ui-kit-components-tooltip-text-font-size, 12px);
-        font-weight: var(--recursica-ui-kit-components-tooltip-text-font-weight, 400);
-        letter-spacing: var(--recursica-ui-kit-components-tooltip-text-letter-spacing, normal);
-        line-height: var(--recursica-ui-kit-components-tooltip-text-line-height, 1.5);
+        font-family: var(--recursica-ui-kit-components-tooltip-properties-text-font-family, inherit);
+        font-size: var(--recursica-ui-kit-components-tooltip-properties-text-font-size, 12px);
+        font-weight: var(--recursica-ui-kit-components-tooltip-properties-text-font-weight, 400);
+        letter-spacing: var(--recursica-ui-kit-components-tooltip-properties-text-letter-spacing, normal);
+        line-height: var(--recursica-ui-kit-components-tooltip-properties-text-line-height, 1.5);
         display: flex;
         align-items: center;
         justify-content: center;

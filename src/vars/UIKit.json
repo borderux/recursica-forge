@@ -2235,7 +2235,7 @@
                 "border-radius": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.border-radii.md}",
+                    "value": "{brand.dimensions.border-radii.default}",
                     "unit": "px"
                   }
                 },
@@ -2466,7 +2466,7 @@
                 "space-between-tabs": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.general.xs}",
+                    "value": "{brand.dimensions.general.sm}",
                     "unit": "px"
                   }
                 }
@@ -2540,7 +2540,7 @@
             "font-size": {
               "$type": "dimension",
               "$value": {
-                "value": "{tokens.font.sizes.me}",
+                "value": "{tokens.font.sizes.md}",
                 "unit": "px"
               }
             },
