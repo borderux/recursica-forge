@@ -6,6 +6,7 @@ import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
 import { AssistiveElement } from '../../components/adapters/AssistiveElement'
 import { TextField } from '../../components/adapters/TextField'
+import { NumberInput } from '../../components/adapters/NumberInput'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
@@ -691,12 +692,24 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Number input',
       url: `${base}/number-input`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input type="number" defaultValue={1} style={{ width: 120 }} />
-          <input type="number" disabled value={5} style={{ width: 120 }} />
-        </div>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+            <NumberInput
+              label="Label"
+              placeholder="Enter a number"
+              helpText="Help message"
+              state="default"
+              layout="stacked"
+              layer={layer as any}
+              min={0}
+              max={100}
+              step={1}
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Pagination',

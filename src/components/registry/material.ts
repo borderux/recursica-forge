@@ -38,6 +38,9 @@ registerComponent('material', 'AssistiveElement', () => import('../adapters/mate
 // TextField
 registerComponent('material', 'TextField', () => import('../adapters/material/TextField/TextField'))
 
+// NumberInput
+registerComponent('material', 'NumberInput', () => import('../adapters/material/NumberInput/NumberInput'))
+
 // Breadcrumb
 registerComponent('material', 'Breadcrumb', () => import('../adapters/material/Breadcrumb/Breadcrumb'))
 
