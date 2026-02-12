@@ -11,6 +11,7 @@ import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { Tooltip } from '../../components/adapters/Tooltip'
+import { Link } from '../../components/adapters/Link'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -451,12 +452,28 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Link',
       url: `${base}/link`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', gap: 12 }}>
-          <a href="#">Default link</a>
-          <a href="#" style={{ opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }} aria-disabled>Disabled link</a>
-        </div>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const { iconNameToReactComponent } = require('../components/iconUtils')
+        const ArrowUpRightIcon = iconNameToReactComponent('arrow-top-right-on-square')
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+              <Link href="#" layer={layer as any}>Default Link</Link>
+              <Link href="#" layer={layer as any} variant="subtle">Subtle Link</Link>
+            </div>
+            <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+              <Link href="#" layer={layer as any} endIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>External Link</Link>
+              <Link href="#" layer={layer as any} size="small">Small Link</Link>
+            </div>
+            <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+              <Link href="#" layer={layer as any} underline="always">Always Underlined</Link>
+              <Link href="#" layer={layer as any} underline="none">No Underline</Link>
+            </div>
+          </div>
+        )
+      },
     },
     {
       name: 'Loader',
