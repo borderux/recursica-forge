@@ -71,8 +71,8 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe('Props Handling', () => {
-    it.skip('handles onClick events', { timeout: 30000 }, async () => {
+  describe.skip('Props Handling', () => {
+    it('handles onClick events', { timeout: 30000 }, async () => {
       const handleClick = vi.fn()
       const { container } = renderWithProviders(<Button onClick={handleClick}>Click</Button>)
       const button = await waitForButton(container, 'Click')
