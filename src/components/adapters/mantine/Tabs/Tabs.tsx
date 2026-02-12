@@ -10,6 +10,7 @@ import { useRef } from 'react'
 import { Tabs as MantineTabs } from '@mantine/core'
 import type { TabsProps as AdapterTabsProps } from '../../Tabs'
 import { getComponentCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import './Tabs.css'
 
@@ -81,6 +82,10 @@ export default function Tabs({
   const minWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'min-width')
   const maxWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'max-width')
 
+  // Get hover opacity and overlay color from brand theme (not user-configurable)
+  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
+  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
+
   const rootRef = useRef<HTMLDivElement>(null)
 
 
@@ -144,6 +149,9 @@ export default function Tabs({
       // Tab content alignment (icon/text/badge inside tab button)
       '--recursica-tabs-content-align': tabContentAlignment,
       '--recursica-tabs-content-justify': tabContentAlignment === 'center' ? 'center' : tabContentAlignment === 'right' ? 'flex-end' : 'flex-start',
+      // Hover state (inactive tabs only)
+      '--recursica-tabs-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
+      '--recursica-tabs-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
       ...style,
       ...mantine?.style,
     },

@@ -211,6 +211,8 @@
     text-decoration: var(--recursica-tabs-inactive-text-decoration, none) !important;
     text-transform: var(--recursica-tabs-inactive-text-transform, none) !important;
     font-style: var(--recursica-tabs-inactive-font-style, normal) !important;
+    /* Enable positioning for hover overlay */
+    position: relative !important;
 }
 
 /* Default horizontal: unselected tab border transparent so list::before provides full-width track */
@@ -219,9 +221,35 @@
     border-bottom-color: transparent !important;
 }
 
+/* Hover state: apply overlay with hover opacity on top of base background */
 .recursica-tabs .mantine-Tabs-tab:not([data-active]):hover,
 .recursica-tabs [role="tab"]:not([data-active]):hover {
+    /* Prevent background color change on hover */
     background: var(--recursica-tabs-inactive-background, transparent) !important;
+    /* Ensure overlay is not clipped */
+    overflow: visible !important;
+}
+
+.recursica-tabs .mantine-Tabs-tab:not([data-active]):hover::before,
+.recursica-tabs [role="tab"]:not([data-active]):hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--recursica-tabs-overlay-color, #000000);
+    opacity: var(--recursica-tabs-hover-opacity, 0.08);
+    border-radius: inherit;
+    pointer-events: none;
+    /* Prevent blur or filter effects */
+    backdrop-filter: none !important;
+    filter: none !important;
+    transform: none !important;
+    will-change: auto !important;
+    /* Disable all transitions and animations */
+    transition: none !important;
+    animation: none !important;
 }
 
 /* Selected tab state - use [role="tab"] since Mantine uses hashed classes */
@@ -261,7 +289,32 @@
 
 .recursica-tabs[data-variant="pills"] .mantine-Tabs-tab:not([data-active]):hover,
 .recursica-tabs[data-variant="pills"] [role="tab"]:not([data-active]):hover {
+    /* Prevent background color change on hover */
     background: var(--recursica-tabs-inactive-background, transparent) !important;
+    /* Ensure overlay is not clipped */
+    overflow: visible !important;
+}
+
+.recursica-tabs[data-variant="pills"] .mantine-Tabs-tab:not([data-active]):hover::before,
+.recursica-tabs[data-variant="pills"] [role="tab"]:not([data-active]):hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--recursica-tabs-overlay-color, #000000);
+    opacity: var(--recursica-tabs-hover-opacity, 0.08);
+    border-radius: inherit;
+    pointer-events: none;
+    /* Prevent blur or filter effects */
+    backdrop-filter: none !important;
+    filter: none !important;
+    transform: none !important;
+    will-change: auto !important;
+    /* Disable all transitions and animations */
+    transition: none !important;
+    animation: none !important;
 }
 
 /* Outline variant */
@@ -432,7 +485,32 @@
 
 .recursica-tabs[data-variant="outline"] .mantine-Tabs-tab:not([data-active]):hover,
 .recursica-tabs[data-variant="outline"] [role="tab"]:not([data-active]):hover {
+    /* Prevent background color change on hover */
     background: var(--recursica-tabs-inactive-background, transparent) !important;
+    /* Ensure overlay is not clipped */
+    overflow: visible !important;
+}
+
+.recursica-tabs[data-variant="outline"] .mantine-Tabs-tab:not([data-active]):hover::before,
+.recursica-tabs[data-variant="outline"] [role="tab"]:not([data-active]):hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--recursica-tabs-overlay-color, #000000);
+    opacity: var(--recursica-tabs-hover-opacity, 0.08);
+    border-radius: inherit;
+    pointer-events: none;
+    /* Prevent blur or filter effects */
+    backdrop-filter: none !important;
+    filter: none !important;
+    transform: none !important;
+    will-change: auto !important;
+    /* Disable all transitions and animations */
+    transition: none !important;
+    animation: none !important;
 }
 
 /* Icon styling */
