@@ -102,9 +102,6 @@ export const apiService = {
       body: JSON.stringify({ userId, readKey, code }),
     });
 
-    console.log("getToken response status:", response.status);
-    console.log("getToken response ok:", response.ok);
-
     if (!response.ok) {
       if (response.status === 401) {
         const error = await response.json().catch(() => ({}));
@@ -115,7 +112,6 @@ export const apiService = {
 
     try {
       const data = await response.json();
-      console.log("getToken response data:", data);
       return data;
     } catch (jsonError) {
       console.error("Error parsing JSON response:", jsonError);
@@ -132,11 +128,6 @@ export function encrypt(value: string): string {
   if (!PLUGIN_PHRASE) {
     throw new Error("Plugin phrase not defined");
   }
-
-  console.log(
-    "Encrypting with phrase:",
-    PLUGIN_PHRASE ? "defined" : "undefined",
-  );
 
   const encrypted = CryptoJS.AES.encrypt(value, PLUGIN_PHRASE).toString();
   const words = Utf8.parse(encrypted);

@@ -154,7 +154,7 @@ export function Tooltip({
   }
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<span />}>
       <Component
         key={`${mode}-${layoutUpdateCounter}`}
         label={label}

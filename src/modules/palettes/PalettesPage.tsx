@@ -788,8 +788,6 @@ export default function PalettesPage() {
     while (existing.has(`palette-${i}`)) i += 1
     const nextKey = `palette-${i}`
     
-    console.log('Adding palette:', { nextKey, family, unusedFamilies, currentPalettes: palettes.length })
-    
     try {
       // Initialize theme JSON for this palette using the unused color scale
       initializePaletteTheme(nextKey, family)
@@ -797,10 +795,7 @@ export default function PalettesPage() {
       // Add palette entry with the unused color scale as initialFamily
       const newPalette: PaletteEntry = { key: nextKey, title: `Palette ${i}`, defaultLevel: 500, initialFamily: family }
       const updatedPalettes = [...palettes, newPalette]
-      console.log('Writing palettes:', { newPalette, updatedPalettes })
       writePalettes(updatedPalettes)
-      
-      console.log('Palette added successfully')
     } catch (err) {
       console.error('Failed to add palette:', err)
     }

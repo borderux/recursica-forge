@@ -21,7 +21,7 @@ type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 export type Section = {
   name: string
   url: string
-  render: (selectedLayers: Set<LayerOption>) => JSX.Element
+  render?: (selectedLayers: Set<LayerOption>) => JSX.Element
 }
 
 // Sort layers numerically by layer number
@@ -848,13 +848,6 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Tabs',
       url: `${base}/tabs`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button style={{ padding: '6px 10px', borderRadius: 999, background: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-white)`, border: 0 }}>Active</button>
-          <button style={{ padding: '6px 10px', borderRadius: 999 }}>Default</button>
-          <button style={{ padding: '6px 10px', borderRadius: 999, opacity: `var(--recursica-brand-${mode}-opacity-disabled, 0.5)` }}>Disabled</button>
-        </div>
-      ),
     },
     {
       name: 'Text field',

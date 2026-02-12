@@ -18,6 +18,7 @@ import MenuPreview from '../components/MenuPreview'
 import SliderPreview from '../components/SliderPreview'
 import SegmentedControlPreview from '../components/SegmentedControlPreview'
 import SegmentedControlItemPreview from '../components/SegmentedControlItemPreview'
+import TabsPreview from '../components/TabsPreview'
 import AssistiveElementPreview from '../components/AssistiveElementPreview'
 import TextFieldPreview from '../components/TextFieldPreview'
 import ModalPreview from '../components/ModalPreview'
@@ -394,6 +395,12 @@ export default function ComponentDetailPage() {
                     componentElevation={componentElevation}
                   />
                 </div>
+              ) : component.name === 'Tabs' ? (
+                <TabsPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
               ) : component.name === 'Modal' ? (
                 <ModalPreview
                   selectedVariants={selectedVariants}
@@ -407,7 +414,7 @@ export default function ComponentDetailPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}>
-                  {component.render(new Set([selectedLayer as any]))}
+                  {component.render?.(new Set([selectedLayer as any])) || <div>No preview available</div>}
                 </div>
               )}
             </div>

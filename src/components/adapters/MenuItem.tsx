@@ -124,7 +124,7 @@ export function MenuItem({
   }
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<span />}>
       <Component {...libraryProps}>{children}</Component>
     </Suspense>
   )

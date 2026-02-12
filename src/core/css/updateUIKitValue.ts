@@ -37,6 +37,9 @@ function cssVarToUIKitPath(cssVar: string): string[] | null {
             // border-color
             path.push('border-color')
             i += 2
+        } else if (part === 'tabs' && i + 2 < parts.length && parts[i + 1] === 'content' && parts[i + 2] === 'gap') {
+            path.push('tabs-content-gap')
+            i += 3
         } else {
             path.push(part)
             i++
@@ -136,11 +139,22 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
             const tokenPath = varMatch[1].replace(/-/g, '.')
             tokenValue = `{tokens.${tokenPath}}`
         }
+    } else if (value.startsWith('var(--recursica-brand-dimensions-')) {
+        const varMatch = value.match(/var\(--recursica-brand-dimensions-(.+)\)/)
+        if (varMatch) {
+            const dimPath = varMatch[1].replace(/-/g, '.')
+            tokenValue = `{brand.dimensions.${dimPath}}`
+        }
     }
 
     // Update the value, preserving $type if it exists
     if (current[finalKey] && typeof current[finalKey] === 'object' && '$type' in current[finalKey]) {
-        current[finalKey].$value = tokenValue
+        const existingType = (current[finalKey] as any).$type
+        if (existingType === 'dimension') {
+            (current[finalKey] as any).$value = { value: tokenValue, unit: 'px' }
+        } else {
+            (current[finalKey] as any).$value = tokenValue
+        }
     } else {
         // Create new entry with type
         current[finalKey] = {
@@ -149,8 +163,7 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         }
     }
 
-    // Update the store
-    getVarsStore().setUiKit(updatedUIKit)
+    getVarsStore().setUiKitSilent(updatedUIKit)
 
     return true
 }

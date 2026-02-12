@@ -142,7 +142,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         // Check if this variants object contains category containers (styles, sizes, layouts, types, states)
         // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left or variants.types.help or variants.states.default
         // Also handles nested: variants.layouts.side-by-side.variants.sizes.default
-        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states'))
+        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states' || k === 'orientation' || k === 'fill-width'))
 
         if (categoryKeys.length > 0) {
           // NEW STRUCTURE: variants.styles, variants.sizes, and variants.layouts are category containers
@@ -256,6 +256,10 @@ export function parseComponentStructure(componentName: string): ComponentStructu
                   } else if ('properties' in variantObj && typeof variantObj.properties === 'object') {
                     // New structure: variants.styles.solid.properties.colors...
                     traverse(variantObj.properties, [...currentPath, categoryKey, variantKey, 'properties'], variantPropName)
+                    // Also traverse orientation when nested under style (e.g. Tabs styles.default.orientation)
+                    if ('orientation' in variantObj && typeof variantObj.orientation === 'object') {
+                      traverse(variantObj.orientation, [...currentPath, categoryKey, variantKey, 'orientation'], 'orientation')
+                    }
                   } else {
                     // Old structure or nested variants: traverse directly
                     traverse(variantObj, [...currentPath, categoryKey, variantKey], variantPropName)
@@ -639,20 +643,26 @@ export function getDimensionPropertyType(
 
     // Navigate to the property using the path
     let current: any = component
-    for (const pathPart of propPath) {
+    for (let i = 0; i < propPath.length; i++) {
+      const pathPart = propPath[i]
       if (current == null || typeof current !== 'object') {
         return null
       }
 
       // Handle variant paths - if we encounter a variant category, use selected variant
-      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types') {
+      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation') {
         const variantKey = pathPart === 'styles' ? 'style' :
           pathPart === 'sizes' ? 'size' :
             pathPart === 'layouts' ? 'layout' :
               pathPart === 'states' ? 'state' :
-                pathPart === 'types' ? 'type' : pathPart
-        const selectedVariant = selectedVariants[variantKey] || 'default'
+                pathPart === 'types' ? 'type' :
+                  pathPart === 'orientation' ? 'orientation' : pathPart
+        const selectedVariant = selectedVariants[variantKey] || (pathPart === 'orientation' ? 'horizontal' : 'default')
         current = current[pathPart]?.[selectedVariant]
+        // Skip next path part if it's the variant value we just resolved (e.g. path has orientation, horizontal)
+        if (propPath[i + 1] === selectedVariant) {
+          i++
+        }
       } else {
         current = current[pathPart]
       }

@@ -250,23 +250,6 @@ export function ComponentsSidebar({
         flexShrink: 0,
       }}
     >
-      {/* Components Heading */}
-      <h2
-        style={{
-          margin: 0,
-          marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
-          fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-          fontSize: 'var(--recursica-brand-typography-body-font-size)',
-          fontWeight: 600,
-          letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-high-emphasis)`,
-        }}
-      >
-        Components
-      </h2>
-      
       {/* Navigation Items */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
         {componentTree.map((node) => {

@@ -123,12 +123,24 @@ export default function ComponentToolbar({
 
       // Check if this prop is part of a group in the config (but not if it's the parent prop itself)
       // IMPORTANT: Skip grouping check for text-group props - they are always standalone
+      // For nested groups like selected/unselected (Tabs), match by path so border-size under "selected" goes to selected, not unselected
       let groupedParent: string | null = null
       if (prop.type !== 'text-group' && toolbarConfig?.props) {
         for (const [key, propConfig] of Object.entries(toolbarConfig.props)) {
           if (propConfig.group && propConfig.group[propNameLower]) {
-            groupedParent = key
-            break
+            const keyLower = key.toLowerCase()
+            if (prop.path.includes(keyLower)) {
+              groupedParent = key
+              break
+            }
+          }
+        }
+        if (!groupedParent) {
+          for (const [key, propConfig] of Object.entries(toolbarConfig.props)) {
+            if (propConfig.group && propConfig.group[propNameLower]) {
+              groupedParent = key
+              break
+            }
           }
         }
       }
@@ -274,7 +286,7 @@ export default function ComponentToolbar({
               // For nested property groups like "container", "selected", "selected-item", and "unselected-item", match props by name AND path
               // Check if the parent prop name is in the path (e.g., "container", "selected", "selected-item", or "unselected-item")
               const parentPropNameLower = parentPropName.toLowerCase()
-              const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item'
+              const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'unselected' || parentPropNameLower === 'active' || parentPropNameLower === 'inactive' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item' || parentPropNameLower === 'thumb-selected' || parentPropNameLower === 'thumb-unselected' || parentPropNameLower === 'track-selected' || parentPropNameLower === 'track-unselected'
 
 
               let groupedProp = structure.props.find(p => {
@@ -317,6 +329,25 @@ export default function ComponentToolbar({
                   // Must be component-level (not variant-specific)
                   const isComponentLevel = !p.isVariantSpecific
                   return nameMatches && isComponentLevel
+                })
+              }
+
+              // Special case: tab-content-alignment is a component-level property for Tabs
+              // It's in the "spacing" group but doesn't have "spacing" in its path
+              if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
+                  const isComponentLevel = !p.isVariantSpecific
+                  return nameMatches && isComponentLevel
+                })
+              }
+              // tabs-content-gap is under both style and orientation; match by both
+              if (!groupedProp && groupedPropKey === 'tabs-content-gap' && componentName.toLowerCase() === 'tabs') {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === 'tabs-content-gap'
+                  const styleMatches = !selectedVariants.style || p.path.includes(selectedVariants.style)
+                  const orientationMatches = !selectedVariants.orientation || p.path.includes(selectedVariants.orientation)
+                  return nameMatches && styleMatches && orientationMatches
                 })
               }
 

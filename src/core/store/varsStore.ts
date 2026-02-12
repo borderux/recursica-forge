@@ -569,6 +569,39 @@ class VarsStore {
   setTokens(next: JsonLike) { this.writeState({ tokens: next }) }
   setTheme(next: JsonLike) { this.writeState({ theme: next }) }
   setUiKit(next: JsonLike) { this.writeState({ uikit: next }) }
+
+  /**
+   * Fetches UIKit.json from the server (bypassing bundle cache) and reloads.
+   * Use after editing UIKit.json when toolbar colors/defaults aren't updating.
+   */
+  async reloadFromFile() {
+    if (!this.lsAvailable || typeof window === 'undefined') return
+    try {
+      // Fetch fresh UIKit.json directly from server (bypasses JS bundle cache)
+      const base = ((import.meta as any).env?.BASE_URL as string) ?? '/'
+      const basePath = base.endsWith('/') ? base : base + '/'
+      // Dev: Vite serves src; Prod: copy-uikit plugin copies to dist/vars/
+      const uikitPath = (import.meta as any).env?.DEV
+        ? basePath + 'src/vars/UIKit.json'
+        : basePath + 'vars/UIKit.json'
+      const res = await fetch(uikitPath, { cache: 'no-store' })
+      if (res.ok) {
+        const uikit = await res.json()
+        writeLSJson(STORAGE_KEYS.uikit, uikit)
+      }
+      // Reload to apply; rf:uikit now has fresh content so init will use it
+      window.location.reload()
+    } catch {
+      // Fallback: clear and cache-bust reload
+      localStorage.removeItem(STORAGE_KEYS.uikit)
+      localStorage.removeItem(STORAGE_KEYS.version)
+      const url = new URL(window.location.href)
+      url.searchParams.set('_cb', String(Date.now()))
+      window.location.href = url.toString()
+    }
+  }
+  /** Update UIKit without triggering recomputeAndApplyAll. Use when CSS var was already set via updateCssVar (e.g. toolbar color picker). */
+  setUiKitSilent(next: JsonLike) { this.writeState({ uikit: next }, true) }
   setPalettes(next: PaletteStore) { this.writeState({ palettes: next }) }
   setElevation(next: ElevationState) { this.writeState({ elevation: next }) }
   updateElevation(mutator: (prev: ElevationState) => ElevationState) { this.writeState({ elevation: mutator(this.state.elevation) }) }

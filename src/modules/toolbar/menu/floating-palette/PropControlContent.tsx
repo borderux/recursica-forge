@@ -23,6 +23,9 @@ import BackgroundToolbar from '../background/BackgroundToolbar'
 import IconGroupToolbar from '../icon-group/IconGroupToolbar'
 import TopBottomMarginToolbar from '../top-bottom-margin-group/TopBottomMarginToolbar'
 import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
+import { SegmentedControl } from '../../../../components/adapters/SegmentedControl'
+import { iconNameToReactComponent } from '../../../components/iconUtils'
+import { useCssVar } from '../../../../components/hooks/useCssVar'
 import uikitJson from '../../../../vars/UIKit.json'
 import './PropControl.css'
 
@@ -44,6 +47,44 @@ const formatDimensionLabel = (key: string): string => {
   if (sizeMap[key]) return sizeMap[key]
 
   return key.charAt(0).toUpperCase() + key.slice(1)
+}
+
+/** Segmented control that reads/writes a CSS var - re-renders when the var changes */
+function SegmentedControlFromCssVar({
+  primaryVar,
+  cssVars,
+  label,
+  options,
+}: {
+  primaryVar: string
+  cssVars: string[]
+  label: string
+  options: Array<{ value: string; icon?: string }>
+}) {
+  const currentValue = useCssVar(primaryVar, options[0]?.value ?? '')
+  const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || (options[0]?.value ?? '')
+  const items = options.map((opt) => {
+    const IconComp = opt.icon ? iconNameToReactComponent(opt.icon) : null
+    return {
+      value: opt.value,
+      icon: IconComp ? React.createElement(IconComp, { size: 16 }) : undefined,
+      tooltip: opt.value.charAt(0).toUpperCase() + opt.value.slice(1),
+    }
+  })
+  return (
+    <div>
+      <Label layer="layer-3" layout="stacked">{label}</Label>
+      <SegmentedControl
+        items={items}
+        value={cleanValue}
+        onChange={(value) => {
+          cssVars.forEach((v) => updateCssVar(v, value))
+        }}
+        layer="layer-1"
+        showLabel={false}
+      />
+    </div>
+  )
 }
 
 // Inline brand dimension slider component (deprecated - use BrandDimensionSliderInline from utils)
@@ -741,7 +782,7 @@ export default function PropControlContent({
     if (propToCheck.cssVar && propToCheck.path && propToCheck.path.length > 0) {
       // For grouped props, ensure we match the exact path
       // Check if this is a grouped prop by looking for "container" or "selected" in path
-      const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item')
+      const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('unselected') || propToCheck.path.includes('active') || propToCheck.path.includes('inactive') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item') || propToCheck.path.includes('thumb-selected') || propToCheck.path.includes('thumb-unselected') || propToCheck.path.includes('track-selected') || propToCheck.path.includes('track-unselected')
       if (isGroupedProp) {
         // Use the prop's CSS var directly to ensure we're updating the correct one
         return [propToCheck.cssVar]
@@ -764,7 +805,7 @@ export default function PropControlContent({
       }
       // For grouped props, ensure the path matches exactly
       if (propToCheck.path && propToCheck.path.length > 0) {
-        const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item')
+        const isGroupedProp = propToCheck.path.includes('container') || propToCheck.path.includes('selected') || propToCheck.path.includes('unselected') || propToCheck.path.includes('active') || propToCheck.path.includes('inactive') || propToCheck.path.includes('selected-item') || propToCheck.path.includes('unselected-item') || propToCheck.path.includes('thumb-selected') || propToCheck.path.includes('thumb-unselected') || propToCheck.path.includes('track-selected') || propToCheck.path.includes('track-unselected') || propToCheck.path.includes('thumb-selected') || propToCheck.path.includes('thumb-unselected') || propToCheck.path.includes('track-selected') || propToCheck.path.includes('track-unselected')
         if (isGroupedProp) {
           // Match the exact path segments for grouped props
           const propToCheckPathStr = propToCheck.path.join('/')
@@ -796,6 +837,16 @@ export default function PropControlContent({
         if (!selectedVariant) return false
         const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
         if (!variantInPath) return false
+      }
+      // Props under both style and orientation (e.g. tabs-content-gap under styles.pills.orientation.horizontal)
+      // must match BOTH selectedVariants.style and selectedVariants.orientation
+      // Require path structure variants.styles.X.orientation.Y (not variants.orientation which is component-level)
+      const stylesIdx = p.path.indexOf('styles')
+      const orientationIdx = p.path.indexOf('orientation')
+      const hasStyleAndOrientationInPath = stylesIdx >= 0 && orientationIdx >= 0 && stylesIdx < orientationIdx
+      if (hasStyleAndOrientationInPath) {
+        if (selectedVariants.style && !p.path.includes(selectedVariants.style)) return false
+        if (selectedVariants.orientation && !p.path.includes(selectedVariants.orientation)) return false
       }
       if (propToCheck.category === 'colors') {
         const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
@@ -1138,6 +1189,20 @@ export default function PropControlContent({
       if (config.step) propToRender.step = config.step
     }
 
+    // Segmented control with icon-only options (e.g., tab-content-alignment)
+    // Use a wrapper component with useCssVar so it re-renders when the value changes
+    const configWithControl = config as (ToolbarPropConfig & { control?: string; options?: Array<{ value: string; icon?: string }> }) | undefined
+    if (configWithControl?.control === 'segmented' && configWithControl?.options?.length) {
+      return (
+        <SegmentedControlFromCssVar
+          primaryVar={primaryVar}
+          cssVars={cssVars}
+          label={label}
+          options={configWithControl.options}
+        />
+      )
+    }
+
     // Generic Slider implementation for propertyType: 'slider'
     if (propToRender.propertyType === 'slider' || propToRender.type === 'slider') {
       const CustomDimensionSlider = () => {
@@ -1301,12 +1366,13 @@ export default function PropControlContent({
         } else if (propNameLower === 'text-size' || propNameLower === 'font-size') {
           dimensionCategory = 'text-size'
         }
-        // Default to 'general' for padding, gap, spacing, etc.
+        // Default to 'general' for padding, gap, spacing (including tabs-content-gap)
 
         // Use token slider for properties that UIKit.json says use tokens
+        // Key includes style+orientation for variant-specific props (e.g. tabs-content-gap)
         return (
           <BrandDimensionSliderInline
-            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            key={`${primaryVar}-${selectedVariants.style || ''}-${selectedVariants.orientation || ''}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
             targetCssVar={primaryVar}
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
@@ -3473,7 +3539,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text']
 
   // Always check UIKit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly
@@ -3861,6 +3927,40 @@ export default function PropControlContent({
             }
           }
 
+          // Special case: tab-content-alignment is a component-level property for Tabs
+          if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
+            const structure = parseComponentStructure(componentName)
+            groupedProp = structure.props.find(p => {
+              const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
+              const isComponentLevel = !p.isVariantSpecific
+              return nameMatches && isComponentLevel
+            })
+            if (groupedProp) {
+              prop.borderProps!.set(groupedPropKey, groupedProp)
+            }
+          }
+
+          // tabs-content-gap is under both style and orientation; match by both
+          // CRITICAL: Always re-find - never use cache. The cache key doesn't include variant,
+          // so switching orientation would reuse the wrong prop (e.g. horizontal when vertical selected).
+          if (groupedPropKey === 'tabs-content-gap' && componentName.toLowerCase() === 'tabs') {
+            const structure = parseComponentStructure(componentName)
+            const tabsContentGapProp = structure.props.find(p => {
+              const nameMatches = p.name.toLowerCase() === 'tabs-content-gap'
+              const styleMatches = !selectedVariants.style || p.path.includes(selectedVariants.style)
+              const orientationMatches = !selectedVariants.orientation || p.path.includes(selectedVariants.orientation)
+              // Must be from variants.styles.X.orientation.Y, not variants.orientation (component-level)
+              const stylesIdx = p.path.indexOf('styles')
+              const orientationIdx = p.path.indexOf('orientation')
+              const isStyleSpecific = stylesIdx >= 0 && orientationIdx >= 0 && stylesIdx < orientationIdx
+              return nameMatches && styleMatches && orientationMatches && isStyleSpecific
+            })
+            if (tabsContentGapProp) {
+              groupedProp = tabsContentGapProp
+              prop.borderProps!.set(groupedPropKey, tabsContentGapProp)
+            }
+          }
+
           if (!groupedProp && groupedPropKey === 'border-color') {
             groupedProp = prop.borderProps!.get('border')
           }
@@ -3985,7 +4085,7 @@ export default function PropControlContent({
           // - If grouped prop path contains "container" or "selected", use the prop's CSS var directly to ensure we're updating the correct grouped prop
           // - Otherwise (component-level props like Avatar border-radius), always use getCssVarsForProp to ensure correct CSS var resolution
           let cssVars: string[]
-          const isGroupedContainerOrSelected = groupedProp.path && (groupedProp.path.includes('container') || groupedProp.path.includes('selected'))
+          const isGroupedContainerOrSelected = groupedProp.path && (groupedProp.path.includes('container') || groupedProp.path.includes('selected') || groupedProp.path.includes('unselected') || groupedProp.path.includes('active') || groupedProp.path.includes('inactive'))
           if (groupedProp.isVariantSpecific && groupedProp.variantProp) {
             // Variant-specific prop: always resolve based on selected variant
             cssVars = getCssVarsForProp(groupedProp)
@@ -4071,7 +4171,7 @@ export default function PropControlContent({
             <div
               key={groupedPropName}
             >
-              {renderControl(groupedProp, cssVars, primaryVar, label)}
+              {renderControl(groupedProp, cssVars, primaryVar, label, groupedPropConfig)}
             </div>
           )
         })}

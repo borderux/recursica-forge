@@ -47,6 +47,20 @@ function clearCssVarsForImport(files: {
 }
 
 /**
+ * Stable JSON stringify with sorted keys for order-independent comparison
+ */
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== 'object') {
+    return JSON.stringify(value)
+  }
+  if (Array.isArray(value)) {
+    return '[' + value.map(stableStringify).join(',') + ']'
+  }
+  const keys = Object.keys(value as object).sort()
+  return '{' + keys.map((k) => JSON.stringify(k) + ':' + stableStringify((value as Record<string, unknown>)[k])).join(',') + '}'
+}
+
+/**
  * Detects if there are unexported changes (dirty data)
  * by comparing current store state with original JSON files
  */
@@ -60,14 +74,10 @@ export function detectDirtyData(): boolean {
     const originalBrand = (brandJson as any)?.brand ? brandJson : { brand: brandJson } as JsonLike
     const originalUiKit = (uikitJson as any)?.['ui-kit'] ? uikitJson : { 'ui-kit': uikitJson } as JsonLike
     
-    // Compare tokens
-    const tokensEqual = JSON.stringify(currentState.tokens) === JSON.stringify(originalTokens)
-    
-    // Compare theme/brand
-    const themeEqual = JSON.stringify(currentState.theme) === JSON.stringify(originalBrand)
-    
-    // Compare uikit
-    const uikitEqual = JSON.stringify(currentState.uikit) === JSON.stringify(originalUiKit)
+    // Compare using stable stringify (key-order independent)
+    const tokensEqual = stableStringify(currentState.tokens) === stableStringify(originalTokens)
+    const themeEqual = stableStringify(currentState.theme) === stableStringify(originalBrand)
+    const uikitEqual = stableStringify(currentState.uikit) === stableStringify(originalUiKit)
     
     // If any differ, we have dirty data
     return !tokensEqual || !themeEqual || !uikitEqual

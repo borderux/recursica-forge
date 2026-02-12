@@ -37,7 +37,7 @@ import { Dropdown } from '../../../components/adapters/Dropdown'
 import '@carbon/styles/css/styles.css'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
-  const { resetAll } = useVars()
+  const { resetAll, reloadFromFile } = useVars()
   const { mode, setMode } = useThemeMode()
   const location = useLocation()
   const navigate = useNavigate()
@@ -152,9 +152,6 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            borderBottomWidth: '1px',
-            borderBottomStyle: 'solid',
-            borderBottomColor: `var(--recursica-brand-themes-${mode}-palettes-neutral-primary-tone)`,
           }}
         >
           {/* Logo, Brand, and Navigation Buttons */}
@@ -276,6 +273,17 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     clearOverrides(tokensJson as any)
                     resetAll()
                   }}
+                />
+              </Tooltip>
+              <Tooltip label="Reload UIKit from file (pick up UIKit.json changes)">
+                <Button
+                  variant="outline"
+                  size="default"
+                  icon={(() => {
+                    const FileIcon = iconNameToReactComponent('document-text')
+                    return FileIcon ? <FileIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  })()}
+                  onClick={() => reloadFromFile()}
                 />
               </Tooltip>
               <Tooltip label="Import theme">

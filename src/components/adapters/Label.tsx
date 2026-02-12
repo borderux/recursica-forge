@@ -255,7 +255,7 @@ export function Label({
   }
 
   return (
-    <Suspense fallback={<label style={{ display: 'block' }}>{children}</label>}>
+    <Suspense fallback={<span />}>
       <Component
         htmlFor={htmlFor}
         variant={styleVariant}

@@ -222,7 +222,7 @@ export function Dropdown({
             marginTop: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
             marginBottom: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
         }}>
-            <Suspense fallback={<div style={{ width: '100%', height: 48 }} />}>
+            <Suspense fallback={<span />}>
                 <Component
                     items={items}
                     value={currentValue}

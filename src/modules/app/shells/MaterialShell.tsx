@@ -33,7 +33,7 @@ import { getCssAuditAutoRun, setCssAuditAutoRun } from '../../../core/utils/cssA
 import { runCssVarAudit } from '../../../core/utils/runCssVarAudit'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
-  const { resetAll } = useVars()
+  const { resetAll, reloadFromFile } = useVars()
   const { mode, setMode } = useThemeMode()
   const location = useLocation()
   const navigate = useNavigate()
@@ -157,9 +157,6 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             height: 'auto',
             flexShrink: 0,
             boxShadow: 'none',
-            borderBottomWidth: '1px',
-            borderBottomStyle: 'solid',
-            borderBottomColor: `var(--recursica-brand-themes-${mode}-palettes-neutral-primary-tone)`,
           }}
         >
           <Toolbar sx={{ gap: 'var(--recursica-brand-dimensions-general-xl)', justifyContent: 'space-between', minHeight: 'auto !important', width: '100%' }}>
@@ -303,6 +300,17 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     clearOverrides(tokensJson as any)
                     resetAll()
                   }}
+                />
+              </Tooltip>
+              <Tooltip label="Reload UIKit from file (pick up UIKit.json changes)">
+                <Button
+                  variant="outline"
+                  size="small"
+                  icon={(() => {
+                    const FileIcon = iconNameToReactComponent('document-text')
+                    return FileIcon ? <FileIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  })()}
+                  onClick={() => reloadFromFile()}
                 />
               </Tooltip>
               <Tooltip label="Import theme">
