@@ -33,7 +33,7 @@ export function ThemeSidebar() {
   
   const currentNavItem = getCurrentNavItem()
   
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
   
   const handleNavClick = (value: string | null) => {
     const item = (value || 'core-properties') as ThemeNavItem
@@ -145,8 +145,8 @@ export function ThemeSidebar() {
         style={{
           marginTop: 'var(--recursica-brand-dimensions-general-md)',
           fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
         }}
       >
         © 2025 Border LLC. All rights reserved. Ver: {packageJson.version}

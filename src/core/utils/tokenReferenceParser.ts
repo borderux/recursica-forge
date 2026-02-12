@@ -292,7 +292,7 @@ export function resolveTokenReferenceToCssVar(
     if (layerMatch) {
       const layerNum = layerMatch[1]
       const prop = layerMatch[2].replace(/\./g, '-')
-      return `var(--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property-${prop})`
+      return `var(--recursica-brand-themes-${mode}-layers-layer-${layerNum}-properties-${prop})`
     }
 
     // Layer element references: layers.layer-0.elements.text.color
@@ -314,7 +314,7 @@ export function resolveTokenReferenceToCssVar(
         elementPath = 'interactive-color'
       }
 
-      return `var(--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property-element-${elementPath})`
+      return `var(--recursica-brand-themes-${mode}-layers-layer-${layerNum}-elements-${elementPath})`
     }
 
     // Palette core-colors references with state: palettes.core-colors.interactive.default.tone

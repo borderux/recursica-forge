@@ -28,12 +28,12 @@ type TreeNode = {
   children?: TreeNode[]
 }
 
-export function ComponentsSidebar({ 
-  showUnmapped, 
+export function ComponentsSidebar({
+  showUnmapped,
   onShowUnmappedChange,
   debugMode,
   onDebugModeChange,
-}: { 
+}: {
   showUnmapped: boolean
   onShowUnmappedChange: (show: boolean) => void
   debugMode: boolean
@@ -42,7 +42,7 @@ export function ComponentsSidebar({
   const location = useLocation()
   const navigate = useNavigate()
   const { mode } = useThemeMode()
-  
+
   // Get list of mapped components from UIKit.json
   const mappedComponents = useMemo(() => {
     const components = (uikitJson as any)?.['ui-kit']?.components || {}
@@ -50,8 +50,8 @@ export function ComponentsSidebar({
       // Convert "button" -> "Button", "text-field" -> "Text field", "menu-item" -> "Menu item", etc.
       const words = name.split('-')
       return words
-        .map((word, index) => 
-          index === 0 
+        .map((word, index) =>
+          index === 0
             ? word.charAt(0).toUpperCase() + word.slice(1) // First word: capitalize first letter
             : word.toLowerCase() // Subsequent words: lowercase
         )
@@ -124,12 +124,12 @@ export function ComponentsSidebar({
     const tree: TreeNode[] = []
     const itemMap = new Map<string, ComponentItem>()
     const parentMap = new Map<string, TreeNode>()
-    
+
     // First pass: separate parents and items
     allComponents.forEach(comp => {
       const isItem = comp.name.endsWith(' item')
       const parentName = isItem ? comp.name.replace(' item', '') : comp.name
-      
+
       if (isItem) {
         // Store item for second pass
         itemMap.set(parentName, comp)
@@ -144,7 +144,7 @@ export function ComponentsSidebar({
         parentMap.set(comp.name, node)
       }
     })
-    
+
     // Second pass: attach items to their parents
     // If parent exists in tree, attach item to it
     // If parent doesn't exist but item should be shown, create parent node from baseComponents
@@ -173,10 +173,10 @@ export function ComponentsSidebar({
         }
       }
     })
-    
+
     // Sort tree alphabetically by name
     tree.sort((a, b) => a.name.localeCompare(b.name))
-    
+
     return tree
   }, [allComponents, baseComponents])
 
@@ -194,11 +194,11 @@ export function ComponentsSidebar({
 
   // Track expanded nodes
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
-  
+
   // Auto-expand parent if child is active
   useEffect(() => {
     if (currentComponent) {
-      const parentNode = componentTree.find(node => 
+      const parentNode = componentTree.find(node =>
         node.children?.some(child => child.name === currentComponent)
       )
       if (parentNode) {
@@ -209,7 +209,7 @@ export function ComponentsSidebar({
   const unmappedCount = useMemo(() => {
     return baseComponents.filter(c => !c.isMapped).length
   }, [baseComponents])
-  
+
   const totalCount = baseComponents.length
 
   // Redirect to first component if on /components without a component name
@@ -221,14 +221,14 @@ export function ComponentsSidebar({
     }
   }, [location.pathname, componentTree, navigate])
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
-  
+
   const handleNavClick = (componentName: string) => {
     const slug = componentNameToSlug(componentName)
     navigate(`/components/${slug}`)
   }
-  
+
   return (
     <aside
       style={{
@@ -258,10 +258,10 @@ export function ComponentsSidebar({
           const isActive = currentComponent === node.name
           const isUnmapped = !node.isMapped
           const disabledOpacity = getBrandStateCssVar(mode, 'disabled')
-          
+
           const ChevronRightIcon = iconNameToReactComponent('chevron-right')
           const ChevronDownIcon = iconNameToReactComponent('chevron-down')
-          
+
           const toggleExpand = (e: React.MouseEvent) => {
             e.stopPropagation()
             setExpandedNodes(prev => {
@@ -274,7 +274,7 @@ export function ComponentsSidebar({
               return next
             })
           }
-          
+
           return (
             <div key={node.name} style={{ display: 'flex', flexDirection: 'column' }}>
               {/* Parent Node */}
@@ -290,8 +290,8 @@ export function ComponentsSidebar({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     }}
                     aria-label={isExpanded ? 'Collapse' : 'Expand'}
                   >
@@ -320,12 +320,12 @@ export function ComponentsSidebar({
                     borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                     border: 'none',
                     background: 'transparent',
-                    color: `var(${layer0Base}-element-text-color)`,
-                    opacity: isActive 
-                      ? `var(${layer0Base}-element-text-high-emphasis)` 
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                    opacity: isActive
+                      ? `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
                       : isUnmapped
                         ? `var(${disabledOpacity})`
-                        : `var(${layer0Base}-element-text-low-emphasis)`,
+                        : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     cursor: 'pointer',
                     transition: 'opacity 0.2s',
                     position: 'relative',
@@ -337,14 +337,14 @@ export function ComponentsSidebar({
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive && !isUnmapped) {
-                      e.currentTarget.style.opacity = `var(${layer0Base}-element-text-high-emphasis)`
+                      e.currentTarget.style.opacity = `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.opacity = isUnmapped
                         ? `var(${disabledOpacity})`
-                        : `var(${layer0Base}-element-text-low-emphasis)`
+                        : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`
                     }
                   }}
                 >
@@ -365,14 +365,14 @@ export function ComponentsSidebar({
                   {node.name}
                 </button>
               </div>
-              
+
               {/* Children Nodes */}
               {hasChildren && isExpanded && node.children && (
                 <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: '48px' }}>
                   {node.children.map((child) => {
                     const isChildActive = currentComponent === child.name
                     const isChildUnmapped = !child.isMapped
-                    
+
                     return (
                       <button
                         key={child.name}
@@ -384,12 +384,12 @@ export function ComponentsSidebar({
                           borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                           border: 'none',
                           background: 'transparent',
-                          color: `var(${layer0Base}-element-text-color)`,
-                          opacity: isChildActive 
-                            ? `var(${layer0Base}-element-text-high-emphasis)` 
+                          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                          opacity: isChildActive
+                            ? `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
                             : isChildUnmapped
                               ? `var(${disabledOpacity})`
-                              : `var(${layer0Base}-element-text-low-emphasis)`,
+                              : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                           cursor: 'pointer',
                           transition: 'opacity 0.2s',
                           position: 'relative',
@@ -401,14 +401,14 @@ export function ComponentsSidebar({
                         }}
                         onMouseEnter={(e) => {
                           if (!isChildActive && !isChildUnmapped) {
-                            e.currentTarget.style.opacity = `var(${layer0Base}-element-text-high-emphasis)`
+                            e.currentTarget.style.opacity = `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isChildActive) {
                             e.currentTarget.style.opacity = isChildUnmapped
                               ? `var(${disabledOpacity})`
-                              : `var(${layer0Base}-element-text-low-emphasis)`
+                              : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`
                           }
                         }}
                       >
@@ -436,7 +436,7 @@ export function ComponentsSidebar({
           )
         })}
       </nav>
-      
+
       {/* Footer Links - Fixed at bottom */}
       <div
         style={{
@@ -488,7 +488,7 @@ export function ComponentsSidebar({
           Help
         </Button>
       </div>
-      
+
       {/* Copyright */}
       <div
         style={{
@@ -498,8 +498,8 @@ export function ComponentsSidebar({
           fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
         }}
       >
         © 2025 Border LLC. All rights reserved. Ver: {packageJson.version}

@@ -496,8 +496,8 @@ export function PaletteEmphasisCell({
             transform: 'translateX(-50%)',
             marginTop: 'var(--recursica-brand-dimensions-general-sm)',
             padding: `var(--recursica-brand-dimensions-general-md) var(--recursica-brand-dimensions-general-lg)`,
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
             borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
             boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -508,7 +508,7 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
+          <div style={{ color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)` }}>
             On-tone color fails contrast
           </div>
         </div>
@@ -523,8 +523,8 @@ export function PaletteEmphasisCell({
             transform: 'translateX(-50%)',
             marginTop: 'var(--recursica-brand-dimensions-general-sm)',
             padding: `var(--recursica-brand-dimensions-general-md) var(--recursica-brand-dimensions-general-lg)`,
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
             borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
             boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -534,7 +534,7 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
+          <div style={{ color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)` }}>
             Set {level} as default
           </div>
         </div>
@@ -661,7 +661,8 @@ export function PalettePrimaryIndicatorCell({
   onSetPrimary,
 }: PalettePrimaryIndicatorCellProps) {
   const { mode } = useThemeMode()
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
 
   return (
@@ -677,7 +678,7 @@ export function PalettePrimaryIndicatorCell({
             borderRadius: 999,
             background: 'transparent',
             textTransform: 'capitalize',
-            color: `var(${layer1Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}
         >Default</span>
       ) : isHovered ? (
@@ -693,7 +694,7 @@ export function PalettePrimaryIndicatorCell({
             background: 'transparent',
             textTransform: 'capitalize',
             cursor: 'pointer',
-            color: `var(${layer1Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}
           title="Set as default"
         >Set as default</button>

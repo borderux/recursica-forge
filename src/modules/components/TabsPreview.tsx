@@ -107,8 +107,8 @@ export default function TabsPreview({
 }: TabsPreviewProps) {
     const { mode } = useThemeMode()
     const modeLower = mode.toLowerCase()
-    const textColorVar = `--recursica-brand-themes-${modeLower}-layer-${selectedLayer}-property-element-text-color`
-    const textEmphasisVar = `--recursica-brand-themes-${modeLower}-layer-${selectedLayer}-property-element-text-high-emphasis`
+    const textColorVar = `--recursica-brand-themes-${modeLower}-layers-${selectedLayer}-elements-text-color`
+    const textEmphasisVar = `--recursica-brand-themes-${modeLower}-layers-${selectedLayer}-elements-text-high-emphasis`
 
     const [value1, setValue1] = useState<string | null>('gallery')
     const [value2, setValue2] = useState<string | null>('gallery')

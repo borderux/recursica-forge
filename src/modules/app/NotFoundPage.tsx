@@ -11,7 +11,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 export function NotFoundPage() {
   const navigate = useNavigate()
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
 
   return (
     <div
@@ -31,8 +31,8 @@ export function NotFoundPage() {
           marginBottom: 'var(--recursica-brand-dimensions-general-md)',
           fontSize: 'var(--recursica-brand-typography-heading-1-font-size)',
           fontWeight: 'var(--recursica-brand-typography-heading-1-font-weight)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
         }}
       >
         404
@@ -42,8 +42,8 @@ export function NotFoundPage() {
           margin: 0,
           marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
           fontSize: 'var(--recursica-brand-typography-body-font-size)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-medium-emphasis)`,
         }}
       >
         Page not found

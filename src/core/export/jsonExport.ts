@@ -226,6 +226,24 @@ function cssVarToBrandRef(cssVar: string): string | null {
     }
 
     // Handle layers
+    // Pattern: --recursica-brand-themes-{theme}-layers-layer-{N}-...
+    if (parts[0] === 'layers' && parts.length >= 4) {
+      const layerMatch = parts[1].match(/^layer-(\d+)$/)
+      if (layerMatch) {
+        const layerId = parts[1] // e.g., 'layer-0'
+        const pathType = parts[2] // 'properties' or 'elements'
+
+        if (pathType === 'properties') {
+          const propPath = parts.slice(3).join('.')
+          return `{brand.themes.${mode}.layers.${layerId}.properties.${propPath}}`
+        } else if (pathType === 'elements') {
+          const elementPath = parts.slice(3).join('.')
+          return `{brand.themes.${mode}.layers.${layerId}.elements.${elementPath}}`
+        }
+      }
+    }
+
+    // Legacy support: Handle old layer-layer-X format
     if (parts[0] === 'layer' && parts.length >= 3) {
       parts.shift() // Remove 'layer'
       parts.shift() // Remove 'layer' (layer-layer-X)

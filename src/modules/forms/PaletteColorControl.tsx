@@ -970,7 +970,7 @@ export default function PaletteColorControl({
           width: '100%',
           height: '100%',
           display: 'block',
-          background: `var(--recursica-brand-themes-${modeLower}-layer-layer-${highestLayerNum}-property-surface)`,
+          background: `var(--recursica-brand-themes-${modeLower}-layers-layer-${highestLayerNum}-properties-surface)`,
           position: 'relative',
         }}
       >

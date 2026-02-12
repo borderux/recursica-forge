@@ -108,7 +108,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
     })
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
   const headerRef = useRef<HTMLElement>(null)
@@ -153,8 +153,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                   <span
                     style={{
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                       fontWeight: 600,
                       fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     }}
@@ -164,8 +164,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   <span
                     style={{
                       fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     }}
                   >
                     Theme Forge
@@ -350,7 +350,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             flex: 1,
             minHeight: 0,
             backgroundColor: `var(${layer0Base}-surface)`,
-            color: `var(${layer0Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}>
             {children}
           </main>
@@ -381,8 +381,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 {selectedFileNames.length > 0 && (
                   <div style={{
                     fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                    color: `var(${layer0Base}-element-text-color)`,
-                    opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-medium-emphasis)`,
                     marginTop: 'var(--recursica-brand-dimensions-general-sm)'
                   }}>
                     Selected: {selectedFileNames.join(', ')}
@@ -390,8 +390,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 )}
                 <div style={{
                   fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                  color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                   marginTop: 'var(--recursica-brand-dimensions-general-sm)'
                 }}>
                   Upload tokens.json, brand.json, and/or uikit.json files

@@ -1110,8 +1110,8 @@ export default function FontFamiliesTokens() {
     } catch { }
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
   const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
@@ -1223,8 +1223,8 @@ export default function FontFamiliesTokens() {
                   fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
                   letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
                   lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-                  color: `var(${layer1Base}-element-text-color)`,
-                  opacity: `var(${layer1Base}-element-text-high-emphasis)`,
+                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                 }}>
                   {r.value || 'Select font'}
                 </h2>
@@ -1232,8 +1232,8 @@ export default function FontFamiliesTokens() {
               <div style={{
                 fontFamily: `var(${fontFamilyVar})`,
                 fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                color: `var(${layer1Base}-element-text-color)`,
-                opacity: `var(${layer1Base}-element-text-high-emphasis)`,
+                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                 lineHeight: 1.5,
                 flexShrink: 0,
                 alignSelf: 'stretch',

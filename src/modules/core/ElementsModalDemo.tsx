@@ -139,10 +139,10 @@ export default function ElementsModalDemo() {
 
   return (
     <div style={{
-      backgroundColor: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-surface)`,
-      border: `1px solid var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-border-color)`,
+      backgroundColor: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-surface)`,
+      border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-border-color)`,
       borderRadius: 'var(--recursica-brand-dimensions-border-radii-lg)',
-      padding: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-padding)`,
+      padding: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-padding)`,
       boxShadow: `var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-x-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-y-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-blur) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-spread) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-shadow-color)`,
       position: 'relative',
     }}>
@@ -159,7 +159,7 @@ export default function ElementsModalDemo() {
           fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-          color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
+          color: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-elements-text-color)`,
         }}>Elements</h2>
         <div ref={editOverlayButtonRef}>
           <Button
@@ -184,10 +184,10 @@ export default function ElementsModalDemo() {
         position: 'relative',
         width: '100%',
         minHeight: '400px',
-        backgroundColor: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-surface)`,
-        border: `1px solid var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-border-color)`,
-        borderRadius: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-border-radius)`,
-        padding: `var(--recursica-brand-themes-${modeLower}-layer-layer-0-property-padding)`,
+        backgroundColor: `var(--recursica-brand-themes-${modeLower}-layers-layer-0-properties-surface)`,
+        border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-0-properties-border-color)`,
+        borderRadius: `var(--recursica-brand-themes-${modeLower}-layers-layer-0-properties-border-radius)`,
+        padding: `var(--recursica-brand-themes-${modeLower}-layers-layer-0-properties-padding)`,
         overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
@@ -211,9 +211,9 @@ export default function ElementsModalDemo() {
           width: '550px',
           maxWidth: '90%',
           minHeight: '400px',
-          backgroundColor: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-surface)`,
-          border: `1px solid var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-color)`,
-          borderRadius: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-radius)`,
+          backgroundColor: `var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-surface)`,
+          border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-border-color)`,
+          borderRadius: `var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-border-radius)`,
           padding: 'var(--recursica-brand-dimensions-general-xl)',
           boxShadow: `var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-blur) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-spread) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-shadow-color)`,
           zIndex: 2,
@@ -232,7 +232,7 @@ export default function ElementsModalDemo() {
               fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
               fontSize: 'var(--recursica-brand-typography-h3-font-size)',
               fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
-              color: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-element-text-color)`,
+              color: `var(--recursica-brand-themes-${modeLower}-layers-layer-3-elements-text-color)`,
             }}>
               Modal title
             </h3>
@@ -266,12 +266,12 @@ export default function ElementsModalDemo() {
                 style={{
                   flex: 1,
                   padding: `var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)`,
-                  border: `1px solid var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-border-color)`,
+                  border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-border-color)`,
                   borderRadius: '999px', // Fully rounded pill shape
                   backgroundColor: index === 0
-                    ? `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-surface)`
+                    ? `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-surface)`
                     : 'transparent',
-                  color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
+                  color: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-elements-text-color)`,
                   opacity: `var(${item.opacityVar})`,
                   fontFamily: 'var(--recursica-brand-typography-body-font-family)',
                   fontSize: 'var(--recursica-brand-typography-body-font-size)',
