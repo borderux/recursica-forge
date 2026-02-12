@@ -4,6 +4,7 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Button } from '../Button'
+import { describeDom, itDom } from '../../../test-utils/conditionalTests'
 
 // Mock icon component for testing
 const TestIcon = () => <svg data-testid="test-icon"><circle /></svg>
@@ -41,7 +42,7 @@ describe('Button Component (Adapter)', () => {
   }
 
 
-  describe.skip('Basic Rendering', () => {
+  describeDom('Basic Rendering', () => {
     it('renders with children', async () => {
       const { container } = renderWithProviders(<Button>Click me</Button>)
       await waitForButton(container, 'Click me')
@@ -71,7 +72,7 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe.skip('Props Handling', () => {
+  describeDom('Props Handling', () => {
     it('handles onClick events', { timeout: 30000 }, async () => {
       const handleClick = vi.fn()
       const { container } = renderWithProviders(<Button onClick={handleClick}>Click</Button>)
@@ -109,7 +110,7 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe.skip('Variants', () => {
+  describeDom('Variants', () => {
     it('applies solid variant', async () => {
       const { container } = renderWithProviders(<Button variant="solid">Solid</Button>)
       const button = await waitForButton(container, 'Solid')
@@ -132,7 +133,7 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe.skip('Sizes', () => {
+  describeDom('Sizes', () => {
     it('applies default size', async () => {
       const { container } = renderWithProviders(<Button size="default">Default</Button>)
       const button = await waitForButton(container, 'Default')
@@ -146,7 +147,7 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe.skip('Layers', () => {
+  describeDom('Layers', () => {
     it('applies layer-0', async () => {
       const { container } = renderWithProviders(<Button layer="layer-0">Layer 0</Button>)
       const button = await waitForButton(container, 'Layer 0')
@@ -173,7 +174,7 @@ describe('Button Component (Adapter)', () => {
 
   })
 
-  describe.skip('Fallback Behavior', () => {
+  describeDom('Fallback Behavior', () => {
     it('renders native button when component not available', async () => {
       // This tests the fallback when useComponent returns null
       // In a real scenario, this would happen if the component isn't registered
@@ -184,7 +185,7 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe.skip('Library-Specific Props', () => {
+  describeDom('Library-Specific Props', () => {
     it('passes mantine-specific props', async () => {
       const { container } = renderWithProviders(
         <Button mantine={{ 'data-testid': 'mantine-button' }}>Mantine</Button>
