@@ -8,7 +8,7 @@ import PaletteColorControl from '../../../forms/PaletteColorControl'
 import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
-import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
+import { buildComponentCssVarPath, getGlobalCssVar } from '../../../../components/utils/cssVarNames'
 import type { ComponentName } from '../../../../components/registry/types'
 import OpacitySelector from './OpacitySelector'
 import { Slider } from '../../../../components/adapters/Slider'
@@ -1108,7 +1108,7 @@ export default function PropControlContent({
             return (
               <div
                 key={key}
-                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
+                style={{ marginTop: index > 0 ? `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` : 0 }}
               >
                 {renderControl(borderProp, cssVars, primaryVar, label, config)}
               </div>
@@ -1131,7 +1131,7 @@ export default function PropControlContent({
             return (
               <div
                 key={key}
-                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
+                style={{ marginTop: index > 0 ? `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` : 0 }}
               >
                 {renderControl(thumbProp, cssVars, primaryVar, label, config)}
               </div>
@@ -1159,7 +1159,7 @@ export default function PropControlContent({
             return (
               <div
                 key={childPropName}
-                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
+                style={{ marginTop: index > 0 ? `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` : 0 }}
               >
                 {renderControl(childProp, cssVars, primaryVar, label, childConfig)}
               </div>

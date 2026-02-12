@@ -365,11 +365,11 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
   const kitLabel = kit === 'mantine' ? 'Mantine' : kit === 'material' ? 'Material UI' : 'Carbon'
 
   return (
-    <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 16 }}>
+    <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 16 }}>
       <Tag style={previewStyle}>{text}</Tag>
       {!fontAvailable && previewFamily && (
         <div style={{ marginTop: 6 }}>
-          <span style={{ display: 'inline-block', fontSize: 11, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, padding: '2px 8px', color: 'var(--layer-layer-1-property-element-text-color)', opacity: 'var(--layer-layer-1-property-element-text-low-emphasis)' }}>
+          <span style={{ display: 'inline-block', fontSize: 11, border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 999, padding: '2px 8px', color: 'var(--layers-layer-1-elements-text-color)', opacity: 'var(--layers-layer-1-elements-text-low-emphasis)' }}>
             Font unavailable in Recursica Forge, displaying fallback from {kitLabel}
           </span>
         </div>

@@ -263,10 +263,10 @@ export default function OpacityPicker() {
       top: pos.top, 
       left: pos.left, 
       width: 240, 
-      background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)`, 
-      color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
-      border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, 
-      borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius)`, 
+      background: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface)`, 
+      color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)`,
+      border: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-thickness) solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color)`, 
+      borderRadius: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-radius)`, 
       boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`, 
       padding: 10, 
       zIndex: 20000 
@@ -298,7 +298,7 @@ export default function OpacityPicker() {
         <button 
           onClick={() => { setAnchor(null); setTargetCssVar(null); setCurrentToken(null) }} 
           aria-label="Close" 
-          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)` }}
+          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)` }}
         >
           &times;
         </button>
@@ -315,11 +315,11 @@ export default function OpacityPicker() {
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 width: '100%', 
-                border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color)`, 
+                border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color)`, 
                 background: isSelected 
-                  ? `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface)` 
+                  ? `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface)` 
                   : 'transparent', 
-                color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`,
+                color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)`,
                 borderRadius: 6, 
                 padding: '6px 8px', 
                 cursor: 'pointer',
@@ -328,7 +328,7 @@ export default function OpacityPicker() {
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`
+                  e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layers-layer-2-properties-surface)`
                 }
               }}
               onMouseLeave={(e) => {

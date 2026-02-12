@@ -170,8 +170,8 @@ export default function Slider({
   const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
   
   // Use layer text color directly for labels and values
-  const layerTextColorVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-color`
-  const layerTextEmphasisVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-element-text-high-emphasis`
+  const layerTextColorVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-color`
+  const layerTextEmphasisVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-high-emphasis`
 
   // State to force re-render when text CSS variables change
   const [textVarsUpdate, setTextVarsUpdate] = useState(0)

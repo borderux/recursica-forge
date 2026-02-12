@@ -103,12 +103,12 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
 
     // Build layer text color CSS variables
     const layerTextColorVars = React.useMemo(() => {
-      const layerBase = `--recursica-brand-themes-${mode}-layer-${layer}-property`
+      const layerBase = `--recursica-brand-themes-${mode}-layers-${layer}-properties`
 
       return {
-        textColor: `${layerBase}-element-text-color`,
-        highEmphasis: `${layerBase}-element-text-high-emphasis`,
-        lowEmphasis: `${layerBase}-element-text-low-emphasis`,
+        textColor: `${layerBase.replace('-properties', '-elements')}-text-color`,
+        highEmphasis: `${layerBase.replace('-properties', '-elements')}-text-high-emphasis`,
+        lowEmphasis: `${layerBase.replace('-properties', '-elements')}-text-low-emphasis`,
       }
     }, [layer, mode])
 
@@ -303,9 +303,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <div style={{ display: 'grid', gap: 16 }}>
             {layers.map((layer) => {
               // Build CSS variable names for this layer's text color with high emphasis
-              const layerBase = `--recursica-brand-${mode}-layer-${layer}-property`
-              const textColorVar = `${layerBase}-element-text-color`
-              const highEmphasisVar = `${layerBase}-element-text-high-emphasis`
+              const layerBase = `--recursica-brand-${mode}-layers-${layer}-properties`
+              const textColorVar = `${layerBase.replace('-properties', '-elements')}-text-color`
+              const highEmphasisVar = `${layerBase.replace('-properties', '-elements')}-text-high-emphasis`
 
               return (
                 <div key={layer} style={{ display: 'grid', gap: 12 }}>
@@ -415,7 +415,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/file-upload`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'grid', gap: 8 }}>
-          <div style={{ border: '1px dashed var(--layer-layer-1-property-border-color)', padding: 16, borderRadius: 8, textAlign: 'center' }}>Drag & drop files here</div>
+          <div style={{ border: '1px dashed var(--layers-layer-1-properties-border-color)', padding: 16, borderRadius: 8, textAlign: 'center' }}>Drag & drop files here</div>
           <div style={{ fontSize: 12, opacity: 0.75 }}>Max 10MB each</div>
         </div>
       ),
@@ -464,7 +464,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/loader`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <div style={{ width: 16, height: 16, border: `2px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, borderTopColor: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <div style={{ width: 16, height: 16, border: `2px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderTopColor: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
           <style>
             {`@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }`}
           </style>
@@ -476,7 +476,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Menu',
       url: `${base}/menu`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, borderRadius: 8 }}>
+        <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 8 }}>
           <li style={{ padding: 8 }}>Profile</li>
           <li style={{ padding: 8 }}>Settings</li>
           <li style={{ padding: 8, opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }}>Disabled</li>
@@ -587,10 +587,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
         return (
           <div style={{
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
             padding: 12,
             borderRadius: 8,
-            background: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`,
+            background: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`,
             boxShadow: layer1Elevation || undefined
           }}>
             <strong>Modal</strong>
@@ -609,7 +609,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <div style={{
               width: 240,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
               borderRadius: 8,
               padding: 12,
               boxShadow: layer1Elevation || undefined
@@ -620,7 +620,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             </div>
             <div style={{
               width: 240,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
               borderRadius: 8,
               padding: 12,
               boxShadow: layer2Elevation || undefined
@@ -651,9 +651,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/chip`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
-          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
-          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
+          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
+          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
+          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
           <span style={{ background: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 10px' }}>Primary</span>
           <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
         </div>
@@ -675,15 +675,15 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <ul style={{ listStyle: 'none', padding: 0, margin: 0, width: 300 }}>
-          <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, marginBottom: 6 }}>
+          <li style={{ padding: 10, border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, marginBottom: 6 }}>
             <div>List item 1</div>
             <div style={{ fontSize: 12, opacity: 0.75 }}>Secondary text</div>
           </li>
-          <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, marginBottom: 6 }}>
+          <li style={{ padding: 10, border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, marginBottom: 6 }}>
             <div>List item 2</div>
             <div style={{ fontSize: 12, opacity: 0.75 }}>Secondary text</div>
           </li>
-          <li style={{ padding: 10, border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }}>
+          <li style={{ padding: 10, border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }}>
             Disabled item
           </li>
         </ul>
@@ -728,14 +728,14 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Panel',
       url: `${base}/panel`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>Panel content</div>
+        <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 12 }}>Panel content</div>
       ),
     },
     {
       name: 'Popover',
       url: `${base}/popover`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <div title="Popover content" style={{ display: 'inline-block', border: '1px solid var(--layer-layer-1-property-border-color)', padding: '6px 10px', borderRadius: 6, cursor: 'help' }}>Hover for popover</div>
+        <div title="Popover content" style={{ display: 'inline-block', border: '1px solid var(--layers-layer-1-properties-border-color)', padding: '6px 10px', borderRadius: 6, cursor: 'help' }}>Hover for popover</div>
       ),
     },
     {
@@ -754,7 +754,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/read-only-field`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'grid', gap: 8, width: 320 }}>
-          <input value="Read-only value" readOnly style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)' }} />
+          <input value="Read-only value" readOnly style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layers-layer-1-properties-border-color)' }} />
         </div>
       ),
     },
@@ -763,7 +763,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/search`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input placeholder="Search…" style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)' }} />
+          <input placeholder="Search…" style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layers-layer-1-properties-border-color)' }} />
           <button>Go</button>
         </div>
       ),
@@ -772,7 +772,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Segmented control',
       url: `${base}/segmented-control`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'inline-flex', border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 999, overflow: 'hidden' }}>
+        <div style={{ display: 'inline-flex', border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 999, overflow: 'hidden' }}>
           <button style={{ padding: '6px 10px', background: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-white)`, border: 0 }}>First</button>
           <button style={{ padding: '6px 10px', border: 0 }}>Second</button>
           <button style={{ padding: '6px 10px', border: 0 }}>Third</button>
@@ -867,9 +867,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/text-field`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'grid', gap: 8, width: 320 }}>
-          <input placeholder="Default" style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)' }} />
-          <input placeholder="Disabled" disabled style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)' }} />
-          <textarea placeholder="Text area" rows={3} style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layer-layer-1-property-border-color)' }} />
+          <input placeholder="Default" style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layers-layer-1-properties-border-color)' }} />
+          <input placeholder="Disabled" disabled style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layers-layer-1-properties-border-color)' }} />
+          <textarea placeholder="Text area" rows={3} style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layers-layer-1-properties-border-color)' }} />
         </div>
       ),
     },
@@ -965,7 +965,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/transfer-list`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, alignItems: 'center' }}>
-          <ul style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6, padding: 8, margin: 0, listStyle: 'none' }}>
+          <ul style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 6, padding: 8, margin: 0, listStyle: 'none' }}>
             <li>Alpha</li>
             <li>Bravo</li>
             <li>Charlie</li>
@@ -974,7 +974,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             <button>{'>'}</button>
             <button>{'<'}</button>
           </div>
-          <ul style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 6, padding: 8, margin: 0, listStyle: 'none' }}>
+          <ul style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 6, padding: 8, margin: 0, listStyle: 'none' }}>
             <li>Delta</li>
             <li>Echo</li>
           </ul>

@@ -37,7 +37,7 @@ import { Dropdown } from '../../../components/adapters/Dropdown'
 import '@carbon/styles/css/styles.css'
 
 export default function CarbonShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
-  const { resetAll, reloadFromFile } = useVars()
+  const { resetAll } = useVars()
   const { mode, setMode } = useThemeMode()
   const location = useLocation()
   const navigate = useNavigate()
@@ -130,8 +130,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
   }, [mode])
 
   // Carbon React components are now statically imported, so they're always available
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
 
@@ -163,8 +163,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                   <span
                     style={{
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                       fontWeight: 600,
                       fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     }}
@@ -174,8 +174,8 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                   <span
                     style={{
                       fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     }}
                   >
                     Theme Forge
@@ -208,7 +208,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     border: 'none',
                     background: currentRoute === 'tokens' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: currentRoute === 'tokens' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: currentRoute === 'tokens' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                    opacity: currentRoute === 'tokens' ? 1 : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     fontWeight: currentRoute === 'tokens' ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
                     fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     borderRadius: `var(${buttonBorderRadius})`,
@@ -227,7 +227,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     border: 'none',
                     background: currentRoute === 'theme' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: currentRoute === 'theme' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: currentRoute === 'theme' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                    opacity: currentRoute === 'theme' ? 1 : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     fontWeight: currentRoute === 'theme' ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
                     fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     borderRadius: `var(${buttonBorderRadius})`,
@@ -246,7 +246,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     border: 'none',
                     background: currentRoute === 'components' ? `var(${buttonSolidBg})` : `var(${buttonTextBg})`,
                     color: currentRoute === 'components' ? `var(${buttonSolidText})` : `var(${buttonTextText})`,
-                    opacity: currentRoute === 'components' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                    opacity: currentRoute === 'components' ? 1 : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     fontWeight: currentRoute === 'components' ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
                     fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     borderRadius: `var(${buttonBorderRadius})`,
@@ -273,17 +273,6 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     clearOverrides(tokensJson as any)
                     resetAll()
                   }}
-                />
-              </Tooltip>
-              <Tooltip label="Reload UIKit from file (pick up UIKit.json changes)">
-                <Button
-                  variant="outline"
-                  size="default"
-                  icon={(() => {
-                    const FileIcon = iconNameToReactComponent('document-text')
-                    return FileIcon ? <FileIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                  })()}
-                  onClick={() => reloadFromFile()}
                 />
               </Tooltip>
               <Tooltip label="Import theme">
@@ -346,7 +335,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                     />
                   </Tooltip>
                   <Tooltip label="Auto-run CSS audit (dev only)">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
                       <Switch
                         checked={cssAuditAutoRun}
                         onChange={(checked) => {
@@ -428,7 +417,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
             flex: 1,
             minHeight: 0,
             backgroundColor: `var(${layer0Base}-surface)`,
-            color: `var(${layer0Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}>
             {children}
           </main>
@@ -457,11 +446,11 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
                   style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
                 />
                 {selectedFileNames.length > 0 && (
-                  <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer1Base}-element-text-color)`, opacity: 0.6, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+                  <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`, opacity: 0.6, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
                     Selected: {selectedFileNames.join(', ')}
                   </div>
                 )}
-                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer1Base}-element-text-color)`, opacity: 0.4, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`, opacity: 0.4, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
                   Upload tokens.json, brand.json, and/or uikit.json files
                 </div>
               </div>
@@ -507,7 +496,7 @@ export default function CarbonShell({ children, kit, onKitChange }: { children: 
           onAcknowledge={handleDirtyAcknowledgeWithClose}
           onCancel={handleDirtyCancel}
         />
-          </div>
+      </div>
     </Theme>
   )
 }

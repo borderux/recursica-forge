@@ -107,8 +107,8 @@ export default function TabsPreview({
 }: TabsPreviewProps) {
     const { mode } = useThemeMode()
     const modeLower = mode.toLowerCase()
-    const textColorVar = `--recursica-brand-themes-${modeLower}-layer-${selectedLayer}-property-element-text-color`
-    const textEmphasisVar = `--recursica-brand-themes-${modeLower}-layer-${selectedLayer}-property-element-text-high-emphasis`
+    const textColorVar = `--recursica-brand-themes-${modeLower}-layers-${selectedLayer}-elements-text-color`
+    const textEmphasisVar = `--recursica-brand-themes-${modeLower}-layers-${selectedLayer}-elements-text-high-emphasis`
 
     const [value1, setValue1] = useState<string | null>('gallery')
     const [value2, setValue2] = useState<string | null>('gallery')
@@ -137,214 +137,214 @@ export default function TabsPreview({
             {isHorizontal ? (
                 <>
                     {/* Section: Tabs on top */}
-                    <section style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    <div>
                         <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Top</h2>
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text</h3>
+
                         <div style={previewMargin}>
                             <TabSet value={value1} onChange={setValue1} {...tabSetProps} />
                         </div>
 
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text with icons</h3>
+
                         <div style={previewMargin}>
-                        <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                            <MantineTabs.List>
-                                <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Gallery</MantineTabs.Tab>
-                                <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Messages</MantineTabs.Tab>
-                                <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Settings</MantineTabs.Tab>
-                            </MantineTabs.List>
-                            <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
-                        </Tabs>
+                            <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
+                                <MantineTabs.List>
+                                    <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Gallery</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Messages</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Settings</MantineTabs.Tab>
+                                </MantineTabs.List>
+                                <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
+                            </Tabs>
                         </div>
 
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text with badges</h3>
+
                         <div style={previewMargin}>
-                        <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                            <MantineTabs.List>
-                                <MantineTabs.Tab value="gallery">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Gallery</span>
-                                        <Badge variant="primary-color">42</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                                <MantineTabs.Tab value="messages">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Messages</span>
-                                        <Badge variant="primary-color">7</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                                <MantineTabs.Tab value="settings">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Settings</span>
-                                        <Badge variant="primary-color">104</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                            </MantineTabs.List>
-                            <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
-                        </Tabs>
+                            <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
+                                <MantineTabs.List>
+                                    <MantineTabs.Tab value="gallery">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Gallery</span>
+                                            <Badge variant="primary-color">42</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Messages</span>
+                                            <Badge variant="primary-color">7</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Settings</span>
+                                            <Badge variant="primary-color">104</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                </MantineTabs.List>
+                                <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
+                            </Tabs>
                         </div>
-                    </section>
+                    </div>
 
                     {/* Section: Tabs on bottom */}
-                    <section style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    <div>
                         <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Bottom</h2>
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text</h3>
+
                         <div style={previewMargin}>
                             <TabSet value={value4} onChange={setValue4} {...tabSetProps} mantineOverrides={{ inverted: true }} />
                         </div>
 
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text with icons</h3>
+
                         <div style={previewMargin}>
-                        <Tabs value={value5 ?? undefined} onChange={(v) => setValue5(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ inverted: true }} >
-                            <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
-                            <MantineTabs.List>
-                                <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Gallery</MantineTabs.Tab>
-                                <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Messages</MantineTabs.Tab>
-                                <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Settings</MantineTabs.Tab>
-                            </MantineTabs.List>
-                        </Tabs>
+                            <Tabs value={value5 ?? undefined} onChange={(v) => setValue5(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ inverted: true }} >
+                                <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
+                                <MantineTabs.List>
+                                    <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Gallery</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Messages</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Settings</MantineTabs.Tab>
+                                </MantineTabs.List>
+                            </Tabs>
                         </div>
 
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text with badges</h3>
+
                         <div style={previewMargin}>
-                        <Tabs value={value6 ?? undefined} onChange={(v) => setValue6(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ inverted: true }} >
-                            <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
-                            <MantineTabs.List>
-                                <MantineTabs.Tab value="gallery">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Gallery</span>
-                                        <Badge variant="primary-color">42</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                                <MantineTabs.Tab value="messages">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Messages</span>
-                                        <Badge variant="primary-color">7</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                                <MantineTabs.Tab value="settings">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Settings</span>
-                                        <Badge variant="primary-color">104</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                            </MantineTabs.List>
-                        </Tabs>
+                            <Tabs value={value6 ?? undefined} onChange={(v) => setValue6(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ inverted: true }} >
+                                <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
+                                <MantineTabs.List>
+                                    <MantineTabs.Tab value="gallery">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Gallery</span>
+                                            <Badge variant="primary-color">42</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Messages</span>
+                                            <Badge variant="primary-color">7</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Settings</span>
+                                            <Badge variant="primary-color">104</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                </MantineTabs.List>
+                            </Tabs>
                         </div>
-                    </section>
+                    </div>
                 </>
             ) : (
                 <>
                     {/* Section: Tabs on left */}
-                    <section style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    <div>
                         <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Left</h2>
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text</h3>
+
                         <div style={previewMargin}>
                             <TabSet value={value1} onChange={setValue1} {...tabSetProps} />
                         </div>
 
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text with icons</h3>
+
                         <div style={previewMargin}>
-                        <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                            <MantineTabs.List>
-                                <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Gallery</MantineTabs.Tab>
-                                <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Messages</MantineTabs.Tab>
-                                <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Settings</MantineTabs.Tab>
-                            </MantineTabs.List>
-                            <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
-                        </Tabs>
+                            <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
+                                <MantineTabs.List>
+                                    <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Gallery</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Messages</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Settings</MantineTabs.Tab>
+                                </MantineTabs.List>
+                                <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
+                            </Tabs>
                         </div>
 
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text with badges</h3>
+
                         <div style={previewMargin}>
-                        <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                            <MantineTabs.List>
-                                <MantineTabs.Tab value="gallery">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Gallery</span>
-                                        <Badge variant="primary-color">42</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                                <MantineTabs.Tab value="messages">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Messages</span>
-                                        <Badge variant="primary-color">7</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                                <MantineTabs.Tab value="settings">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Settings</span>
-                                        <Badge variant="primary-color">104</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                            </MantineTabs.List>
-                            <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
-                        </Tabs>
+                            <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
+                                <MantineTabs.List>
+                                    <MantineTabs.Tab value="gallery">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Gallery</span>
+                                            <Badge variant="primary-color">42</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Messages</span>
+                                            <Badge variant="primary-color">7</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Settings</span>
+                                            <Badge variant="primary-color">104</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                </MantineTabs.List>
+                                <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
+                            </Tabs>
                         </div>
-                    </section>
+                    </div>
 
                     {/* Section: Tabs on right */}
-                    <section style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    <div>
                         <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Right</h2>
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text</h3>
+
                         <div style={previewMargin}>
                             <TabSet value={value4} onChange={setValue4} {...tabSetProps} mantineOverrides={{ placement: 'right' }} />
                         </div>
 
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text with icons</h3>
+
                         <div style={previewMargin}>
-                        <Tabs value={value5 ?? undefined} onChange={(v) => setValue5(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
-                            <MantineTabs.List>
-                                <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Gallery</MantineTabs.Tab>
-                                <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Messages</MantineTabs.Tab>
-                                <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Settings</MantineTabs.Tab>
-                            </MantineTabs.List>
-                            <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
-                        </Tabs>
+                            <Tabs value={value5 ?? undefined} onChange={(v) => setValue5(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
+                                <MantineTabs.List>
+                                    <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Gallery</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Messages</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Settings</MantineTabs.Tab>
+                                </MantineTabs.List>
+                                <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
+                            </Tabs>
                         </div>
 
-                        <h3 style={{ ...h3Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Text with badges</h3>
+
                         <div style={previewMargin}>
-                        <Tabs value={value6 ?? undefined} onChange={(v) => setValue6(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
-                            <MantineTabs.List>
-                                <MantineTabs.Tab value="gallery">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Gallery</span>
-                                        <Badge variant="primary-color">42</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                                <MantineTabs.Tab value="messages">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Messages</span>
-                                        <Badge variant="primary-color">7</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                                <MantineTabs.Tab value="settings">
-                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                        <span>Settings</span>
-                                        <Badge variant="primary-color">104</Badge>
-                                    </div>
-                                </MantineTabs.Tab>
-                            </MantineTabs.List>
-                            <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
-                            <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
-                        </Tabs>
+                            <Tabs value={value6 ?? undefined} onChange={(v) => setValue6(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
+                                <MantineTabs.List>
+                                    <MantineTabs.Tab value="gallery">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Gallery</span>
+                                            <Badge variant="primary-color">42</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Messages</span>
+                                            <Badge variant="primary-color">7</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings">
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <span>Settings</span>
+                                            <Badge variant="primary-color">104</Badge>
+                                        </div>
+                                    </MantineTabs.Tab>
+                                </MantineTabs.List>
+                                <MantineTabs.Panel value="gallery" style={panelStyle}>Gallery tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="messages" style={panelStyle}>Messages tab content</MantineTabs.Panel>
+                                <MantineTabs.Panel value="settings" style={panelStyle}>Settings tab content</MantineTabs.Panel>
+                            </Tabs>
                         </div>
-                    </section>
+                    </div>
                 </>
             )}
         </div>

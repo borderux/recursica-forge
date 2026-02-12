@@ -8,25 +8,25 @@
 .layer-segmented-control-icon {
   width: 16px;
   height: 16px;
-  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-low-emphasis);
+  color: var(--recursica-brand-themes-light-layers-layer-0-elements-text-color);
+  opacity: var(--recursica-brand-themes-light-layers-layer-0-elements-text-low-emphasis);
   flex-shrink: 0;
 }
 
 html[data-theme-mode="dark"] .layer-segmented-control-icon {
-  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-low-emphasis);
+  color: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-color);
+  opacity: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-low-emphasis);
 }
 
 .layer-segmented-control-label {
   font-weight: 600;
   font-size: 13px;
-  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  color: var(--recursica-brand-themes-light-layers-layer-0-elements-text-color);
   flex-shrink: 0;
 }
 
 html[data-theme-mode="dark"] .layer-segmented-control-label {
-  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+  color: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-color);
 }
 
 .layer-segmented-control-buttons {
@@ -38,7 +38,7 @@ html[data-theme-mode="dark"] .layer-segmented-control-label {
 .layer-segmented-control-button {
   padding: var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-sm);
   border: none;
-  border-right: 1px solid var(--recursica-brand-themes-light-layer-layer-0-property-border-color);
+  border-right: 1px solid var(--recursica-brand-themes-light-layers-layer-0-properties-border-color);
   cursor: pointer;
   font-size: 13px;
   transition: background-color 0.2s;
@@ -47,7 +47,7 @@ html[data-theme-mode="dark"] .layer-segmented-control-label {
 }
 
 html[data-theme-mode="dark"] .layer-segmented-control-button {
-  border-right-color: var(--recursica-brand-themes-dark-layer-layer-0-property-border-color);
+  border-right-color: var(--recursica-brand-themes-dark-layers-layer-0-properties-border-color);
 }
 
 .layer-segmented-control-button:last-child {

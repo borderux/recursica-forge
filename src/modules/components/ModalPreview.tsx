@@ -95,11 +95,22 @@ export default function ModalPreview({
         position: 'relative',
     } as React.CSSProperties
 
+    const h2Style = {
+        margin: 0,
+        fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+        fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+        fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+        letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+        lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+    } as React.CSSProperties
+
+    const verticalGutter = 'var(--recursica-brand-dimensions-gutters-vertical)'
+
     return (
-        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '40px', width: '100%' }}>
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: verticalGutter, width: '100%' }}>
             {/* Primary Static Preview */}
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-                <h2 style={{ margin: 0, fontFamily: `var(${headerFontFamilyVar})` }}>Static</h2>
+                <h2 style={h2Style}>Static</h2>
                 <div key={`${updateKey}-primary`} style={staticModalStyles}>
                     {/* Header */}
                     {showHeader && (
@@ -192,7 +203,7 @@ export default function ModalPreview({
 
             {/* Scrolling Static Preview */}
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-                <h2 style={{ margin: 0, fontFamily: `var(${headerFontFamilyVar})` }}>Scrolling</h2>
+                <h2 style={h2Style}>Scrolling</h2>
                 <div key={`${updateKey}-scrolling`} style={staticModalStyles}>
                     {/* Header with mandatory divider for scrolling example */}
                     <div style={{
