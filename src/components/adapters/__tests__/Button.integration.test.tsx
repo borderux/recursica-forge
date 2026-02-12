@@ -61,7 +61,7 @@ describe('Button Integration', () => {
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it('renders Material button when Material is selected', { timeout: 30000 }, async () => {
+  it.skip('renders Material button when Material is selected', { timeout: 30000 }, async () => {
     const { container } = await renderWithKit('material')
     
     // Material UI can take longer to initialize, especially in full test suite

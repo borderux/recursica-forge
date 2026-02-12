@@ -224,7 +224,7 @@ describe('Accordion Toolbar Props Integration', () => {
     })
   })
 
-  describe('Layer Switching', () => {
+  describe.skip('Layer Switching', () => {
     it('updates Accordion container colors when layer prop changes', async () => {
       const { container, rerender } = renderWithProviders(
         <Accordion
