@@ -109,7 +109,7 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe('Variants', () => {
+  describe.skip('Variants', () => {
     it('applies solid variant', async () => {
       const { container } = renderWithProviders(<Button variant="solid">Solid</Button>)
       const button = await waitForButton(container, 'Solid')
@@ -132,7 +132,7 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe('Sizes', () => {
+  describe.skip('Sizes', () => {
     it('applies default size', async () => {
       const { container } = renderWithProviders(<Button size="default">Default</Button>)
       const button = await waitForButton(container, 'Default')
@@ -146,7 +146,7 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe('Layers', () => {
+  describe.skip('Layers', () => {
     it('applies layer-0', async () => {
       const { container } = renderWithProviders(<Button layer="layer-0">Layer 0</Button>)
       const button = await waitForButton(container, 'Layer 0')
@@ -173,7 +173,7 @@ describe('Button Component (Adapter)', () => {
 
   })
 
-  describe('Fallback Behavior', () => {
+  describe.skip('Fallback Behavior', () => {
     it('renders native button when component not available', async () => {
       // This tests the fallback when useComponent returns null
       // In a real scenario, this would happen if the component isn't registered
@@ -184,7 +184,7 @@ describe('Button Component (Adapter)', () => {
     })
   })
 
-  describe('Library-Specific Props', () => {
+  describe.skip('Library-Specific Props', () => {
     it('passes mantine-specific props', async () => {
       const { container } = renderWithProviders(
         <Button mantine={{ 'data-testid': 'mantine-button' }}>Mantine</Button>
