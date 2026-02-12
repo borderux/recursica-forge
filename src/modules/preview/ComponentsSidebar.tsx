@@ -502,7 +502,7 @@ export function ComponentsSidebar({
           opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
         }}
       >
-        © 2025 Border LLC. All rights reserved. Ver: {packageJson.version}
+        © {new Date().getFullYear()} Border LLC. All rights reserved. Ver: {packageJson.version}
       </div>
     </aside>
   )
