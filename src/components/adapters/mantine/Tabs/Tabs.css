@@ -105,14 +105,16 @@
     padding-bottom: var(--recursica-tabs-vertical-padding, 12px) !important;
     min-width: var(--recursica-tabs-min-width, 0) !important;
     max-width: var(--recursica-tabs-max-width, none) !important;
-    overflow: hidden !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
 }
 
 .recursica-tabs .mantine-Tabs-tab .mantine-Tabs-tabLabel,
 .recursica-tabs [role="tab"]>span:not([data-position]) {
-    overflow: hidden !important;
+    overflow-x: clip !important;
+    overflow-y: visible !important;
     text-overflow: ellipsis !important;
     min-width: 0 !important;
     flex: 0 1 auto !important;
