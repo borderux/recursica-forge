@@ -6,7 +6,7 @@
  * opaque bg to cover the track line when selected background is null).
  */
 
-import { useRef, useEffect } from 'react'
+import { useRef } from 'react'
 import { Tabs as MantineTabs } from '@mantine/core'
 import type { TabsProps as AdapterTabsProps } from '../../Tabs'
 import { getComponentCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
@@ -83,54 +83,9 @@ export default function Tabs({
 
   const rootRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const root = rootRef.current
-    if (!root || variant === 'pills') return
-    const list = root.querySelector<HTMLElement>('[role="tablist"]')
-    if (!list) return
-    const updateTrackGap = () => {
-      const selectedTab = root!.querySelector<HTMLElement>('[role="tab"][data-active]')
-      if (orientation === 'horizontal') {
-        root!.style.removeProperty('--recursica-tabs-track-gap-top')
-        root!.style.removeProperty('--recursica-tabs-track-gap-height')
-        if (!selectedTab) {
-          root!.style.removeProperty('--recursica-tabs-track-gap-left')
-          root!.style.removeProperty('--recursica-tabs-track-gap-width')
-          return
-        }
-        const listRect = list.getBoundingClientRect()
-        const tabRect = selectedTab.getBoundingClientRect()
-        const left = Math.round(tabRect.left - listRect.left + list.scrollLeft)
-        const width = Math.round(tabRect.width)
-        root!.style.setProperty('--recursica-tabs-track-gap-left', `${left}px`)
-        root!.style.setProperty('--recursica-tabs-track-gap-width', `${width}px`)
-      } else {
-        /* vertical outline: gap in track where selected tab is */
-        root!.style.removeProperty('--recursica-tabs-track-gap-left')
-        root!.style.removeProperty('--recursica-tabs-track-gap-width')
-        if (!selectedTab || variant !== 'outline') {
-          root!.style.removeProperty('--recursica-tabs-track-gap-top')
-          root!.style.removeProperty('--recursica-tabs-track-gap-height')
-          return
-        }
-        const listRect = list.getBoundingClientRect()
-        const tabRect = selectedTab.getBoundingClientRect()
-        const top = tabRect.top - listRect.top + list.scrollTop
-        const height = tabRect.height
-        root!.style.setProperty('--recursica-tabs-track-gap-top', `${top}px`)
-        root!.style.setProperty('--recursica-tabs-track-gap-height', `${height}px`)
-      }
-    }
-    updateTrackGap()
-    const ro = new ResizeObserver(updateTrackGap)
-    const mo = new MutationObserver(updateTrackGap)
-    ro.observe(list)
-    mo.observe(list, { attributes: true, attributeFilter: ['data-active'], subtree: true })
-    return () => {
-      ro.disconnect()
-      mo.disconnect()
-    }
-  }, [value, defaultValue, orientation, variant, children])
+
+  // Note: Track gap visual effect removed - CSS variables should not be calculated at runtime
+  // The outline variant track line will be continuous without gaps
 
   const mantineProps = {
     ref: rootRef,
