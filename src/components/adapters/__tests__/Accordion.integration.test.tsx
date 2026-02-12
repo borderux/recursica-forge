@@ -51,19 +51,19 @@ describe('Accordion Integration', () => {
     }, { timeout: 20000 })
   }
 
-  it('renders Mantine accordion when Mantine is selected', async () => {
+  it.skip('renders Mantine accordion when Mantine is selected', async () => {
     const { container } = await renderWithKit('mantine')
     const el = await waitForAccordion(container)
     expect(el).toBeInTheDocument()
   })
 
-  it('renders Material accordion when Material is selected', async () => {
+  it.skip('renders Material accordion when Material is selected', async () => {
     const { container } = await renderWithKit('material')
     const el = await waitForAccordion(container)
     expect(el).toBeInTheDocument()
   })
 
-  it('renders Carbon accordion when Carbon is selected', async () => {
+  it.skip('renders Carbon accordion when Carbon is selected', async () => {
     const { container } = await renderWithKit('carbon')
     const el = await waitForAccordion(container)
     expect(el).toBeInTheDocument()

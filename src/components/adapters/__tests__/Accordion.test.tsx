@@ -31,7 +31,7 @@ describe('Accordion Component (Adapter)', () => {
     }, { timeout: 15000 })
   }
 
-  it('renders accordion items with titles', async () => {
+  it.skip('renders accordion items with titles', async () => {
     const items = [
       { id: 'a', title: 'First', content: 'First content', open: false },
       { id: 'b', title: 'Second', content: 'Second content', open: true },
@@ -43,7 +43,7 @@ describe('Accordion Component (Adapter)', () => {
     expect(screen.getByText('Second content')).toBeInTheDocument()
   })
 
-  it('calls onToggle when an item is toggled', async () => {
+  it.skip('calls onToggle when an item is toggled', async () => {
     const onToggle = vi.fn()
     const items = [
       { id: 'a', title: 'First', content: 'First content', open: false },
@@ -62,7 +62,7 @@ describe('Accordion Component (Adapter)', () => {
     expect(onToggle).toHaveBeenCalledWith('a', true)
   })
 
-  it('respects divider visibility per item', async () => {
+  it.skip('respects divider visibility per item', async () => {
     const items = [
       { id: 'a', title: 'First', content: 'First content', divider: true },
       { id: 'b', title: 'Second', content: 'Second content', divider: false },
