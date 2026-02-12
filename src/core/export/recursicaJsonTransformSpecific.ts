@@ -157,6 +157,9 @@ function resolvePathAlias(path: string): string[] {
     for (const [re, replacement] of fontAliases) {
       if (re.test(path)) candidates.push(path.replace(re, replacement))
     }
+    if (path.startsWith('tokens.font.sizes.') && path.endsWith('.me')) {
+      candidates.push(path.replace(/\.me$/, '.md'))
+    }
   }
   const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white)$/)
   if (m) candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${m[2]}.tone`)
@@ -182,6 +185,13 @@ function resolvePathAlias(path: string): string[] {
   }
   const paletteLevel = path.match(/^brand\.themes\.(light|dark)\.palettes\.([^.]+)\.(\d{3,4}|default|primary)$/)
   if (paletteLevel) candidates.push(`${path}.color.tone`)
+
+  const layersInteractiveColor = path.match(/^brand\.themes\.(light|dark)\.layers\.(layer-\d+)\.elements\.interactive\.color$/)
+  if (layersInteractiveColor) candidates.push(`brand.themes.${layersInteractiveColor[1]}.layers.${layersInteractiveColor[2]}.elements.interactive.tone`)
+
+  if (path.match(/^brand\.dimensions\.border-radii\.md$/)) candidates.push('brand.dimensions.border-radii.default')
+  if (path.match(/^brand\.dimensions\.general\.xs$/)) candidates.push('brand.dimensions.general.sm')
+
   return candidates
 }
 
