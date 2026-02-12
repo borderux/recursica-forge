@@ -204,7 +204,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
   useEffect(() => {
     (window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[], opacityCssVar?: string) => {
-      window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
+      // Don't dispatch closeAllPickersAndPanels here - it closes panels too!
+      // The picker will close itself if another picker opens since it listens to this event
+      // window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
 
       setAnchor(el)
       setTargetCssVar(cssVar || null)
@@ -336,7 +338,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               height: swatch,
               cursor: 'pointer',
               background: 'transparent',
-              border: `1px solid ${isNoneSelected ? `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` : `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-color)`}`,
+              border: `1px solid ${isNoneSelected ? `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` : `var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-border-color)`}`,
               position: 'relative',
               padding: isNoneSelected ? '1px' : '0',
               borderRadius: isNoneSelected ? '5px' : '0',
@@ -348,7 +350,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               height: '100%',
               borderRadius: isNoneSelected ? '4px' : '0',
               position: 'relative',
-              background: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-surface)`
+              background: `var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-surface)`
             }}>
               <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
                 <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica-brand-themes-${modeLower}-palettes-neutral-500-tone)`} strokeWidth="1.5" />
@@ -447,7 +449,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         height: swatch,
                         cursor: 'pointer',
                         background: `var(${s.cssVar})`,
-                        border: `1px solid ${isSelected ? `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` : `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-border-color)`}`,
+                        border: `1px solid ${isSelected ? `var(--recursica-brand-themes-${modeLower}-palettes-core-black)` : `var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-border-color)`}`,
                         padding: isSelected ? '1px' : '0',
                         borderRadius: isSelected ? '5px' : '0',
                         boxSizing: 'border-box',

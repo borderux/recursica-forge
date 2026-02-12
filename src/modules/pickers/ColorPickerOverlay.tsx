@@ -224,12 +224,12 @@ export function ColorPickerOverlay({
               onNameFromHex(family, hex)
             }}
             style={{
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color, rgba(0,0,0,0.1))`,
               background: 'transparent',
               cursor: 'pointer',
               borderRadius: 6,
               padding: '6px 8px',
-              color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color)`
+              color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)`
             }}
           >🏷️</button>
         </div>

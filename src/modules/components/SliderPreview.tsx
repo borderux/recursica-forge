@@ -42,11 +42,23 @@ export default function SliderPreview({
     </Label>
   )
 
+  const h2Style = {
+    margin: 0,
+    marginBottom: 16,
+    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+  } as React.CSSProperties
+
+  const verticalGutter = 'var(--recursica-brand-dimensions-gutters-vertical)'
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32, width: '100%', maxWidth: 600 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGutter, width: '100%', maxWidth: 600 }}>
       {/* Stacked Layout Sliders */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})` }}>
-        <h2 style={{ margin: 0, marginBottom: 16 }}>Stacked</h2>
+        <h2 style={h2Style}>Stacked</h2>
         {/* With label, value (read-only), min and max */}
         <Slider
           value={value1}
@@ -60,7 +72,7 @@ export default function SliderPreview({
           showValueLabel={true}
           valueLabel={(val) => `${val}`}
         />
-        
+
         {/* With label, value (read-only), min and max - DISABLED */}
         <Slider
           value={value1}
@@ -75,7 +87,7 @@ export default function SliderPreview({
           valueLabel={(val) => `${val}`}
           disabled
         />
-        
+
         {/* No label, read-only input, with min and max */}
         <Slider
           value={value2}
@@ -88,7 +100,7 @@ export default function SliderPreview({
           showValueLabel={false}
           readOnly={true}
         />
-        
+
         {/* Disabled with label and input */}
         <Slider
           value={value3}
@@ -107,7 +119,7 @@ export default function SliderPreview({
 
       {/* Side-by-side Layout Sliders */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})` }}>
-        <h2 style={{ margin: 0, marginBottom: 16 }}>Side-by-side</h2>
+        <h2 style={h2Style}>Side-by-side</h2>
         {/* With label, value (read-only), min and max */}
         <Slider
           value={value1}
@@ -121,7 +133,7 @@ export default function SliderPreview({
           showValueLabel={true}
           valueLabel={(val) => `${val}`}
         />
-        
+
         {/* Disabled */}
         <Slider
           value={value3}

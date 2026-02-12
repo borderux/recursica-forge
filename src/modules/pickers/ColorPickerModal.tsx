@@ -66,7 +66,7 @@ export function ColorPickerModal({
   const currentHex = hsvToHex(hsvState.h, hsvState.s, hsvState.v).toLowerCase()
   const { mode } = useThemeMode()
 
-  const layer3Base = `--recursica-brand-themes-${mode}-layer-layer-3-property`
+  const layer3Base = `--recursica-brand-themes-${mode}-layers-layer-3-properties`
 
   return (
     <Modal

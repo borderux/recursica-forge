@@ -344,22 +344,39 @@ export default function SegmentedControl({
       tooltipEl.className = 'mantine-segmented-control-tooltip'
       tooltipEl.textContent = tooltipText
 
+      // Get tooltip CSS variables using the proper utility function
+      const tooltipBg = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'background')
+      const tooltipTextColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'text')
+      const tooltipBorderColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'border-color')
+      const tooltipBorderSize = buildComponentCssVarPath('Tooltip', 'properties', 'border-size')
+      const tooltipBorderRadius = buildComponentCssVarPath('Tooltip', 'properties', 'border-radius')
+      const tooltipVerticalPadding = buildComponentCssVarPath('Tooltip', 'properties', 'vertical-padding')
+      const tooltipHorizontalPadding = buildComponentCssVarPath('Tooltip', 'properties', 'horizontal-padding')
+      const tooltipMinWidth = buildComponentCssVarPath('Tooltip', 'properties', 'min-width')
+      const tooltipMaxWidth = buildComponentCssVarPath('Tooltip', 'properties', 'max-width')
+      const tooltipMinHeight = buildComponentCssVarPath('Tooltip', 'properties', 'min-height')
+      const tooltipFontFamily = buildComponentCssVarPath('Tooltip', 'properties', 'text', 'font-family')
+      const tooltipFontSize = buildComponentCssVarPath('Tooltip', 'properties', 'text', 'font-size')
+      const tooltipFontWeight = buildComponentCssVarPath('Tooltip', 'properties', 'text', 'font-weight')
+      const tooltipLetterSpacing = buildComponentCssVarPath('Tooltip', 'properties', 'text', 'letter-spacing')
+      const tooltipLineHeight = buildComponentCssVarPath('Tooltip', 'properties', 'text', 'line-height')
+
       // Use the same CSS variables as the Tooltip component for consistent styling
       tooltipEl.style.cssText = `
         position: fixed;
-        background-color: var(--recursica-ui-kit-components-tooltip-properties-colors-layer-1-background, #000);
-        color: var(--recursica-ui-kit-components-tooltip-properties-colors-layer-1-text-color, #fff);
-        border: var(--recursica-ui-kit-components-tooltip-properties-border-size, 1px) solid var(--recursica-ui-kit-components-tooltip-properties-colors-layer-1-border-color, transparent);
-        border-radius: var(--recursica-ui-kit-components-tooltip-properties-border-radius, 4px);
-        padding: var(--recursica-ui-kit-components-tooltip-properties-vertical-padding, 4px) var(--recursica-ui-kit-components-tooltip-properties-horizontal-padding, 8px);
-        min-width: var(--recursica-ui-kit-components-tooltip-properties-min-width, auto);
-        max-width: var(--recursica-ui-kit-components-tooltip-properties-max-width, 300px);
-        min-height: var(--recursica-ui-kit-components-tooltip-properties-min-height, auto);
-        font-family: var(--recursica-ui-kit-components-tooltip-text-font-family, inherit);
-        font-size: var(--recursica-ui-kit-components-tooltip-text-font-size, 12px);
-        font-weight: var(--recursica-ui-kit-components-tooltip-text-font-weight, 400);
-        letter-spacing: var(--recursica-ui-kit-components-tooltip-text-letter-spacing, normal);
-        line-height: var(--recursica-ui-kit-components-tooltip-text-line-height, 1.5);
+        background-color: var(${tooltipBg}, #000);
+        color: var(${tooltipTextColor}, #fff);
+        border: var(${tooltipBorderSize}, 1px) solid var(${tooltipBorderColor}, transparent);
+        border-radius: var(${tooltipBorderRadius}, 4px);
+        padding: var(${tooltipVerticalPadding}, 4px) var(${tooltipHorizontalPadding}, 8px);
+        min-width: var(${tooltipMinWidth}, auto);
+        max-width: var(${tooltipMaxWidth}, 300px);
+        min-height: var(${tooltipMinHeight}, auto);
+        font-family: var(${tooltipFontFamily}, inherit);
+        font-size: var(${tooltipFontSize}, 12px);
+        font-weight: var(${tooltipFontWeight}, 400);
+        letter-spacing: var(${tooltipLetterSpacing}, normal);
+        line-height: var(${tooltipLineHeight}, 1.5);
         display: flex;
         align-items: center;
         justify-content: center;

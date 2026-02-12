@@ -4,6 +4,7 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Accordion } from '../Accordion'
+import { itDom } from '../../../test-utils/conditionalTests'
 
 describe('Accordion Component (Adapter)', () => {
   beforeEach(async () => {
@@ -31,7 +32,7 @@ describe('Accordion Component (Adapter)', () => {
     }, { timeout: 15000 })
   }
 
-  it('renders accordion items with titles', async () => {
+  itDom('renders accordion items with titles', async () => {
     const items = [
       { id: 'a', title: 'First', content: 'First content', open: false },
       { id: 'b', title: 'Second', content: 'Second content', open: true },
@@ -43,7 +44,7 @@ describe('Accordion Component (Adapter)', () => {
     expect(screen.getByText('Second content')).toBeInTheDocument()
   })
 
-  it('calls onToggle when an item is toggled', async () => {
+  itDom('calls onToggle when an item is toggled', async () => {
     const onToggle = vi.fn()
     const items = [
       { id: 'a', title: 'First', content: 'First content', open: false },
@@ -62,7 +63,7 @@ describe('Accordion Component (Adapter)', () => {
     expect(onToggle).toHaveBeenCalledWith('a', true)
   })
 
-  it('respects divider visibility per item', async () => {
+  itDom('respects divider visibility per item', async () => {
     const items = [
       { id: 'a', title: 'First', content: 'First content', divider: true },
       { id: 'b', title: 'Second', content: 'Second content', divider: false },

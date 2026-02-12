@@ -24,6 +24,7 @@
     "preview": "vite preview",
     "type-check": "tsc -b --pretty false",
     "test": "vitest run --reporter=verbose",
+    "test:ci": "CI=true vitest run --reporter=verbose",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
     "watch:icons": "node scripts/watch-icon-mapping.mjs",

@@ -111,7 +111,7 @@ export function checkAACompliance(): ComplianceIssue[] {
   // Check layer colors for both modes
   for (const mode of ['light', 'dark'] as const) {
     for (let layer = 0; layer <= 3; layer++) {
-      const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-surface`
+      const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-properties-surface`
       const surfaceValue = readCssVar(surfaceVar)
       
       if (!surfaceValue) continue
@@ -130,7 +130,7 @@ export function checkAACompliance(): ComplianceIssue[] {
       ]
       
       textColorProperties.forEach((textProp) => {
-        const textColorVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-${textProp}`
+        const textColorVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-properties-${textProp}`
         const textColorValue = readCssVar(textColorVar)
         
         if (!textColorValue) return
@@ -154,9 +154,9 @@ export function checkAACompliance(): ComplianceIssue[] {
       })
       
       // Check interactive colors
-      const interactiveToneVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-element-interactive-tone`
-      const interactiveOnToneVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-element-interactive-on-tone`
-      const interactiveColorVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-element-interactive-color`
+      const interactiveToneVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-interactive-tone`
+      const interactiveOnToneVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-interactive-on-tone`
+      const interactiveColorVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-interactive-color`
       
       const interactiveToneValue = readCssVar(interactiveToneVar)
       const interactiveOnToneValue = readCssVar(interactiveOnToneVar)

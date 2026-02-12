@@ -19,7 +19,7 @@ export function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { mode } = useThemeMode()
-  
+
   // Determine current sub-route for navigation highlighting
   const getCurrentNavItem = (): SidebarNavItem => {
     if (location.pathname.includes('/tokens')) {
@@ -30,11 +30,11 @@ export function Sidebar() {
     }
     return 'color'
   }
-  
+
   const currentNavItem = getCurrentNavItem()
-  
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  
+
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+
   const handleNavClick = (value: string | null) => {
     const item = (value || 'color') as SidebarNavItem
     // Navigate using path-based routes
@@ -48,13 +48,13 @@ export function Sidebar() {
       navigate('/tokens/font')
     }
   }
-  
+
   const navItems: Array<{ key: SidebarNavItem; label: string }> = [
     { key: 'color', label: 'Color' },
     { key: 'font', label: 'Font' },
     { key: 'opacity', label: 'Opacity & Size' },
   ]
-  
+
   return (
     <aside
       style={{
@@ -94,7 +94,7 @@ export function Sidebar() {
           </MantineTabs.List>
         </Tabs>
       </nav>
-      
+
       {/* Footer Links - Fixed at bottom */}
       <div
         style={{
@@ -146,17 +146,17 @@ export function Sidebar() {
           Help
         </Button>
       </div>
-      
+
       {/* Copyright */}
       <div
         style={{
           marginTop: 'var(--recursica-brand-dimensions-general-md)',
           fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
         }}
       >
-        © 2025 Border LLC. All rights reserved. Ver: {packageJson.version}
+        © {new Date().getFullYear()} Border LLC. All rights reserved. Ver: {packageJson.version}
       </div>
     </aside>
   )
