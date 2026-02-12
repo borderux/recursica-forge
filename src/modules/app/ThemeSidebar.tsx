@@ -19,7 +19,7 @@ export function ThemeSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { mode } = useThemeMode()
-  
+
   // Determine current sub-route for navigation highlighting
   const getCurrentNavItem = (): ThemeNavItem => {
     if (location.pathname.includes('/theme/core-properties')) return 'core-properties'
@@ -30,16 +30,16 @@ export function ThemeSidebar() {
     if (location.pathname.includes('/theme/dimensions')) return 'dimensions'
     return 'core-properties' // default
   }
-  
+
   const currentNavItem = getCurrentNavItem()
-  
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  
+
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+
   const handleNavClick = (value: string | null) => {
     const item = (value || 'core-properties') as ThemeNavItem
     navigate(`/theme/${item}`)
   }
-  
+
   const navItems: Array<{ key: ThemeNavItem; label: string }> = [
     { key: 'core-properties', label: 'Core Properties' },
     { key: 'type', label: 'Type' },
@@ -48,7 +48,7 @@ export function ThemeSidebar() {
     { key: 'layers', label: 'Layers' },
     { key: 'dimensions', label: 'Dimensions' },
   ]
-  
+
   return (
     <aside
       style={{
@@ -87,7 +87,7 @@ export function ThemeSidebar() {
           </MantineTabs.List>
         </Tabs>
       </nav>
-      
+
       {/* Footer Links - Fixed at bottom */}
       <div
         style={{
@@ -139,17 +139,17 @@ export function ThemeSidebar() {
           Help
         </Button>
       </div>
-      
+
       {/* Copyright */}
       <div
         style={{
           marginTop: 'var(--recursica-brand-dimensions-general-md)',
           fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
         }}
       >
-        © 2025 Border LLC. All rights reserved. Ver: {packageJson.version}
+        © {new Date().getFullYear()} Border LLC. All rights reserved. Ver: {packageJson.version}
       </div>
     </aside>
   )

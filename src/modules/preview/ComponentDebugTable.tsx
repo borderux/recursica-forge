@@ -225,8 +225,8 @@ export default function ComponentDebugTable({
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   // Get CSS vars for the currently open prop control
   const highlightedCssVars = useMemo(() => {
@@ -286,7 +286,7 @@ export default function ComponentDebugTable({
     return (
       <div style={{
         padding: 'var(--recursica-brand-dimensions-general-md)',
-        color: `var(${layer0Base}-element-text-low-emphasis)`,
+        color: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
         fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
       }}>
         No CSS variables found for {componentName}
@@ -311,7 +311,7 @@ export default function ComponentDebugTable({
           margin: 0,
           fontSize: 'var(--recursica-brand-typography-body-font-size)',
           fontWeight: 600,
-          color: `var(${layer0Base}-element-text-color)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
         }}>
           CSS Variables Debug
         </h3>
@@ -336,7 +336,7 @@ export default function ComponentDebugTable({
                 padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
                 textAlign: 'left',
                 fontWeight: 600,
-                color: `var(${layer0Base}-element-text-color)`,
+                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                 borderRight: `1px solid var(${layer1Base}-border-color)`,
               }}>
                 CSS Variable
@@ -345,7 +345,7 @@ export default function ComponentDebugTable({
                 padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
                 textAlign: 'left',
                 fontWeight: 600,
-                color: `var(${layer0Base}-element-text-color)`,
+                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                 borderRight: `1px solid var(${layer1Base}-border-color)`,
               }}>
                 Current Value
@@ -354,7 +354,7 @@ export default function ComponentDebugTable({
                 padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
                 textAlign: 'center',
                 fontWeight: 600,
-                color: `var(${layer0Base}-element-text-color)`,
+                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                 width: '80px',
               }}>
                 Reset
@@ -378,7 +378,7 @@ export default function ComponentDebugTable({
                 >
                   <td style={{
                     padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
-                    color: `var(${layer0Base}-element-text-color)`,
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                     fontFamily: 'monospace',
                     fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                     borderRight: `1px solid var(${layer1Base}-border-color)`,
@@ -390,7 +390,7 @@ export default function ComponentDebugTable({
                     padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
                     color: isChanged 
                       ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`
-                      : `var(${layer0Base}-element-text-color)`,
+                      : `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                     background: isChanged 
                       ? `var(${layer1Base}-surface)`
                       : 'transparent',
@@ -420,8 +420,8 @@ export default function ComponentDebugTable({
                       padding: 0,
                       opacity: v.isChanged ? 1 : 0.5,
                       color: v.isChanged 
-                        ? `var(--recursica-brand-themes-${mode}-layer-layer-2-property-element-interactive-tone)`
-                        : `var(${layer0Base}-element-text-low-emphasis)`,
+                        ? `var(--recursica-brand-themes-${mode}-layers-layer-2-elements-interactive-tone)`
+                        : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     }}
                   />
                 </td>

@@ -62,7 +62,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         const fam = parts[1]
         if (fam && fam !== 'translucent') fams.add(fam)
       })
-    } catch {}
+    } catch { }
     fams.delete('translucent')
     const list = Array.from(fams)
     list.sort((a, b) => {
@@ -100,9 +100,9 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
       if (typeof toneRaw === 'string') {
         // Use centralized parser to check for token references
         const tokenIndex = buildTokenIndex(tokensJson)
-        const context: TokenReferenceContext = { 
-          currentMode: mode.toLowerCase() === 'dark' ? 'dark' : 'light', 
-          tokenIndex 
+        const context: TokenReferenceContext = {
+          currentMode: mode.toLowerCase() === 'dark' ? 'dark' : 'light',
+          tokenIndex
         }
         const parsed = parseTokenReference(toneRaw, context)
         if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
@@ -124,16 +124,16 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     try {
       const raw = localStorage.getItem(`palette-grid-family:${paletteKey}`)
       if (raw) return JSON.parse(raw)
-    } catch {}
+    } catch { }
     // Fall back to defaults
     if (paletteKey === 'neutral') return 'gray'
     return families[0] || ''
   })
-  
+
   // Track if this is the initial mount to only sync on first load
   const isInitialMount = useRef(true)
   const userChangedFamily = useRef(false)
-  
+
   // Update selectedFamily when theme changes to reflect actual family being used
   // Only sync on initial mount (not when user changes dropdown)
   useEffect(() => {
@@ -146,8 +146,8 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     }
   }, [detectFamilyFromTheme])
   useEffect(() => {
-    try { localStorage.setItem(`palette-grid-family:${paletteKey}`, JSON.stringify(selectedFamily)) } catch {}
-    try { window.dispatchEvent(new CustomEvent('paletteFamilyChanged', { detail: { key: paletteKey, family: selectedFamily } })) } catch {}
+    try { localStorage.setItem(`palette-grid-family:${paletteKey}`, JSON.stringify(selectedFamily)) } catch { }
+    try { window.dispatchEvent(new CustomEvent('paletteFamilyChanged', { detail: { key: paletteKey, family: selectedFamily } })) } catch { }
   }, [paletteKey, selectedFamily])
   const [, forceVersion] = useState(0)
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         const ov = overrides[name]
         if (ov != null) return String(ov)
       }
-    } catch {}
+    } catch { }
     const parts = (name || '').split('/')
     if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.tokens?.color?.[parts[1]]?.[parts[2]]?.$value
     if (parts[0] === 'opacity' && parts[1]) return String((tokensJson as any)?.tokens?.opacity?.[parts[1]]?.$value)
@@ -175,7 +175,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     if (typeof ref === 'string') {
       const s = ref.trim()
       if (!s.startsWith('{')) return s
-      
+
       // Use centralized parser
       const context: TokenReferenceContext = {
         currentMode: modeLabel.toLowerCase() === 'dark' ? 'dark' : 'light',
@@ -183,13 +183,13 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         theme: themeJson
       }
       const parsed = parseTokenReference(s, context)
-      
+
       if (parsed && parsed.type === 'token') {
         // Token reference: resolve to value
         const path = parsed.path.join('/')
         return getTokenValueByName(path)
       }
-      
+
       if (parsed && parsed.type === 'brand') {
         // Brand/theme reference: resolve using theme index
         const mode = parsed.mode === 'dark' ? 'Dark' : 'Light'
@@ -205,7 +205,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         }
         return resolveThemeRef(entry?.value, mode)
       }
-      
+
       return s
     }
     if (typeof ref === 'object') {
@@ -238,10 +238,10 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         const v = JSON.parse(raw)
         if (typeof v === 'string') return v.padStart(3, '0')
       }
-    } catch {}
+    } catch { }
     return resolveDefaultLevelForPalette
   })
-  
+
   // Update primary level when mode changes or when palettePrimaryLevelChanged event fires
   useEffect(() => {
     const updatePrimaryLevel = () => {
@@ -264,17 +264,17 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         // Ignore errors
       }
     }
-    
+
     // Update immediately
     updatePrimaryLevel()
-    
+
     // Listen for palettePrimaryLevelChanged events
     const handlePrimaryLevelChanged = ((ev: CustomEvent) => {
       const detail = ev.detail
       // Normalize mode comparison (event uses lowercase, component might use capitalized)
       const eventMode = detail?.mode?.toLowerCase()
       const componentMode = mode?.toLowerCase()
-      
+
       // Update if it's a specific palette change for this palette, or if it's a general "all palettes" change for this mode
       // Also update on reset events (when detail.reset is true)
       if (detail && (
@@ -285,58 +285,58 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         updatePrimaryLevel()
       }
     }) as EventListener
-    
+
     window.addEventListener('palettePrimaryLevelChanged', handlePrimaryLevelChanged)
     return () => {
       window.removeEventListener('palettePrimaryLevelChanged', handlePrimaryLevelChanged)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, paletteKey]) // Only update when mode or paletteKey changes, not when primaryLevelStr changes
-  
+
   useEffect(() => {
     // Store mode-specific primary level
-    try { localStorage.setItem(`palette-primary-level:${paletteKey}:${mode}`, JSON.stringify(primaryLevelStr)) } catch {}
+    try { localStorage.setItem(`palette-primary-level:${paletteKey}:${mode}`, JSON.stringify(primaryLevelStr)) } catch { }
   }, [paletteKey, primaryLevelStr, mode])
   const [hoverLevelStr, setHoverLevelStr] = useState<string | null>(null)
   const applyThemeMappingsFromJson = (modeLabel: 'Light' | 'Dark') => {
     // Don't run during reset - recomputeAndApplyAll handles everything
     if (isResettingRef.current) return
-    
+
     const levels = headerLevels
     const modeLower = modeLabel.toLowerCase()
     levels.forEach((lvl) => {
       const onToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
-      
+
       // NEVER overwrite on-tone CSS vars - they are set by AA compliance and should persist
       // Check if the value already exists and is valid - if so, skip entirely
       const existingValue = readCssVar(onToneCssVar)
-      
+
       // If value exists and is a valid var() reference to core-white or core-black, NEVER overwrite
       // This preserves AA-compliant values set by AA compliance checks
       if (existingValue && existingValue.trim() !== '') {
         // Check if it's a valid var() reference for this mode
         // Must reference core-white or core-black for this mode
-        if (existingValue.startsWith('var(') && 
-            existingValue.includes(`themes-${modeLower}-palettes-core-`) &&
-            (existingValue.includes('core-white') || existingValue.includes('core-black'))) {
+        if (existingValue.startsWith('var(') &&
+          existingValue.includes(`themes-${modeLower}-palettes-core-`) &&
+          (existingValue.includes('core-white') || existingValue.includes('core-black'))) {
           // Already set correctly - NEVER overwrite AA-compliant values
           return
         }
       }
-      
+
       // Only set if no existing value or invalid value exists
       // This should only happen on initial load when CSS vars don't exist yet
-      
+
       // Try both 'palettes' and 'palette' path formats
       const onToneNamePlural = `palettes/${paletteKey}/${lvl}/on-tone`
       const onToneNameSingular = `palette/${paletteKey}/${lvl}/on-tone`
-      const onToneRaw = (themeIndex as any)[`${modeLabel}::${onToneNamePlural}`]?.value 
+      const onToneRaw = (themeIndex as any)[`${modeLabel}::${onToneNamePlural}`]?.value
         || (themeIndex as any)[`${modeLabel}::${onToneNameSingular}`]?.value
-      
+
       if (typeof onToneRaw === 'string') {
         const s = onToneRaw.trim().toLowerCase()
         let coreRef: string | undefined
-        
+
         // Handle direct hex values
         if (s === '#ffffff' || s === 'white') {
           coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
@@ -366,7 +366,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
               coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-${colorName})`
             }
           }
-          
+
           // If we still don't have a coreRef, try to resolve as theme reference (handles var() references)
           if (!coreRef) {
             // Try both path formats
@@ -389,7 +389,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
             }
           }
         }
-        
+
         if (coreRef) {
           updateCssVar(onToneCssVar, coreRef)
         }
@@ -409,29 +409,29 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     window.addEventListener('paletteReset', handleReset as any)
     return () => window.removeEventListener('paletteReset', handleReset as any)
   }, [])
-  
+
   useEffect(() => {
     // Skip if reset is in progress - recomputeAndApplyAll already sets everything from JSON
     if (isResettingRef.current) return
-    
+
     // Apply theme mappings from JSON for the current mode
     // This ensures on-tones are correct when navigating from another page
     applyThemeMappingsFromJson(mode)
-    
+
     // Dispatch event to notify components that palette vars may have changed
     // This ensures components re-render with correct on-tones when navigating
     try {
       window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
-    } catch {}
+    } catch { }
   }, [mode, overrideVersion])
   // Track last primary level to only update when user explicitly changes it
   const lastPrimaryLevel = useRef<string | null>(null)
   const lastMode = useRef<string | null>(null)
-  
+
   useEffect(() => {
     // Only update when primary level or mode actually changes (user action), not on every render
     if (lastPrimaryLevel.current === primaryLevelStr && lastMode.current === mode) return
-    
+
     const lvl = primaryLevelStr
     try {
       // Reference the level-specific brand vars directly so primary is not hardcoded
@@ -443,25 +443,26 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         `--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-primary-on-tone`,
         `var(--recursica-brand-themes-${mode.toLowerCase()}-palettes-${paletteKey}-${lvl}-on-tone)`
       )
-      
+
       // Only notify if this is a user-initiated change (primary level or mode changed)
       if (lastPrimaryLevel.current !== null || lastMode.current !== null) {
-        try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch {}
+        try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch { }
       }
-      
+
       lastPrimaryLevel.current = primaryLevelStr
       lastMode.current = mode
-    } catch {}
+    } catch { }
   }, [primaryLevelStr, mode, paletteKey]) // Removed selectedFamily and overrideVersion from dependencies
-  
+
   const { mode: themeMode } = useThemeMode()
-  const layer1Base = `--recursica-brand-themes-${themeMode}-layer-layer-1-property`
-  
+  const layer0Base = `--recursica-brand-themes-${themeMode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${themeMode}-layers-layer-1-properties`
+
   const EllipsisIcon = iconNameToReactComponent('ellipsis-horizontal')
   const TrashIcon = iconNameToReactComponent('trash')
-  
+
   return (
-    <div 
+    <div
       className="palette-container"
       style={{
         backgroundColor: `var(${layer1Base}-surface)`,
@@ -473,10 +474,10 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         gap: 0,
       }}
     >
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between', 
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         gap: `var(--recursica-brand-dimensions-gutters-horizontal)`,
         paddingTop: 'var(--recursica-brand-dimensions-general-xl)',
         paddingBottom: 'var(--recursica-brand-dimensions-general-xl)',
@@ -484,24 +485,24 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: `var(--recursica-brand-dimensions-general-sm)` }}>
-          <h2 style={{ 
+          <h2 style={{
             margin: 0,
             fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
             fontSize: 'var(--recursica-brand-typography-h2-font-size)',
             fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
             letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
             lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-            color: `var(${layer1Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}>{title ?? paletteKey}</h2>
           {descriptiveLabel && (
-            <div style={{ 
+            <div style={{
               margin: 0,
               fontFamily: 'var(--recursica-brand-typography-subtitle-font-family)',
               fontSize: 'var(--recursica-brand-typography-subtitle-font-size)',
               fontWeight: 'var(--recursica-brand-typography-subtitle-font-weight)',
               letterSpacing: 'var(--recursica-brand-typography-subtitle-font-letter-spacing)',
               lineHeight: 'var(--recursica-brand-typography-subtitle-line-height)',
-              color: `var(${layer1Base}-element-text-color)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
               opacity: `var(--recursica-brand-themes-${themeMode}-text-emphasis-low)`,
             }}>{descriptiveLabel}</div>
           )}
@@ -531,7 +532,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: `var(${layer1Base}-element-text-color)`,
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                     opacity: `var(--recursica-brand-themes-${themeMode}-text-emphasis-low)`,
                   }}
                   onMouseEnter={(e) => {
@@ -567,19 +568,19 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
       <table className="color-palettes" style={{ tableLayout: 'fixed', width: '100%', borderSpacing: 0 }}>
         <thead>
           <tr style={{ display: 'flex', alignItems: 'center' }}>
-            <th style={{ 
-              width: 80, 
+            <th style={{
+              width: 80,
               flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
               transform: 'translateY(20px)',
             }}>
-              <Label 
-                size="small" 
-                layer="layer-1" 
-                style={{ 
+              <Label
+                size="small"
+                layer="layer-1"
+                style={{
                   paddingBottom: 0,
-                  color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-1-property-element-text-color)`,
+                  color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layers-layer-1-elements-text-color)`,
                 }}
               >
                 Emphasis
@@ -603,11 +604,11 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         <tbody>
           <tr className="high-emphasis" style={{ display: 'flex', alignItems: 'flex-end', width: '100%' }}>
             <td style={{ width: 80, flexShrink: 0, height: '50px', display: 'flex', alignItems: 'center' }}>
-              <Label 
-                size="small" 
+              <Label
+                size="small"
                 layer="layer-1"
                 style={{
-                  color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-1-property-element-text-color)`,
+                  color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layers-layer-1-elements-text-color)`,
                 }}
               >
                 High
@@ -640,11 +641,11 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
           </tr>
           <tr className="low-emphasis" style={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
             <td style={{ width: 80, flexShrink: 0, height: '50px', display: 'flex', alignItems: 'center' }}>
-              <Label 
-                size="small" 
+              <Label
+                size="small"
                 layer="layer-1"
                 style={{
-                  color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layer-layer-1-property-element-text-color)`,
+                  color: `var(--recursica-brand-themes-${mode.toLowerCase()}-layers-layer-1-elements-text-color)`,
                 }}
               >
                 Low

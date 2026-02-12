@@ -278,8 +278,8 @@ function updateLayerInteractiveColors(interactiveHex: string, tokens: JsonLike, 
   
   // Update layers 0-3
   for (let layer = 0; layer <= 3; layer++) {
-    const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-surface`
-    const interactiveVar = `--recursica-brand-themes-${mode}-layer-layer-${layer}-property-element-interactive-color`
+    const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-properties-surface`
+    const interactiveVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-interactive-color`
     
     const surfaceHex = resolveCssVarToHex(`var(${surfaceVar})`, tokenIndex) || '#ffffff'
     const contrast = contrastRatio(surfaceHex, interactiveHex)

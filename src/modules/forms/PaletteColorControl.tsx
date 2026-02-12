@@ -47,7 +47,7 @@ export default function PaletteColorControl({
   const { mode } = useThemeMode()
   const textFieldRef = useRef<HTMLDivElement>(null)
   const displayCssVar = currentValueCssVar || targetCssVar
-  
+
   // Get available palette keys and levels for token-to-palette mapping
   const paletteKeys = useMemo(() => {
     const dynamic = palettes?.dynamic?.map((p) => p.key) || []
@@ -63,10 +63,10 @@ export default function PaletteColorControl({
           staticPalettes.push(k)
         }
       })
-    } catch {}
+    } catch { }
     return Array.from(new Set([...dynamic, ...staticPalettes]))
   }, [palettes, themeJson, mode])
-  
+
   const paletteLevels = useMemo(() => {
     const levelsByPalette: Record<string, string[]> = {}
     const modeLower = mode.toLowerCase()
@@ -85,27 +85,27 @@ export default function PaletteColorControl({
           })
           levelsByPalette[pk] = levels
         }
-      } catch {}
+      } catch { }
       if (!levelsByPalette[pk]) {
         levelsByPalette[pk] = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
       }
     })
     return levelsByPalette
   }, [paletteKeys, themeJson, mode])
-  
+
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
     const modeLower = mode.toLowerCase()
     return `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${level}-tone`
   }
-  
+
   // Helper to find palette swatch that matches a token hex
   const findPaletteForToken = (tokenFamily: string, tokenLevel: string): { paletteKey: string; level: string } | null => {
     const tokenCssVar = `--recursica-tokens-color-${tokenFamily}-${tokenLevel}`
     const tokenHex = readCssVarResolved(tokenCssVar)
     if (!tokenHex || !/^#[0-9a-f]{6}$/i.test(tokenHex)) return null
-    
+
     const normalizedTokenHex = tokenHex.toLowerCase().trim()
-    
+
     // Find the first palette swatch that matches this hex
     for (const pk of paletteKeys) {
       const levels = paletteLevels[pk] || []
@@ -119,10 +119,10 @@ export default function PaletteColorControl({
         }
       }
     }
-    
+
     return null
   }
-  
+
   // Helper function to format palette name (e.g., "palette-1" -> "Palette 1", "neutral" -> "Neutral")
   const formatPaletteName = (paletteKey: string): string => {
     return paletteKey
@@ -130,7 +130,7 @@ export default function PaletteColorControl({
       .replace(/\b\w/g, (m) => m.toUpperCase())
       .trim()
   }
-  
+
   // Helper to recursively follow CSS variable chain to find palette/token references
   const findPaletteInChain = (cssVarName: string, depth: number = 0, visited: Set<string> = new Set()): string | null => {
     if (depth > 5) return null // Prevent infinite loops
@@ -155,25 +155,25 @@ export default function PaletteColorControl({
     if (paletteMatch) {
       return trimmed
     }
-    
+
     // Check if this value directly contains a token reference
     const tokenMatch = trimmed.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
     if (tokenMatch) {
       return trimmed
     }
-    
+
     // Check for color-mix() functions that contain palette references
     const colorMixPaletteMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
     if (colorMixPaletteMatch) {
       return trimmed
     }
-    
+
     // Check for color-mix() functions that contain token references
     const colorMixTokenMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
     if (colorMixTokenMatch) {
       return trimmed
     }
-    
+
     // If it's a var() reference, extract the inner variable name and recurse
     const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
     if (varMatch) {
@@ -181,42 +181,42 @@ export default function PaletteColorControl({
       const result = findPaletteInChain(innerVarName, depth + 1, visited)
       if (result) return result
     }
-    
+
     return null
   }
-  
+
   const [refreshKey, setRefreshKey] = useState(0) // Force re-read when picker closes
 
   // Listen for CSS variable updates to refresh the label - only for relevant vars
   useEffect(() => {
     let debounceTimer: ReturnType<typeof setTimeout> | null = null
     const relevantVars = [displayCssVar, targetCssVar, ...(targetCssVars || [])].filter(Boolean)
-    
+
     const handleCssVarsUpdated = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const updatedVars = detail?.cssVars
-      
+
       // Only update if one of our CSS vars was changed
       if (!Array.isArray(updatedVars)) {
         return
       }
-      
+
       const hasRelevantUpdate = relevantVars.some(v => updatedVars.includes(v))
       if (!hasRelevantUpdate) {
         return
       }
-      
+
       // Debounce to prevent excessive updates
       if (debounceTimer) {
         clearTimeout(debounceTimer)
       }
-      
+
       debounceTimer = setTimeout(() => {
         // Force re-computation of display label when CSS vars are updated
         setRefreshKey(prev => prev + 1)
       }, 16) // ~1 frame at 60fps
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarsUpdated)
     return () => {
       if (debounceTimer) {
@@ -231,7 +231,7 @@ export default function PaletteColorControl({
     // First try to find palette reference in the CSS variable chain
     let paletteValue = findPaletteInChain(displayCssVar)
     let cssValue = paletteValue || readCssVar(displayCssVar)
-    
+
     // If we didn't find a palette reference in the chain, try resolving to hex and matching
     if (!paletteValue && cssValue) {
       // Resolve deeper to handle UIKit variables that chain to other variables
@@ -255,20 +255,20 @@ export default function PaletteColorControl({
         }
       }
     }
-    
+
     // If we found a palette value through hex matching, extract and return it
     if (paletteValue) {
       // Extract palette name and level from var() reference
       // Try with current mode first, then fallback to any mode
       const modeLower = mode.toLowerCase()
-      
+
       // First check for core colors
       // Core colors can be: core-black, core-white, core-alert-tone, core-warning-tone, core-success-tone, core-interactive-default-tone, etc.
       let coreMatch = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\\s*\\)`, 'i'))
       if (!coreMatch) {
         coreMatch = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\s*\)/i)
       }
-      
+
       if (coreMatch) {
         const [, coreKey] = coreMatch
         // Handle interactive colors
@@ -287,16 +287,16 @@ export default function PaletteColorControl({
         const formattedCore = formatPaletteName(coreName)
         return `Core / ${formattedCore}`
       }
-      
+
       let match = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
-      
+
       if (!match) {
         match = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
       }
-      
+
       if (match) {
         const [, paletteKey, level] = match
-        
+
         // Special handling for core-interactive palette
         if (paletteKey === 'core-interactive') {
           if (level === 'default') {
@@ -307,7 +307,7 @@ export default function PaletteColorControl({
             return `Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`
           }
         }
-        
+
         const formattedPalette = formatPaletteName(paletteKey)
         // Don't show "default" level - it's implied (except for core-interactive which we handle above)
         if (level === 'default') {
@@ -317,7 +317,7 @@ export default function PaletteColorControl({
         return `${formattedPalette} / ${displayLevel}`
       }
     }
-    
+
     if (!cssValue) {
       // Check if the CSS variable exists (even if it's a UIKit variable)
       const rawValue = readCssVar(displayCssVar)
@@ -327,7 +327,7 @@ export default function PaletteColorControl({
         if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
           const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
           const modeLower = mode.toLowerCase()
-          
+
           // PRIORITY 1: Check core colors FIRST (before regular palettes)
           // Core colors can be: black, white, alert-tone, warning-tone, success-tone, interactive-default-tone, interactive-hover-tone
           // Also check without -tone suffix for backwards compatibility
@@ -359,7 +359,7 @@ export default function PaletteColorControl({
               return `Core / ${formattedCore}`
             }
           }
-          
+
           // PRIORITY 2: Only check regular palettes if no core color match was found
           for (const pk of paletteKeys) {
             const levels = paletteLevels[pk] || []
@@ -394,43 +394,43 @@ export default function PaletteColorControl({
       }
       return fallbackLabel
     }
-    
+
     // Extract palette name and level from var() reference
     // Match: var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone)
     // Try with current mode first, then fallback to any mode
     const modeLower = mode.toLowerCase()
-    
-    
+
+
     let match = cssValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
-    
+
     // If no match with current mode, try any mode
     if (!match) {
       match = cssValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
     }
-    
+
     // Also check for color-mix() functions that contain palette references
     // Match: color-mix(in srgb, var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
     // The palette var can appear anywhere in the color-mix function
     if (!match) {
       match = cssValue.match(new RegExp(`color-mix\\s*\\([^)]*var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)[^)]*\\)`, 'i'))
     }
-    
+
     if (!match) {
       match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
     }
-    
+
     // Also check for token references: var(--recursica-tokens-color-{family}-{level})
     // Match: var(--recursica-tokens-color-{family}-{level})
     let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
-    
+
     // Also check for color-mix() functions that contain token references
     if (!tokenMatch) {
       tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
     }
-    
+
     if (match) {
       const [, paletteKey, level] = match
-      
+
       // Special handling for core-interactive palette
       if (paletteKey === 'core-interactive') {
         if (level === 'default') {
@@ -441,7 +441,7 @@ export default function PaletteColorControl({
           return `Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`
         }
       }
-      
+
       const formattedPalette = formatPaletteName(paletteKey)
       // Don't show "default" level - it's implied
       if (level === 'default') {
@@ -450,7 +450,7 @@ export default function PaletteColorControl({
       const displayLevel = level === 'primary' ? 'primary' : level === 'hover' ? 'Hover' : level
       return `${formattedPalette} / ${displayLevel}`
     }
-    
+
     if (tokenMatch) {
       const [, family, level] = tokenMatch
       // Try to find matching palette swatch for this token
@@ -464,11 +464,11 @@ export default function PaletteColorControl({
       const formattedFamily = formatPaletteName(family)
       return `${formattedFamily} / ${level}`
     }
-    
+
     if (cssValue.startsWith('#') || cssValue.startsWith('rgb')) {
       return 'Custom color'
     }
-    
+
     // If it's a var() reference but doesn't match our patterns, try resolving deeper
     // This handles UIKit component variables that chain to palette references
     if (cssValue.trim().startsWith('var(') || cssValue.trim().includes('var(')) {
@@ -496,10 +496,10 @@ export default function PaletteColorControl({
       // It's a valid CSS variable reference, just not one we can parse nicely
       return 'Set'
     }
-    
+
     return fallbackLabel
   }, [displayCssVar, paletteKeys, paletteLevels, mode, fallbackLabel, refreshKey])
-  
+
   const [displayLabel, setDisplayLabel] = useState<string>(computedDisplayLabel)
 
   // Helper function to update display label from CSS variable
@@ -507,7 +507,7 @@ export default function PaletteColorControl({
     // First try to find palette reference in the CSS variable chain
     let paletteValue = findPaletteInChain(displayCssVar)
     let cssValue = paletteValue || readCssVar(displayCssVar)
-    
+
     // If we didn't find a palette reference in the chain, try resolving to hex and matching
     if (!paletteValue && cssValue) {
       // Resolve deeper to handle UIKit variables that chain to other variables
@@ -515,7 +515,7 @@ export default function PaletteColorControl({
       if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
         const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
         const modeLower = mode.toLowerCase()
-        
+
         // PRIORITY 1: Check core colors FIRST (before regular palettes)
         // Core colors can be: black, white, alert-tone, warning-tone, success-tone, interactive-default-tone, interactive-hover-tone
         // Also check without -tone suffix for backwards compatibility
@@ -538,7 +538,7 @@ export default function PaletteColorControl({
             break
           }
         }
-        
+
         // PRIORITY 2: Only check regular palettes if no core color match was found
         if (!paletteValue) {
           for (const pk of paletteKeys) {
@@ -558,19 +558,19 @@ export default function PaletteColorControl({
         }
       }
     }
-    
+
     // If we found a palette value through hex matching, extract and display it immediately
     if (paletteValue) {
       // Extract palette name and level from var() reference
       // Try with current mode first, then fallback to any mode
       const modeLower = mode.toLowerCase()
-      
+
       // PRIORITY 1: Check for core colors FIRST
       let coreMatch = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-core-([a-z0-9-]+(?:-tone)?)\\s*\\)`, 'i'))
       if (!coreMatch) {
         coreMatch = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone)?)\s*\)/i)
       }
-      
+
       if (coreMatch) {
         const [, coreKey] = coreMatch
         // Handle interactive colors
@@ -591,17 +591,17 @@ export default function PaletteColorControl({
         setDisplayLabel(`Core / ${formattedCore}`)
         return
       }
-      
+
       // PRIORITY 2: Check for regular palettes
       let match = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
-      
+
       if (!match) {
         match = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
       }
-      
+
       if (match) {
         const [, paletteKey, level] = match
-        
+
         // Special handling for core-interactive palette
         if (paletteKey === 'core-interactive') {
           if (level === 'default') {
@@ -613,7 +613,7 @@ export default function PaletteColorControl({
           }
           return
         }
-        
+
         const formattedPalette = formatPaletteName(paletteKey)
         // Don't show "default" level - it's implied (except for core-interactive which we handle above)
         if (level === 'default') {
@@ -637,7 +637,7 @@ export default function PaletteColorControl({
         if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex.trim())) {
           const normalizedResolvedHex = resolvedHex.trim().toLowerCase()
           const modeLower = mode.toLowerCase()
-          
+
           // PRIORITY 1: Check core colors FIRST (before regular palettes)
           // Core colors can be: black, white, alert-tone, warning-tone, success-tone, interactive-default-tone, interactive-hover-tone
           // Also check without -tone suffix for backwards compatibility
@@ -669,7 +669,7 @@ export default function PaletteColorControl({
               return
             }
           }
-          
+
           // PRIORITY 2: Only check regular palettes if no core color match was found
           for (const pk of paletteKeys) {
             const levels = paletteLevels[pk] || []
@@ -718,35 +718,35 @@ export default function PaletteColorControl({
     // Try with current mode first, then fallback to any mode
     const modeLower = mode.toLowerCase()
     let match = cssValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
-    
+
     // If no match with current mode, try any mode
     if (!match) {
       match = cssValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
     }
-    
+
     // Also check for color-mix() functions that contain palette references
     // Match: color-mix(in srgb, var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
     // The palette var can appear anywhere in the color-mix function
     if (!match) {
       match = cssValue.match(new RegExp(`color-mix\\s*\\([^)]*var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)[^)]*\\)`, 'i'))
     }
-    
+
     if (!match) {
       match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
     }
-    
+
     // Also check for token references: var(--recursica-tokens-color-{family}-{level})
     // Match: var(--recursica-tokens-color-{family}-{level})
     let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
-    
+
     // Also check for color-mix() functions that contain token references
     if (!tokenMatch) {
       tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
     }
-    
+
     if (match) {
       const [, paletteKey, level] = match
-      
+
       // Special handling for core-interactive palette
       if (paletteKey === 'core-interactive') {
         if (level === 'default') {
@@ -758,7 +758,7 @@ export default function PaletteColorControl({
         }
         return
       }
-      
+
       const formattedPalette = formatPaletteName(paletteKey)
       // Don't show "default" level - it's implied
       if (level === 'default') {
@@ -769,7 +769,7 @@ export default function PaletteColorControl({
       }
       return
     }
-    
+
     if (tokenMatch) {
       const [, family, level] = tokenMatch
       // Try to find matching palette swatch for this token
@@ -845,23 +845,23 @@ export default function PaletteColorControl({
   useEffect(() => {
     setDisplayLabel(computedDisplayLabel)
   }, [computedDisplayLabel])
-  
+
   // Update display label based on CSS variable value (for refresh mechanism)
   useEffect(() => {
     // Read immediately
     updateDisplayLabel()
-    
+
     // Also read after a short delay to catch CSS variables that might be set via computed styles
     // This ensures we read the value even if it's set by varsStore after component mount
     const timeoutId = setTimeout(() => {
       updateDisplayLabel()
     }, 10)
-    
+
     // Also read after a longer delay to catch any async CSS variable updates
     const timeoutId2 = setTimeout(() => {
       updateDisplayLabel()
     }, 100)
-    
+
     return () => {
       clearTimeout(timeoutId)
       clearTimeout(timeoutId2)
@@ -872,46 +872,49 @@ export default function PaletteColorControl({
   // Use the same approach as ButtonPreview
   const contrastWarning = useMemo(() => {
     if (!contrastColorCssVar) return null
-    
+
     const tokenIndex = buildTokenIndex(tokens || {})
-    
+
     // Read the CSS variable values - same as ButtonPreview
     // If the value is already a var() reference, resolveCssVarToHex will handle it recursively
     const currentColorValue = readCssVar(displayCssVar)
     const contrastColorValue = readCssVar(contrastColorCssVar)
-    
+
     if (!currentColorValue || !contrastColorValue) return null
-    
+
     // Use the same resolveCssVarToHex function as ButtonPreview
     // This function handles var() references recursively, including layer variables
     // that reference palette variables
     const currentHex = resolveCssVarToHex(currentColorValue, tokenIndex as any)
     const contrastHex = resolveCssVarToHex(contrastColorValue, tokenIndex as any)
-    
+
     if (!currentHex || !contrastHex) {
       return null
     }
-    
+
     const ratio = contrastRatio(currentHex, contrastHex)
     const AA_THRESHOLD = 4.5
-    
+
     if (ratio < AA_THRESHOLD) {
       return {
         ratio: ratio.toFixed(2),
         passes: false,
       }
     }
-    
+
     return null
   }, [contrastColorCssVar, displayCssVar, tokens, refreshKey, mode]) // Include mode and refreshKey to re-check when colors change
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement | HTMLInputElement>) => {
+    // Stop propagation to prevent closing parent panels/popovers
+    e.stopPropagation()
+
     const el = textFieldRef.current
     if (!el) return
     try {
       // If multiple CSS vars are provided, pass them all to the picker
       const cssVarsToUpdate = targetCssVars && targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-      ;(window as any).openPalettePicker(el, targetCssVar, cssVarsToUpdate)
+        ; (window as any).openPalettePicker(el, targetCssVar, cssVarsToUpdate)
     } catch (err) {
       console.error('Failed to open palette picker:', err)
     }
@@ -920,13 +923,13 @@ export default function PaletteColorControl({
   // Check if color is null/not set
   const isColorNull = displayLabel === 'None' || !readCssVar(displayCssVar)
   const modeLower = mode.toLowerCase()
-  
+
   // Use the same border style as the overlay swatches
   // Match PaletteSwatchPicker's border style exactly
   // Use CSS variable reference directly (same as overlay) - template literal interpolation
   const swatchBorderColorVar = `--recursica-brand-themes-${modeLower}-palettes-neutral-500-tone`
   const swatchBorderColor = `var(${swatchBorderColorVar})`
-  
+
   // Get highest layer number for background (same as PaletteSwatchPicker)
   const highestLayerNum = useMemo(() => {
     try {
@@ -943,7 +946,7 @@ export default function PaletteColorControl({
       return '3'
     }
   }, [themeJson, modeLower])
-  
+
   // Create swatch icon component
   const swatchIcon = isColorNull ? (
     <span
@@ -970,7 +973,7 @@ export default function PaletteColorControl({
           width: '100%',
           height: '100%',
           display: 'block',
-          background: `var(--recursica-brand-themes-${modeLower}-layer-layer-${highestLayerNum}-property-surface)`,
+          background: `var(--recursica-brand-themes-${modeLower}-layers-layer-${highestLayerNum}-properties-surface)`,
           position: 'relative',
         }}
       >
@@ -1061,7 +1064,7 @@ export default function PaletteColorControl({
           className="palette-color-control-textfield"
         />
       </div>
-      <PaletteSwatchPicker 
+      <PaletteSwatchPicker
         onSelect={() => {
           // Force re-read of CSS variable when a selection is made
           setRefreshKey(prev => prev + 1)

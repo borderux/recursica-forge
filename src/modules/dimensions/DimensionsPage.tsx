@@ -62,8 +62,8 @@ export default function DimensionsPage() {
   const { tokens: tokensJson, theme: themeJson, setTheme, updateToken } = useVars()
   const { mode } = useThemeMode()
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   // Get available size tokens (exclude elevation tokens - those are only in brand, not tokens)
   const availableSizeTokens = useMemo(() => {
@@ -305,8 +305,8 @@ export default function DimensionsPage() {
         fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
         letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
         lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-        color: `var(${layer0Base}-element-text-color)`,
-        opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+        color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+        opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
       }}>
         Dimensions
       </h1>
@@ -346,8 +346,8 @@ export default function DimensionsPage() {
                   fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
                   letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
                   lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-                  color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                 }}>
                   {category.toLowerCase() === 'border-radii' ? 'Border Radius' : toTitleCase(category)}
                 </h2>

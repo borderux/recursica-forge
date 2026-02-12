@@ -121,8 +121,8 @@ export default function OpacityTokens() {
     } catch { }
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
 
   return (
@@ -143,8 +143,8 @@ export default function OpacityTokens() {
             fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
             letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
             lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-            color: `var(${layer0Base}-element-text-color)`,
-            opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+            opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
           }}>
             Opacity
           </h2>
@@ -193,8 +193,8 @@ export default function OpacityTokens() {
               }}>
                 <label htmlFor={it.name} style={{
                   fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                   minWidth: 80,
                 }}>
                   {label}

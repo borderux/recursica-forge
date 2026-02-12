@@ -33,7 +33,7 @@ import { getCssAuditAutoRun, setCssAuditAutoRun } from '../../../core/utils/cssA
 import { runCssVarAudit } from '../../../core/utils/runCssVarAudit'
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
-  const { resetAll, reloadFromFile } = useVars()
+  const { resetAll } = useVars()
   const { mode, setMode } = useThemeMode()
   const location = useLocation()
   const navigate = useNavigate()
@@ -136,8 +136,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
   const { AppBar, Toolbar, Container, CssBaseline, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions, Box, Tabs, Tab } = mat
   const { ThemeProvider, createTheme } = styles
   const theme = createTheme()
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
 
@@ -168,8 +168,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                   <Box
                     component="span"
                     sx={{
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                       fontWeight: 600,
                       fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     }}
@@ -180,8 +180,8 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     component="span"
                     sx={{
                       fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     }}
                   >
                     Theme Forge
@@ -222,7 +222,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     sx={{
                       color: `var(${buttonTextText})`,
                       backgroundColor: `var(${buttonTextBg})`,
-                      opacity: currentRoute === 'tokens' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                      opacity: currentRoute === 'tokens' ? 1 : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                       fontWeight: currentRoute === 'tokens' ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
                       fontSize: 'var(--recursica-brand-typography-body-font-size)',
                       height: `var(${buttonHeight})`,
@@ -244,7 +244,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     sx={{
                       color: `var(${buttonTextText})`,
                       backgroundColor: `var(${buttonTextBg})`,
-                      opacity: currentRoute === 'theme' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                      opacity: currentRoute === 'theme' ? 1 : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                       fontWeight: currentRoute === 'theme' ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
                       fontSize: 'var(--recursica-brand-typography-body-font-size)',
                       height: `var(${buttonHeight})`,
@@ -266,7 +266,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     sx={{
                       color: `var(${buttonTextText})`,
                       backgroundColor: `var(${buttonTextBg})`,
-                      opacity: currentRoute === 'components' ? 1 : `var(${layer0Base}-element-text-low-emphasis)`,
+                      opacity: currentRoute === 'components' ? 1 : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                       fontWeight: currentRoute === 'components' ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
                       fontSize: 'var(--recursica-brand-typography-body-font-size)',
                       height: `var(${buttonHeight})`,
@@ -300,17 +300,6 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     clearOverrides(tokensJson as any)
                     resetAll()
                   }}
-                />
-              </Tooltip>
-              <Tooltip label="Reload UIKit from file (pick up UIKit.json changes)">
-                <Button
-                  variant="outline"
-                  size="small"
-                  icon={(() => {
-                    const FileIcon = iconNameToReactComponent('document-text')
-                    return FileIcon ? <FileIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-                  })()}
-                  onClick={() => reloadFromFile()}
                 />
               </Tooltip>
               <Tooltip label="Import theme">
@@ -373,7 +362,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                     />
                   </Tooltip>
                   <Tooltip label="Auto-run CSS audit (dev only)">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
                       <Switch
                         checked={cssAuditAutoRun}
                         onChange={(checked: boolean) => {
@@ -454,7 +443,7 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
             flex: 1,
             minHeight: 0,
             backgroundColor: `var(${layer0Base}-surface)`,
-            color: `var(${layer0Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}>
             {children}
           </main>
@@ -483,11 +472,11 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                   style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)', width: '100%' }}
                 />
                 {selectedFileNames.length > 0 && (
-                  <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer1Base}-element-text-color)`, opacity: 0.6, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+                  <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`, opacity: 0.6, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
                     Selected: {selectedFileNames.join(', ')}
                   </div>
                 )}
-                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer1Base}-element-text-color)`, opacity: 0.4, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
+                <div style={{ fontSize: 'var(--recursica-brand-typography-caption-font-size)', color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`, opacity: 0.4, marginTop: 'var(--recursica-brand-dimensions-general-sm)' }}>
                   Upload tokens.json, brand.json, and/or uikit.json files
                 </div>
               </div>

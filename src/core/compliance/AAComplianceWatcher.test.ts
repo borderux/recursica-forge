@@ -100,7 +100,7 @@ describe('AAComplianceWatcher', () => {
     
     // Set up layer surface first - use direct DOM manipulation for test setup to bypass validation
     // In real usage, this would be set via updateCssVar with proper token references
-    const surfaceVar = '--recursica-brand-themes-light-layer-layer-0-property-surface'
+    const surfaceVar = '--recursica-brand-themes-light-layers-layer-0-properties-surface'
     document.documentElement.style.setProperty(surfaceVar, 'var(--recursica-tokens-color-gray-000)')
     
     // Explicitly call updateLayerElementColors (no watcher - must be called explicitly)
@@ -109,7 +109,7 @@ describe('AAComplianceWatcher', () => {
     // Wait for update to complete
     await new Promise(resolve => setTimeout(resolve, 100))
     
-    const textColor = readCssVar('--recursica-brand-themes-light-layer-layer-0-property-element-text-color')
+    const textColor = readCssVar('--recursica-brand-themes-light-layers-layer-0-elements-text-color')
     expect(textColor).toBeDefined()
   })
 
@@ -137,7 +137,7 @@ describe('AAComplianceWatcher', () => {
     const watcher = new AAComplianceWatcher(mockTokens as any, mockTheme as any)
     
     // Set up layer surface first - required for updateLayerElementColors to work
-    const surfaceVar = '--recursica-brand-themes-light-layer-layer-0-property-surface'
+    const surfaceVar = '--recursica-brand-themes-light-layers-layer-0-properties-surface'
     document.documentElement.style.setProperty(surfaceVar, 'var(--recursica-tokens-color-gray-000)')
     
     // Change core interactive color - use direct DOM manipulation for test setup to bypass validation
@@ -151,7 +151,7 @@ describe('AAComplianceWatcher', () => {
     await new Promise(resolve => setTimeout(resolve, 200))
     
     // Should trigger updates - verify by checking if layer colors were updated
-    const textColor = readCssVar('--recursica-brand-themes-light-layer-layer-0-property-element-text-color')
+    const textColor = readCssVar('--recursica-brand-themes-light-layers-layer-0-elements-text-color')
     expect(textColor).toBeDefined()
   })
 })

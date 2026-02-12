@@ -565,7 +565,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   }
   
   // Third pass: Check for variables referenced in CSS property values that don't exist
-  // This catches cases like background-color: var(--recursica-brand-dark-layer-layer-0-property-surface)
+  // This catches cases like background-color: var(--recursica-brand-dark-layers-layer-0-properties-surface)
   // where the variable is used in a CSS property but never defined
   for (const [usageKey, usageLocations] of varLocations.entries()) {
     if (usageKey.startsWith('usage:')) {

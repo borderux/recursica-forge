@@ -102,8 +102,8 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
 
   const scaleByDefault = autoScale
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
@@ -128,8 +128,8 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
           }}>
             <label htmlFor={it.name} style={{
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(${layer0Base}-element-text-color)`,
-              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
               minWidth: 60,
               paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
               paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
@@ -145,8 +145,8 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
               style={{
                 fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
                 fontSize: `var(${fontSizeVar})`,
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                 lineHeight: 1.5,
                 paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
                 paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',

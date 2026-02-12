@@ -173,7 +173,7 @@ export function getLayerElevationBoxShadow(
   }
   
   // Read elevation CSS variable for the layer
-  const elevationCssVar = `--recursica-brand-themes-${mode}-layer-${layer}-property-elevation`
+  const elevationCssVar = `--recursica-brand-themes-${mode}-layers-${layer}-properties-elevation`
   const elevationValue = readCssVar(elevationCssVar)
   
   if (!elevationValue) {

@@ -5,7 +5,7 @@ import { readCssVar } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
- 
+
 
 type LayerModuleProps = {
   level?: number | string
@@ -26,18 +26,18 @@ export default function LayerModule({ level, title, className, children, onSelec
       window.addEventListener('tokenOverridesChanged', handler as any)
       window.addEventListener('paletteReset', handler as any)
       window.addEventListener('paletteVarsChanged', handler as any)
-    } catch {}
+    } catch { }
     return () => {
       try {
         window.removeEventListener('tokenOverridesChanged', handler as any)
         window.removeEventListener('paletteReset', handler as any)
         window.removeEventListener('paletteVarsChanged', handler as any)
-      } catch {}
+      } catch { }
     }
   }, [])
   const layerId = level != null ? String(level) : '0'
-  const legacyBase = `--layer-layer-${layerId}-property-`
-  const brandBase = `--recursica-brand-themes-${mode}-layer-layer-${layerId}-property-`
+  const legacyBase = `--layers-layer-${layerId}-properties-`
+  const brandBase = `--recursica-brand-themes-${mode}-layers-layer-${layerId}-properties-`
   const includeBorder = !(layerId === '0')
   const paletteBackground = null
 
@@ -48,7 +48,7 @@ export default function LayerModule({ level, title, className, children, onSelec
       if (parts[0] === 'color' && parts[1] && parts[2]) return t?.color?.[parts[1]]?.[parts[2]]?.$value
       if (parts[0] === 'opacity' && parts[1]) return t?.opacity?.[parts[1]]?.$value
       if (parts[0] === 'size' && parts[1]) return t?.size?.[parts[1]]?.$value
-    } catch {}
+    } catch { }
     return undefined
   }
   const resolveBraceRef = (input: any, depth = 0): any => {
@@ -78,7 +78,7 @@ export default function LayerModule({ level, title, className, children, onSelec
     return s
   }
   // Read elevation from CSS variable first (for real-time updates), then fallback to theme JSON
-  const elevationCssVar = `--recursica-brand-themes-${mode}-layer-layer-${layerId}-property-elevation`
+  const elevationCssVar = `--recursica-brand-themes-${mode}-layers-layer-${layerId}-properties-elevation`
   const [elevationFromCssVar, setElevationFromCssVar] = useState<string | null>(() => {
     const value = readCssVar(elevationCssVar)
     if (value && /^elevation-\d+$/.test(value.trim())) {
@@ -86,7 +86,7 @@ export default function LayerModule({ level, title, className, children, onSelec
     }
     return null
   })
-  
+
   // Listen for CSS variable updates
   useEffect(() => {
     const handleCssVarUpdate = (e: Event) => {
@@ -100,9 +100,9 @@ export default function LayerModule({ level, title, className, children, onSelec
         }
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
+
     // Also watch for direct style changes
     const observer = new MutationObserver(() => {
       const value = readCssVar(elevationCssVar)
@@ -116,26 +116,26 @@ export default function LayerModule({ level, title, className, children, onSelec
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [elevationCssVar])
-  
+
   const elevationLevel = useMemo(() => {
     // First check CSS variable (for real-time updates)
     if (elevationFromCssVar) {
       const match = elevationFromCssVar.match(/elevation-(\d+)/)
       if (match) return match[1]
     }
-    
+
     // Fallback to theme JSON
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
       const themes = root?.themes || root
-      
+
       // For regular layers
       const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerId}`] || themes?.[mode]?.layer?.[`layer-${layerId}`] || root?.[mode]?.layers?.[`layer-${layerId}`] || root?.[mode]?.layer?.[`layer-${layerId}`] || {}
       const v: any = layerSpec?.properties?.elevation?.$value
@@ -149,7 +149,7 @@ export default function LayerModule({ level, title, className, children, onSelec
           if (match) return match[1]
         }
       }
-    } catch {}
+    } catch { }
     return String(layerId)
   }, [theme, layerId, mode, elevationFromCssVar])
   const cssVarBoxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-colors-scale-02-1000))`
@@ -229,23 +229,23 @@ export default function LayerModule({ level, title, className, children, onSelec
           }
         }
       }
-    } catch {}
+    } catch { }
     return base
   }
   const headingStyle = buildTypeStyle('h3')
   const bodyStyle = buildTypeStyle('body-1')
-  
+
   // Force style object recreation on each render to ensure CSS variables update
   const containerStyle = useMemo(() => ({
     backgroundColor: paletteBackground ?? `var(${brandBase}surface)`,
-    color: `var(${brandBase}element-text-color)`,
+    color: `var(${brandBase.replace("properties-", "elements-")}text-color)`,
     padding: `var(${brandBase}padding)`,
     border: includeBorder ? `var(${brandBase}border-thickness) solid var(${brandBase}border-color)` : undefined,
     borderRadius: includeBorder ? `var(${brandBase}border-radius)` : undefined,
     cursor: onSelect ? 'pointer' as const : undefined,
     boxShadow: cssVarBoxShadow,
   }), [paletteBackground, brandBase, includeBorder, onSelect, cssVarBoxShadow, version, mode, elevationFromCssVar])
-  
+
   return (
     <div
       className={className ? `layer-container ${className}` : 'layer-container'}
@@ -272,27 +272,27 @@ export default function LayerModule({ level, title, className, children, onSelec
             <>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase}element-text-color)` as any),
-                opacity: (`var(${brandBase}element-text-high-emphasis)` as any)
+                color: (`var(${brandBase.replace("properties-", "elements-")}text-color)` as any),
+                opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any)
               }}>High Emphasis Text / Icon</p>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase}element-text-color)` as any),
-                opacity: (`var(${brandBase}element-text-low-emphasis)` as any)
+                color: (`var(${brandBase.replace("properties-", "elements-")}text-color)` as any),
+                opacity: (`var(${brandBase.replace("properties-", "elements-")}text-low-emphasis)` as any)
               }}>Low Emphasis Text / Icon</p>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase}element-interactive-color)` as any),
-                opacity: `var(${brandBase}element-interactive-high-emphasis)` as any
+                color: (`var(${brandBase.replace("properties-", "elements-")}interactive-color)` as any),
+                opacity: `var(${brandBase.replace("properties-", "elements-")}interactive-high-emphasis)` as any
               }}>Interactive (Link / Button)</p>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase}element-interactive-color)` as any),
+                color: (`var(${brandBase.replace("properties-", "elements-")}interactive-color)` as any),
                 opacity: (`var(--recursica-brand-themes-${mode}-state-disabled)` as any)
               }}>Disabled Interactive</p>
-              <p style={{ color: (`var(${brandBase}element-text-alert)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Alert</p>
-              <p style={{ color: (`var(${brandBase}element-text-warning)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Warning</p>
-              <p style={{ color: (`var(${brandBase}element-text-success)` as any), opacity: (`var(${brandBase}element-text-high-emphasis)` as any) }}>Success</p>
+              <p style={{ color: (`var(${brandBase.replace("properties-", "elements-")}text-alert)` as any), opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any) }}>Alert</p>
+              <p style={{ color: (`var(${brandBase.replace("properties-", "elements-")}text-warning)` as any), opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any) }}>Warning</p>
+              <p style={{ color: (`var(${brandBase.replace("properties-", "elements-")}text-success)` as any), opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any) }}>Success</p>
             </>
           }
         </div>

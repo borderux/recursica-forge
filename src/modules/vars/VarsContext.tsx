@@ -32,8 +32,6 @@ type VarsContextValue = {
   setElevation: (next: import('../../core/store/varsStore').ElevationState) => void
   updateElevation: (mutator: (prev: import('../../core/store/varsStore').ElevationState) => import('../../core/store/varsStore').ElevationState) => void
   resetAll: () => void
-  /** Clears UIKit from localStorage and reloads with cache bust to pick up UIKit.json file changes */
-  reloadFromFile: () => void
 }
 
 const VarsContext = createContext<VarsContextValue | undefined>(undefined)
@@ -99,7 +97,6 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       setElevation: (next) => store.setElevation(next),
       updateElevation: (mutator) => store.updateElevation(mutator),
       resetAll: () => store.resetAll(),
-      reloadFromFile: () => store.reloadFromFile(),
     }
   }, [state, store, resolvedTheme])
 

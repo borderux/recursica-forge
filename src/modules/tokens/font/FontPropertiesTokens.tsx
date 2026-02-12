@@ -43,8 +43,8 @@ export default function FontPropertiesTokens() {
     return false
   })
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   const handleReset = () => {
     // Reset font token values based on active tab
@@ -165,8 +165,8 @@ export default function FontPropertiesTokens() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
               <span style={{
                 fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
               }}>
                 Auto scale
               </span>

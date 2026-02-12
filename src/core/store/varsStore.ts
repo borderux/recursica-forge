@@ -2452,7 +2452,7 @@ class VarsStore {
       // Debug: log if critical variables are missing
       if (process.env.NODE_ENV === 'development') {
         const criticalVars = [
-          '--recursica-brand-themes-light-layer-layer-0-property-surface',
+          '--recursica-brand-themes-light-layers-layer-0-properties-surface',
           '--recursica-brand-themes-light-elevations-elevation-4-x-axis',
           '--recursica-brand-typography-caption-font-family',
           '--recursica-brand-dimensions-general-sm'

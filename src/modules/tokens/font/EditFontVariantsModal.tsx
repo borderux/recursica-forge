@@ -173,9 +173,9 @@ export function EditFontVariantsModal({
     return { checked: false, indeterminate: true }
   }, [selectedCombos.size, allWeightStyleCombos.length])
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
-  const layer2Base = `--recursica-brand-themes-${mode}-layer-layer-2-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
+  const layer2Base = `--recursica-brand-themes-${mode}-layers-layer-2-properties`
 
   // Helper function to get variants for the current font by font name (not sequence)
   const getVariantsForFont = (): Array<{ weight: string; style: string }> | null => {
@@ -478,8 +478,8 @@ export function EditFontVariantsModal({
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
           <span style={{
             fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            color: `var(${layer2Base}-element-text-color)`,
-            opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+            opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
           }}>
             Select weight+style combinations:
           </span>
@@ -514,8 +514,8 @@ export function EditFontVariantsModal({
                   padding: 'var(--recursica-brand-dimensions-general-default)',
                   textAlign: 'left',
                   borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                  color: `var(${layer2Base}-element-text-color)`,
-                  opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                   fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
                 }}>
                   Weight
@@ -525,8 +525,8 @@ export function EditFontVariantsModal({
                     padding: 'var(--recursica-brand-dimensions-general-default)',
                     textAlign: 'center',
                     borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                    color: `var(${layer2Base}-element-text-color)`,
-                    opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                     fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
                     textTransform: 'capitalize',
                     width: '50%',
@@ -543,8 +543,8 @@ export function EditFontVariantsModal({
                 }}>
                   <td style={{
                     padding: 'var(--recursica-brand-dimensions-general-default)',
-                    color: `var(${layer2Base}-element-text-color)`,
-                    opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                     fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
                   }}>
                     {weight}

@@ -937,8 +937,8 @@ export default function ColorTokens() {
     return Number(b) - Number(a)
   })
 
-  const layer0Base = `--recursica-brand-themes-${themeMode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${themeMode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${themeMode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${themeMode}-layers-layer-1-properties`
   const interactiveColor = `--recursica-brand-themes-${themeMode}-palettes-core-interactive`
 
   return (
@@ -968,8 +968,8 @@ export default function ColorTokens() {
                 style={{
                   textAlign: 'center',
                   fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                  color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                   height: 40,
                   display: 'flex',
                   alignItems: 'center',
