@@ -204,7 +204,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
   useEffect(() => {
     (window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[], opacityCssVar?: string) => {
-      window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
+      // Don't dispatch closeAllPickersAndPanels here - it closes panels too!
+      // The picker will close itself if another picker opens since it listens to this event
+      // window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
 
       setAnchor(el)
       setTargetCssVar(cssVar || null)
