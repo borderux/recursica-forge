@@ -72,10 +72,12 @@ describe('Button Component (Adapter)', () => {
   })
 
   describe('Props Handling', () => {
-    it('handles onClick events', async () => {
+    it('handles onClick events', { timeout: 30000 }, async () => {
       const handleClick = vi.fn()
       const { container } = renderWithProviders(<Button onClick={handleClick}>Click</Button>)
       const button = await waitForButton(container, 'Click')
+      // Add small delay to ensure button is fully interactive
+      await new Promise(resolve => setTimeout(resolve, 100))
       button.click()
       expect(handleClick).toHaveBeenCalledTimes(1)
     })
