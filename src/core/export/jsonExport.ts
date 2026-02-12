@@ -14,6 +14,13 @@ import brandJson from '../../vars/Brand.json'
 import uikitJson from '../../vars/UIKit.json'
 import { getVarsStore } from '../store/varsStore'
 import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
+import {
+  EXPORT_FILENAME_TOKENS,
+  EXPORT_FILENAME_BRAND,
+  EXPORT_FILENAME_UIKIT,
+} from './EXPORT_FILENAMES'
+import { recursicaJsonTransform as recursicaJsonTransformSpecific } from './recursicaJsonTransformSpecific'
+import { recursicaJsonTransform as recursicaJsonTransformScoped } from './recursicaJsonTransformScoped'
 import JSZip from 'jszip'
 
 /**
@@ -1207,11 +1214,11 @@ function parseCssVarName(varName: string): {
 /**
  * Converts hyphens to underscores in key segments of CSS variable names
  * Only converts hyphens in the actual key names, not in path segments (which were originally dots)
- * 
+ *
  * @example
  * convertKeyHyphensToUnderscores('--recursica-ui-kit-globals-form-properties-label-field-gap-horizontal')
  * => '--recursica-ui-kit-globals-form-properties-label_field_gap_horizontal'
- * 
+ *
  * @example
  * convertKeyHyphensToUnderscores('--recursica-tokens-color-gray-500')
  * => '--recursica-tokens-color-gray_500'
@@ -1526,7 +1533,6 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
     specificCss += `:root {\n`
 
     recursicaVars.forEach(([name, value]) => {
-      // Convert hyphens to underscores in key segments for export
       const exportedName = convertKeyHyphensToUnderscores(name)
       specificCss += `  ${exportedName}: ${value};\n`
     })
@@ -1729,7 +1735,7 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
       console.error('[Export] Tokens.json validation failed:', error)
       throw new Error(`Cannot export tokens.json: ${error instanceof Error ? error.message : String(error)}`)
     }
-    selectedFiles.push({ content: tokens, filename: 'tokens.json', isJson: true })
+    selectedFiles.push({ content: tokens, filename: EXPORT_FILENAME_TOKENS, isJson: true })
   }
 
   if (files.brand) {
@@ -1741,7 +1747,7 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
       console.error('[Export] Brand.json validation failed:', error)
       throw new Error(`Cannot export brand.json: ${error instanceof Error ? error.message : String(error)}`)
     }
-    selectedFiles.push({ content: brand, filename: 'brand.json', isJson: true })
+    selectedFiles.push({ content: brand, filename: EXPORT_FILENAME_BRAND, isJson: true })
   }
 
   if (files.uikit) {
@@ -1753,22 +1759,23 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
       console.error('[Export] UIKit.json validation failed:', error)
       throw new Error(`Cannot export uikit.json: ${error instanceof Error ? error.message : String(error)}`)
     }
-    selectedFiles.push({ content: uikit, filename: 'uikit.json', isJson: true })
+    selectedFiles.push({ content: uikit, filename: EXPORT_FILENAME_UIKIT, isJson: true })
   }
 
-  // Export CSS files (specific and/or scoped)
+  // Export CSS files (specific and/or scoped) via JSON transforms
   if (files.cssSpecific || files.cssScoped) {
-    const cssExports = exportCssStylesheet({
-      specific: files.cssSpecific ?? false,
-      scoped: files.cssScoped ?? false
-    })
-
-    if (cssExports.specific) {
-      selectedFiles.push({ content: cssExports.specific, filename: 'recursica-variables-specific.css', isJson: false })
+    const json = {
+      tokens: exportTokensJson(),
+      brand: exportBrandJson(),
+      uikit: exportUIKitJson()
+    } as Parameters<typeof recursicaJsonTransformSpecific>[0]
+    if (files.cssSpecific) {
+      const [file] = recursicaJsonTransformSpecific(json)
+      selectedFiles.push({ content: file.contents, filename: file.filename, isJson: false })
     }
-
-    if (cssExports.scoped) {
-      selectedFiles.push({ content: cssExports.scoped, filename: 'recursica-variables-scoped.css', isJson: false })
+    if (files.cssScoped) {
+      const [file] = recursicaJsonTransformScoped(json)
+      selectedFiles.push({ content: file.contents, filename: file.filename, isJson: false })
     }
   }
 
