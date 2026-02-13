@@ -1,5 +1,115 @@
 # recursica-forge
 
+## 0.3.0
+
+### Minor Changes
+
+- ab8cd72: Revised CSS export format
+
+### Patch Changes
+
+- edc0c46: Fix CSS variable structure, descender clipping, and component rendering issues
+
+  ## CSS Variable Structure Fixes
+
+  - Fixed incorrect CSS variable paths for layer elements (removed erroneous `properties-` prefix)
+  - Corrected `AAComplianceWatcher` to use proper layer element color paths
+  - Fixed all AAComplianceWatcher tests to pass
+
+  ## Descender Clipping Fixes
+
+  - Fixed descender clipping in MenuItem text and supporting text across all UI kits (Mantine, Carbon, Material)
+  - Fixed descender clipping in Accordion labels across all UI kits
+  - Fixed descender clipping in Button labels across all UI kits
+  - Fixed descender clipping in Tabs component
+  - Applied padding-bottom/margin-bottom technique to prevent text clipping while maintaining layout
+
+  ## Component Preview Enhancements
+
+  - Updated component preview pages (Tabs, Label, Slider, Dropdown, TextField, Modal) to use consistent vertical gutter spacing
+  - Wrapped headings and content in div elements with proper spacing tokens
+
+  ## Bug Fixes
+
+  - Fixed Tabs hover state styling
+  - Fixed Badge rendering issues
+  - Fixed panel close behavior on color picker
+  - Fixed copyright year
+  - Fixed CSS variable audit coverage
+  - Updated copyright year to 2026
+
+  ## Commits
+
+  - fix descender clipping
+  - preview page headings fix
+  - fix for css var audit coverage
+  - fix panel close on color picker
+  - fix copyright year
+  - badge render issue fix
+  - fix tabs descenders
+  - fix tabs hover
+  - css var structure fix - huge
+  - css var fixes for tabs
+  - fixes
+
+- 8d59646: Added NumberInput component with full integration and fixed Slider component spacing issues.
+
+  ## NumberInput Component
+
+  **New Component:**
+
+  - Created NumberInput adapter component with support for all TextField features (label, placeholder, help text, error text, leading/trailing icons, states, layouts)
+  - Implemented library-specific versions for Mantine, Material UI, and Carbon Design System
+  - Added number-specific props: min, max, step, defaultValue
+
+  **Configuration:**
+
+  - Added NumberInput entry to UIKit.json with global form token references
+  - Configured variants for states (default, error, focus, disabled) and layouts (stacked, side-by-side)
+  - Created NumberInput.toolbar.json for toolbar controls
+
+  **Registration & Integration:**
+
+  - Registered component in all three UI library registries
+  - Added comprehensive NumberInputPreview component showing multiple states, layouts, and icon variations
+  - Integrated preview in ComponentDetailPage with toolbar support
+
+  **Toolbar & Export:**
+
+  - Wired up export and randomization functionality alongside TextField
+  - Added NumberInput handling in BorderGroupToolbar for proper border property resolution
+  - Added NumberInput to PropControlContent for dimension sliders and property controls
+  - Ensured all toolbar controls work correctly with variant-specific properties
+
+  ## Slider Component Fixes
+
+  **Spacing & Layout:**
+
+  - Fixed vertical spacing between slider rows on token pages (FontSize, FontLineHeight, FontLetterSpacing, Opacity, Size)
+  - Implemented proper `showMinMaxInput` prop handling with master toggle behavior
+  - Added `finalShowInput`, `finalShowMinMaxLabels`, and `finalShowValueLabel` derived props for consistent display logic
+  - Fixed value label display to show correctly when input is hidden
+  - Ensured NumberInput component integration within Slider with proper width constraints
+
+  **Component Improvements:**
+
+  - Refactored Slider adapter to handle value labels more consistently across all UI kits
+  - Fixed min/max label display logic across Mantine, Material, and Carbon implementations
+  - Improved CSS variable reactivity for text styling properties (font-family, font-size, font-weight, etc.)
+  - Added proper margin control with `disableTopBottomMargin` prop for NumberInput integration
+
+  **Token Page Updates:**
+
+  - Updated all font token pages (FontLetterSpacingTokens, FontLineHeightTokens, FontSizeTokens) to use consistent Slider configuration
+  - Updated OpacityTokens and SizeTokens to match spacing patterns
+  - Ensured all token pages properly display value labels and maintain visual consistency
+
+  ## Commits
+
+  - fixes for sliders
+  - export and randomization
+  - first build
+
 ## 0.2.0
 
 ### Minor Changes
