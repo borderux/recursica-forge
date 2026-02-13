@@ -58,8 +58,27 @@
   letter-spacing: var(--recursica-ui-kit-themes-light-components-tooltip-properties-text-letter-spacing, normal) !important;
   line-height: var(--recursica-ui-kit-themes-light-components-tooltip-properties-text-line-height, 1.5) !important;
 
+
   /* Centering */
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+
+  /* Position tooltip above the thumb */
+  transform: translateY(-100%) translateY(-8px) !important;
+  top: 0 !important;
+}
+
+/* Add arrow/beak to the tooltip */
+.mantine-Slider-label::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: -4px !important;
+  left: 50% !important;
+  transform: translateX(-50%) rotate(45deg) !important;
+  width: 8px !important;
+  height: 8px !important;
+  background-color: var(--recursica-ui-kit-themes-light-components-tooltip-properties-colors-layer-1-background, #000) !important;
+  border-right: var(--recursica-ui-kit-themes-light-components-tooltip-properties-border-size, 1px) solid var(--recursica-ui-kit-themes-light-components-tooltip-properties-colors-layer-1-border-color, transparent) !important;
+  border-bottom: var(--recursica-ui-kit-themes-light-components-tooltip-properties-border-size, 1px) solid var(--recursica-ui-kit-themes-light-components-tooltip-properties-colors-layer-1-border-color, transparent) !important;
 }
