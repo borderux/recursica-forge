@@ -72,4 +72,11 @@ describe('recursicaJsonTransform (Specific)', () => {
     expect(result).toHaveLength(1)
     expect(result[0].contents).toContain(':root {')
   })
+
+  it('dark layer-0 emits tone/on-tone for ui-kit (not only color/hover-color)', () => {
+    const result = recursicaJsonTransform(json)
+    const css = result[0].contents
+    expect(css).toMatch(/--recursica_brand_themes_dark_layers_layer-0_elements_interactive_tone\b/)
+    expect(css).toMatch(/--recursica_brand_themes_dark_layers_layer-0_elements_interactive_on-tone\b/)
+  })
 })

@@ -16,7 +16,7 @@
 
 const FILENAME = 'recursica_variables_specific.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.0.0'
+const TRANSFORM_VERSION = '1.1.0'
 
 /**
  * Workaround: Incorrect refs in the JSON. These rules map invalid ref paths to the correct paths.
@@ -328,7 +328,7 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
 
 /**
  * Flattens the input JSON into path/value entries. Handles nested structure
- * (tokens.tokens, brand.brand, uikit['ui-kit']) and injects elevation composites.
+ * (tokens.tokens, brand.brand, uikit['ui-kit']), elevation composites, and dark layer-0 aliases.
  */
 function flattenInput(json: RecursicaJsonInput): Array<{ path: string; value: unknown }> {
   const out: Array<{ path: string; value: unknown }> = []
@@ -341,7 +341,26 @@ function flattenInput(json: RecursicaJsonInput): Array<{ path: string; value: un
   if (uikit) collectVars(uikit, 'ui-kit', out)
 
   if (brand) injectElevationComposites(brand as Record<string, unknown>, out)
+  injectDarkLayer0InteractiveAliases(out)
   return out
+}
+
+/**
+ * Dark theme layer-0 uses color/hover-color but ui-kit expects tone/on-tone/tone-hover/on-tone-hover.
+ * Adds synthetic entries so dark layer-0 emits the same semantic names as light.
+ */
+function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: unknown }>): void {
+  const paths = new Set(out.map((e) => e.path))
+  const base = 'brand.themes.dark.layers.layer-0.elements.interactive'
+  const hasColor = paths.has(`${base}.color`)
+  const hasHoverColor = paths.has(`${base}.hover-color`)
+  const hasTone = paths.has(`${base}.tone`)
+  if (!hasTone && (hasColor || hasHoverColor)) {
+    if (hasColor) out.push({ path: `${base}.tone`, value: `{${base}.color}` })
+    if (hasHoverColor) out.push({ path: `${base}.tone-hover`, value: `{${base}.hover-color}` })
+    out.push({ path: `${base}.on-tone`, value: '{brand.palettes.palette-1.default.color.on-tone}' })
+    out.push({ path: `${base}.on-tone-hover`, value: '{brand.palettes.palette-1.600.color.on-tone}' })
+  }
 }
 
 /**
