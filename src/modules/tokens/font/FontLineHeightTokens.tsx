@@ -159,10 +159,8 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
                 }}
                 layer="layer-1"
                 layout="stacked"
-                showInput={false}
-                showValueLabel={true}
-                valueLabel={(val: number) => `${val.toFixed(2)}`}
-                showMinMaxLabels={false} />
+                showMinMaxInput={true}
+                valueLabel={(val: number) => `${val.toFixed(2)}`} />
             </div>
           </div>
         )

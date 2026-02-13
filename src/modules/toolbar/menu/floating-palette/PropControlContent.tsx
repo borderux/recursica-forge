@@ -1287,6 +1287,7 @@ export default function PropControlContent({
     const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item'
     const isBadge = componentName.toLowerCase() === 'badge'
     const isTextField = normalizedComponentName === 'text-field' || normalizedComponentName === 'text field'
+    const isNumberInput = normalizedComponentName === 'number-input' || normalizedComponentName === 'number input'
     const isTooltip = componentName.toLowerCase() === 'tooltip'
 
 
@@ -1418,8 +1419,8 @@ export default function PropControlContent({
               const marginPrimaryVar = marginCssVars[0] || marginProp.cssVar
               const marginLabel = `${label} (${layoutLabel})`
 
-              if (isTextField) {
-                // Use TextField-specific slider
+              if (isTextField || isNumberInput) {
+                // Use TextField/NumberInput-specific slider
                 const TextFieldDimensionSlider = () => {
                   const minValue = 0
                   const maxValue = 32
@@ -1503,7 +1504,7 @@ export default function PropControlContent({
         )
       }
 
-      if (isTextField && (
+      if ((isTextField || isNumberInput) && (
         propNameLower === 'border-size' ||
         propNameLower === 'horizontal-padding' ||
         propNameLower === 'vertical-padding' ||
@@ -1655,7 +1656,7 @@ export default function PropControlContent({
         propNameLower === 'track-inner-padding' ||
         (propNameLower === 'top-bottom-margin' && !(prop.isVariantSpecific && prop.variantProp === 'layout'))
 
-      if (isPaddingProp && !isTextField) {
+      if (isPaddingProp && !isTextField && !isNumberInput) {
         return (
           <BrandDimensionSliderInline
             key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
