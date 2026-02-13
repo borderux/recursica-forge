@@ -187,10 +187,8 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
                 }}
                 layer="layer-1"
                 layout="stacked"
-                showInput={false}
-                showValueLabel={true}
-                valueLabel={(val: number) => `${Math.round(val)}px`}
-                showMinMaxLabels={false} />
+                showMinMaxInput={true}
+                valueLabel={(val: number) => `${Math.round(val)}px`} />
             </div>
           </div>
         )

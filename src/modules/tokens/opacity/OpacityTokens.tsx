@@ -228,8 +228,8 @@ export default function OpacityTokens() {
                     disabled={isDisabled}
                     layer="layer-1"
                     layout="stacked"
-                    showInput={false}
-                    showValueLabel={true}
+                    showInput={true}
+                    showValueLabel={false}
                     valueLabel={(val: number) => `${Math.round(val)}%`}
                     showMinMaxLabels={false} />
                 </div>

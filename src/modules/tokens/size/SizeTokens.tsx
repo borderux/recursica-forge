@@ -383,8 +383,8 @@ export default function SizeTokens() {
                   disabled={disabled}
                   layer="layer-1"
                   layout="stacked"
-                  showInput={false}
-                  showValueLabel={true}
+                  showInput={true}
+                  showValueLabel={false}
                   valueLabel={(val: number) => `${Math.round(val)}px`}
                   showMinMaxLabels={false} />
               </div>

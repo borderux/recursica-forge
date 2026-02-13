@@ -1,0 +1,150 @@
+{
+    "variants": {
+        "states": {
+            "icon": "diamonds-four",
+            "label": "State"
+        },
+        "layouts": {
+            "icon": "layout",
+            "label": "Layout"
+        }
+    },
+    "props": {
+        "colors": {
+            "icon": "paint-bucket",
+            "label": "Colors",
+            "visible": true,
+            "floatingPaletteLabel": "Colors",
+            "group": {
+                "background": {
+                    "icon": "paint-bucket",
+                    "label": "Background",
+                    "visible": true,
+                    "floatingPaletteLabel": "Background Color"
+                },
+                "text": {
+                    "icon": "text-aa",
+                    "label": "Value color",
+                    "visible": true,
+                    "floatingPaletteLabel": "Value Color"
+                },
+                "leading-icon": {
+                    "icon": "diamond",
+                    "label": "Leading icon",
+                    "visible": true,
+                    "floatingPaletteLabel": "Leading Icon Color"
+                },
+                "trailing-icon": {
+                    "icon": "diamond",
+                    "label": "Trailing icon",
+                    "visible": true,
+                    "floatingPaletteLabel": "Trailing Icon Color"
+                },
+                "placeholder-opacity": {
+                    "icon": "eye",
+                    "label": "Placeholder opacity",
+                    "visible": true,
+                    "floatingPaletteLabel": "Placeholder Opacity"
+                }
+            }
+        },
+        "border": {
+            "icon": "square",
+            "label": "Border",
+            "visible": true,
+            "group": {
+                "border-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Size",
+                    "visible": true
+                },
+                "border-radius": {
+                    "icon": "corners-out",
+                    "label": "Corner radius",
+                    "visible": true
+                },
+                "border-color": {
+                    "icon": "paint-bucket",
+                    "label": "Color",
+                    "visible": true
+                }
+            }
+        },
+        "text": {
+            "icon": "text-aa",
+            "label": "Text style",
+            "visible": true
+        },
+        "padding": {
+            "icon": "square-logo",
+            "label": "Padding",
+            "visible": true,
+            "floatingPaletteLabel": "Padding",
+            "group": {
+                "horizontal-padding": {
+                    "icon": "arrows-left-right",
+                    "label": "Horizontal padding",
+                    "visible": true,
+                    "floatingPaletteLabel": "Horizontal Padding"
+                },
+                "vertical-padding": {
+                    "icon": "arrows-up-down",
+                    "label": "Vertical padding",
+                    "visible": true,
+                    "floatingPaletteLabel": "Vertical Padding"
+                }
+            }
+        },
+        "top-bottom-margin": {
+            "icon": "arrows-up-down",
+            "label": "Top and bottom margin",
+            "visible": true
+        },
+        "width": {
+            "icon": "arrows-left-right",
+            "label": "Width",
+            "visible": true,
+            "floatingPaletteLabel": "Width",
+            "group": {
+                "min-width": {
+                    "icon": "arrows-in-line-horizontal",
+                    "label": "Min width",
+                    "visible": true,
+                    "floatingPaletteLabel": "Minimum Width"
+                },
+                "max-width": {
+                    "icon": "arrows-out-line-horizontal",
+                    "label": "Max width",
+                    "visible": true,
+                    "floatingPaletteLabel": "Maximum Width"
+                },
+                "min-height": {
+                    "icon": "arrows-in-line-vertical",
+                    "label": "Min height",
+                    "visible": true,
+                    "floatingPaletteLabel": "Minimum Height"
+                }
+            }
+        },
+        "icon": {
+            "icon": "diamond",
+            "label": "Icon",
+            "visible": true,
+            "floatingPaletteLabel": "Icon",
+            "group": {
+                "icon-size": {
+                    "icon": "diamond",
+                    "label": "Icon size",
+                    "visible": true,
+                    "floatingPaletteLabel": "Icon Size"
+                },
+                "icon-text-gap": {
+                    "icon": "split-horizontal",
+                    "label": "Icon-text gap",
+                    "visible": true,
+                    "floatingPaletteLabel": "Icon-Text Gap"
+                }
+            }
+        }
+    }
+}

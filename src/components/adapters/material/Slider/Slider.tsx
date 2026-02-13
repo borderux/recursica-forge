@@ -12,7 +12,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
 import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
-import { TextField } from '../../TextField'
+import { NumberInput } from '../../NumberInput'
 import './Slider.css'
 
 export default function Slider({
@@ -40,38 +40,38 @@ export default function Slider({
   ...props
 }: AdapterSliderProps) {
   const { mode } = useThemeMode()
-  
+
   // Get CSS variables for colors
   const trackVar = buildComponentCssVarPath('Slider', 'properties', 'colors', layer, 'track')
   const trackActiveVar = buildComponentCssVarPath('Slider', 'properties', 'colors', layer, 'track-active')
   const thumbVar = buildComponentCssVarPath('Slider', 'properties', 'colors', layer, 'thumb')
-  
+
   // Get CSS variables for sizes
   const trackHeightVar = getComponentLevelCssVar('Slider', 'track-height')
   const thumbSizeVar = getComponentLevelCssVar('Slider', 'thumb-size')
   const trackBorderRadiusVar = getComponentLevelCssVar('Slider', 'track-border-radius')
   const thumbBorderRadiusVar = getComponentLevelCssVar('Slider', 'thumb-border-radius')
   const thumbElevationVar = getComponentLevelCssVar('Slider', 'thumb-elevation')
-  
+
   // Get Label's gutter for side-by-side layout (Label component manages spacing)
   const labelGutterVar = layout === 'side-by-side'
     ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
     : null
-  
+
   // Get input width and gap if showing input
   const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
   const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
-  
+
   // Get disabled opacity CSS variable
   const disabledOpacityVar = getBrandStateCssVar(mode, 'disabled')
-  
+
   // Reactively read thumb elevation from CSS variable
   const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
     if (!thumbElevationVar) return undefined
     const value = readCssVar(thumbElevationVar)
     return value ? parseElevationValue(value) : undefined
   })
-  
+
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     const handleCssVarUpdate = (e: Event) => {
@@ -83,9 +83,9 @@ export default function Slider({
         }
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
+
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       if (thumbElevationVar) {
@@ -97,19 +97,19 @@ export default function Slider({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [thumbElevationVar])
-  
+
   // Determine thumb elevation from UIKit.json
   const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
-  
+
   const isRange = Array.isArray(value)
   const singleValue = isRange ? value[0] : value
-  
+
   const handleChange = (_event: Event, val: number | number[]) => {
     if (isRange && Array.isArray(val)) {
       onChange(val as [number, number])
@@ -117,7 +117,7 @@ export default function Slider({
       onChange(val)
     }
   }
-  
+
   const handleChangeCommitted = (_event: Event | React.SyntheticEvent, val: number | number[]) => {
     if (onChangeCommitted) {
       if (isRange && Array.isArray(val)) {
@@ -127,11 +127,11 @@ export default function Slider({
       }
     }
   }
-  
+
   const trackColor = `var(${trackVar})`
   const trackActiveColor = `var(${trackActiveVar})`
   const thumbColor = `var(${thumbVar})`
-  
+
   // Calculate display value for readonly label
   let displayValue: string | number | undefined
   try {
@@ -148,8 +148,8 @@ export default function Slider({
     console.warn('Error calculating value label:', error)
     displayValue = singleValue
   }
-  const displayValueStr = (displayValue !== undefined && displayValue !== null && String(displayValue).trim() !== '') 
-    ? String(displayValue).trim() 
+  const displayValueStr = (displayValue !== undefined && displayValue !== null && String(displayValue).trim() !== '')
+    ? String(displayValue).trim()
     : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '—')
 
   // Get min-max label text styling CSS variables using getComponentTextCssVar (for text style toolbar)
@@ -161,7 +161,7 @@ export default function Slider({
   const minMaxLabelTextDecorationVar = getComponentTextCssVar('Slider', 'min-max-label', 'text-decoration')
   const minMaxLabelTextTransformVar = getComponentTextCssVar('Slider', 'min-max-label', 'text-transform')
   const minMaxLabelFontStyleVar = getComponentTextCssVar('Slider', 'min-max-label', 'font-style')
-  
+
   // Get read-only value text styling CSS variables using getComponentTextCssVar (for text style toolbar)
   const readOnlyValueFontFamilyVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-family')
   const readOnlyValueFontSizeVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-size')
@@ -171,7 +171,7 @@ export default function Slider({
   const readOnlyValueTextDecorationVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-decoration')
   const readOnlyValueTextTransformVar = getComponentTextCssVar('Slider', 'read-only-value', 'text-transform')
   const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
-  
+
   // Use layer text color directly for labels and values
   const layerTextColorVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-color`
   const layerTextEmphasisVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-high-emphasis`
@@ -187,7 +187,7 @@ export default function Slider({
       readOnlyValueFontFamilyVar, readOnlyValueFontSizeVar, readOnlyValueFontWeightVar, readOnlyValueLetterSpacingVar,
       readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
     ]
-    
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const updatedVars = detail?.cssVars || []
@@ -198,9 +198,9 @@ export default function Slider({
         setTextVarsUpdate(prev => prev + 1)
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
+
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       // Force re-render for text vars
@@ -210,7 +210,7 @@ export default function Slider({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
@@ -226,7 +226,7 @@ export default function Slider({
     <div style={{ display: 'flex', alignItems: 'center', gap: (showInput || showValueLabel) ? `var(${inputGapVar}, 8px)` : 0, width: '100%', minWidth: 0 }}>
       {/* Min value display */}
       {showMinMaxLabels && (
-        <span style={{ 
+        <span style={{
           fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
           fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
           fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
@@ -236,7 +236,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar}, 0.7)`, 
+          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar}, 0.7)`,
           flexShrink: 0,
           marginRight: '8px',
         } as React.CSSProperties}>
@@ -300,7 +300,7 @@ export default function Slider({
       />
       {/* Max value display */}
       {showMinMaxLabels && (
-        <span style={{ 
+        <span style={{
           fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
           fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
           fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
@@ -310,7 +310,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar}, 0.7)`, 
+          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar}, 0.7)`,
           flexShrink: 0,
           marginLeft: '8px',
         } as React.CSSProperties}>
@@ -318,33 +318,41 @@ export default function Slider({
         </span>
       )}
       {showInput && (
-        <TextField
-          type="number"
-          min={min}
-          max={max}
-          step={step}
-          value={singleValue}
-          onChange={(e) => {
-            if (!readOnly) {
-              const newValue = Number(e.target.value)
-              if (!isNaN(newValue)) {
-                const clampedValue = Math.max(min, Math.min(max, newValue))
-                if (isRange) {
-                  onChange([clampedValue, value[1]])
-                } else {
-                  onChange(clampedValue)
+        <>
+          <style>{`
+            .recursica-slider-number-input > div > .recursica-number-input-wrapper {
+              min-width: var(${inputWidthVar}, 60px) !important;
+              max-width: var(${inputWidthVar}, 60px) !important;
+            }
+          `}</style>
+          <NumberInput
+            min={min}
+            max={max}
+            step={step}
+            value={singleValue}
+            onChange={(e) => {
+              if (!readOnly) {
+                const newValue = Number(e.target.value)
+                if (!isNaN(newValue)) {
+                  const clampedValue = Math.max(min, Math.min(max, newValue))
+                  if (isRange) {
+                    onChange([clampedValue, value[1]])
+                  } else {
+                    onChange(clampedValue)
+                  }
                 }
               }
-            }
-          }}
-          state={disabled ? 'disabled' : 'default'}
-          readOnly={readOnly}
-          layer="layer-0"
-          style={{
-            width: `var(${inputWidthVar}, 60px)`,
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-          }}
-        />
+            }}
+            state={disabled ? 'disabled' : 'default'}
+            readOnly={readOnly}
+            layer="layer-0"
+            disableTopBottomMargin={true}
+            className="recursica-slider-number-input"
+            style={{
+              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+            }}
+          />
+        </>
       )}
       {showValueLabel && !showInput && label && (
         <span
@@ -369,7 +377,7 @@ export default function Slider({
       )}
     </div>
   )
-  
+
   if (layout === 'side-by-side' && label) {
     // For side-by-side, use Label's gutter property
     const gapValue = labelGutterVar ? `var(${labelGutterVar})` : '8px'
@@ -378,8 +386,8 @@ export default function Slider({
         <div style={{ flexShrink: 0 }}>
           {label}
         </div>
-        <div style={{ 
-          flex: 1, 
+        <div style={{
+          flex: 1,
           minWidth: 0,
           display: 'flex',
           alignItems: 'center',
@@ -389,7 +397,7 @@ export default function Slider({
       </div>
     )
   }
-  
+
   // For stacked layout, Label's bottom-padding handles the spacing, so no gap needed
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', ...style }}>

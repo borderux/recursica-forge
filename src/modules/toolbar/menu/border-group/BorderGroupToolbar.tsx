@@ -28,21 +28,21 @@ function getCssVarsForProp(
   selectedLayer: string
 ): string[] {
   const structure = parseComponentStructure(componentName)
-  
+
   // Find matching prop based on selected variants and layer
   const matchingProp = structure.props.find(p => {
     if (p.name !== propToCheck.name || p.category !== propToCheck.category) {
       return false
     }
-    
+
     // Special handling for Avatar with nested variants (style and style-secondary)
     if (componentName.toLowerCase() === 'avatar' && propToCheck.category === 'colors') {
       const styleVariant = selectedVariants['style']
       const styleSecondaryVariant = selectedVariants['style-secondary']
-      
+
       // Must have style variant in path
       if (styleVariant && !p.path.includes(styleVariant)) return false
-      
+
       // For text/icon variants, must also have style-secondary variant in path
       if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
         if (!p.path.includes(styleSecondaryVariant)) return false
@@ -56,8 +56,8 @@ function getCssVarsForProp(
           if (!variantInPath) return false
         } else {
           // If no variant selected but prop is variant-specific, try to match default state
-          // For TextField, default state is 'default'
-          if (componentName.toLowerCase() === 'text-field' && p.variantProp === 'states') {
+          // For TextField and NumberInput, default state is 'default'
+          if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && p.variantProp === 'states') {
             if (!p.path.includes('default')) return false
           } else {
             // For other components, require variant to be selected
@@ -65,7 +65,7 @@ function getCssVarsForProp(
           }
         }
       }
-      
+
       // Also check propToCheck's variant requirements
       if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
         const selectedVariant = selectedVariants[propToCheck.variantProp]
@@ -74,7 +74,7 @@ function getCssVarsForProp(
           if (!variantInPath) return false
         } else {
           // If no variant selected but propToCheck is variant-specific, try to match default state
-          if (componentName.toLowerCase() === 'text-field' && propToCheck.variantProp === 'states') {
+          if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && propToCheck.variantProp === 'states') {
             if (!p.path.includes('default')) return false
           } else {
             return false
@@ -82,7 +82,7 @@ function getCssVarsForProp(
         }
       }
     }
-    
+
     // Check layer matching for color props
     if (propToCheck.category === 'colors') {
       const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
@@ -90,10 +90,10 @@ function getCssVarsForProp(
         if (layerInPath !== selectedLayer) return false
       }
     }
-    
+
     return true
   })
-  
+
   return matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]
 }
 
@@ -125,7 +125,7 @@ export default function BorderGroupToolbar({
 }: BorderGroupToolbarProps) {
   const { mode } = useThemeMode()
   const { tokens } = useVars()
-  
+
   const {
     includeColor = false,
     propNameMapping = {},
@@ -137,7 +137,7 @@ export default function BorderGroupToolbar({
 
   // Find border-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
-  
+
   const borderSizeProp = useMemo(() => {
     return structure.props.find(p => {
       if (p.name.toLowerCase() !== sizePropName.toLowerCase()) return false
@@ -175,21 +175,21 @@ export default function BorderGroupToolbar({
     return structure.props.find(p => {
       const propNameLower = p.name.toLowerCase()
       // Accept "border-color" (standard) or "border" (legacy)
-      if (propNameLower !== colorPropName.toLowerCase() && 
-          propNameLower !== 'border-color' && 
-          propNameLower !== 'border') {
+      if (propNameLower !== colorPropName.toLowerCase() &&
+        propNameLower !== 'border-color' &&
+        propNameLower !== 'border') {
         return false
       }
       if (p.category !== 'colors') return false
-      
+
       // Special handling for Avatar with nested variants (style and style-secondary)
       if (componentName.toLowerCase() === 'avatar') {
         const styleVariant = selectedVariants['style']
         const styleSecondaryVariant = selectedVariants['style-secondary']
-        
+
         // Must have style variant in path
         if (styleVariant && !p.path.includes(styleVariant)) return false
-        
+
         // For text/icon variants, must also have style-secondary variant in path
         if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
           if (!p.path.includes(styleSecondaryVariant)) return false
@@ -205,8 +205,8 @@ export default function BorderGroupToolbar({
             if (!p.path.includes(selectedVariant)) return false
           } else {
             // If no variant selected but prop is variant-specific, try to match default state
-            // For TextField, default state is 'default'
-            if (componentName.toLowerCase() === 'text-field' && p.variantProp === 'states') {
+            // For TextField and NumberInput, default state is 'default'
+            if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && p.variantProp === 'states') {
               // Try to match default state if no state is selected
               if (!p.path.includes('default')) return false
             } else {
@@ -216,7 +216,7 @@ export default function BorderGroupToolbar({
           }
         }
       }
-      
+
       const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
       if (layerInPath && layerInPath !== selectedLayer) return false
       return true
@@ -229,17 +229,17 @@ export default function BorderGroupToolbar({
     if (!borderSizeProp) return []
     return getCssVarsForProp(borderSizeProp, componentName, selectedVariants, selectedLayer)
   }, [borderSizeProp, componentName, selectedVariants, selectedLayer])
-  
+
   const borderRadiusCssVars = useMemo(() => {
     if (!borderRadiusProp) return []
     return getCssVarsForProp(borderRadiusProp, componentName, selectedVariants, selectedLayer)
   }, [borderRadiusProp, componentName, selectedVariants, selectedLayer])
-  
+
   const borderColorCssVars = useMemo(() => {
     if (!borderColorProp) return []
     return getCssVarsForProp(borderColorProp, componentName, selectedVariants, selectedLayer)
   }, [borderColorProp, componentName, selectedVariants, selectedLayer])
-  
+
   const borderSizeVar = borderSizeCssVars[0] || borderSizeProp?.cssVar || ''
   const borderRadiusVar = borderRadiusCssVars[0] || borderRadiusProp?.cssVar || ''
   const borderColorVar = borderColorCssVars[0] || borderColorProp?.cssVar || ''
@@ -347,8 +347,8 @@ export default function BorderGroupToolbar({
   // Check visibility from toolbar config
   const borderSizeVisible = groupedPropsConfig?.['border-size']?.visible !== false
   const borderRadiusVisible = groupedPropsConfig?.['border-radius']?.visible !== false
-  const borderColorVisible = groupedPropsConfig?.['border-color']?.visible !== false || 
-                             groupedPropsConfig?.['border']?.visible !== false
+  const borderColorVisible = groupedPropsConfig?.['border-color']?.visible !== false ||
+    groupedPropsConfig?.['border']?.visible !== false
 
   return (
     <div className="border-group-toolbar">

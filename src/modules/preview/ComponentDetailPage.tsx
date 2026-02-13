@@ -21,6 +21,7 @@ import SegmentedControlItemPreview from '../components/SegmentedControlItemPrevi
 import TabsPreview from '../components/TabsPreview'
 import AssistiveElementPreview from '../components/AssistiveElementPreview'
 import TextFieldPreview from '../components/TextFieldPreview'
+import NumberInputPreview from '../components/NumberInputPreview'
 import ModalPreview from '../components/ModalPreview'
 import DropdownPreview from '../components/DropdownPreview'
 import { slugToComponentName } from './componentUrlUtils'
@@ -345,6 +346,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Text field' ? (
                 <TextFieldPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Number input' ? (
+                <NumberInputPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}
