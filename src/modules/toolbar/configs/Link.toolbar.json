@@ -27,6 +27,12 @@
                     "visible": true,
                     "default": false
                 },
+                "iconName": {
+                    "label": "Icon",
+                    "type": "icon-selector",
+                    "visible": true,
+                    "default": "arrow-right"
+                },
                 "iconPosition": {
                     "label": "Position",
                     "type": "select",

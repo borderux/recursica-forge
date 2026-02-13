@@ -51,7 +51,7 @@ export function Link({
   endIcon,
   title,
   showIcon,
-  iconPosition = 'end',
+  iconPosition,
   mantine,
   material,
   carbon,
@@ -59,25 +59,59 @@ export function Link({
   const Component = useComponent('Link')
   const { mode } = useThemeMode()
 
-  // Resolve default icon
-  const DefaultIconComponent = iconNameToReactComponent('arrow-right')
+  // Get theme-agnostic CSS variables for logical icon settings
+  const componentKebab = 'link'
+  const showIconVar = `--recursica-ui-kit-components-${componentKebab}-properties-show-icon`
+  const iconNameVar = `--recursica-ui-kit-components-${componentKebab}-properties-icon-name`
+  const iconPositionVar = `--recursica-ui-kit-components-${componentKebab}-properties-icon-position`
+
+  // Read current values from CSS variables
+  // We use direct readCssVar for immediate updates after events, 
+  // and useCssVar to ensure we have reactive state.
+  const iconPositionFromVar = useCssVar(iconPositionVar, 'end')
+  const iconNameFromVar = useCssVar(iconNameVar, 'arrow-right')
+  const showIconFromVar = useCssVar(showIconVar, 'false')
+
+  // Prioritize direct read to avoid race conditions with hook state updates
+  const freshIconPosition = readCssVar(iconPositionVar)
+  const freshIconName = readCssVar(iconNameVar)
+  const freshShowIcon = readCssVar(showIconVar)
+
+  // Determine effective values with explicit normalization
+  const normalizedShowIcon = (freshShowIcon || showIconFromVar || 'false').trim().toLowerCase()
+  const effectiveShowIcon = showIcon !== undefined ? showIcon : (normalizedShowIcon === 'true')
+
+  const normalizedPosition = (freshIconPosition || iconPositionFromVar || 'end').trim().toLowerCase()
+  const effectiveIconPosition = iconPosition !== undefined ? iconPosition : (normalizedPosition === 'start' ? 'start' : 'end')
+
+  const effectiveIconName = (freshIconName || iconNameFromVar || 'arrow-right').trim()
+
+  // Resolve icon component
+  const IconComponent = iconNameToReactComponent(effectiveIconName)
 
   let renderedStartIcon = startIcon
   let renderedEndIcon = endIcon
 
-  if (showIcon === true) {
-    if (iconPosition === 'start' && !renderedStartIcon) {
-      renderedStartIcon = DefaultIconComponent ? <DefaultIconComponent /> : null
-    } else if (iconPosition === 'end' && !renderedEndIcon) {
-      renderedEndIcon = DefaultIconComponent ? <DefaultIconComponent /> : null
+  if (effectiveShowIcon === true) {
+    // Determine which icon we are working with
+    // Force use of original props if they exist, otherwise use the toolbar selection
+    const toolbarIcon = IconComponent ? <IconComponent /> : null
+    const iconToRender = startIcon || endIcon || toolbarIcon
+
+    if (effectiveIconPosition === 'start') {
+      renderedStartIcon = iconToRender
+      renderedEndIcon = undefined
+    } else {
+      renderedEndIcon = iconToRender
+      renderedStartIcon = undefined
     }
-  } else if (showIcon === false) {
+  } else if (effectiveShowIcon === false) {
     renderedStartIcon = undefined
     renderedEndIcon = undefined
   }
 
   // State to force re-renders when text CSS variables change
-  const [, setTextVarsUpdate] = useState(0)
+  const [textVarsUpdate, setTextVarsUpdate] = useState(0)
 
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
@@ -96,7 +130,11 @@ export function Link({
     const sizePrefix = size === 'small' ? 'small' : 'default'
     const iconGapVar = getComponentCssVar('Link', 'size', `${sizePrefix}-icon-text-gap`, undefined)
 
-    const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar, textVar, iconGapVar]
+    const textCssVars = [
+      fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar,
+      lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar,
+      textVar, iconGapVar, showIconVar, iconPositionVar, iconNameVar
+    ]
 
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
@@ -125,7 +163,7 @@ export function Link({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [layer, size]) // Added missing dependencies
+  }, [layer, size, showIconVar, iconPositionVar, iconNameVar])
 
   if (!Component) {
     // Fallback to native anchor if component not available
@@ -188,7 +226,12 @@ export function Link({
 
   return (
     <Suspense fallback={<a href={href}>Loading...</a>}>
-      <Component {...libraryProps}>{children}</Component>
+      <Component
+        key={`${effectiveShowIcon}-${effectiveIconPosition}-${effectiveIconName}-${textVarsUpdate}`}
+        {...libraryProps}
+      >
+        {children}
+      </Component>
     </Suspense>
   )
 }
