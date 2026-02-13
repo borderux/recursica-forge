@@ -32,6 +32,10 @@ registerComponent('mantine', 'Chip', () => import('../adapters/mantine/Chip/Chip
 // Label
 registerComponent('mantine', 'Label', () => import('../adapters/mantine/Label/Label'))
 
+// Link
+registerComponent('mantine', 'Link', () => import('../adapters/mantine/Link/Link'))
+
+
 // AssistiveElement
 registerComponent('mantine', 'AssistiveElement', () => import('../adapters/mantine/AssistiveElement/AssistiveElement'))
 

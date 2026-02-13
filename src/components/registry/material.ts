@@ -32,6 +32,10 @@ registerComponent('material', 'Chip', () => import('../adapters/material/Chip/Ch
 // Label
 registerComponent('material', 'Label', () => import('../adapters/material/Label/Label'))
 
+// Link
+registerComponent('material', 'Link', () => import('../adapters/material/Link/Link'))
+
+
 // AssistiveElement
 registerComponent('material', 'AssistiveElement', () => import('../adapters/material/AssistiveElement/AssistiveElement'))
 

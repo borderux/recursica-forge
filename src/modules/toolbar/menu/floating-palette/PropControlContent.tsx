@@ -3753,6 +3753,9 @@ export default function PropControlContent({
   if (propNameLower === 'icon' && groupedPropsConfig) {
     const hasIconSize = 'icon-size' in groupedPropsConfig || 'icon' in groupedPropsConfig
     const hasIconGap = 'icon-text-gap' in groupedPropsConfig || 'spacing' in groupedPropsConfig
+    const hasShowIcon = 'showIcon' in groupedPropsConfig
+    const hasIconPosition = 'iconPosition' in groupedPropsConfig
+    const hasIconName = 'iconName' in groupedPropsConfig
     const hasColors = Object.keys(groupedPropsConfig).some(key =>
       key.includes('color') || key.includes('icon-color')
     )
@@ -3762,7 +3765,7 @@ export default function PropControlContent({
       )
       : []
 
-    if (hasIconSize || hasIconGap || hasColors) {
+    if (hasIconSize || hasIconGap || hasColors || hasShowIcon || hasIconPosition || hasIconName) {
       return (
         <IconGroupToolbar
           componentName={componentName}

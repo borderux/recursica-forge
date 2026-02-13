@@ -1,0 +1,75 @@
+{
+    "variants": {},
+    "props": {
+        "text": {
+            "icon": "text-aa",
+            "label": "Text Style",
+            "visible": true
+        },
+        "variant": {
+            "icon": "diamonds-four",
+            "label": "Variant",
+            "visible": true
+        },
+        "size": {
+            "icon": "arrows-out-simple",
+            "label": "Size",
+            "visible": true
+        },
+        "icon": {
+            "icon": "arrows-horizontal",
+            "label": "Icon Settings",
+            "visible": true,
+            "group": {
+                "showIcon": {
+                    "label": "Show Icon",
+                    "type": "boolean",
+                    "visible": true,
+                    "default": false
+                },
+                "iconName": {
+                    "label": "Icon",
+                    "type": "icon-selector",
+                    "visible": true,
+                    "default": "arrow-right"
+                },
+                "iconPosition": {
+                    "label": "Position",
+                    "type": "select",
+                    "visible": true,
+                    "options": [
+                        {
+                            "label": "Start",
+                            "value": "start"
+                        },
+                        {
+                            "label": "End",
+                            "value": "end"
+                        }
+                    ],
+                    "default": "end"
+                },
+                "icon-text-gap": {
+                    "label": "Gap",
+                    "visible": true
+                }
+            }
+        },
+        "colors": {
+            "icon": "palette",
+            "label": "Text Color",
+            "visible": true,
+            "group": {
+                "default-text": {
+                    "label": "Color",
+                    "visible": true,
+                    "allowedPalettes": [
+                        "core",
+                        "neutral",
+                        "primary"
+                    ]
+                }
+            }
+        }
+    }
+}
