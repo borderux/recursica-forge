@@ -15,11 +15,16 @@
   text-decoration: var(--badge-text-decoration) !important;
   text-transform: var(--badge-text-transform) !important;
   font-style: var(--badge-font-style) !important;
-  padding: var(--badge-padding-vertical, 4px) var(--badge-padding-horizontal, 8px) !important;
+  padding: var(--badge-padding-vertical) var(--badge-padding-horizontal) !important;
   border-radius: var(--badge-border-radius) !important;
-  border-width: var(--badge-border-size, 0px) !important;
+  border-width: var(--badge-border-size) !important;
   border-style: solid !important;
-  border-color: var(--badge-border-color, transparent) !important;
-  height: auto !important; /* Override Mantine Badge default height */
+  border-color: var(--badge-border-color) !important;
+  height: auto !important;
+  /* Override Mantine Badge default height */
+  /* Ensure proper layout */
+  min-height: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
-

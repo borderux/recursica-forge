@@ -18,7 +18,7 @@ import { Button } from '../../components/adapters/Button'
 export function TypePage() {
   const { mode } = useThemeMode()
   const { theme } = useVars()
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
   
   type Sample = { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }
 
@@ -101,7 +101,7 @@ export function TypePage() {
     const cssVarName = prefixToCssVarName(prefix)
     
     // Build layer-1 base CSS variable prefix
-    const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+    const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
     
     // CSS variables update automatically, but React needs to re-render to pick up changes
     const style: React.CSSProperties = useMemo(() => ({
@@ -110,7 +110,7 @@ export function TypePage() {
       fontWeight: `var(--recursica-brand-typography-${cssVarName}-font-weight, 400)` as any,
       letterSpacing: `var(--recursica-brand-typography-${cssVarName}-font-letter-spacing, 0)`,
       lineHeight: `var(--recursica-brand-typography-${cssVarName}-line-height, normal)` as any,
-      color: `var(${layer1Base}-element-text-color)`,
+      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
       margin: '0',
     }), [cssVarName, mode, layer1Base, updateKey])
     
@@ -123,7 +123,7 @@ export function TypePage() {
       
       return {
         backgroundColor: `var(${layer1Base}-surface)`,
-        color: `var(${layer1Base}-element-text-color)`,
+        color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
         border: `var(${layer1Base}-border-thickness) solid ${borderColor}`, 
         borderRadius: `var(${layer1Base}-border-radius)`, 
         padding: `var(${layer1Base}-padding)`, 
@@ -184,7 +184,7 @@ export function TypePage() {
           fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-          color: `var(${layer0Base}-element-text-color)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
         }}>Type</h1>
         <Button onClick={() => setIsPanelOpen(true)} variant="outline" size="small" layer="layer-0">Edit Type Tokens</Button>
       </div>

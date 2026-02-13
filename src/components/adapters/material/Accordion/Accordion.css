@@ -14,7 +14,7 @@
 }
 
 /* Remove borders from all child elements - only container should have border */
-.recursica-accordion.material-accordion > * {
+.recursica-accordion.material-accordion>* {
   border: none !important;
   border-top: none !important;
   border-bottom: none !important;
@@ -88,7 +88,8 @@
 
 .recursica-accordion.material-accordion .MuiAccordionSummary-content {
   margin: 0 !important;
-  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   flex: 1 !important;

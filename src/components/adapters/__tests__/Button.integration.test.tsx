@@ -5,6 +5,7 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider, useUiKit } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
+import { itDom, describeDom } from '../../../test-utils/conditionalTests'
 
 // Helper component to switch kits
 function KitSwitcher({ kit }: { kit: 'mantine' | 'material' | 'carbon' }) {
@@ -53,17 +54,17 @@ describe('Button Integration', () => {
     }, { timeout: 20000 }) // Increased timeout for full test suite runs
   }
 
-  it.skip('renders Mantine button when Mantine is selected', async () => {
+  itDom('renders Mantine button when Mantine is selected', async () => {
     const { container } = await renderWithKit('mantine')
-    
+
     const button = await waitForButton(container, 'Test Button')
     expect(button).toBeInTheDocument()
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it.skip('renders Material button when Material is selected', { timeout: 30000 }, async () => {
+  itDom('renders Material button when Material is selected', { timeout: 30000 }, async () => {
     const { container } = await renderWithKit('material')
-    
+
     // Material UI can take longer to initialize, especially in full test suite
     // Wait for the button to appear with proper text (not loading state)
     // Use screen.getByText which queries the document directly (more reliable)
@@ -74,14 +75,14 @@ describe('Button Integration', () => {
       }
       return btn
     }, { timeout: 20000 })
-    
+
     expect(button).toBeInTheDocument()
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it('renders Carbon button when Carbon is selected', async () => {
+  itDom('renders Carbon button when Carbon is selected', async () => {
     const { container } = await renderWithKit('carbon')
-    
+
     // Carbon can take longer to initialize in CI environments
     // Use screen.getByText which queries the document directly (more reliable)
     const button = await waitFor(() => {
@@ -91,14 +92,15 @@ describe('Button Integration', () => {
       }
       return btn
     }, { timeout: 20000 })
-    
+
     expect(button).toBeInTheDocument()
     expect(screen.getByText('Test Button')).toBeInTheDocument()
   })
 
-  it.skip('maintains consistent props across libraries', { timeout: 60000 }, async () => {
+  itDom.skip('maintains consistent props across libraries', { timeout: 60000 }, async () => {
     // This test runs 72 combinations (3 variants × 2 sizes × 4 layers × 3 kits)
     // Disabled in CI due to timeout issues - too slow for CI environment
+    // Also skipped in local dev due to timeout - takes over 60 seconds
     const variants: Array<'solid' | 'outline' | 'text'> = ['solid', 'outline', 'text']
     const sizes: Array<'default' | 'small'> = ['default', 'small']
     const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
@@ -131,7 +133,7 @@ describe('Button Integration', () => {
             // Button should be in document (waitForButton ensures this)
             expect(button).toBeTruthy()
             expect(screen.getByText(`${variant} ${size}`)).toBeInTheDocument()
-            
+
             await act(async () => {
               unmount!()
               // Small delay to allow cleanup
@@ -143,7 +145,7 @@ describe('Button Integration', () => {
     }
   })
 
-  it.skip('handles disabled state consistently across libraries', { timeout: 15000 }, async () => {
+  itDom('handles disabled state consistently across libraries', { timeout: 15000 }, async () => {
     for (const kit of ['mantine', 'material', 'carbon'] as const) {
       let container: HTMLElement
       let unmount: () => void
@@ -172,7 +174,7 @@ describe('Button Integration', () => {
     }
   })
 
-  it.skip('handles icon prop consistently across libraries', { timeout: 15000 }, async () => {
+  itDom('handles icon prop consistently across libraries', { timeout: 15000 }, async () => {
     const TestIcon = () => <svg data-testid="icon"><circle /></svg>
 
     for (const kit of ['mantine', 'material', 'carbon'] as const) {
@@ -196,7 +198,7 @@ describe('Button Integration', () => {
 
       await waitForButton(container!, 'With Icon')
       expect(screen.getByText('With Icon')).toBeInTheDocument()
-      
+
       // Wait for icon to be rendered (it might be rendered asynchronously)
       // Some libraries (like Carbon) might render icons differently
       // Note: waitFor already uses act() internally, so we don't wrap it

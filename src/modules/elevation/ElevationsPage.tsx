@@ -422,7 +422,7 @@ export default function ElevationsPage() {
     })
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property-element`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
 
   const handleResetAll = () => {
     // Reset all elevations (0-4) to theme defaults
@@ -430,7 +430,7 @@ export default function ElevationsPage() {
   }
 
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`, color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
         <div className="section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -441,7 +441,7 @@ export default function ElevationsPage() {
               fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
               letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
               lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-              color: `var(${layer0Base}-text-color)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
             }}>Elevations</h1>
             <Button
               variant="outline"
@@ -456,7 +456,7 @@ export default function ElevationsPage() {
               Reset all
             </Button>
           </div>
-          <div style={{ border: '1px solid var(--layer-layer-1-property-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
+          <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
             <div className="elevation-grid" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
               {[0, 1, 2, 3, 4].map((i) => (
                 <div key={i} style={{ width: '100%' }}>

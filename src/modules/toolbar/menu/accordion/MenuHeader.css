@@ -1,9 +1,9 @@
 .menu-header-section {
-  border-bottom: 1px solid var(--recursica-brand-themes-light-layer-layer-0-property-border-color);
+  border-bottom: 1px solid var(--recursica-brand-themes-light-layers-layer-0-properties-border-color);
 }
 
 html[data-theme-mode="dark"] .menu-header-section {
-  border-bottom-color: var(--recursica-brand-themes-dark-layer-layer-0-property-border-color);
+  border-bottom-color: var(--recursica-brand-themes-dark-layers-layer-0-properties-border-color);
 }
 
 .menu-header {
@@ -20,11 +20,11 @@ html[data-theme-mode="dark"] .menu-header-section {
 }
 
 .menu-header:hover {
-  background: var(--recursica-brand-themes-light-layer-layer-0-property-surface-hover, var(--recursica-brand-themes-light-layer-layer-0-property-surface));
+  background: var(--recursica-brand-themes-light-layers-layer-0-properties-surface-hover, var(--recursica-brand-themes-light-layers-layer-0-properties-surface));
 }
 
 html[data-theme-mode="dark"] .menu-header:hover {
-  background: var(--recursica-brand-themes-dark-layer-layer-0-property-surface-hover, var(--recursica-brand-themes-dark-layer-layer-0-property-surface));
+  background: var(--recursica-brand-themes-dark-layers-layer-0-properties-surface-hover, var(--recursica-brand-themes-dark-layers-layer-0-properties-surface));
 }
 
 .menu-header-content {
@@ -37,23 +37,23 @@ html[data-theme-mode="dark"] .menu-header:hover {
 .menu-header-icon {
   width: 16px;
   height: 16px;
-  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-low-emphasis);
+  color: var(--recursica-brand-themes-light-layers-layer-0-elements-text-color);
+  opacity: var(--recursica-brand-themes-light-layers-layer-0-elements-text-low-emphasis);
 }
 
 html[data-theme-mode="dark"] .menu-header-icon {
-  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-low-emphasis);
+  color: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-color);
+  opacity: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-low-emphasis);
 }
 
 .menu-header-title {
   font-weight: 600;
   font-size: 13px;
-  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
+  color: var(--recursica-brand-themes-light-layers-layer-0-elements-text-color);
 }
 
 html[data-theme-mode="dark"] .menu-header-title {
-  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
+  color: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-color);
 }
 
 .menu-header-right {
@@ -64,12 +64,12 @@ html[data-theme-mode="dark"] .menu-header-title {
 
 .menu-header-selected-value {
   font-size: 12px;
-  color: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-light-layer-layer-0-property-element-text-low-emphasis);
+  color: var(--recursica-brand-themes-light-layers-layer-0-elements-text-color);
+  opacity: var(--recursica-brand-themes-light-layers-layer-0-elements-text-low-emphasis);
 }
 
 html[data-theme-mode="dark"] .menu-header-selected-value {
-  color: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-color);
-  opacity: var(--recursica-brand-themes-dark-layer-layer-0-property-element-text-low-emphasis);
+  color: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-color);
+  opacity: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-low-emphasis);
 }
 

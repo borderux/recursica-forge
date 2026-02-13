@@ -1073,7 +1073,7 @@ function FamilyDropdown({
                   width: 14,
                   height: 14,
                   borderRadius: 3,
-                  border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layer-layer-1-property-border-color)`,
+                  border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layers-layer-1-properties-border-color)`,
                   background: primaryHex || 'transparent',
                   display: 'inline-block'
                 }}

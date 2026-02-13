@@ -19,6 +19,7 @@ import SegmentedControlConfig from '../configs/SegmentedControl.toolbar.json'
 import SegmentedControlItemConfig from '../configs/SegmentedControlItem.toolbar.json'
 import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
 import TextFieldConfig from '../configs/TextField.toolbar.json'
+import NumberInputConfig from '../configs/NumberInput.toolbar.json'
 import ModalConfig from '../configs/Modal.toolbar.json'
 import DropdownConfig from '../configs/Dropdown.toolbar.json'
 import TabsConfig from '../configs/Tabs.toolbar.json'
@@ -96,6 +97,10 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'text-field':
       case 'text field':
         return TextFieldConfig as unknown as ToolbarConfig
+      case 'number-input':
+      case 'number input':
+      case 'numberinput':
+        return NumberInputConfig as unknown as ToolbarConfig
       case 'modal':
         return ModalConfig as unknown as ToolbarConfig
       case 'dropdown':

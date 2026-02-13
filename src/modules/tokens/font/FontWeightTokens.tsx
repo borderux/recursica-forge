@@ -34,7 +34,7 @@ export default function FontWeightTokens() {
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
   return (
-    <section style={{ background: 'var(--recursica-brand-themes-light-layer-layer-0-property-surface)', border: '1px solid var(--recursica-brand-themes-light-layer-layer-1-property-border-color)', borderRadius: 8, padding: 12 }}>
+    <section style={{ background: 'var(--recursica-brand-themes-light-layers-layer-0-properties-surface)', border: '1px solid var(--recursica-brand-themes-light-layers-layer-1-properties-border-color)', borderRadius: 8, padding: 12 }}>
       <div style={{ fontWeight: 600, marginBottom: 8 }}>Font Weight</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 80px', gap: 8, alignItems: 'center' }}>
         {items.map((it) => {

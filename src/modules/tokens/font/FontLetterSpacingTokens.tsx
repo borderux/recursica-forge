@@ -91,8 +91,8 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   }
 
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
@@ -117,8 +117,8 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
           }}>
             <label htmlFor={it.name} style={{
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(${layer0Base}-element-text-color)`,
-              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
               minWidth: 80,
               paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
               paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
@@ -132,8 +132,8 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
             <div style={{
               fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
               letterSpacing: `var(${letterSpacingVar})`,
-              color: `var(${layer0Base}-element-text-color)`,
-              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
               lineHeight: 1.5,
               paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
               paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
@@ -173,10 +173,8 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
                 }}
                 layer="layer-0"
                 layout="stacked"
-                showInput={false}
-                showValueLabel={true}
+                showMinMaxInput={true}
                 valueLabel={(val) => `${val >= 0 ? '+' : ''}${val.toFixed(2)}px`}
-                showMinMaxLabels={false}
               />
             </div>
           </div>

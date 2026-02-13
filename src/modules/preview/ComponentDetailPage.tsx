@@ -21,6 +21,7 @@ import SegmentedControlItemPreview from '../components/SegmentedControlItemPrevi
 import TabsPreview from '../components/TabsPreview'
 import AssistiveElementPreview from '../components/AssistiveElementPreview'
 import TextFieldPreview from '../components/TextFieldPreview'
+import NumberInputPreview from '../components/NumberInputPreview'
 import ModalPreview from '../components/ModalPreview'
 import DropdownPreview from '../components/DropdownPreview'
 import { slugToComponentName } from './componentUrlUtils'
@@ -127,12 +128,12 @@ export default function ComponentDetailPage() {
     return parts.join(' / ')
   }, [selectedVariants, selectedLayer, componentStructure])
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   // Get the layer number for building CSS variable paths
   const layerNum = selectedLayer.replace('layer-', '')
-  const baseLayerBase = `--recursica-brand-themes-${mode}-layer-layer-${layerNum}-property`
+  const baseLayerBase = `--recursica-brand-themes-${mode}-layers-layer-${layerNum}-properties`
 
   // Get elevation level from layer property (if it exists)
   // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}
@@ -212,7 +213,7 @@ export default function ComponentDetailPage() {
           fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-          color: `var(${layer0Base}-element-text-color)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
         }}>
           {component.name}
         </h1>
@@ -345,6 +346,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Text field' ? (
                 <TextFieldPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Number input' ? (
+                <NumberInputPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}

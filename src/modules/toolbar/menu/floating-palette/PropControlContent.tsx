@@ -8,7 +8,7 @@ import PaletteColorControl from '../../../forms/PaletteColorControl'
 import DimensionTokenSelector from '../../../components/DimensionTokenSelector'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
-import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
+import { buildComponentCssVarPath, getGlobalCssVar } from '../../../../components/utils/cssVarNames'
 import type { ComponentName } from '../../../../components/registry/types'
 import OpacitySelector from './OpacitySelector'
 import { Slider } from '../../../../components/adapters/Slider'
@@ -1108,7 +1108,7 @@ export default function PropControlContent({
             return (
               <div
                 key={key}
-                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
+                style={{ marginTop: index > 0 ? `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` : 0 }}
               >
                 {renderControl(borderProp, cssVars, primaryVar, label, config)}
               </div>
@@ -1131,7 +1131,7 @@ export default function PropControlContent({
             return (
               <div
                 key={key}
-                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
+                style={{ marginTop: index > 0 ? `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` : 0 }}
               >
                 {renderControl(thumbProp, cssVars, primaryVar, label, config)}
               </div>
@@ -1159,7 +1159,7 @@ export default function PropControlContent({
             return (
               <div
                 key={childPropName}
-                style={{ marginTop: index > 0 ? 'var(--recursica-ui-kit-globals-form-properties-vertical-item-gap)' : 0 }}
+                style={{ marginTop: index > 0 ? `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` : 0 }}
               >
                 {renderControl(childProp, cssVars, primaryVar, label, childConfig)}
               </div>
@@ -1287,6 +1287,7 @@ export default function PropControlContent({
     const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item'
     const isBadge = componentName.toLowerCase() === 'badge'
     const isTextField = normalizedComponentName === 'text-field' || normalizedComponentName === 'text field'
+    const isNumberInput = normalizedComponentName === 'number-input' || normalizedComponentName === 'number input'
     const isTooltip = componentName.toLowerCase() === 'tooltip'
 
 
@@ -1418,8 +1419,8 @@ export default function PropControlContent({
               const marginPrimaryVar = marginCssVars[0] || marginProp.cssVar
               const marginLabel = `${label} (${layoutLabel})`
 
-              if (isTextField) {
-                // Use TextField-specific slider
+              if (isTextField || isNumberInput) {
+                // Use TextField/NumberInput-specific slider
                 const TextFieldDimensionSlider = () => {
                   const minValue = 0
                   const maxValue = 32
@@ -1503,7 +1504,7 @@ export default function PropControlContent({
         )
       }
 
-      if (isTextField && (
+      if ((isTextField || isNumberInput) && (
         propNameLower === 'border-size' ||
         propNameLower === 'horizontal-padding' ||
         propNameLower === 'vertical-padding' ||
@@ -1655,7 +1656,7 @@ export default function PropControlContent({
         propNameLower === 'track-inner-padding' ||
         (propNameLower === 'top-bottom-margin' && !(prop.isVariantSpecific && prop.variantProp === 'layout'))
 
-      if (isPaddingProp && !isTextField) {
+      if (isPaddingProp && !isTextField && !isNumberInput) {
         return (
           <BrandDimensionSliderInline
             key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}

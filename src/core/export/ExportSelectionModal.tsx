@@ -9,6 +9,13 @@ import { useState } from 'react'
 import { Modal } from '../../components/adapters/Modal'
 import { Button } from '../../components/adapters/Button'
 import { Checkbox } from '../../components/adapters/Checkbox'
+import {
+  EXPORT_FILENAME_TOKENS,
+  EXPORT_FILENAME_BRAND,
+  EXPORT_FILENAME_UIKIT,
+  EXPORT_FILENAME_CSS_SPECIFIC,
+  EXPORT_FILENAME_CSS_SCOPED,
+} from './EXPORT_FILENAMES'
 
 interface ExportSelectionModalProps {
   show: boolean
@@ -97,19 +104,19 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
                 <Checkbox
                   checked={selectedFiles.tokens}
                   onChange={(checked) => setSelectedFiles({ ...selectedFiles, tokens: checked })}
-                  label={<span><strong>tokens.json</strong> - Color, size, opacity, and font tokens</span>}
+                  label={<span><strong>{EXPORT_FILENAME_TOKENS}</strong> - Color, size, opacity, and font tokens</span>}
                   layer="layer-3"
                 />
                 <Checkbox
                   checked={selectedFiles.brand}
                   onChange={(checked) => setSelectedFiles({ ...selectedFiles, brand: checked })}
-                  label={<span><strong>brand.json</strong> - Palettes, layers, and theme configurations</span>}
+                  label={<span><strong>{EXPORT_FILENAME_BRAND}</strong> - Palettes, layers, and theme configurations</span>}
                   layer="layer-3"
                 />
                 <Checkbox
                   checked={selectedFiles.uikit}
                   onChange={(checked) => setSelectedFiles({ ...selectedFiles, uikit: checked })}
-                  label={<span><strong>uikit.json</strong> - UI Kit component styles</span>}
+                  label={<span><strong>{EXPORT_FILENAME_UIKIT}</strong> - UI Kit component styles</span>}
                   layer="layer-3"
                 />
               </div>
@@ -129,7 +136,7 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
                   onChange={(checked) => setSelectedFiles({ ...selectedFiles, cssSpecific: checked })}
                   label={
                     <span>
-                      <strong>recursica-variables-specific.css</strong><br />
+                      <strong>{EXPORT_FILENAME_CSS_SPECIFIC}</strong><br />
                       <span style={{ fontSize: '13px', opacity: 0.6 }}>
                         All CSS variables with theme and layer embedded in variable names.
                       </span>
@@ -142,7 +149,7 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
                   onChange={(checked) => setSelectedFiles({ ...selectedFiles, cssScoped: checked })}
                   label={
                     <span>
-                      <strong>recursica-variables-scoped.css</strong><br />
+                      <strong>{EXPORT_FILENAME_CSS_SCOPED}</strong><br />
                       <span style={{ fontSize: '13px', opacity: 0.6 }}>
                         CSS variables scoped via data-recursica-theme attributes.
                       </span>

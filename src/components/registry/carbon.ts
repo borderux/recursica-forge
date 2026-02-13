@@ -42,6 +42,9 @@ registerComponent('carbon', 'AssistiveElement', () => import('../adapters/carbon
 // TextField
 registerComponent('carbon', 'TextField', () => import('../adapters/carbon/TextField/TextField'))
 
+// NumberInput
+registerComponent('carbon', 'NumberInput', () => import('../adapters/carbon/NumberInput/NumberInput'))
+
 // Breadcrumb
 registerComponent('carbon', 'Breadcrumb', () => import('../adapters/carbon/Breadcrumb/Breadcrumb'))
 

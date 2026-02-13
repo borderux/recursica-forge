@@ -62,7 +62,8 @@ export function PaletteScaleHeader({
   // No fixed width - cells will size naturally with padding
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
   const { mode: themeMode } = useThemeMode()
-  const layer1Base = `--recursica-brand-themes-${themeMode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${themeMode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${themeMode}-layers-layer-1-properties`
 
   // Close picker when mode changes
   useEffect(() => {
@@ -238,7 +239,7 @@ export function PaletteScaleHeader({
           fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
-          color: `var(${layer1Base}-element-text-color)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           width: isPrimary ? '20%' : undefined,
           flex: isPrimary ? '0 0 20%' : 1,
           marginLeft: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,

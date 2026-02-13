@@ -2,7 +2,7 @@
   "name": "recursica-forge",
   "description": "A tool for managing Recursica variables, themes, and token definitions",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "https://forge.recursica.com",
   "repository": {
     "type": "git",
@@ -24,6 +24,7 @@
     "preview": "vite preview",
     "type-check": "tsc -b --pretty false",
     "test": "vitest run --reporter=verbose",
+    "test:ci": "CI=true vitest run --reporter=verbose",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
     "watch:icons": "node scripts/watch-icon-mapping.mjs",

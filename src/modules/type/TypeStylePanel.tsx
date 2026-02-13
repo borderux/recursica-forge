@@ -517,7 +517,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }, [familyCssVar, familyOptions, updateKey, prefix, open])
 
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
 
   // Calculate elevation box-shadow for layer-2
   const elevationBoxShadow = useMemo(() => {
@@ -588,7 +588,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const CloseIcon = iconNameToReactComponent('x-mark')
 
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layer-layer-2-property-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-2-property-border-color)`, boxShadow: elevationBoxShadow, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
+    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layers-layer-2-properties-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-2-properties-border-color)`, boxShadow: elevationBoxShadow, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <h3 style={{
           margin: 0,
@@ -597,7 +597,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
-          color: `var(${layer0Base}-element-text-color)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
         }}>{title}</h3>
         <Button
           onClick={onClose}

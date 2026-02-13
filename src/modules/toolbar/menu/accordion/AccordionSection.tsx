@@ -30,7 +30,7 @@ export default function AccordionSection({
   const isOpen = isControlled ? controlledOpen : internalOpen
   
   // Layer1 base for expanded content
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   
   useEffect(() => {
     if (!isControlled && defaultOpen) {

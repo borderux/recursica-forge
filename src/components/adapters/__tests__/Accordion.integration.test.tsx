@@ -5,6 +5,7 @@ import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { UiKitProvider, useUiKit } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Accordion } from '../Accordion'
+import { itDom } from '../../../test-utils/conditionalTests'
 
 function KitSwitcher({ kit }: { kit: 'mantine' | 'material' | 'carbon' }) {
   const { setKit } = useUiKit()
@@ -51,19 +52,19 @@ describe('Accordion Integration', () => {
     }, { timeout: 20000 })
   }
 
-  it('renders Mantine accordion when Mantine is selected', async () => {
+  itDom('renders Mantine accordion when Mantine is selected', async () => {
     const { container } = await renderWithKit('mantine')
     const el = await waitForAccordion(container)
     expect(el).toBeInTheDocument()
   })
 
-  it('renders Material accordion when Material is selected', async () => {
+  itDom('renders Material accordion when Material is selected', async () => {
     const { container } = await renderWithKit('material')
     const el = await waitForAccordion(container)
     expect(el).toBeInTheDocument()
   })
 
-  it('renders Carbon accordion when Carbon is selected', async () => {
+  itDom('renders Carbon accordion when Carbon is selected', async () => {
     const { container } = await renderWithKit('carbon')
     const el = await waitForAccordion(container)
     expect(el).toBeInTheDocument()

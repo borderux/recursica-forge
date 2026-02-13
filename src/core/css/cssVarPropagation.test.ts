@@ -34,9 +34,9 @@ describe('CSS Variable Propagation', () => {
   it('should handle nested var() references', () => {
     updateCssVar('--recursica-tokens-color-gray-500', '#808080')
     updateCssVar('--recursica-brand-light-palettes-core-black', 'var(--recursica-tokens-color-gray-500)')
-    updateCssVar('--recursica-brand-light-layer-layer-0-property-surface', 'var(--recursica-brand-light-palettes-core-black)')
+    updateCssVar('--recursica-brand-light-layers-layer-0-properties-surface', 'var(--recursica-brand-light-palettes-core-black)')
     
-    const resolved = readCssVarResolved('--recursica-brand-light-layer-layer-0-property-surface')
+    const resolved = readCssVarResolved('--recursica-brand-light-layers-layer-0-properties-surface')
     expect(resolved).toBe('#808080')
   })
 
@@ -44,20 +44,20 @@ describe('CSS Variable Propagation', () => {
     const vars = {
       '--recursica-tokens-color-gray-500': '#808080',
       '--recursica-brand-light-palettes-core-black': 'var(--recursica-tokens-color-gray-500)',
-      '--recursica-brand-light-layer-layer-0-property-surface': 'var(--recursica-brand-light-palettes-core-black)'
+      '--recursica-brand-light-layers-layer-0-properties-surface': 'var(--recursica-brand-light-palettes-core-black)'
     }
     
     applyCssVars(vars)
     
     expect(readCssVar('--recursica-tokens-color-gray-500')).toBe('#808080')
     expect(readCssVar('--recursica-brand-light-palettes-core-black')).toBe('var(--recursica-tokens-color-gray-500)')
-    expect(readCssVar('--recursica-brand-light-layer-layer-0-property-surface')).toBe('var(--recursica-brand-light-palettes-core-black)')
+    expect(readCssVar('--recursica-brand-light-layers-layer-0-properties-surface')).toBe('var(--recursica-brand-light-palettes-core-black)')
     
     // Change token
     updateCssVar('--recursica-tokens-color-gray-500', '#404040')
     
     // Resolved chain should reflect new value
-    const resolved = readCssVarResolved('--recursica-brand-light-layer-layer-0-property-surface')
+    const resolved = readCssVarResolved('--recursica-brand-light-layers-layer-0-properties-surface')
     expect(resolved).toBe('#404040')
   })
 })

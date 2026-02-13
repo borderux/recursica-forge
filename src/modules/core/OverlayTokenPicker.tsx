@@ -451,10 +451,10 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                 style={{
                   width: '100%',
                   padding: `var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)`,
-                  border: `1px solid var(--recursica-brand-themes-${modeLower}-layer-layer-2-property-border-color)`,
+                  border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-2-properties-border-color)`,
                   borderRadius: 'var(--recursica-brand-dimensions-border-radii-sm)',
-                  backgroundColor: `var(--recursica-brand-themes-${modeLower}-layer-layer-2-property-surface)`,
-                  color: `var(--recursica-brand-themes-${modeLower}-layer-layer-2-property-element-text-color)`,
+                  backgroundColor: `var(--recursica-brand-themes-${modeLower}-layers-layer-2-properties-surface)`,
+                  color: `var(--recursica-brand-themes-${modeLower}-layers-layer-2-elements-text-color)`,
                   fontFamily: 'var(--recursica-brand-typography-body-font-family)',
                   fontSize: 'var(--recursica-brand-typography-body-font-size)',
                   cursor: 'pointer',
@@ -520,7 +520,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
               style={{
                 width: '100%',
                 height: '100%',
-                background: `var(--recursica-brand-themes-${modeLower}-layer-layer-3-property-surface)`,
+                background: `var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-surface)`,
                 position: 'relative',
               }}
             >

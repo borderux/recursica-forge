@@ -33,8 +33,16 @@ import {
   exportTokensJson,
   exportBrandJson,
   exportUIKitJson,
-  exportCssStylesheet,
 } from './jsonExport'
+import { recursicaJsonTransform as recursicaJsonTransformSpecific } from './recursicaJsonTransformSpecific'
+import { recursicaJsonTransform as recursicaJsonTransformScoped } from './recursicaJsonTransformScoped'
+import {
+  EXPORT_FILENAME_TOKENS,
+  EXPORT_FILENAME_BRAND,
+  EXPORT_FILENAME_UIKIT,
+  EXPORT_FILENAME_CSS_SPECIFIC,
+  EXPORT_FILENAME_CSS_SCOPED,
+} from './EXPORT_FILENAMES'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 
 interface GitHubExportModalProps {
@@ -144,12 +152,12 @@ export function GitHubExportModal({
 
   const generatePRDescription = (): string => {
     const fileList: string[] = []
-    if (selectedFiles.tokens) fileList.push('tokens.json')
-    if (selectedFiles.brand) fileList.push('brand.json')
-    if (selectedFiles.uikit) fileList.push('uikit.json')
+    if (selectedFiles.tokens) fileList.push(EXPORT_FILENAME_TOKENS)
+    if (selectedFiles.brand) fileList.push(EXPORT_FILENAME_BRAND)
+    if (selectedFiles.uikit) fileList.push(EXPORT_FILENAME_UIKIT)
     if (selectedFiles.css) {
-      fileList.push('recursica-variables-specific.css')
-      fileList.push('recursica-variables-scoped.css')
+      fileList.push(EXPORT_FILENAME_CSS_SPECIFIC)
+      fileList.push(EXPORT_FILENAME_CSS_SCOPED)
     }
     return `This PR exports the following Recursica design token files:\n\n${fileList.map(f => `- ${f}`).join('\n')}`
   }
@@ -176,20 +184,26 @@ export function GitHubExportModal({
       const files: Array<{ path: string; content: string }> = []
       if (selectedFiles.tokens) {
         const tokens = exportTokensJson()
-        files.push({ path: 'tokens.json', content: JSON.stringify(tokens, null, 2) })
+        files.push({ path: EXPORT_FILENAME_TOKENS, content: JSON.stringify(tokens, null, 2) })
       }
       if (selectedFiles.brand) {
         const brand = exportBrandJson()
-        files.push({ path: 'brand.json', content: JSON.stringify(brand, null, 2) })
+        files.push({ path: EXPORT_FILENAME_BRAND, content: JSON.stringify(brand, null, 2) })
       }
       if (selectedFiles.uikit) {
         const uikit = exportUIKitJson()
-        files.push({ path: 'uikit.json', content: JSON.stringify(uikit, null, 2) })
+        files.push({ path: EXPORT_FILENAME_UIKIT, content: JSON.stringify(uikit, null, 2) })
       }
       if (selectedFiles.css) {
-        const cssExports = exportCssStylesheet({ specific: true, scoped: true })
-        if (cssExports.specific) files.push({ path: 'recursica-variables-specific.css', content: cssExports.specific })
-        if (cssExports.scoped) files.push({ path: 'recursica-variables-scoped.css', content: cssExports.scoped })
+        const json = {
+          tokens: exportTokensJson(),
+          brand: exportBrandJson(),
+          uikit: exportUIKitJson()
+        } as Parameters<typeof recursicaJsonTransformSpecific>[0]
+        const [specificFile] = recursicaJsonTransformSpecific(json)
+        const [scopedFile] = recursicaJsonTransformScoped(json)
+        files.push({ path: specificFile.filename, content: specificFile.contents })
+        files.push({ path: scopedFile.filename, content: scopedFile.contents })
       }
 
       if (isSandboxRepo(selectedRepo)) {

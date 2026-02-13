@@ -5,6 +5,13 @@
  */
 
 import { Modal } from '../../components/adapters/Modal'
+import {
+  EXPORT_FILENAME_TOKENS,
+  EXPORT_FILENAME_BRAND,
+  EXPORT_FILENAME_UIKIT,
+  EXPORT_FILENAME_CSS_SPECIFIC,
+  EXPORT_FILENAME_CSS_SCOPED,
+} from './EXPORT_FILENAMES'
 
 export interface ValidationError {
   file: 'tokens' | 'brand' | 'uikit' | 'css-specific' | 'css-scoped'
@@ -30,11 +37,11 @@ export function ValidationErrorModal({ show, errors, onClose }: ValidationErrorM
   }, {} as Record<string, ValidationError[]>)
 
   const fileLabels: Record<string, string> = {
-    'tokens': 'tokens.json',
-    'brand': 'brand.json',
-    'uikit': 'uikit.json',
-    'css-specific': 'recursica-variables-specific.css',
-    'css-scoped': 'recursica-variables-scoped.css',
+    'tokens': EXPORT_FILENAME_TOKENS,
+    'brand': EXPORT_FILENAME_BRAND,
+    'uikit': EXPORT_FILENAME_UIKIT,
+    'css-specific': EXPORT_FILENAME_CSS_SPECIFIC,
+    'css-scoped': EXPORT_FILENAME_CSS_SCOPED,
   }
 
   return (
