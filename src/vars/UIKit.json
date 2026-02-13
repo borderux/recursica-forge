@@ -4227,7 +4227,7 @@
                 "icon-text-gap": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.general.xs}",
+                    "value": "{brand.dimensions.general.sm}",
                     "unit": "px"
                   }
                 }
@@ -4240,25 +4240,25 @@
             "layer-0": {
               "default-text": {
                 "$type": "color",
-                "$value": "{brand.palettes.core.interactive-default-tone}"
+                "$value": "{brand.palettes.core-colors.interactive.default.tone}"
               }
             },
             "layer-1": {
               "default-text": {
                 "$type": "color",
-                "$value": "{brand.palettes.core.interactive-default-tone}"
+                "$value": "{brand.palettes.core-colors.interactive.default.tone}"
               }
             },
             "layer-2": {
               "default-text": {
                 "$type": "color",
-                "$value": "{brand.palettes.core.interactive-default-tone}"
+                "$value": "{brand.palettes.core-colors.interactive.default.tone}"
               }
             },
             "layer-3": {
               "default-text": {
                 "$type": "color",
-                "$value": "{brand.palettes.core.interactive-default-tone}"
+                "$value": "{brand.palettes.core-colors.interactive.default.tone}"
               }
             }
           },
@@ -4310,7 +4310,7 @@
             "small-icon-text-gap": {
               "$type": "dimension",
               "$value": {
-                "value": "{brand.dimensions.general.xs}",
+                "value": "{brand.dimensions.general.sm}",
                 "unit": "px"
               }
             }
