@@ -58,7 +58,6 @@
   letter-spacing: var(--recursica-ui-kit-themes-light-components-tooltip-properties-text-letter-spacing, normal) !important;
   line-height: var(--recursica-ui-kit-themes-light-components-tooltip-properties-text-line-height, 1.5) !important;
 
-
   /* Centering */
   display: flex !important;
   align-items: center !important;
