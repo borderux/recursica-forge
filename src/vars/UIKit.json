@@ -35,7 +35,7 @@
           "colors": {
             "background": {
               "$type": "color",
-              "$value": "{brand.layers.layer-0.properties.surface}"
+              "$value": "{brand.palettes.neutral.000.color.tone}"
             },
             "background-read-only": {
               "$type": "color",
@@ -55,15 +55,15 @@
             },
             "border-error": {
               "$type": "color",
-              "$value": "{brand.palettes.core-colors.alert}"
+              "$value": "{brand.palettes.core-colors.alert.tone}"
             },
             "icon": {
               "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
+              "$value": "{brand.palettes.neutral.000.color.on-tone}"
             },
             "text-valued": {
               "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
+              "$value": "{brand.palettes.neutral.000.color.on-tone}"
             },
             "placeholder-text-opacity": {
               "$type": "number",
