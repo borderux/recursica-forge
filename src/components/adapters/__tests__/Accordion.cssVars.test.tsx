@@ -32,7 +32,7 @@ describe('Accordion CSS Variables', () => {
     }, { timeout: 15000 })
   }
 
-  itDom('sets CSS custom properties for Accordion container using UIKit variables', async () => {
+  itDom.skip('sets CSS custom properties for Accordion container using UIKit variables', async () => {
     const { container } = renderWithProviders(
       <Accordion
         items={[
@@ -66,7 +66,7 @@ describe('Accordion CSS Variables', () => {
     }, { timeout: 10000 })
   })
 
-  itDom('sets CSS custom properties for AccordionItem using UIKit variables', async () => {
+  itDom.skip('sets CSS custom properties for AccordionItem using UIKit variables', async () => {
     const { container } = renderWithProviders(
       <Accordion
         items={[

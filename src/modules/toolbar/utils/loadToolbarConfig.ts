@@ -25,6 +25,7 @@ import DropdownConfig from '../configs/Dropdown.toolbar.json'
 import TabsConfig from '../configs/Tabs.toolbar.json'
 import TooltipConfig from '../configs/Tooltip.toolbar.json'
 import LinkConfig from '../configs/Link.toolbar.json'
+import ReadOnlyFieldConfig from '../configs/ReadOnlyField.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -111,6 +112,10 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return TooltipConfig as unknown as ToolbarConfig
       case 'link':
         return LinkConfig as unknown as ToolbarConfig
+      case 'read-only-field':
+      case 'read only field':
+      case 'readonlyfield':
+        return ReadOnlyFieldConfig as unknown as ToolbarConfig
       default:
         return null
     }
