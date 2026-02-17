@@ -82,14 +82,14 @@ function pathToScopedVarName(path: string, scope: ScopeKind): string {
 
 /**
  * Determines which scope block a path belongs to.
- * tokens, brand.typography, brand.dimensions, ui-kit → root.
+ * tokens, brand.typography, brand.dimensions, ui-kit (except layer-specific) → root.
+ * Layer-specific ui-kit paths (ui-kit.*.layer-N.*) are handled separately: emitted in theme+layer blocks only.
  * brand.themes.{light|dark}.* (excluding layers) → theme.
  * brand.themes.{light|dark}.layers.layer-N.* → theme+layer.
  */
 function getScope(path: string): ScopeKind {
-  if (path.startsWith('tokens.') || path.startsWith('brand.typography.') || path.startsWith('brand.dimensions.') || path.startsWith('ui-kit.')) {
-    return 'root'
-  }
+  if (path.startsWith('tokens.') || path.startsWith('brand.typography.') || path.startsWith('brand.dimensions.')) return 'root'
+  if (path.startsWith('ui-kit.')) return 'root'
   const themeLayer = path.match(/^brand\.themes\.(light|dark)\.layers\.layer-(\d+)\./)
   if (themeLayer) return { theme: themeLayer[1] as 'light' | 'dark', layer: themeLayer[2] }
   const themeOnly = path.match(/^brand\.themes\.(light|dark)\./)
@@ -392,6 +392,22 @@ function getScopeKey(scope: ScopeKind): string {
   return scope.theme
 }
 
+/** True if path is a ui-kit path that includes a layer segment (e.g. ...colors.layer-0.background). */
+function isLayerSpecificUIKitPath(path: string): boolean {
+  return path.startsWith('ui-kit.') && /\.layer-\d+\./.test(path)
+}
+
+/** Removes the .layer-N. segment so one canonical name is used for all layers. */
+function getCanonicalUIKitPath(path: string): string {
+  return path.replace(/\.layer-\d+\./, '.')
+}
+
+/** Extracts the layer number from a ui-kit path (e.g. layer-1 from ...colors.layer-1.background). */
+function getLayerFromUIKitPath(path: string): string | null {
+  const m = path.match(/\.layer-(\d+)\./)
+  return m ? m[1] : null
+}
+
 /**
  * Transforms tokens, brand, and uikit JSON into scoped CSS variables.
  * Vars grouped by :root, [data-recursica-theme], [data-recursica-theme][data-recursica-layer].
@@ -406,6 +422,19 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   for (const { path, value } of entries) {
     const formatted = formatValue(value, path, allVarNames, errors)
     if (formatted == null) continue
+
+    if (isLayerSpecificUIKitPath(path)) {
+      const layer = getLayerFromUIKitPath(path)
+      if (layer == null) continue
+      const canonicalPath = getCanonicalUIKitPath(path)
+      const canonicalName = pathToVarName(canonicalPath)
+      for (const theme of ['light', 'dark'] as const) {
+        const scopeKey = `${theme}+layer-${layer}`
+        if (!byScope.has(scopeKey)) byScope.set(scopeKey, [])
+        byScope.get(scopeKey)!.push({ name: canonicalName, value: formatted })
+      }
+      continue
+    }
 
     const scope = getScope(path)
     const scopeKey = getScopeKey(scope)
@@ -459,6 +488,11 @@ function formatScopedCss(byScope: Map<string, Array<{ name: string; value: strin
   css += ` * - Reference ui-kit variables (--recursica_ui-kit_*) in your component styles\n`
   css += ` * - Avoid referencing brand layer variables (--recursica_brand_layer_*) directly; ui-kit abstracts these\n`
   css += ` * - ui-kit variables never reference tokens directly; they go through brand for theming\n`
+  css += ` *\n`
+  css += ` * Integration (layer-specific ui-kit):\n`
+  css += ` * - Layer-specific ui-kit vars use one canonical name per semantic (e.g. --recursica_ui-kit_colors_background).\n`
+  css += ` * - They are defined only in theme+layer blocks (e.g. [data-recursica-theme="light"][data-recursica-layer="1"]).\n`
+  css += ` * - In component styles, use the canonical path only—no layer in the var name; the selector provides layer context.\n`
   css += ` *\n`
   css += ` * WARNING: This CSS is auto-generated from Recursica JSON files (tokens, brand, ui-kit).\n`
   css += ` * NEVER modify this file directly or override its variables in your app. Doing so breaks\n`
