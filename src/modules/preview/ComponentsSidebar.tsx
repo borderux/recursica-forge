@@ -89,7 +89,7 @@ export function ComponentsSidebar({
       { name: 'Panel', url: `${base}/panel` },
       { name: 'Popover', url: `${base}/popover` },
       { name: 'Radio', url: `${base}/radio` },
-      { name: 'Read-only field', url: `${base}/read-only-field` },
+      { name: 'Read only field', url: `${base}/read-only-field` },
       { name: 'Search', url: `${base}/search` },
       { name: 'Segmented control', url: `${base}/segmented-control` },
       { name: 'Segmented control item', url: `${base}/segmented-control-item` },
