@@ -570,8 +570,8 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     byScope.get(scopeKey)!.push({ name, value: formatted })
   }
 
-  validateLayerSpecificUIKitComplete(byScope, errors)
   fillMissingLayerSpecificUIKitVars(byScope)
+  validateLayerSpecificUIKitComplete(byScope, errors)
 
   if (errors.length > 0) {
     const msg = `Transform validation failed (${errors.length} error${errors.length === 1 ? '' : 's'}):\n` + errors.map((e) => `  ${e.path}: ${e.message}`).join('\n')
