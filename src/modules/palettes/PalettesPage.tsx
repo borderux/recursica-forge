@@ -752,11 +752,13 @@ export default function PalettesPage() {
           
           // Set tone to reference the family token
           root[modeKey].palettes[paletteKey][lvl].color.tone = {
+            $type: 'color',
             $value: levelTokenRef
           }
           
           // Set on-tone to reference white (will be updated by PaletteGrid based on contrast)
           root[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
+            $type: 'color',
             $value: `{brand.palettes.white}`
           }
         })

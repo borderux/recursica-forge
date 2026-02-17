@@ -391,61 +391,43 @@
     },
     "palette": {
       "type": "object",
+      "description": "Palette levels are groups. Each level has color with tone and on-tone; each has $type and $value.",
       "patternProperties": {
         "^\\d{2,4}|000|050|default$": {
-          "oneOf": [
-            {
+          "type": "object",
+          "properties": {
+            "color": {
               "type": "object",
               "properties": {
-                "color": {
-                  "type": "object",
-                  "properties": {
-                    "$type": {
-                      "type": "string",
-                      "enum": ["color"]
-                    },
-                    "tone": {
-                      "type": "object",
-                      "properties": {
-                        "$value": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["$value"]
-                    },
-                    "on-tone": {
-                      "type": "object",
-                      "properties": {
-                        "$value": {
-                          "type": "string"
-                        }
-                      },
-                      "required": ["$value"]
-                    }
-                  },
-                  "required": ["tone", "on-tone"]
-                },
-                "$value": false
-              },
-              "required": ["color"],
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "properties": {
-                "$value": {
-                  "type": "string"
-                },
                 "$type": {
                   "type": "string",
                   "enum": ["color"]
                 },
-                "color": false
+                "tone": {
+                  "type": "object",
+                  "properties": {
+                    "$type": { "type": "string", "enum": ["color"] },
+                    "$value": { "type": "string" }
+                  },
+                  "required": ["$type", "$value"],
+                  "additionalProperties": false
+                },
+                "on-tone": {
+                  "type": "object",
+                  "properties": {
+                    "$type": { "type": "string", "enum": ["color"] },
+                    "$value": { "type": "string" }
+                  },
+                  "required": ["$type", "$value"],
+                  "additionalProperties": false
+                }
               },
-              "required": ["$value"],
+              "required": ["tone", "on-tone"],
               "additionalProperties": false
             }
-          ]
+          },
+          "required": ["color"],
+          "additionalProperties": false
         }
       },
       "additionalProperties": true

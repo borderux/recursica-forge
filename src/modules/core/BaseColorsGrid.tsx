@@ -482,6 +482,7 @@ export default function BaseColorsGrid() {
       // Reset tone
       if (defaultColor.tone?.$value) {
         currentCoreColors[colorName].tone = {
+          $type: 'color',
           $value: defaultColor.tone.$value
         }
       }
@@ -489,6 +490,7 @@ export default function BaseColorsGrid() {
       // Reset on-tone
       if (defaultColor['on-tone']?.$value) {
         currentCoreColors[colorName]['on-tone'] = {
+          $type: 'color',
           $value: defaultColor['on-tone'].$value
         }
       }
@@ -504,11 +506,13 @@ export default function BaseColorsGrid() {
         if (!currentCoreColors.interactive.default) currentCoreColors.interactive.default = {}
         if (defaultInteractive.default.tone?.$value) {
           currentCoreColors.interactive.default.tone = {
+            $type: 'color',
             $value: defaultInteractive.default.tone.$value
           }
         }
         if (defaultInteractive.default['on-tone']?.$value) {
           currentCoreColors.interactive.default['on-tone'] = {
+            $type: 'color',
             $value: defaultInteractive.default['on-tone'].$value
           }
         }
@@ -519,11 +523,13 @@ export default function BaseColorsGrid() {
         if (!currentCoreColors.interactive.hover) currentCoreColors.interactive.hover = {}
         if (defaultInteractive.hover.tone?.$value) {
           currentCoreColors.interactive.hover.tone = {
+            $type: 'color',
             $value: defaultInteractive.hover.tone.$value
           }
         }
         if (defaultInteractive.hover['on-tone']?.$value) {
           currentCoreColors.interactive.hover['on-tone'] = {
+            $type: 'color',
             $value: defaultInteractive.hover['on-tone'].$value
           }
         }

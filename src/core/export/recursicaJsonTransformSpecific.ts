@@ -18,37 +18,6 @@ const FILENAME = 'recursica_variables_specific.css'
 const PREFIX = '--recursica_'
 const TRANSFORM_VERSION = '1.1.0'
 
-/**
- * Workaround: Incorrect refs in the JSON. These rules map invalid ref paths to the correct paths.
- * TODO: Remove when JSON is fixed. Console.warn when applied; not treated as validation errors.
- */
-const REF_CORRECTIONS: Array<{ pattern: RegExp; replacement: string; comment: string }> = [
-  {
-    // Ref uses {brand.palettes.core-black} / {brand.palettes.core-white} but actual path is
-    // brand.themes.{theme}.palettes.core-colors.{black|white}.tone. Found in palette level
-    // color.on-tone (e.g. brand.themes.light.palettes.neutral.100.color.on-tone).
-    pattern: /^brand\.themes\.(light|dark)\.palettes\.core-(black|white)$/,
-    replacement: 'brand.themes.$1.palettes.core-colors.$2.tone',
-    comment: 'Use core-colors.black.tone / core-colors.white.tone instead of core-black / core-white. Fix in palette level color.on-tone.'
-  }
-]
-
-function applyRefCorrection(expandedPath: string, ref: string, currentPath: string): string | null {
-  for (const { pattern, replacement, comment } of REF_CORRECTIONS) {
-    if (pattern.test(expandedPath)) {
-      const corrected = expandedPath.replace(pattern, replacement)
-      console.warn(
-        `[recursica transform] Correcting invalid ref "${ref}"\n` +
-          `  JSON path to fix: ${currentPath}\n` +
-          `  Corrected to: ${corrected}\n` +
-          `  Issue: ${comment}`
-      )
-      return corrected
-    }
-  }
-  return null
-}
-
 /** Output file from the transform. */
 export type ExportFile = { filename: string; contents: string }
 
@@ -87,8 +56,8 @@ function isRef(val: unknown): val is string {
 
 /**
  * Extracts the path from a reference string.
- * @param ref - e.g. "{brand.palettes.neutral.100.tone}"
- * @returns e.g. "brand.palettes.neutral.100.tone"
+ * @param ref - e.g. "{brand.palettes.neutral.100.color.tone}"
+ * @returns e.g. "brand.palettes.neutral.100.color.tone"
  */
 function extractRefPath(ref: string): string {
   return ref.trim().slice(1, -1).trim()
@@ -163,6 +132,8 @@ function resolvePathAlias(path: string): string[] {
   }
   const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white)$/)
   if (m) candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${m[2]}.tone`)
+  const coreBlackWhiteShort = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-(black|white)$/)
+  if (coreBlackWhiteShort) candidates.push(`brand.themes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2]}.tone`)
   const coreBlackWhite = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white)$/)
   if (coreBlackWhite) candidates.push(`${path}.tone`)
   const coreColor = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
@@ -211,13 +182,7 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
     const refPath = extractRefPath(val)
     const expanded = expandRefPath(refPath, currentPath)
     const candidates = resolvePathAlias(expanded)
-    let resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
-    if (!resolved) {
-      const corrected = applyRefCorrection(expanded, val, currentPath)
-      if (corrected && allVarNames.has(pathToVarName(corrected))) {
-        resolved = corrected
-      }
-    }
+    const resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
     if (!resolved) {
       const varName = pathToVarName(expanded)
       errors.push({
@@ -250,13 +215,7 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
       const refPath = extractRefPath(obj.value)
       const expanded = expandRefPath(refPath, currentPath)
       const candidates = resolvePathAlias(expanded)
-      let resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
-      if (!resolved) {
-        const corrected = applyRefCorrection(expanded, String(obj.value), currentPath)
-        if (corrected && allVarNames.has(pathToVarName(corrected))) {
-          resolved = corrected
-        }
-      }
+      const resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
       if (!resolved) {
         const varName = pathToVarName(expanded)
         errors.push({
