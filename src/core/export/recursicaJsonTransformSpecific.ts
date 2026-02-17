@@ -175,6 +175,22 @@ function resolvePathAlias(path: string): string[] {
  * @param errors - Accumulator for validation errors
  * @returns CSS-formatted string, or null for null/undefined
  */
+/**
+ * Returns a type-appropriate CSS fallback when the token $value is null.
+ * Kept in sync with recursicaJsonTransformScoped.ts.
+ */
+function fallbackForNullByType(type: string | undefined): string {
+  if (!type) return 'transparent'
+  const t = type.toLowerCase()
+  if (t === 'color') return 'transparent'
+  if (t === 'dimension' || t === 'length') return '0'
+  if (t === 'number') return '0'
+  if (t === 'elevation') return 'none'
+  if (t === 'string') return '""'
+  if (t === 'fontFamily' || t === 'font-family') return '""'
+  return 'transparent'
+}
+
 function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>, errors: TransformError[]): string | null {
   if (val == null) return null
 
@@ -249,9 +265,11 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
  * leaf primitives, and dimension objects {value, unit}.
  * @param obj - Current node in the JSON tree
  * @param pathPrefix - Accumulated path so far (e.g. brand.typography.h3)
- * @param out - Accumulator for collected {path, value} entries
+ * @param out - Accumulator for collected {path, value, type?} entries
  */
-function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string; value: unknown }>): void {
+type FlatEntry = { path: string; value: unknown; type?: string }
+
+function collectVars(obj: unknown, pathPrefix: string, out: FlatEntry[]): void {
   if (obj == null) return
 
   // Leaf values from recursing into $value children (e.g. typography.fontFamily)
@@ -268,6 +286,7 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
     const record = obj as Record<string, unknown>
     if ('$value' in record) {
       const v = record.$value
+      const tokenType = typeof record.$type === 'string' ? (record.$type as string) : undefined
       if (v != null && typeof v === 'object' && !Array.isArray(v) && !('value' in v && 'unit' in v)) {
         for (const [k, child] of Object.entries(v)) {
           if (k.startsWith('$')) continue
@@ -275,7 +294,7 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
         }
         return
       }
-      out.push({ path: pathPrefix, value: v })
+      out.push({ path: pathPrefix, value: v, type: tokenType })
       return
     }
     for (const [k, v] of Object.entries(record)) {
@@ -289,8 +308,8 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
  * Flattens the input JSON into path/value entries. Handles nested structure
  * (tokens.tokens, brand.brand, uikit['ui-kit']), elevation composites, and dark layer-0 aliases.
  */
-function flattenInput(json: RecursicaJsonInput): Array<{ path: string; value: unknown }> {
-  const out: Array<{ path: string; value: unknown }> = []
+function flattenInput(json: RecursicaJsonInput): FlatEntry[] {
+  const out: FlatEntry[] = []
   const tokens = (json.tokens as Record<string, unknown>)?.tokens ?? json.tokens
   const brand = (json.brand as Record<string, unknown>)?.brand ?? json.brand
   const uikit = (json.uikit as Record<string, unknown>)?.['ui-kit'] ?? json.uikit
@@ -308,7 +327,7 @@ function flattenInput(json: RecursicaJsonInput): Array<{ path: string; value: un
  * Dark theme layer-0 uses color/hover-color but ui-kit expects tone/on-tone/tone-hover/on-tone-hover.
  * Adds synthetic entries so dark layer-0 emits the same semantic names as light.
  */
-function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: unknown }>): void {
+function injectDarkLayer0InteractiveAliases(out: FlatEntry[]): void {
   const paths = new Set(out.map((e) => e.path))
   const base = 'brand.themes.dark.layers.layer-0.elements.interactive'
   const hasColor = paths.has(`${base}.color`)
@@ -327,7 +346,7 @@ function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: un
  * The composite is built from var refs to the part vars (x, y, blur, spread, color), so consumers
  * can override individual parts. Parts are collected by normal traversal; we add the composite.
  */
-function injectElevationComposites(brand: Record<string, unknown>, out: Array<{ path: string; value: unknown }>): void {
+function injectElevationComposites(brand: Record<string, unknown>, out: FlatEntry[]): void {
   const themes = brand?.themes as Record<string, unknown> | undefined
   if (!themes) return
   for (const [theme, themeData] of Object.entries(themes)) {
@@ -354,8 +373,10 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const errors: TransformError[] = []
   const varMap: Array<{ name: string; value: string }> = []
 
-  for (const { path, value } of entries) {
-    const formatted = formatValue(value, path, allVarNames, errors)
+  for (const entry of entries) {
+    const { path, value, type: tokenType } = entry
+    let formatted = formatValue(value, path, allVarNames, errors)
+    if (formatted == null) formatted = fallbackForNullByType(tokenType)
     if (formatted != null) {
       varMap.push({ name: pathToVarName(path), value: formatted })
     }

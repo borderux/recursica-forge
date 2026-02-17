@@ -282,11 +282,15 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
   return String(val)
 }
 
+/** Entry from flatten: path, value, and optional $type when the token had a $value wrapper. */
+type FlatEntry = { path: string; value: unknown; type?: string }
+
 /**
  * Recursively collects path/value pairs from the JSON structure.
  * Handles $value wrappers, nested objects, leaf primitives, and dimension objects.
+ * When a token has $value, we also pass $type so null values can get a type-based fallback.
  */
-function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string; value: unknown }>): void {
+function collectVars(obj: unknown, pathPrefix: string, out: FlatEntry[]): void {
   if (obj == null) return
 
   if (typeof obj === 'string' || typeof obj === 'number') {
@@ -302,6 +306,7 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
     const record = obj as Record<string, unknown>
     if ('$value' in record) {
       const v = record.$value
+      const tokenType = typeof record.$type === 'string' ? (record.$type as string) : undefined
       if (v != null && typeof v === 'object' && !Array.isArray(v) && !('value' in v && 'unit' in v)) {
         for (const [k, child] of Object.entries(v)) {
           if (k.startsWith('$')) continue
@@ -309,7 +314,7 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
         }
         return
       }
-      out.push({ path: pathPrefix, value: v })
+      out.push({ path: pathPrefix, value: v, type: tokenType })
       return
     }
     for (const [k, v] of Object.entries(record)) {
@@ -323,8 +328,8 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
  * Flattens the input JSON into path/value entries.
  * Handles nested structure, elevation composites, and dark layer-0 interactive aliases.
  */
-function flattenInput(json: RecursicaJsonInput): Array<{ path: string; value: unknown }> {
-  const out: Array<{ path: string; value: unknown }> = []
+function flattenInput(json: RecursicaJsonInput): FlatEntry[] {
+  const out: FlatEntry[] = []
   const tokens = (json.tokens as Record<string, unknown>)?.tokens ?? json.tokens
   const brand = (json.brand as Record<string, unknown>)?.brand ?? json.brand
   const uikit = (json.uikit as Record<string, unknown>)?.['ui-kit'] ?? json.uikit
@@ -427,6 +432,22 @@ function valueReferencesBrandLayer(value: string): boolean {
 /** True if the CSS value references brand_layer_1, _2, or _3 (not layer-0). */
 function valueReferencesHigherBrandLayer(value: string): boolean {
   return /var\(--recursica_brand_layer_[123]_/.test(value)
+}
+
+/**
+ * Returns a type-appropriate CSS fallback when the token $value is null.
+ * Used for layer-specific ui-kit vars so we emit a valid value per type.
+ */
+function fallbackForNullByType(type: string | undefined): string {
+  if (!type) return 'transparent'
+  const t = type.toLowerCase()
+  if (t === 'color') return 'transparent'
+  if (t === 'dimension' || t === 'length') return '0'
+  if (t === 'number') return '0'
+  if (t === 'elevation') return 'none'
+  if (t === 'string') return '""'
+  if (t === 'fontFamily' || t === 'font-family') return '""'
+  return 'transparent'
 }
 
 /**
@@ -533,8 +554,12 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const errors: TransformError[] = []
   const byScope = new Map<string, Array<{ name: string; value: string }>>()
 
-  for (const { path, value } of entries) {
-    const formatted = formatValue(value, path, allVarNames, errors)
+  for (const entry of entries) {
+    const { path, value, type: tokenType } = entry
+    let formatted = formatValue(value, path, allVarNames, errors)
+    if (formatted == null && isLayerSpecificUIKitPath(path)) {
+      formatted = fallbackForNullByType(tokenType)
+    }
     if (formatted == null) continue
 
     if (isLayerSpecificUIKitPath(path)) {
