@@ -1,0 +1,80 @@
+{
+    "variants": {
+        "states": {
+            "icon": "diamonds-four",
+            "label": "State"
+        }
+    },
+    "props": {
+        "colors": {
+            "icon": "paint-bucket",
+            "label": "Colors",
+            "visible": true,
+            "floatingPaletteLabel": "Colors",
+            "group": {
+                "background": {
+                    "icon": "paint-bucket",
+                    "label": "Background",
+                    "visible": true,
+                    "floatingPaletteLabel": "Background Color"
+                },
+                "text": {
+                    "icon": "text-aa",
+                    "label": "Value color",
+                    "visible": true,
+                    "floatingPaletteLabel": "Value Color"
+                },
+                "border-color": {
+                    "icon": "paint-bucket",
+                    "label": "Border color",
+                    "visible": true,
+                    "floatingPaletteLabel": "Border Color"
+                },
+                "upload-icon": {
+                    "icon": "diamond",
+                    "label": "Upload icon color",
+                    "visible": true,
+                    "floatingPaletteLabel": "Upload Icon Color"
+                },
+                "item-background": {
+                    "icon": "paint-bucket",
+                    "label": "Item background",
+                    "visible": true,
+                    "floatingPaletteLabel": "Item Background Color"
+                }
+            }
+        },
+        "border-radius": {
+            "icon": "corners-out",
+            "label": "Corner radius",
+            "visible": true
+        },
+        "text": {
+            "icon": "text-aa",
+            "label": "Text style",
+            "visible": true
+        },
+        "spacing": {
+            "icon": "square-logo",
+            "label": "Spacing",
+            "visible": true,
+            "group": {
+                "padding": {
+                    "icon": "square",
+                    "label": "Padding",
+                    "visible": true
+                },
+                "item-gap": {
+                    "icon": "split-horizontal",
+                    "label": "Item gap",
+                    "visible": true
+                }
+            }
+        },
+        "top-bottom-margin": {
+            "icon": "arrows-up-down",
+            "label": "Top and bottom margin",
+            "visible": true
+        }
+    }
+}

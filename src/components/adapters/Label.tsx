@@ -212,7 +212,6 @@ export function Label({
           textTransform: (readCssVar(labelTextTransformVar) || 'none') as any,
           textAlign: align,
           opacity: `var(${highEmphasisOpacityVar})`,
-          overflow: 'hidden',
           ...layoutStyles,
           ...style,
         }}
@@ -227,7 +226,7 @@ export function Label({
               : (align === 'right' ? 'flex-end' : 'stretch'),
             gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
           }}>
-            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align }}>{children}</span>
+            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>{children}</span>
             <span
               style={{
                 display: 'block',
@@ -244,6 +243,7 @@ export function Label({
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 textAlign: align,
+                paddingBottom: '0.05em',
               }}
             >
               (optional)
@@ -257,7 +257,7 @@ export function Label({
             width: '100%',
             gap: finalEditIcon ? finalEditIconGap : 0
           }}>
-            <span style={{ display: 'inline', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align }}>
+            <span style={{ display: 'inline-block', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>
               {children}
               {styleVariant === 'required' && (
                 <span

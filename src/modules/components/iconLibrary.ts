@@ -319,6 +319,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'text-align-left': TextAlignLeft,
   'text-align-center': TextAlignCenter,
   'text-align-right': TextAlignRight,
+  'upload': Upload,
 }
 
 /**
