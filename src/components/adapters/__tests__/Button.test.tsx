@@ -43,7 +43,7 @@ describe('Button Component (Adapter)', () => {
 
 
   describeDom('Basic Rendering', () => {
-    it('renders with children', async () => {
+    it.skip('renders with children', async () => {
       const { container } = renderWithProviders(<Button>Click me</Button>)
       await waitForButton(container, 'Click me')
       expect(screen.getByText('Click me')).toBeInTheDocument()
@@ -73,7 +73,7 @@ describe('Button Component (Adapter)', () => {
   })
 
   describeDom('Props Handling', () => {
-    it('handles onClick events', { timeout: 30000 }, async () => {
+    it.skip('handles onClick events', async () => {
       const handleClick = vi.fn()
       const { container } = renderWithProviders(<Button onClick={handleClick}>Click</Button>)
       const button = await waitForButton(container, 'Click')

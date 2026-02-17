@@ -35,7 +35,7 @@
           "colors": {
             "background": {
               "$type": "color",
-              "$value": "{brand.layers.layer-0.properties.surface}"
+              "$value": "{brand.palettes.neutral.000.color.tone}"
             },
             "background-read-only": {
               "$type": "color",
@@ -55,15 +55,15 @@
             },
             "border-error": {
               "$type": "color",
-              "$value": "{brand.palettes.core-colors.alert}"
+              "$value": "{brand.palettes.core-colors.alert.tone}"
             },
             "icon": {
               "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
+              "$value": "{brand.palettes.neutral.000.color.on-tone}"
             },
             "text-valued": {
               "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
+              "$value": "{brand.palettes.neutral.000.color.on-tone}"
             },
             "placeholder-text-opacity": {
               "$type": "number",
@@ -4195,6 +4195,113 @@
             "$type": "dimension",
             "$value": {
               "value": "{brand.dimensions.general.sm}",
+              "unit": "px"
+            }
+          },
+          "edit-icon-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.sm}",
+              "unit": "px"
+            }
+          }
+        }
+      },
+      "read-only-field": {
+        "variants": {
+          "layouts": {
+            "stacked": {
+              "properties": {
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{ui-kit.globals.form.properties.vertical-item-gap}",
+                    "unit": "px"
+                  }
+                }
+              }
+            },
+            "side-by-side": {
+              "properties": {
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{ui-kit.globals.form.properties.vertical-item-gap}",
+                    "unit": "px"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "properties": {
+          "colors": {
+            "layer-0": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              }
+            },
+            "layer-1": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              }
+            },
+            "layer-2": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              }
+            },
+            "layer-3": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              }
+            }
+          },
+          "text": {
+            "font-family": {
+              "$type": "string",
+              "$value": "{tokens.font.typefaces.primary}"
+            },
+            "font-size": {
+              "$type": "dimension",
+              "$value": {
+                "value": "{tokens.font.sizes.sm}",
+                "unit": "px"
+              }
+            },
+            "font-weight": {
+              "$type": "number",
+              "$value": "{tokens.font.weights.regular}"
+            },
+            "letter-spacing": {
+              "$type": "string",
+              "$value": "{tokens.font.letter-spacings.default}"
+            },
+            "line-height": {
+              "$type": "number",
+              "$value": "{tokens.font.line-heights.default}"
+            },
+            "text-decoration": {
+              "$type": "string",
+              "$value": "none"
+            },
+            "text-transform": {
+              "$type": "string",
+              "$value": "none"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "normal"
+            }
+          },
+          "min-height": {
+            "$type": "dimension",
+            "$value": {
+              "value": 32,
               "unit": "px"
             }
           }

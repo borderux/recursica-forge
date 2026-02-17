@@ -83,6 +83,11 @@
           "icon": "arrows-up-down",
           "label": "Optional text gap",
           "visible": true
+        },
+        "edit-icon-gap": {
+          "icon": "split-horizontal",
+          "label": "Edit icon gap",
+          "visible": true
         }
       }
     },
@@ -93,4 +98,3 @@
     }
   }
 }
-

@@ -24,6 +24,7 @@ import TextFieldPreview from '../components/TextFieldPreview'
 import NumberInputPreview from '../components/NumberInputPreview'
 import ModalPreview from '../components/ModalPreview'
 import DropdownPreview from '../components/DropdownPreview'
+import ReadOnlyFieldPreview from '../components/ReadOnlyFieldPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -410,6 +411,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Modal' ? (
                 <ModalPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Read only field' ? (
+                <ReadOnlyFieldPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}
