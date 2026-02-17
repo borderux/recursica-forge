@@ -1,20 +1,26 @@
 {
-    "variants": {},
+    "variants": {
+        "state": {
+            "icon": "cursor-click",
+            "label": "State"
+        }
+    },
     "props": {
         "text": {
             "icon": "text-aa",
             "label": "Text Style",
             "visible": true
         },
-        "variant": {
-            "icon": "diamonds-four",
-            "label": "Variant",
-            "visible": true
-        },
-        "size": {
-            "icon": "arrows-out-simple",
-            "label": "Size",
-            "visible": true
+        "text-color": {
+            "icon": "palette",
+            "label": "Text Color",
+            "visible": true,
+            "group": {
+                "text": {
+                    "label": "Text",
+                    "visible": true
+                }
+            }
         },
         "icon": {
             "icon": "arrows-horizontal",
@@ -48,28 +54,24 @@
                         }
                     ],
                     "default": "end"
-                },
+                }
+            }
+        },
+        "spacing": {
+            "icon": "split-horizontal",
+            "label": "Spacing",
+            "visible": true,
+            "group": {
                 "icon-text-gap": {
-                    "label": "Gap",
+                    "label": "Gap between icon and text",
                     "visible": true
                 }
             }
         },
-        "colors": {
-            "icon": "palette",
-            "label": "Text Color",
-            "visible": true,
-            "group": {
-                "default-text": {
-                    "label": "Color",
-                    "visible": true,
-                    "allowedPalettes": [
-                        "core",
-                        "neutral",
-                        "primary"
-                    ]
-                }
-            }
+        "icon-size": {
+            "icon": "diamond",
+            "label": "Icon Size",
+            "visible": true
         }
     }
 }

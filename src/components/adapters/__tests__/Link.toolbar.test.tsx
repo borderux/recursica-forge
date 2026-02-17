@@ -9,7 +9,7 @@ import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Link } from '../Link'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { getComponentCssVar, getComponentTextCssVar } from '../../utils/cssVarNames'
+import { getComponentCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
 
 describe('Link Toolbar Props Integration', () => {
     beforeEach(() => {
@@ -52,11 +52,11 @@ describe('Link Toolbar Props Integration', () => {
     }
 
     describe('Color Props Updates', () => {
-        it('updates text color when toolbar changes default-text', async () => {
+        it('updates text color when toolbar changes', async () => {
             let container: HTMLElement
             await act(async () => {
                 const result = renderWithProviders(
-                    <Link variant="default" layer="layer-0" href="#">Test Link</Link>
+                    <Link layer="layer-0" href="#">Test Link</Link>
                 )
                 container = result.container
                 await new Promise(resolve => setTimeout(resolve, 0))
@@ -64,7 +64,7 @@ describe('Link Toolbar Props Integration', () => {
 
             const link = await waitForLink(container!, 'Test Link')
 
-            const textVar = getComponentCssVar('Link', 'colors', 'default-text', 'layer-0')
+            const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', 'layer-0', 'text')
 
             // Initial wait for vars
             await waitFor(() => {
@@ -95,18 +95,18 @@ describe('Link Toolbar Props Integration', () => {
             }, { timeout: 2000 })
         })
 
-        it('updates text color when toolbar changes subtle-text', async () => {
+        it('updates text-hover color when toolbar changes', async () => {
             let container: HTMLElement
             await act(async () => {
                 const result = renderWithProviders(
-                    <Link variant="subtle" layer="layer-0" href="#">Test Link</Link>
+                    <Link layer="layer-0" href="#">Test Link</Link>
                 )
                 container = result.container
                 await new Promise(resolve => setTimeout(resolve, 0))
             })
 
             const link = await waitForLink(container!, 'Test Link')
-            const textVar = getComponentCssVar('Link', 'colors', 'subtle-text', 'layer-0')
+            const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', 'layer-0', 'text')
 
             await act(async () => {
                 updateCssVar(textVar, '#00ff00')
@@ -132,14 +132,14 @@ describe('Link Toolbar Props Integration', () => {
             let container: HTMLElement
             await act(async () => {
                 const result = renderWithProviders(
-                    <Link size="default" startIcon={<TestIcon />} href="#">Test Link</Link>
+                    <Link startIcon={<TestIcon />} href="#">Test Link</Link>
                 )
                 container = result.container
                 await new Promise(resolve => setTimeout(resolve, 0))
             })
 
             const link = await waitForLink(container!)
-            const gapVar = getComponentCssVar('Link', 'size', 'default-icon-text-gap', undefined)
+            const gapVar = buildComponentCssVarPath('Link', 'properties', 'icon-text-gap')
 
             await act(async () => {
                 updateCssVar(gapVar, '12px')

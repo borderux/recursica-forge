@@ -4202,33 +4202,63 @@
       },
       "link": {
         "variants": {
-          "variants": {
-            "default": {
-              "properties": {}
-            },
-            "subtle": {
-              "properties": {}
-            }
-          },
-          "sizes": {
+          "states": {
             "default": {
               "properties": {
-                "icon-text-gap": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.general.sm}",
-                    "unit": "px"
+                "colors": {
+                  "layer-0": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    }
+                  },
+                  "layer-1": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    }
+                  },
+                  "layer-2": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    }
+                  },
+                  "layer-3": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    }
                   }
                 }
               }
             },
-            "small": {
+            "hover": {
               "properties": {
-                "icon-text-gap": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.general.sm}",
-                    "unit": "px"
+                "colors": {
+                  "layer-0": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
+                    }
+                  },
+                  "layer-1": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                    }
+                  },
+                  "layer-2": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
+                    }
+                  },
+                  "layer-3": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
+                    }
                   }
                 }
               }
@@ -4236,32 +4266,6 @@
           }
         },
         "properties": {
-          "colors": {
-            "layer-0": {
-              "default-text": {
-                "$type": "color",
-                "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-              }
-            },
-            "layer-1": {
-              "default-text": {
-                "$type": "color",
-                "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-              }
-            },
-            "layer-2": {
-              "default-text": {
-                "$type": "color",
-                "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-              }
-            },
-            "layer-3": {
-              "default-text": {
-                "$type": "color",
-                "$value": "{brand.palettes.core-colors.interactive.default.tone}"
-              }
-            }
-          },
           "text": {
             "font-family": {
               "$type": "string",
@@ -4299,20 +4303,18 @@
               "$value": "normal"
             }
           },
-          "size": {
-            "default-icon-text-gap": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
-              }
-            },
-            "small-icon-text-gap": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{brand.dimensions.general.sm}",
-                "unit": "px"
-              }
+          "icon-text-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.sm}",
+              "unit": "px"
+            }
+          },
+          "icon-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.icons.md}",
+              "unit": "px"
             }
           }
         }

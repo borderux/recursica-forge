@@ -21,13 +21,11 @@ export type LinkProps = {
   href?: string
   target?: string
   rel?: string
-  variant?: 'default' | 'subtle'
-  size?: 'default' | 'small'
   layer?: ComponentLayer
   underline?: 'hover' | 'always' | 'none'
   onClick?: (e: React.MouseEvent) => void
   className?: string
-  style?: React.CSSProperties
+  inlineStyle?: React.CSSProperties
   startIcon?: React.ReactNode
   endIcon?: React.ReactNode
   title?: string
@@ -40,13 +38,11 @@ export function Link({
   href,
   target,
   rel,
-  variant = 'default',
-  size = 'default',
   layer = 'layer-0',
   underline,
   onClick,
   className,
-  style,
+  inlineStyle,
   startIcon,
   endIcon,
   title,
@@ -125,15 +121,15 @@ export function Link({
     const textTransformVar = getComponentTextCssVar('Link', 'text', 'text-transform')
     const fontStyleVar = getComponentTextCssVar('Link', 'text', 'font-style')
 
-    // Calculate dynamic vars
-    const textVar = buildComponentCssVarPath('Link', 'properties', 'colors', layer, `default-text`)
-    const sizePrefix = size === 'small' ? 'small' : 'default'
-    const iconGapVar = getComponentCssVar('Link', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+    // Calculate dynamic vars - use 'default' state for base color
+    const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
+    const textHoverVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', layer, 'text')
+    const iconGapVar = buildComponentCssVarPath('Link', 'properties', 'icon-text-gap')
 
     const textCssVars = [
       fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar,
       lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar,
-      textVar, iconGapVar, showIconVar, iconPositionVar, iconNameVar
+      textVar, textHoverVar, iconGapVar, showIconVar, iconPositionVar, iconNameVar
     ]
 
     const handleCssVarUpdate = (e: Event) => {
@@ -163,12 +159,11 @@ export function Link({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [layer, size, showIconVar, iconPositionVar, iconNameVar])
+  }, [layer, showIconVar, iconPositionVar, iconNameVar])
 
   if (!Component) {
     // Fallback to native anchor if component not available
-    const sizePrefix = size === 'small' ? 'small' : 'default'
-    const iconGapVar = getComponentCssVar('Link', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+    const iconGapVar = buildComponentCssVarPath('Link', 'properties', 'icon-text-gap')
 
     return (
       <a
@@ -179,12 +174,12 @@ export function Link({
         className={className}
         title={title}
         style={{
-          ...getLinkStyles(variant, size, layer, underline, mode),
+          ...getLinkStyles(layer, underline, mode),
           display: 'inline-flex',
           alignItems: 'center',
           gap: renderedStartIcon || renderedEndIcon ? `var(${iconGapVar})` : 0,
           cursor: 'pointer',
-          ...style,
+          ...inlineStyle,
         }}
       >
         {renderedStartIcon && (
@@ -207,13 +202,11 @@ export function Link({
     href,
     target,
     rel,
-    variant,
-    size,
     layer,
     underline,
     onClick,
     className,
-    style,
+    inlineStyle,
     startIcon: renderedStartIcon,
     endIcon: renderedEndIcon,
     title,
@@ -237,16 +230,15 @@ export function Link({
 }
 
 function getLinkStyles(
-  variant: 'default' | 'subtle',
-  size: 'default' | 'small',
   layer: ComponentLayer,
   underline: 'hover' | 'always' | 'none' | undefined,
   mode: 'light' | 'dark' = 'light'
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
 
-  // Use UIKit.json link colors - always use default-text
-  const textVar = buildComponentCssVarPath('Link', 'properties', 'colors', layer, `default-text`)
+  // Use UIKit.json link colors from state variants
+  const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
+  const textHoverVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', layer, 'text')
 
   // Get all text properties from component text property group
   const fontFamilyVar = getComponentTextCssVar('Link', 'text', 'font-family')
@@ -285,9 +277,7 @@ function getLinkStyles(
 
   styles.textTransform = (textTransformValue || 'none') as any
 
-  // Apply emphasis opacity based on variant
-  const emphasisOpacityVar = variant === 'subtle' ? lowEmphasisOpacityVar : highEmphasisOpacityVar
-  styles.opacity = `var(${emphasisOpacityVar})`
+  // Don't apply emphasis opacity - colors are already defined in variants
 
   return styles
 }
