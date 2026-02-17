@@ -26,7 +26,7 @@ import { useDebugMode } from '../preview/PreviewPage'
 import uikitJson from '../../vars/UIKit.json'
 import tokensJson from '../../vars/Tokens.json'
 import brandJson from '../../vars/Brand.json'
-import { getComponentTextCssVar } from '../../components/utils/cssVarNames'
+import { getComponentTextCssVar, buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import type { ComponentName } from '../../components/registry/types'
 import './ComponentToolbar.css'
 
@@ -321,11 +321,9 @@ export default function ComponentToolbar({
                 })
               }
 
-              // Special case: label-optional-text-gap is a component-level property
-              // It's in the "spacing" group but doesn't have "spacing" in its path
-              if (!groupedProp && groupedPropKey === 'label-optional-text-gap') {
+              if (!groupedProp && (groupedPropKey === 'label-optional-text-gap' || groupedPropKey === 'edit-icon-gap')) {
                 groupedProp = structure.props.find(p => {
-                  const nameMatches = p.name.toLowerCase() === 'label-optional-text-gap'
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
                   // Must be component-level (not variant-specific)
                   const isComponentLevel = !p.isVariantSpecific
                   return nameMatches && isComponentLevel
@@ -539,7 +537,7 @@ export default function ComponentToolbar({
             name: 'label-width',
             category: 'size',
             type: 'dimension',
-            cssVar: `--recursica-ui-kit-components-label-variants-layouts-${layoutVariant}-variants-sizes-${sizeVariant}-properties-width`,
+            cssVar: buildComponentCssVarPath('Label', 'variants', 'layouts', layoutVariant, 'variants', 'sizes', sizeVariant, 'properties', 'width'),
             path: ['variants', 'layouts', layoutVariant, 'variants', 'sizes', sizeVariant, 'properties', 'width'],
             isVariantSpecific: true,
             variantProp: 'layout',
