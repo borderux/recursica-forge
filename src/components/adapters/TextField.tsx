@@ -48,6 +48,8 @@ export type TextFieldProps = {
   autoFocus?: boolean
   readOnly?: boolean
   disableTopBottomMargin?: boolean
+  editIcon?: React.ReactNode | boolean
+  editIconGap?: string | number
 } & LibrarySpecificProps
 
 export function TextField({
@@ -82,6 +84,8 @@ export function TextField({
   autoFocus,
   readOnly,
   disableTopBottomMargin = false,
+  editIcon,
+  editIconGap,
   mantine,
   material,
   carbon,
@@ -145,6 +149,8 @@ export function TextField({
       align={labelAlign}
       layer={layer}
       id={labelId}
+      editIcon={editIcon}
+      editIconGap={editIconGap}
       style={layout === 'side-by-side' ? { minHeight: `var(${minHeightVar})` } : undefined}
     >
       {label}
@@ -354,6 +360,7 @@ export function TextField({
           step={step}
           autoFocus={autoFocus}
           readOnly={readOnly}
+          editIcon={editIcon}
           className={className}
           style={style}
           mantine={mantine}

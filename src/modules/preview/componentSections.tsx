@@ -750,7 +750,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       ),
     },
     {
-      name: 'Read-only field',
+      name: 'Read only field',
       url: `${base}/read-only-field`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'grid', gap: 8, width: 320 }}>

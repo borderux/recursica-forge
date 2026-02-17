@@ -41,11 +41,22 @@ export default function LabelPreview({
       <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGapValue }}>
         <h2 style={h2Style}>Left aligned</h2>
         <TextField
+          label="Label with Large Gap"
+          placeholder="Input field"
+          layout={layoutVariant}
+          labelSize={sizeVariant}
+          layer={selectedLayer as any}
+          editIcon={true}
+          editIconGap={24}
+          disableTopBottomMargin
+        />
+        <TextField
           label="Label"
           placeholder="Input field"
           layout={layoutVariant}
           labelSize={sizeVariant}
           layer={selectedLayer as any}
+          editIcon={true}
           disableTopBottomMargin
         />
         <TextField
@@ -78,6 +89,7 @@ export default function LabelPreview({
           layout={layoutVariant}
           labelSize={sizeVariant}
           layer={selectedLayer as any}
+          editIcon={true}
           disableTopBottomMargin
         />
         <TextField

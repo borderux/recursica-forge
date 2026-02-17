@@ -8,8 +8,10 @@
 import { Suspense, useState, useEffect } from 'react'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useComponent } from '../hooks/useComponent'
+import { Button } from './Button'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
+import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type LabelProps = {
@@ -24,6 +26,8 @@ export type LabelProps = {
   style?: React.CSSProperties
   required?: boolean
   id?: string
+  editIcon?: React.ReactNode | boolean
+  editIconGap?: string | number
 } & LibrarySpecificProps
 
 export function Label({
@@ -37,6 +41,8 @@ export function Label({
   className,
   style,
   required = false,
+  editIcon,
+  editIconGap,
   mantine,
   material,
   carbon,
@@ -141,6 +147,17 @@ export function Label({
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
   const optionalTextGapVar = getComponentLevelCssVar('Label', 'label-optional-text-gap')
+  const editIconGapVar = getComponentLevelCssVar('Label', 'edit-icon-gap')
+  const finalEditIconGap = editIconGap !== undefined
+    ? (typeof editIconGap === 'number' ? `${editIconGap}px` : editIconGap)
+    : `var(${editIconGapVar})`
+
+
+  // Handle boolean editIcon
+  const EditIconComp = editIcon === true ? iconNameToReactComponent('pencil') || iconNameToReactComponent('edit') : null
+  const finalEditIcon = editIcon === true
+    ? (EditIconComp ? <EditIconComp style={{ width: '16px', height: '16px' }} /> : null)
+    : editIcon as React.ReactNode
 
 
 
@@ -153,11 +170,8 @@ export function Label({
     layoutStyles.paddingBottom = `var(${bottomPaddingVar})`
   } else if (layout === 'side-by-side') {
     const minHeightVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'min-height')
-    const verticalPaddingVar = buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding')
     // Use min-height so the label can grow with content
     layoutStyles.minHeight = `var(${minHeightVar})`
-    layoutStyles.paddingTop = `var(${verticalPaddingVar})`
-    layoutStyles.paddingBottom = `var(${verticalPaddingVar})`
     // Use flexbox to center content vertically
     layoutStyles.display = 'flex'
     layoutStyles.alignItems = 'center'
@@ -236,16 +250,29 @@ export function Label({
             </span>
           </div>
         ) : (
-          <span style={{ display: 'inline', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align }}>
-            {children}
-            {styleVariant === 'required' && (
-              <span
-                style={{
-                  color: asteriskColorVar ? `var(${asteriskColorVar})` : undefined,
-                  marginLeft: `var(${requiredIndicatorGapVar})`,
-                }}
-              >
-                *
+          <span style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
+            width: '100%',
+            gap: finalEditIcon ? finalEditIconGap : 0
+          }}>
+            <span style={{ display: 'inline', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align }}>
+              {children}
+              {styleVariant === 'required' && (
+                <span
+                  style={{
+                    color: asteriskColorVar ? `var(${asteriskColorVar})` : undefined,
+                    marginLeft: `var(${requiredIndicatorGapVar})`,
+                  }}
+                >
+                  *
+                </span>
+              )}
+            </span>
+            {finalEditIcon && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+                <Button variant="text" size="small" icon={finalEditIcon} layer={layer} />
               </span>
             )}
           </span>
@@ -264,6 +291,8 @@ export function Label({
         align={align}
         layer={layer}
         className={className}
+        editIcon={finalEditIcon}
+        editIconGap={editIconGap}
         style={{
           ...layoutStyles,
           ...style,

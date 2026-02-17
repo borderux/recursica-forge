@@ -24,6 +24,7 @@ import ModalConfig from '../configs/Modal.toolbar.json'
 import DropdownConfig from '../configs/Dropdown.toolbar.json'
 import TabsConfig from '../configs/Tabs.toolbar.json'
 import TooltipConfig from '../configs/Tooltip.toolbar.json'
+import ReadOnlyFieldConfig from '../configs/ReadOnlyField.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -108,6 +109,10 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return TabsConfig as unknown as ToolbarConfig
       case 'tooltip':
         return TooltipConfig as unknown as ToolbarConfig
+      case 'read-only-field':
+      case 'read only field':
+      case 'readonlyfield':
+        return ReadOnlyFieldConfig as unknown as ToolbarConfig
       default:
         return null
     }

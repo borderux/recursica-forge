@@ -51,7 +51,7 @@ export default function WidthGroupToolbar({
 
   // Find width-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
-  
+
   const minWidthProp = useMemo(() => {
     return structure.props.find(p => {
       if (p.name.toLowerCase() !== minWidthPropName.toLowerCase()) return false
@@ -96,9 +96,9 @@ export default function WidthGroupToolbar({
 
   // Get min/max values based on component and prop type
   const getWidthSliderRange = useCallback((propName: string, compName: string) => {
-    const compNameLower = compName.toLowerCase()
+    const compNameLower = compName.toLowerCase().replace(/\s+/g, '-')
     const propNameLower = propName.toLowerCase()
-    
+
     // Component-specific ranges
     if (compNameLower === 'accordion') {
       if (propNameLower === 'min-width') return { min: 20, max: 200 }
@@ -119,13 +119,15 @@ export default function WidthGroupToolbar({
       if (propNameLower === 'min-width') return { min: 200, max: 800 }
       if (propNameLower === 'max-width') return { min: 400, max: 1200 }
       if (propNameLower === 'min-height') return { min: 40, max: 200 }
+    } else if (compNameLower === 'read-only-field') {
+      if (propNameLower === 'min-height') return { min: 32, max: 200 }
     }
-    
+
     // Default ranges
     if (propNameLower === 'min-width') return { min: 50, max: 500 }
     if (propNameLower === 'max-width') return { min: 200, max: 1000 }
     if (propNameLower === 'min-height') return { min: 40, max: 200 }
-    
+
     return { min: 0, max: 1000 }
   }, [])
 
