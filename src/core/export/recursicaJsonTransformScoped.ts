@@ -408,6 +408,120 @@ function getLayerFromUIKitPath(path: string): string | null {
   return m ? m[1] : null
 }
 
+/** Returns layer numbers (0–3) referenced in a CSS value string (e.g. var(--recursica_brand_layer_1_...)). */
+function getReferencedBrandLayers(value: string): number[] {
+  const matches = value.matchAll(/--recursica_brand_layer_(\d+)_/g)
+  const layers = new Set<number>()
+  for (const m of matches) {
+    const n = parseInt(m[1], 10)
+    if (Number.isInteger(n) && n >= 0) layers.add(n)
+  }
+  return [...layers]
+}
+
+/** True if the CSS value references any brand_layer_N variable. */
+function valueReferencesBrandLayer(value: string): boolean {
+  return /--recursica_brand_layer_\d+_/.test(value)
+}
+
+/** True if the CSS value references brand_layer_1, _2, or _3 (not layer-0). */
+function valueReferencesHigherBrandLayer(value: string): boolean {
+  return /var\(--recursica_brand_layer_[123]_/.test(value)
+}
+
+/**
+ * Returns a type-appropriate fallback for a missing layer-specific ui-kit var,
+ * inferred from an example value (from a layer that defines it).
+ */
+function fallbackForMissingLayerVar(exampleValue: string): string {
+  const v = exampleValue.trim()
+  if (/^#[0-9a-fA-F]{3,8}$/.test(v) || v === 'transparent' || /^rgba?\(/.test(v) || /^hsla?\(/.test(v)) return 'transparent'
+  if (v.startsWith('var(')) return 'transparent'
+  if (/^-?\d+(\.\d+)?(px|rem|em|%|ex|ch)$/.test(v)) return '0'
+  if (/^-?\d+(\.\d+)?$/.test(v)) return '0'
+  if (v === 'none' || v === 'normal') return v
+  if (/^"[^"]*"$/.test(v)) return '""'
+  return 'transparent'
+}
+
+/**
+ * Validates that every canonical layer-specific ui-kit var is defined in the JSON for every layer.
+ * Pushes to errors when a var appears in only some layers (incomplete JSON).
+ */
+function validateLayerSpecificUIKitComplete(
+  byScope: Map<string, Array<{ name: string; value: string }>>,
+  errors: TransformError[]
+): void {
+  const layerKeys = [...byScope.keys()].filter((k) => k.includes('+layer-'))
+  if (layerKeys.length === 0) return
+
+  const layerNumbers = new Set<string>()
+  for (const key of layerKeys) {
+    const match = key.match(/\+layer-(\d+)$/)
+    if (match) layerNumbers.add(match[1])
+  }
+  const sortedLayers = [...layerNumbers].sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
+
+  const uiKitPrefix = PREFIX + 'ui-kit_'
+  const layersByCanonicalName = new Map<string, Set<string>>()
+  for (const key of layerKeys) {
+    const match = key.match(/\+layer-(\d+)$/)
+    if (!match) continue
+    const layerNum = match[1]
+    for (const v of byScope.get(key) ?? []) {
+      if (v.name.startsWith(uiKitPrefix)) {
+        if (!layersByCanonicalName.has(v.name)) layersByCanonicalName.set(v.name, new Set())
+        layersByCanonicalName.get(v.name)!.add(layerNum)
+      }
+    }
+  }
+
+  for (const [name, layers] of layersByCanonicalName) {
+    if (layers.size === sortedLayers.length) continue
+    const missing = sortedLayers.filter((l) => !layers.has(l))
+    const definedIn = [...layers].sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).join(', ')
+    const pathHint = name.replace(PREFIX, '').replace(/_/g, '.')
+    errors.push({
+      path: pathHint,
+      message: `Layer-specific ui-kit var is defined only in layer(s) ${definedIn}; missing in layer(s) ${missing.join(', ')}. Add explicit values in UIKit.json for every layer.`
+    })
+  }
+}
+
+/**
+ * Ensures every canonical layer-specific ui-kit var is defined in every theme+layer block.
+ * Vars that appear in only some layers (e.g. border-color only in layer-3) get a type-appropriate
+ * fallback in the others (transparent for colors, 0 for dimensions, etc.).
+ */
+function fillMissingLayerSpecificUIKitVars(byScope: Map<string, Array<{ name: string; value: string }>>): void {
+  const layerKeys = [...byScope.keys()].filter((k) => k.includes('+layer-'))
+  if (layerKeys.length === 0) return
+
+  const uiKitPrefix = PREFIX + 'ui-kit_'
+  const allCanonicalNames = new Set<string>()
+  const exampleValueByCanonicalName = new Map<string, string>()
+  for (const key of layerKeys) {
+    for (const v of byScope.get(key) ?? []) {
+      if (v.name.startsWith(uiKitPrefix)) {
+        allCanonicalNames.add(v.name)
+        if (!exampleValueByCanonicalName.has(v.name)) exampleValueByCanonicalName.set(v.name, v.value)
+      }
+    }
+  }
+
+  for (const key of layerKeys) {
+    const vars = byScope.get(key)!
+    const have = new Set(vars.map((v) => v.name))
+    for (const name of allCanonicalNames) {
+      if (!have.has(name)) {
+        const example = exampleValueByCanonicalName.get(name) ?? 'transparent'
+        vars.push({ name, value: fallbackForMissingLayerVar(example) })
+        have.add(name)
+      }
+    }
+  }
+}
+
 /**
  * Transforms tokens, brand, and uikit JSON into scoped CSS variables.
  * Vars grouped by :root, [data-recursica-theme], [data-recursica-theme][data-recursica-layer].
@@ -440,9 +554,24 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     const scopeKey = getScopeKey(scope)
     const name = pathToScopedVarName(path, scope)
 
+    if (path.startsWith('ui-kit.') && scopeKey === 'root' && valueReferencesBrandLayer(formatted)) {
+      const layers = getReferencedBrandLayers(formatted)
+      for (const layer of layers) {
+        for (const theme of ['light', 'dark'] as const) {
+          const key = `${theme}+layer-${layer}`
+          if (!byScope.has(key)) byScope.set(key, [])
+          byScope.get(key)!.push({ name, value: formatted })
+        }
+      }
+      continue
+    }
+
     if (!byScope.has(scopeKey)) byScope.set(scopeKey, [])
     byScope.get(scopeKey)!.push({ name, value: formatted })
   }
+
+  validateLayerSpecificUIKitComplete(byScope, errors)
+  fillMissingLayerSpecificUIKitVars(byScope)
 
   if (errors.length > 0) {
     const msg = `Transform validation failed (${errors.length} error${errors.length === 1 ? '' : 's'}):\n` + errors.map((e) => `  ${e.path}: ${e.message}`).join('\n')
@@ -502,8 +631,11 @@ function formatScopedCss(byScope: Map<string, Array<{ name: string; value: strin
   const sortVars = (vars: Array<{ name: string; value: string }>) =>
     [...vars].sort((a, b) => a.name.localeCompare(b.name))
 
+  const rootVarsFiltered = rootVars.filter(
+    (v) => !(v.name.startsWith(PREFIX + 'ui-kit_') && valueReferencesBrandLayer(v.value))
+  )
   css += `:root {\n`
-  for (const { name, value } of sortVars(rootVars)) {
+  for (const { name, value } of sortVars(rootVarsFiltered)) {
     css += `  ${name}: ${value};\n`
   }
   css += `}\n\n`
@@ -511,7 +643,7 @@ function formatScopedCss(byScope: Map<string, Array<{ name: string; value: strin
   for (const theme of ['light', 'dark'] as const) {
     const themeVars = byScope.get(theme) ?? []
     const layer0Vars = byScope.get(`${theme}+layer-0`) ?? []
-    const merged = [...themeVars, ...layer0Vars]
+    const merged = [...themeVars, ...layer0Vars].filter((v) => !valueReferencesHigherBrandLayer(v.value))
     if (merged.length === 0) continue
     css += `[data-recursica-theme="${theme}"] {\n`
     for (const { name, value } of sortVars(merged)) {

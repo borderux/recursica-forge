@@ -93,8 +93,9 @@ describe('recursicaJsonTransform (Scoped)', () => {
   it('theme blocks include layer-0 vars so theme-only implies layer-0 by default', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
-    const lightBlock = css.match(/\[data-recursica-theme="light"\][\s\S]*?^}/m)?.[0] ?? ''
-    const darkBlock = css.match(/\[data-recursica-theme="dark"\][\s\S]*?^}/m)?.[0] ?? ''
+    // Match theme-only block (selector followed by {), not theme+layer selector
+    const lightBlock = css.match(/\[data-recursica-theme="light"\]\s*\{[\s\S]*?^}/m)?.[0] ?? ''
+    const darkBlock = css.match(/\[data-recursica-theme="dark"\]\s*\{[\s\S]*?^}/m)?.[0] ?? ''
     expect(lightBlock).toMatch(/--recursica_brand_layer_0_/)
     expect(darkBlock).toMatch(/--recursica_brand_layer_0_/)
   })
