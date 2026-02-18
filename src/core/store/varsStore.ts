@@ -2767,6 +2767,7 @@ class VarsStore {
                 // Only update if the value has changed
                 if (currentValue !== newOnToneValue) {
                   themes[mode].palettes[paletteKey][level].color['on-tone'] = {
+                    $type: 'color',
                     $value: newOnToneValue
                   }
                   hasChanges = true

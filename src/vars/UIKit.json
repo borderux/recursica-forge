@@ -264,6 +264,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
+                    },
+                    "border-color": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-1": {
@@ -278,6 +282,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                    },
+                    "border-color": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-2": {
@@ -292,6 +300,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
+                    },
+                    "border-color": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-3": {
@@ -6221,6 +6233,10 @@
                 "supporting-text-opacity": {
                   "$type": "number",
                   "$value": "{brand.text-emphasis.low}"
+                },
+                "opacity": {
+                  "$type": "number",
+                  "$value": null
                 }
               },
               "selected-item": {
@@ -6259,6 +6275,10 @@
                 "supporting-text-opacity": {
                   "$type": "number",
                   "$value": "{brand.text-emphasis.low}"
+                },
+                "opacity": {
+                  "$type": "number",
+                  "$value": null
                 }
               },
               "selected-item": {
