@@ -43,8 +43,7 @@
 
 /* Target text content for truncation */
 .cds--btn>*:not(svg) {
-  overflow-x: hidden !important;
-  overflow-y: visible !important;
+  overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   flex: 1 !important;
