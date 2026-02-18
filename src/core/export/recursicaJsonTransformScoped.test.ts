@@ -65,11 +65,13 @@ describe('recursicaJsonTransform (Scoped)', () => {
     expect(css).toMatch(/--recursica_brand_dimensions_/)
   })
 
-  it('refs in scoped blocks use scoped var names (no brand_themes_light/dark in var() targets)', () => {
+  it('theme/layer blocks alias to root (generic name: var(specific root name))', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
-    expect(css).not.toMatch(/var\(--recursica_brand_themes_(light|dark)_/)
-    expect(css).toMatch(/var\(--recursica_brand_palettes_/)
+    // Root holds all specific names; blocks only alias. Theme blocks reference root vars.
+    expect(css).toMatch(/var\(--recursica_brand_(palettes|themes)_/)
+    expect(css).toMatch(/\[data-recursica-theme="light"\][\s\S]*?--recursica_brand_[^:]+:\s*var\(--recursica_/)
+    expect(css).toMatch(/\[data-recursica-theme="dark"\][\s\S]*?--recursica_brand_[^:]+:\s*var\(--recursica_/)
   })
 
   it('percentage unit outputs as % not literal "percentage"', () => {

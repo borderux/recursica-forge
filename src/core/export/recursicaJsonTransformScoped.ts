@@ -5,13 +5,10 @@
  * recursica_variables_scoped.css. No imports from the project.
  * Portable to other projects or standalone npm package.
  *
- * See docs/EXPORT_PIPELINE_REFACTOR_PLAN.md for design principles and approach.
- *
- * Approach:
- * - Same traversal, path→var naming, refs as var(), validation as Specific
- * - Vars grouped by theme/layer: :root, [data-recursica-theme], [data-recursica-layer],
- *   [data-recursica-theme][data-recursica-layer]
- * - Var names omit theme/layer in scoped blocks; selector provides context
+ * Architecture: See docs/SCOPED_CSS_ARCHITECTURE.md.
+ * - :root holds ALL variables with specific (full-path) names so every ref resolves at root.
+ * - Theme and layer blocks only set generic names that alias to root (var(specificNameOnRoot)).
+ * - No generic names on root; no values in blocks that reference vars outside root.
  */
 
 const FILENAME = 'recursica_variables_scoped.css'
@@ -78,6 +75,21 @@ function pathToScopedVarName(path: string, scope: ScopeKind): string {
     }
   }
   return pathToVarName(path)
+}
+
+/**
+ * Returns the root (specific) variable name for a layer-specific ui-kit path.
+ * Includes theme and layer in the name so root has one var per (theme, layer).
+ * Example: ui-kit.components.Modal.properties.colors.layer-0.background, theme 'dark'
+ *   → --recursica_ui-kit_themes_dark_layer_0_components_Modal_properties_colors_background
+ */
+function pathToRootVarNameLayerSpecificUIKit(path: string, theme: 'light' | 'dark'): string {
+  const layer = getLayerFromUIKitPath(path)
+  if (layer == null) return pathToVarName(path)
+  const canonicalPath = getCanonicalUIKitPath(path)
+  const canonicalVarName = pathToVarName(canonicalPath)
+  const withoutPrefix = canonicalVarName.slice(PREFIX.length)
+  return PREFIX + 'ui-kit_themes_' + theme + '_layer_' + layer + '_' + withoutPrefix
 }
 
 /**
@@ -210,15 +222,31 @@ function resolvePathAlias(path: string): string[] {
   return candidates
 }
 
+/** Options when formatting a value for root (use specific names for refs, optional theme for ui-kit ref expansion). */
+type FormatValueRootOptions = {
+  refNamer: (path: string) => string
+  themeForExpand?: 'light' | 'dark'
+}
+
 /**
  * Formats a value for CSS output. Validates refs and values; pushes errors to the errors array.
+ * When options.refNamer is provided (for root output), refs use that namer and options.themeForExpand
+ * controls which theme expandRefPath uses for theme-relative refs.
  */
-function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>, errors: TransformError[]): string | null {
+function formatValue(
+  val: unknown,
+  currentPath: string,
+  allVarNames: Set<string>,
+  errors: TransformError[],
+  options?: FormatValueRootOptions
+): string | null {
   if (val == null) return null
+  const pathForExpand = options?.themeForExpand ? `brand.themes.${options.themeForExpand}.layers.layer-0` : currentPath
+  const refNamer = options?.refNamer ?? ((path: string) => pathToScopedVarName(path, getScope(path)))
 
   if (isRef(val)) {
     const refPath = extractRefPath(val)
-    const expanded = expandRefPath(refPath, currentPath)
+    const expanded = expandRefPath(refPath, pathForExpand)
     const candidates = resolvePathAlias(expanded)
     const resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
     if (!resolved) {
@@ -227,9 +255,9 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
         path: currentPath,
         message: `Reference '${val}' targets non-existent var ${varName}`
       })
-      return `var(${pathToScopedVarName(expanded, getScope(expanded))})`
+      return `var(${refNamer(expanded)})`
     }
-    return `var(${pathToScopedVarName(resolved, getScope(resolved))})`
+    return `var(${refNamer(resolved)})`
   }
 
   if (typeof val === 'string') {
@@ -251,7 +279,7 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
     const obj = val as { value: unknown; unit?: string }
     if (isRef(obj.value)) {
       const refPath = extractRefPath(obj.value)
-      const expanded = expandRefPath(refPath, currentPath)
+      const expanded = expandRefPath(refPath, pathForExpand)
       const candidates = resolvePathAlias(expanded)
       const resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
       if (!resolved) {
@@ -262,7 +290,7 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
         })
       }
       const target = resolved || expanded
-      return `var(${pathToScopedVarName(target, getScope(target))})`
+      return `var(${refNamer(target)})`
     }
     if (typeof obj.value === 'number') {
       const rawUnit = obj.unit || 'px'
@@ -344,20 +372,22 @@ function flattenInput(json: RecursicaJsonInput): FlatEntry[] {
 }
 
 /**
- * Dark theme layer-0 uses color/hover-color but ui-kit expects tone/on-tone/tone-hover/on-tone-hover.
- * Adds synthetic entries so dark layer-0 emits the same semantic names as light.
+ * Dark theme layers use color/hover-color but ui-kit expects tone/on-tone/tone-hover/on-tone-hover.
+ * Adds synthetic entries so dark layer-0..3 emit the same semantic names as light (refs resolve on root).
  */
 function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: unknown }>): void {
   const paths = new Set(out.map((e) => e.path))
-  const base = 'brand.themes.dark.layers.layer-0.elements.interactive'
-  const hasColor = paths.has(`${base}.color`)
-  const hasHoverColor = paths.has(`${base}.hover-color`)
-  const hasTone = paths.has(`${base}.tone`)
-  if (!hasTone && (hasColor || hasHoverColor)) {
-    if (hasColor) out.push({ path: `${base}.tone`, value: `{${base}.color}` })
-    if (hasHoverColor) out.push({ path: `${base}.tone-hover`, value: `{${base}.hover-color}` })
-    out.push({ path: `${base}.on-tone`, value: '{brand.palettes.palette-1.default.color.on-tone}' })
-    out.push({ path: `${base}.on-tone-hover`, value: '{brand.palettes.palette-1.600.color.on-tone}' })
+  for (const layer of ['0', '1', '2', '3']) {
+    const base = `brand.themes.dark.layers.layer-${layer}.elements.interactive`
+    const hasColor = paths.has(`${base}.color`)
+    const hasHoverColor = paths.has(`${base}.hover-color`)
+    const hasTone = paths.has(`${base}.tone`)
+    if (!hasTone && (hasColor || hasHoverColor)) {
+      if (hasColor) out.push({ path: `${base}.tone`, value: `{${base}.color}` })
+      if (hasHoverColor) out.push({ path: `${base}.tone-hover`, value: `{${base}.hover-color}` })
+      out.push({ path: `${base}.on-tone`, value: '{brand.palettes.palette-1.default.color.on-tone}' })
+      out.push({ path: `${base}.on-tone-hover`, value: '{brand.palettes.palette-1.600.color.on-tone}' })
+    }
   }
 }
 
@@ -376,12 +406,11 @@ function injectElevationComposites(brand: Record<string, unknown>, out: Array<{ 
       const val = v?.$value as Record<string, unknown> | undefined
       if (!val || typeof val !== 'object') continue
       const basePath = `brand.themes.${theme}.elevations.${name}`
-      const scope = getScope(basePath)
-      const x = pathToScopedVarName(`${basePath}.x`, scope)
-      const y = pathToScopedVarName(`${basePath}.y`, scope)
-      const blur = pathToScopedVarName(`${basePath}.blur`, scope)
-      const spread = pathToScopedVarName(`${basePath}.spread`, scope)
-      const color = pathToScopedVarName(`${basePath}.color`, scope)
+      const x = pathToVarName(`${basePath}.x`)
+      const y = pathToVarName(`${basePath}.y`)
+      const blur = pathToVarName(`${basePath}.blur`)
+      const spread = pathToVarName(`${basePath}.spread`)
+      const color = pathToVarName(`${basePath}.color`)
       const composite = `var(${x}) var(${y}) var(${blur}) var(${spread}) var(${color})`
       out.push({ path: basePath, value: composite })
     }
@@ -411,6 +440,85 @@ function getCanonicalUIKitPath(path: string): string {
 function getLayerFromUIKitPath(path: string): string | null {
   const m = path.match(/\.layer-(\d+)\./)
   return m ? m[1] : null
+}
+
+const LAYER_SPECIFIC_ROOT_PATTERN = /^--recursica_ui-kit_themes_(light|dark)_layer_(\d+)_(.+)$/
+
+/** Extract canonical var name from a root layer-specific var name, or null if not layer-specific. */
+function rootLayerSpecificNameToCanonical(rootName: string): string | null {
+  const m = rootName.match(LAYER_SPECIFIC_ROOT_PATTERN)
+  if (!m) return null
+  return PREFIX + 'ui-kit_' + m[3]
+}
+
+/**
+ * Builds root var name for layer-specific ui-kit from canonical name and theme/layer.
+ */
+function pathToRootVarNameFromCanonical(
+  canonicalVarName: string,
+  theme: 'light' | 'dark',
+  layer: string
+): string {
+  const rest = canonicalVarName.slice((PREFIX + 'ui-kit_').length)
+  return PREFIX + 'ui-kit_themes_' + theme + '_layer_' + layer + '_' + rest
+}
+
+/**
+ * Validates that every canonical layer-specific ui-kit var is defined in the JSON for every layer.
+ * Pushes to errors when a var appears in only some layers (incomplete JSON).
+ */
+function validateLayerSpecificUIKitRootComplete(
+  entries: FlatEntry[],
+  errors: TransformError[]
+): void {
+  const layersByCanonical = new Map<string, Set<string>>()
+  for (const { path } of entries) {
+    if (!isLayerSpecificUIKitPath(path)) continue
+    const layer = getLayerFromUIKitPath(path)
+    if (layer == null) continue
+    const canonicalPath = getCanonicalUIKitPath(path)
+    const canonicalName = pathToVarName(canonicalPath)
+    if (!layersByCanonical.has(canonicalName)) layersByCanonical.set(canonicalName, new Set())
+    layersByCanonical.get(canonicalName)!.add(layer)
+  }
+
+  const sortedLayers = ['0', '1', '2', '3']
+  for (const [canonical, layers] of layersByCanonical) {
+    if (layers.size === sortedLayers.length) continue
+    const missing = sortedLayers.filter((l) => !layers.has(l))
+    const definedIn = [...layers].sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).join(', ')
+    const pathHint = canonical.replace(PREFIX, '').replace(/_/g, '.')
+    errors.push({
+      path: pathHint,
+      message: `Layer-specific ui-kit var is defined only in layer(s) ${definedIn}; missing in layer(s) ${missing.join(', ')}. Add explicit values in UIKit.json for every layer.`
+    })
+  }
+}
+
+/**
+ * Ensures every canonical layer-specific ui-kit var has all 8 root vars (2 themes × 4 layers).
+ * Missing (theme, layer) combinations get a type-appropriate fallback from an existing value.
+ */
+function fillMissingLayerSpecificUIKitRootVars(rootVarsMap: Map<string, string>): void {
+  const canonicalToExampleValue = new Map<string, string>()
+  for (const [rootName, value] of rootVarsMap) {
+    const canonical = rootLayerSpecificNameToCanonical(rootName)
+    if (canonical == null) continue
+    if (!canonicalToExampleValue.has(canonical)) canonicalToExampleValue.set(canonical, value)
+  }
+
+  const themes: Array<'light' | 'dark'> = ['light', 'dark']
+  const layers = ['0', '1', '2', '3']
+  for (const canonical of canonicalToExampleValue.keys()) {
+    const exampleValue = canonicalToExampleValue.get(canonical) ?? 'transparent'
+    const fallback = fallbackForMissingLayerVar(exampleValue)
+    for (const theme of themes) {
+      for (const layer of layers) {
+        const name = pathToRootVarNameFromCanonical(canonical, theme, layer)
+        if (!rootVarsMap.has(name)) rootVarsMap.set(name, fallback)
+      }
+    }
+  }
 }
 
 /** Returns layer numbers (0–3) referenced in a CSS value string (e.g. var(--recursica_brand_layer_1_...)). */
@@ -466,218 +574,194 @@ function fallbackForMissingLayerVar(exampleValue: string): string {
 }
 
 /**
- * Validates that every canonical layer-specific ui-kit var is defined in the JSON for every layer.
- * Pushes to errors when a var appears in only some layers (incomplete JSON).
- */
-function validateLayerSpecificUIKitComplete(
-  byScope: Map<string, Array<{ name: string; value: string }>>,
-  errors: TransformError[]
-): void {
-  const layerKeys = [...byScope.keys()].filter((k) => k.includes('+layer-'))
-  if (layerKeys.length === 0) return
-
-  const layerNumbers = new Set<string>()
-  for (const key of layerKeys) {
-    const match = key.match(/\+layer-(\d+)$/)
-    if (match) layerNumbers.add(match[1])
-  }
-  const sortedLayers = [...layerNumbers].sort((a, b) => parseInt(a, 10) - parseInt(b, 10))
-
-  const uiKitPrefix = PREFIX + 'ui-kit_'
-  const layersByCanonicalName = new Map<string, Set<string>>()
-  for (const key of layerKeys) {
-    const match = key.match(/\+layer-(\d+)$/)
-    if (!match) continue
-    const layerNum = match[1]
-    for (const v of byScope.get(key) ?? []) {
-      if (v.name.startsWith(uiKitPrefix)) {
-        if (!layersByCanonicalName.has(v.name)) layersByCanonicalName.set(v.name, new Set())
-        layersByCanonicalName.get(v.name)!.add(layerNum)
-      }
-    }
-  }
-
-  for (const [name, layers] of layersByCanonicalName) {
-    if (layers.size === sortedLayers.length) continue
-    const missing = sortedLayers.filter((l) => !layers.has(l))
-    const definedIn = [...layers].sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).join(', ')
-    const pathHint = name.replace(PREFIX, '').replace(/_/g, '.')
-    errors.push({
-      path: pathHint,
-      message: `Layer-specific ui-kit var is defined only in layer(s) ${definedIn}; missing in layer(s) ${missing.join(', ')}. Add explicit values in UIKit.json for every layer.`
-    })
-  }
-}
-
-/**
- * Ensures every canonical layer-specific ui-kit var is defined in every theme+layer block.
- * Vars that appear in only some layers (e.g. border-color only in layer-3) get a type-appropriate
- * fallback in the others (transparent for colors, 0 for dimensions, etc.).
- */
-function fillMissingLayerSpecificUIKitVars(byScope: Map<string, Array<{ name: string; value: string }>>): void {
-  const layerKeys = [...byScope.keys()].filter((k) => k.includes('+layer-'))
-  if (layerKeys.length === 0) return
-
-  const uiKitPrefix = PREFIX + 'ui-kit_'
-  const allCanonicalNames = new Set<string>()
-  const exampleValueByCanonicalName = new Map<string, string>()
-  for (const key of layerKeys) {
-    for (const v of byScope.get(key) ?? []) {
-      if (v.name.startsWith(uiKitPrefix)) {
-        allCanonicalNames.add(v.name)
-        if (!exampleValueByCanonicalName.has(v.name)) exampleValueByCanonicalName.set(v.name, v.value)
-      }
-    }
-  }
-
-  for (const key of layerKeys) {
-    const vars = byScope.get(key)!
-    const have = new Set(vars.map((v) => v.name))
-    for (const name of allCanonicalNames) {
-      if (!have.has(name)) {
-        const example = exampleValueByCanonicalName.get(name) ?? 'transparent'
-        vars.push({ name, value: fallbackForMissingLayerVar(example) })
-        have.add(name)
-      }
-    }
-  }
-}
-
-/**
  * Transforms tokens, brand, and uikit JSON into scoped CSS variables.
- * Vars grouped by :root, [data-recursica-theme], [data-recursica-theme][data-recursica-layer].
- * Throws if validation fails.
+ * Architecture: root has all specific (full-path) names; theme/layer blocks have only generic aliases.
+ * See docs/SCOPED_CSS_ARCHITECTURE.md.
  */
 export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const entries = flattenInput(json)
-  const allVarNames = new Set(entries.map((e) => pathToVarName(e.path)))
   const errors: TransformError[] = []
-  const byScope = new Map<string, Array<{ name: string; value: string }>>()
+
+  // 1. Build set of all root var names (so refs validate and we know what exists on root)
+  const allRootNames = new Set<string>()
+  for (const entry of entries) {
+    const { path } = entry
+    if (isLayerSpecificUIKitPath(path)) {
+      allRootNames.add(pathToRootVarNameLayerSpecificUIKit(path, 'light'))
+      allRootNames.add(pathToRootVarNameLayerSpecificUIKit(path, 'dark'))
+    } else {
+      allRootNames.add(pathToVarName(path))
+    }
+  }
+
+  // 2. Build root vars: every entry with specific name, values use pathToVarName for refs
+  const rootVarsMap = new Map<string, string>()
+  const rootOptions = { refNamer: pathToVarName }
 
   for (const entry of entries) {
     const { path, value, type: tokenType } = entry
-    let formatted = formatValue(value, path, allVarNames, errors)
-    if (formatted == null && isLayerSpecificUIKitPath(path)) {
-      formatted = fallbackForNullByType(tokenType)
-    }
-    if (formatted == null) continue
-
     if (isLayerSpecificUIKitPath(path)) {
       const layer = getLayerFromUIKitPath(path)
       if (layer == null) continue
-      const canonicalPath = getCanonicalUIKitPath(path)
-      const canonicalName = pathToVarName(canonicalPath)
       for (const theme of ['light', 'dark'] as const) {
-        const scopeKey = `${theme}+layer-${layer}`
-        if (!byScope.has(scopeKey)) byScope.set(scopeKey, [])
-        byScope.get(scopeKey)!.push({ name: canonicalName, value: formatted })
+        let formatted = formatValue(value, path, allRootNames, errors, {
+          ...rootOptions,
+          themeForExpand: theme
+        })
+        if (formatted == null) formatted = fallbackForNullByType(tokenType)
+        if (formatted == null) continue
+        const rootName = pathToRootVarNameLayerSpecificUIKit(path, theme)
+        rootVarsMap.set(rootName, formatted)
       }
       continue
     }
 
-    const scope = getScope(path)
-    const scopeKey = getScopeKey(scope)
-    const name = pathToScopedVarName(path, scope)
-
-    if (path.startsWith('ui-kit.') && scopeKey === 'root' && valueReferencesBrandLayer(formatted)) {
-      const layers = getReferencedBrandLayers(formatted)
-      for (const layer of layers) {
-        for (const theme of ['light', 'dark'] as const) {
-          const key = `${theme}+layer-${layer}`
-          if (!byScope.has(key)) byScope.set(key, [])
-          byScope.get(key)!.push({ name, value: formatted })
-        }
-      }
-      continue
-    }
-
-    if (!byScope.has(scopeKey)) byScope.set(scopeKey, [])
-    byScope.get(scopeKey)!.push({ name, value: formatted })
+    let formatted = formatValue(value, path, allRootNames, errors, rootOptions)
+    if (formatted == null) continue
+    const rootName = pathToVarName(path)
+    rootVarsMap.set(rootName, formatted)
   }
 
-  fillMissingLayerSpecificUIKitVars(byScope)
-  validateLayerSpecificUIKitComplete(byScope, errors)
+  // Validate layer coverage in JSON (each canonical must be defined in all 4 layers)
+  validateLayerSpecificUIKitRootComplete(entries, errors)
 
   if (errors.length > 0) {
     const msg = `Transform validation failed (${errors.length} error${errors.length === 1 ? '' : 's'}):\n` + errors.map((e) => `  ${e.path}: ${e.message}`).join('\n')
     throw new Error(msg)
   }
 
-  const css = formatScopedCss(byScope)
+  fillMissingLayerSpecificUIKitRootVars(rootVarsMap)
+
+  // 3. Build theme and theme+layer alias lists: genericName -> rootName (only aliases in blocks)
+  const themeAliases = new Map<string, Array<{ genericName: string; rootName: string }>>()
+  const themeLayerAliases = new Map<string, Array<{ genericName: string; rootName: string }>>()
+
+  for (const entry of entries) {
+    const { path, value, type: tokenType } = entry
+    if (isLayerSpecificUIKitPath(path)) {
+      const layer = getLayerFromUIKitPath(path)
+      if (layer == null) continue
+      const canonicalName = pathToVarName(getCanonicalUIKitPath(path))
+      for (const theme of ['light', 'dark'] as const) {
+        const rootName = pathToRootVarNameLayerSpecificUIKit(path, theme)
+        const key = `${theme}+layer-${layer}`
+        if (!themeLayerAliases.has(key)) themeLayerAliases.set(key, [])
+        themeLayerAliases.get(key)!.push({ genericName: canonicalName, rootName })
+      }
+      continue
+    }
+
+    const scope = getScope(path)
+    const scopeKey = getScopeKey(scope)
+    const rootName = pathToVarName(path)
+    const genericName = pathToScopedVarName(path, scope)
+
+    if (scopeKey === 'root') continue
+    if (scope !== 'root' && 'layer' in scope) {
+      if (!themeLayerAliases.has(scopeKey)) themeLayerAliases.set(scopeKey, [])
+      themeLayerAliases.get(scopeKey)!.push({ genericName, rootName })
+    } else {
+      if (!themeAliases.has(scopeKey)) themeAliases.set(scopeKey, [])
+      themeAliases.get(scopeKey)!.push({ genericName, rootName })
+    }
+  }
+
+  // Theme block: merge theme-only + layer-0 aliases (so "theme without layer" gets layer-0)
+  for (const theme of ['light', 'dark'] as const) {
+    const themeOnly = themeAliases.get(theme) ?? []
+    const layer0 = themeLayerAliases.get(`${theme}+layer-0`) ?? []
+    const merged = [...themeOnly, ...layer0]
+    themeAliases.set(theme, merged)
+  }
+
+  const css = formatScopedCss(rootVarsMap, themeAliases, themeLayerAliases)
   return [{ filename: FILENAME, contents: css }]
 }
 
 /**
- * Builds the final CSS string with header, :root block, theme blocks, and theme+layer blocks.
+ * Builds the final CSS string: :root (all specific vars), then theme and theme+layer blocks (aliases only).
+ * See docs/SCOPED_CSS_ARCHITECTURE.md.
  */
-function formatScopedCss(byScope: Map<string, Array<{ name: string; value: string }>>): string {
+function formatScopedCss(
+  rootVarsMap: Map<string, string>,
+  themeAliases: Map<string, Array<{ genericName: string; rootName: string }>>,
+  themeLayerAliases: Map<string, Array<{ genericName: string; rootName: string }>>
+): string {
   const buildDate = new Date().toUTCString()
-  const rootVars = byScope.get('root') ?? []
-  const totalVars = [...byScope.values()].reduce((sum, arr) => sum + arr.length, 0)
 
   let css = `/*\n`
   css += ` * Recursica CSS Variables - Scoped\n`
   css += ` * Transform version: ${TRANSFORM_VERSION}\n`
   css += ` * Generated: ${buildDate}\n`
   css += ` *\n`
-  css += ` * About Recursica:\n`
-  css += ` * Recursica is a design token system that manages variables across three layers: tokens (primitives),\n`
-  css += ` * brand (themes, palettes, layers), and ui-kit (component-level styles). Variables have semantic\n`
-  css += ` * meaning—tokens define raw values, brand applies theming and layering, ui-kit exposes component\n`
-  css += ` * properties. Use the variables as intended for consistent theming and easy updates.\n`
+  css += ` * --- How to integrate this file ---\n`
   css += ` *\n`
-  css += ` * Multi-layer approach:\n`
-  css += ` * - Tokens: Primitive values (colors, sizes, typography). Foundation layer.\n`
-  css += ` * - Brand: Applies tokens to themes (light/dark), palettes, and elevation layers (0-3).\n`
-  css += ` * - UI-kit: Component-specific variables that reference brand; abstract surface, text, border colors.\n`
+  css += ` * 1. Set theme on the document root\n`
+  css += ` *    Set data-recursica-theme="light" or data-recursica-theme="dark" on <html> (e.g. in a theme\n`
+  css += ` *    provider). When only theme is set, layer 0 applies by default.\n`
   css += ` *\n`
-  css += ` * How to apply:\n`
-  css += ` * - Set data-recursica-theme="light" or "dark" on root <html> element\n`
-  css += ` * - When only theme is set, layer-0 applies by default (no data-recursica-layer needed)\n`
-  css += ` * - Set data-recursica-layer="N" on any element to apply that layer to it and its descendants\n`
-  css += ` * - Layer can be on the same element as theme, or on a nested descendant (e.g. theme on root, layer on a deep div)\n`
-  css += ` * - Nested layers override: a div with layer=2 inside a div with layer=1 applies layer 2 to its descendants\n`
+  css += ` * 2. Set layer on an ancestor when needed\n`
+  css += ` *    To use layers 1, 2, or 3, set data-recursica-layer="N" (N = 0, 1, 2, or 3) on a wrapper\n`
+  css += ` *    element that contains the components that should use that layer. Descendants inherit that\n`
+  css += ` *    layer's variables. A nested element with a different data-recursica-layer applies its layer\n`
+  css += ` *    to its own descendants.\n`
   css += ` *\n`
-  css += ` * Usage in your components:\n`
-  css += ` * - Reference ui-kit variables (--recursica_ui-kit_*) in your component styles\n`
-  css += ` * - Avoid referencing brand layer variables (--recursica_brand_layer_*) directly; ui-kit abstracts these\n`
-  css += ` * - ui-kit variables never reference tokens directly; they go through brand for theming\n`
+  css += ` * 3. In your component CSS, use only generic variable names\n`
+  css += ` *    Generic names have no theme or layer in the name. They are the only names your components\n`
+  css += ` *    should reference.\n`
   css += ` *\n`
-  css += ` * Integration (layer-specific ui-kit):\n`
-  css += ` * - Layer-specific ui-kit vars use one canonical name per semantic (e.g. --recursica_ui-kit_colors_background).\n`
-  css += ` * - They are defined only in theme+layer blocks (e.g. [data-recursica-theme="light"][data-recursica-layer="1"]).\n`
-  css += ` * - In component styles, use the canonical path only—no layer in the var name; the selector provides layer context.\n`
+  css += ` *    Use (generic; correct):\n`
+  css += ` *      var(--recursica_ui-kit_components_button_variants_styles_solid_properties_colors_background)\n`
+  css += ` *      var(--recursica_brand_layer_0_properties_surface)\n`
   css += ` *\n`
-  css += ` * WARNING: This CSS is auto-generated from Recursica JSON files (tokens, brand, ui-kit).\n`
-  css += ` * NEVER modify this file directly or override its variables in your app. Doing so breaks\n`
-  css += ` * Recursica's ability to manage variables and styles. Make changes in the JSON source and re-export.\n`
+  css += ` *    Do not use (specific; wrong in component CSS):\n`
+  css += ` *      var(--recursica_ui-kit_themes_light_layer_0_...)\n`
+  css += ` *      var(--recursica_brand_themes_light_layers_layer-0_...)\n`
+  css += ` *\n`
+  css += ` *    The correct value for the generic name is set by the theme and layer of the element's\n`
+  css += ` *    ancestors. Your component does not need to know theme or layer; it just uses the generic\n`
+  css += ` *    name and inherits the right value.\n`
+  css += ` *\n`
+  css += ` * 4. Do not reference data-recursica-layer or data-recursica-theme in component selectors\n`
+  css += ` *    Your component styles should not match on these attributes. Theme on root and layer on an\n`
+  css += ` *    ancestor are enough; the cascade applies the right generic vars to your component.\n`
+  css += ` *\n`
+  css += ` * 5. Prefer ui-kit variables over brand layer variables in components\n`
+  css += ` *    Use --recursica_ui-kit_* for component styling when a suitable token exists. Use\n`
+  css += ` *    --recursica_brand_layer_N_* only when you need layer surface/border/elevation directly\n`
+  css += ` *    (e.g. for a Layer container).\n`
+  css += ` *\n`
+  css += ` * --- How this file is structured ---\n`
+  css += ` * :root defines every variable with a specific (full-path) name so every reference resolves.\n`
+  css += ` * Theme and theme+layer blocks ([data-recursica-theme="light"], [data-recursica-theme="light"][data-recursica-layer="1"], etc.)\n`
+  css += ` * define only generic names that alias to those root variables. Components use the generic names;\n`
+  css += ` * the block that matches the element (via theme and layer on ancestors) determines which root\n`
+  css += ` * value that generic name resolves to.\n`
+  css += ` *\n`
+  css += ` * --- WARNING ---\n`
+  css += ` * This file is auto-generated. Do not modify it or override its variables in your app.\n`
+  css += ` * Make changes in the Recursica JSON source and re-export.\n`
   css += ` */\n\n`
 
-  const sortVars = (vars: Array<{ name: string; value: string }>) =>
-    [...vars].sort((a, b) => a.name.localeCompare(b.name))
-
-  const rootVarsFiltered = rootVars.filter(
-    (v) => !(v.name.startsWith(PREFIX + 'ui-kit_') && valueReferencesBrandLayer(v.value))
-  )
+  const rootVars = [...rootVarsMap.entries()].sort((a, b) => a[0].localeCompare(b[0]))
   css += `:root {\n`
-  for (const { name, value } of sortVars(rootVarsFiltered)) {
+  for (const [name, value] of rootVars) {
     css += `  ${name}: ${value};\n`
   }
   css += `}\n\n`
 
   for (const theme of ['light', 'dark'] as const) {
-    const themeVars = byScope.get(theme) ?? []
-    const layer0Vars = byScope.get(`${theme}+layer-0`) ?? []
-    const merged = [...themeVars, ...layer0Vars].filter((v) => !valueReferencesHigherBrandLayer(v.value))
-    if (merged.length === 0) continue
+    const aliases = themeAliases.get(theme) ?? []
+    if (aliases.length === 0) continue
+    const sorted = [...aliases].sort((a, b) => a.genericName.localeCompare(b.genericName))
     css += `[data-recursica-theme="${theme}"] {\n`
-    for (const { name, value } of sortVars(merged)) {
-      css += `  ${name}: ${value};\n`
+    for (const { genericName, rootName } of sorted) {
+      css += `  ${genericName}: var(${rootName});\n`
     }
     css += `}\n\n`
   }
 
-  const themeLayerKeys = Array.from(byScope.keys())
+  const themeLayerKeys = [...themeLayerAliases.keys()]
     .filter((k) => k.includes('+layer-'))
     .sort((a, b) => {
       const [, layerA] = a.split('+layer-')
@@ -691,11 +775,12 @@ function formatScopedCss(byScope: Map<string, Array<{ name: string; value: strin
   for (const key of themeLayerKeys) {
     const [theme, layerPart] = key.split('+layer-')
     const layer = layerPart ?? '0'
-    const vars = byScope.get(key) ?? []
-    if (vars.length === 0) continue
+    const aliases = themeLayerAliases.get(key) ?? []
+    if (aliases.length === 0) continue
+    const sorted = [...aliases].sort((a, b) => a.genericName.localeCompare(b.genericName))
     css += `[data-recursica-theme="${theme}"][data-recursica-layer="${layer}"],\n[data-recursica-theme="${theme}"] [data-recursica-layer="${layer}"] {\n`
-    for (const { name, value } of sortVars(vars)) {
-      css += `  ${name}: ${value};\n`
+    for (const { genericName, rootName } of sorted) {
+      css += `  ${genericName}: var(${rootName});\n`
     }
     css += `}\n\n`
   }
