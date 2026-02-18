@@ -792,6 +792,9 @@ function normalizeBrandReferences(obj: any): any {
       // Fix malformed references: {brand.palettes.palette.2.000.on.tone} -> {brand.palettes.palette-2.000.color.on-tone}
       .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.on\.tone}/g, '{brand.palettes.palette-$1.$2.color.on-tone}')
       .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.tone}/g, '{brand.palettes.palette-$1.$2.color.tone}')
+      // Fix refs missing .color: {brand.palettes.X.600.tone} -> {brand.palettes.X.600.color.tone}
+      .replace(/\{brand\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.tone\}/g, '{brand.palettes.$1.$2.color.tone}')
+      .replace(/\{brand\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.on-tone\}/g, '{brand.palettes.$1.$2.color.on-tone}')
       // Fix malformed token references: {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
       .replace(/{tokens\.colors\.scale\.(\d+)-(\d{3,4})}/g, '{tokens.colors.scale-$1.$2}')
       // Remove theme from all other palette references
@@ -1784,8 +1787,8 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
   if (files.cssSpecific || files.cssScoped) {
     const json = {
       tokens: exportTokensJson(),
-      brand: exportBrandJson(),
-      uikit: exportUIKitJson()
+      brand: normalizeBrandReferences(exportBrandJson()),
+      uikit: normalizeBrandReferences(exportUIKitJson())
     } as Parameters<typeof recursicaJsonTransformSpecific>[0]
     if (files.cssSpecific) {
       const [file] = recursicaJsonTransformSpecific(json)
