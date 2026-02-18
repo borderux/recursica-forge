@@ -135,8 +135,7 @@
 /* Ensure button label can truncate text with ellipsis */
 /* CSS handles truncation - maxWidth accounts for icon width and gap */
 .mantine-Button-root .mantine-Button-label {
-  overflow-x: hidden !important;
-  overflow-y: visible !important;
+  overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   display: block !important;
