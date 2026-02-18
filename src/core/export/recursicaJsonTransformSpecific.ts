@@ -420,6 +420,15 @@ function formatCss(vars: Array<{ name: string; value: string }>): string {
   css += ` * - Avoid referencing brand layer variables (--recursica_brand_themes_*_layers_*) directly; ui-kit abstracts these\n`
   css += ` * - ui-kit variables never reference tokens directly; they go through brand for theming\n`
   css += ` *\n`
+  css += ` * Disabled state (implicit rule):\n`
+  css += ` * The brand theme exposes a disabled token per theme (e.g. --recursica_brand_themes_light_states_disabled,\n`
+  css += ` * --recursica_brand_themes_dark_states_disabled), an opacity value for implicit disabled styling.\n`
+  css += ` * When a component has no explicit disabled state variables, apply\n`
+  css += ` * opacity: var(--recursica_brand_themes_<theme>_states_disabled) to the disabled component\n`
+  css += ` * (e.g. :disabled or [aria-disabled="true"]). If a component has its own disabled state variables\n`
+  css += ` * (e.g. ui-kit form components with disabled background, border, or text colors), use those tokens\n`
+  css += ` * for the disabled look and do not apply the global opacity.\n`
+  css += ` *\n`
   css += ` * WARNING: This CSS is auto-generated from Recursica JSON files (tokens, brand, ui-kit).\n`
   css += ` * NEVER modify this file directly or override its variables in your app. Doing so breaks\n`
   css += ` * Recursica's ability to manage variables and styles. Make changes in the JSON source and re-export.\n`

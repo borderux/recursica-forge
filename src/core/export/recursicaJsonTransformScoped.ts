@@ -773,6 +773,15 @@ function formatScopedCss(
   css += ` *    full type definition (family, size, weight, line-height, etc.) from brand.typography.\n`
   css += ` *    Class names follow the path: brand.typography.<typeName>.\n`
   css += ` *\n`
+  css += ` * --- Disabled state (implicit rule) ---\n`
+  css += ` * The brand theme exposes a single disabled token: --recursica_brand_states_disabled (generic\n`
+  css += ` * name; resolves per theme to an opacity value, e.g. from opacities_ghost). Use this for disabled\n`
+  css += ` * styling when a component has no explicit disabled state variables: apply\n`
+  css += ` * opacity: var(--recursica_brand_states_disabled) to the disabled component (e.g. :disabled or\n`
+  css += ` * [aria-disabled="true"]). If a component has its own disabled state variables (e.g. ui-kit form\n`
+  css += ` * components with disabled background, border, or text colors), use those tokens for the disabled\n`
+  css += ` * look and do not apply the global opacity, since the design already defines the disabled state.\n`
+  css += ` *\n`
   css += ` * --- How this file is structured ---\n`
   css += ` * :root defines every variable with a specific (full-path) name so every reference resolves.\n`
   css += ` * Theme and theme+layer blocks ([data-recursica-theme="light"], [data-recursica-theme="light"][data-recursica-layer="1"], etc.)\n`
