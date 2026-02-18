@@ -18,37 +18,6 @@ const FILENAME = 'recursica_variables_specific.css'
 const PREFIX = '--recursica_'
 const TRANSFORM_VERSION = '1.1.0'
 
-/**
- * Workaround: Incorrect refs in the JSON. These rules map invalid ref paths to the correct paths.
- * TODO: Remove when JSON is fixed. Console.warn when applied; not treated as validation errors.
- */
-const REF_CORRECTIONS: Array<{ pattern: RegExp; replacement: string; comment: string }> = [
-  {
-    // Ref uses {brand.palettes.core-black} / {brand.palettes.core-white} but actual path is
-    // brand.themes.{theme}.palettes.core-colors.{black|white}.tone. Found in palette level
-    // color.on-tone (e.g. brand.themes.light.palettes.neutral.100.color.on-tone).
-    pattern: /^brand\.themes\.(light|dark)\.palettes\.core-(black|white)$/,
-    replacement: 'brand.themes.$1.palettes.core-colors.$2.tone',
-    comment: 'Use core-colors.black.tone / core-colors.white.tone instead of core-black / core-white. Fix in palette level color.on-tone.'
-  }
-]
-
-function applyRefCorrection(expandedPath: string, ref: string, currentPath: string): string | null {
-  for (const { pattern, replacement, comment } of REF_CORRECTIONS) {
-    if (pattern.test(expandedPath)) {
-      const corrected = expandedPath.replace(pattern, replacement)
-      console.warn(
-        `[recursica transform] Correcting invalid ref "${ref}"\n` +
-          `  JSON path to fix: ${currentPath}\n` +
-          `  Corrected to: ${corrected}\n` +
-          `  Issue: ${comment}`
-      )
-      return corrected
-    }
-  }
-  return null
-}
-
 /** Output file from the transform. */
 export type ExportFile = { filename: string; contents: string }
 
@@ -87,8 +56,8 @@ function isRef(val: unknown): val is string {
 
 /**
  * Extracts the path from a reference string.
- * @param ref - e.g. "{brand.palettes.neutral.100.tone}"
- * @returns e.g. "brand.palettes.neutral.100.tone"
+ * @param ref - e.g. "{brand.palettes.neutral.100.color.tone}"
+ * @returns e.g. "brand.palettes.neutral.100.color.tone"
  */
 function extractRefPath(ref: string): string {
   return ref.trim().slice(1, -1).trim()
@@ -163,6 +132,8 @@ function resolvePathAlias(path: string): string[] {
   }
   const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white)$/)
   if (m) candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${m[2]}.tone`)
+  const coreBlackWhiteShort = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-(black|white)$/)
+  if (coreBlackWhiteShort) candidates.push(`brand.themes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2]}.tone`)
   const coreBlackWhite = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white)$/)
   if (coreBlackWhite) candidates.push(`${path}.tone`)
   const coreColor = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
@@ -204,6 +175,22 @@ function resolvePathAlias(path: string): string[] {
  * @param errors - Accumulator for validation errors
  * @returns CSS-formatted string, or null for null/undefined
  */
+/**
+ * Returns a type-appropriate CSS fallback when the token $value is null.
+ * Kept in sync with recursicaJsonTransformScoped.ts.
+ */
+function fallbackForNullByType(type: string | undefined): string {
+  if (!type) return 'transparent'
+  const t = type.toLowerCase()
+  if (t === 'color') return 'transparent'
+  if (t === 'dimension' || t === 'length') return '0'
+  if (t === 'number') return '0'
+  if (t === 'elevation') return 'none'
+  if (t === 'string') return '""'
+  if (t === 'fontFamily' || t === 'font-family') return '""'
+  return 'transparent'
+}
+
 function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>, errors: TransformError[]): string | null {
   if (val == null) return null
 
@@ -211,13 +198,7 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
     const refPath = extractRefPath(val)
     const expanded = expandRefPath(refPath, currentPath)
     const candidates = resolvePathAlias(expanded)
-    let resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
-    if (!resolved) {
-      const corrected = applyRefCorrection(expanded, val, currentPath)
-      if (corrected && allVarNames.has(pathToVarName(corrected))) {
-        resolved = corrected
-      }
-    }
+    const resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
     if (!resolved) {
       const varName = pathToVarName(expanded)
       errors.push({
@@ -250,13 +231,7 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
       const refPath = extractRefPath(obj.value)
       const expanded = expandRefPath(refPath, currentPath)
       const candidates = resolvePathAlias(expanded)
-      let resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
-      if (!resolved) {
-        const corrected = applyRefCorrection(expanded, String(obj.value), currentPath)
-        if (corrected && allVarNames.has(pathToVarName(corrected))) {
-          resolved = corrected
-        }
-      }
+      const resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
       if (!resolved) {
         const varName = pathToVarName(expanded)
         errors.push({
@@ -290,9 +265,11 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
  * leaf primitives, and dimension objects {value, unit}.
  * @param obj - Current node in the JSON tree
  * @param pathPrefix - Accumulated path so far (e.g. brand.typography.h3)
- * @param out - Accumulator for collected {path, value} entries
+ * @param out - Accumulator for collected {path, value, type?} entries
  */
-function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string; value: unknown }>): void {
+type FlatEntry = { path: string; value: unknown; type?: string }
+
+function collectVars(obj: unknown, pathPrefix: string, out: FlatEntry[]): void {
   if (obj == null) return
 
   // Leaf values from recursing into $value children (e.g. typography.fontFamily)
@@ -309,6 +286,7 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
     const record = obj as Record<string, unknown>
     if ('$value' in record) {
       const v = record.$value
+      const tokenType = typeof record.$type === 'string' ? (record.$type as string) : undefined
       if (v != null && typeof v === 'object' && !Array.isArray(v) && !('value' in v && 'unit' in v)) {
         for (const [k, child] of Object.entries(v)) {
           if (k.startsWith('$')) continue
@@ -316,7 +294,7 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
         }
         return
       }
-      out.push({ path: pathPrefix, value: v })
+      out.push({ path: pathPrefix, value: v, type: tokenType })
       return
     }
     for (const [k, v] of Object.entries(record)) {
@@ -330,8 +308,8 @@ function collectVars(obj: unknown, pathPrefix: string, out: Array<{ path: string
  * Flattens the input JSON into path/value entries. Handles nested structure
  * (tokens.tokens, brand.brand, uikit['ui-kit']), elevation composites, and dark layer-0 aliases.
  */
-function flattenInput(json: RecursicaJsonInput): Array<{ path: string; value: unknown }> {
-  const out: Array<{ path: string; value: unknown }> = []
+function flattenInput(json: RecursicaJsonInput): FlatEntry[] {
+  const out: FlatEntry[] = []
   const tokens = (json.tokens as Record<string, unknown>)?.tokens ?? json.tokens
   const brand = (json.brand as Record<string, unknown>)?.brand ?? json.brand
   const uikit = (json.uikit as Record<string, unknown>)?.['ui-kit'] ?? json.uikit
@@ -349,7 +327,7 @@ function flattenInput(json: RecursicaJsonInput): Array<{ path: string; value: un
  * Dark theme layer-0 uses color/hover-color but ui-kit expects tone/on-tone/tone-hover/on-tone-hover.
  * Adds synthetic entries so dark layer-0 emits the same semantic names as light.
  */
-function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: unknown }>): void {
+function injectDarkLayer0InteractiveAliases(out: FlatEntry[]): void {
   const paths = new Set(out.map((e) => e.path))
   const base = 'brand.themes.dark.layers.layer-0.elements.interactive'
   const hasColor = paths.has(`${base}.color`)
@@ -368,7 +346,7 @@ function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: un
  * The composite is built from var refs to the part vars (x, y, blur, spread, color), so consumers
  * can override individual parts. Parts are collected by normal traversal; we add the composite.
  */
-function injectElevationComposites(brand: Record<string, unknown>, out: Array<{ path: string; value: unknown }>): void {
+function injectElevationComposites(brand: Record<string, unknown>, out: FlatEntry[]): void {
   const themes = brand?.themes as Record<string, unknown> | undefined
   if (!themes) return
   for (const [theme, themeData] of Object.entries(themes)) {
@@ -395,8 +373,10 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   const errors: TransformError[] = []
   const varMap: Array<{ name: string; value: string }> = []
 
-  for (const { path, value } of entries) {
-    const formatted = formatValue(value, path, allVarNames, errors)
+  for (const entry of entries) {
+    const { path, value, type: tokenType } = entry
+    let formatted = formatValue(value, path, allVarNames, errors)
+    if (formatted == null) formatted = fallbackForNullByType(tokenType)
     if (formatted != null) {
       varMap.push({ name: pathToVarName(path), value: formatted })
     }
@@ -439,6 +419,15 @@ function formatCss(vars: Array<{ name: string; value: string }>): string {
   css += ` * - Reference ui-kit variables (--recursica_ui-kit_*) in your component styles\n`
   css += ` * - Avoid referencing brand layer variables (--recursica_brand_themes_*_layers_*) directly; ui-kit abstracts these\n`
   css += ` * - ui-kit variables never reference tokens directly; they go through brand for theming\n`
+  css += ` *\n`
+  css += ` * Disabled state (implicit rule):\n`
+  css += ` * The brand theme exposes a disabled token per theme (e.g. --recursica_brand_themes_light_states_disabled,\n`
+  css += ` * --recursica_brand_themes_dark_states_disabled), an opacity value for implicit disabled styling.\n`
+  css += ` * When a component has no explicit disabled state variables, apply\n`
+  css += ` * opacity: var(--recursica_brand_themes_<theme>_states_disabled) to the disabled component\n`
+  css += ` * (e.g. :disabled or [aria-disabled="true"]). If a component has its own disabled state variables\n`
+  css += ` * (e.g. ui-kit form components with disabled background, border, or text colors), use those tokens\n`
+  css += ` * for the disabled look and do not apply the global opacity.\n`
   css += ` *\n`
   css += ` * WARNING: This CSS is auto-generated from Recursica JSON files (tokens, brand, ui-kit).\n`
   css += ` * NEVER modify this file directly or override its variables in your app. Doing so breaks\n`

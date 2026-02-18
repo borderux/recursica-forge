@@ -65,11 +65,13 @@ describe('recursicaJsonTransform (Scoped)', () => {
     expect(css).toMatch(/--recursica_brand_dimensions_/)
   })
 
-  it('refs in scoped blocks use scoped var names (no brand_themes_light/dark in var() targets)', () => {
+  it('theme/layer blocks alias to root (generic name: var(specific root name))', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
-    expect(css).not.toMatch(/var\(--recursica_brand_themes_(light|dark)_/)
-    expect(css).toMatch(/var\(--recursica_brand_palettes_/)
+    // Root holds all specific names; blocks only alias. Theme blocks reference root vars.
+    expect(css).toMatch(/var\(--recursica_brand_(palettes|themes)_/)
+    expect(css).toMatch(/\[data-recursica-theme="light"\][\s\S]*?--recursica_brand_[^:]+:\s*var\(--recursica_/)
+    expect(css).toMatch(/\[data-recursica-theme="dark"\][\s\S]*?--recursica_brand_[^:]+:\s*var\(--recursica_/)
   })
 
   it('percentage unit outputs as % not literal "percentage"', () => {
@@ -93,8 +95,9 @@ describe('recursicaJsonTransform (Scoped)', () => {
   it('theme blocks include layer-0 vars so theme-only implies layer-0 by default', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
-    const lightBlock = css.match(/\[data-recursica-theme="light"\][\s\S]*?^}/m)?.[0] ?? ''
-    const darkBlock = css.match(/\[data-recursica-theme="dark"\][\s\S]*?^}/m)?.[0] ?? ''
+    // Match theme-only block (selector followed by {), not theme+layer selector
+    const lightBlock = css.match(/\[data-recursica-theme="light"\]\s*\{[\s\S]*?^}/m)?.[0] ?? ''
+    const darkBlock = css.match(/\[data-recursica-theme="dark"\]\s*\{[\s\S]*?^}/m)?.[0] ?? ''
     expect(lightBlock).toMatch(/--recursica_brand_layer_0_/)
     expect(darkBlock).toMatch(/--recursica_brand_layer_0_/)
   })
@@ -104,5 +107,14 @@ describe('recursicaJsonTransform (Scoped)', () => {
     const css = result[0].contents
     expect(css).toMatch(/--recursica_brand_layer_0_elements_interactive_tone\b/)
     expect(css).toMatch(/--recursica_brand_layer_0_elements_interactive_on-tone\b/)
+  })
+
+  it('includes typography helper classes from brand.typography with path-based names', () => {
+    const result = recursicaJsonTransform(json)
+    const css = result[0].contents
+    expect(css).toMatch(/typography helper classes/i)
+    expect(css).toMatch(/\.recursica_brand_typography_h1\s*\{/)
+    expect(css).toMatch(/\.recursica_brand_typography_body\s*\{/)
+    expect(css).toMatch(/recursica_brand_typography_body-small/)
   })
 })

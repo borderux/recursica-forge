@@ -90,7 +90,7 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     let tokenValue = value
     if (value.startsWith('var(--recursica-brand-themes-')) {
         // Extract: var(--recursica-brand-themes-light-palettes-palette-1-500-tone)
-        // Convert to: {brand.themes.light.palettes.palette-1.500.tone}
+        // Convert to: {brand.themes.light.palettes.palette-1.500.color.tone}
         const varMatch = value.match(/var\(--recursica-brand-themes-(.+)\)/)
         if (varMatch) {
             // Don't blindly replace all hyphens - need to be smarter
@@ -115,12 +115,16 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
                     // palette-1, palette-2, etc.
                     tokenParts.push(`${part}-${parts[i + 1]}`)
                     i += 2
+                } else if (/^\d+$/.test(part) && i + 2 < parts.length && parts[i + 1] === 'on' && parts[i + 2] === 'tone') {
+                    // 500-on-tone -> 500.color.on-tone
+                    tokenParts.push(`${part}.color.on-tone`)
+                    i += 3
                 } else if (/^\d+$/.test(part) && i + 1 < parts.length && parts[i + 1] === 'tone') {
-                    // 500-tone, 100-tone, etc.
-                    tokenParts.push(`${part}.tone`)
+                    // 500-tone -> 500.color.tone
+                    tokenParts.push(`${part}.color.tone`)
                     i += 2
                 } else if (/^\d+$/.test(part) && i + 1 < parts.length && parts[i + 1] === 'color') {
-                    // 500-color
+                    // 500-color (standalone, not followed by tone)
                     tokenParts.push(`${part}.color`)
                     i += 2
                 } else {

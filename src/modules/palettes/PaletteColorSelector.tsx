@@ -572,6 +572,7 @@ export default function PaletteColorSelector({
                 root[modeKey].palettes[paletteKey][lvl].color = {}
               }
               root[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
+                $type: 'color',
                 $value: `{brand.palettes.${onToneCore}}`
               }
             }
@@ -760,6 +761,7 @@ export default function PaletteColorSelector({
 
           // Update tone to reference the new family token
           targetRoot[modeKey].palettes[paletteKey][lvl].color.tone = {
+            $type: 'color',
             $value: tokenRef
           }
 
@@ -788,7 +790,8 @@ export default function PaletteColorSelector({
             const onToneCore = pickOnToneWithOpacity(hex, modeLabel)
             // Update on-tone to reference the correct core color (white or black)
             // Use short alias format (no theme path)
-            targetRoot[modeKey].palettes[paletteKey][lvl]['on-tone'] = {
+            targetRoot[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
+              $type: 'color',
               $value: `{brand.palettes.${onToneCore}}`
             }
           }
