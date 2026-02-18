@@ -108,4 +108,13 @@ describe('recursicaJsonTransform (Scoped)', () => {
     expect(css).toMatch(/--recursica_brand_layer_0_elements_interactive_tone\b/)
     expect(css).toMatch(/--recursica_brand_layer_0_elements_interactive_on-tone\b/)
   })
+
+  it('includes typography helper classes from brand.typography with path-based names', () => {
+    const result = recursicaJsonTransform(json)
+    const css = result[0].contents
+    expect(css).toMatch(/typography helper classes/i)
+    expect(css).toMatch(/\.recursica_brand_typography_h1\s*\{/)
+    expect(css).toMatch(/\.recursica_brand_typography_body\s*\{/)
+    expect(css).toMatch(/recursica_brand_typography_body-small/)
+  })
 })

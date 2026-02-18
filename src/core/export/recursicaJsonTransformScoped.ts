@@ -15,6 +15,18 @@ const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
 const TRANSFORM_VERSION = '1.1.0'
 
+/** Maps brand.typography $value keys (camelCase) to CSS property names. */
+const TYPOGRAPHY_JSON_TO_CSS_PROP: Record<string, string> = {
+  fontFamily: 'font-family',
+  fontSize: 'font-size',
+  fontWeight: 'font-weight',
+  fontStyle: 'font-style',
+  letterSpacing: 'letter-spacing',
+  lineHeight: 'line-height',
+  textCase: 'text-transform',
+  textDecoration: 'text-decoration'
+}
+
 /** Output file from the transform. */
 export type ExportFile = { filename: string; contents: string }
 
@@ -678,9 +690,34 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
   return [{ filename: FILENAME, contents: css }]
 }
 
+const BRAND_TYPOGRAPHY_VAR_PREFIX = PREFIX + 'brand_typography_'
+
 /**
- * Builds the final CSS string: :root (all specific vars), then theme and theme+layer blocks (aliases only).
- * See docs/SCOPED_CSS_ARCHITECTURE.md.
+ * Collects typography types from root vars: each key like --recursica_brand_typography_<typeName>_<property>
+ * is grouped by typeName. Returns a map of type name to list of { cssProp, varName } for building helper classes.
+ */
+function collectTypographyHelpers(
+  rootVarsMap: Map<string, string>
+): Map<string, Array<{ cssProp: string; varName: string }>> {
+  const byType = new Map<string, Array<{ cssProp: string; varName: string }>>()
+  for (const varName of rootVarsMap.keys()) {
+    if (!varName.startsWith(BRAND_TYPOGRAPHY_VAR_PREFIX)) continue
+    const rest = varName.slice(BRAND_TYPOGRAPHY_VAR_PREFIX.length)
+    const segments = rest.split('_')
+    if (segments.length < 2) continue
+    const property = segments[segments.length - 1]
+    const cssProp = TYPOGRAPHY_JSON_TO_CSS_PROP[property]
+    if (!cssProp) continue
+    const typeName = segments.slice(0, -1).join('_')
+    if (!byType.has(typeName)) byType.set(typeName, [])
+    byType.get(typeName)!.push({ cssProp, varName })
+  }
+  return byType
+}
+
+/**
+ * Builds the final CSS string: :root (all specific vars), then theme and theme+layer blocks (aliases only),
+ * then typography helper classes. See docs/SCOPED_CSS_ARCHITECTURE.md.
  */
 function formatScopedCss(
   rootVarsMap: Map<string, string>,
@@ -731,12 +768,20 @@ function formatScopedCss(
   css += ` *    --recursica_brand_layer_N_* only when you need layer surface/border/elevation directly\n`
   css += ` *    (e.g. for a Layer container).\n`
   css += ` *\n`
+  css += ` * 6. Optional: use typography helper classes for type styles\n`
+  css += ` *    Classes like .recursica_brand_typography_h1 and .recursica_brand_typography_body apply the\n`
+  css += ` *    full type definition (family, size, weight, line-height, etc.) from brand.typography.\n`
+  css += ` *    Class names follow the path: brand.typography.<typeName>.\n`
+  css += ` *\n`
   css += ` * --- How this file is structured ---\n`
   css += ` * :root defines every variable with a specific (full-path) name so every reference resolves.\n`
   css += ` * Theme and theme+layer blocks ([data-recursica-theme="light"], [data-recursica-theme="light"][data-recursica-layer="1"], etc.)\n`
   css += ` * define only generic names that alias to those root variables. Components use the generic names;\n`
   css += ` * the block that matches the element (via theme and layer on ancestors) determines which root\n`
   css += ` * value that generic name resolves to.\n`
+  css += ` * At the end, typography helper classes (e.g. .recursica_brand_typography_h1, .recursica_brand_typography_body)\n`
+  css += ` * are provided for each type in brand.typography. Apply one class to get the full type style.\n`
+  css += ` * Class names follow the path: brand.typography.<typeName> → .recursica_brand_typography_<typeName>.\n`
   css += ` *\n`
   css += ` * --- WARNING ---\n`
   css += ` * This file is auto-generated. Do not modify it or override its variables in your app.\n`
@@ -783,6 +828,28 @@ function formatScopedCss(
       css += `  ${genericName}: var(${rootName});\n`
     }
     css += `}\n\n`
+  }
+
+  /* Typography helper classes (utils): one class per brand.typography type, following path naming. */
+  const typographyHelpers = collectTypographyHelpers(rootVarsMap)
+  if (typographyHelpers.size > 0) {
+    const classPrefix = 'recursica_brand_typography_'
+    css += `/* --- Typography helper classes ---\n`
+    css += ` * One class per type in brand.typography. Apply the class to get the full type style\n`
+    css += ` * (family, size, weight, line-height, etc.) from your design tokens. Class names follow\n`
+    css += ` * the path: brand.typography.<typeName> → .recursica_brand_typography_<typeName>\n */\n\n`
+    const sortedTypes = [...typographyHelpers.keys()].sort((a, b) => a.localeCompare(b))
+    for (const typeName of sortedTypes) {
+      const props = typographyHelpers.get(typeName)!
+      const className = '.' + classPrefix + typeName
+      css += `/* Typography style "${typeName}" (brand.typography.${typeName}): applies full type definition.\n`
+      css += ` * Generated so you can use one class instead of referencing each variable separately. */\n`
+      css += `${className} {\n`
+      for (const { cssProp, varName } of props.sort((a, b) => a.cssProp.localeCompare(b.cssProp))) {
+        css += `  ${cssProp}: var(${varName});\n`
+      }
+      css += `}\n\n`
+    }
   }
 
   return css
