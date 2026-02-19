@@ -49,15 +49,15 @@ export default function IconGroupToolbar({
 
   // Find icon-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
-  
+
   const iconSizeProp = useMemo(() => {
     return structure.props.find(p => {
       const propNameLower = p.name.toLowerCase()
       // Handle variations: "icon-size", "icon", "leading-icon-size", "close-icon-size"
-      if (propNameLower !== sizePropName.toLowerCase() && 
-          propNameLower !== 'icon-size' && 
-          propNameLower !== 'icon' &&
-          !propNameLower.includes('icon-size')) {
+      if (propNameLower !== sizePropName.toLowerCase() &&
+        propNameLower !== 'icon-size' &&
+        propNameLower !== 'icon' &&
+        !propNameLower.includes('icon-size')) {
         return false
       }
       // Prefer exact match, but also accept any icon-size variant
@@ -77,9 +77,9 @@ export default function IconGroupToolbar({
     return structure.props.find(p => {
       const propNameLower = p.name.toLowerCase()
       // Handle variations: "icon-text-gap", "icon-text-gap", "spacing"
-      if (propNameLower !== gapPropName.toLowerCase() && 
-          propNameLower !== 'icon-text-gap' && 
-          propNameLower !== 'spacing') {
+      if (propNameLower !== gapPropName.toLowerCase() &&
+        propNameLower !== 'icon-text-gap' &&
+        propNameLower !== 'spacing') {
         return false
       }
       if (p.isVariantSpecific && p.variantProp) {
@@ -91,10 +91,24 @@ export default function IconGroupToolbar({
     })
   }, [structure, gapPropName, selectedVariants])
 
+  // Find close-icon-size prop
+  const closeIconSizeProp = useMemo(() => {
+    return structure.props.find(p => {
+      const propNameLower = p.name.toLowerCase()
+      if (propNameLower !== 'close-icon-size') return false
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (!selectedVariant) return false
+        if (!p.path.includes(selectedVariant)) return false
+      }
+      return true
+    })
+  }, [structure, selectedVariants])
+
   // Find color props if enabled
   const iconColorProps = useMemo(() => {
     if (!includeColors || colorProps.length === 0) return []
-    
+
     return colorProps.map(colorPropName => {
       return structure.props.find(p => {
         if (p.name.toLowerCase() !== colorPropName.toLowerCase()) return false
@@ -114,12 +128,14 @@ export default function IconGroupToolbar({
   // Get CSS variables
   const iconSizeVar = iconSizeProp?.cssVar || ''
   const iconGapVar = iconGapProp?.cssVar || ''
+  const closeIconSizeVar = closeIconSizeProp?.cssVar || ''
 
   // Check visibility from toolbar config
   const iconSizeVisible = groupedPropsConfig?.['icon-size']?.visible !== false ||
-                          groupedPropsConfig?.['icon']?.visible !== false
+    groupedPropsConfig?.['icon']?.visible !== false
   const iconGapVisible = groupedPropsConfig?.['icon-text-gap']?.visible !== false ||
-                         groupedPropsConfig?.['spacing']?.visible !== false
+    groupedPropsConfig?.['spacing']?.visible !== false
+  const closeIconSizeVisible = groupedPropsConfig?.['close-icon-size']?.visible !== false
 
   return (
     <div className="icon-group-toolbar">
@@ -128,6 +144,16 @@ export default function IconGroupToolbar({
           <BrandDimensionSliderInline
             targetCssVar={iconSizeVar}
             label="Icon size"
+            dimensionCategory="icons"
+            layer="layer-1"
+          />
+        </div>
+      )}
+      {closeIconSizeVar && closeIconSizeVisible && (
+        <div className="icon-group-control">
+          <BrandDimensionSliderInline
+            targetCssVar={closeIconSizeVar}
+            label={groupedPropsConfig?.['close-icon-size']?.label || 'Remove icon size'}
             dimensionCategory="icons"
             layer="layer-1"
           />
@@ -151,7 +177,7 @@ export default function IconGroupToolbar({
             <PaletteColorControl
               targetCssVar={colorProp.cssVar}
               currentValueCssVar={colorProp.cssVar}
-              label={colorProp.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              label={groupedPropsConfig?.[colorPropName]?.label || colorProp.name.replace(/-/g, ' ').replace(/^\w/, l => l.toUpperCase())}
             />
           </div>
         ) : null

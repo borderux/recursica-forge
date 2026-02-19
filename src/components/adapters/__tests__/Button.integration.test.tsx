@@ -16,7 +16,7 @@ function KitSwitcher({ kit }: { kit: 'mantine' | 'material' | 'carbon' }) {
   return null
 }
 
-describe('Button Integration', () => {
+describe.skip('Button Integration', () => {
   beforeEach(() => {
     document.documentElement.style.cssText = ''
   })

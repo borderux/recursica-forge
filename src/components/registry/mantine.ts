@@ -71,6 +71,12 @@ registerComponent('mantine', 'Tooltip', () => import('../adapters/mantine/Toolti
 // ReadOnlyField
 registerComponent('mantine', 'ReadOnlyField', () => import('../adapters/mantine/ReadOnlyField/ReadOnlyField'))
 
+// FileInput
+registerComponent('mantine', 'FileInput', () => import('../adapters/mantine/FileInput/FileInput'))
+
+// FileUpload
+registerComponent('mantine', 'FileUpload', () => import('../adapters/mantine/FileUpload/FileUpload'))
+
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))
 // registerComponent('mantine', 'TextField', () => import('../../adapters/mantine/TextField'))

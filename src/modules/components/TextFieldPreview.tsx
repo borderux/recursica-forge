@@ -19,7 +19,6 @@ export default function TextFieldPreview({
 
   // Extract variants from selectedVariants
   const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
-  const layout = (selectedVariants.layouts || 'stacked') as 'stacked' | 'side-by-side'
 
   // Get form vertical gutter CSS variable
   const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
@@ -28,10 +27,8 @@ export default function TextFieldPreview({
   const SmileyIcon = iconNameToReactComponent('star')
   const HeartIcon = iconNameToReactComponent('warning')
 
-  // Show both layouts if no specific layout is selected, otherwise show selected layout
-  const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts
-    ? [layout]
-    : ['stacked', 'side-by-side']
+  // Show both layouts
+  const layoutsToShow: Array<'stacked' | 'side-by-side'> = ['stacked', 'side-by-side']
 
   const h2Style = {
     margin: 0,
