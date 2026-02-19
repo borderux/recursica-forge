@@ -1,0 +1,139 @@
+{
+    "props": {
+        "colors": {
+            "icon": "paint-bucket",
+            "label": "Colors",
+            "visible": true,
+            "group": {
+                "background": {
+                    "icon": "paint-bucket",
+                    "label": "Background",
+                    "visible": true
+                },
+                "title": {
+                    "icon": "text-aa",
+                    "label": "Title color",
+                    "visible": true
+                },
+                "content": {
+                    "icon": "text-aa",
+                    "label": "Content color",
+                    "visible": true
+                },
+                "border-color": {
+                    "icon": "paint-brush-broad",
+                    "label": "Border color",
+                    "visible": true
+                }
+            }
+        },
+        "border": {
+            "icon": "frame-corners",
+            "label": "Border",
+            "visible": true,
+            "group": {
+                "border-size": {
+                    "icon": "rows",
+                    "label": "Size",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        8
+                    ],
+                    "step": 1
+                },
+                "border-radius": {
+                    "icon": "corners-out",
+                    "label": "Corner radius",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        48
+                    ],
+                    "step": 4
+                }
+            }
+        },
+        "padding": {
+            "icon": "square-logo",
+            "label": "Padding",
+            "visible": true,
+            "group": {
+                "horizontal-padding": {
+                    "icon": "arrows-left-right",
+                    "label": "Horizontal",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        80
+                    ],
+                    "step": 4
+                },
+                "vertical-padding": {
+                    "icon": "arrows-up-down",
+                    "label": "Vertical",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        80
+                    ],
+                    "step": 4
+                }
+            }
+        },
+        "header-text": {
+            "icon": "text-aa",
+            "label": "Header text",
+            "visible": true
+        },
+        "header-content-gap": {
+            "icon": "split-horizontal",
+            "label": "Header content gap",
+            "visible": true,
+            "propertyType": "slider",
+            "range": [
+                0,
+                40
+            ],
+            "step": 4
+        },
+        "widths": {
+            "icon": "arrows-in-line-horizontal",
+            "label": "Sizes",
+            "visible": true,
+            "group": {
+                "min-width": {
+                    "icon": "arrows-in-line-horizontal",
+                    "label": "Min width",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        100,
+                        800
+                    ],
+                    "step": 8
+                },
+                "max-width": {
+                    "icon": "arrows-out-line-horizontal",
+                    "label": "Max width",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        200,
+                        2000
+                    ],
+                    "step": 8
+                }
+            }
+        },
+        "elevation": {
+            "icon": "copy-simple",
+            "label": "Elevation",
+            "visible": true
+        }
+    }
+}
