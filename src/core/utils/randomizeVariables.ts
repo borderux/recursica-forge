@@ -1256,10 +1256,12 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
             const level = palette[levelKey]
             if (level && typeof level === 'object' && level.color) {
               if (level.color.tone) {
+                level.color.tone.$type = 'color'
                 level.color.tone.$value = `{tokens.colors.${assignedScale}.${levelKey}}`
               }
               // Set all on-tone values to the same random token from the assigned scale
               if (level.color['on-tone']) {
+                level.color['on-tone'].$type = 'color'
                 level.color['on-tone'].$value = onToneToken
               }
             }
