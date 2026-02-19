@@ -8,8 +8,10 @@
 
 import { Paper, Box } from '@mantine/core'
 import { useState, useEffect } from 'react'
+import { X } from '@phosphor-icons/react'
+import { Button } from '../../Button'
 import type { PanelProps as AdapterPanelProps } from '../../Panel'
-import { getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -22,6 +24,7 @@ export default function Panel({
     position = 'right',
     layer = 'layer-0',
     elevation,
+    onClose,
     className,
     style,
     mantine,
@@ -34,46 +37,34 @@ export default function Panel({
     const borderColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.border-color`)
     const titleColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.title`)
     const contentColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.content`)
+    const dividerColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.divider-color`)
+    const hfBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.header-footer-background`)
 
     // Build CSS variable names for component-level props
+    const borderRadiusVar = getComponentLevelCssVar('Panel', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Panel', 'border-size')
-    const horizontalPaddingVar = getComponentLevelCssVar('Panel', 'horizontal-padding')
-    const verticalPaddingVar = getComponentLevelCssVar('Panel', 'vertical-padding')
-    const headerContentGapVar = getComponentLevelCssVar('Panel', 'header-content-gap')
+    const hfHPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-horizontal-padding')
+    const hfVPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-vertical-padding')
+    const contentHPaddingVar = getComponentLevelCssVar('Panel', 'content-horizontal-padding')
+    const contentVPaddingVar = getComponentLevelCssVar('Panel', 'content-vertical-padding')
+    const headerCloseGapVar = getComponentLevelCssVar('Panel', 'header-close-gap')
+    const footerButtonGapVar = getComponentLevelCssVar('Panel', 'footer-button-gap')
+    const dividerThicknessVar = getComponentLevelCssVar('Panel', 'divider-thickness')
     const minWidthVar = getComponentLevelCssVar('Panel', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Panel', 'max-width')
 
-    // Text properties for header
-    const headerFontFamilyVar = getComponentTextCssVar('Panel', 'header-text', 'font-family')
-    const headerFontSizeVar = getComponentTextCssVar('Panel', 'header-text', 'font-size')
-    const headerFontWeightVar = getComponentTextCssVar('Panel', 'header-text', 'font-weight')
-    const headerLetterSpacingVar = getComponentTextCssVar('Panel', 'header-text', 'letter-spacing')
-    const headerLineHeightVar = getComponentTextCssVar('Panel', 'header-text', 'line-height')
-    const headerFontStyleVar = getComponentTextCssVar('Panel', 'header-text', 'font-style')
-    const headerTextDecorationVar = getComponentTextCssVar('Panel', 'header-text', 'text-decoration')
-    const headerTextTransformVar = getComponentTextCssVar('Panel', 'header-text', 'text-transform')
+    // Header style
+    const headerStyleVar = getComponentLevelCssVar('Panel', 'header-style')
 
     // Elevation variable
     const internalElevationVar = getComponentLevelCssVar('Panel', 'elevation')
 
-    // State to force re-renders when text CSS variables change
+    // State to force re-renders when CSS variables change
     const [, setTextVarsUpdate] = useState(0)
 
     useEffect(() => {
-        const textCssVars = [
-            headerFontFamilyVar, headerFontSizeVar, headerFontWeightVar,
-            headerLetterSpacingVar, headerLineHeightVar, headerFontStyleVar,
-            headerTextDecorationVar, headerTextTransformVar,
-            internalElevationVar
-        ]
-
-        const handleCssVarUpdate = (e: Event) => {
-            const detail = (e as CustomEvent).detail
-            const shouldUpdate = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
-
-            if (shouldUpdate) {
-                setTextVarsUpdate(prev => prev + 1)
-            }
+        const handleCssVarUpdate = () => {
+            setTextVarsUpdate(prev => prev + 1)
         }
 
         window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
@@ -91,16 +82,25 @@ export default function Panel({
             window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
             observer.disconnect()
         }
-    }, [headerFontFamilyVar, headerFontSizeVar, headerFontWeightVar, headerLetterSpacingVar, headerLineHeightVar, headerFontStyleVar, headerTextDecorationVar, headerTextTransformVar, internalElevationVar])
+    }, [])
 
     // Get elevation value (either from prop or from CSS variable)
     const activeElevation = elevation || parseElevationValue(readCssVar(internalElevationVar))
     const elevationBoxShadow = getElevationBoxShadow(mode, activeElevation)
 
-    // Determine border based on position
+    // Determine border and border-radius based on position
     const borderStyle = position === 'right'
-        ? { borderLeft: `var(${borderSizeVar}) solid var(${borderColorVar})` }
-        : { borderRight: `var(${borderSizeVar}) solid var(${borderColorVar})` }
+        ? {
+            borderLeft: `var(${borderSizeVar}) solid var(${borderColorVar})`,
+            borderRadius: `var(${borderRadiusVar}) 0 0 var(${borderRadiusVar})`,
+        }
+        : {
+            borderRight: `var(${borderSizeVar}) solid var(${borderColorVar})`,
+            borderRadius: `0 var(${borderRadiusVar}) var(${borderRadiusVar}) 0`,
+        }
+
+    // Get header style value
+    const headerStyleValue = readCssVar(headerStyleVar) || 'h3'
 
     // CSS custom properties for the component
     const panelStyles = {
@@ -108,20 +108,18 @@ export default function Panel({
         '--panel-border-color': `var(${borderColorVar})`,
         '--panel-title-color': `var(${titleColorVar})`,
         '--panel-content-color': `var(${contentColorVar})`,
+        '--panel-hf-bg': `var(${hfBgVar})`,
         '--panel-border-size': `var(${borderSizeVar})`,
-        '--panel-padding-x': `var(${horizontalPaddingVar})`,
-        '--panel-padding-y': `var(${verticalPaddingVar})`,
-        '--panel-header-content-gap': `var(${headerContentGapVar})`,
+        '--panel-hf-padding-x': `var(${hfHPaddingVar})`,
+        '--panel-hf-padding-y': `var(${hfVPaddingVar})`,
+        '--panel-content-padding-x': `var(${contentHPaddingVar})`,
+        '--panel-content-padding-y': `var(${contentVPaddingVar})`,
+        '--panel-header-close-gap': `var(${headerCloseGapVar})`,
+        '--panel-footer-button-gap': `var(${footerButtonGapVar})`,
+        '--panel-divider-color': `var(${dividerColorVar})`,
+        '--panel-divider-thickness': `var(${dividerThicknessVar})`,
         '--panel-min-width': `var(${minWidthVar})`,
         '--panel-max-width': `var(${maxWidthVar})`,
-        '--panel-header-font-family': `var(${headerFontFamilyVar})`,
-        '--panel-header-font-size': `var(${headerFontSizeVar})`,
-        '--panel-header-font-weight': `var(${headerFontWeightVar})`,
-        '--panel-header-letter-spacing': `var(${headerLetterSpacingVar})`,
-        '--panel-header-line-height': `var(${headerLineHeightVar})`,
-        '--panel-header-font-style': `var(${headerFontStyleVar})`,
-        '--panel-header-text-decoration': `var(${headerTextDecorationVar})`,
-        '--panel-header-text-transform': `var(${headerTextTransformVar})`,
         ...style,
     } as React.CSSProperties
 
@@ -133,14 +131,14 @@ export default function Panel({
             p={0}
             style={{
                 ...panelStyles,
-                backgroundColor: 'var(--panel-bg)',
                 ...borderStyle,
-                minWidth: 'var(--panel-min-width)',
-                maxWidth: 'var(--panel-max-width)',
-                height: '100%',
+                background: 'var(--panel-bg)',
+                boxShadow: elevationBoxShadow || 'none',
                 display: 'flex',
                 flexDirection: 'column',
-                boxShadow: elevationBoxShadow || 'none',
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
             }}
             {...mantine}
             {...props}
@@ -149,39 +147,59 @@ export default function Panel({
                 <Box
                     className="recursica-panel-header"
                     style={{
-                        padding: 'var(--panel-padding-y) var(--panel-padding-x)',
-                        borderBottom: `var(--panel-border-size) solid var(--panel-border-color)`,
+                        padding: 'var(--panel-hf-padding-y) var(--panel-hf-padding-x)',
+                        borderBottom: `var(--panel-divider-thickness) solid var(--panel-divider-color)`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
+                        gap: 'var(--panel-header-close-gap)',
                         flexShrink: 0,
+                        background: 'var(--panel-hf-bg)',
                     }}
                 >
                     <span style={{
                         color: 'var(--panel-title-color)',
-                        fontFamily: 'var(--panel-header-font-family)',
-                        fontSize: 'var(--panel-header-font-size)',
-                        fontWeight: 'var(--panel-header-font-weight)',
-                        letterSpacing: 'var(--panel-header-letter-spacing)',
-                        lineHeight: 'var(--panel-header-line-height)',
-                        fontStyle: 'var(--panel-header-font-style)',
-                        textDecoration: 'var(--panel-header-text-decoration)',
-                        textTransform: 'var(--panel-header-text-transform)',
+                        fontFamily: `var(--recursica-brand-typography-${headerStyleValue}-font-family)`,
+                        fontSize: `var(--recursica-brand-typography-${headerStyleValue}-font-size)`,
+                        fontWeight: `var(--recursica-brand-typography-${headerStyleValue}-font-weight)`,
+                        letterSpacing: `var(--recursica-brand-typography-${headerStyleValue}-letter-spacing)`,
+                        lineHeight: `var(--recursica-brand-typography-${headerStyleValue}-line-height)`,
+                        fontStyle: `var(--recursica-brand-typography-${headerStyleValue}-font-style)`,
+                        textDecoration: 'none',
+                        textTransform: `var(--recursica-brand-typography-${headerStyleValue}-text-transform)`,
                         flex: 1,
                         minWidth: 0,
-                        overflow: 'hidden',
+                        overflow: 'clip',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
+                        paddingBottom: '0.15em',
                     } as any}>
                         {title}
                     </span>
+                    {onClose && (
+                        <Button
+                            variant="text"
+                            layer={layer}
+                            onClick={onClose}
+                            style={{
+                                padding: 0,
+                                minWidth: 0,
+                                width: 24,
+                                height: 24,
+                                '--button-icon-size': '16px',
+                                '--button-padding': '0px',
+                                '--button-padding-x': '0px'
+                            } as any}
+                            icon={<X size={16} />}
+                        />
+                    )}
                 </Box>
             )}
             <Box
                 className="recursica-panel-body"
                 style={{
                     color: 'var(--panel-content-color)',
-                    padding: 'var(--panel-padding-y) var(--panel-padding-x)',
+                    padding: 'var(--panel-content-padding-y) var(--panel-content-padding-x)',
                     flex: 1,
                     overflowY: 'auto',
                 }}
@@ -192,9 +210,10 @@ export default function Panel({
                 <Box
                     className="recursica-panel-footer"
                     style={{
-                        padding: 'var(--panel-padding-y) var(--panel-padding-x)',
-                        borderTop: `var(--panel-border-size) solid var(--panel-border-color)`,
+                        padding: 'var(--panel-hf-padding-y) var(--panel-hf-padding-x)',
+                        borderTop: `var(--panel-divider-thickness) solid var(--panel-divider-color)`,
                         flexShrink: 0,
+                        background: 'var(--panel-hf-bg)',
                     }}
                 >
                     {footer}

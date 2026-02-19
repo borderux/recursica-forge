@@ -1,8 +1,8 @@
 {
     "props": {
-        "colors": {
+        "content": {
             "icon": "paint-bucket",
-            "label": "Colors",
+            "label": "Content",
             "visible": true,
             "group": {
                 "background": {
@@ -10,20 +10,119 @@
                     "label": "Background",
                     "visible": true
                 },
+                "content-horizontal-padding": {
+                    "icon": "arrows-left-right",
+                    "label": "Horizontal padding",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        80
+                    ],
+                    "step": 4
+                },
+                "content-vertical-padding": {
+                    "icon": "arrows-up-down",
+                    "label": "Vertical padding",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        80
+                    ],
+                    "step": 4
+                }
+            }
+        },
+        "header-footer": {
+            "icon": "rows",
+            "label": "Header and footer",
+            "visible": true,
+            "group": {
+                "header-footer-background": {
+                    "icon": "paint-bucket",
+                    "label": "Background",
+                    "visible": true
+                },
                 "title": {
                     "icon": "text-aa",
-                    "label": "Title color",
+                    "label": "Header color",
                     "visible": true
                 },
-                "content": {
+                "header-style": {
                     "icon": "text-aa",
-                    "label": "Content color",
-                    "visible": true
+                    "label": "Header style",
+                    "visible": true,
+                    "options": [
+                        {
+                            "label": "Heading 1",
+                            "value": "h1"
+                        },
+                        {
+                            "label": "Heading 2",
+                            "value": "h2"
+                        },
+                        {
+                            "label": "Heading 3",
+                            "value": "h3"
+                        },
+                        {
+                            "label": "Heading 4",
+                            "value": "h4"
+                        },
+                        {
+                            "label": "Heading 5",
+                            "value": "h5"
+                        },
+                        {
+                            "label": "Heading 6",
+                            "value": "h6"
+                        }
+                    ]
                 },
-                "border-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Border color",
-                    "visible": true
+                "header-footer-horizontal-padding": {
+                    "icon": "arrows-left-right",
+                    "label": "Horizontal padding",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        80
+                    ],
+                    "step": 4
+                },
+                "header-footer-vertical-padding": {
+                    "icon": "arrows-up-down",
+                    "label": "Vertical padding",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        80
+                    ],
+                    "step": 4
+                },
+                "header-close-gap": {
+                    "icon": "split-horizontal",
+                    "label": "Header close gap",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        40
+                    ],
+                    "step": 4
+                },
+                "footer-button-gap": {
+                    "icon": "split-horizontal",
+                    "label": "Footer button gap",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        40
+                    ],
+                    "step": 4
                 }
             }
         },
@@ -32,6 +131,11 @@
             "label": "Border",
             "visible": true,
             "group": {
+                "border-color": {
+                    "icon": "paint-brush-broad",
+                    "label": "Border color",
+                    "visible": true
+                },
                 "border-size": {
                     "icon": "rows",
                     "label": "Size",
@@ -56,50 +160,28 @@
                 }
             }
         },
-        "padding": {
-            "icon": "square-logo",
-            "label": "Padding",
+        "dividers": {
+            "icon": "minus",
+            "label": "Dividers",
             "visible": true,
             "group": {
-                "horizontal-padding": {
-                    "icon": "arrows-left-right",
-                    "label": "Horizontal",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        80
-                    ],
-                    "step": 4
+                "divider-color": {
+                    "icon": "paint-brush-broad",
+                    "label": "Divider color",
+                    "visible": true
                 },
-                "vertical-padding": {
-                    "icon": "arrows-up-down",
-                    "label": "Vertical",
+                "divider-thickness": {
+                    "icon": "rows",
+                    "label": "Divider thickness",
                     "visible": true,
                     "propertyType": "slider",
                     "range": [
                         0,
-                        80
+                        8
                     ],
-                    "step": 4
+                    "step": 1
                 }
             }
-        },
-        "header-text": {
-            "icon": "text-aa",
-            "label": "Header text",
-            "visible": true
-        },
-        "header-content-gap": {
-            "icon": "split-horizontal",
-            "label": "Header content gap",
-            "visible": true,
-            "propertyType": "slider",
-            "range": [
-                0,
-                40
-            ],
-            "step": 4
         },
         "widths": {
             "icon": "arrows-in-line-horizontal",

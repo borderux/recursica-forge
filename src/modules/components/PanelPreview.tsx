@@ -3,7 +3,7 @@ import { Panel } from '../../components/adapters/Panel'
 import { Button } from '../../components/adapters/Button'
 import { X } from '@phosphor-icons/react'
 import { Group } from '@mantine/core'
-import { getComponentLevelCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
+import { getComponentLevelCssVar } from '../../components/utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { getElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -54,25 +54,26 @@ export default function PanelPreview({
 
     // CSS variable names for the static preview
     const bgVar = getComponentLevelCssVar('Panel', `colors.${layer}.background`)
+    const hfBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.header-footer-background`)
     const borderColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.border-color`)
+    const dividerColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.divider-color`)
     const titleColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.title`)
     const contentColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.content`)
 
+    const borderRadiusVar = getComponentLevelCssVar('Panel', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Panel', 'border-size')
-    const horizontalPaddingVar = getComponentLevelCssVar('Panel', 'horizontal-padding')
-    const verticalPaddingVar = getComponentLevelCssVar('Panel', 'vertical-padding')
-    const headerContentGapVar = getComponentLevelCssVar('Panel', 'header-content-gap')
+    const dividerThicknessVar = getComponentLevelCssVar('Panel', 'divider-thickness')
+    const hfHPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-horizontal-padding')
+    const hfVPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-vertical-padding')
+    const contentHPaddingVar = getComponentLevelCssVar('Panel', 'content-horizontal-padding')
+    const contentVPaddingVar = getComponentLevelCssVar('Panel', 'content-vertical-padding')
+    const headerCloseGapVar = getComponentLevelCssVar('Panel', 'header-close-gap')
+    const footerButtonGapVar = getComponentLevelCssVar('Panel', 'footer-button-gap')
     const minWidthVar = getComponentLevelCssVar('Panel', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Panel', 'max-width')
 
-    const headerFontFamilyVar = getComponentTextCssVar('Panel', 'header-text', 'font-family')
-    const headerFontSizeVar = getComponentTextCssVar('Panel', 'header-text', 'font-size')
-    const headerFontWeightVar = getComponentTextCssVar('Panel', 'header-text', 'font-weight')
-    const headerLetterSpacingVar = getComponentTextCssVar('Panel', 'header-text', 'letter-spacing')
-    const headerLineHeightVar = getComponentTextCssVar('Panel', 'header-text', 'line-height')
-    const headerFontStyleVar = getComponentTextCssVar('Panel', 'header-text', 'font-style')
-    const headerTextDecorationVar = getComponentTextCssVar('Panel', 'header-text', 'text-decoration')
-    const headerTextTransformVar = getComponentTextCssVar('Panel', 'header-text', 'text-transform')
+    const headerStyleVar = getComponentLevelCssVar('Panel', 'header-style')
+    const headerStyleValue = readCssVar(headerStyleVar) || 'h3'
 
     const elevationVar = getComponentLevelCssVar('Panel', 'elevation')
     const elevationName = readCssVar(elevationVar) || componentElevation
@@ -80,19 +81,20 @@ export default function PanelPreview({
 
     const headerStyle = {
         color: `var(${titleColorVar})`,
-        fontFamily: `var(${headerFontFamilyVar})`,
-        fontSize: `var(${headerFontSizeVar})`,
-        fontWeight: `var(${headerFontWeightVar})`,
-        letterSpacing: `var(${headerLetterSpacingVar})`,
-        lineHeight: `var(${headerLineHeightVar})`,
-        fontStyle: `var(${headerFontStyleVar})`,
-        textDecoration: `var(${headerTextDecorationVar})`,
-        textTransform: `var(${headerTextTransformVar})`,
+        fontFamily: `var(--recursica-brand-typography-${headerStyleValue}-font-family)`,
+        fontSize: `var(--recursica-brand-typography-${headerStyleValue}-font-size)`,
+        fontWeight: `var(--recursica-brand-typography-${headerStyleValue}-font-weight)`,
+        letterSpacing: `var(--recursica-brand-typography-${headerStyleValue}-letter-spacing)`,
+        lineHeight: `var(--recursica-brand-typography-${headerStyleValue}-line-height)`,
+        fontStyle: `var(--recursica-brand-typography-${headerStyleValue}-font-style)`,
+        textDecoration: 'none',
+        textTransform: `var(--recursica-brand-typography-${headerStyleValue}-text-transform)`,
         flex: 1,
         minWidth: 0,
-        overflow: 'hidden',
+        overflow: 'clip',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
+        paddingBottom: '0.15em',
     } as any
 
     const bodyStyle = {
@@ -106,7 +108,7 @@ export default function PanelPreview({
 
     // The panel footer content
     const panelFooter = (onClose?: () => void) => (
-        <Group justify="flex-end" gap="var(--recursica-brand-dimensions-general-md)">
+        <Group justify="flex-end" gap={`var(${footerButtonGapVar})`}>
             <Button variant="text" layer={layer} onClick={onClose}>
                 Close
             </Button>
@@ -118,7 +120,7 @@ export default function PanelPreview({
 
     // The panel body content
     const panelBody = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${headerContentGapVar})`, ...bodyStyle }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)', ...bodyStyle }}>
             <p style={{ margin: 0 }}>{goblinChapter}</p>
             <p style={{ margin: 0 }}>{goblinParagraph2}</p>
             <p style={{ margin: 0 }}>{goblinParagraph3}</p>
@@ -126,7 +128,17 @@ export default function PanelPreview({
     )
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', margin: 'calc(var(--recursica-brand-dimensions-general-xl) * -1)', width: 'calc(100% + var(--recursica-brand-dimensions-general-xl) * 2)', height: 'calc(100% + var(--recursica-brand-dimensions-general-xl) * 2)' } as any}>
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            marginTop: 'calc(var(--recursica-brand-dimensions-general-md) * -1)',
+            marginRight: 'calc(var(--recursica-brand-dimensions-general-md) * -1)',
+            marginBottom: 'calc(var(--recursica-brand-dimensions-general-md) * -1)',
+            marginLeft: 'auto',
+            height: 'calc(100% + var(--recursica-brand-dimensions-general-md) * 2)',
+            alignSelf: 'stretch',
+        } as any}>
             {/* Static Preview — Right panel filling full height */}
             <div
                 key={`${updateKey}-static`}
@@ -135,31 +147,32 @@ export default function PanelPreview({
                     display: 'flex',
                     justifyContent: 'flex-end',
                     minHeight: 0,
-                    width: '100%',
                 }}
             >
                 <div style={{
                     background: `var(${bgVar})`,
                     borderLeft: `var(${borderSizeVar}) solid var(${borderColorVar})`,
+                    borderRadius: `var(${borderRadiusVar}) 0 0 var(${borderRadiusVar})`,
                     boxShadow: elevationBoxShadow || 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    minWidth: `var(${minWidthVar})`,
-                    maxWidth: `var(${maxWidthVar})`,
-                    width: '100%',
+                    width: '400px',
                     height: '100%',
+                    overflow: 'hidden',
                 }}>
                     {/* Header */}
                     <div style={{
-                        padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
+                        padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        borderBottom: `var(${borderSizeVar}) solid var(${borderColorVar})`,
+                        gap: `var(${headerCloseGapVar})`,
+                        borderBottom: `var(${dividerThicknessVar}) solid var(${dividerColorVar})`,
                         flexShrink: 0,
+                        background: `var(${hfBgVar})`,
                     }}>
                         <span style={headerStyle}>
-                            The Crystalline Abyss
+                            Right panel
                         </span>
                         <Button
                             variant="text"
@@ -179,12 +192,12 @@ export default function PanelPreview({
 
                     {/* Body */}
                     <div style={{
-                        padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
+                        padding: `var(${contentVPaddingVar}) var(${contentHPaddingVar})`,
                         flex: 1,
                         overflowY: 'auto',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: `var(${headerContentGapVar})`,
+                        gap: 'var(--recursica-brand-dimensions-general-md)',
                     }}>
                         {panelBody}
 
@@ -209,9 +222,10 @@ export default function PanelPreview({
 
                     {/* Footer */}
                     <div style={{
-                        padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
-                        borderTop: `var(${borderSizeVar}) solid var(${borderColorVar})`,
+                        padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
+                        borderTop: `var(${dividerThicknessVar}) solid var(${dividerColorVar})`,
                         flexShrink: 0,
+                        background: `var(${hfBgVar})`,
                     }}>
                         {panelFooter()}
                     </div>
@@ -226,6 +240,7 @@ export default function PanelPreview({
                         top: 0,
                         bottom: 0,
                         [activePanel]: 0,
+                        width: '400px',
                         zIndex: 1000,
                         pointerEvents: 'auto',
                     }}
