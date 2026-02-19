@@ -99,6 +99,20 @@ export default function IconGroupToolbar({
     })
   }, [structure, gapPropName, selectedVariants])
 
+  // Find close-icon-size prop
+  const closeIconSizeProp = useMemo(() => {
+    return structure.props.find(p => {
+      const propNameLower = p.name.toLowerCase()
+      if (propNameLower !== 'close-icon-size') return false
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (!selectedVariant) return false
+        if (!p.path.includes(selectedVariant)) return false
+      }
+      return true
+    })
+  }, [structure, selectedVariants])
+
   // Find color props if enabled
   const iconColorProps = useMemo(() => {
     if (!includeColors || colorProps.length === 0) return []
@@ -122,12 +136,14 @@ export default function IconGroupToolbar({
   // Get CSS variables
   const iconSizeVar = iconSizeProp?.cssVar || ''
   const iconGapVar = iconGapProp?.cssVar || ''
+  const closeIconSizeVar = closeIconSizeProp?.cssVar || ''
 
   // Check visibility from toolbar config
   const iconSizeVisible = groupedPropsConfig?.['icon-size']?.visible !== false ||
     groupedPropsConfig?.['icon']?.visible !== false
   const iconGapVisible = groupedPropsConfig?.['icon-text-gap']?.visible !== false ||
     groupedPropsConfig?.['spacing']?.visible !== false
+  const closeIconSizeVisible = groupedPropsConfig?.['close-icon-size']?.visible !== false
 
   // Get visibility and theme-agnostic CSS vars for logical icon settings
   const showIconConfig = groupedPropsConfig?.['showIcon']
@@ -234,6 +250,16 @@ export default function IconGroupToolbar({
           />
         </div>
       )}
+      {closeIconSizeVar && closeIconSizeVisible && (
+        <div className="icon-group-control">
+          <BrandDimensionSliderInline
+            targetCssVar={closeIconSizeVar}
+            label={groupedPropsConfig?.['close-icon-size']?.label || 'Remove icon size'}
+            dimensionCategory="icons"
+            layer="layer-1"
+          />
+        </div>
+      )}
       {isShowIconActive && iconGapVar && iconGapVisible && (
         <div className="icon-group-control">
           <BrandDimensionSliderInline
@@ -252,7 +278,7 @@ export default function IconGroupToolbar({
             <PaletteColorControl
               targetCssVar={colorProp.cssVar}
               currentValueCssVar={colorProp.cssVar}
-              label={colorProp.name.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              label={groupedPropsConfig?.[colorPropName]?.label || colorProp.name.replace(/-/g, ' ').replace(/^\w/, l => l.toUpperCase())}
             />
           </div>
         ) : null

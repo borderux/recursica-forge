@@ -26,6 +26,8 @@ import TabsConfig from '../configs/Tabs.toolbar.json'
 import TooltipConfig from '../configs/Tooltip.toolbar.json'
 import LinkConfig from '../configs/Link.toolbar.json'
 import ReadOnlyFieldConfig from '../configs/ReadOnlyField.toolbar.json'
+import FileInputConfig from '../configs/FileInput.toolbar.json'
+import FileUploadConfig from '../configs/FileUpload.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -116,6 +118,12 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'read only field':
       case 'readonlyfield':
         return ReadOnlyFieldConfig as unknown as ToolbarConfig
+      case 'file-input':
+      case 'file input':
+        return FileInputConfig as unknown as ToolbarConfig
+      case 'file-upload':
+      case 'file upload':
+        return FileUploadConfig as unknown as ToolbarConfig
       default:
         return null
     }

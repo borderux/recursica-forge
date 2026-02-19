@@ -3,10 +3,6 @@
     "states": {
       "icon": "diamonds-four",
       "label": "State"
-    },
-    "layouts": {
-      "icon": "layout",
-      "label": "Layout"
     }
   },
   "props": {

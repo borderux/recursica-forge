@@ -1,0 +1,23 @@
+/* Mantine FileUpload CSS Overrides */
+
+.recursica-file-upload {
+    box-sizing: border-box;
+}
+
+.recursica-file-upload-area {
+    box-sizing: border-box;
+}
+
+.recursica-file-upload-item {
+    box-sizing: border-box;
+    transition: background-color 0.2s;
+}
+
+.recursica-file-upload-item:hover {
+    filter: brightness(0.95);
+}
+
+.recursica-file-upload-item-remove:hover {
+    color: #ff4d4f;
+    /* Fallback error color */
+}

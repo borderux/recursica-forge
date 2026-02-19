@@ -53,6 +53,7 @@
   height: var(--chip-close-icon-size) !important;
   font-size: var(--chip-close-icon-size) !important;
   color: var(--chip-close-icon-color, var(--chip-icon-color, inherit)) !important;
+  margin-inline-start: var(--chip-icon-text-gap, 4px) !important;
   opacity: 0.7 !important;
 }
 
@@ -68,4 +69,3 @@
   width: 100% !important;
   height: 100% !important;
 }
-

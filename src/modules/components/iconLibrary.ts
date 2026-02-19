@@ -71,6 +71,7 @@ import {
   House,
   Info,
   Layout,
+  LineSegment,
   Link,
   List,
   MagnifyingGlass,
@@ -91,6 +92,7 @@ import {
   SignOut,
   SlidersHorizontal,
   SplitHorizontal,
+  SplitVertical,
   Square,
   SquareLogo,
   SquaresFour,
@@ -363,6 +365,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'arrows-out-line-vertical': ArrowsOutLineVertical,
   'sliders-horizontal': SlidersHorizontal,
   'faders-horizontal': FadersHorizontal,
+  'split-vertical': SplitVertical,
+  'line-segment': LineSegment,
 }
 
 /**
