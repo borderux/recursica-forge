@@ -29,18 +29,6 @@
                     "label": "Border color",
                     "visible": true,
                     "floatingPaletteLabel": "Border Color"
-                },
-                "upload-icon": {
-                    "icon": "diamond",
-                    "label": "Upload icon color",
-                    "visible": true,
-                    "floatingPaletteLabel": "Upload Icon Color"
-                },
-                "item-background": {
-                    "icon": "paint-bucket",
-                    "label": "Item background",
-                    "visible": true,
-                    "floatingPaletteLabel": "Item Background Color"
                 }
             }
         },
@@ -67,6 +55,11 @@
                 "item-gap": {
                     "icon": "split-horizontal",
                     "label": "Item gap",
+                    "visible": true
+                },
+                "list-spacing": {
+                    "icon": "stack",
+                    "label": "List spacing",
                     "visible": true
                 }
             }

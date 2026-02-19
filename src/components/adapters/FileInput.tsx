@@ -9,10 +9,11 @@
 
 import { Suspense, useState, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { buildComponentCssVarPath, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentCssVar } from '../utils/cssVarNames'
 import { Label } from './Label'
 import { AssistiveElement } from './AssistiveElement'
 import { Chip } from './Chip'
+import { Button } from './Button'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
@@ -103,6 +104,7 @@ export function FileInput({
     const iconTextGapVar = getComponentLevelCssVar('FileInput', 'icon-text-gap')
     const maxWidthVar = getComponentLevelCssVar('FileInput', 'max-width')
     const minWidthVar = getComponentLevelCssVar('FileInput', 'min-width')
+    const buttonHeightVar = getComponentCssVar('Button', 'size', 'small-height', undefined)
 
     // Get top-bottom-margin from layout variant
     const topBottomMarginVar = buildComponentCssVarPath('FileInput', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
@@ -131,6 +133,7 @@ export function FileInput({
     // Get icon components for AssistiveElement
     const HelpIcon = useMemo(() => iconNameToReactComponent('info'), [])
     const ErrorIcon = useMemo(() => iconNameToReactComponent('warning'), [])
+    const DefaultUploadIcon = useMemo(() => iconNameToReactComponent('upload'), [])
 
     // Render AssistiveElement for help or error with icons
     const assistiveElement = errorText ? (
@@ -223,12 +226,12 @@ export function FileInput({
                                     color: value ? `var(${textVar})` : `var(${textVar}, rgba(0,0,0,0.5))`,
                                     transition: 'all 0.2s',
                                     pointerEvents: 'none',
-                                    overflow: 'hidden'
+                                    overflow: 'visible'
                                 }}
                             >
                                 {(leadingIcon || true) && (
-                                    <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${leadingIconVar})` }}>
-                                        {leadingIcon || <span style={{ fontSize: '1.2em' }}>↑</span>}
+                                    <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${leadingIconVar})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {leadingIcon || (DefaultUploadIcon ? <DefaultUploadIcon width="100%" height="100%" /> : <span style={{ fontSize: '1.2em' }}>↑</span>)}
                                     </div>
                                 )}
                                 {multiple && Array.isArray(value) && value.length > 0 ? (
@@ -274,25 +277,25 @@ export function FileInput({
                                     </span>
                                 )}
                                 {hasValue && state !== 'disabled' && (
-                                    <div
+                                    <Button
+                                        variant="text"
+                                        size="small"
                                         onClick={handleClear}
+                                        icon={ClearIcon ? <ClearIcon /> : '×'}
+                                        layer={layer}
                                         style={{
-                                            width: finalIconSize,
-                                            height: finalIconSize,
+                                            width: `var(${buttonHeightVar})`,
+                                            height: `var(${buttonHeightVar})`,
                                             flexShrink: 0,
-                                            cursor: 'pointer',
                                             pointerEvents: 'auto',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            opacity: 0.6
+                                            zIndex: 2,
+                                            minWidth: 'auto',
+                                            padding: 0
                                         }}
-                                    >
-                                        {ClearIcon ? <ClearIcon width="100%" height="100%" /> : '×'}
-                                    </div>
+                                    />
                                 )}
                                 {trailingIcon && (
-                                    <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${trailingIconVar})` }}>
+                                    <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${trailingIconVar})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                         {trailingIcon}
                                     </div>
                                 )}
@@ -350,12 +353,12 @@ export function FileInput({
                                         color: value ? `var(${textVar})` : `var(${textVar}, rgba(0,0,0,0.5))`,
                                         transition: 'all 0.2s',
                                         pointerEvents: 'none',
-                                        overflow: 'hidden'
+                                        overflow: 'visible'
                                     }}
                                 >
                                     {(leadingIcon || true) && (
-                                        <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${leadingIconVar})` }}>
-                                            {leadingIcon || <span style={{ fontSize: '1.2em' }}>↑</span>}
+                                        <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${leadingIconVar})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            {leadingIcon || (DefaultUploadIcon ? <DefaultUploadIcon width="100%" height="100%" /> : <span style={{ fontSize: '1.2em' }}>↑</span>)}
                                         </div>
                                     )}
                                     {multiple && Array.isArray(value) && value.length > 0 ? (
@@ -401,25 +404,25 @@ export function FileInput({
                                         </span>
                                     )}
                                     {hasValue && state !== 'disabled' && (
-                                        <div
+                                        <Button
+                                            variant="text"
+                                            size="small"
                                             onClick={handleClear}
+                                            icon={ClearIcon ? <ClearIcon /> : '×'}
+                                            layer={layer}
                                             style={{
-                                                width: finalIconSize,
-                                                height: finalIconSize,
+                                                width: `var(${buttonHeightVar})`,
+                                                height: `var(${buttonHeightVar})`,
                                                 flexShrink: 0,
-                                                cursor: 'pointer',
                                                 pointerEvents: 'auto',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                opacity: 0.6
+                                                zIndex: 2,
+                                                minWidth: 'auto',
+                                                padding: 0
                                             }}
-                                        >
-                                            {ClearIcon ? <ClearIcon width="100%" height="100%" /> : '×'}
-                                        </div>
+                                        />
                                     )}
                                     {trailingIcon && (
-                                        <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${trailingIconVar})` }}>
+                                        <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${trailingIconVar})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                             {trailingIcon}
                                         </div>
                                     )}

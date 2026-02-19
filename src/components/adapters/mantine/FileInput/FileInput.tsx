@@ -7,11 +7,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { FileInputProps as AdapterFileInputProps } from '../../FileInput'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar, getComponentCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'
 import { Chip } from '../../Chip'
+import { Button } from '../../Button'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './FileInput.css'
 
@@ -76,6 +77,7 @@ export default function FileInput({
     const iconTextGapVar = getComponentLevelCssVar('FileInput', 'icon-text-gap')
     const maxWidthVar = getComponentLevelCssVar('FileInput', 'max-width')
     const minWidthVar = getComponentLevelCssVar('FileInput', 'min-width')
+    const buttonHeightVar = getComponentCssVar('Button', 'size', 'small-height', undefined)
     const placeholderOpacityVar = getComponentLevelCssVar('FileInput', 'placeholder-opacity')
 
     // Get text style CSS variables
@@ -177,7 +179,7 @@ export default function FileInput({
                 transition: 'all 0.2s',
                 position: 'relative',
                 cursor: state === 'disabled' ? 'not-allowed' : 'pointer',
-                overflow: 'hidden' // Ensure scrollable container doesn't overflow wrapper
+                overflow: 'visible'
             }}
         >
             <input
@@ -207,7 +209,7 @@ export default function FileInput({
             />
             {(leadingIcon || true) && (
                 <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${leadingIconVar})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {leadingIcon || (DefaultUploadIcon ? <DefaultUploadIcon /> : '↑')}
+                    {leadingIcon || (DefaultUploadIcon ? <DefaultUploadIcon width="100%" height="100%" /> : '↑')}
                 </div>
             )}
             {multiple && Array.isArray(value) && value.length > 0 ? (
@@ -263,23 +265,22 @@ export default function FileInput({
                 </span>
             )}
             {hasValue && state !== 'disabled' && (
-                <div
+                <Button
+                    variant="text"
+                    size="small"
                     onClick={handleClear}
+                    icon={ClearIcon ? <ClearIcon /> : '×'}
+                    layer={layer}
                     style={{
-                        width: finalIconSize,
-                        height: finalIconSize,
+                        width: `var(${buttonHeightVar})`,
+                        height: `var(${buttonHeightVar})`,
                         flexShrink: 0,
-                        cursor: 'pointer',
                         pointerEvents: 'auto',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: 0.6,
-                        zIndex: 2
+                        zIndex: 2,
+                        minWidth: 'auto',
+                        padding: 0
                     }}
-                >
-                    {ClearIcon ? <ClearIcon width="100%" height="100%" /> : '×'}
-                </div>
+                />
             )}
             {trailingIcon && (
                 <div style={{ width: finalIconSize, height: finalIconSize, flexShrink: 0, color: `var(${trailingIconVar})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

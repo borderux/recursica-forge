@@ -5908,6 +5908,13 @@
               "unit": "px"
             }
           },
+          "list-spacing": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.md}",
+              "unit": "px"
+            }
+          },
           "border-radius": {
             "$type": "dimension",
             "$value": {

@@ -82,6 +82,7 @@ import {
   SignOut,
   SlidersHorizontal,
   SplitHorizontal,
+  SplitVertical,
   Square,
   SquareLogo,
   SquaresFour,
@@ -320,6 +321,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'text-align-center': TextAlignCenter,
   'text-align-right': TextAlignRight,
   'upload': Upload,
+  'split-vertical': SplitVertical,
 }
 
 /**

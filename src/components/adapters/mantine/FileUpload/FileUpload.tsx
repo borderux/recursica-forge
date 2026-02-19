@@ -11,6 +11,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'
 import { Button } from '../../Button'
+import { Chip } from '../../Chip'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './FileUpload.css'
 
@@ -47,13 +48,12 @@ export default function FileUpload({
     const backgroundVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'background')
     const borderColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'border-color')
     const textColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'text')
-    const uploadIconColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'upload-icon')
-    const itemBackgroundVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'item-background')
     const borderSizeVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'border-size')
 
     // Get component-level properties
     const borderRadiusVar = getComponentLevelCssVar('FileUpload', 'border-radius')
     const itemGapVar = getComponentLevelCssVar('FileUpload', 'item-gap')
+    const listSpacingVar = getComponentLevelCssVar('FileUpload', 'list-spacing')
     const paddingVar = getComponentLevelCssVar('FileUpload', 'padding')
 
     // Get text style CSS variables
@@ -127,7 +127,9 @@ export default function FileUpload({
                 boxSizing: 'border-box'
             }}
         >
-            {UploadIcon && <UploadIcon size={32} style={{ color: `var(${uploadIconColorVar})` }} />}
+            <div style={{ color: `var(${textColorVar})`, fontSize: `var(${fontSizeVar})`, opacity: 0.8, textAlign: 'center' }}>
+                Drag and drop files here to upload
+            </div>
             <Button
                 variant="outline"
                 layer={layer}
@@ -157,40 +159,27 @@ export default function FileUpload({
             className="recursica-file-upload-list"
             style={{
                 display: 'flex',
-                flexDirection: 'column',
+                flexWrap: 'wrap',
                 gap: `var(${itemGapVar}, 8px)`,
-                marginTop: '12px',
+                marginTop: `var(${listSpacingVar}, 12px)`,
                 width: '100%'
             }}
         >
             {files.map(file => (
-                <div
+                <Chip
                     key={file.id}
-                    className="recursica-file-upload-item"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        padding: '8px 12px',
-                        backgroundColor: `var(${itemBackgroundVar})`,
-                        borderRadius: '4px',
-                        fontSize: `var(${fontSizeVar})`,
-                        fontFamily: `var(${fontFamilyVar})`,
-                        fontWeight: `var(${fontWeightVar})`,
-                        color: `var(${textColorVar})`
+                    variant="unselected"
+                    size="small"
+                    layer={layer}
+                    deletable={state !== 'disabled'}
+                    onDelete={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (state === 'disabled') return;
+                        onRemove?.(file.id);
                     }}
                 >
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {file.name}
-                    </span>
-                    <button
-                        onClick={() => state !== 'disabled' && onRemove?.(file.id)}
-                        className="recursica-file-upload-item-remove"
-                        style={{ background: 'none', border: 'none', cursor: state === 'disabled' ? 'default' : 'pointer', padding: 4, display: 'flex', color: 'inherit', opacity: state === 'disabled' ? 0.5 : 1 }}
-                    >
-                        {XIcon && <XIcon size={16} />}
-                    </button>
-                </div>
+                    {file.name}
+                </Chip>
             ))}
         </div>
     )
@@ -205,8 +194,8 @@ export default function FileUpload({
                     </div>
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
                         {uploadArea}
-                        {fileList}
                         {assistiveElement}
+                        {fileList}
                     </div>
                 </div>
             </div>
@@ -218,8 +207,8 @@ export default function FileUpload({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
                 {labelElement}
                 {uploadArea}
-                {fileList}
                 {assistiveElement}
+                {fileList}
             </div>
         </div>
     )

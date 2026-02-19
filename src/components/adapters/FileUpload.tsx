@@ -11,6 +11,7 @@ import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssV
 import { Label } from './Label'
 import { AssistiveElement } from './AssistiveElement'
 import { Button } from './Button'
+import { Chip } from './Chip'
 import { iconNameToReactComponent, iconNameToReactComponent as getIcon } from '../../modules/components/iconUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
@@ -80,13 +81,12 @@ export function FileUpload({
     const backgroundVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'background')
     const borderColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'border-color')
     const textColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'text')
-    const uploadIconColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'upload-icon')
-    const itemBackgroundVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'item-background')
     const borderSizeVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'border-size')
 
     // Get component-level properties
     const borderRadiusVar = getComponentLevelCssVar('FileUpload', 'border-radius')
     const itemGapVar = getComponentLevelCssVar('FileUpload', 'item-gap')
+    const listSpacingVar = getComponentLevelCssVar('FileUpload', 'list-spacing')
     const paddingVar = getComponentLevelCssVar('FileUpload', 'padding')
 
     // Get top-bottom-margin from layout variant
@@ -146,7 +146,7 @@ export function FileUpload({
             }}>
                 <div style={{ display: 'flex', flexDirection: layout === 'side-by-side' ? 'row' : 'column', gap: labelGutterVar ? `var(${labelGutterVar})` : '8px' }}>
                     {labelElement}
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: `var(${itemGapVar})` }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
                         <div style={{
                             boxShadow: `inset 0 0 0 var(${borderSizeVar}, 1px) var(${borderColorVar})`,
                             borderRadius: `var(${borderRadiusVar})`,
@@ -157,7 +157,9 @@ export function FileUpload({
                             alignItems: 'center',
                             gap: '12px'
                         }}>
-                            {UploadIcon && <UploadIcon size={32} style={{ color: `var(${uploadIconColorVar})` }} />}
+                            <div style={{ color: `var(${textColorVar})`, fontSize: '0.9em', opacity: 0.8, textAlign: 'center' }}>
+                                Drag and drop files here to upload
+                            </div>
                             <Button
                                 variant="outline"
                                 layer={layer}
@@ -181,30 +183,32 @@ export function FileUpload({
                             </Button>
                         </div>
 
+                        {assistiveElement}
                         {files.length > 0 && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                            <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: `var(${itemGapVar}, 8px)`,
+                                marginTop: `var(${listSpacingVar}, 8px)`
+                            }}>
                                 {files.map(file => (
-                                    <div key={file.id} style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '12px',
-                                        padding: '8px 12px',
-                                        backgroundColor: `var(${itemBackgroundVar})`,
-                                        borderRadius: '4px',
-                                        fontSize: '0.9em'
-                                    }}>
-                                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{file.name}</span>
-                                        <button
-                                            onClick={() => onRemove?.(file.id)}
-                                            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }}
-                                        >
-                                            {XIcon && <XIcon size={16} />}
-                                        </button>
-                                    </div>
+                                    <Chip
+                                        key={file.id}
+                                        variant="unselected"
+                                        size="small"
+                                        layer={layer}
+                                        deletable={state !== 'disabled'}
+                                        onDelete={(e: React.MouseEvent) => {
+                                            e.stopPropagation();
+                                            if (state === 'disabled') return;
+                                            onRemove?.(file.id);
+                                        }}
+                                    >
+                                        {file.name}
+                                    </Chip>
                                 ))}
                             </div>
                         )}
-                        {assistiveElement}
                     </div>
                 </div>
             </div>

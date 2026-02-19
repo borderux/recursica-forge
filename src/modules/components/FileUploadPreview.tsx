@@ -24,6 +24,7 @@ export default function FileUploadPreview({
     const [files, setFiles] = useState<FileUploadItem[]>([
         { id: '1', name: 'document.pdf', size: 1024, type: 'application/pdf', status: 'success' },
         { id: '2', name: 'image.png', size: 2048, type: 'image/png', status: 'success' },
+        { id: '3', name: 'spreadsheet.xlsx', size: 4096, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', status: 'success' },
     ])
 
     const handleUpload = (newFiles: File[]) => {
