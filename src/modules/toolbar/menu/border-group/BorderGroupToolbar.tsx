@@ -14,6 +14,10 @@ import { ComponentProp, parseComponentStructure } from '../../utils/componentToo
 import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
+import { Dropdown } from '../../../../components/adapters/Dropdown'
+import { useCssVar } from '../../../../components/hooks/useCssVar'
+import { toSentenceCase } from '../../utils/componentToolbarUtils'
+import { iconNameToReactComponent } from '../../../components/iconUtils'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import BrandBorderRadiusSlider from '../../utils/BrandBorderRadiusSlider'
 import type { ToolbarPropConfig } from '../../utils/loadToolbarConfig'
@@ -109,6 +113,7 @@ interface BorderGroupToolbarProps {
       size?: string // default: "border-size"
       radius?: string // default: "border-radius"
       color?: string // default: "border-color"
+      style?: string // default: "border-style"
     }
   }
   onClose?: () => void
@@ -134,6 +139,7 @@ export default function BorderGroupToolbar({
   const sizePropName = propNameMapping.size || 'border-size'
   const radiusPropName = propNameMapping.radius || 'border-radius'
   const colorPropName = propNameMapping.color || 'border-color'
+  const stylePropName = propNameMapping.style || 'border-style'
 
   // Find border-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
@@ -167,6 +173,18 @@ export default function BorderGroupToolbar({
       return true
     })
   }, [structure, radiusPropName, selectedVariants])
+
+  const borderStyleProp = useMemo(() => {
+    return structure.props.find(p => {
+      if (p.name.toLowerCase() !== stylePropName.toLowerCase()) return false
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (!selectedVariant) return false
+        if (!p.path.includes(selectedVariant)) return false
+      }
+      return true
+    })
+  }, [structure, stylePropName, selectedVariants])
 
   const borderColorProp = useMemo(() => {
     if (!includeColor) return undefined
@@ -240,9 +258,15 @@ export default function BorderGroupToolbar({
     return getCssVarsForProp(borderColorProp, componentName, selectedVariants, selectedLayer)
   }, [borderColorProp, componentName, selectedVariants, selectedLayer])
 
+  const borderStyleCssVars = useMemo(() => {
+    if (!borderStyleProp) return []
+    return getCssVarsForProp(borderStyleProp, componentName, selectedVariants, selectedLayer)
+  }, [borderStyleProp, componentName, selectedVariants, selectedLayer])
+
   const borderSizeVar = borderSizeCssVars[0] || borderSizeProp?.cssVar || ''
   const borderRadiusVar = borderRadiusCssVars[0] || borderRadiusProp?.cssVar || ''
   const borderColorVar = borderColorCssVars[0] || borderColorProp?.cssVar || ''
+  const borderStyleVar = borderStyleCssVars[0] || borderStyleProp?.cssVar || ''
 
   // Border Size Control
   const BorderSizeControl = useMemo(() => {
@@ -344,9 +368,56 @@ export default function BorderGroupToolbar({
     }
   }, [includeColor, borderColorVar, borderColorCssVars])
 
+  // Border Style Control
+  const BorderStyleControl = useMemo(() => {
+    if (!borderStyleVar) return null
+
+    const styleConfig = groupedPropsConfig?.[stylePropName] as (ToolbarPropConfig & { options?: any[] }) | undefined
+    if (!styleConfig?.options?.length) return null
+
+    return () => {
+      const currentValue = useCssVar(borderStyleVar, '')
+      const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') ||
+        (typeof styleConfig.options![0] === 'string' ? styleConfig.options![0] : (styleConfig.options![0] as any).value ?? '')
+
+      const dropdownItems = (styleConfig.options!).map((opt: any) => {
+        if (typeof opt === 'string') {
+          return { value: opt, label: toSentenceCase(opt) }
+        }
+        const IconComp = opt.icon ? iconNameToReactComponent(opt.icon) : null
+        return {
+          value: opt.value,
+          label: opt.label,
+          leadingIcon: IconComp ? <IconComp size={16} /> : undefined,
+        }
+      })
+
+      return (
+        <div style={{ marginBottom: '8px' }}>
+          <Dropdown
+            items={dropdownItems}
+            value={cleanValue}
+            onChange={(value) => {
+              const varsToUpdate = borderStyleCssVars.length > 0 ? borderStyleCssVars : [borderStyleVar]
+              varsToUpdate.forEach((v) => updateCssVar(v, value))
+              window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+                detail: { cssVars: varsToUpdate }
+              }))
+            }}
+            label="Style"
+            layer="layer-1"
+            layout="stacked"
+            disableTopBottomMargin={true}
+          />
+        </div>
+      )
+    }
+  }, [borderStyleVar, borderStyleCssVars, groupedPropsConfig, stylePropName])
+
   // Check visibility from toolbar config
   const borderSizeVisible = groupedPropsConfig?.['border-size']?.visible !== false
   const borderRadiusVisible = groupedPropsConfig?.['border-radius']?.visible !== false
+  const borderStyleVisible = groupedPropsConfig?.['border-style']?.visible !== false
   const borderColorVisible = groupedPropsConfig?.['border-color']?.visible !== false ||
     groupedPropsConfig?.['border']?.visible !== false
 
@@ -360,6 +431,11 @@ export default function BorderGroupToolbar({
       {BorderRadiusControl && borderRadiusVisible && (
         <div className="border-group-control">
           <BorderRadiusControl />
+        </div>
+      )}
+      {BorderStyleControl && borderStyleVisible && (
+        <div className="border-group-control">
+          <BorderStyleControl />
         </div>
       )}
       {BorderColorControl && borderColorVisible && (

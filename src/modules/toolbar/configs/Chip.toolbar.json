@@ -72,7 +72,7 @@
         },
         "close-icon-size": {
           "icon": "x",
-          "label": "Close icon size",
+          "label": "Remove icon size",
           "visible": true
         },
         "icon-text-gap": {
@@ -85,9 +85,14 @@
           "label": "Leading icon color",
           "visible": true
         },
+        "selected-icon-color": {
+          "icon": "paint-bucket",
+          "label": "Selected icon color",
+          "visible": true
+        },
         "close-icon-color": {
           "icon": "paint-bucket",
-          "label": "Close icon color",
+          "label": "Remove icon color",
           "visible": true
         }
       }

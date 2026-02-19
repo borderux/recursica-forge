@@ -12,6 +12,8 @@ import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { Tooltip } from '../../components/adapters/Tooltip'
+import { FileInput } from '../../components/adapters/FileInput'
+import { FileUpload } from '../../components/adapters/FileUpload'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -230,11 +232,17 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
             <TextField
-              label="Label"
+              label="Stacked"
               placeholder="Placeholder text"
-              helpText="Help message"
               state="default"
               layout="stacked"
+              layer={layer as any}
+            />
+            <TextField
+              label="Side-by-side"
+              placeholder="Placeholder text"
+              state="default"
+              layout="side-by-side"
               layer={layer as any}
             />
           </div>
@@ -403,22 +411,56 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'File input',
       url: `${base}/file-input`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input type="file" />
-          <input type="file" multiple />
-        </div>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
+            <FileInput
+              label="Stacked"
+              placeholder="Select file..."
+              layer={layer as any}
+              layout="stacked"
+            />
+            <FileInput
+              label="Side-by-side"
+              placeholder="Select file..."
+              layer={layer as any}
+              layout="side-by-side"
+            />
+            <FileInput
+              label="Multiple (Chips)"
+              placeholder="Select files..."
+              multiple
+              value={[new File([''], 'resume.pdf'), new File([''], 'cover-letter.docx')]}
+              layer={layer as any}
+              layout="stacked"
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'File upload',
       url: `${base}/file-upload`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'grid', gap: 8 }}>
-          <div style={{ border: '1px dashed var(--layers-layer-1-properties-border-color)', padding: 16, borderRadius: 8, textAlign: 'center' }}>Drag & drop files here</div>
-          <div style={{ fontSize: 12, opacity: 0.75 }}>Max 10MB each</div>
-        </div>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
+            <FileUpload
+              label="Stacked"
+              files={[]}
+              layer={layer as any}
+              layout="stacked"
+            />
+            <FileUpload
+              label="Side-by-side"
+              files={[]}
+              layer={layer as any}
+              layout="side-by-side"
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Hover card',

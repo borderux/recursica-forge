@@ -64,6 +64,7 @@ import {
   House,
   Info,
   Layout,
+  LineSegment,
   Link,
   List,
   Minus,
@@ -82,6 +83,7 @@ import {
   SignOut,
   SlidersHorizontal,
   SplitHorizontal,
+  SplitVertical,
   Square,
   SquareLogo,
   SquaresFour,
@@ -319,6 +321,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'text-align-left': TextAlignLeft,
   'text-align-center': TextAlignCenter,
   'text-align-right': TextAlignRight,
+  'upload': Upload,
+  'split-vertical': SplitVertical,
+  'line-segment': LineSegment,
 }
 
 /**
