@@ -5795,7 +5795,7 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.background-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -5807,17 +5807,17 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "item-background": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.background-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.background-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -5829,17 +5829,17 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "item-background": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.background-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.background-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -5851,17 +5851,17 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "item-background": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.background-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.background-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -5873,11 +5873,11 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "item-background": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.background-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     }
                   }
                 },
