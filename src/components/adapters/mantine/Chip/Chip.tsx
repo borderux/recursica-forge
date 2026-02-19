@@ -117,9 +117,10 @@ export default function Chip({
   const iconSizeVar = getComponentLevelCssVar('Chip', 'icon-size')
   const closeIconSizeVar = getComponentLevelCssVar('Chip', 'close-icon-size')
   const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
-  // Get icon color CSS variables - fallback to chipIconColorVar if not set
-  const leadingIconColorVar = getComponentLevelCssVar('Chip', 'leading-icon-color')
-  const closeIconColorVar = getComponentLevelCssVar('Chip', 'close-icon-color')
+  // Get icon color CSS variables from variant-level per-layer colors
+  const leadingIconColorVar = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
+  const selectedIconColorVar = buildVariantColorCssVar('Chip', variant, 'selected-icon-color', layer)
+  const closeIconColorVar = buildVariantColorCssVar('Chip', variant, 'close-icon-color', layer)
   const horizontalPaddingVar = getComponentLevelCssVar('Chip', 'horizontal-padding')
   const verticalPaddingVar = getComponentLevelCssVar('Chip', 'vertical-padding')
   const borderSizeVar = getComponentLevelCssVar('Chip', 'border-size')
@@ -225,6 +226,7 @@ export default function Chip({
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: icon ? 1 : undefined,
+            color: selectedIconColorVar ? `var(${selectedIconColorVar})` : undefined,
           }}
         >
           {/* Checkmark uses leading icon size via container - iconSizeVar is the leading icon size CSS variable */}
@@ -259,7 +261,7 @@ export default function Chip({
         // Set CSS custom properties in styles.root to ensure they're applied to the root element
         '--chip-border-size': `var(${borderSizeVar})`,
         // Set icon-text-gap CSS variable on root element so it's available for CSS to read
-        '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+        '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
         // Border will be set directly via DOM manipulation for real-time updates
         borderStyle: 'solid',
         borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
@@ -305,10 +307,11 @@ export default function Chip({
       '--chip-border': `var(${chipBorderVar})`,
       '--chip-close-icon-size': deletable && onDelete ? `var(${closeIconSizeVar}, 16px)` : '0px',
       '--chip-leading-icon-color': leadingIconColorVar ? `var(${leadingIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
+      '--chip-selected-icon-color': selectedIconColorVar ? `var(${selectedIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       '--chip-close-icon-color': closeIconColorVar ? `var(${closeIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
       // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
-      '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
       '--chip-padding-x': `var(${horizontalPaddingVar})`,
       '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,
