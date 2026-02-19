@@ -64,6 +64,7 @@ import {
   House,
   Info,
   Layout,
+  LineSegment,
   Link,
   List,
   Minus,
@@ -322,6 +323,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'text-align-right': TextAlignRight,
   'upload': Upload,
   'split-vertical': SplitVertical,
+  'line-segment': LineSegment,
 }
 
 /**

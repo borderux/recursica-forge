@@ -20,22 +20,81 @@
                 },
                 "text": {
                     "icon": "text-aa",
-                    "label": "Value color",
+                    "label": "Instruction text color",
                     "visible": true,
-                    "floatingPaletteLabel": "Value Color"
+                    "floatingPaletteLabel": "Instruction Text Color"
+                }
+            }
+        },
+        "border": {
+            "icon": "square",
+            "label": "Border",
+            "visible": true,
+            "group": {
+                "border-style": {
+                    "icon": "line-segment",
+                    "label": "Border style",
+                    "visible": true,
+                    "options": [
+                        {
+                            "label": "None",
+                            "value": "none"
+                        },
+                        {
+                            "label": "Hidden",
+                            "value": "hidden"
+                        },
+                        {
+                            "label": "Dotted",
+                            "value": "dotted"
+                        },
+                        {
+                            "label": "Dashed",
+                            "value": "dashed"
+                        },
+                        {
+                            "label": "Solid",
+                            "value": "solid"
+                        },
+                        {
+                            "label": "Double",
+                            "value": "double"
+                        },
+                        {
+                            "label": "Groove",
+                            "value": "groove"
+                        },
+                        {
+                            "label": "Ridge",
+                            "value": "ridge"
+                        },
+                        {
+                            "label": "Inset",
+                            "value": "inset"
+                        },
+                        {
+                            "label": "Outset",
+                            "value": "outset"
+                        }
+                    ]
                 },
                 "border-color": {
                     "icon": "paint-bucket",
                     "label": "Border color",
                     "visible": true,
                     "floatingPaletteLabel": "Border Color"
+                },
+                "border-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Border size",
+                    "visible": true
+                },
+                "border-radius": {
+                    "icon": "corners-out",
+                    "label": "Corner radius",
+                    "visible": true
                 }
             }
-        },
-        "border-radius": {
-            "icon": "corners-out",
-            "label": "Corner radius",
-            "visible": true
         },
         "text": {
             "icon": "text-aa",

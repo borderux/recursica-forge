@@ -26,6 +26,8 @@ import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
 import { SegmentedControl } from '../../../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
 import { useCssVar } from '../../../../components/hooks/useCssVar'
+import { Dropdown } from '../../../../components/adapters/Dropdown'
+import type { ComponentLayer } from '../../../../components/registry/types'
 import uikitJson from '../../../../vars/UIKit.json'
 import './PropControl.css'
 
@@ -82,6 +84,56 @@ function SegmentedControlFromCssVar({
         }}
         layer="layer-1"
         showLabel={false}
+      />
+    </div>
+  )
+}
+
+/** Dropdown that reads/writes a CSS var - re-renders when the var changes */
+function DropdownFromCssVar({
+  primaryVar,
+  cssVars,
+  label,
+  options,
+  layer = 'layer-1',
+}: {
+  primaryVar: string
+  cssVars: string[]
+  label: string
+  options: Array<string | { label: string; value: string; icon?: string }>
+  layer?: any
+}) {
+  const currentValue = useCssVar(primaryVar, '')
+  const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || (typeof options[0] === 'string' ? options[0] : options[0]?.value ?? '')
+
+  const dropdownItems = options.map((opt) => {
+    if (typeof opt === 'string') {
+      return { value: opt, label: toSentenceCase(opt) }
+    }
+    const IconComp = opt.icon ? iconNameToReactComponent(opt.icon) : null
+    return {
+      value: opt.value,
+      label: opt.label,
+      leadingIcon: IconComp ? <IconComp size={16} /> : undefined,
+    }
+  })
+
+  return (
+    <div style={{ marginBottom: '8px' }}>
+      <Dropdown
+        items={dropdownItems}
+        value={cleanValue}
+        onChange={(value) => {
+          cssVars.forEach((v) => updateCssVar(v, value))
+          // Dispatch event to notify components of CSS var updates
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars }
+          }))
+        }}
+        label={label}
+        layer={layer as any}
+        layout="stacked"
+        disableTopBottomMargin={true}
       />
     </div>
   )
@@ -1189,18 +1241,30 @@ export default function PropControlContent({
       if (config.step) propToRender.step = config.step
     }
 
-    // Segmented control with icon-only options (e.g., tab-content-alignment)
+    // Segmented control or Dropdown with options
     // Use a wrapper component with useCssVar so it re-renders when the value changes
-    const configWithControl = config as (ToolbarPropConfig & { control?: string; options?: Array<{ value: string; icon?: string }> }) | undefined
-    if (configWithControl?.control === 'segmented' && configWithControl?.options?.length) {
-      return (
-        <SegmentedControlFromCssVar
-          primaryVar={primaryVar}
-          cssVars={cssVars}
-          label={label}
-          options={configWithControl.options}
-        />
-      )
+    const configWithControl = config as (ToolbarPropConfig & { control?: string; options?: Array<string | { label: string; value: string; icon?: string }> }) | undefined
+    if (configWithControl?.options?.length) {
+      if (configWithControl.control === 'segmented') {
+        return (
+          <SegmentedControlFromCssVar
+            primaryVar={primaryVar}
+            cssVars={cssVars}
+            label={label}
+            options={configWithControl.options as any}
+          />
+        )
+      } else {
+        return (
+          <DropdownFromCssVar
+            primaryVar={primaryVar}
+            cssVars={cssVars}
+            label={label}
+            options={configWithControl.options}
+            layer={selectedLayer}
+          />
+        )
+      }
     }
 
     // Generic Slider implementation for propertyType: 'slider'

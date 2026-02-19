@@ -5743,24 +5743,40 @@
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -5787,7 +5803,7 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "upload-icon": {
                       "$type": "color",
@@ -5809,7 +5825,7 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "upload-icon": {
                       "$type": "color",
@@ -5831,7 +5847,7 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "upload-icon": {
                       "$type": "color",
@@ -5853,7 +5869,7 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-disabled}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "upload-icon": {
                       "$type": "color",
@@ -5914,6 +5930,10 @@
               "value": "{brand.dimensions.general.md}",
               "unit": "px"
             }
+          },
+          "border-style": {
+            "$type": "string",
+            "$value": "dashed"
           },
           "border-radius": {
             "$type": "dimension",

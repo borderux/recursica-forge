@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import type { FileUploadProps as AdapterFileUploadProps } from '../../FileUpload'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'
@@ -52,6 +53,7 @@ export default function FileUpload({
 
     // Get component-level properties
     const borderRadiusVar = getComponentLevelCssVar('FileUpload', 'border-radius')
+    const borderStyleVar = getComponentLevelCssVar('FileUpload', 'border-style')
     const itemGapVar = getComponentLevelCssVar('FileUpload', 'item-gap')
     const listSpacingVar = getComponentLevelCssVar('FileUpload', 'list-spacing')
     const paddingVar = getComponentLevelCssVar('FileUpload', 'padding')
@@ -120,14 +122,19 @@ export default function FileUpload({
                 gap: '12px',
                 padding: `var(${paddingVar}, 24px)`,
                 backgroundColor: `var(${backgroundVar})`,
-                boxShadow: `inset 0 0 0 var(${borderSizeVar}, 1px) var(${borderColorVar})`,
+                border: `var(${borderSizeVar}, 1px) var(${borderStyleVar}, dashed) var(${borderColorVar})`,
                 borderRadius: `var(${borderRadiusVar})`,
                 transition: 'all 0.2s',
                 width: '100%',
                 boxSizing: 'border-box'
             }}
         >
-            <div style={{ color: `var(${textColorVar})`, fontSize: `var(${fontSizeVar})`, opacity: 0.8, textAlign: 'center' }}>
+            <div style={{
+                color: `var(${textColorVar})`,
+                fontSize: `var(${fontSizeVar})`,
+                opacity: state === 'disabled' ? `var(${getBrandStateCssVar(mode, 'disabled')})` : 0.8,
+                textAlign: 'center'
+            }}>
                 Drag and drop files here to upload
             </div>
             <Button
@@ -171,6 +178,7 @@ export default function FileUpload({
                     variant="unselected"
                     size="small"
                     layer={layer}
+                    disabled={state === 'disabled'}
                     deletable={state !== 'disabled'}
                     onDelete={(e: React.MouseEvent) => {
                         e.stopPropagation();

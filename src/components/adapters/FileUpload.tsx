@@ -8,6 +8,8 @@
 import { Suspense, useState, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
+import { getBrandStateCssVar } from '../utils/brandCssVars'
+import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { Label } from './Label'
 import { AssistiveElement } from './AssistiveElement'
 import { Button } from './Button'
@@ -60,7 +62,7 @@ export function FileUpload({
     required = false,
     optional = false,
     labelAlign = 'left',
-    labelSize,
+    labelSize = 'default',
     id,
     className,
     style,
@@ -70,6 +72,7 @@ export function FileUpload({
     carbon,
 }: FileUploadProps) {
     const Component = useComponent('FileUpload')
+    const { mode } = useThemeMode()
 
     // Generate unique ID if not provided
     const fieldId = id || `file-upload-${Math.random().toString(36).substr(2, 9)}`
@@ -85,6 +88,7 @@ export function FileUpload({
 
     // Get component-level properties
     const borderRadiusVar = getComponentLevelCssVar('FileUpload', 'border-radius')
+    const borderStyleVar = getComponentLevelCssVar('FileUpload', 'border-style')
     const itemGapVar = getComponentLevelCssVar('FileUpload', 'item-gap')
     const listSpacingVar = getComponentLevelCssVar('FileUpload', 'list-spacing')
     const paddingVar = getComponentLevelCssVar('FileUpload', 'padding')
@@ -148,16 +152,22 @@ export function FileUpload({
                     {labelElement}
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
                         <div style={{
-                            boxShadow: `inset 0 0 0 var(${borderSizeVar}, 1px) var(${borderColorVar})`,
+                            border: `var(${borderSizeVar}, 1px) var(${borderStyleVar}, dashed) var(${borderColorVar})`,
                             borderRadius: `var(${borderRadiusVar})`,
                             padding: `var(${paddingVar})`,
                             backgroundColor: `var(${backgroundVar})`,
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: '12px'
+                            gap: '12px',
+                            boxSizing: 'border-box'
                         }}>
-                            <div style={{ color: `var(${textColorVar})`, fontSize: '0.9em', opacity: 0.8, textAlign: 'center' }}>
+                            <div style={{
+                                color: `var(${textColorVar})`,
+                                fontSize: '0.9em',
+                                opacity: state === 'disabled' ? `var(${getBrandStateCssVar(mode, 'disabled')})` : 0.8,
+                                textAlign: 'center'
+                            }}>
                                 Drag and drop files here to upload
                             </div>
                             <Button
@@ -197,6 +207,7 @@ export function FileUpload({
                                         variant="unselected"
                                         size="small"
                                         layer={layer}
+                                        disabled={state === 'disabled'}
                                         deletable={state !== 'disabled'}
                                         onDelete={(e: React.MouseEvent) => {
                                             e.stopPropagation();
