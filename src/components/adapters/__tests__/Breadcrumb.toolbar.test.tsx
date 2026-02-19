@@ -42,7 +42,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
   // Helper to wait for breadcrumb component to load
   const waitForBreadcrumb = async (container: HTMLElement) => {
     return await waitFor(() => {
-      const breadcrumb = container.querySelector('[class*="Breadcrumb"], nav[aria-label*="breadcrumb"], nav[aria-label*="Breadcrumb"], nav[role="navigation"]')
+      const breadcrumb = container.querySelector('.test-breadcrumb, [class*="Breadcrumb"], nav[aria-label*="breadcrumb"], nav[aria-label*="Breadcrumb"], nav[role="navigation"]')
       if (!breadcrumb) throw new Error('Breadcrumb not found')
       return breadcrumb
     }, { timeout: 30000 })
@@ -62,7 +62,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
       variants.forEach(variant => {
         it(`updates ${variant} color when toolbar changes ${variant}-color for ${layer}`, { timeout: 60000 }, async () => {
           const { container } = renderWithProviders(
-            <Breadcrumb items={sampleItems} layer={layer} />
+            <Breadcrumb items={sampleItems} className="test-breadcrumb" layer={layer} />
           )
 
           const breadcrumb = await waitForBreadcrumb(container)
@@ -108,7 +108,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
   describe('Component-Level Props Updates', () => {
     it('updates padding when toolbar changes padding', async () => {
       const { container } = renderWithProviders(
-        <Breadcrumb items={sampleItems} />
+        <Breadcrumb items={sampleItems} className="test-breadcrumb" />
       )
       const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
@@ -129,7 +129,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
 
     it('updates icon-label-gap when toolbar changes icon-label-gap', async () => {
       const { container } = renderWithProviders(
-        <Breadcrumb items={sampleItems} />
+        <Breadcrumb items={sampleItems} className="test-breadcrumb" />
       )
       const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
@@ -152,7 +152,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
 
     it('updates item-gap when toolbar changes item-gap', async () => {
       const { container } = renderWithProviders(
-        <Breadcrumb items={sampleItems} />
+        <Breadcrumb items={sampleItems} className="test-breadcrumb" />
       )
       const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
@@ -175,7 +175,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
 
     it('updates icon size when toolbar changes icon', async () => {
       const { container } = renderWithProviders(
-        <Breadcrumb items={sampleItems} />
+        <Breadcrumb items={sampleItems} className="test-breadcrumb" />
       )
       const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
@@ -200,7 +200,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
   describe('Multiple Props Updates', () => {
     it('handles multiple simultaneous CSS variable updates', async () => {
       const { container } = renderWithProviders(
-        <Breadcrumb items={sampleItems} layer="layer-0" />
+        <Breadcrumb items={sampleItems} className="test-breadcrumb" layer="layer-0" />
       )
       const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
@@ -233,7 +233,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
   describe('Reactive Updates', () => {
     it('component updates when CSS variable changes without event', async () => {
       const { container } = renderWithProviders(
-        <Breadcrumb items={sampleItems} layer="layer-0" />
+        <Breadcrumb items={sampleItems} className="test-breadcrumb" layer="layer-0" />
       )
       const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
@@ -255,7 +255,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
   describe('Variant Switching', () => {
     it('updates CSS variables when layer changes', async () => {
       const { container, rerender } = renderWithProviders(
-        <Breadcrumb items={sampleItems} layer="layer-0" />
+        <Breadcrumb items={sampleItems} className="test-breadcrumb" layer="layer-0" />
       )
       const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
@@ -265,7 +265,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
         <UiKitProvider>
           <ThemeModeProvider>
             <UnifiedThemeProvider>
-              <Breadcrumb items={sampleItems} layer="layer-1" />
+              <Breadcrumb items={sampleItems} className="test-breadcrumb" layer="layer-1" />
             </UnifiedThemeProvider>
           </ThemeModeProvider>
         </UiKitProvider>
@@ -284,7 +284,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
   describe('Preview CSS Variables', () => {
     it('CSS variables connected to preview update correctly', async () => {
       const { container } = renderWithProviders(
-        <Breadcrumb items={sampleItems} layer="layer-0" />
+        <Breadcrumb items={sampleItems} className="test-breadcrumb" layer="layer-0" />
       )
       const breadcrumb = await waitForBreadcrumb(container)
       expect(breadcrumb).toBeInTheDocument()
