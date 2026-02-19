@@ -62,7 +62,7 @@ export default function PanelPreview({
 
     const borderRadiusVar = getComponentLevelCssVar('Panel', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Panel', 'border-size')
-    const dividerThicknessVar = getComponentLevelCssVar('Panel', 'divider-thickness')
+    const dividerSizeVar = getComponentLevelCssVar('Panel', 'divider-size')
     const hfHPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-horizontal-padding')
     const hfVPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-vertical-padding')
     const contentHPaddingVar = getComponentLevelCssVar('Panel', 'content-horizontal-padding')
@@ -167,7 +167,7 @@ export default function PanelPreview({
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         gap: `var(${headerCloseGapVar})`,
-                        borderBottom: `var(${dividerThicknessVar}) solid var(${dividerColorVar})`,
+                        borderBottom: `var(${dividerSizeVar}) solid var(${dividerColorVar})`,
                         flexShrink: 0,
                         background: `var(${hfBgVar})`,
                     }}>
@@ -223,7 +223,7 @@ export default function PanelPreview({
                     {/* Footer */}
                     <div style={{
                         padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
-                        borderTop: `var(${dividerThicknessVar}) solid var(${dividerColorVar})`,
+                        borderTop: `var(${dividerSizeVar}) solid var(${dividerColorVar})`,
                         flexShrink: 0,
                         background: `var(${hfBgVar})`,
                     }}>

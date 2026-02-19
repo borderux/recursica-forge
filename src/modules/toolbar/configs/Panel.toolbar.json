@@ -170,9 +170,9 @@
                     "label": "Divider color",
                     "visible": true
                 },
-                "divider-thickness": {
+                "divider-size": {
                     "icon": "rows",
-                    "label": "Divider thickness",
+                    "label": "Divider size",
                     "visible": true,
                     "propertyType": "slider",
                     "range": [

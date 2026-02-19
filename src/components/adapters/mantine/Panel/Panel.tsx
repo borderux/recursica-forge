@@ -49,7 +49,7 @@ export default function Panel({
     const contentVPaddingVar = getComponentLevelCssVar('Panel', 'content-vertical-padding')
     const headerCloseGapVar = getComponentLevelCssVar('Panel', 'header-close-gap')
     const footerButtonGapVar = getComponentLevelCssVar('Panel', 'footer-button-gap')
-    const dividerThicknessVar = getComponentLevelCssVar('Panel', 'divider-thickness')
+    const dividerSizeVar = getComponentLevelCssVar('Panel', 'divider-size')
     const minWidthVar = getComponentLevelCssVar('Panel', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Panel', 'max-width')
 
@@ -117,7 +117,7 @@ export default function Panel({
         '--panel-header-close-gap': `var(${headerCloseGapVar})`,
         '--panel-footer-button-gap': `var(${footerButtonGapVar})`,
         '--panel-divider-color': `var(${dividerColorVar})`,
-        '--panel-divider-thickness': `var(${dividerThicknessVar})`,
+        '--panel-divider-size': `var(${dividerSizeVar})`,
         '--panel-min-width': `var(${minWidthVar})`,
         '--panel-max-width': `var(${maxWidthVar})`,
         ...style,
@@ -148,7 +148,7 @@ export default function Panel({
                     className="recursica-panel-header"
                     style={{
                         padding: 'var(--panel-hf-padding-y) var(--panel-hf-padding-x)',
-                        borderBottom: `var(--panel-divider-thickness) solid var(--panel-divider-color)`,
+                        borderBottom: `var(--panel-divider-size) solid var(--panel-divider-color)`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -211,7 +211,7 @@ export default function Panel({
                     className="recursica-panel-footer"
                     style={{
                         padding: 'var(--panel-hf-padding-y) var(--panel-hf-padding-x)',
-                        borderTop: `var(--panel-divider-thickness) solid var(--panel-divider-color)`,
+                        borderTop: `var(--panel-divider-size) solid var(--panel-divider-color)`,
                         flexShrink: 0,
                         background: 'var(--panel-hf-bg)',
                     }}
