@@ -202,8 +202,8 @@ export default function TypeControls({
             gap: 4,
             padding: '4px 8px',
             borderRadius: 4,
-            border: '1px solid var(--layer-layer-1-property-border-color)',
-            background: isHovered ? 'var(--layer-layer-1-property-surface)' : 'transparent',
+            border: '1px solid var(--layers-layer-1-properties-border-color)',
+            background: isHovered ? 'var(--layers-layer-1-properties-surface)' : 'transparent',
             cursor: 'pointer',
             fontSize: 12,
           }}
@@ -219,8 +219,8 @@ export default function TypeControls({
               left: 0,
               marginTop: 4,
               zIndex: 1000,
-              background: 'var(--layer-layer-0-property-surface)',
-              border: '1px solid var(--layer-layer-1-property-border-color)',
+              background: 'var(--layers-layer-0-properties-surface)',
+              border: '1px solid var(--layers-layer-1-properties-border-color)',
               borderRadius: 4,
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               padding: 4,
@@ -244,7 +244,7 @@ export default function TypeControls({
                   style={{
                     padding: '6px 8px',
                     cursor: 'pointer',
-                    background: optValue === currentValue ? 'var(--layer-layer-1-property-surface)' : 'transparent',
+                    background: optValue === currentValue ? 'var(--layers-layer-1-properties-surface)' : 'transparent',
                     borderRadius: 2,
                   }}
                 >

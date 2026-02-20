@@ -11,6 +11,7 @@ import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } f
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
+import { useCssVar } from '../../../hooks/useCssVar'
 import './Badge.css'
 
 export default function Badge({
@@ -25,12 +26,12 @@ export default function Badge({
   ...props
 }: AdapterBadgeProps) {
   const { mode } = useThemeMode()
-  
+
   // Get CSS variables
   const bgVar = getComponentCssVar('Badge', 'colors', `${variant}-background`, layer)
   const textVar = getComponentCssVar('Badge', 'colors', `${variant}-text`, layer)
   const borderColorVar = getComponentCssVar('Badge', 'colors', `${variant}-border-color`, layer)
-  
+
   // Get text CSS variables
   const fontFamilyVar = getComponentTextCssVar('Badge', 'text', 'font-family')
   const fontSizeVar = getComponentTextCssVar('Badge', 'text', 'font-size')
@@ -40,20 +41,20 @@ export default function Badge({
   const textDecorationVar = getComponentTextCssVar('Badge', 'text', 'text-decoration')
   const textTransformVar = getComponentTextCssVar('Badge', 'text', 'text-transform')
   const fontStyleVar = getComponentTextCssVar('Badge', 'text', 'font-style')
-  
+
   // Get level CSS variables (border-radius, border-size, padding)
   const borderRadiusVar = getComponentLevelCssVar('Badge', 'border-radius')
   const borderSizeVar = getComponentLevelCssVar('Badge', 'border-size')
   const paddingVerticalVar = getComponentLevelCssVar('Badge', 'padding-vertical')
   const paddingHorizontalVar = getComponentLevelCssVar('Badge', 'padding-horizontal')
-  
+
   // Reactively read elevation from CSS variable
   const elevationVar = getComponentLevelCssVar('Badge', 'elevation')
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
     const value = readCssVar(elevationVar)
     return value ? parseElevationValue(value) : undefined
   })
-  
+
   useEffect(() => {
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
@@ -62,9 +63,9 @@ export default function Badge({
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
+
     const observer = new MutationObserver(() => {
       const value = readCssVar(elevationVar)
       setElevationFromVar(value ? parseElevationValue(value) : undefined)
@@ -73,17 +74,22 @@ export default function Badge({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [elevationVar])
-  
+
+  // Reactively read background and text colors to trigger re-renders when CSS variables are initialized
+  // This ensures the badge renders correctly on first load
+  useCssVar(bgVar, '')
+  useCssVar(textVar, '')
+
   // Determine elevation to apply - prioritize prop, then CSS variable
   const componentElevation = elevation ?? elevationFromVar
   const elevationBoxShadow = getElevationBoxShadow(mode, componentElevation)
-  
+
   return (
     <MantineBadge
       className={`mantine-badge ${className || ''}`}

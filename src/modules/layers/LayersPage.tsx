@@ -26,25 +26,25 @@ export default function LayersPage() {
     const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
     const themes = root?.themes || root
     const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
-    
+
     // Get all available layer keys dynamically
     const allLayerKeys = Object.keys(defaults).filter(key => /^layer-\d+$/.test(key))
     const allLayers = allLayerKeys.map(key => {
       const match = /^layer-(\d+)$/.exec(key)
       return match ? parseInt(match[1], 10) : null
     }).filter((lvl): lvl is number => lvl !== null).sort((a, b) => a - b)
-    
+
     // Clear CSS variables for all layers so they regenerate from theme defaults
     const rootEl = document.documentElement
     allLayers.forEach((lvl) => {
-      const surfaceVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-surface`
-      const borderVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-border-color`
-      const textColorVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-element-text-color`
-      const paddingVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-padding`
-      const borderRadiusVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-border-radius`
-      const borderThicknessVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-border-thickness`
-      const elevationVar = `--recursica-brand-themes-${mode}-layer-layer-${lvl}-property-elevation`
-      
+      const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-surface`
+      const borderVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-color`
+      const textColorVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-elements-text-color`
+      const paddingVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-padding`
+      const borderRadiusVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-radius`
+      const borderThicknessVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-thickness`
+      const elevationVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-elevation`
+
       rootEl.style.removeProperty(surfaceVar)
       rootEl.style.removeProperty(textColorVar)
       rootEl.style.removeProperty(paddingVar)
@@ -55,14 +55,14 @@ export default function LayersPage() {
         rootEl.style.removeProperty(borderVar)
       }
     })
-    
+
     // Update theme JSON with defaults for all layers
     const t: any = theme
     const themeRoot: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
     const nextTheme = JSON.parse(JSON.stringify(themeRoot))
     const target = nextTheme.brand || nextTheme
     const container = target?.themes?.[mode]?.layers || target?.themes?.[mode]?.layer || target?.[mode]?.layers || target?.[mode]?.layer
-    
+
     if (!container) {
       if (!target.themes) target.themes = {}
       if (!target.themes[mode]) target.themes[mode] = {}
@@ -84,12 +84,12 @@ export default function LayersPage() {
         }
       })
     }
-    
+
     setTheme(nextTheme)
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property-element`
-  
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+
   // Dynamically get all available layers from theme
   const layerModules = useMemo(() => {
     // Try to get layers from current theme, fallback to brandDefault if theme not loaded
@@ -98,17 +98,17 @@ export default function LayersPage() {
     const brand = sourceTheme?.brand || sourceTheme
     const themes = brand?.themes || {}
     const layersData: any = themes?.[mode]?.layers || themes?.[mode]?.layer || {}
-    
+
     const layerKeys = Object.keys(layersData).filter(key => /^layer-\d+$/.test(key)).sort((a, b) => {
       const aNum = parseInt(a.replace('layer-', ''), 10)
       const bNum = parseInt(b.replace('layer-', ''), 10)
       return aNum - bNum
     })
-    
+
     if (layerKeys.length === 0) {
       return null
     }
-    
+
     // Build nested LayerModule components dynamically
     const buildLayerModules = (keys: string[], index: number): React.ReactElement | null => {
       if (index >= keys.length) return null
@@ -116,7 +116,7 @@ export default function LayersPage() {
       const level = parseInt(key.replace('layer-', ''), 10)
       const title = level === 0 ? `Layer ${level} (Background)` : `Layer ${level}`
       const child = buildLayerModules(keys, index + 1)
-      
+
       return (
         <LayerModule
           key={key}
@@ -129,12 +129,12 @@ export default function LayersPage() {
         </LayerModule>
       )
     }
-    
+
     return buildLayerModules(layerKeys, 0)
   }, [theme, mode, selectedLayerLevels])
-  
+
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`, color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
         <div className="section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -145,7 +145,7 @@ export default function LayersPage() {
               fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
               letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
               lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-              color: `var(${layer0Base}-text-color)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
             }}>Layers</h1>
             <Button
               variant="outline"
@@ -167,7 +167,7 @@ export default function LayersPage() {
         {selectedLayerLevels.size > 0 && (
           <LayerStylePanel
             open={selectedLayerLevels.size > 0}
-            selectedLevels={Array.from(selectedLayerLevels).sort((a,b) => a-b)}
+            selectedLevels={Array.from(selectedLayerLevels).sort((a, b) => a - b)}
             theme={theme}
             onClose={() => setSelectedLayerLevels(new Set())}
             onUpdate={(updater) => {

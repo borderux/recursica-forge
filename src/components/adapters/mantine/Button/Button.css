@@ -61,7 +61,7 @@
 .mantine-Button-root svg[style*="width:0"],
 .mantine-Button-root svg[style*="height:0"],
 .mantine-Button-root .mantine-Button-label svg,
-.mantine-Button-root > svg {
+.mantine-Button-root>svg {
   width: var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon, var(--button-icon-size)) !important;
   height: var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon, var(--button-icon-size)) !important;
   min-width: var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon, var(--button-icon-size)) !important;
@@ -87,7 +87,7 @@
 .mantine-Button-root[data-size='xs'] svg[style*="width:0"],
 .mantine-Button-root[data-size='xs'] svg[style*="height:0"],
 .mantine-Button-root[data-size='xs'] .mantine-Button-label svg,
-.mantine-Button-root[data-size='xs'] > svg {
+.mantine-Button-root[data-size='xs']>svg {
   width: var(--recursica-ui-kit-components-button-variants-sizes-small-properties-icon, var(--button-icon-size)) !important;
   height: var(--recursica-ui-kit-components-button-variants-sizes-small-properties-icon, var(--button-icon-size)) !important;
   min-width: var(--recursica-ui-kit-components-button-variants-sizes-small-properties-icon, var(--button-icon-size)) !important;
@@ -109,7 +109,7 @@
 .mantine-Button-root[data-size='md'] svg[style*="width:0"],
 .mantine-Button-root[data-size='md'] svg[style*="height:0"],
 .mantine-Button-root[data-size='md'] .mantine-Button-label svg,
-.mantine-Button-root[data-size='md'] > svg,
+.mantine-Button-root[data-size='md']>svg,
 .mantine-Button-root[data-size='lg'] svg,
 .mantine-Button-root[data-size='lg'] svg[width],
 .mantine-Button-root[data-size='lg'] svg[height],
@@ -122,7 +122,7 @@
 .mantine-Button-root[data-size='lg'] svg[style*="width:0"],
 .mantine-Button-root[data-size='lg'] svg[style*="height:0"],
 .mantine-Button-root[data-size='lg'] .mantine-Button-label svg,
-.mantine-Button-root[data-size='lg'] > svg {
+.mantine-Button-root[data-size='lg']>svg {
   width: var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon, var(--button-icon-size)) !important;
   height: var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon, var(--button-icon-size)) !important;
   min-width: var(--recursica-ui-kit-components-button-variants-sizes-default-properties-icon, var(--button-icon-size)) !important;
@@ -148,7 +148,8 @@
 /* Don't use flex: 1 on label when we want centering - truncation will work with max-width alone */
 .mantine-Button-root:has(.mantine-Button-leftSection) .mantine-Button-label {
   flex: none !important;
-  min-width: 0 !important; /* Allow flex item to shrink below content size */
+  min-width: 0 !important;
+  /* Allow flex item to shrink below content size */
   /* Truncation will work with max-width constraint */
 }
 
@@ -199,8 +200,8 @@
 
 /* For icon-only buttons, set the span (or container) around the SVG to display: flex */
 /* Mantine may wrap the icon in a span or other container for icon-only buttons */
-.mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) > span,
-.mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) > *:has(svg),
+.mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection))>span,
+.mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection))>*:has(svg),
 .mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) span:has(svg) {
   display: flex !important;
   align-items: center !important;

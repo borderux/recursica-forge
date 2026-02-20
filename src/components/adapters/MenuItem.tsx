@@ -36,7 +36,7 @@ export function MenuItem({
   trailingIcon,
   supportingText,
   selected = false,
-  divider = 'none',
+  divider,
   dividerColor,
   dividerOpacity,
   disabled = false,
@@ -48,7 +48,7 @@ export function MenuItem({
   carbon,
 }: MenuItemProps) {
   const Component = useComponent('MenuItem')
-  
+
   // Determine effective variant based on props
   let effectiveVariant = variant
   if (disabled) {
@@ -56,7 +56,7 @@ export function MenuItem({
   } else if (selected) {
     effectiveVariant = 'selected'
   }
-  
+
   if (!Component) {
     // Fallback to native button if component not available
     return (
@@ -101,7 +101,7 @@ export function MenuItem({
       </button>
     )
   }
-  
+
   // Map unified props to library-specific props
   const libraryProps = {
     variant: effectiveVariant,
@@ -122,9 +122,9 @@ export function MenuItem({
     material,
     carbon,
   }
-  
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<span />}>
       <Component {...libraryProps}>{children}</Component>
     </Suspense>
   )

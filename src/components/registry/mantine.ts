@@ -40,6 +40,12 @@ registerComponent('mantine', 'AssistiveElement', () => import('../adapters/manti
 // TextField
 registerComponent('mantine', 'TextField', () => import('../adapters/mantine/TextField/TextField'))
 
+// NumberInput
+registerComponent('mantine', 'NumberInput', () => import('../adapters/mantine/NumberInput/NumberInput'))
+
+// Dropdown
+registerComponent('mantine', 'Dropdown', () => import('../adapters/mantine/Dropdown/Dropdown'))
+
 // Breadcrumb
 registerComponent('mantine', 'Breadcrumb', () => import('../adapters/mantine/Breadcrumb/Breadcrumb'))
 
@@ -57,6 +63,21 @@ registerComponent('mantine', 'Slider', () => import('../adapters/mantine/Slider/
 
 // SegmentedControl
 registerComponent('mantine', 'SegmentedControl', () => import('../adapters/mantine/SegmentedControl/SegmentedControl'))
+
+// Modal
+registerComponent('mantine', 'Modal', () => import('../adapters/mantine/Modal/Modal'))
+
+// Tooltip
+registerComponent('mantine', 'Tooltip', () => import('../adapters/mantine/Tooltip/Tooltip'))
+
+// ReadOnlyField
+registerComponent('mantine', 'ReadOnlyField', () => import('../adapters/mantine/ReadOnlyField/ReadOnlyField'))
+
+// FileInput
+registerComponent('mantine', 'FileInput', () => import('../adapters/mantine/FileInput/FileInput'))
+
+// FileUpload
+registerComponent('mantine', 'FileUpload', () => import('../adapters/mantine/FileUpload/FileUpload'))
 
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))

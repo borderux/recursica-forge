@@ -48,19 +48,19 @@ export function Chip({
 }: ChipProps) {
   const Component = useComponent('Chip')
   const { mode } = useThemeMode()
-  
+
   // Get elevation from CSS vars if not provided as props
   const elevationVar = getComponentLevelCssVar('Chip', 'elevation')
-  
+
   // Reactively read elevation from CSS variable
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
     const value = readCssVar(elevationVar)
     return value ? parseElevationValue(value) : undefined
   })
-  
+
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
-  
+
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     // Get text CSS variables for reactive updates
@@ -72,28 +72,28 @@ export function Chip({
     const textDecorationVar = getComponentTextCssVar('Chip', 'text', 'text-decoration')
     const textTransformVar = getComponentTextCssVar('Chip', 'text', 'text-transform')
     const fontStyleVar = getComponentTextCssVar('Chip', 'text', 'font-style')
-    
+
     const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
-    
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       // Update elevation if it was changed
       const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(elevationVar)
       const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
-      
+
       if (shouldUpdateElevation) {
         const value = readCssVar(elevationVar)
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
       }
-      
+
       if (shouldUpdateText) {
         // Force re-render by updating state
         setTextVarsUpdate(prev => prev + 1)
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
+
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       const value = readCssVar(elevationVar)
@@ -105,15 +105,15 @@ export function Chip({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [elevationVar])
-  
+
   const componentElevation = elevation ?? elevationFromVar ?? undefined
-  
+
   if (!Component) {
     // Fallback to native element if component not available
     // Chip size properties are nested by layer, not by size variant
@@ -124,7 +124,7 @@ export function Chip({
     // icon-text-gap is at component level (not under size) in UIKit.json
     // NEW STRUCTURE: properties.icon-text-gap
     const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
-    
+
     return (
       <div
         onClick={disabled ? undefined : onClick}
@@ -142,9 +142,9 @@ export function Chip({
           const CheckIcon = iconNameToReactComponent('check')
           const isSelected = variant === 'selected' || variant === 'error-selected'
           const showCheckmark = isSelected && !!CheckIcon
-          
+
           if (!icon && !showCheckmark) return null
-          
+
           return (
             <span style={{
               display: 'inline-flex',
@@ -190,7 +190,7 @@ export function Chip({
             </span>
           )
         })()}
-        {children}
+        <span style={{ display: 'inline-block', verticalAlign: 'middle', paddingBottom: '0.05em' }}>{children}</span>
         {deletable && onDelete && (() => {
           const CloseIcon = iconNameToReactComponent('x')
           return (
@@ -221,7 +221,7 @@ export function Chip({
       </div>
     )
   }
-  
+
   // Map unified props to library-specific props
   const libraryProps = mapChipProps({
     variant,
@@ -239,9 +239,9 @@ export function Chip({
     material,
     carbon,
   })
-  
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<span />}>
       <Component {...libraryProps}>{children}</Component>
     </Suspense>
   )
@@ -256,13 +256,13 @@ function getChipStyles(
   mode: 'light' | 'dark' = 'light'
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
-  
+
   // Get color CSS variables
   // Use UIKit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
   const bgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const borderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
-  
+
   // For error variant (including error-selected), use component-level error color CSS variables
   let textVar: string
   if (variant === 'error' || variant === 'error-selected') {
@@ -270,7 +270,7 @@ function getChipStyles(
   } else {
     textVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
   }
-  
+
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)
   // NEW STRUCTURE: properties.{property}
   // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon, min-width, max-width
@@ -280,7 +280,7 @@ function getChipStyles(
   const borderRadiusVar = getComponentLevelCssVar('Chip', 'border-radius')
   const minWidthVar = getComponentLevelCssVar('Chip', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Chip', 'max-width')
-  
+
   // Get text styling CSS variables using getComponentTextCssVar (for text style toolbar)
   const fontFamilyVar = getComponentTextCssVar('Chip', 'text', 'font-family')
   const fontSizeVar = getComponentTextCssVar('Chip', 'text', 'font-size')
@@ -290,12 +290,12 @@ function getChipStyles(
   const textDecorationVar = getComponentTextCssVar('Chip', 'text', 'text-decoration')
   const textTransformVar = getComponentTextCssVar('Chip', 'text', 'text-transform')
   const fontStyleVar = getComponentTextCssVar('Chip', 'text', 'font-style')
-  
+
   // Apply color styles
   styles.backgroundColor = `var(${bgVar})`
   styles.color = `var(${textVar})`
   styles.border = `var(${borderSizeVar}, 1px) solid var(${borderVar})`
-  
+
   // Apply text styles using CSS variables from text style toolbar
   styles.fontFamily = fontFamilyVar ? `var(${fontFamilyVar})` : undefined
   styles.fontSize = fontSizeVar ? `var(${fontSizeVar})` : undefined
@@ -305,7 +305,7 @@ function getChipStyles(
   styles.textDecoration = textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none'
   styles.textTransform = textTransformVar ? (readCssVar(textTransformVar) || 'none') as React.CSSProperties['textTransform'] : 'none'
   styles.fontStyle = fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal'
-  
+
   // Apply size styles - height and width are derived from content and padding
   styles.paddingLeft = `var(${horizontalPaddingVar})`
   styles.paddingRight = `var(${horizontalPaddingVar})`
@@ -314,29 +314,29 @@ function getChipStyles(
   styles.borderRadius = `var(${borderRadiusVar})`
   styles.minWidth = minWidthVar ? `var(${minWidthVar})` : undefined
   styles.maxWidth = maxWidthVar ? `var(${maxWidthVar})` : undefined
-  
+
   // Apply disabled styles
   if (disabled) {
     styles.opacity = `var(--recursica-brand-${mode}-state-disabled)`
     styles.cursor = 'not-allowed'
   }
-  
+
   // Apply elevation if set (and not elevation-0)
   if (elevation && elevation !== 'elevation-0') {
     styles.boxShadow = getElevationBoxShadow(mode, elevation) || undefined
   }
-  
+
   return styles
 }
 
 function mapChipProps(props: ChipProps & { elevation?: string }): any {
   const { mantine, material, carbon, ...rest } = props
-  
+
   const baseProps: any = {
     ...rest,
     disabled: props.disabled,
   }
-  
+
   return {
     ...baseProps,
     ...(mantine && { mantine }),

@@ -38,6 +38,9 @@ registerComponent('material', 'AssistiveElement', () => import('../adapters/mate
 // TextField
 registerComponent('material', 'TextField', () => import('../adapters/material/TextField/TextField'))
 
+// NumberInput
+registerComponent('material', 'NumberInput', () => import('../adapters/material/NumberInput/NumberInput'))
+
 // Breadcrumb
 registerComponent('material', 'Breadcrumb', () => import('../adapters/material/Breadcrumb/Breadcrumb'))
 
@@ -55,6 +58,9 @@ registerComponent('material', 'Slider', () => import('../adapters/material/Slide
 
 // SegmentedControl
 registerComponent('material', 'SegmentedControl', () => import('../adapters/material/SegmentedControl/SegmentedControl'))
+
+// Tooltip
+registerComponent('material', 'Tooltip', () => import('../adapters/material/Tooltip/Tooltip'))
 
 // Add more components as they're implemented
 

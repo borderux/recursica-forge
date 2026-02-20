@@ -6,7 +6,10 @@
  */
 import { ReactNode, useEffect, useState, useMemo, useRef } from 'react'
 import type { CSSProperties } from 'react'
-import { AppShell, Group, Select, MantineProvider, Modal, Tabs as MantineTabs } from '@mantine/core'
+import { AppShell, Group, MantineProvider, Modal as MantineModal, Tabs as MantineTabs } from '@mantine/core'
+import { Tabs } from '../../../components/adapters/Tabs'
+import { Dropdown } from '../../../components/adapters/Dropdown'
+import { Modal } from '../../../components/adapters/Modal'
 import '@mantine/core/styles.css'
 import './MantineShell.css'
 import { iconNameToReactComponent } from '../../components/iconUtils'
@@ -45,7 +48,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const { selectedFiles, setSelectedFiles, handleImport, showDirtyModal, filesToImport, handleAcknowledge: handleDirtyAcknowledge, handleCancel: handleDirtyCancel, clearSelectedFiles } = useJsonImport()
   const location = useLocation()
   const navigate = useNavigate()
-  
+
   // Determine current route for navigation highlighting
   const currentRoute = useMemo(() => {
     if (location.pathname.startsWith('/tokens')) return 'tokens'
@@ -53,32 +56,32 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
     if (location.pathname.startsWith('/components')) return 'components'
     return 'tokens'
   }, [location.pathname])
-  
+
   // Logo SVG
   const LogoIcon = () => (
     <svg width="65" height="44" viewBox="0 0 65 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path fillRule="evenodd" clipRule="evenodd" d="M2.73689 0C1.22535 0 0 1.23486 0 2.75813V40.2687C0 41.792 1.22535 43.0269 2.73689 43.0269H61.3063C62.8178 43.0269 64.0431 41.792 64.0431 40.2687V2.75813C64.0431 1.23486 62.8178 0 61.3063 0H2.73689ZM4.10533 38.8628C4.10533 20.1314 18.8106 4.86124 37.2217 4.1372V38.8628H4.10533ZM45.4323 38.8628C42.4092 38.8628 39.9585 36.3931 39.9585 33.3465H45.4323V38.8628ZM59.8947 24.2447H39.9585V4.15383C50.6584 4.836 59.2177 13.4618 59.8947 24.2447ZM59.8674 27.0028C59.2296 33.2132 54.3317 38.1491 48.1692 38.7918V27.0028H59.8674ZM43.5165 27.0297C41.5515 27.0297 39.9585 28.635 39.9585 30.6153H43.5165V27.0297Z" fill={`var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-tone)`}/>
+      <path fillRule="evenodd" clipRule="evenodd" d="M2.73689 0C1.22535 0 0 1.23486 0 2.75813V40.2687C0 41.792 1.22535 43.0269 2.73689 43.0269H61.3063C62.8178 43.0269 64.0431 41.792 64.0431 40.2687V2.75813C64.0431 1.23486 62.8178 0 61.3063 0H2.73689ZM4.10533 38.8628C4.10533 20.1314 18.8106 4.86124 37.2217 4.1372V38.8628H4.10533ZM45.4323 38.8628C42.4092 38.8628 39.9585 36.3931 39.9585 33.3465H45.4323V38.8628ZM59.8947 24.2447H39.9585V4.15383C50.6584 4.836 59.2177 13.4618 59.8947 24.2447ZM59.8674 27.0028C59.2296 33.2132 54.3317 38.1491 48.1692 38.7918V27.0028H59.8674ZM43.5165 27.0297C41.5515 27.0297 39.9585 28.635 39.9585 30.6153H43.5165V27.0297Z" fill={`var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-tone)`} />
     </svg>
   )
-  
+
   const onFileSelect = async (files: FileList | null) => {
     if (!files || files.length === 0) {
       setSelectedFiles({})
       setSelectedFileNames([])
       return
     }
-    
+
     try {
       // Process files and detect types
       const importFiles = await processUploadedFilesAsync(files)
-      
+
       // Update selected files display
       const fileNames: string[] = []
       if (importFiles.tokens) fileNames.push('tokens.json')
       if (importFiles.brand) fileNames.push('brand.json')
       if (importFiles.uikit) fileNames.push('uikit.json')
       setSelectedFileNames(fileNames)
-      
+
       // Store files for import
       setSelectedFiles(importFiles)
     } catch (error) {
@@ -87,7 +90,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
       setSelectedFileNames([])
     }
   }
-  
+
   const handleImportClick = () => {
     handleImport(() => {
       // Close modal and clear selection on success
@@ -96,7 +99,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
       setSelectedFileNames([])
     })
   }
-  
+
   const handleDirtyAcknowledgeWithClose = () => {
     handleDirtyAcknowledge(() => {
       setIsModalOpen(false)
@@ -104,8 +107,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
       setSelectedFileNames([])
     })
   }
-  
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
   const showSidebar = location.pathname.startsWith('/tokens')
   const showThemeSidebar = location.pathname.startsWith('/theme')
   const headerRef = useRef<HTMLElement>(null)
@@ -126,7 +129,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
     window.addEventListener('resize', updateHeaderHeight)
     return () => window.removeEventListener('resize', updateHeaderHeight)
   }, [mode])
-  
+
   return (
     <MantineProvider>
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -140,9 +143,6 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
             height: 'auto',
             flexShrink: 0,
-            borderBottomWidth: '1px',
-            borderBottomStyle: 'solid',
-            borderBottomColor: `var(--recursica-brand-themes-${mode}-palettes-neutral-primary-tone)`,
           }}
         >
           <Group gap="var(--recursica-brand-dimensions-general-xl)" wrap="nowrap" style={{ width: '100%' }}>
@@ -153,8 +153,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                 <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
                   <span
                     style={{
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                       fontWeight: 600,
                       fontSize: 'var(--recursica-brand-typography-body-font-size)',
                     }}
@@ -164,8 +164,8 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   <span
                     style={{
                       fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     }}
                   >
                     Theme Forge
@@ -175,72 +175,23 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
             </div>
 
             {/* Chunk 2: Navigation Tabs */}
-            {(() => {
-              const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
-              const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
-              const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
-              const buttonSolidText = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
-              const buttonHeight = getComponentCssVar('Button', 'size', 'default-height', undefined)
-              const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
-              const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
-              
-              return (
-                <div
-                  style={{
-                    '--header-tab-active-bg': `var(${buttonSolidBg})`,
-                    '--header-tab-active-text': `var(${buttonSolidText})`,
-                  } as CSSProperties}
-                >
-                <MantineTabs
-                  value={currentRoute}
-                  variant="pills"
-                  onChange={(value) => {
-                    if (value === 'tokens') navigate('/tokens')
-                    else if (value === 'theme') navigate('/theme')
-                    else if (value === 'components') navigate('/components')
-                  }}
-                  classNames={{
-                    tab: 'header-nav-tab',
-                  }}
-                  styles={{
-                    root: {
-                      flex: 1,
-                    },
-                    list: {
-                      gap: 'var(--recursica-brand-dimensions-general-default)',
-                    },
-                    tab: {
-                      color: `var(${buttonTextText})`,
-                      backgroundColor: `var(${buttonTextBg})`,
-                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
-                      fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-                      fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                      height: `var(${buttonHeight})`,
-                      paddingLeft: `var(${buttonPadding})`,
-                      paddingRight: `var(${buttonPadding})`,
-                      borderRadius: `var(${buttonBorderRadius})`,
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        opacity: `var(${layer0Base}-element-text-high-emphasis)`,
-                      },
-                      '&[dataActive]': {
-                        color: `var(${buttonSolidText})`,
-                        backgroundColor: `var(${buttonSolidBg})`,
-                        opacity: 1,
-                        fontWeight: 600,
-                      },
-                    },
-                  }}
-                >
-                  <MantineTabs.List>
-                    <MantineTabs.Tab value="tokens">Tokens</MantineTabs.Tab>
-                    <MantineTabs.Tab value="theme">Theme</MantineTabs.Tab>
-                    <MantineTabs.Tab value="components">Components</MantineTabs.Tab>
-                  </MantineTabs.List>
-                </MantineTabs>
-                </div>
-              )
-            })()}
+            <Tabs
+              value={currentRoute}
+              variant="pills"
+              layer="layer-0"
+              style={{ flex: 1 }}
+              onChange={(value) => {
+                if (value === 'tokens') navigate('/tokens')
+                else if (value === 'theme') navigate('/theme')
+                else if (value === 'components') navigate('/components')
+              }}
+            >
+              <MantineTabs.List>
+                <MantineTabs.Tab value="tokens">Tokens</MantineTabs.Tab>
+                <MantineTabs.Tab value="theme">Theme</MantineTabs.Tab>
+                <MantineTabs.Tab value="components">Components</MantineTabs.Tab>
+              </MantineTabs.List>
+            </Tabs>
 
             {/* Chunk 3: Action Buttons and Framework Dropdown */}
             <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-general-default)', alignItems: 'center', marginLeft: 'auto' }}>
@@ -318,7 +269,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                     />
                   </Tooltip>
                   <Tooltip label="Auto-run CSS audit (dev only)">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-xs)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
                       <Switch
                         checked={cssAuditAutoRun}
                         onChange={(checked) => {
@@ -337,23 +288,18 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
                   </Tooltip>
                 </>
               )}
-              <Select
+              <Dropdown
                 value={kit}
                 onChange={(v) => onKitChange((v as UiKit) ?? 'mantine')}
-                data={[
+                items={[
                   { label: 'Mantine', value: 'mantine' },
                   { label: 'Material UI', value: 'material' },
                   { label: 'Carbon', value: 'carbon' },
                 ]}
-                allowDeselect={false}
-                disabled={true}
-                w={180}
-                  styles={{
-                    input: {
-                      backgroundColor: `var(${layer0Base}-surface)`,
-                      borderColor: `var(${layer0Base}-border-color)`,
-                    },
-                  }}
+                state="disabled"
+                style={{ width: 180 }}
+                layer="layer-0"
+                disableTopBottomMargin={true}
               />
             </div>
 
@@ -368,7 +314,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
               const buttonSolidText = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
               const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
               const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
-              
+
               const SunIcon = iconNameToReactComponent('sun')
               const MoonIcon = iconNameToReactComponent('moon')
               const modeItems: SegmentedControlItem[] = [
@@ -400,105 +346,103 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
         <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
           {showSidebar && <Sidebar />}
           {showThemeSidebar && <ThemeSidebar />}
-          <main style={{ 
+          <main style={{
             flex: 1,
             minHeight: 0,
             backgroundColor: `var(${layer0Base}-surface)`,
-            color: `var(${layer0Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}>
             {children}
           </main>
         </div>
-        <Modal opened={isModalOpen} onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }} title="Import JSON Files">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
-              <input
-                type="file"
-                accept="application/json,.json"
-                multiple
-                onChange={(e) => {
-                  onFileSelect(e.currentTarget.files)
-                  e.currentTarget.value = ''
-                }}
-                style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
-              />
-              {selectedFileNames.length > 0 && (
-                <div style={{ 
-                  fontSize: 'var(--recursica-brand-typography-caption-font-size)', 
-                  color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-medium-emphasis)`,
-                  marginTop: 'var(--recursica-brand-dimensions-general-sm)' 
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+          title="Import JSON Files"
+          layer="layer-1"
+          primaryActionLabel="Import"
+          onPrimaryAction={handleImportClick}
+          primaryActionDisabled={selectedFileNames.length === 0}
+          onSecondaryAction={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+          content={
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
+                <input
+                  type="file"
+                  accept="application/json,.json"
+                  multiple
+                  onChange={(e) => {
+                    onFileSelect(e.currentTarget.files)
+                    e.currentTarget.value = ''
+                  }}
+                  style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
+                />
+                {selectedFileNames.length > 0 && (
+                  <div style={{
+                    fontSize: 'var(--recursica-brand-typography-caption-font-size)',
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-medium-emphasis)`,
+                    marginTop: 'var(--recursica-brand-dimensions-general-sm)'
+                  }}>
+                    Selected: {selectedFileNames.join(', ')}
+                  </div>
+                )}
+                <div style={{
+                  fontSize: 'var(--recursica-brand-typography-caption-font-size)',
+                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                  marginTop: 'var(--recursica-brand-dimensions-general-sm)'
                 }}>
-                  Selected: {selectedFileNames.join(', ')}
+                  Upload tokens.json, brand.json, and/or uikit.json files
                 </div>
-              )}
-              <div style={{ 
-                fontSize: 'var(--recursica-brand-typography-caption-font-size)', 
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: `var(${layer0Base}-element-text-low-emphasis)`,
-                marginTop: 'var(--recursica-brand-dimensions-general-sm)' 
-              }}>
-                Upload tokens.json, brand.json, and/or uikit.json files
               </div>
             </div>
-            <Group gap="sm" justify="flex-end" style={{ borderTop: `1px solid var(${layer0Base}-border-color)`, paddingTop: 'var(--recursica-brand-dimensions-general-md)' }}>
-              <Button variant="outline" onClick={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}>
-                Cancel
-              </Button>
-              <Button variant="solid" onClick={handleImportClick} disabled={selectedFileNames.length === 0}>
-                Import
-              </Button>
-            </Group>
-          </div>
-        </Modal>
-      </div>
-      <ExportValidationErrorModal
-        show={showValidationModal}
-        errors={validationErrors}
-        onClose={handleValidationModalClose}
-      />
-      <ExportSelectionModalWrapper
-        show={showSelectionModal}
-        onConfirm={handleSelectionConfirm}
-        onCancel={handleSelectionCancel}
-        onExportToGithub={handleExportToGithub}
-      />
-      <GitHubExportModalWrapper
-        show={showGitHubModal}
-        selectedFiles={githubExportFiles}
-        onCancel={handleGitHubExportCancel}
-        onSuccess={handleGitHubExportSuccess}
-      />
-      <ExportComplianceModal
-        show={showComplianceModal}
-        issues={complianceIssues}
-        onAcknowledge={handleAcknowledge}
-        onCancel={handleCancel}
-      />
-      {process.env.NODE_ENV === 'development' && (
-        <RandomizeOptionsModal
-          show={showRandomizeModal}
-          onRandomize={(options) => {
-            randomizeAllVariables(options)
-            setShowRandomizeModal(false)
-          }}
-          onCancel={() => setShowRandomizeModal(false)}
+          }
         />
-      )}
-      <ExportValidationErrorModal
-        show={showValidationModal}
-        errors={validationErrors}
-        onClose={handleValidationModalClose}
-      />
-      <ImportDirtyDataModal
-        show={showDirtyModal}
-        filesToImport={filesToImport}
-        onAcknowledge={handleDirtyAcknowledgeWithClose}
-        onCancel={handleDirtyCancel}
-      />
+        <ExportValidationErrorModal
+          show={showValidationModal}
+          errors={validationErrors}
+          onClose={handleValidationModalClose}
+        />
+        <ExportSelectionModalWrapper
+          show={showSelectionModal}
+          onConfirm={handleSelectionConfirm}
+          onCancel={handleSelectionCancel}
+          onExportToGithub={handleExportToGithub}
+        />
+        <GitHubExportModalWrapper
+          show={showGitHubModal}
+          selectedFiles={githubExportFiles}
+          onCancel={handleGitHubExportCancel}
+          onSuccess={handleGitHubExportSuccess}
+        />
+        <ExportComplianceModal
+          show={showComplianceModal}
+          issues={complianceIssues}
+          onAcknowledge={handleAcknowledge}
+          onCancel={handleCancel}
+        />
+        {process.env.NODE_ENV === 'development' && (
+          <RandomizeOptionsModal
+            show={showRandomizeModal}
+            onRandomize={(options) => {
+              randomizeAllVariables(options)
+              setShowRandomizeModal(false)
+            }}
+            onCancel={() => setShowRandomizeModal(false)}
+          />
+        )}
+        <ImportDirtyDataModal
+          show={showDirtyModal}
+          filesToImport={filesToImport}
+          onAcknowledge={handleDirtyAcknowledgeWithClose}
+          onCancel={handleDirtyCancel}
+        />
+      </div>
     </MantineProvider>
   )
 }
+
 
 

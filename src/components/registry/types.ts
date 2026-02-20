@@ -26,6 +26,7 @@ export type ComponentName =
   | 'Avatar'
   | 'Accordion'
   | 'AccordionItem'
+  | 'Dropdown'
   | 'Breadcrumb'
   | 'DatePicker'
   | 'FileInput'

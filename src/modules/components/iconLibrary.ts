@@ -28,9 +28,11 @@ import {
   ArrowsInLineHorizontal,
   ArrowsInLineVertical,
   ArrowsOut,
+  ArrowsOutCardinal,
   ArrowsOutLineHorizontal,
   ArrowsOutLineVertical,
   ArrowsVertical,
+  Article,
   Asterisk,
   BugBeetle as Bug,
   CaretDoubleRight,
@@ -57,15 +59,18 @@ import {
   FileSvg,
   FileText,
   FrameCorners,
+  GoogleLogo,
   GridFour,
   House,
   Info,
   Layout,
+  LineSegment,
   Link,
   List,
   Minus,
   Moon,
   PaintBrush,
+  PaintBrushBroad,
   PaintBucket,
   Palette,
   Pause,
@@ -73,6 +78,7 @@ import {
   Plus,
   Queue,
   Resize,
+  Rows,
   Scales,
   SignOut,
   SlidersHorizontal,
@@ -87,6 +93,9 @@ import {
   Swap,
   TextAUnderline,
   TextAa,
+  TextAlignCenter,
+  TextAlignLeft,
+  TextAlignRight,
   TextItalic,
   TextStrikethrough,
   TextT,
@@ -215,12 +224,12 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'diamond': Diamond,
   'paint-bucket': PaintBucket,
   'copy-simple': CopySimple,
-  
+
   // Variants
   'variant-color': DiamondsFour,
   'variant-size': Resize,
   'resize': Resize,
-  
+
   // Other icons used in the app
   'chevron-down': CaretDown,
   'chevron-right': CaretRight,
@@ -245,7 +254,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'text-a-underline': TextAUnderline,
   'text-t-slash': TextTSlashIcon,
   'text-italic': TextItalic,
-  
+
   // Radix UI typography icons (wrapped to normalize props)
   'radix-font-italic': createRadixIconWrapper(FontItalicIcon),
   'radix-font-roman': createRadixIconWrapper(FontRomanIcon),
@@ -302,7 +311,19 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'x': X,
   'check-square': CheckSquare,
   'squares-four': SquaresFour,
+  'article': Article,
+  'paint-brush-broad': PaintBrushBroad,
+  'rows': Rows,
+  'shadow': Stack,
+  'google-logo': GoogleLogo,
+  'arrows-out-cardinal': ArrowsOutCardinal,
+  'align-center': TextAlignCenter,
+  'text-align-left': TextAlignLeft,
+  'text-align-center': TextAlignCenter,
+  'text-align-right': TextAlignRight,
+  'upload': Upload,
   'split-vertical': SplitVertical,
+  'line-segment': LineSegment,
 }
 
 /**
@@ -316,7 +337,7 @@ export function getIcon(iconName: string): IconComponent | null {
     console.warn(`Icon "${iconName}" not found in icon map`)
     return null
   }
-  
+
   return IconComponent
 }
 

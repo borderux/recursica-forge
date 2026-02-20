@@ -187,8 +187,8 @@ function CoreOnToneCell({
               transform: 'translateX(-50%)',
               marginTop: '4px',
               padding: '8px 12px',
-              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+              backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
               borderRadius: '6px',
               boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 1000,
@@ -202,10 +202,10 @@ function CoreOnToneCell({
             <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
               AA Compliance Issue
             </div>
-            <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
+            <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)` }}>
               Both black and white don't pass contrast (≥4.5:1)
             </div>
-            <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`, opacity: 0.8 }}>
+            <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)`, opacity: 0.8 }}>
               Current: {aaStatus?.currentRatio.toFixed(2)}:1
             </div>
           </div>
@@ -322,8 +322,8 @@ function CoreInteractiveCell({
               transform: 'translateX(-50%)',
               marginTop: '4px',
               padding: '8px 12px',
-              backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+              backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
+              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
               borderRadius: '6px',
               boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 1000,
@@ -337,7 +337,7 @@ function CoreInteractiveCell({
             <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
               AA Compliance Issue
             </div>
-            <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
+            <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)` }}>
               Interactive color contrast ratio {aaStatus?.currentRatio.toFixed(2)}:1 {'<'} 4.5:1
             </div>
           </div>
@@ -473,8 +473,8 @@ function CoreInteractiveSwatch({
             transform: 'translateX(-50%)',
             marginTop: '4px',
             padding: '8px 12px',
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -488,10 +488,10 @@ function CoreInteractiveSwatch({
           <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
             AA Compliance Issue
           </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
+          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)` }}>
             Both black and white don't pass contrast (≥4.5:1)
           </div>
-          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)`, opacity: 0.8 }}>
+          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)`, opacity: 0.8 }}>
             Current: {aaStatus?.currentRatio.toFixed(2)}:1
           </div>
         </div>
@@ -752,11 +752,13 @@ export default function PalettesPage() {
           
           // Set tone to reference the family token
           root[modeKey].palettes[paletteKey][lvl].color.tone = {
+            $type: 'color',
             $value: levelTokenRef
           }
           
           // Set on-tone to reference white (will be updated by PaletteGrid based on contrast)
           root[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
+            $type: 'color',
             $value: `{brand.palettes.white}`
           }
         })
@@ -788,8 +790,6 @@ export default function PalettesPage() {
     while (existing.has(`palette-${i}`)) i += 1
     const nextKey = `palette-${i}`
     
-    console.log('Adding palette:', { nextKey, family, unusedFamilies, currentPalettes: palettes.length })
-    
     try {
       // Initialize theme JSON for this palette using the unused color scale
       initializePaletteTheme(nextKey, family)
@@ -797,10 +797,7 @@ export default function PalettesPage() {
       // Add palette entry with the unused color scale as initialFamily
       const newPalette: PaletteEntry = { key: nextKey, title: `Palette ${i}`, defaultLevel: 500, initialFamily: family }
       const updatedPalettes = [...palettes, newPalette]
-      console.log('Writing palettes:', { newPalette, updatedPalettes })
       writePalettes(updatedPalettes)
-      
-      console.log('Palette added successfully')
     } catch (err) {
       console.error('Failed to add palette:', err)
     }
@@ -815,7 +812,7 @@ export default function PalettesPage() {
     } catch {}
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
   
   // Generate descriptive labels: Grayscale for neutral (index 0), then Primary, Secondary, etc.
   const getDescriptiveLabel = (paletteKey: string, index: number): string => {
@@ -827,7 +824,7 @@ export default function PalettesPage() {
   const PlusIcon = iconNameToReactComponent('plus')
   
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-surface)`, color: `var(--recursica-brand-themes-${mode}-layer-layer-0-property-element-text-color)` }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`, color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
         <div className="header-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-gutters-horizontal)' }}>
           <h1 id="theme-mode-label" style={{ 
@@ -837,7 +834,7 @@ export default function PalettesPage() {
             fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
             letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
             lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-            color: `var(${layer0Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}>Palettes</h1>
           <Button
             variant="outline"

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { hexToHsv, hsvToHex } from '../tokens/colors/colorUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { TextField } from '../../components/adapters/TextField'
+import { Modal } from '../../components/adapters/Modal'
 
 export type ColorPickerModalProps = {
   open: boolean
@@ -17,10 +17,10 @@ export function ColorPickerModal({
   onClose,
   onAccept,
 }: ColorPickerModalProps) {
-  const [hsvState, setHsvState] = useState<{ h: number; s: number; v: number }>(() => 
+  const [hsvState, setHsvState] = useState<{ h: number; s: number; v: number }>(() =>
     hexToHsv(/^#([0-9a-f]{6})$/i.test(defaultHex) ? defaultHex : '#000000')
   )
-  const [hexInput, setHexInput] = useState<string>(() => 
+  const [hexInput, setHexInput] = useState<string>(() =>
     (/^#([0-9a-f]{6})$/i.test(defaultHex) ? defaultHex : '#000000').toLowerCase()
   )
 
@@ -29,6 +29,8 @@ export function ColorPickerModal({
       const hex = /^#([0-9a-f]{6})$/i.test(defaultHex) ? defaultHex : '#000000'
       setHsvState(hexToHsv(hex))
       setHexInput(hex.toLowerCase())
+      // Close any open overlays when the modal opens
+      window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
     }
   }, [open, defaultHex])
 
@@ -64,58 +66,24 @@ export function ColorPickerModal({
   const currentHex = hsvToHex(hsvState.h, hsvState.s, hsvState.v).toLowerCase()
   const { mode } = useThemeMode()
 
-  if (!open) return null
+  const layer3Base = `--recursica-brand-themes-${mode}-layers-layer-3-properties`
 
-  return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'grid',
-        placeItems: 'center',
-        zIndex: 20000,
-      }}
-      onClick={onClose}
+  return (
+    <Modal
+      isOpen={open}
+      onClose={onClose}
+      title="Add color scale"
+      size={360}
+      layer="layer-3"
+      primaryActionLabel="Create Scale"
+      onPrimaryAction={handleAccept}
+      secondaryActionLabel="Cancel"
+      onSecondaryAction={onClose}
+      showFooter={true}
+      padding={true}
+      zIndex={20000}
     >
-      <div
-        style={{
-          background: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface, var(--recursica-brand-themes-${mode}-layer-layer-3-property-surface))`,
-          color: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-element-text-color))`,
-          border: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-thickness)) solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color))`,
-          borderRadius: `var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius, var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-radius))`,
-          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
-          padding: 20,
-          display: 'grid',
-          gap: 16,
-          width: 360,
-          maxWidth: '90vw',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: 16, fontWeight: 600 }}>Choose Color for New Scale</div>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            style={{
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: 20,
-              lineHeight: 1,
-              padding: 0,
-              width: 24,
-              height: 24,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            &times;
-          </button>
-        </div>
-
+      <div style={{ display: 'grid', gap: 16 }}>
         <div
           onMouseDown={(e) => {
             handleSV(e)
@@ -178,7 +146,7 @@ export function ColorPickerModal({
               height: 60,
               borderRadius: 8,
               background: currentHex,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`,
+              border: `1px solid var(${layer3Base}-border-color, rgba(0,0,0,0.1))`,
               flexShrink: 0,
             }}
           />
@@ -198,40 +166,8 @@ export function ColorPickerModal({
             layer="layer-3"
           />
         </div>
-
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 6,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-3-property-border-color, rgba(0,0,0,0.1))`,
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: 14,
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleAccept}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 6,
-              border: 'none',
-              background: `var(--recursica-brand-themes-${mode}-palettes-core-interactive, #3b82f6)`,
-              color: '#fff',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: 500,
-            }}
-          >
-            Create Scale
-          </button>
-        </div>
       </div>
-    </div>,
-    document.body
+    </Modal>
   )
 }
 

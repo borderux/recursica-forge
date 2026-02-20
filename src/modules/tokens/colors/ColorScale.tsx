@@ -48,6 +48,10 @@ export function ColorScale({
   if (deletedFamilies[family]) return null
 
   const { mode } = useThemeMode()
+
+  const level500 = levels.find((l) => l.level === '500')
+  const borderColor = level500 ? (values[level500.entry.name] || level500.entry.value) : 'transparent'
+
   const displayFamilyName = toTitleCase(familyNames[family] ?? family)
   const isDeleteDisabled = isUsedInPalettes || isLastColorScale
 
@@ -70,12 +74,12 @@ export function ColorScale({
     // Value is already filtered in onChange - keep raw value in localName for typing
     // Don't apply toTitleCase while typing, only on blur/debounce
     setLocalName(newValue)
-    
+
     // Clear existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
     }
-    
+
     // Set new timer to debounce the actual change
     debounceTimerRef.current = setTimeout(() => {
       const v = toTitleCase(newValue)
@@ -106,11 +110,11 @@ export function ColorScale({
     }
   }, [])
 
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
-  
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <div style={{ marginBottom: 'var(--recursica-brand-dimensions-general-sm)' }}>
+      <div style={{ marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
         <TextField
           value={localName}
           onChange={(e) => {
@@ -126,53 +130,65 @@ export function ColorScale({
             }
           }}
           layer="layer-1"
-          style={{ 
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)', 
+          minWidth={0}
+          style={{
+            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
             width: '100%',
           }}
         />
       </div>
-      {levelOrder.map((level) => {
-        const match = levels.find((l) => l.level === level)
-        const entry = match?.entry
-        const isGrayFamily = family === 'gray'
-        const isEdgeLevel = level === '1000' || level === '000'
-        const tokenName = entry?.name || (isEdgeLevel && !isGrayFamily ? undefined : `color/${family}/${level}`)
-        const current = tokenName ? String(values[tokenName] ?? (entry ? entry.value : '')) : ''
-        const isHovered = hoveredSwatch === tokenName
-        const isActive = !!openPicker && openPicker.tokenName === tokenName
+      <div style={{
+        border: `1px solid ${borderColor}`,
+        borderRadius: 'var(--recursica-brand-dimensions-border-radii-lg)',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0
+      }}>
+        {levelOrder.map((level, index) => {
+          const match = levels.find((l) => l.level === level)
+          const entry = match?.entry
+          const isGrayFamily = family === 'gray'
+          const isEdgeLevel = level === '1000' || level === '000'
+          const tokenName = entry?.name || (isEdgeLevel && !isGrayFamily ? undefined : `color/${family}/${level}`)
+          const current = tokenName ? String(values[tokenName] ?? (entry ? entry.value : '')) : ''
+          const isHovered = hoveredSwatch === tokenName
+          const isActive = !!openPicker && openPicker.tokenName === tokenName
 
-        return (
-          <ColorCell
-            key={`${family}-${level}`}
-            tokenName={tokenName}
-            currentHex={current}
-            level={level}
-            family={family}
-            isHovered={isHovered}
-            isActive={isActive}
-            onMouseEnter={() => tokenName && setHoveredSwatch(tokenName)}
-            onMouseLeave={() => {
-              if (hoveredSwatch === tokenName) setHoveredSwatch(null)
-            }}
-            onClick={(ev) => {
-              if (!tokenName) return
-              const rect = (ev.currentTarget as HTMLDivElement).getBoundingClientRect()
-              setOpenPicker({ tokenName, swatchRect: rect })
-            }}
-            onChange={(hex, cascadeDown, cascadeUp) => {
-              if (tokenName) onChange(tokenName, hex, cascadeDown, cascadeUp)
-            }}
-            onNameFromHex={onNameFromHex}
-            displayFamilyName={displayFamilyName}
-            openPicker={openPicker}
-            setOpenPicker={setOpenPicker}
-            tokens={tokens}
-          />
-        )
-      })}
-      <div style={{ 
-        marginTop: 'var(--recursica-brand-dimensions-general-sm)',
+          return (
+            <ColorCell
+              key={`${family}-${level}`}
+              tokenName={tokenName}
+              currentHex={current}
+              level={level}
+              family={family}
+              isHovered={isHovered}
+              isActive={isActive}
+              onMouseEnter={() => tokenName && setHoveredSwatch(tokenName)}
+              onMouseLeave={() => {
+                if (hoveredSwatch === tokenName) setHoveredSwatch(null)
+              }}
+              onClick={(ev) => {
+                if (!tokenName) return
+                const rect = (ev.currentTarget as HTMLDivElement).getBoundingClientRect()
+                setOpenPicker({ tokenName, swatchRect: rect })
+              }}
+              onChange={(hex, cascadeDown, cascadeUp) => {
+                if (tokenName) onChange(tokenName, hex, cascadeDown, cascadeUp)
+              }}
+              onNameFromHex={onNameFromHex}
+              displayFamilyName={displayFamilyName}
+              openPicker={openPicker}
+              setOpenPicker={setOpenPicker}
+              tokens={tokens}
+              isFirst={index === 0}
+              isLast={index === levelOrder.length - 1}
+            />
+          )
+        })}
+      </div>
+      <div style={{
+        marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
         display: 'flex',
         justifyContent: 'center',
       }}>

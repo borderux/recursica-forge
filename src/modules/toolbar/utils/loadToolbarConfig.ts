@@ -21,12 +21,23 @@ import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
 import TextFieldConfig from '../configs/TextField.toolbar.json'
 import CheckboxItemConfig from '../configs/CheckboxItem.toolbar.json'
 import CheckboxGroupConfig from '../configs/CheckboxGroup.toolbar.json'
+import NumberInputConfig from '../configs/NumberInput.toolbar.json'
+import ModalConfig from '../configs/Modal.toolbar.json'
+import DropdownConfig from '../configs/Dropdown.toolbar.json'
+import TabsConfig from '../configs/Tabs.toolbar.json'
+import TooltipConfig from '../configs/Tooltip.toolbar.json'
+import ReadOnlyFieldConfig from '../configs/ReadOnlyField.toolbar.json'
+import FileInputConfig from '../configs/FileInput.toolbar.json'
+import FileUploadConfig from '../configs/FileUpload.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
   label: string
   visible?: boolean
   group?: Record<string, ToolbarPropConfig> // Props that are grouped under this icon
+  propertyType?: 'slider' | 'select' | 'color' | 'text' // Custom property type override
+  range?: [number, number] // For slider
+  step?: number // For slider
 }
 
 export interface ToolbarVariantConfig {
@@ -98,6 +109,28 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'checkbox-group':
       case 'checkbox group':
         return CheckboxGroupConfig as unknown as ToolbarConfig
+      case 'number-input':
+      case 'number input':
+      case 'numberinput':
+        return NumberInputConfig as unknown as ToolbarConfig
+      case 'modal':
+        return ModalConfig as unknown as ToolbarConfig
+      case 'dropdown':
+        return DropdownConfig as unknown as ToolbarConfig
+      case 'tabs':
+        return TabsConfig as unknown as ToolbarConfig
+      case 'tooltip':
+        return TooltipConfig as unknown as ToolbarConfig
+      case 'read-only-field':
+      case 'read only field':
+      case 'readonlyfield':
+        return ReadOnlyFieldConfig as unknown as ToolbarConfig
+      case 'file-input':
+      case 'file input':
+        return FileInputConfig as unknown as ToolbarConfig
+      case 'file-upload':
+      case 'file upload':
+        return FileUploadConfig as unknown as ToolbarConfig
       default:
         return null
     }
@@ -108,7 +141,7 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
 }
 
 /**
- * Gets the config for a specific prop
+ * Gets the config for a specific prop, including searching inside groups
  */
 export function getPropConfig(
   componentName: string,
@@ -118,7 +151,20 @@ export function getPropConfig(
   if (!config) return null
 
   const propKey = propName.toLowerCase()
-  return config.props[propKey] || null
+
+  // First check at the root level
+  if (config.props[propKey]) {
+    return config.props[propKey]
+  }
+
+  // Then check inside groups
+  for (const parentPropConfig of Object.values(config.props)) {
+    if (parentPropConfig.group && parentPropConfig.group[propKey]) {
+      return parentPropConfig.group[propKey]
+    }
+  }
+
+  return null
 }
 
 /**

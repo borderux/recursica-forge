@@ -18,23 +18,45 @@ export default function LabelPreview({
   // Extract variants from selectedVariants
   const layoutVariant = (selectedVariants.layout || 'stacked') as 'stacked' | 'side-by-side'
   const sizeVariant = (selectedVariants.size || 'default') as 'default' | 'small'
-  
+
   // Get vertical gap token for form properties
   const formVerticalItemGapVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
   const verticalGapValue = `var(${formVerticalItemGapVar})`
 
+  const h2Style = {
+    margin: 0,
+    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+  } as React.CSSProperties
+
+  const verticalGutter = 'var(--recursica-brand-dimensions-gutters-vertical)'
+
   // Show stacked layout with TextField components (which include labels)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGapValue }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGutter }}>
       {/* Left-aligned section */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGapValue }}>
-        <h2 style={{ margin: 0 }}>Left aligned</h2>
+        <h2 style={h2Style}>Left aligned</h2>
+        <TextField
+          label="Label with Large Gap"
+          placeholder="Input field"
+          layout={layoutVariant}
+          labelSize={sizeVariant}
+          layer={selectedLayer as any}
+          editIcon={true}
+          editIconGap={24}
+          disableTopBottomMargin
+        />
         <TextField
           label="Label"
           placeholder="Input field"
           layout={layoutVariant}
           labelSize={sizeVariant}
           layer={selectedLayer as any}
+          editIcon={true}
           disableTopBottomMargin
         />
         <TextField
@@ -56,10 +78,10 @@ export default function LabelPreview({
           disableTopBottomMargin
         />
       </div>
-      
+
       {/* Right-aligned section */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGapValue }}>
-        <h2 style={{ margin: 0 }}>Right aligned</h2>
+        <h2 style={h2Style}>Right aligned</h2>
         <TextField
           label="Label"
           placeholder="Input field"
@@ -67,6 +89,7 @@ export default function LabelPreview({
           layout={layoutVariant}
           labelSize={sizeVariant}
           layer={selectedLayer as any}
+          editIcon={true}
           disableTopBottomMargin
         />
         <TextField

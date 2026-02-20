@@ -28,8 +28,8 @@ export default function TokensPage() {
     setSelected(getSelectedFromPath())
   }, [location.pathname])
   
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   return (
     <div style={{ 
@@ -52,8 +52,8 @@ export default function TokensPage() {
           fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
         }}>
           {selected === 'color' && 'Color'}
           {selected === 'font' && 'Font'}

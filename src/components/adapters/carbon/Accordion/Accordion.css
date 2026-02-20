@@ -14,7 +14,7 @@
 }
 
 /* Remove borders from all child elements - only container should have border */
-.recursica-accordion.carbon-accordion > * {
+.recursica-accordion.carbon-accordion>* {
   border: none !important;
   border-top: none !important;
   border-bottom: none !important;
@@ -102,7 +102,8 @@
 .recursica-accordion.carbon-accordion .cds--accordion__title {
   color: var(--accordion-item-header-text) !important;
   font-weight: var(--accordion-item-header-font-weight) !important;
-  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   flex: 1 !important;
@@ -111,7 +112,7 @@
 
 .recursica-accordion.carbon-accordion .cds--accordion__title span,
 .recursica-accordion.carbon-accordion .cds--accordion__title div,
-.recursica-accordion.carbon-accordion .cds--accordion__title > * {
+.recursica-accordion.carbon-accordion .cds--accordion__title>* {
   font-weight: var(--accordion-item-header-font-weight) !important;
 }
 

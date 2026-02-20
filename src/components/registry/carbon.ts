@@ -38,6 +38,9 @@ registerComponent('carbon', 'AssistiveElement', () => import('../adapters/carbon
 // TextField
 registerComponent('carbon', 'TextField', () => import('../adapters/carbon/TextField/TextField'))
 
+// NumberInput
+registerComponent('carbon', 'NumberInput', () => import('../adapters/carbon/NumberInput/NumberInput'))
+
 // Breadcrumb
 registerComponent('carbon', 'Breadcrumb', () => import('../adapters/carbon/Breadcrumb/Breadcrumb'))
 
@@ -55,6 +58,9 @@ registerComponent('carbon', 'Slider', () => import('../adapters/carbon/Slider/Sl
 
 // SegmentedControl
 registerComponent('carbon', 'SegmentedControl', () => import('../adapters/carbon/SegmentedControl/SegmentedControl'))
+
+// Tooltip
+registerComponent('carbon', 'Tooltip', () => import('../adapters/carbon/Tooltip/Tooltip'))
 
 // Add more components as they're implemented
 

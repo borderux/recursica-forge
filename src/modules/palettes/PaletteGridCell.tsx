@@ -93,7 +93,7 @@ export function PaletteEmphasisCell({
     try {
       const raw = localStorage.getItem('family-friendly-names')
       if (raw) setFamilyNames(JSON.parse(raw))
-    } catch {}
+    } catch { }
     const onNames = (ev: Event) => {
       try {
         const detail: any = (ev as CustomEvent).detail
@@ -128,23 +128,23 @@ export function PaletteEmphasisCell({
   // Check both high and low emphasis to determine if tone fails AA for either
   const aaStatus = useMemo(() => {
     if (!tokens || !paletteKey || !level) return null
-    
+
     const toneValue = readCssVar(toneCssVar)
     const onToneValue = readCssVar(onToneCssVar)
     const emphasisValue = readCssVar(emphasisCssVar)
-    
+
     if (!toneValue || !onToneValue) return null
-    
+
     const tokenIndex = buildTokenIndex(tokens)
     const toneHex = resolveCssVarToHex(toneValue, tokenIndex)
     const onToneHex = resolveCssVarToHex(onToneValue, tokenIndex)
-    
+
     if (!toneHex || !onToneHex) return null
-    
+
     // Get current emphasis opacity value (normalize to 0-1 range)
     const emphasisResolved = readCssVarResolved(emphasisCssVar) || readCssVar(emphasisCssVar)
     let opacityRaw: number = 1
-    
+
     if (emphasisResolved) {
       const tokenMatch = emphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
       if (tokenMatch) {
@@ -164,21 +164,21 @@ export function PaletteEmphasisCell({
     } else {
       opacityRaw = readCssVarNumber(emphasisCssVar, 1)
     }
-    
-    const opacity = (opacityRaw && !isNaN(opacityRaw) && opacityRaw > 0) 
+
+    const opacity = (opacityRaw && !isNaN(opacityRaw) && opacityRaw > 0)
       ? (opacityRaw <= 1 ? opacityRaw : opacityRaw / 100)
       : 1
-    
+
     // Also get high and low emphasis opacities to check both
     const highEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
     const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
-    
+
     const highEmphasisResolved = readCssVarResolved(highEmphasisCssVar) || readCssVar(highEmphasisCssVar)
     const lowEmphasisResolved = readCssVarResolved(lowEmphasisCssVar) || readCssVar(lowEmphasisCssVar)
-    
+
     let highOpacityRaw: number = 1
     let lowOpacityRaw: number = 1
-    
+
     // Parse high emphasis opacity
     if (highEmphasisResolved) {
       const tokenMatch = highEmphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
@@ -199,7 +199,7 @@ export function PaletteEmphasisCell({
     } else {
       highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
     }
-    
+
     // Parse low emphasis opacity
     if (lowEmphasisResolved) {
       const tokenMatch = lowEmphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
@@ -220,19 +220,19 @@ export function PaletteEmphasisCell({
     } else {
       lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
     }
-    
-    const highOpacity = (highOpacityRaw && !isNaN(highOpacityRaw) && highOpacityRaw > 0) 
+
+    const highOpacity = (highOpacityRaw && !isNaN(highOpacityRaw) && highOpacityRaw > 0)
       ? (highOpacityRaw <= 1 ? highOpacityRaw : highOpacityRaw / 100)
       : 1
-    const lowOpacity = (lowOpacityRaw && !isNaN(lowOpacityRaw) && lowOpacityRaw > 0) 
+    const lowOpacity = (lowOpacityRaw && !isNaN(lowOpacityRaw) && lowOpacityRaw > 0)
       ? (lowOpacityRaw <= 1 ? lowOpacityRaw : lowOpacityRaw / 100)
       : 1
-    
+
     // Blend on-tone with tone using current emphasis opacity
     const blendedOnTone = blendHexOver(onToneHex, toneHex, opacity)
     const currentRatio = contrastRatio(toneHex, blendedOnTone)
     const passesAA = currentRatio >= AA
-    
+
     // Read actual core black and white colors from CSS variables (not hardcoded)
     const coreBlackVar = `--recursica-brand-themes-${mode}-palettes-core-black`
     const coreWhiteVar = `--recursica-brand-themes-${mode}-palettes-core-white`
@@ -240,7 +240,7 @@ export function PaletteEmphasisCell({
     const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
     const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
     const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
-    
+
     // Check high emphasis
     const blackHighBlended = blendHexOver(black, toneHex, highOpacity)
     const whiteHighBlended = blendHexOver(white, toneHex, highOpacity)
@@ -248,7 +248,7 @@ export function PaletteEmphasisCell({
     const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
     const blackHighPasses = blackHighContrast >= AA
     const whiteHighPasses = whiteHighContrast >= AA
-    
+
     // Check low emphasis
     const blackLowBlended = blendHexOver(black, toneHex, lowOpacity)
     const whiteLowBlended = blendHexOver(white, toneHex, lowOpacity)
@@ -256,10 +256,10 @@ export function PaletteEmphasisCell({
     const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
     const blackLowPasses = blackLowContrast >= AA
     const whiteLowPasses = whiteLowContrast >= AA
-    
+
     // Tone fails AA if both black and white fail for EITHER emphasis level
     const toneFailsAA = (!blackHighPasses && !whiteHighPasses) || (!blackLowPasses && !whiteLowPasses)
-    
+
     // For current emphasis level
     const blackBlended = blendHexOver(black, toneHex, opacity)
     const whiteBlended = blendHexOver(white, toneHex, opacity)
@@ -267,7 +267,7 @@ export function PaletteEmphasisCell({
     const whiteContrast = contrastRatio(toneHex, whiteBlended)
     const blackPasses = blackContrast >= AA
     const whitePasses = whiteContrast >= AA
-    
+
     return {
       passesAA,
       blackPasses,
@@ -286,45 +286,45 @@ export function PaletteEmphasisCell({
   // This means auto-fix has been attempted (trying both black and white) and failed
   // Show dot if current on-tone passes AA OR if black or white would pass (auto-fix would work)
   // If aaStatus is null (can't check), default to showing dot
-  const showAAWarning = aaStatus 
+  const showAAWarning = aaStatus
     ? (!aaStatus.passesAA && !aaStatus.blackPasses && !aaStatus.whitePasses)
     : false
-  
+
   // If tone fails AA for either emphasis level, both cells should open color picker (not set primary)
   const shouldOpenColorPicker = aaStatus?.toneFailsAA ?? false
-  
+
 
   return (
     <td
       className={`palette-box${isPrimary ? ' default' : ''}`}
-      style={{ 
-        backgroundColor: `var(${toneCssVar})`, 
-        cursor: 'pointer', 
+      style={{
+        backgroundColor: `var(${toneCssVar})`,
+        cursor: 'pointer',
         position: 'relative',
         boxSizing: 'border-box',
         padding: isPrimary ? 'var(--recursica-brand-dimensions-general-md)' : `0 var(--recursica-brand-dimensions-general-md)`,
         width: isPrimary ? '20%' : undefined,
         flex: isPrimary ? '0 0 20%' : 1,
         minHeight: isPrimary ? '80px' : undefined,
-        borderRadius: isPrimary 
-          ? (emphasisType === 'high' 
-              ? 'var(--recursica-brand-dimensions-border-radii-default) var(--recursica-brand-dimensions-border-radii-default) 0 0'
-              : '0 0 var(--recursica-brand-dimensions-border-radii-default) var(--recursica-brand-dimensions-border-radii-default)')
+        borderRadius: isPrimary
+          ? (emphasisType === 'high'
+            ? 'var(--recursica-brand-dimensions-border-radii-default) var(--recursica-brand-dimensions-border-radii-default) 0 0'
+            : '0 0 var(--recursica-brand-dimensions-border-radii-default) var(--recursica-brand-dimensions-border-radii-default)')
           : (() => {
-              if (emphasisType === 'high' && isFirst) {
-                return 'var(--recursica-brand-dimensions-border-radii-default) 0 0 0'
-              }
-              if (emphasisType === 'high' && isLast) {
-                return '0 var(--recursica-brand-dimensions-border-radii-default) 0 0'
-              }
-              if (emphasisType === 'low' && isLast) {
-                return '0 0 var(--recursica-brand-dimensions-border-radii-default) 0'
-              }
-              if (emphasisType === 'low' && isFirst) {
-                return '0 0 0 var(--recursica-brand-dimensions-border-radii-default)'
-              }
-              return undefined
-            })(),
+            if (emphasisType === 'high' && isFirst) {
+              return 'var(--recursica-brand-dimensions-border-radii-default) 0 0 0'
+            }
+            if (emphasisType === 'high' && isLast) {
+              return '0 var(--recursica-brand-dimensions-border-radii-default) 0 0'
+            }
+            if (emphasisType === 'low' && isLast) {
+              return '0 0 var(--recursica-brand-dimensions-border-radii-default) 0'
+            }
+            if (emphasisType === 'low' && isFirst) {
+              return '0 0 0 var(--recursica-brand-dimensions-border-radii-default)'
+            }
+            return undefined
+          })(),
         marginLeft: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
         marginRight: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
         display: isPrimary ? 'flex' : 'flex',
@@ -355,7 +355,7 @@ export function PaletteEmphasisCell({
           // Extract token name from the tone CSS variable
           const toneValue = readCssVar(toneCssVar)
           const tokenName = extractTokenNameFromCssVar(toneValue)
-          
+
           if (tokenName && tokens && cellRef.current) {
             // Get current hex value for the token
             const overrideMap = readOverrides()
@@ -368,8 +368,9 @@ export function PaletteEmphasisCell({
             const currentHex = typeof tokenValue === 'string' && /^#?[0-9a-f]{6}$/i.test(tokenValue)
               ? (tokenValue.startsWith('#') ? tokenValue : `#${tokenValue}`).toLowerCase()
               : '#000000'
-            
+
             // Open ColorPickerOverlay
+            window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
             const rect = cellRef.current.getBoundingClientRect()
             setOpenPicker({ tokenName, swatchRect: rect })
           }
@@ -386,13 +387,13 @@ export function PaletteEmphasisCell({
           const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
           const highOnToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
           const lowOnToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
-          
+
           if (shouldOpenColorPicker) {
             const WarningIcon = iconNameToReactComponent('warning')
             return (
               <>
-                <div style={{ 
-                  color: `var(${highOnToneCssVar})`, 
+                <div style={{
+                  color: `var(${highOnToneCssVar})`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -400,8 +401,8 @@ export function PaletteEmphasisCell({
                 }}>
                   {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
                 </div>
-                <div style={{ 
-                  color: `var(${lowOnToneCssVar})`, 
+                <div style={{
+                  color: `var(${lowOnToneCssVar})`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -412,7 +413,7 @@ export function PaletteEmphasisCell({
               </>
             )
           }
-          
+
           return (
             <>
               {emphasisType === 'high' && (
@@ -428,23 +429,23 @@ export function PaletteEmphasisCell({
                   }}>
                     {level}
                   </div>
-                  <div className="palette-dot" style={{ 
+                  <div className="palette-dot" style={{
                     position: 'relative',
                     width: '16px',
                     height: '16px',
-                    backgroundColor: `var(${highOnToneCssVar})`, 
-                    opacity: `var(${highEmphasisCssVar})` 
+                    backgroundColor: `var(${highOnToneCssVar})`,
+                    opacity: `var(${highEmphasisCssVar})`
                   }} />
                 </>
               )}
               {emphasisType === 'low' && (
                 <>
-                  <div className="palette-dot" style={{ 
+                  <div className="palette-dot" style={{
                     position: 'relative',
                     width: '16px',
                     height: '16px',
-                    backgroundColor: `var(${lowOnToneCssVar})`, 
-                    opacity: `var(${lowEmphasisCssVar})` 
+                    backgroundColor: `var(${lowOnToneCssVar})`,
+                    opacity: `var(${lowEmphasisCssVar})`
                   }} />
                   <Chip
                     variant="selected"
@@ -459,33 +460,33 @@ export function PaletteEmphasisCell({
           )
         })()
       ) : shouldOpenColorPicker ? (
-          (() => {
-            const WarningIcon = iconNameToReactComponent('warning')
-            return (
-              <div 
-                className="palette-warning" 
-                style={{ 
-                  color: `var(${onToneCssVar})`, 
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: `var(${emphasisCssVar})`
-                }}
-              >
-                {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
-              </div>
-            )
-          })()
-        ) : (
-          <div className="palette-dot" style={{ 
-            position: 'relative',
-            width: '16px',
-            height: '16px',
-            backgroundColor: `var(${onToneCssVar})`, 
-            opacity: `var(${emphasisCssVar})` 
-          }} />
-        )}
-      
+        (() => {
+          const WarningIcon = iconNameToReactComponent('warning')
+          return (
+            <div
+              className="palette-warning"
+              style={{
+                color: `var(${onToneCssVar})`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: `var(${emphasisCssVar})`
+              }}
+            >
+              {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
+            </div>
+          )
+        })()
+      ) : (
+        <div className="palette-dot" style={{
+          position: 'relative',
+          width: '16px',
+          height: '16px',
+          backgroundColor: `var(${onToneCssVar})`,
+          opacity: `var(${emphasisCssVar})`
+        }} />
+      )}
+
       {shouldOpenColorPicker && isHovered && (
         <div
           style={{
@@ -495,8 +496,8 @@ export function PaletteEmphasisCell({
             transform: 'translateX(-50%)',
             marginTop: 'var(--recursica-brand-dimensions-general-sm)',
             padding: `var(--recursica-brand-dimensions-general-md) var(--recursica-brand-dimensions-general-lg)`,
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
             borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
             boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -507,12 +508,12 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
+          <div style={{ color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)` }}>
             On-tone color fails contrast
           </div>
         </div>
       )}
-      
+
       {!shouldOpenColorPicker && !isPrimary && isHovered && (
         <div
           style={{
@@ -522,8 +523,8 @@ export function PaletteEmphasisCell({
             transform: 'translateX(-50%)',
             marginTop: 'var(--recursica-brand-dimensions-general-sm)',
             padding: `var(--recursica-brand-dimensions-general-md) var(--recursica-brand-dimensions-general-lg)`,
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
             borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
             boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -533,12 +534,12 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-element-text-color)` }}>
+          <div style={{ color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)` }}>
             Set {level} as default
           </div>
         </div>
       )}
-      
+
       {/* ColorPickerOverlay for updating token color */}
       {openPicker && openPicker.tokenName && tokens && (() => {
         const tokenName = openPicker.tokenName
@@ -552,7 +553,7 @@ export function PaletteEmphasisCell({
           ? (tokenValue.startsWith('#') ? tokenValue : `#${tokenValue}`).toLowerCase()
           : '#000000'
         const displayFamilyName = familyNames[family] || family
-        
+
         return (
           <ColorPickerOverlay
             tokenName={tokenName}
@@ -569,15 +570,15 @@ export function PaletteEmphasisCell({
                   const map = raw ? JSON.parse(raw) || {} : {}
                   map[fam] = label
                   localStorage.setItem('family-friendly-names', JSON.stringify(map))
-                  try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+                  try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch { }
                 }
-              } catch {}
+              } catch { }
             }}
             displayFamilyName={displayFamilyName}
             onChange={(hex: string, cascadeDown: boolean, cascadeUp: boolean) => {
               // Update the token value
               updateToken(tokenName, hex)
-              
+
               // Handle cascade if needed
               if (cascadeDown || cascadeUp) {
                 // Import cascade function if needed
@@ -589,7 +590,7 @@ export function PaletteEmphasisCell({
                   console.warn('Failed to cascade color:', err)
                 })
               }
-              
+
               // Update on-tone value in theme JSON for AA compliance
               if (paletteKey && level && theme && setTheme) {
                 try {
@@ -598,7 +599,7 @@ export function PaletteEmphasisCell({
                   const themes = root?.themes || root
                   const modeKey = mode.toLowerCase()
                   const modeLabel = mode === 'light' ? 'Light' : 'Dark'
-                  
+
                   if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
                     // Calculate the correct on-tone value using the same logic as updatePaletteOnTone
                     const black = '#000000'
@@ -606,7 +607,7 @@ export function PaletteEmphasisCell({
                     const cBlack = contrastRatio(hex, black)
                     const cWhite = contrastRatio(hex, white)
                     const AA = 4.5
-                    
+
                     let chosen: 'black' | 'white'
                     if (cBlack >= AA && cWhite >= AA) {
                       chosen = cBlack >= cWhite ? 'black' : 'white'
@@ -617,7 +618,7 @@ export function PaletteEmphasisCell({
                     } else {
                       chosen = cBlack >= cWhite ? 'black' : 'white'
                     }
-                    
+
                     // Update the on-tone value in theme JSON - use short alias format (no theme path)
                     if (!themes[modeKey].palettes[paletteKey][level]) {
                       themes[modeKey].palettes[paletteKey][level] = {}
@@ -626,20 +627,21 @@ export function PaletteEmphasisCell({
                       themes[modeKey].palettes[paletteKey][level].color = {}
                     }
                     themes[modeKey].palettes[paletteKey][level].color['on-tone'] = {
+                      $type: 'color',
                       $value: `{brand.palettes.${chosen}}`
                     }
-                    
+
                     setTheme(themeCopy)
                   }
                 } catch (err) {
                   console.error('Failed to update on-tone in theme JSON:', err)
                 }
               }
-              
+
               // Trigger AA compliance re-check
               try {
                 window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
-              } catch {}
+              } catch { }
             }}
           />
         )
@@ -660,9 +662,10 @@ export function PalettePrimaryIndicatorCell({
   onSetPrimary,
 }: PalettePrimaryIndicatorCellProps) {
   const { mode } = useThemeMode()
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
-  
+
   return (
     <td className={isPrimary ? 'default' : undefined} style={{ textAlign: 'center', verticalAlign: 'top', height: 28 }}>
       {isPrimary ? (
@@ -676,7 +679,7 @@ export function PalettePrimaryIndicatorCell({
             borderRadius: 999,
             background: 'transparent',
             textTransform: 'capitalize',
-            color: `var(${layer1Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}
         >Default</span>
       ) : isHovered ? (
@@ -692,7 +695,7 @@ export function PalettePrimaryIndicatorCell({
             background: 'transparent',
             textTransform: 'capitalize',
             cursor: 'pointer',
-            color: `var(${layer1Base}-element-text-color)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           }}
           title="Set as default"
         >Set as default</button>

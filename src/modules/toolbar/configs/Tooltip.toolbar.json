@@ -1,0 +1,93 @@
+{
+    "variants": {
+        "position": {
+            "icon": "square",
+            "label": "Position"
+        },
+        "alignment": {
+            "icon": "align-center",
+            "label": "Alignment"
+        }
+    },
+    "props": {
+        "text": {
+            "icon": "text-aa",
+            "label": "Text style",
+            "visible": true
+        },
+        "elevation": {
+            "icon": "copy-simple",
+            "label": "Elevation",
+            "visible": true
+        },
+        "border": {
+            "icon": "square",
+            "label": "Border",
+            "visible": true,
+            "group": {
+                "border-color": {
+                    "label": "Border color",
+                    "visible": true
+                },
+                "border-size": {
+                    "label": "Border thickness",
+                    "visible": true
+                },
+                "border-radius": {
+                    "label": "Border radius",
+                    "visible": true
+                }
+            }
+        },
+        "colors": {
+            "icon": "paint-bucket",
+            "label": "Colors",
+            "visible": true,
+            "group": {
+                "background": {
+                    "label": "Background",
+                    "visible": true
+                },
+                "text": {
+                    "label": "Text",
+                    "visible": true
+                }
+            }
+        },
+        "dimensions": {
+            "icon": "square-logo",
+            "label": "Dimensions",
+            "visible": true,
+            "group": {
+                "vertical-padding": {
+                    "label": "Vertical padding",
+                    "visible": true
+                },
+                "horizontal-padding": {
+                    "label": "Horizontal padding",
+                    "visible": true
+                },
+                "beak-size": {
+                    "label": "Beak size",
+                    "visible": true
+                },
+                "beak-inset": {
+                    "label": "Beak inset",
+                    "visible": true
+                },
+                "min-width": {
+                    "label": "Min width",
+                    "visible": true
+                },
+                "max-width": {
+                    "label": "Max width",
+                    "visible": true
+                },
+                "min-height": {
+                    "label": "Min height",
+                    "visible": true
+                }
+            }
+        }
+    }
+}

@@ -62,7 +62,8 @@ export function PaletteScaleHeader({
   // No fixed width - cells will size naturally with padding
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
   const { mode: themeMode } = useThemeMode()
-  const layer1Base = `--recursica-brand-themes-${themeMode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${themeMode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${themeMode}-layers-layer-1-properties`
 
   // Close picker when mode changes
   useEffect(() => {
@@ -75,13 +76,13 @@ export function PaletteScaleHeader({
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const headerRef = useRef<HTMLTableCellElement>(null)
   const { updateToken, theme, setTheme } = useVars()
-  
+
   // Load family names from localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem('family-friendly-names')
       if (raw) setFamilyNames(JSON.parse(raw))
-    } catch {}
+    } catch { }
     const onNames = (ev: Event) => {
       try {
         const detail: any = (ev as CustomEvent).detail
@@ -98,7 +99,7 @@ export function PaletteScaleHeader({
     window.addEventListener('familyNamesChanged', onNames as any)
     return () => window.removeEventListener('familyNamesChanged', onNames as any)
   }, [])
-  
+
   // Check AA compliance for this level - check both high and low emphasis
   let isNonCompliant = false
   // Detect mode by checking which CSS variable exists
@@ -109,20 +110,20 @@ export function PaletteScaleHeader({
     const lightToneValue = readCssVar(lightToneCssVar)
     const darkToneValue = readCssVar(darkToneCssVar)
     mode = lightToneValue ? 'light' : (darkToneValue ? 'dark' : 'light')
-    
+
     const toneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
     const onToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
     const highEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
     const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
-    
+
     const toneValue = readCssVar(toneCssVar)
     const onToneValue = readCssVar(onToneCssVar)
-    
+
     if (toneValue && onToneValue) {
       const tokenIndex = buildTokenIndex(tokens)
       const toneHex = resolveCssVarToHex(toneValue, tokenIndex)
       const onToneHex = resolveCssVarToHex(onToneValue, tokenIndex)
-      
+
       if (toneHex && onToneHex) {
         // Get high emphasis opacity value
         const highEmphasisResolved = readCssVarResolved(highEmphasisCssVar) || readCssVar(highEmphasisCssVar)
@@ -146,10 +147,10 @@ export function PaletteScaleHeader({
         } else {
           highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
         }
-        const highOpacity = (highOpacityRaw && !isNaN(highOpacityRaw) && highOpacityRaw > 0) 
+        const highOpacity = (highOpacityRaw && !isNaN(highOpacityRaw) && highOpacityRaw > 0)
           ? (highOpacityRaw <= 1 ? highOpacityRaw : highOpacityRaw / 100)
           : 1
-        
+
         // Get low emphasis opacity value
         const lowEmphasisResolved = readCssVarResolved(lowEmphasisCssVar) || readCssVar(lowEmphasisCssVar)
         let lowOpacityRaw: number = 1
@@ -172,14 +173,14 @@ export function PaletteScaleHeader({
         } else {
           lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
         }
-        const lowOpacity = (lowOpacityRaw && !isNaN(lowOpacityRaw) && lowOpacityRaw > 0) 
+        const lowOpacity = (lowOpacityRaw && !isNaN(lowOpacityRaw) && lowOpacityRaw > 0)
           ? (lowOpacityRaw <= 1 ? lowOpacityRaw : lowOpacityRaw / 100)
           : 1
-        
+
         // Check if black and white pass AA for BOTH high and low emphasis
         const black = '#000000'
         const white = '#ffffff'
-        
+
         // Check high emphasis
         const blackHighBlended = blendHexOver(black, toneHex, highOpacity)
         const whiteHighBlended = blendHexOver(white, toneHex, highOpacity)
@@ -187,7 +188,7 @@ export function PaletteScaleHeader({
         const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
         const blackHighPasses = blackHighContrast >= 4.5
         const whiteHighPasses = whiteHighContrast >= 4.5
-        
+
         // Check low emphasis
         const blackLowBlended = blendHexOver(black, toneHex, lowOpacity)
         const whiteLowBlended = blendHexOver(white, toneHex, lowOpacity)
@@ -195,7 +196,7 @@ export function PaletteScaleHeader({
         const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
         const blackLowPasses = blackLowContrast >= 4.5
         const whiteLowPasses = whiteLowContrast >= 4.5
-        
+
         // Tone fails AA if both black and white fail for EITHER emphasis level
         isNonCompliant = (!blackHighPasses && !whiteHighPasses) || (!blackLowPasses && !whiteLowPasses)
       }
@@ -217,9 +218,10 @@ export function PaletteScaleHeader({
             const toneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
             const toneValue = readCssVar(toneCssVar)
             const tokenName = extractTokenNameFromCssVar(toneValue)
-            
+
             if (tokenName && tokens && headerRef.current) {
               // Open ColorPickerOverlay
+              window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
               const rect = headerRef.current.getBoundingClientRect()
               setOpenPicker({ tokenName, swatchRect: rect })
             }
@@ -228,8 +230,8 @@ export function PaletteScaleHeader({
           onSetPrimary()
         }}
         title={isNonCompliant ? 'On-tone color fails contrast' : (isPrimary ? undefined : `Set ${level} as default`)}
-        style={{ 
-          cursor: 'pointer', 
+        style={{
+          cursor: 'pointer',
           padding: `0 var(--recursica-brand-dimensions-general-md)`,
           boxSizing: 'border-box',
           fontFamily: 'var(--recursica-brand-typography-body-small-font-family)',
@@ -237,7 +239,7 @@ export function PaletteScaleHeader({
           fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
-          color: `var(${layer1Base}-element-text-color)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
           width: isPrimary ? '20%' : undefined,
           flex: isPrimary ? '0 0 20%' : 1,
           marginLeft: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
@@ -247,7 +249,7 @@ export function PaletteScaleHeader({
       >
         {isPrimary ? null : level}
       </th>
-      
+
       {/* ColorPickerOverlay for updating token color */}
       {openPicker && openPicker.tokenName && tokens && (() => {
         const tokenName = openPicker.tokenName
@@ -261,7 +263,7 @@ export function PaletteScaleHeader({
           ? (tokenValue.startsWith('#') ? tokenValue : `#${tokenValue}`).toLowerCase()
           : '#000000'
         const displayFamilyName = familyNames[family] || family
-        
+
         return (
           <ColorPickerOverlay
             tokenName={tokenName}
@@ -277,14 +279,14 @@ export function PaletteScaleHeader({
                   const map = raw ? JSON.parse(raw) || {} : {}
                   map[fam] = label
                   localStorage.setItem('family-friendly-names', JSON.stringify(map))
-                  try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch {}
+                  try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch { }
                 }
-              } catch {}
+              } catch { }
             }}
             displayFamilyName={displayFamilyName}
             onChange={(hex: string, cascadeDown: boolean, cascadeUp: boolean) => {
               updateToken(tokenName, hex)
-              
+
               if (cascadeDown || cascadeUp) {
                 import('../tokens/colors/colorCascade').then(({ cascadeColor }) => {
                   cascadeColor(tokenName, hex, cascadeDown, cascadeUp, (name: string, h: string) => {
@@ -294,21 +296,21 @@ export function PaletteScaleHeader({
                   console.warn('Failed to cascade color:', err)
                 })
               }
-              
+
               // Update on-tone value in theme JSON for AA compliance
               if (paletteKey && level && theme && setTheme) {
                 try {
                   const themeCopy = JSON.parse(JSON.stringify(theme))
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
                   const themes = root?.themes || root
-                  
+
                   // Detect mode by checking which CSS variable exists
                   const lightToneCssVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
                   const darkToneCssVar = `--recursica-brand-themes-dark-palettes-${paletteKey}-${level}-tone`
                   const lightToneValue = readCssVar(lightToneCssVar)
                   const darkToneValue = readCssVar(darkToneCssVar)
                   const modeKey = lightToneValue ? 'light' : (darkToneValue ? 'dark' : 'light')
-                  
+
                   if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
                     // Calculate the correct on-tone value using the same logic as updatePaletteOnTone
                     const black = '#000000'
@@ -316,7 +318,7 @@ export function PaletteScaleHeader({
                     const cBlack = contrastRatio(hex, black)
                     const cWhite = contrastRatio(hex, white)
                     const AA = 4.5
-                    
+
                     let chosen: 'black' | 'white'
                     if (cBlack >= AA && cWhite >= AA) {
                       chosen = cBlack >= cWhite ? 'black' : 'white'
@@ -327,7 +329,7 @@ export function PaletteScaleHeader({
                     } else {
                       chosen = cBlack >= cWhite ? 'black' : 'white'
                     }
-                    
+
                     // Update the on-tone value in theme JSON - use short alias format (no theme path)
                     if (!themes[modeKey].palettes[paletteKey][level]) {
                       themes[modeKey].palettes[paletteKey][level] = {}
@@ -336,19 +338,20 @@ export function PaletteScaleHeader({
                       themes[modeKey].palettes[paletteKey][level].color = {}
                     }
                     themes[modeKey].palettes[paletteKey][level].color['on-tone'] = {
+                      $type: 'color',
                       $value: `{brand.palettes.${chosen}}`
                     }
-                    
+
                     setTheme(themeCopy)
                   }
                 } catch (err) {
                   console.error('Failed to update on-tone in theme JSON:', err)
                 }
               }
-              
+
               try {
                 window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
-              } catch {}
+              } catch { }
             }}
           />
         )

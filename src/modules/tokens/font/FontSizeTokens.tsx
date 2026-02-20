@@ -11,7 +11,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
   const { tokens: tokensJson, updateToken } = useVars()
   const { mode } = useThemeMode()
   const [updateKey, setUpdateKey] = useState(0)
-  
+
   // Listen for CSS variable updates to force re-render of type samples
   useEffect(() => {
     const handler = () => setUpdateKey((k) => k + 1)
@@ -20,7 +20,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
       window.removeEventListener('cssVarsUpdated', handler as any)
     }
   }, [])
-  
+
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -31,7 +31,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
         const num = typeof v === 'number' ? v : (typeof v === 'object' && v && typeof v.value === 'number' ? v.value : Number(v))
         if (Number.isFinite(num)) list.push({ name: `font/size/${k}`, value: num })
       })
-    } catch {}
+    } catch { }
     return list
   }, [tokensJson])
 
@@ -50,8 +50,8 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
   const getVal = (name: string): number => {
     const key = name.replace('font/size/', '')
     try {
-      const v = (tokensJson as any)?.tokens?.font?.sizes?.[key]?.$value || 
-                (tokensJson as any)?.tokens?.font?.size?.[key]?.$value
+      const v = (tokensJson as any)?.tokens?.font?.sizes?.[key]?.$value ||
+        (tokensJson as any)?.tokens?.font?.size?.[key]?.$value
       const num = typeof v === 'number' ? v : (typeof v === 'object' && v && typeof v.value === 'number' ? v.value : Number(v))
       return Number.isFinite(num) ? num : 16
     } catch {
@@ -79,7 +79,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
     items.forEach((it) => {
       const keyName = it.name.replace('font/size/', '')
       const idx = order.indexOf(keyName as any)
-      
+
       if (keyName === 'md') {
         updates[it.name] = def
       } else if (keyName === 'sm') {
@@ -102,8 +102,8 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
 
   const scaleByDefault = autoScale
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
@@ -118,18 +118,18 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
         const disabled = scaleByDefault && !(isDefault || isSmall)
         const fontSizeVar = `--recursica-tokens-font-sizes-${keyName}`
         const isLast = index === items.length - 1
-        
+
         return (
-          <div key={it.name} style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'auto 1fr 350px', 
+          <div key={it.name} style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto 1fr 350px',
             gap: 0,
             alignItems: 'stretch',
           }}>
-            <label htmlFor={it.name} style={{ 
+            <label htmlFor={it.name} style={{
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(${layer0Base}-element-text-color)`,
-              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
               minWidth: 60,
               paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
               paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
@@ -140,13 +140,13 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
             }}>
               {label}
             </label>
-            <div 
+            <div
               key={`sample-${it.name}-${updateKey}`}
               style={{
                 fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
                 fontSize: `var(${fontSizeVar})`,
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                 lineHeight: 1.5,
                 paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
                 paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
@@ -159,9 +159,9 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
               }}>
               {exampleText}
             </div>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               gap: 'var(--recursica-brand-dimensions-general-default)',
               borderLeft: `1px solid var(${layer1Base}-border-color)`,
@@ -185,12 +185,10 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
                     updateToken(it.name, value)
                   }
                 }}
-                layer="layer-0"
+                layer="layer-1"
                 layout="stacked"
-                showInput={true}
-                showValueLabel={true}
-                valueLabel={(val) => `${val}px`}
-              />
+                showMinMaxInput={true}
+                valueLabel={(val: number) => `${Math.round(val)}px`} />
             </div>
           </div>
         )

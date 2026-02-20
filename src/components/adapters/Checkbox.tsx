@@ -72,20 +72,7 @@ export function Checkbox({
   }
   
   return (
-    <Suspense fallback={
-      <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <input 
-          type="checkbox" 
-          checked={checked && !indeterminate} 
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.checked)}
-          ref={(el) => {
-            if (el) el.indeterminate = indeterminate
-          }}
-        />
-        {label && <span>{label}</span>}
-      </label>
-    }>
+    <Suspense fallback={<span />}>
       <Component
         checked={checked}
         indeterminate={indeterminate}

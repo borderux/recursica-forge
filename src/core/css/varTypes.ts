@@ -21,17 +21,17 @@ export function isBrandVar(name: string): boolean {
  */
 export function enforceBrandVarValue(cssVarName: string, value: string): string {
   if (!isBrandVar(cssVarName)) return value
-  
+
   const trimmed = value.trim()
-  
+
   // If already a var() reference, return as-is
   if (trimmed.startsWith('var(')) return value
-  
+
   // If it's a hex/RGB value, this is an error
   if (/^#?[0-9a-f]{6}$/i.test(trimmed) || trimmed.startsWith('rgb') || trimmed.startsWith('rgba')) {
     throw new Error(`Brand CSS variable ${cssVarName} cannot be set to hardcoded color value: ${value}. Must reference a token.`)
   }
-  
+
   // Special case: font-family can use direct font values with fallbacks
   if (cssVarName.includes('font-family')) {
     // Allow font-family values that look like valid CSS font-family declarations
@@ -39,18 +39,18 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
       return value
     }
   }
-  
+
   // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
   // This allows mode-specific elevation values without token conflicts
-  if (cssVarName.includes('elevation') && 
-      (cssVarName.includes('-blur') || cssVarName.includes('-spread') || 
-       cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis'))) {
+  if (cssVarName.includes('elevation') &&
+    (cssVarName.includes('-blur') || cssVarName.includes('-spread') ||
+      cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis'))) {
     // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
     if (/^-?\d+px$/.test(trimmed)) {
       return value
     }
   }
-  
+
   // If it's a raw value (px, number, etc), this is also an error for brand vars
   throw new Error(`Brand CSS variable ${cssVarName} must reference a token (var(--recursica-tokens-...)), got: ${value}`)
 }
@@ -61,7 +61,8 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
 export function validateCssVarValue(cssVarName: string, value: string): { valid: boolean; error?: string } {
   if (isBrandVar(cssVarName)) {
     const trimmed = value.trim()
-    // Allow var() references (direct token references)
+    // Allow var() references (token references OR other brand variable references)
+    // Brand variables can reference tokens, palettes, other layers properties, etc.
     if (trimmed.startsWith('var(')) {
       return { valid: true }
     }
@@ -85,8 +86,8 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
       // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
       // This allows mode-specific elevation values without token conflicts
       // Tokens are shared between modes, so we bypass them for mode-specific elevation properties
-      if (cssVarName.includes('-blur') || cssVarName.includes('-spread') || 
-          cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis')) {
+      if (cssVarName.includes('-blur') || cssVarName.includes('-spread') ||
+        cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis')) {
         // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
         if (/^-?\d+px$/.test(trimmed)) {
           return { valid: true }

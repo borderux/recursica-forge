@@ -1,0 +1,48 @@
+/* Mantine Modal Overrides */
+
+.recursica-modal .mantine-Modal-content {
+    background-color: var(--modal-bg) !important;
+    border-radius: var(--modal-border-radius) !important;
+    min-width: var(--modal-content-min-width, auto) !important;
+    max-width: var(--modal-content-max-width, none) !important;
+    min-height: var(--modal-content-min-height, auto) !important;
+    max-height: var(--modal-content-max-height, none) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    position: var(--modal-position, relative) !important;
+    top: var(--modal-top, auto) !important;
+    left: var(--modal-left, auto) !important;
+    margin: var(--modal-margin, auto) !important;
+    transform: var(--modal-transform, none) !important;
+}
+
+.recursica-modal .mantine-Modal-header {
+    background-color: transparent !important;
+    padding: var(--modal-padding-y) var(--modal-padding-x) !important;
+}
+
+.recursica-modal .mantine-Modal-title {
+    color: var(--modal-title-color) !important;
+    font-family: var(--modal-font-family) !important;
+    font-size: var(--modal-font-size) !important;
+    font-weight: var(--modal-font-weight) !important;
+}
+
+.recursica-modal .mantine-Modal-body {
+    background-color: transparent !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    overflow: hidden !important;
+}
+
+.recursica-modal-body {
+    /* Internal scrollable area */
+    flex: 1;
+}
+
+.recursica-modal-footer {
+    /* Footer area */
+    margin-top: auto;
+}

@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react'
-import { createPortal } from 'react-dom'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { Button } from '../../../components/adapters/Button'
 import { Checkbox } from '../../../components/adapters/Checkbox'
+import { Dropdown } from '../../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../../components/iconUtils'
+import { Modal } from '../../../components/adapters/Modal'
 
 export type EditFontVariantsModalProps = {
   open: boolean
@@ -22,14 +23,14 @@ export type EditFontVariantsModalProps = {
 const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles: string[] } => {
   const weights: number[] = []
   const styles: string[] = []
-  
+
   try {
     const urlObj = new URL(url)
     const familyParams = urlObj.searchParams.getAll('family')
-    
+
     if (familyParams.length > 0) {
       const param = familyParams[0]
-      
+
       // Parse weights: wght@100..900 or wght@100;200;300
       const wghtMatch = param.match(/wght@([^:&]+)/)
       if (wghtMatch) {
@@ -54,7 +55,7 @@ const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles:
           })
         }
       }
-      
+
       // Parse styles: ital@0;1 or ital@1
       const italMatch = param.match(/ital@([^:&]+)/)
       if (italMatch) {
@@ -67,18 +68,18 @@ const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles:
         }
       }
     }
-  } catch {}
-  
+  } catch { }
+
   // If no weights found, assume regular (400)
   if (weights.length === 0) {
     weights.push(400)
   }
-  
+
   // If no styles found, assume normal
   if (styles.length === 0) {
     styles.push('normal')
   }
-  
+
   return { weights, styles }
 }
 
@@ -86,18 +87,18 @@ const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles:
 const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styles: string[]): string => {
   try {
     const urlObj = new URL(baseUrl)
-    
+
     // Build the family parameter
     // Replace spaces with + for the font name (Google Fonts format)
     const fontNameWithPlus = fontName.replace(/\s+/g, '+')
     let familyParam = fontNameWithPlus
-    
+
     // Add weights
     if (weights.length > 0) {
       const weightsStr = weights.sort((a, b) => a - b).join(';')
       familyParam += `:wght@${weightsStr}`
     }
-    
+
     // Add styles (italic)
     const hasItalic = styles.includes('italic')
     const hasNormal = styles.includes('normal')
@@ -106,12 +107,12 @@ const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styl
     } else if (hasItalic) {
       familyParam += `:ital@1`
     }
-    
+
     // Manually construct the URL to avoid encoding : and @ characters
     // URLSearchParams.set() would encode them, but Google Fonts needs them unencoded
     const baseUrlWithoutSearch = urlObj.origin + urlObj.pathname
     const existingParams = new URLSearchParams(urlObj.search)
-    
+
     // Get all existing params except 'family'
     const otherParams: string[] = []
     existingParams.forEach((value, key) => {
@@ -119,13 +120,13 @@ const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styl
         otherParams.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
       }
     })
-    
+
     // Build family param: don't encode +, :, or @ characters
     // Google Fonts expects: family=Rubik+Storm:wght@400 (not encoded)
     // Only encode other special characters in the font name if needed
     // For now, just use the familyParam as-is since we've already replaced spaces with +
     const allParams = [`family=${familyParam}`, ...otherParams]
-    
+
     return `${baseUrlWithoutSearch}?${allParams.join('&')}`
   } catch {
     return baseUrl
@@ -145,7 +146,7 @@ export function EditFontVariantsModal({
   const { mode } = useThemeMode()
   const { tokens: tokensJson } = useVars()
   const [selectedSequence, setSelectedSequence] = useState<string>(currentSequence || availableSequences[0])
-  
+
   // All 18 combinations: 9 weights × 2 styles
   const weights = useMemo(() => [100, 200, 300, 400, 500, 600, 700, 800, 900], [])
   const styles = useMemo(() => ['normal', 'italic'], [])
@@ -158,11 +159,11 @@ export function EditFontVariantsModal({
     })
     return combos
   }, [weights, styles])
-  
+
   const [selectedCombos, setSelectedCombos] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>('')
-  
+
   // Calculate "All" checkbox state: checked if all selected, indeterminate if some selected
   const allCheckboxState = useMemo(() => {
     const selectedCount = selectedCombos.size
@@ -172,31 +173,31 @@ export function EditFontVariantsModal({
     return { checked: false, indeterminate: true }
   }, [selectedCombos.size, allWeightStyleCombos.length])
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
-  const layer2Base = `--recursica-brand-themes-${mode}-layer-layer-2-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
+  const layer2Base = `--recursica-brand-themes-${mode}-layers-layer-2-properties`
 
   // Helper function to get variants for the current font by font name (not sequence)
   const getVariantsForFont = (): Array<{ weight: string; style: string }> | null => {
     if (!fontName) return null
-    
+
     try {
       const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '').toLowerCase()
-      
+
       // Try store state first (most up-to-date)
       const store = getVarsStore()
       const state = store.getState()
       const storeTokens = state.tokens as any
       const storeFontRoot = storeTokens?.tokens?.font || storeTokens?.font || {}
-      
+
       // Check new fontVariants structure
       const fontVariants = storeFontRoot.fontVariants || {}
       const variants = fontVariants[cleanFontName]
-      
+
       if (variants && Array.isArray(variants) && variants.length > 0) {
         return variants
       }
-      
+
       return null
     } catch {
       return null
@@ -213,17 +214,17 @@ export function EditFontVariantsModal({
       const storeTokens = state.tokens as any
       const storeFontRoot = storeTokens?.tokens?.font || storeTokens?.font || {}
       const storeTypefaces = storeFontRoot.typefaces || storeFontRoot.typeface || {}
-      
+
       // Also check tokensJson as fallback
       const jsonFontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
       const jsonTypefaces: any = jsonFontRoot?.typefaces || jsonFontRoot?.typeface || {}
-      
+
       // Combine both sources (store takes precedence)
       const allTypefaces = { ...jsonTypefaces, ...storeTypefaces }
       const typefaceDef = allTypefaces[sequence]
-      
+
       if (!typefaceDef) return null
-      
+
       // Get the font value
       let fontValue = ''
       const rawValue = typefaceDef?.$value
@@ -232,7 +233,7 @@ export function EditFontVariantsModal({
       } else if (typeof rawValue === 'string') {
         fontValue = rawValue.trim().replace(/^["']|["']$/g, '')
       }
-      
+
       // Look up variants by font name (not sequence)
       if (fontValue && fontName && fontValue.toLowerCase() === fontName.toLowerCase()) {
         const cleanFontName = fontValue.toLowerCase()
@@ -240,7 +241,7 @@ export function EditFontVariantsModal({
         const variants = fontVariants[cleanFontName]
         return variants && Array.isArray(variants) && variants.length > 0 ? variants : null
       }
-      
+
       return null
     } catch {
       return null
@@ -272,18 +273,18 @@ export function EditFontVariantsModal({
       'extra-bold': 800,
       'black': 900
     }
-    
+
     const selectedComboIds = new Set<string>()
-    
+
     variants.forEach(variant => {
       const weightKey = variant.weight.replace(/\{tokens?\.font\.weights?\.([a-z0-9\-_]+)\}/i, '$1')
       const styleKey = variant.style.replace(/\{tokens?\.font\.styles?\.([a-z0-9\-_]+)\}/i, '$1')
-      
+
       const weightNum = weightMap[weightKey] || 400
       const comboId = `${weightNum}-${styleKey}`
       selectedComboIds.add(comboId)
     })
-    
+
     return selectedComboIds
   }
 
@@ -294,11 +295,11 @@ export function EditFontVariantsModal({
       if (currentSequence) {
         setSelectedSequence(currentSequence)
       }
-      
+
       // Always look up variants by font value first (works even after resequencing)
       // This is the most reliable method since it finds the font regardless of sequence
       let variants = getVariantsForFont()
-      
+
       // If font lookup returned null (explicitly no variants), use that
       // If font lookup returned undefined (not found), try other methods
       if (variants === undefined) {
@@ -310,7 +311,7 @@ export function EditFontVariantsModal({
           variants = getVariantsForSequence(currentSequence)
         }
       }
-      
+
       // Convert variants to selected combos
       // If variants is null (explicitly no variants), show empty set
       // If variants is undefined (not found), also show empty set to avoid showing all
@@ -335,7 +336,7 @@ export function EditFontVariantsModal({
     // Only require Google Fonts URL if we're actually editing variants for a Google Font
     // Allow sequence changes without requiring a URL
     const isGoogleFont = currentUrl && currentUrl.includes('fonts.googleapis.com')
-    
+
     // Only require variants selection if we're editing a Google Font
     // For custom fonts or sequence-only changes, allow saving without variants
     if (isGoogleFont && selectedCombos.size === 0) {
@@ -356,11 +357,11 @@ export function EditFontVariantsModal({
         const selectedComboArray = Array.from(selectedCombos)
           .map(id => allWeightStyleCombos.find(c => c.id === id))
           .filter((c): c is { weight: number; style: string; id: string } => c !== undefined)
-        
+
         // Extract unique weights and styles from selected combinations
         const weightsArray = [...new Set(selectedComboArray.map(c => c.weight))].sort((a, b) => a - b)
         const stylesArray = [...new Set(selectedComboArray.map(c => c.style))]
-        
+
         // Build URL with selected weights/styles
         finalUrl = buildFontUrl(currentUrl, fontName, weightsArray, stylesArray)
 
@@ -376,7 +377,7 @@ export function EditFontVariantsModal({
           800: 'extra-bold',
           900: 'black'
         }
-        
+
         selectedComboArray.forEach(combo => {
           // Map weight to closest token weight name
           let weightKey = 'regular' // default
@@ -389,7 +390,7 @@ export function EditFontVariantsModal({
           else if (combo.weight <= 750) weightKey = 'bold'
           else if (combo.weight <= 850) weightKey = 'extra-bold'
           else weightKey = 'black'
-          
+
           variants.push({
             weight: `{tokens.font.weights.${weightKey}}`,
             style: `{tokens.font.styles.${combo.style}}`
@@ -401,7 +402,7 @@ export function EditFontVariantsModal({
           const selectedComboArray = Array.from(selectedCombos)
             .map(id => allWeightStyleCombos.find(c => c.id === id))
             .filter((c): c is { weight: number; style: string; id: string } => c !== undefined)
-          
+
           selectedComboArray.forEach(combo => {
             let weightKey = 'regular'
             if (combo.weight <= 150) weightKey = 'thin'
@@ -413,7 +414,7 @@ export function EditFontVariantsModal({
             else if (combo.weight <= 750) weightKey = 'bold'
             else if (combo.weight <= 850) weightKey = 'extra-bold'
             else weightKey = 'black'
-            
+
             variants.push({
               weight: `{tokens.font.weights.${weightKey}}`,
               style: `{tokens.font.styles.${combo.style}}`
@@ -439,254 +440,164 @@ export function EditFontVariantsModal({
     onClose()
   }
 
-  if (!open) return null
-
-  return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0, 0, 0, 0.5)',
-        display: 'grid',
-        placeItems: 'center',
-        zIndex: 20000,
-      }}
-      onClick={handleClose}
+  return (
+    <Modal
+      isOpen={open}
+      onClose={handleClose}
+      title={`Edit ${fontName}`}
+      size={600}
+      layer="layer-2"
+      primaryActionLabel={loading ? 'Saving...' : 'Save'}
+      onPrimaryAction={handleAccept}
+      secondaryActionLabel="Cancel"
+      onSecondaryAction={handleClose}
+      showFooter={true}
+      scrollable={true}
+      primaryActionDisabled={Boolean(loading || (currentUrl && currentUrl.includes('fonts.googleapis.com') && selectedCombos.size === 0))}
+      secondaryActionDisabled={loading}
     >
-      <div
-        style={{
-          background: `var(${layer2Base}-surface)`,
-          color: `var(${layer2Base}-element-text-color)`,
-          border: `1px solid var(${layer2Base}-border-color)`,
-          borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
-          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
-          padding: `var(${layer2Base}-padding)`,
-          display: 'grid',
-          gap: 'var(--recursica-brand-dimensions-general-lg)',
-          width: 600,
-          maxWidth: '90vw',
-          maxHeight: '80vh',
-          overflow: 'auto',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{
-            margin: 0,
-            fontSize: 'var(--recursica-brand-typography-h5-font-size)',
-            fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
-            color: `var(${layer2Base}-element-text-color)`,
-            opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+      <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+        {/* Sequence selector */}
+        <Dropdown
+          items={availableSequences.map(seq => ({
+            value: seq,
+            label: seq.charAt(0).toUpperCase() + seq.slice(1)
+          }))}
+          value={selectedSequence}
+          onChange={(value) => {
+            setSelectedSequence(value)
+            setError('')
+          }}
+          label="Sequence"
+          layer="layer-3"
+          layout="stacked"
+          disableTopBottomMargin={false}
+          zIndex={20001}
+        />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
+          <span style={{
+            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+            opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
           }}>
-            Edit weights and styles: {fontName}
-          </h2>
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              handleClose()
+            Select weight+style combinations:
+          </span>
+          <Checkbox
+            checked={allCheckboxState.checked}
+            indeterminate={allCheckboxState.indeterminate}
+            onChange={(checked) => {
+              if (checked) {
+                setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+              } else {
+                setSelectedCombos(new Set())
+              }
             }}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: 'var(--recursica-brand-dimensions-general-default)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {(() => {
-              const XIcon = iconNameToReactComponent('x-mark')
-              return XIcon ? <XIcon style={{ width: 20, height: 20, color: `var(${layer2Base}-element-text-color)`, opacity: 0.6 }} /> : null
-            })()}
-          </button>
+            label="All"
+          />
         </div>
 
-        {(
-          <>
-            <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
-              {/* Sequence selector */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
-                <label style={{
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  color: `var(${layer2Base}-element-text-color)`,
-                  opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+        {/* Table with weights as rows and styles as columns */}
+        <div style={{
+          overflowX: 'auto',
+          border: `1px solid var(${layer1Base}-border-color)`,
+          borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+        }}>
+          <table style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+          }}>
+            <thead>
+              <tr>
+                <th style={{
+                  padding: 'var(--recursica-brand-dimensions-general-default)',
+                  textAlign: 'left',
+                  borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                  fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
                 }}>
-                  Sequence:
-                </label>
-                <select
-                  value={selectedSequence}
-                  onChange={(e) => {
-                    setSelectedSequence(e.target.value)
-                    setError('')
-                  }}
-                  style={{
+                  Weight
+                </th>
+                {styles.map(style => (
+                  <th key={style} style={{
                     padding: 'var(--recursica-brand-dimensions-general-default)',
-                    border: `1px solid var(${layer1Base}-border-color)`,
-                    borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                    background: `var(${layer2Base}-surface)`,
-                    color: `var(${layer2Base}-element-text-color)`,
-                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {availableSequences.map(seq => (
-                    <option key={seq} value={seq}>
-                      {seq.charAt(0).toUpperCase() + seq.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
-                <span style={{
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  color: `var(${layer2Base}-element-text-color)`,
-                  opacity: `var(${layer2Base}-element-text-high-emphasis)`,
+                    textAlign: 'center',
+                    borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                    fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                    textTransform: 'capitalize',
+                    width: '50%',
+                  }}>
+                    {style}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {weights.map(weight => (
+                <tr key={weight} style={{
+                  borderBottom: `1px solid var(${layer1Base}-border-color)`,
                 }}>
-                  Select weight+style combinations:
-                </span>
-                <Checkbox
-                  checked={allCheckboxState.checked}
-                  indeterminate={allCheckboxState.indeterminate}
-                  onChange={(checked) => {
-                    if (checked) {
-                      setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
-                    } else {
-                      setSelectedCombos(new Set())
-                    }
-                  }}
-                  label="All"
-                />
-              </div>
-
-              {/* Table with weights as rows and styles as columns */}
-              <div style={{
-                overflowX: 'auto',
-                border: `1px solid var(${layer1Base}-border-color)`,
-                borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-              }}>
-                <table style={{
-                  width: '100%',
-                  borderCollapse: 'collapse',
-                  fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                }}>
-                  <thead>
-                    <tr>
-                      <th style={{
+                  <td style={{
+                    padding: 'var(--recursica-brand-dimensions-general-default)',
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                    fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                  }}>
+                    {weight}
+                  </td>
+                  {styles.map(style => {
+                    const comboId = `${weight}-${style}`
+                    const isSelected = selectedCombos.has(comboId)
+                    return (
+                      <td key={style} style={{
                         padding: 'var(--recursica-brand-dimensions-general-default)',
-                        textAlign: 'left',
-                        borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                        color: `var(${layer2Base}-element-text-color)`,
-                        opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-                        fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                        textAlign: 'center',
+                        verticalAlign: 'middle',
                       }}>
-                        Weight
-                      </th>
-                      {styles.map(style => (
-                        <th key={style} style={{
-                          padding: 'var(--recursica-brand-dimensions-general-default)',
-                          textAlign: 'center',
-                          borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                          color: `var(${layer2Base}-element-text-color)`,
-                          opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-                          fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-                          textTransform: 'capitalize',
-                          width: '50%',
+                        <div style={{
+                          display: 'inline-flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
                         }}>
-                          {style}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {weights.map(weight => (
-                      <tr key={weight} style={{
-                        borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                      }}>
-                        <td style={{
-                          padding: 'var(--recursica-brand-dimensions-general-default)',
-                          color: `var(${layer2Base}-element-text-color)`,
-                          opacity: `var(${layer2Base}-element-text-high-emphasis)`,
-                          fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-                        }}>
-                          {weight}
-                        </td>
-                        {styles.map(style => {
-                          const comboId = `${weight}-${style}`
-                          const isSelected = selectedCombos.has(comboId)
-                          return (
-                            <td key={style} style={{
-                              padding: 'var(--recursica-brand-dimensions-general-default)',
-                              textAlign: 'center',
-                              verticalAlign: 'middle',
-                            }}>
-                              <div style={{
-                                display: 'inline-flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                              }}>
-                                <Checkbox
-                                  checked={isSelected}
-                                  onChange={(checked) => {
-                                    const newCombos = new Set(selectedCombos)
-                                    if (checked) {
-                                      newCombos.add(comboId)
-                                    } else {
-                                      newCombos.delete(comboId)
-                                    }
-                                    setSelectedCombos(newCombos)
-                                  }}
-                                />
-                              </div>
-                            </td>
-                          )
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                          <Checkbox
+                            checked={isSelected}
+                            onChange={(checked) => {
+                              const newCombos = new Set(selectedCombos)
+                              if (checked) {
+                                newCombos.add(comboId)
+                              } else {
+                                newCombos.delete(comboId)
+                              }
+                              setSelectedCombos(newCombos)
+                            }}
+                          />
+                        </div>
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-            {error && (
-              <div style={{
-                padding: 'var(--recursica-brand-dimensions-general-default)',
-                borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                background: `var(--recursica-brand-themes-${mode}-palettes-core-error-50-tone)`,
-                border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
-                fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                color: `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
-              }}>
-                {error}
-              </div>
-            )}
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
-              <Button
-                variant="outline"
-                size="default"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleClose()
-                }}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="solid"
-                size="default"
-                onClick={handleAccept}
-                disabled={Boolean(loading || (currentUrl && currentUrl.includes('fonts.googleapis.com') && selectedCombos.size === 0))}
-              >
-                {loading ? 'Saving...' : 'Save'}
-              </Button>
-            </div>
-          </>
+        {error && (
+          <div style={{
+            padding: 'var(--recursica-brand-dimensions-general-default)',
+            borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+            background: `var(--recursica-brand-themes-${mode}-palettes-core-error-50-tone)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
+            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+            color: `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
+          }}>
+            {error}
+          </div>
         )}
       </div>
-    </div>,
-    document.body
+    </Modal>
   )
 }

@@ -18,6 +18,8 @@ export type ColorCellProps = {
   openPicker: { tokenName: string; swatchRect: DOMRect } | null
   setOpenPicker: (picker: { tokenName: string; swatchRect: DOMRect } | null) => void
   tokens?: JsonLike
+  isFirst?: boolean
+  isLast?: boolean
 }
 
 export function ColorCell({
@@ -36,6 +38,8 @@ export function ColorCell({
   openPicker,
   setOpenPicker,
   tokens,
+  isFirst,
+  isLast,
 }: ColorCellProps) {
   const lvlNum = Number(level)
   const isDark = lvlNum >= 500
@@ -70,6 +74,10 @@ export function ColorCell({
           background: cssVar ? `var(${cssVar})` : 'transparent',
           cursor: tokenName ? 'pointer' : 'default',
           boxShadow,
+          borderTopLeftRadius: isFirst ? 'var(--recursica-brand-dimensions-border-radii-lg)' : 0,
+          borderTopRightRadius: isFirst ? 'var(--recursica-brand-dimensions-border-radii-lg)' : 0,
+          borderBottomLeftRadius: isLast ? 'var(--recursica-brand-dimensions-border-radii-lg)' : 0,
+          borderBottomRightRadius: isLast ? 'var(--recursica-brand-dimensions-border-radii-lg)' : 0,
         }}
       />
       {tokenName && openPicker && openPicker.tokenName === tokenName && (

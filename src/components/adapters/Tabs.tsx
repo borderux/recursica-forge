@@ -14,7 +14,9 @@ export type TabsProps = {
   defaultValue?: string
   onChange?: (value: string | null) => void
   orientation?: 'horizontal' | 'vertical'
-  variant?: 'default' | 'pills'
+  variant?: 'default' | 'pills' | 'outline'
+  tabContentAlignment?: 'left' | 'center' | 'right'
+  layer?: string
   children: ReactNode
   className?: string
   style?: React.CSSProperties
@@ -26,6 +28,8 @@ export function Tabs({
   onChange,
   orientation = 'horizontal',
   variant = 'default',
+  tabContentAlignment = 'left',
+  layer,
   children,
   className,
   style,
@@ -34,7 +38,7 @@ export function Tabs({
   carbon,
 }: TabsProps) {
   const Component = useComponent('Tabs')
-  
+
   if (!Component) {
     // Fallback to simple div if component not available
     return (
@@ -43,22 +47,24 @@ export function Tabs({
       </div>
     )
   }
-  
+
   const libraryProps = {
     value,
     defaultValue,
     onChange,
     orientation,
     variant,
+    tabContentAlignment,
+    layer,
     className,
     style,
     mantine,
     material,
     carbon,
   }
-  
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<span />}>
       <Component {...libraryProps}>{children}</Component>
     </Suspense>
   )

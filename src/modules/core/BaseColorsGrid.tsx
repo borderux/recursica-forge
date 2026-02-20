@@ -28,10 +28,10 @@ function getSwatchBorderColor(colorName: string, modeLower: string): string {
     return `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
   }
   if (colorName === 'white') {
-    return `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-border-color)`
+    return `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-border-color)`
   }
   // For other colors, use a slightly darker shade or border color
-  return `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-border-color)`
+  return `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-border-color)`
 }
 
 // Component for High/Low emphasis cells
@@ -224,8 +224,8 @@ function EmphasisCell({
             left: `${tooltipPosition.left}px`,
             transform: 'translateX(-50%)',
             padding: '8px 12px',
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layer-layer-1-property-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layer-layer-1-property-border-color)`,
+            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 9999,
@@ -240,10 +240,10 @@ function EmphasisCell({
           <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
             AA Compliance Issue
           </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)` }}>
+          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
             Both black and white don't pass contrast (≥4.5:1)
           </div>
-          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)`, opacity: 0.8 }}>
+          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`, opacity: 0.8 }}>
             Current: {aaStatus?.currentRatio.toFixed(2)}:1
           </div>
         </div>,
@@ -395,8 +395,8 @@ function InteractiveCell({
             left: `${tooltipPosition.left}px`,
             transform: 'translateX(-50%)',
             padding: '8px 12px',
-            backgroundColor: `var(--recursica-brand-themes-${themeMode}-layer-layer-1-property-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${themeMode}-layer-layer-1-property-border-color)`,
+            backgroundColor: `var(--recursica-brand-themes-${themeMode}-layers-layer-1-properties-surface)`,
+            border: `1px solid var(--recursica-brand-themes-${themeMode}-layers-layer-1-properties-border-color)`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 9999,
@@ -411,7 +411,7 @@ function InteractiveCell({
           <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
             AA Compliance Issue
           </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layer-layer-0-element-text-color)` }}>
+          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
             Interactive color contrast ratio {aaStatus?.currentRatio.toFixed(2)}:1 {'<'} 4.5:1
           </div>
         </div>,
@@ -482,6 +482,7 @@ export default function BaseColorsGrid() {
       // Reset tone
       if (defaultColor.tone?.$value) {
         currentCoreColors[colorName].tone = {
+          $type: 'color',
           $value: defaultColor.tone.$value
         }
       }
@@ -489,6 +490,7 @@ export default function BaseColorsGrid() {
       // Reset on-tone
       if (defaultColor['on-tone']?.$value) {
         currentCoreColors[colorName]['on-tone'] = {
+          $type: 'color',
           $value: defaultColor['on-tone'].$value
         }
       }
@@ -504,11 +506,13 @@ export default function BaseColorsGrid() {
         if (!currentCoreColors.interactive.default) currentCoreColors.interactive.default = {}
         if (defaultInteractive.default.tone?.$value) {
           currentCoreColors.interactive.default.tone = {
+            $type: 'color',
             $value: defaultInteractive.default.tone.$value
           }
         }
         if (defaultInteractive.default['on-tone']?.$value) {
           currentCoreColors.interactive.default['on-tone'] = {
+            $type: 'color',
             $value: defaultInteractive.default['on-tone'].$value
           }
         }
@@ -519,11 +523,13 @@ export default function BaseColorsGrid() {
         if (!currentCoreColors.interactive.hover) currentCoreColors.interactive.hover = {}
         if (defaultInteractive.hover.tone?.$value) {
           currentCoreColors.interactive.hover.tone = {
+            $type: 'color',
             $value: defaultInteractive.hover.tone.$value
           }
         }
         if (defaultInteractive.hover['on-tone']?.$value) {
           currentCoreColors.interactive.hover['on-tone'] = {
+            $type: 'color',
             $value: defaultInteractive.hover['on-tone'].$value
           }
         }
@@ -555,10 +561,10 @@ export default function BaseColorsGrid() {
 
   return (
     <div style={{
-      backgroundColor: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-surface)`,
-      border: `1px solid var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-border-color)`,
+      backgroundColor: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-surface)`,
+      border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-border-color)`,
       borderRadius: 'var(--recursica-brand-dimensions-border-radii-lg)',
-      padding: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-padding)`,
+      padding: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-padding)`,
       boxShadow: `var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-x-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-y-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-blur) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-spread) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-shadow-color)`,
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--recursica-brand-dimensions-general-md)' }}>
@@ -569,7 +575,7 @@ export default function BaseColorsGrid() {
           fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-          color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
+          color: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-elements-text-color)`,
         }}>Base colors</h2>
         <Button
           variant="outline"
@@ -600,7 +606,7 @@ export default function BaseColorsGrid() {
               fontFamily: 'var(--recursica-brand-typography-body-font-family)',
               fontSize: 'var(--recursica-brand-typography-body-font-size)',
               fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-              color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
+              color: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-elements-text-color)`,
               padding: 'var(--recursica-brand-dimensions-general-sm)',
             }}
           >
@@ -620,7 +626,7 @@ export default function BaseColorsGrid() {
               fontFamily: 'var(--recursica-brand-typography-body-font-family)',
               fontSize: 'var(--recursica-brand-typography-body-font-size)',
               fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-              color: `var(--recursica-brand-themes-${modeLower}-layer-layer-1-property-element-text-color)`,
+              color: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-elements-text-color)`,
               padding: 'var(--recursica-brand-dimensions-general-sm)',
             }}
           >

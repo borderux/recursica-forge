@@ -1,0 +1,25 @@
+/**
+ * Mantine Dropdown CSS Overrides
+ */
+
+.recursica-dropdown-container {
+  width: 100%;
+}
+
+.recursica-dropdown-trigger {
+  box-sizing: border-box;
+}
+
+.recursica-dropdown-trigger:focus-visible {
+  outline: none;
+}
+
+.recursica-dropdown-trigger.disabled {
+  pointer-events: none;
+}
+
+.recursica-dropdown-trigger svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}

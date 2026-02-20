@@ -48,6 +48,8 @@ export type TextFieldProps = {
   autoFocus?: boolean
   readOnly?: boolean
   disableTopBottomMargin?: boolean
+  editIcon?: React.ReactNode | boolean
+  editIconGap?: string | number
 } & LibrarySpecificProps
 
 export function TextField({
@@ -82,22 +84,24 @@ export function TextField({
   autoFocus,
   readOnly,
   disableTopBottomMargin = false,
+  editIcon,
+  editIconGap,
   mantine,
   material,
   carbon,
 }: TextFieldProps) {
   const Component = useComponent('TextField')
   const { mode } = useThemeMode()
-  
+
   // Generate unique ID if not provided
   const [inputId] = useState(() => id || `text-field-${Math.random().toString(36).substr(2, 9)}`)
   const labelId = `${inputId}-label`
   const helpId = helpText ? `${inputId}-help` : undefined
   const errorId = errorText ? `${inputId}-error` : undefined
-  
-  // Determine effective state (focus is handled via CSS :focus, but we need it for variant selection)
-  const effectiveState = state === 'focus' ? 'default' : state
-  
+
+  // Determine effective state
+  const effectiveState = state
+
   // Get CSS variables for colors based on state variant
   const backgroundVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
   const borderVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
@@ -105,14 +109,14 @@ export function TextField({
   // Placeholder uses the same color as text (value color)
   const leadingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
   const trailingIconVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'trailing-icon')
-  
+
   // Get CSS variables for focus state border (when focused)
   const focusBorderVar = buildComponentCssVarPath('TextField', 'variants', 'states', 'focus', 'properties', 'colors', layer, 'border-color')
   const focusBorderSizeVar = buildComponentCssVarPath('TextField', 'variants', 'states', 'focus', 'properties', 'border-size')
-  
+
   // Get variant-specific border size
   const borderSizeVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'border-size')
-  
+
   // Get component-level properties
   const borderRadiusVar = getComponentLevelCssVar('TextField', 'border-radius')
   const minHeightVar = getComponentLevelCssVar('TextField', 'min-height')
@@ -123,18 +127,18 @@ export function TextField({
   const maxWidthVar = getComponentLevelCssVar('TextField', 'max-width')
   const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
-  
+
   // Get top-bottom-margin from layout variant
   const topBottomMarginVar = buildComponentCssVarPath('TextField', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
-  
+
   // Get Label's gutter for side-by-side layout (Label component manages spacing)
   const labelGutterVar = layout === 'side-by-side'
     ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
     : undefined
-  
+
   // Use provided minWidth or fall back to CSS variable
   const effectiveMinWidth = minWidth !== undefined ? `${minWidth}px` : `var(${minWidthVar})`
-  
+
   // Render Label component if provided
   const labelElement = label ? (
     <Label
@@ -145,16 +149,18 @@ export function TextField({
       align={labelAlign}
       layer={layer}
       id={labelId}
+      editIcon={editIcon}
+      editIconGap={editIconGap}
       style={layout === 'side-by-side' ? { minHeight: `var(${minHeightVar})` } : undefined}
     >
       {label}
     </Label>
   ) : null
-  
+
   // Get icon components for AssistiveElement
   const HelpIcon = useMemo(() => iconNameToReactComponent('info'), [])
   const ErrorIcon = useMemo(() => iconNameToReactComponent('warning'), [])
-  
+
   // Render AssistiveElement for help or error with icons
   const assistiveElement = errorText ? (
     <AssistiveElement
@@ -173,23 +179,23 @@ export function TextField({
       icon={HelpIcon ? <HelpIcon /> : <span>ℹ</span>}
     />
   ) : null
-  
+
   // If no library component is available, render fallback
   if (!Component) {
     return (
-      <div className={className} style={{ 
+      <div className={className} style={{
         marginTop: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
         marginBottom: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
-        ...style 
+        ...style
       }}>
         {layout === 'stacked' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0, alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
             {labelElement}
-            <div 
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: `var(${iconTextGapVar}, 8px)`, 
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: `var(${iconTextGapVar}, 8px)`,
                 cursor: onClick ? 'pointer' : undefined,
                 justifyContent: labelAlign === 'right' ? 'flex-end' : 'flex-start',
                 width: '100%'
@@ -221,7 +227,7 @@ export function TextField({
                 style={{
                   flex: 1,
                   minWidth: effectiveMinWidth,
-                  maxWidth: layout === 'stacked' ? '100%' : `var(${maxWidthVar})`,
+                  maxWidth: `var(${maxWidthVar}, 100%)`,
                   width: layout === 'stacked' ? '100%' : undefined,
                   minHeight: `var(${minHeightVar})`,
                   paddingLeft: leadingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,
@@ -253,7 +259,7 @@ export function TextField({
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: labelGutterVar ? `var(${labelGutterVar})` : '8px' }}>
             {labelElement}
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0 }}>
-              <div 
+              <div
                 style={{ display: 'flex', alignItems: 'center', gap: `var(${iconTextGapVar}, 8px)`, cursor: onClick ? 'pointer' : undefined }}
                 onClick={onClick}
               >
@@ -282,7 +288,7 @@ export function TextField({
                   style={{
                     flex: 1,
                     minWidth: effectiveMinWidth,
-                    maxWidth: layout !== 'side-by-side' ? '100%' : `var(${maxWidthVar})`,
+                    maxWidth: `var(${maxWidthVar}, 100%)`,
                     width: layout !== 'side-by-side' ? '100%' : undefined,
                     minHeight: `var(${minHeightVar})`,
                     paddingLeft: leadingIcon ? `var(${horizontalPaddingVar})` : `var(${horizontalPaddingVar})`,
@@ -314,14 +320,14 @@ export function TextField({
       </div>
     )
   }
-  
+
   // Render library-specific component
   return (
-    <div style={{ 
+    <div style={{
       marginTop: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
       marginBottom: disableTopBottomMargin ? 0 : `var(${topBottomMarginVar})`,
     }}>
-      <Suspense fallback={<div style={{ width: '100%', height: 48 }} />}>
+      <Suspense fallback={<span />}>
         <Component
           value={value}
           defaultValue={defaultValue}
@@ -354,6 +360,7 @@ export function TextField({
           step={step}
           autoFocus={autoFocus}
           readOnly={readOnly}
+          editIcon={editIcon}
           className={className}
           style={style}
           mantine={mantine}

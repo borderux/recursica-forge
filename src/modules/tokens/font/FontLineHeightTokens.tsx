@@ -19,24 +19,24 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `font/line-height/${k}`, value: num })
       })
-    } catch {}
+    } catch { }
     return list
   }, [tokensJson])
 
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
-  const order = ['shortest','shorter','short','default','tall','taller','tallest'] as const
+  const order = ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest'] as const
   const defaultIdx = order.indexOf('default')
 
   const getVal = (name: string): number => {
     // Read directly from tokensJson - support both plural and singular
-    const key = name.replace('font/line-height/','')
+    const key = name.replace('font/line-height/', '')
     try {
-      const v = (tokensJson as any)?.tokens?.font?.['line-heights']?.[key]?.$value || 
-                (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
+      const v = (tokensJson as any)?.tokens?.font?.['line-heights']?.[key]?.$value ||
+        (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
       const n = typeof v === 'number' ? v : parseFloat(v)
       if (Number.isFinite(n)) return n
-    } catch {}
+    } catch { }
     // sensible fallbacks if tokens are missing
     const fallbackDef = 1
     const fallbackD = 0.1
@@ -78,8 +78,8 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
 
   const scaleByST = autoScale
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. As the creature soared through the air with remarkable agility, it noticed a shimmering portal opening beneath the ancient oak tree. Without hesitation, the goblin adjusted its trajectory mid-flight, tumbling gracefully through the mystical gateway into a realm where time flowed backwards and colors sang in harmony. The dwarf, momentarily stunned by this unexpected display of acrobatic prowess, slowly rose from his comfortable position and began to chase after the vanishing figure, determined to understand the secrets of this magical transformation that had unfolded before his very eyes."
 
   return (
@@ -94,18 +94,18 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
         const disabled = scaleByST && !(isDefault || isShort || isTall)
         const lineHeightVar = `--recursica-tokens-font-line-heights-${k}`
         const isLast = index === order.length - 1
-        
+
         return (
-          <div key={name} style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'auto 1fr 350px', 
+          <div key={name} style={{
+            display: 'grid',
+            gridTemplateColumns: 'auto 1fr 350px',
             gap: 0,
             alignItems: 'stretch',
           }}>
-            <label htmlFor={name} style={{ 
+            <label htmlFor={name} style={{
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(${layer0Base}-element-text-color)`,
-              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
               minWidth: 80,
               paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
               paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
@@ -119,8 +119,8 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
             <div style={{
               fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
               lineHeight: `var(${lineHeightVar})`,
-              color: `var(${layer0Base}-element-text-color)`,
-              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
               paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
               paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
               paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
@@ -130,9 +130,9 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
             }}>
               {exampleText}
             </div>
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               gap: 'var(--recursica-brand-dimensions-general-default)',
               borderLeft: `1px solid var(${layer1Base}-border-color)`,
@@ -157,12 +157,10 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
                     updateToken(name, value)
                   }
                 }}
-                layer="layer-0"
+                layer="layer-1"
                 layout="stacked"
-                showInput={true}
-                showValueLabel={true}
-                valueLabel={(val) => val.toFixed(2)}
-              />
+                showMinMaxInput={true}
+                valueLabel={(val: number) => `${val.toFixed(2)}`} />
             </div>
           </div>
         )

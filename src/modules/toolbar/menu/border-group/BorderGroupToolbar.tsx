@@ -14,6 +14,10 @@ import { ComponentProp, parseComponentStructure } from '../../utils/componentToo
 import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
+import { Dropdown } from '../../../../components/adapters/Dropdown'
+import { useCssVar } from '../../../../components/hooks/useCssVar'
+import { toSentenceCase } from '../../utils/componentToolbarUtils'
+import { iconNameToReactComponent } from '../../../components/iconUtils'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import BrandBorderRadiusSlider from '../../utils/BrandBorderRadiusSlider'
 import type { ToolbarPropConfig } from '../../utils/loadToolbarConfig'
@@ -28,21 +32,21 @@ function getCssVarsForProp(
   selectedLayer: string
 ): string[] {
   const structure = parseComponentStructure(componentName)
-  
+
   // Find matching prop based on selected variants and layer
   const matchingProp = structure.props.find(p => {
     if (p.name !== propToCheck.name || p.category !== propToCheck.category) {
       return false
     }
-    
+
     // Special handling for Avatar with nested variants (style and style-secondary)
     if (componentName.toLowerCase() === 'avatar' && propToCheck.category === 'colors') {
       const styleVariant = selectedVariants['style']
       const styleSecondaryVariant = selectedVariants['style-secondary']
-      
+
       // Must have style variant in path
       if (styleVariant && !p.path.includes(styleVariant)) return false
-      
+
       // For text/icon variants, must also have style-secondary variant in path
       if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
         if (!p.path.includes(styleSecondaryVariant)) return false
@@ -56,8 +60,8 @@ function getCssVarsForProp(
           if (!variantInPath) return false
         } else {
           // If no variant selected but prop is variant-specific, try to match default state
-          // For TextField, default state is 'default'
-          if (componentName.toLowerCase() === 'text-field' && p.variantProp === 'states') {
+          // For TextField and NumberInput, default state is 'default'
+          if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && p.variantProp === 'states') {
             if (!p.path.includes('default')) return false
           } else {
             // For other components, require variant to be selected
@@ -65,7 +69,7 @@ function getCssVarsForProp(
           }
         }
       }
-      
+
       // Also check propToCheck's variant requirements
       if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
         const selectedVariant = selectedVariants[propToCheck.variantProp]
@@ -74,7 +78,7 @@ function getCssVarsForProp(
           if (!variantInPath) return false
         } else {
           // If no variant selected but propToCheck is variant-specific, try to match default state
-          if (componentName.toLowerCase() === 'text-field' && propToCheck.variantProp === 'states') {
+          if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && propToCheck.variantProp === 'states') {
             if (!p.path.includes('default')) return false
           } else {
             return false
@@ -82,7 +86,7 @@ function getCssVarsForProp(
         }
       }
     }
-    
+
     // Check layer matching for color props
     if (propToCheck.category === 'colors') {
       const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
@@ -90,10 +94,10 @@ function getCssVarsForProp(
         if (layerInPath !== selectedLayer) return false
       }
     }
-    
+
     return true
   })
-  
+
   return matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]
 }
 
@@ -109,6 +113,7 @@ interface BorderGroupToolbarProps {
       size?: string // default: "border-size"
       radius?: string // default: "border-radius"
       color?: string // default: "border-color"
+      style?: string // default: "border-style"
     }
   }
   onClose?: () => void
@@ -125,7 +130,7 @@ export default function BorderGroupToolbar({
 }: BorderGroupToolbarProps) {
   const { mode } = useThemeMode()
   const { tokens } = useVars()
-  
+
   const {
     includeColor = false,
     propNameMapping = {},
@@ -134,10 +139,11 @@ export default function BorderGroupToolbar({
   const sizePropName = propNameMapping.size || 'border-size'
   const radiusPropName = propNameMapping.radius || 'border-radius'
   const colorPropName = propNameMapping.color || 'border-color'
+  const stylePropName = propNameMapping.style || 'border-style'
 
   // Find border-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
-  
+
   const borderSizeProp = useMemo(() => {
     return structure.props.find(p => {
       if (p.name.toLowerCase() !== sizePropName.toLowerCase()) return false
@@ -168,6 +174,18 @@ export default function BorderGroupToolbar({
     })
   }, [structure, radiusPropName, selectedVariants])
 
+  const borderStyleProp = useMemo(() => {
+    return structure.props.find(p => {
+      if (p.name.toLowerCase() !== stylePropName.toLowerCase()) return false
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (!selectedVariant) return false
+        if (!p.path.includes(selectedVariant)) return false
+      }
+      return true
+    })
+  }, [structure, stylePropName, selectedVariants])
+
   const borderColorProp = useMemo(() => {
     if (!includeColor) return undefined
     // Check for "border-color" prop name (standardized name)
@@ -175,21 +193,21 @@ export default function BorderGroupToolbar({
     return structure.props.find(p => {
       const propNameLower = p.name.toLowerCase()
       // Accept "border-color" (standard) or "border" (legacy)
-      if (propNameLower !== colorPropName.toLowerCase() && 
-          propNameLower !== 'border-color' && 
-          propNameLower !== 'border') {
+      if (propNameLower !== colorPropName.toLowerCase() &&
+        propNameLower !== 'border-color' &&
+        propNameLower !== 'border') {
         return false
       }
       if (p.category !== 'colors') return false
-      
+
       // Special handling for Avatar with nested variants (style and style-secondary)
       if (componentName.toLowerCase() === 'avatar') {
         const styleVariant = selectedVariants['style']
         const styleSecondaryVariant = selectedVariants['style-secondary']
-        
+
         // Must have style variant in path
         if (styleVariant && !p.path.includes(styleVariant)) return false
-        
+
         // For text/icon variants, must also have style-secondary variant in path
         if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
           if (!p.path.includes(styleSecondaryVariant)) return false
@@ -205,8 +223,8 @@ export default function BorderGroupToolbar({
             if (!p.path.includes(selectedVariant)) return false
           } else {
             // If no variant selected but prop is variant-specific, try to match default state
-            // For TextField, default state is 'default'
-            if (componentName.toLowerCase() === 'text-field' && p.variantProp === 'states') {
+            // For TextField and NumberInput, default state is 'default'
+            if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && p.variantProp === 'states') {
               // Try to match default state if no state is selected
               if (!p.path.includes('default')) return false
             } else {
@@ -216,7 +234,7 @@ export default function BorderGroupToolbar({
           }
         }
       }
-      
+
       const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
       if (layerInPath && layerInPath !== selectedLayer) return false
       return true
@@ -229,20 +247,26 @@ export default function BorderGroupToolbar({
     if (!borderSizeProp) return []
     return getCssVarsForProp(borderSizeProp, componentName, selectedVariants, selectedLayer)
   }, [borderSizeProp, componentName, selectedVariants, selectedLayer])
-  
+
   const borderRadiusCssVars = useMemo(() => {
     if (!borderRadiusProp) return []
     return getCssVarsForProp(borderRadiusProp, componentName, selectedVariants, selectedLayer)
   }, [borderRadiusProp, componentName, selectedVariants, selectedLayer])
-  
+
   const borderColorCssVars = useMemo(() => {
     if (!borderColorProp) return []
     return getCssVarsForProp(borderColorProp, componentName, selectedVariants, selectedLayer)
   }, [borderColorProp, componentName, selectedVariants, selectedLayer])
-  
+
+  const borderStyleCssVars = useMemo(() => {
+    if (!borderStyleProp) return []
+    return getCssVarsForProp(borderStyleProp, componentName, selectedVariants, selectedLayer)
+  }, [borderStyleProp, componentName, selectedVariants, selectedLayer])
+
   const borderSizeVar = borderSizeCssVars[0] || borderSizeProp?.cssVar || ''
   const borderRadiusVar = borderRadiusCssVars[0] || borderRadiusProp?.cssVar || ''
   const borderColorVar = borderColorCssVars[0] || borderColorProp?.cssVar || ''
+  const borderStyleVar = borderStyleCssVars[0] || borderStyleProp?.cssVar || ''
 
   // Border Size Control
   const BorderSizeControl = useMemo(() => {
@@ -344,11 +368,58 @@ export default function BorderGroupToolbar({
     }
   }, [includeColor, borderColorVar, borderColorCssVars])
 
+  // Border Style Control
+  const BorderStyleControl = useMemo(() => {
+    if (!borderStyleVar) return null
+
+    const styleConfig = groupedPropsConfig?.[stylePropName] as (ToolbarPropConfig & { options?: any[] }) | undefined
+    if (!styleConfig?.options?.length) return null
+
+    return () => {
+      const currentValue = useCssVar(borderStyleVar, '')
+      const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') ||
+        (typeof styleConfig.options![0] === 'string' ? styleConfig.options![0] : (styleConfig.options![0] as any).value ?? '')
+
+      const dropdownItems = (styleConfig.options!).map((opt: any) => {
+        if (typeof opt === 'string') {
+          return { value: opt, label: toSentenceCase(opt) }
+        }
+        const IconComp = opt.icon ? iconNameToReactComponent(opt.icon) : null
+        return {
+          value: opt.value,
+          label: opt.label,
+          leadingIcon: IconComp ? <IconComp size={16} /> : undefined,
+        }
+      })
+
+      return (
+        <div style={{ marginBottom: '8px' }}>
+          <Dropdown
+            items={dropdownItems}
+            value={cleanValue}
+            onChange={(value) => {
+              const varsToUpdate = borderStyleCssVars.length > 0 ? borderStyleCssVars : [borderStyleVar]
+              varsToUpdate.forEach((v) => updateCssVar(v, value))
+              window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+                detail: { cssVars: varsToUpdate }
+              }))
+            }}
+            label="Style"
+            layer="layer-1"
+            layout="stacked"
+            disableTopBottomMargin={true}
+          />
+        </div>
+      )
+    }
+  }, [borderStyleVar, borderStyleCssVars, groupedPropsConfig, stylePropName])
+
   // Check visibility from toolbar config
   const borderSizeVisible = groupedPropsConfig?.['border-size']?.visible !== false
   const borderRadiusVisible = groupedPropsConfig?.['border-radius']?.visible !== false
-  const borderColorVisible = groupedPropsConfig?.['border-color']?.visible !== false || 
-                             groupedPropsConfig?.['border']?.visible !== false
+  const borderStyleVisible = groupedPropsConfig?.['border-style']?.visible !== false
+  const borderColorVisible = groupedPropsConfig?.['border-color']?.visible !== false ||
+    groupedPropsConfig?.['border']?.visible !== false
 
   return (
     <div className="border-group-toolbar">
@@ -360,6 +431,11 @@ export default function BorderGroupToolbar({
       {BorderRadiusControl && borderRadiusVisible && (
         <div className="border-group-control">
           <BorderRadiusControl />
+        </div>
+      )}
+      {BorderStyleControl && borderStyleVisible && (
+        <div className="border-group-control">
+          <BorderStyleControl />
         </div>
       )}
       {BorderColorControl && borderColorVisible && (

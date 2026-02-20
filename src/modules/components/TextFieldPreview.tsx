@@ -16,10 +16,9 @@ export default function TextFieldPreview({
   componentElevation,
 }: TextFieldPreviewProps) {
   const { mode } = useThemeMode()
-  
+
   // Extract variants from selectedVariants
   const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
-  const layout = (selectedVariants.layouts || 'stacked') as 'stacked' | 'side-by-side'
 
   // Get form vertical gutter CSS variable
   const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
@@ -28,22 +27,33 @@ export default function TextFieldPreview({
   const SmileyIcon = iconNameToReactComponent('star')
   const HeartIcon = iconNameToReactComponent('warning')
 
-  // Show both layouts if no specific layout is selected, otherwise show selected layout
-  const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts 
-    ? [layout] 
-    : ['stacked', 'side-by-side']
+  // Show both layouts
+  const layoutsToShow: Array<'stacked' | 'side-by-side'> = ['stacked', 'side-by-side']
+
+  const h2Style = {
+    margin: 0,
+    marginBottom: 16,
+    textTransform: 'capitalize' as const,
+    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+  } as React.CSSProperties
+
+  const verticalGutter = 'var(--recursica-brand-dimensions-gutters-vertical)'
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      gap: 'var(--recursica-brand-dimensions-gutters-vertical)', 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: verticalGutter,
       width: '100%',
       alignItems: 'center'
     }}>
       {layoutsToShow.map((layoutVariant) => (
         <div key={layoutVariant} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <h2 style={{ margin: 0, marginBottom: 16, textTransform: 'capitalize' }}>
+          <h2 style={h2Style}>
             {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
@@ -70,7 +80,7 @@ export default function TextFieldPreview({
                 />
               </>
             )}
-            
+
             {/* Error state */}
             {state === 'error' && (
               <>
@@ -95,7 +105,7 @@ export default function TextFieldPreview({
                 />
               </>
             )}
-          
+
             {/* Disabled state */}
             {state === 'disabled' && (
               <TextField
@@ -107,14 +117,13 @@ export default function TextFieldPreview({
                 layer={selectedLayer as any}
               />
             )}
-            
+
             {/* Focus state (shows default with focus styling via CSS) */}
             {state === 'focus' && (
               <TextField
                 label="Label"
                 placeholder="Placeholder text"
-                helpText="Help message"
-                state="default"
+                state="focus"
                 layout={layoutVariant}
                 layer={selectedLayer as any}
               />

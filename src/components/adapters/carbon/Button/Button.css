@@ -11,7 +11,7 @@
 /* Size and space Carbon button icons */
 /* Carbon buttons render icons as direct children, so we need to target them */
 /* Leading icons (first child, not last) */
-.cds--btn > svg:first-child:not(:last-child) {
+.cds--btn>svg:first-child:not(:last-child) {
   width: var(--button-icon-size, 0px) !important;
   height: var(--button-icon-size, 0px) !important;
   margin-right: var(--button-icon-text-gap, 0px) !important;
@@ -19,8 +19,8 @@
 }
 
 /* Trailing icons (last child, not first) - icons that come after text */
-.cds--btn > svg:last-child:not(:first-child),
-.cds--btn > span:last-child:has(svg):not(:first-child) {
+.cds--btn>svg:last-child:not(:first-child),
+.cds--btn>span:last-child:has(svg):not(:first-child) {
   width: var(--button-icon-size, 0px) !important;
   height: var(--button-icon-size, 0px) !important;
   margin-left: var(--button-icon-text-gap, 0px) !important;
@@ -42,7 +42,7 @@
 }
 
 /* Target text content for truncation */
-.cds--btn > *:not(svg) {
+.cds--btn>*:not(svg) {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
@@ -56,7 +56,7 @@
   justify-content: center !important;
 }
 
-.cds--btn:not(:has(> svg)) > * {
+.cds--btn:not(:has(> svg))>* {
   flex: none !important;
 }
 

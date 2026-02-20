@@ -96,7 +96,7 @@ export function ComponentsSidebar({
       { name: 'Panel', url: `${base}/panel` },
       { name: 'Popover', url: `${base}/popover` },
       { name: 'Radio', url: `${base}/radio` },
-      { name: 'Read-only field', url: `${base}/read-only-field` },
+      { name: 'Read only field', url: `${base}/read-only-field` },
       { name: 'Search', url: `${base}/search` },
       { name: 'Segmented control', url: `${base}/segmented-control` },
       { name: 'Segmented control item', url: `${base}/segmented-control-item` },
@@ -228,7 +228,7 @@ export function ComponentsSidebar({
     }
   }, [location.pathname, componentTree, navigate])
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
 
   const handleNavClick = (componentName: string) => {
@@ -257,23 +257,6 @@ export function ComponentsSidebar({
         flexShrink: 0,
       }}
     >
-      {/* Components Heading */}
-      <h2
-        style={{
-          margin: 0,
-          marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
-          fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-          fontSize: 'var(--recursica-brand-typography-body-font-size)',
-          fontWeight: 600,
-          letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-high-emphasis)`,
-        }}
-      >
-        Components
-      </h2>
-
       {/* Navigation Items */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
         {componentTree.map((node) => {
@@ -314,8 +297,8 @@ export function ComponentsSidebar({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: `var(${layer0Base}-element-text-color)`,
-                      opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     }}
                     aria-label={isExpanded ? 'Collapse' : 'Expand'}
                   >
@@ -344,12 +327,12 @@ export function ComponentsSidebar({
                     borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                     border: 'none',
                     background: 'transparent',
-                    color: `var(${layer0Base}-element-text-color)`,
+                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                     opacity: isActive
-                      ? `var(${layer0Base}-element-text-high-emphasis)`
+                      ? `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
                       : isUnmapped
                         ? `var(${disabledOpacity})`
-                        : `var(${layer0Base}-element-text-low-emphasis)`,
+                        : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                     cursor: 'pointer',
                     transition: 'opacity 0.2s',
                     position: 'relative',
@@ -361,14 +344,14 @@ export function ComponentsSidebar({
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive && !isUnmapped) {
-                      e.currentTarget.style.opacity = `var(${layer0Base}-element-text-high-emphasis)`
+                      e.currentTarget.style.opacity = `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.opacity = isUnmapped
                         ? `var(${disabledOpacity})`
-                        : `var(${layer0Base}-element-text-low-emphasis)`
+                        : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`
                     }
                   }}
                 >
@@ -408,12 +391,12 @@ export function ComponentsSidebar({
                           borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
                           border: 'none',
                           background: 'transparent',
-                          color: `var(${layer0Base}-element-text-color)`,
+                          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                           opacity: isChildActive
-                            ? `var(${layer0Base}-element-text-high-emphasis)`
+                            ? `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
                             : isChildUnmapped
                               ? `var(${disabledOpacity})`
-                              : `var(${layer0Base}-element-text-low-emphasis)`,
+                              : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                           cursor: 'pointer',
                           transition: 'opacity 0.2s',
                           position: 'relative',
@@ -425,14 +408,14 @@ export function ComponentsSidebar({
                         }}
                         onMouseEnter={(e) => {
                           if (!isChildActive && !isChildUnmapped) {
-                            e.currentTarget.style.opacity = `var(${layer0Base}-element-text-high-emphasis)`
+                            e.currentTarget.style.opacity = `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isChildActive) {
                             e.currentTarget.style.opacity = isChildUnmapped
                               ? `var(${disabledOpacity})`
-                              : `var(${layer0Base}-element-text-low-emphasis)`
+                              : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`
                           }
                         }}
                       >
@@ -522,11 +505,11 @@ export function ComponentsSidebar({
           fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-low-emphasis)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
         }}
       >
-        © 2025 Border LLC. All rights reserved. Ver: {packageJson.version}
+        © {new Date().getFullYear()} Border LLC. All rights reserved. Ver: {packageJson.version}
       </div>
     </aside>
   )

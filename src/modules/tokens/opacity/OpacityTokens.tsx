@@ -28,10 +28,10 @@ export default function OpacityTokens() {
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) map[`opacity/${k}`] = num
       })
-    } catch {}
+    } catch { }
     return map
   }, []) // Only compute once on mount
-  
+
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -42,13 +42,13 @@ export default function OpacityTokens() {
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `opacity/${k}`, value: num })
       })
-    } catch {}
+    } catch { }
     return list
   }, [tokensJson])
 
   // Local state to track slider values during drag (for smooth UI feedback)
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({})
-  
+
   // Reflect latest overrides; listen to tokenOverridesChanged events
   const [version, setVersion] = useState(0)
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function OpacityTokens() {
     return () => window.removeEventListener('tokenOverridesChanged', handler as any)
   }, [])
   const overrides = useMemo(() => readOverrides(), [version])
-  
+
   // Force re-render when tokensJson changes (from store updates)
   useEffect(() => {
     // This ensures the component re-reads values when tokens are updated via updateToken
@@ -86,7 +86,7 @@ export default function OpacityTokens() {
   const handleReset = () => {
     // Clear local slider values so they read from store
     setSliderValues({})
-    
+
     // Restore opacity values from original values and update tokens in store
     Object.keys(originalValues).forEach((tokenName) => {
       const num = originalValues[tokenName]
@@ -97,32 +97,32 @@ export default function OpacityTokens() {
         setOverride(tokenName, num)
       }
     })
-    
+
     // Remove all opacity overrides that aren't in the original JSON
     const all = readOverrides()
     const updated: Record<string, any> = {}
-    
+
     // Keep all non-opacity overrides
     Object.keys(all).forEach((k) => {
       if (!k.startsWith('opacity/')) {
         updated[k] = all[k]
       }
     })
-    
+
     // Add back only the original opacity values
     Object.keys(originalValues).forEach((tokenName) => {
       updated[tokenName] = originalValues[tokenName]
     })
-    
+
     writeOverrides(updated)
-    
+
     try {
       window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, reset: true } }))
-    } catch {}
+    } catch { }
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
 
   return (
@@ -130,21 +130,21 @@ export default function OpacityTokens() {
       <OpacityPickerOverlay />
       <div style={{ display: 'grid', gap: 0 }}>
         {/* Header */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
         }}>
-          <h2 style={{ 
+          <h2 style={{
             margin: 0,
             fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
             fontSize: 'var(--recursica-brand-typography-h2-font-size)',
             fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
             letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
             lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-            color: `var(${layer0Base}-element-text-color)`,
-            opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+            opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
           }}>
             Opacity
           </h2>
@@ -173,7 +173,7 @@ export default function OpacityTokens() {
                 const v = src[rawName]?.$value
                 const num = typeof v === 'number' ? v : Number(v)
                 if (Number.isFinite(num)) return num
-              } catch {}
+              } catch { }
               return null
             })()
             const currentRaw = storeValue ?? (overrides as any)[it.name] ?? it.value
@@ -181,20 +181,20 @@ export default function OpacityTokens() {
             const current = sliderValues[it.name] ?? toPctNumber(currentRaw)
             const isDisabled = rawName === 'invisible' || rawName === 'solid'
             const isLast = index === items.length - 1
-            
+
             return (
-              <div key={it.name} style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'auto 1fr auto auto', 
+              <div key={it.name} style={{
+                display: 'grid',
+                gridTemplateColumns: 'auto 1fr auto auto',
                 gap: 'var(--recursica-brand-dimensions-general-md)',
                 alignItems: 'center',
                 paddingTop: 0,
                 paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-gutters-vertical)',
               }}>
-                <label htmlFor={it.name} style={{ 
+                <label htmlFor={it.name} style={{
                   fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                  color: `var(${layer0Base}-element-text-color)`,
-                  opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                   minWidth: 80,
                 }}>
                   {label}
@@ -226,12 +226,12 @@ export default function OpacityTokens() {
                     max={100}
                     step={1}
                     disabled={isDisabled}
-                    layer="layer-0"
+                    layer="layer-1"
                     layout="stacked"
                     showInput={true}
-                    showValueLabel={true}
-                    valueLabel={(val) => `${val}%`}
-                  />
+                    showValueLabel={false}
+                    valueLabel={(val: number) => `${Math.round(val)}%`}
+                    showMinMaxLabels={false} />
                 </div>
               </div>
             )

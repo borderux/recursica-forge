@@ -171,7 +171,7 @@ export function Button({
   })
   
   return (
-    <Suspense fallback={<button disabled>Loading...</button>}>
+    <Suspense fallback={<span />}>
       <Component {...libraryProps}>{children}</Component>
     </Suspense>
   )

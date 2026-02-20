@@ -41,6 +41,17 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
   const store = useMemo(() => getVarsStore(), [])
   const [state, setState] = useState(() => store.getState())
 
+  // Strip cache-bust param from URL after reloadFromFile()
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    if (url.searchParams.has('_cb')) {
+      url.searchParams.delete('_cb')
+      const cleanUrl = url.pathname + (url.search || '') + url.hash
+      window.history.replaceState(null, '', cleanUrl)
+    }
+  }, [])
+
   useEffect(() => {
     return store.subscribe(() => {
       const newState = store.getState()

@@ -22,10 +22,10 @@ export default function SizeTokens() {
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) map[`size/${k}`] = num
       })
-    } catch {}
+    } catch { }
     return map
   }, []) // Only compute once on mount
-  
+
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
     try {
@@ -38,7 +38,7 @@ export default function SizeTokens() {
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `size/${k}`, value: num })
       })
-    } catch {}
+    } catch { }
     return list
   }, [tokensJson])
 
@@ -48,14 +48,14 @@ export default function SizeTokens() {
     const overrides = readOverrides()
     return { ...init, ...overrides }
   })
-  
+
   // Listen for reset events to clear local state
   useEffect(() => {
     const handler = (ev: CustomEvent) => {
       if (ev.detail?.reset) {
         // On reset, sync with store values (ignore overrides)
         const init: Record<string, string | number> = {}
-        flattened.forEach((it) => { 
+        flattened.forEach((it) => {
           try {
             const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
             const rawKey = it.name.replace('size/', '')
@@ -77,11 +77,11 @@ export default function SizeTokens() {
     window.addEventListener('tokenOverridesChanged', handler as any)
     return () => window.removeEventListener('tokenOverridesChanged', handler as any)
   }, [flattened, tokensJson])
-  
+
   // Sync values with store when tokensJson changes
   useEffect(() => {
     const init: Record<string, string | number> = {}
-    flattened.forEach((it) => { 
+    flattened.forEach((it) => {
       // Read from store first, then fall back to original value
       try {
         const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
@@ -111,7 +111,7 @@ export default function SizeTokens() {
     }
     return v === 'true'
   })
-  
+
   // Local state to track slider values during drag (for smooth UI feedback when auto scale is enabled)
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({})
 
@@ -133,7 +133,7 @@ export default function SizeTokens() {
   const handleReset = () => {
     // Clear local slider values
     setSliderValues({})
-    
+
     // Restore size values from original values and update tokens in store
     Object.keys(originalValues).forEach((tokenName) => {
       const num = originalValues[tokenName]
@@ -144,57 +144,57 @@ export default function SizeTokens() {
         setOverride(tokenName, num)
       }
     })
-    
+
     // Remove all size overrides that aren't in the original JSON
     const all = readOverrides()
     const updated: Record<string, any> = {}
-    
+
     // Keep all non-size overrides
     Object.keys(all).forEach((k) => {
       if (!k.startsWith('size/')) {
         updated[k] = all[k]
       }
     })
-    
+
     // Add back only the original size values
     Object.keys(originalValues).forEach((tokenName) => {
       updated[tokenName] = originalValues[tokenName]
     })
-    
+
     writeOverrides(updated)
-    
+
     // Reset local state
     const init: Record<string, string | number> = {}
     flattened.forEach((it) => { init[it.name] = it.value })
     setValues({ ...init, ...updated })
-    
+
     try {
       window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, reset: true } }))
-    } catch {}
+    } catch { }
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layer-layer-0-property`
-  const layer1Base = `--recursica-brand-themes-${mode}-layer-layer-1-property`
+  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
 
   return (
     <div style={{ display: 'grid', gap: 0 }}>
       {/* Header */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
       }}>
-        <h2 style={{ 
+        <h2 style={{
           margin: 0,
           fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
           fontSize: 'var(--recursica-brand-typography-h2-font-size)',
           fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
           letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
           lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-          color: `var(${layer0Base}-element-text-color)`,
-          opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
         }}>
           Size
         </h2>
@@ -213,8 +213,8 @@ export default function SizeTokens() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
             <span style={{
               fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(${layer0Base}-element-text-color)`,
-              opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
             }}>
               Auto scale
             </span>
@@ -223,7 +223,7 @@ export default function SizeTokens() {
               onChange={(checked) => {
                 setScaleByDefault(checked)
                 localStorage.setItem('size-scale-by-default', String(checked))
-                
+
                 if (checked) {
                   // When enabling auto scale, compute and update all scaled sizes
                   const defaultItem = items.find((i) => i.name === 'size/default')
@@ -239,7 +239,7 @@ export default function SizeTokens() {
                     } catch {
                       defaultValue = Number((values['size/default'] as any) ?? defaultItem.value ?? 0)
                     }
-                    
+
                     items.forEach((it) => {
                       const rawKey = it.name.replace('size/', '')
                       const isNone = rawKey === 'none'
@@ -268,7 +268,7 @@ export default function SizeTokens() {
           const label = (rawKey === 'default' || rawKey === 'none') ? rawKey.charAt(0).toUpperCase() + rawKey.slice(1) : rawKey
           const isNone = rawKey === 'none'
           const isDefault = rawKey === 'default'
-          
+
           // Read current value from store (tokensJson) first, then fall back to local state, then original value
           const storeValue = (() => {
             try {
@@ -277,10 +277,10 @@ export default function SizeTokens() {
               const v = (rawValue && typeof rawValue === 'object' && typeof rawValue.value !== 'undefined') ? rawValue.value : rawValue
               const num = typeof v === 'number' ? v : Number(v)
               if (Number.isFinite(num)) return num
-            } catch {}
+            } catch { }
             return null
           })()
-          
+
           // Get the current default value from store
           const defaultStoreValue = (() => {
             try {
@@ -289,42 +289,42 @@ export default function SizeTokens() {
               const defaultV = (defaultRaw && typeof defaultRaw === 'object' && typeof defaultRaw.value !== 'undefined') ? defaultRaw.value : defaultRaw
               const defaultNum = typeof defaultV === 'number' ? defaultV : Number(defaultV)
               if (Number.isFinite(defaultNum)) return defaultNum
-            } catch {}
+            } catch { }
             return null
           })()
-          
+
           // Get the default value - use local slider value if dragging default with auto scale
           const defaultSliderValue = sliderValues['size/default']
-          const effectiveDefault = (scaleByDefault && isDefault && defaultSliderValue !== undefined) 
-            ? defaultSliderValue 
+          const effectiveDefault = (scaleByDefault && isDefault && defaultSliderValue !== undefined)
+            ? defaultSliderValue
             : (defaultStoreValue ?? (values['size/default'] as any) ?? (items.find((i) => i.name === 'size/default')?.value as any) ?? 0)
-          
+
           const currentDefault = Number(effectiveDefault)
           const mul = parseMultiplier(rawKey)
           const computed = Math.round(currentDefault * mul)
-          
+
           // Use local slider value if dragging with auto scale enabled, otherwise use store/override value
           const baseValue = isNone ? 0 : (scaleByDefault && !isDefault) ? computed : (storeValue ?? (values[it.name] as any) ?? (it.value as any))
           // For default size with auto scale, use slider value if dragging; for non-default with auto scale, computed is already based on default slider value
-          const current: any = (scaleByDefault && isDefault && sliderValues[it.name] !== undefined) 
-            ? sliderValues[it.name] 
+          const current: any = (scaleByDefault && isDefault && sliderValues[it.name] !== undefined)
+            ? sliderValues[it.name]
             : baseValue
           const disabled = isNone || (scaleByDefault && !isDefault)
           const isLast = index === items.length - 1
-          
+
           return (
-            <div key={it.name} style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'auto 1fr auto auto', 
+            <div key={it.name} style={{
+              display: 'grid',
+              gridTemplateColumns: 'auto 1fr auto auto',
               gap: 'var(--recursica-brand-dimensions-general-md)',
               alignItems: 'center',
               paddingTop: 0,
               paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-gutters-vertical)',
             }}>
-              <label htmlFor={it.name} style={{ 
+              <label htmlFor={it.name} style={{
                 fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                color: `var(${layer0Base}-element-text-color)`,
-                opacity: `var(${layer0Base}-element-text-high-emphasis)`,
+                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                 minWidth: 80,
               }}>
                 {label}
@@ -353,7 +353,7 @@ export default function SizeTokens() {
                       setValues((prev) => ({ ...prev, [it.name]: next }))
                       updateToken(it.name, next)
                       setOverride(it.name, next as any)
-                      
+
                       // Update all scaled sizes
                       items.forEach((otherIt) => {
                         const otherRawKey = otherIt.name.replace('size/', '')
@@ -366,7 +366,7 @@ export default function SizeTokens() {
                           setOverride(otherIt.name, computed)
                         }
                       })
-                      
+
                       // Clear local slider values
                       setSliderValues((prev) => {
                         const next = { ...prev }
@@ -381,12 +381,12 @@ export default function SizeTokens() {
                   max={100}
                   step={1}
                   disabled={disabled}
-                  layer="layer-0"
+                  layer="layer-1"
                   layout="stacked"
                   showInput={true}
-                  showValueLabel={true}
-                  valueLabel={(val) => `${val}px`}
-                />
+                  showValueLabel={false}
+                  valueLabel={(val: number) => `${Math.round(val)}px`}
+                  showMinMaxLabels={false} />
               </div>
             </div>
           )

@@ -18,9 +18,7 @@
 
 .MuiSwitch-thumb {
   cursor: pointer !important;
-}
-
-.MuiSwitch-switchBase {
+}.MuiSwitch-switchBase {
   cursor: pointer !important;
 }
 

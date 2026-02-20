@@ -32,13 +32,13 @@ export default function Chip({
   ...props
 }: AdapterChipProps) {
   const { mode } = useThemeMode()
-  
+
   // Force re-render when CSS vars change (needed for Mantine to pick up CSS var changes)
   const [, setUpdateKey] = useState(0)
-  
+
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
-  
+
   useEffect(() => {
     // Get text CSS variables for reactive updates
     const fontFamilyVar = getComponentTextCssVar('Chip', 'text', 'font-family')
@@ -49,32 +49,32 @@ export default function Chip({
     const textDecorationVar = getComponentTextCssVar('Chip', 'text', 'text-decoration')
     const textTransformVar = getComponentTextCssVar('Chip', 'text', 'text-transform')
     const fontStyleVar = getComponentTextCssVar('Chip', 'text', 'font-style')
-    
+
     const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
-    
+
     // Get color CSS variables for reactive updates
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
-    const chipIconColorVarForListener = variant === 'error' || variant === 'error-selected' 
+    const chipIconColorVarForListener = variant === 'error' || variant === 'error-selected'
       ? getComponentLevelCssVar('Chip', 'colors.error.icon-color')
       : chipColorVarForListener
-    
+
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const updatedVars = detail?.cssVars || []
       // Re-render if chip CSS vars were updated, or if text CSS vars were updated, or if color vars were updated
-      const shouldUpdate = updatedVars.length === 0 || 
+      const shouldUpdate = updatedVars.length === 0 ||
         updatedVars.some((v: string) => v.includes('chip') || v.includes('components-chip')) ||
         updatedVars.some((cssVar: string) => textCssVars.includes(cssVar)) ||
         updatedVars.includes(chipColorVarForListener) ||
         updatedVars.includes(chipIconColorVarForListener)
-      
+
       if (shouldUpdate) {
         setUpdateKey(prev => prev + 1)
         setTextVarsUpdate(prev => prev + 1)
       }
     }
     window.addEventListener('cssVarsUpdated', handleUpdate)
-    
+
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       setUpdateKey(prev => prev + 1)
@@ -84,21 +84,21 @@ export default function Chip({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleUpdate)
       observer.disconnect()
     }
   }, [variant, layer])
-  
+
   // Map unified size to Mantine size
   const mantineSize = size === 'small' ? 'xs' : 'md'
-  
+
   // Use UIKit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
   const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
-  
+
   // For error variant (including error-selected), use component-level error color CSS variables
   let chipColorVar: string
   let chipIconColorVar: string
@@ -110,21 +110,22 @@ export default function Chip({
     // Non-error variants don't have icon colors defined, so use text color for icons
     chipIconColorVar = chipColorVar
   }
-  
+
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)
   // NEW STRUCTURE: properties.{property}
   // Properties that exist: border-size, border-radius, horizontal-padding, vertical-padding, icon-text-gap, icon
   const iconSizeVar = getComponentLevelCssVar('Chip', 'icon-size')
   const closeIconSizeVar = getComponentLevelCssVar('Chip', 'close-icon-size')
   const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
-  // Get icon color CSS variables - fallback to chipIconColorVar if not set
-  const leadingIconColorVar = getComponentLevelCssVar('Chip', 'leading-icon-color')
-  const closeIconColorVar = getComponentLevelCssVar('Chip', 'close-icon-color')
+  // Get icon color CSS variables from variant-level per-layer colors
+  const leadingIconColorVar = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
+  const selectedIconColorVar = buildVariantColorCssVar('Chip', variant, 'selected-icon-color', layer)
+  const closeIconColorVar = buildVariantColorCssVar('Chip', variant, 'close-icon-color', layer)
   const horizontalPaddingVar = getComponentLevelCssVar('Chip', 'horizontal-padding')
   const verticalPaddingVar = getComponentLevelCssVar('Chip', 'vertical-padding')
   const borderSizeVar = getComponentLevelCssVar('Chip', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Chip', 'border-radius')
-  
+
   // Get text styling CSS variables using getComponentTextCssVar (for text style toolbar)
   const fontFamilyVar = getComponentTextCssVar('Chip', 'text', 'font-family')
   const fontSizeVar = getComponentTextCssVar('Chip', 'text', 'font-size')
@@ -134,10 +135,10 @@ export default function Chip({
   const textDecorationVar = getComponentTextCssVar('Chip', 'text', 'text-decoration')
   const textTransformVar = getComponentTextCssVar('Chip', 'text', 'text-transform')
   const fontStyleVar = getComponentTextCssVar('Chip', 'text', 'font-style')
-  
+
   // CSS variables in stylesheets ARE reactive - they update automatically when the variable on documentElement changes
   // The border-size is set via CSS custom property in styles.root, which will update reactively
-  
+
   // Use Button's max-width and height vars (same as Button component)
   // Use Chip's own min-width so toolbar can control it
   // NEW STRUCTURE: properties.min-width, properties.max-width
@@ -145,13 +146,13 @@ export default function Chip({
   const minWidthVar = getComponentLevelCssVar('Chip', 'min-width') || getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const maxWidthVar = getComponentLevelCssVar('Chip', 'max-width') || getComponentCssVar('Button', 'size', 'max-width', undefined)
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
-  
+
   // Handle delete functionality - use ActionIcon in rightSection
   const CloseIcon = iconNameToReactComponent('x')
   const CheckIcon = iconNameToReactComponent('check')
   const isSelected = variant === 'selected' || variant === 'error-selected'
   const showCheckmark = isSelected && !!CheckIcon
-  
+
   const deleteIcon = deletable && onDelete ? (
     <ActionIcon
       size="xs"
@@ -176,10 +177,10 @@ export default function Chip({
       {CloseIcon ? <CloseIcon width="100%" height="100%" /> : '×'}
     </ActionIcon>
   ) : undefined
-  
+
   // Build leftSection content - render checkmark for selected variants, with leading icon if provided
   const leftSectionContent = (showCheckmark || icon) ? (
-    <span 
+    <span
       className="recursica-chip-left-section"
       style={{
         width: `var(${iconSizeVar}, 16px)`,
@@ -225,6 +226,7 @@ export default function Chip({
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: icon ? 1 : undefined,
+            color: selectedIconColorVar ? `var(${selectedIconColorVar})` : undefined,
           }}
         >
           {/* Checkmark uses leading icon size via container - iconSizeVar is the leading icon size CSS variable */}
@@ -233,7 +235,7 @@ export default function Chip({
       )}
     </span>
   ) : undefined
-  
+
   // Merge library-specific props
   // Note: Mantine Badge doesn't support onClick directly, so use component="button" when onClick is provided
   const mantineProps: any = {
@@ -259,7 +261,7 @@ export default function Chip({
         // Set CSS custom properties in styles.root to ensure they're applied to the root element
         '--chip-border-size': `var(${borderSizeVar})`,
         // Set icon-text-gap CSS variable on root element so it's available for CSS to read
-        '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+        '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
         // Border will be set directly via DOM manipulation for real-time updates
         borderStyle: 'solid',
         borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
@@ -288,6 +290,10 @@ export default function Chip({
         // Don't set margin-inline-end here - let CSS handle it (same approach as Button)
         ...mantine?.styles?.leftSection,
       },
+      label: {
+        paddingBottom: '2px',
+        ...mantine?.styles?.label,
+      },
       ...mantine?.styles,
     },
     style: {
@@ -301,10 +307,11 @@ export default function Chip({
       '--chip-border': `var(${chipBorderVar})`,
       '--chip-close-icon-size': deletable && onDelete ? `var(${closeIconSizeVar}, 16px)` : '0px',
       '--chip-leading-icon-color': leadingIconColorVar ? `var(${leadingIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
+      '--chip-selected-icon-color': selectedIconColorVar ? `var(${selectedIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       '--chip-close-icon-color': closeIconColorVar ? `var(${closeIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
       // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
-      '--chip-icon-text-gap': icon && children ? `var(${iconGapVar})` : '0px',
+      '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
       '--chip-padding-x': `var(${horizontalPaddingVar})`,
       '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,
@@ -346,12 +353,12 @@ export default function Chip({
     ...mantine,
     ...props,
   } as any
-  
+
   // Use native children prop - CSS will handle icon and delete button styling
   // Use variant as key to force Mantine to re-render when variant changes
   return (
-    <Badge 
-      key={`chip-${variant}-${layer}`} 
+    <Badge
+      key={`chip-${variant}-${layer}`}
       {...mantineProps}
     >
       {children}

@@ -148,7 +148,7 @@ export function Switch({
   }
   
   return (
-    <Suspense fallback={<div style={{ width: 48, height: 24 }} />}>
+    <Suspense fallback={<span />}>
       <Component
         checked={checked}
         onChange={onChange}
