@@ -1,5 +1,61 @@
 # recursica-forge
 
+## 0.3.2
+
+### Patch Changes
+
+- 4b061f9: Fix to handling of pallette color
+- d450064: ### Chip component improvements
+
+  - Added `selected-icon-color` prop to all Chip variants (unselected, selected, error, error-selected) across all layers, allowing independent control of the checkmark/selection icon color
+  - Added `leading-icon-color` as a variant-level, per-layer color property using `buildVariantColorCssVar` for proper reactivity
+  - Renamed "close icon" to "remove icon" throughout the toolbar config and labels (`close-icon-color` → "Remove icon color", `close-icon-size` → "Remove icon size")
+  - Fixed icon-text gap not applying between text and the remove icon — the gap slider now controls spacing on both sides (leading icon ↔ text and text ↔ remove icon)
+  - Fixed remove icon size not updating when the general icon size slider is changed — added separate "Remove icon size" slider to the `IconGroupToolbar`
+  - Fixed color label casing in `IconGroupToolbar` — now uses toolbar config labels with sentence case instead of auto-generated title case
+  - Updated all three Chip adapters (Mantine, Material, Carbon) to read `selected-icon-color`, `leading-icon-color`, and `close-icon-color` using `buildVariantColorCssVar`
+  - Fixed Mantine adapter CSS: reset default 5px section margin and applied `--chip-icon-text-gap` directly to `.recursica-chip-delete`
+
+  ### FileUpload and FileInput components
+
+  - Added new `FileUpload` component with drag-and-drop support (Mantine adapter)
+  - Added new `FileInput` component for file selection (Mantine adapter)
+  - Added toolbar configs, preview components, and component registry entries for both
+  - Added corresponding UIKit.json definitions and Brand.json tokens
+
+  ### Export pipeline and scoped CSS
+
+  - Refactored `recursicaJsonTransformScoped` for improved scoped CSS output
+  - Updated `recursicaJsonTransformSpecific` with border-style support
+  - Added `SCOPED_CSS_ARCHITECTURE.md` documentation
+
+  ### Other fixes
+
+  - Fixed border-style support in `updateUIKitValue`
+  - Fixed palette color selector and grid cell improvements
+  - Fixed TextField toolbar config updates
+  - Added `BorderGroupToolbar` component for grouped border controls
+
+- 965edd3: ### Panel Component
+
+  - Added new Panel component (adapter, Mantine implementation, CSS, toolbar config, UIKit.json entry, and PanelPreview)
+  - Panel supports `overlay` mode with fixed positioning, `width`, `zIndex`, `position` (left/right), `title`, `onClose`, `footer`, and `layer` props
+  - Renamed `divider-thickness` to `divider-size` across UIKit.json, toolbar config, PanelPreview, and Mantine adapter
+  - Added `--panel-border-radius` CSS custom property to Mantine Panel for test accessibility
+  - Updated COMPONENT_DEVELOPMENT_GUIDE.md to allow literal px values for `border-size`, `divider-size`, `min-width`, `max-width`, `min-height`, `max-height`
+
+  ### Panel Refactoring
+
+  - Replaced hand-built panel containers in TypeStylePanel, TypeTokensPanel, ElevationStylePanel, and LayerStylePanel with the new Panel component
+  - Removed ~200 lines of manual header/close button/elevation/border styling across 4 files
+  - Panel width set to 400px, min/max labels hidden on all panel sliders (`showMinMaxLabels={false}`)
+  - Fixed TypeTokensPanel blocking pointer events when closed (early return when `!open`)
+
+  ### Test Fixes
+
+  - Updated Panel.toolbar.test.tsx to use current CSS variable names (`header-footer-horizontal-padding`, `header-footer-vertical-padding`, `header-close-gap`)
+  - Increased Accordion test timeouts to prevent flaky failures under full-suite load
+
 ## 0.3.1
 
 ### Patch Changes
