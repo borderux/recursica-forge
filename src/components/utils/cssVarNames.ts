@@ -110,7 +110,14 @@ export function buildComponentCssVarPath(
 
   // Build path: components.{component}.{path-segments}
   // Convert component name from PascalCase to kebab-case (e.g., 'MenuItem' -> 'menu-item')
-  const componentKebab = pascalToKebabCase(component)
+  // Normalize display names that differ from UIKit.json keys
+  const componentNameMap: Record<string, string> = {
+    'checkbox-group-item': 'checkbox-item',
+  }
+  let componentKebab = pascalToKebabCase(component)
+  if (componentNameMap[componentKebab]) {
+    componentKebab = componentNameMap[componentKebab]
+  }
   const parts = ['components', componentKebab, ...normalizedSegments]
   return toCssVarName(parts.join('.'), mode)
 }

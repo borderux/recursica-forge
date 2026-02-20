@@ -371,6 +371,19 @@ export default function ComponentToolbar({
                 })
               }
 
+              // For nested property groups (selected, unselected, etc.), fall back to component-level
+              // props that don't have the parent path (e.g., icon-size in a "selected" group)
+              if (!groupedProp && isNestedPropertyGroup) {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  const isComponentLevel = !p.isVariantSpecific
+                  // Don't match props that belong to a DIFFERENT nested group
+                  const notInOtherGroup = !p.path.includes('unselected') && !p.path.includes('indeterminate')
+                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                  return nameMatches && isComponentLevel && notInOtherGroup && layerMatches
+                })
+              }
+
               // Special case: border-color is stored as "border" in the color category
               if (!groupedProp && groupedPropKey === 'border-color') {
                 groupedProp = structure.props.find(p => {
@@ -545,6 +558,32 @@ export default function ComponentToolbar({
           propsMap.set(propNameLower, virtualProp)
           seenProps.add(propNameLower)
         }
+
+        // Create virtual props for checkbox-group top-bottom-margin (stacked and side-by-side)
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'checkbox-group' && propNameLower === 'stacked-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'stacked-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'checkbox-group' && propNameLower === 'sbs-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
       }
     }
 
@@ -687,7 +726,9 @@ export default function ComponentToolbar({
   }, [structure.props, componentName, selectedVariants, selectedLayer, toolbarConfig])
 
   const handleReset = () => {
-    const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+    let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+    // Normalize display names that differ from UIKit.json keys
+    if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
 
     // 1. Remove ALL overrides for this component from the document element
     // This handles all modes, layers, and states by looking for the component key in the variable name
@@ -718,6 +759,10 @@ export default function ComponentToolbar({
     const filterAndAdd = (allVars: Record<string, string>, currentMode: 'light' | 'dark') => {
       Object.entries(allVars).forEach(([cssVar, value]) => {
         if (cssVar.includes(`-components-${componentKey}-`)) {
+          componentDefaults[cssVar] = value
+        }
+        // For checkbox-item, also include base checkbox component vars
+        if (componentKey === 'checkbox-item' && cssVar.includes('-components-checkbox-')) {
           componentDefaults[cssVar] = value
         }
       })

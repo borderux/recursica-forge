@@ -1,0 +1,8 @@
+/* Carbon CheckboxGroup Overrides */
+
+.recursica-checkbox-group-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--checkbox-group-gap) !important;
+    padding: var(--checkbox-group-padding) !important;
+}

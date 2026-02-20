@@ -10,6 +10,8 @@ import { NumberInput } from '../../components/adapters/NumberInput'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
+import { CheckboxItem } from '../../components/adapters/CheckboxItem'
+import { CheckboxGroup } from '../../components/adapters/CheckboxGroup'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { Tooltip } from '../../components/adapters/Tooltip'
 import { FileInput } from '../../components/adapters/FileInput'
@@ -164,6 +166,82 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       </div>
     )
   }
+
+  function CheckboxItemExamples({ layer }: { layer: string }) {
+    const [checked1, setChecked1] = React.useState(false)
+    const [checked2, setChecked2] = React.useState(true)
+    const [checked3, setChecked3] = React.useState(false)
+    const [checked4, setChecked4] = React.useState(false)
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <CheckboxItem
+          label="Checkbox item"
+          checked={checked1}
+          onChange={setChecked1}
+          layer={layer as any}
+        />
+        <CheckboxItem
+          label="Checked item"
+          checked={checked2}
+          onChange={setChecked2}
+          layer={layer as any}
+        />
+        <CheckboxItem
+          label="Disabled item"
+          checked={checked3}
+          onChange={setChecked3}
+          disabled
+          layer={layer as any}
+        />
+        <CheckboxItem
+          label="Indeterminate item"
+          checked={checked4}
+          onChange={setChecked4}
+          indeterminate
+          layer={layer as any}
+        />
+      </div>
+    )
+  }
+
+  function CheckboxGroupExample({ layer }: { layer: string }) {
+    const [values, setValues] = React.useState({
+      opt1: false,
+      opt2: false,
+      opt3: false
+    })
+
+    return (
+      <div style={{ width: '100%', maxWidth: 400 }}>
+        <CheckboxGroup
+          label="Checkbox group"
+          layer={layer as any}
+          orientation="vertical"
+        >
+          <CheckboxItem
+            label="Option 1"
+            checked={values.opt1}
+            onChange={(c) => setValues(p => ({ ...p, opt1: c }))}
+            layer={layer as any}
+          />
+          <CheckboxItem
+            label="Option 2"
+            checked={values.opt2}
+            onChange={(c) => setValues(p => ({ ...p, opt2: c }))}
+            layer={layer as any}
+          />
+          <CheckboxItem
+            label="Option 3"
+            checked={values.opt3}
+            onChange={(c) => setValues(p => ({ ...p, opt3: c }))}
+            layer={layer as any}
+          />
+        </CheckboxGroup>
+      </div>
+    )
+  }
+
   const base = 'https://www.recursica.com/docs/components'
   return [
     {
@@ -689,6 +767,22 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       ),
     },
     {
+      name: 'Checkbox group item',
+      url: `${base}/checkbox-group-item`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return <CheckboxItemExamples layer={layer} />
+      },
+    },
+    {
+      name: 'Checkbox group',
+      url: `${base}/checkbox-group`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return <CheckboxGroupExample layer={layer} />
+      },
+    },
+    {
       name: 'Chip',
       url: `${base}/chip`,
       render: (_selectedLayers: Set<LayerOption>) => (
@@ -727,8 +821,8 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           </li>
           <li style={{ padding: 10, border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }}>
             Disabled item
-          </li>
-        </ul>
+          </li >
+        </ul >
       ),
     },
     {

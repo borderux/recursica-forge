@@ -1417,7 +1417,7 @@ export default function PropControlContent({
 
       // FIRST: Check UIKit.json to determine if this property uses tokens or px
       // This ensures we use the correct slider type based on what's actually in UIKit.json
-      const dimensionType = getDimensionPropertyType(componentName, propToRender.path, selectedVariants)
+      const dimensionType = getDimensionPropertyType(componentName, propToRender.path, selectedVariants, propToRender.sourceComponent)
 
       // If UIKit.json indicates this uses tokens, use BrandDimensionSliderInline (unless overridden below)
       if (dimensionType === 'token') {

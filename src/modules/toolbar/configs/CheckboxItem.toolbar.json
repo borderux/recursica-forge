@@ -1,0 +1,119 @@
+{
+    "props": {
+        "checkbox": {
+            "icon": "check-square",
+            "label": "Checkbox",
+            "visible": true,
+            "group": {
+                "size": {
+                    "label": "Checkbox size",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        4,
+                        100
+                    ],
+                    "step": 1
+                },
+                "border-radius": {
+                    "label": "Corner radius",
+                    "visible": true
+                },
+                "border-size": {
+                    "label": "Border size",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        20
+                    ],
+                    "step": 1
+                },
+                "label-gap": {
+                    "label": "Value checkbox gap",
+                    "visible": true
+                }
+            }
+        },
+        "selected": {
+            "icon": "palette",
+            "label": "Selected",
+            "visible": true,
+            "group": {
+                "background-checked": {
+                    "label": "Background",
+                    "visible": true
+                },
+                "border-checked": {
+                    "label": "Border",
+                    "visible": true
+                },
+                "icon-size": {
+                    "label": "Icon size",
+                    "visible": true
+                },
+                "icon-color": {
+                    "label": "Icon color",
+                    "visible": true
+                }
+            }
+        },
+        "unselected": {
+            "icon": "square",
+            "label": "Unselected",
+            "visible": true,
+            "group": {
+                "background-unchecked": {
+                    "label": "Background",
+                    "visible": true
+                },
+                "border-unchecked": {
+                    "label": "Border",
+                    "visible": true
+                }
+            }
+        },
+        "indeterminate": {
+            "icon": "minus",
+            "label": "Indeterminate",
+            "visible": true,
+            "group": {
+                "background-indeterminate": {
+                    "label": "Background",
+                    "visible": true
+                },
+                "border-indeterminate": {
+                    "label": "Border",
+                    "visible": true
+                }
+            }
+        },
+        "text": {
+            "icon": "text-aa",
+            "label": "Text style",
+            "visible": true,
+            "group": {
+                "font-family": {
+                    "label": "Font",
+                    "visible": true
+                },
+                "font-weight": {
+                    "label": "Weight",
+                    "visible": true
+                },
+                "font-size": {
+                    "label": "Size",
+                    "visible": true
+                },
+                "line-height": {
+                    "label": "Line height",
+                    "visible": true
+                },
+                "color": {
+                    "label": "Color",
+                    "visible": true
+                }
+            }
+        }
+    }
+}
