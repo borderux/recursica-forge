@@ -13,12 +13,8 @@
                     "label": "Corner radius",
                     "visible": true
                 },
-                "icon-size": {
-                    "label": "Icon size",
-                    "visible": true
-                },
-                "icon-color": {
-                    "label": "Icon color",
+                "border-width": {
+                    "label": "Border size",
                     "visible": true
                 },
                 "label-gap": {
@@ -26,11 +22,6 @@
                     "visible": true
                 }
             }
-        },
-        "border-width": {
-            "icon": "arrows-left-right",
-            "label": "Border width",
-            "visible": false
         },
         "selected": {
             "icon": "palette",
@@ -43,6 +34,14 @@
                 },
                 "selected-border": {
                     "label": "Border",
+                    "visible": true
+                },
+                "icon-size": {
+                    "label": "Icon size",
+                    "visible": true
+                },
+                "icon-color": {
+                    "label": "Icon color",
                     "visible": true
                 }
             }

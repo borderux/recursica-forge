@@ -7955,7 +7955,7 @@
               },
               "unselected-border": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.color}"
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
               },
               "indeterminate-background": {
                 "$type": "color",
@@ -7985,7 +7985,7 @@
               },
               "unselected-border": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.text.color}"
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
               },
               "indeterminate-background": {
                 "$type": "color",
@@ -8015,7 +8015,7 @@
               },
               "unselected-border": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-2.elements.text.color}"
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
               },
               "indeterminate-background": {
                 "$type": "color",
@@ -8045,7 +8045,7 @@
               },
               "unselected-border": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-3.elements.text.color}"
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
               },
               "indeterminate-background": {
                 "$type": "color",
@@ -8070,7 +8070,7 @@
           },
           "border-radius": {
             "$type": "dimension",
-            "$value": "{tokens.size.sm}"
+            "$value": "{brand.dimensions.border-radii.sm}"
           },
           "border-width": {
             "$type": "dimension",

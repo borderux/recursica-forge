@@ -9,12 +9,22 @@
   min-height: var(--checkbox-size) !important;
   border-radius: var(--checkbox-radius) !important;
   border-width: var(--checkbox-border-width) !important;
+  box-sizing: content-box !important;
 
   /* Colors - Unchecked / Unselected */
   background-color: var(--checkbox-bg-unchecked) !important;
   border-color: var(--checkbox-border-unchecked) !important;
 
   transition: all 0.2s ease;
+}
+
+/* Inner wrapper must account for border drawn outside content-box */
+.recursica-checkbox-root .mantine-Checkbox-inner,
+.recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-inner {
+  width: calc(var(--checkbox-size) + 2 * var(--checkbox-border-width, 0px)) !important;
+  height: calc(var(--checkbox-size) + 2 * var(--checkbox-border-width, 0px)) !important;
+  min-width: calc(var(--checkbox-size) + 2 * var(--checkbox-border-width, 0px)) !important;
+  min-height: calc(var(--checkbox-size) + 2 * var(--checkbox-border-width, 0px)) !important;
 }
 
 /* Checked / Selected State */
