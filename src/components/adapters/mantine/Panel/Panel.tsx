@@ -123,6 +123,7 @@ export default function Panel({
         '--panel-divider-size': `var(${dividerSizeVar})`,
         '--panel-min-width': `var(${minWidthVar})`,
         '--panel-max-width': `var(${maxWidthVar})`,
+        '--panel-border-radius': `var(${borderRadiusVar})`,
         ...style,
     } as React.CSSProperties
 

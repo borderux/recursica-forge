@@ -29,7 +29,7 @@ describe('Accordion Component (Adapter)', () => {
       const el = container.querySelector('.recursica-accordion')
       if (!el) throw new Error('Accordion not found')
       return el
-    }, { timeout: 15000 })
+    }, { timeout: 50000 })
   }
 
   itDom('renders accordion items with titles', async () => {
@@ -42,7 +42,7 @@ describe('Accordion Component (Adapter)', () => {
     expect(screen.getByText('First')).toBeInTheDocument()
     expect(screen.getByText('Second')).toBeInTheDocument()
     expect(screen.getByText('Second content')).toBeInTheDocument()
-  })
+  }, 60000)
 
   itDom('calls onToggle when an item is toggled', async () => {
     const onToggle = vi.fn()

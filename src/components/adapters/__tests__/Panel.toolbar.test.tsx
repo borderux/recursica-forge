@@ -104,7 +104,7 @@ describe('Panel Toolbar Props Integration', () => {
             const panel = await waitForPanel(container)
             expect(panel).toBeInTheDocument()
 
-            const hPaddingVar = getComponentLevelCssVar('Panel', 'horizontal-padding')
+            const hPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-horizontal-padding')
 
             // Update horizontal-padding CSS variable
             updateCssVar(hPaddingVar, '32px')
@@ -113,7 +113,7 @@ describe('Panel Toolbar Props Integration', () => {
             await waitFor(() => {
                 expect(readCssVar(hPaddingVar)).toBe('32px')
                 const styles = window.getComputedStyle(panel!)
-                const paddingValue = styles.getPropertyValue('--panel-padding-x')
+                const paddingValue = styles.getPropertyValue('--panel-hf-padding-x')
                 expect(paddingValue).toBeTruthy()
             }, { timeout: 1000 })
         })
@@ -127,7 +127,7 @@ describe('Panel Toolbar Props Integration', () => {
             const panel = await waitForPanel(container)
             expect(panel).toBeInTheDocument()
 
-            const vPaddingVar = getComponentLevelCssVar('Panel', 'vertical-padding')
+            const vPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-vertical-padding')
 
             // Update vertical-padding CSS variable
             updateCssVar(vPaddingVar, '24px')
@@ -136,7 +136,7 @@ describe('Panel Toolbar Props Integration', () => {
             await waitFor(() => {
                 expect(readCssVar(vPaddingVar)).toBe('24px')
                 const styles = window.getComputedStyle(panel!)
-                const paddingValue = styles.getPropertyValue('--panel-padding-y')
+                const paddingValue = styles.getPropertyValue('--panel-hf-padding-y')
                 expect(paddingValue).toBeTruthy()
             }, { timeout: 1000 })
         })
@@ -173,7 +173,7 @@ describe('Panel Toolbar Props Integration', () => {
             const panel = await waitForPanel(container)
             expect(panel).toBeInTheDocument()
 
-            const gapVar = getComponentLevelCssVar('Panel', 'header-content-gap')
+            const gapVar = getComponentLevelCssVar('Panel', 'header-close-gap')
 
             // Update header-content-gap CSS variable
             updateCssVar(gapVar, '16px')
@@ -182,7 +182,7 @@ describe('Panel Toolbar Props Integration', () => {
             await waitFor(() => {
                 expect(readCssVar(gapVar)).toBe('16px')
                 const styles = window.getComputedStyle(panel!)
-                const gapValue = styles.getPropertyValue('--panel-header-content-gap')
+                const gapValue = styles.getPropertyValue('--panel-header-close-gap')
                 expect(gapValue).toBeTruthy()
             }, { timeout: 1000 })
         })
@@ -199,8 +199,8 @@ describe('Panel Toolbar Props Integration', () => {
             expect(panel).toBeInTheDocument()
 
             const bgColorVar = getComponentLevelCssVar('Panel', 'colors.layer-0.background')
-            const hPaddingVar = getComponentLevelCssVar('Panel', 'horizontal-padding')
-            const vPaddingVar = getComponentLevelCssVar('Panel', 'vertical-padding')
+            const hPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-horizontal-padding')
+            const vPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-vertical-padding')
             const borderRadiusVar = getComponentLevelCssVar('Panel', 'border-radius')
 
             // Update multiple CSS variables simultaneously
@@ -233,7 +233,7 @@ describe('Panel Toolbar Props Integration', () => {
             const panel = await waitForPanel(container)
             expect(panel).toBeInTheDocument()
 
-            const hPaddingVar = getComponentLevelCssVar('Panel', 'horizontal-padding')
+            const hPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-horizontal-padding')
 
             // Directly update CSS variable via DOM (simulating MutationObserver detection)
             document.documentElement.style.setProperty(hPaddingVar, '48px')
@@ -241,7 +241,7 @@ describe('Panel Toolbar Props Integration', () => {
             // Wait for component to detect the change
             await waitFor(() => {
                 const styles = window.getComputedStyle(panel!)
-                const paddingValue = styles.getPropertyValue('--panel-padding-x')
+                const paddingValue = styles.getPropertyValue('--panel-hf-padding-x')
                 expect(paddingValue).toBeTruthy()
             }, { timeout: 1000 })
         })
@@ -299,10 +299,10 @@ describe('Panel Toolbar Props Integration', () => {
             expect(styles.getPropertyValue('--panel-border-color')).toBeTruthy()
             expect(styles.getPropertyValue('--panel-title-color')).toBeTruthy()
             expect(styles.getPropertyValue('--panel-content-color')).toBeTruthy()
-            expect(styles.getPropertyValue('--panel-padding-x')).toBeTruthy()
-            expect(styles.getPropertyValue('--panel-padding-y')).toBeTruthy()
+            expect(styles.getPropertyValue('--panel-hf-padding-x')).toBeTruthy()
+            expect(styles.getPropertyValue('--panel-hf-padding-y')).toBeTruthy()
             expect(styles.getPropertyValue('--panel-border-radius')).toBeTruthy()
-            expect(styles.getPropertyValue('--panel-header-content-gap')).toBeTruthy()
+            expect(styles.getPropertyValue('--panel-header-close-gap')).toBeTruthy()
         })
     })
 })
