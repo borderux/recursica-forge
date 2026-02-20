@@ -82,7 +82,6 @@ function CheckboxGroupSection({
             <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                 <CheckboxGroup
                     label="Checkbox group"
-                    helpText="Help message"
                     layout={layout}
                     layer={selectedLayer as any}
                     orientation="vertical"
@@ -103,27 +102,6 @@ function CheckboxGroupSection({
                         label="Option 3"
                         checked={values.opt3}
                         onChange={(c) => setValues(p => ({ ...p, opt3: c }))}
-                        layer={selectedLayer as any}
-                    />
-                </CheckboxGroup>
-
-                <CheckboxGroup
-                    label="Required group"
-                    required
-                    layout={layout}
-                    layer={selectedLayer as any}
-                    orientation="vertical"
-                >
-                    <CheckboxItem
-                        label="Option A"
-                        checked={false}
-                        onChange={() => { }}
-                        layer={selectedLayer as any}
-                    />
-                    <CheckboxItem
-                        label="Option B"
-                        checked={false}
-                        onChange={() => { }}
                         layer={selectedLayer as any}
                     />
                 </CheckboxGroup>

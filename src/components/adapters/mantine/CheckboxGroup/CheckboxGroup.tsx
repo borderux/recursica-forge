@@ -40,6 +40,7 @@ export default function CheckboxGroup({
 
     // Layout-specific spacing
     const labelFieldGapVar = buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', layout, 'properties', 'label-field-gap')
+    const topBottomMarginVar = buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
     const labelGutterVar = layout === 'side-by-side'
         ? buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
         : undefined
@@ -108,7 +109,11 @@ export default function CheckboxGroup({
                 role="group"
                 aria-labelledby={label ? labelId : undefined}
                 className={`${className || ''} recursica-checkbox-group recursica-checkbox-group-side-by-side`}
-                style={style}
+                style={{
+                    ...style,
+                    marginTop: `var(${topBottomMarginVar})`,
+                    marginBottom: `var(${topBottomMarginVar})`,
+                } as React.CSSProperties}
             >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: gapValue, width: '100%' }}>
                     <div style={{ flexShrink: 0 }}>
@@ -129,9 +134,13 @@ export default function CheckboxGroup({
             role="group"
             aria-labelledby={label ? labelId : undefined}
             className={`${className || ''} recursica-checkbox-group recursica-checkbox-group-stacked`}
-            style={style}
+            style={{
+                ...style,
+                marginTop: `var(${topBottomMarginVar})`,
+                marginBottom: `var(${topBottomMarginVar})`,
+            } as React.CSSProperties}
         >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0, width: '100%', alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${labelFieldGapVar})`, width: '100%', alignItems: labelAlign === 'right' ? 'flex-end' : 'stretch' }}>
                 {labelElement}
                 {itemsContent}
                 {assistiveElement}

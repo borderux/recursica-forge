@@ -313,13 +313,13 @@ export default function ComponentDetailPage() {
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}
                 />
-              ) : component.name === 'Checkbox item' ? (
+              ) : component.name === 'Checkbox group item' ? (
                 <CheckboxItemPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}
                 />
-              ) : component.name === 'Checkbox' ? (
+              ) : component.name === 'Checkbox group' ? (
                 <CheckboxGroupPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}

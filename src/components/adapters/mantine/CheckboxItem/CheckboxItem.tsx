@@ -31,34 +31,40 @@ export default function CheckboxItem({
     const textTransformVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-transform')
     const colorVar = getComponentTextCssVar('CheckboxItem', 'text', 'color')
 
-    // Checkbox Overrides from CheckboxItem
-    const sizeVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'size')
-    const borderRadiusVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'border-radius')
-    const borderWidthVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'border-width')
-    const iconSizeVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'icon-size')
+    // Checkbox props from base Checkbox component
+    const sizeVar = buildComponentCssVarPath('Checkbox', 'properties', 'size')
+    const borderRadiusVar = buildComponentCssVarPath('Checkbox', 'properties', 'border-radius')
+    const borderWidthVar = buildComponentCssVarPath('Checkbox', 'properties', 'border-size')
+    const iconSizeVar = buildComponentCssVarPath('Checkbox', 'properties', 'icon-size')
 
-    // Color Overrides - selected, unselected, indeterminate
-    const selectedBgVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, 'selected-background')
-    const selectedBorderVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, 'selected-border')
-    const unselectedBgVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, 'unselected-background')
-    const unselectedBorderVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, 'unselected-border')
-    const indeterminateBgVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, 'indeterminate-background')
-    const indeterminateBorderVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, 'indeterminate-border')
-    const iconColorVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, 'icon-color')
-    const disabledOpacityVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'disabled-opacity')
+    // Color props from base Checkbox component
+    const checkedBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-checked')
+    const checkedBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-checked')
+    const uncheckedBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-unchecked')
+    const uncheckedBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-unchecked')
+    const indeterminateBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-indeterminate')
+    const indeterminateBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-indeterminate')
+    const iconColorVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color')
+    const disabledBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background')
+    const disabledBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border')
+    const disabledIconVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-icon')
+    const disabledOpacityVar = buildComponentCssVarPath('Checkbox', 'properties', 'disabled-opacity')
 
     const cssVars = {
         '--checkbox-size': `var(${sizeVar})`,
         '--checkbox-radius': `var(${borderRadiusVar})`,
         '--checkbox-border-width': `var(${borderWidthVar})`,
         '--checkbox-icon-size': `var(${iconSizeVar})`,
-        '--checkbox-bg-checked': `var(${selectedBgVar})`,
-        '--checkbox-border-checked': `var(${selectedBorderVar})`,
-        '--checkbox-bg-unchecked': `var(${unselectedBgVar})`,
-        '--checkbox-border-unchecked': `var(${unselectedBorderVar})`,
+        '--checkbox-bg-checked': `var(${checkedBgVar})`,
+        '--checkbox-border-checked': `var(${checkedBorderVar})`,
+        '--checkbox-bg-unchecked': `var(${uncheckedBgVar})`,
+        '--checkbox-border-unchecked': `var(${uncheckedBorderVar})`,
         '--checkbox-bg-indeterminate': `var(${indeterminateBgVar})`,
         '--checkbox-border-indeterminate': `var(${indeterminateBorderVar})`,
         '--checkbox-icon-color': `var(${iconColorVar})`,
+        '--checkbox-disabled-bg': `var(${disabledBgVar})`,
+        '--checkbox-disabled-border': `var(${disabledBorderVar})`,
+        '--checkbox-disabled-icon': `var(${disabledIconVar})`,
         '--checkbox-disabled-opacity': `var(${disabledOpacityVar})`,
         '--checkbox-item-gap': `var(${labelGapVar})`,
         '--checkbox-item-font-family': `var(${fontFamilyVar})`,

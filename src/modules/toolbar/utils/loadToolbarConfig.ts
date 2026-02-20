@@ -107,7 +107,7 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'checkbox-group-item':
         return CheckboxItemConfig as unknown as ToolbarConfig
       case 'checkbox-group':
-      case 'checkbox':
+      case 'checkbox group':
         return CheckboxGroupConfig as unknown as ToolbarConfig
       case 'number-input':
       case 'number input':

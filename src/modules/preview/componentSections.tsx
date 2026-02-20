@@ -767,7 +767,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       ),
     },
     {
-      name: 'Checkbox item',
+      name: 'Checkbox group item',
       url: `${base}/checkbox-group-item`,
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
@@ -775,7 +775,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       },
     },
     {
-      name: 'Checkbox',
+      name: 'Checkbox group',
       url: `${base}/checkbox-group`,
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'

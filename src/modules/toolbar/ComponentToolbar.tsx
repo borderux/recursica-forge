@@ -558,6 +558,32 @@ export default function ComponentToolbar({
           propsMap.set(propNameLower, virtualProp)
           seenProps.add(propNameLower)
         }
+
+        // Create virtual props for checkbox-group top-bottom-margin (stacked and side-by-side)
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'checkbox-group' && propNameLower === 'stacked-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'stacked-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'checkbox-group' && propNameLower === 'sbs-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('CheckboxGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
       }
     }
 
@@ -733,6 +759,10 @@ export default function ComponentToolbar({
     const filterAndAdd = (allVars: Record<string, string>, currentMode: 'light' | 'dark') => {
       Object.entries(allVars).forEach(([cssVar, value]) => {
         if (cssVar.includes(`-components-${componentKey}-`)) {
+          componentDefaults[cssVar] = value
+        }
+        // For checkbox-item, also include base checkbox component vars
+        if (componentKey === 'checkbox-item' && cssVar.includes('-components-checkbox-')) {
           componentDefaults[cssVar] = value
         }
       })

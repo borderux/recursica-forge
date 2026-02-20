@@ -68,6 +68,7 @@ import {
   Link,
   List,
   Minus,
+  MinusSquare,
   Moon,
   PaintBrush,
   PaintBrushBroad,
@@ -326,6 +327,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'split-vertical': SplitVertical,
   'line-segment': LineSegment,
   'stop': Stop,
+  'minus-square': MinusSquare,
 }
 
 /**

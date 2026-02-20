@@ -7,15 +7,27 @@
             "group": {
                 "size": {
                     "label": "Checkbox size",
-                    "visible": true
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        4,
+                        100
+                    ],
+                    "step": 1
                 },
                 "border-radius": {
                     "label": "Corner radius",
                     "visible": true
                 },
-                "border-width": {
+                "border-size": {
                     "label": "Border size",
-                    "visible": true
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        0,
+                        20
+                    ],
+                    "step": 1
                 },
                 "label-gap": {
                     "label": "Value checkbox gap",
@@ -28,11 +40,11 @@
             "label": "Selected",
             "visible": true,
             "group": {
-                "selected-background": {
+                "background-checked": {
                     "label": "Background",
                     "visible": true
                 },
-                "selected-border": {
+                "border-checked": {
                     "label": "Border",
                     "visible": true
                 },
@@ -51,11 +63,11 @@
             "label": "Unselected",
             "visible": true,
             "group": {
-                "unselected-background": {
+                "background-unchecked": {
                     "label": "Background",
                     "visible": true
                 },
-                "unselected-border": {
+                "border-unchecked": {
                     "label": "Border",
                     "visible": true
                 }
@@ -66,11 +78,11 @@
             "label": "Indeterminate",
             "visible": true,
             "group": {
-                "indeterminate-background": {
+                "background-indeterminate": {
                     "label": "Background",
                     "visible": true
                 },
-                "indeterminate-border": {
+                "border-indeterminate": {
                     "label": "Border",
                     "visible": true
                 }
