@@ -25,6 +25,9 @@ export default function Panel({
     layer = 'layer-0',
     elevation,
     onClose,
+    overlay = false,
+    width,
+    zIndex,
     className,
     style,
     mantine,
@@ -123,7 +126,7 @@ export default function Panel({
         ...style,
     } as React.CSSProperties
 
-    return (
+    const panelContent = (
         <Paper
             className={`recursica-panel recursica-panel--${position} ${className || ''}`}
             shadow={undefined}
@@ -136,7 +139,7 @@ export default function Panel({
                 boxShadow: elevationBoxShadow || 'none',
                 display: 'flex',
                 flexDirection: 'column',
-                width: '100%',
+                width: width || '100%',
                 height: '100%',
                 overflow: 'hidden',
             }}
@@ -221,4 +224,24 @@ export default function Panel({
             )}
         </Paper>
     )
+
+    if (overlay) {
+        return (
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    bottom: 0,
+                    [position]: 0,
+                    width: width || 'auto',
+                    zIndex: zIndex || 1000,
+                    pointerEvents: 'auto',
+                }}
+            >
+                {panelContent}
+            </div>
+        )
+    }
+
+    return panelContent
 }

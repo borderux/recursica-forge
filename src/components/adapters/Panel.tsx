@@ -28,8 +28,12 @@ export type PanelProps = {
     elevation?: string
     className?: string
     style?: React.CSSProperties
-    /** When true, renders as an overlay panel (fixed position, full viewport height) */
+    /** When true, renders as a fixed overlay panel (full viewport height) */
     overlay?: boolean
+    /** Custom width for the panel (e.g., '320px') */
+    width?: string
+    /** z-index for overlay panels */
+    zIndex?: number
 } & LibrarySpecificProps
 
 export function Panel({
@@ -44,6 +48,8 @@ export function Panel({
     className,
     style,
     overlay = false,
+    width,
+    zIndex,
     mantine,
     material,
     carbon,
@@ -122,6 +128,8 @@ export function Panel({
                 layer={layer}
                 elevation={componentElevation}
                 overlay={overlay}
+                width={width}
+                zIndex={zIndex}
                 className={className}
                 style={style}
                 mantine={mantine}
