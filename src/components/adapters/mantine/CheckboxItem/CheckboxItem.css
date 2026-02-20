@@ -11,6 +11,7 @@
     letter-spacing: var(--checkbox-item-letter-spacing) !important;
     font-style: var(--checkbox-item-font-style) !important;
     text-decoration: var(--checkbox-item-text-decoration) !important;
+    text-transform: var(--checkbox-item-text-transform) !important;
     color: var(--checkbox-item-color) !important;
     min-height: calc(var(--checkbox-size) + 2 * var(--checkbox-border-width, 0px)) !important;
     display: flex !important;

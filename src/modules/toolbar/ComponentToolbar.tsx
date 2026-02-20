@@ -371,6 +371,19 @@ export default function ComponentToolbar({
                 })
               }
 
+              // For nested property groups (selected, unselected, etc.), fall back to component-level
+              // props that don't have the parent path (e.g., icon-size in a "selected" group)
+              if (!groupedProp && isNestedPropertyGroup) {
+                groupedProp = structure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  const isComponentLevel = !p.isVariantSpecific
+                  // Don't match props that belong to a DIFFERENT nested group
+                  const notInOtherGroup = !p.path.includes('unselected') && !p.path.includes('indeterminate')
+                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                  return nameMatches && isComponentLevel && notInOtherGroup && layerMatches
+                })
+              }
+
               // Special case: border-color is stored as "border" in the color category
               if (!groupedProp && groupedPropKey === 'border-color') {
                 groupedProp = structure.props.find(p => {

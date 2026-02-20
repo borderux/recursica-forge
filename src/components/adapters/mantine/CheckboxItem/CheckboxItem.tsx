@@ -28,6 +28,7 @@ export default function CheckboxItem({
     const letterSpacingVar = getComponentTextCssVar('CheckboxItem', 'text', 'letter-spacing')
     const fontStyleVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-style')
     const textDecorationVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-decoration')
+    const textTransformVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-transform')
     const colorVar = getComponentTextCssVar('CheckboxItem', 'text', 'color')
 
     // Checkbox Overrides from CheckboxItem
@@ -67,6 +68,7 @@ export default function CheckboxItem({
         '--checkbox-item-letter-spacing': `var(${letterSpacingVar})`,
         '--checkbox-item-font-style': `var(${fontStyleVar})`,
         '--checkbox-item-text-decoration': `var(${textDecorationVar})`,
+        '--checkbox-item-text-transform': `var(${textTransformVar})`,
         '--checkbox-item-color': `var(${colorVar})`,
     }
 
