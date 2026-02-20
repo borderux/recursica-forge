@@ -770,7 +770,13 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Panel',
       url: `${base}/panel`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 12 }}>Panel content</div>
+        <div style={{ display: 'flex', height: 80, border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ flex: 1, background: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`, padding: 8, fontSize: 10, opacity: 0.5 }}>Main</div>
+          <div style={{ width: 80, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, background: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`, padding: 6, fontSize: 10 }}>
+            <strong style={{ fontSize: 9 }}>Panel</strong>
+            <div style={{ marginTop: 4, opacity: 0.6, fontSize: 8 }}>Content</div>
+          </div>
+        </div>
       ),
     },
     {

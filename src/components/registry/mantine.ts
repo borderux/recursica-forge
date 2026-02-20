@@ -77,6 +77,9 @@ registerComponent('mantine', 'FileInput', () => import('../adapters/mantine/File
 // FileUpload
 registerComponent('mantine', 'FileUpload', () => import('../adapters/mantine/FileUpload/FileUpload'))
 
+// Panel
+registerComponent('mantine', 'Panel', () => import('../adapters/mantine/Panel/Panel'))
+
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))
 // registerComponent('mantine', 'TextField', () => import('../../adapters/mantine/TextField'))

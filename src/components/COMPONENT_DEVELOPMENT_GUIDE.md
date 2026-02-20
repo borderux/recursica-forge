@@ -255,6 +255,14 @@ To ensure components export properly and achieve 100% randomization coverage, fo
 
 **Note**: Null dimension values are acceptable but will be randomized to actual dimension token references during export. If you want a specific "no padding" behavior, use `{brand.dimensions.general.none}` or a zero-value token instead.
 
+**✅ Allowed as literal px values (these are NOT randomized):**
+
+The following dimension properties may use literal px values (`{ "value": N, "unit": "px" }`) because they represent fixed sizing that is intentionally not randomized:
+- `border-size` — border widths (e.g., 1px, 2px)
+- `divider-size` — divider/separator widths (e.g., 1px)
+- `min-width` / `max-width` — component width constraints
+- `min-height` / `max-height` — component height constraints
+
 #### 4. **Icon Properties - Use Descriptive Icon Names**
 
 Icon name properties will be randomized to different icons during export:

@@ -3,6 +3,7 @@ import PaletteColorControl from '../forms/PaletteColorControl'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
+import { Panel } from '../../components/adapters/Panel'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -485,35 +486,39 @@ export default function ElevationStylePanel({
     }, 600)
   }, [levelsArr, getOpacityTokenName, updateToken, setElevationAlphaToken, elevation, tokensJson, mode])
 
-  const CloseIcon = iconNameToReactComponent('x-mark')
+  const panelTitle = (() => {
+    if (levelsArr.length === 0) return 'Elevation'
+    if (levelsArr.length === 1) return `Elevation ${levelsArr[0]}`
+    const list = levelsArr.slice().sort((a, b) => a - b).join(', ')
+    return `Elevations ${list}`
+  })()
+
+  const panelFooter = (
+    <Button
+      variant="outline"
+      size="small"
+      onClick={() => revertSelected(new Set(selectedLevels))}
+      icon={(() => {
+        const ResetIcon = iconNameToReactComponent('arrow-path')
+        return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+      })()}
+      layer="layer-0"
+    >
+      Reset all
+    </Button>
+  )
 
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layers-layer-2-properties-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-2-properties-border-color)`, boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color)`, zIndex: 10000, padding: 12, overflowY: 'auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h3 style={{
-          margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h3-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
-          color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
-        }}>
-          {(() => {
-            if (levelsArr.length === 0) return 'Elevation'
-            if (levelsArr.length === 1) return `Elevation ${levelsArr[0]}`
-            const list = levelsArr.slice().sort((a, b) => a - b).join(', ')
-            return `Elevations ${list}`
-          })()}
-        </h3>
-        <Button
-          onClick={onClose}
-          variant="text"
-          layer="layer-2"
-          aria-label="Close"
-          icon={CloseIcon ? <CloseIcon /> : undefined}
-        />
-      </div>
+    <Panel
+      overlay
+      position="right"
+      title={panelTitle}
+      onClose={onClose}
+      footer={panelFooter}
+      width="400px"
+      zIndex={10000}
+      layer="layer-0"
+    >
       <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` }}>
         <div style={{ width: '100%', margin: 0, padding: 0 }}>
           <Slider
@@ -534,6 +539,7 @@ export default function ElevationStylePanel({
             layout="stacked"
             showInput={false}
             showValueLabel={true}
+            showMinMaxLabels={false}
             valueLabel={(val) => `${val}px`}
             label={<Label layer="layer-3" layout="stacked">Blur</Label>}
           />
@@ -558,6 +564,7 @@ export default function ElevationStylePanel({
             layout="stacked"
             showInput={false}
             showValueLabel={true}
+            showMinMaxLabels={false}
             valueLabel={(val) => `${val}px`}
             label={<Label layer="layer-3" layout="stacked">Spread</Label>}
           />
@@ -589,6 +596,7 @@ export default function ElevationStylePanel({
                 layer="layer-3"
                 layout="stacked"
                 showInput={false}
+                showMinMaxLabels={false}
                 valueLabel={(val) => `${val}px`}
                 label={<Label layer="layer-3" layout="stacked">Offset X</Label>}
               />
@@ -623,6 +631,7 @@ export default function ElevationStylePanel({
                 layout="stacked"
                 showInput={false}
                 showValueLabel={true}
+                showMinMaxLabels={false}
                 valueLabel={(val) => `${val}px`}
                 label={<Label layer="layer-3" layout="stacked">Offset Y</Label>}
               />
@@ -675,6 +684,7 @@ export default function ElevationStylePanel({
                 layout="stacked"
                 showInput={false}
                 showValueLabel={true}
+                showMinMaxLabels={false}
                 valueLabel={(val) => `${val}%`}
                 label={<Label layer="layer-3" layout="stacked">Opacity</Label>}
               />
@@ -691,23 +701,7 @@ export default function ElevationStylePanel({
             fontSize={13}
           />
         </div>
-        <div style={{ width: '100%', margin: 0, padding: 0 }}>
-          <Button
-            variant="outline"
-            size="small"
-            onClick={() => revertSelected(new Set(selectedLevels))}
-            icon={(() => {
-              const ResetIcon = iconNameToReactComponent('arrow-path')
-              return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-            })()}
-            layer="layer-1"
-          >
-            Reset all
-          </Button>
-        </div>
       </div>
-    </div>
+    </Panel>
   )
 }
-
-

@@ -6,9 +6,9 @@ import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { Dropdown } from '../../components/adapters/Dropdown'
+import { Panel } from '../../components/adapters/Panel'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { buildTypographyVars } from '../../core/resolvers/typography'
-import { iconNameToReactComponent } from '../components/iconUtils'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
 function toTitleCase(label: string): string {
@@ -517,32 +517,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }, [familyCssVar, familyOptions, updateKey, prefix, open])
 
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-
-  // Calculate elevation box-shadow for layer-2
-  const elevationBoxShadow = useMemo(() => {
-    try {
-      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      const themes = root?.themes || root
-
-      // Read layer-2 elevation property
-      const layerSpec: any = themes?.[mode]?.layers?.[`layer-2`] || themes?.[mode]?.layer?.[`layer-2`] || root?.[mode]?.layers?.[`layer-2`] || root?.[mode]?.layer?.[`layer-2`] || {}
-      const v: any = layerSpec?.properties?.elevation?.$value
-      let elevationLevel = '2' // Default to layer number
-
-      if (typeof v === 'string') {
-        // Match both old format (brand.light.elevations.elevation-X) and new format (brand.themes.light.elevations.elevation-X)
-        const m = v.match(/elevations?\.(elevation-(\d+))/i)
-        if (m) elevationLevel = m[2]
-      }
-
-      // Build box-shadow from elevation CSS variables
-      return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-colors-scale-02-1000))`
-    } catch {
-      // Fallback to elevation-2 if there's an error
-      return `var(--recursica-brand-themes-${mode}-elevations-elevation-2-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-2-shadow-color, var(--recursica-tokens-colors-scale-02-1000))`
-    }
-  }, [theme, mode])
 
   // Pre-compute sorted arrays and callbacks at top level (before early return)
   // This ensures hooks are always called in the same order
@@ -585,28 +559,21 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
   if (!open) return null
 
-  const CloseIcon = iconNameToReactComponent('x-mark')
+  const panelFooter = (
+    <Button onClick={revert} variant="outline" layer="layer-0">Revert</Button>
+  )
 
   return (
-    <div style={{ position: 'fixed', top: 0, right: 0, height: '100vh', width: '320px', background: `var(--recursica-brand-themes-${mode}-layers-layer-2-properties-surface)`, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-2-properties-border-color)`, boxShadow: elevationBoxShadow, transform: 'translateX(0)', transition: 'transform 200ms ease', zIndex: 10000, padding: 12, overflowY: 'auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <h3 style={{
-          margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h3-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-        }}>{title}</h3>
-        <Button
-          onClick={onClose}
-          variant="text"
-          layer="layer-2"
-          aria-label="Close"
-          icon={CloseIcon ? <CloseIcon /> : undefined}
-        />
-      </div>
+    <Panel
+      overlay
+      position="right"
+      title={title}
+      onClose={onClose}
+      footer={panelFooter}
+      width="400px"
+      zIndex={10000}
+      layer="layer-0"
+    >
       <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)})` }}>
         {prefix ? (
           <>
@@ -646,10 +613,9 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 layout="stacked"
                 showInput={false}
                 showValueLabel={true}
+                showMinMaxLabels={false}
                 valueLabel={getSizeValueLabel}
                 tooltipText={getSizeValueLabel}
-                minLabel={sortedSizeTokens[0]?.label || 'Xs'}
-                maxLabel={sortedSizeTokens[sortedSizeTokens.length - 1]?.label || 'Xl'}
                 label={<Label layer="layer-3" layout="stacked">Font Size</Label>}
               />
             ) : (
@@ -675,10 +641,9 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 layout="stacked"
                 showInput={false}
                 showValueLabel={true}
+                showMinMaxLabels={false}
                 valueLabel={getWeightValueLabel}
                 tooltipText={getWeightValueLabel}
-                minLabel={sortedWeightTokens[0]?.label || 'Thin'}
-                maxLabel={sortedWeightTokens[sortedWeightTokens.length - 1]?.label || 'Black'}
                 label={<Label layer="layer-3" layout="stacked">Font Weight</Label>}
               />
             ) : (
@@ -704,10 +669,9 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 layout="stacked"
                 showInput={false}
                 showValueLabel={true}
+                showMinMaxLabels={false}
                 valueLabel={getSpacingValueLabel}
                 tooltipText={getSpacingValueLabel}
-                minLabel={sortedSpacingTokens[0]?.label || 'Tightest'}
-                maxLabel={sortedSpacingTokens[sortedSpacingTokens.length - 1]?.label || 'Widest'}
                 label={<Label layer="layer-3" layout="stacked">Letter Spacing</Label>}
               />
             ) : (
@@ -733,10 +697,9 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 layout="stacked"
                 showInput={false}
                 showValueLabel={true}
+                showMinMaxLabels={false}
                 valueLabel={getLineHeightValueLabel}
                 tooltipText={getLineHeightValueLabel}
-                minLabel={sortedLineHeightTokens[0]?.label || 'Shortest'}
-                maxLabel={sortedLineHeightTokens[sortedLineHeightTokens.length - 1]?.label || 'Tallest'}
                 label={<Label layer="layer-3" layout="stacked">Line Height</Label>}
               />
             ) : (
@@ -750,13 +713,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
             No type style selected
           </div>
         )}
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <Button onClick={revert} variant="outline" layer="layer-2">Revert</Button>
-        </div>
       </div>
-    </div>
+    </Panel>
   )
 }
-
-
-

@@ -27,6 +27,7 @@ import DropdownPreview from '../components/DropdownPreview'
 import ReadOnlyFieldPreview from '../components/ReadOnlyFieldPreview'
 import FileInputPreview from '../components/FileInputPreview'
 import FileUploadPreview from '../components/FileUploadPreview'
+import PanelPreview from '../components/PanelPreview'
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useDebugMode } from './PreviewPage'
@@ -431,6 +432,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'File upload' ? (
                 <FileUploadPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Panel' ? (
+                <PanelPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}
