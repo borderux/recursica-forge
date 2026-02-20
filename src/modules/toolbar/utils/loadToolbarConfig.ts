@@ -28,6 +28,7 @@ import LinkConfig from '../configs/Link.toolbar.json'
 import ReadOnlyFieldConfig from '../configs/ReadOnlyField.toolbar.json'
 import FileInputConfig from '../configs/FileInput.toolbar.json'
 import FileUploadConfig from '../configs/FileUpload.toolbar.json'
+import PanelConfig from '../configs/Panel.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -124,6 +125,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'file-upload':
       case 'file upload':
         return FileUploadConfig as unknown as ToolbarConfig
+      case 'panel':
+        return PanelConfig as unknown as ToolbarConfig
       default:
         return null
     }

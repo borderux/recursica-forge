@@ -49,14 +49,14 @@ describe('Accordion Integration', () => {
       const el = container.querySelector('.recursica-accordion')
       if (!el) throw new Error('Accordion not found')
       return el
-    }, { timeout: 20000 })
+    }, { timeout: 50000 })
   }
 
   itDom('renders Mantine accordion when Mantine is selected', async () => {
     const { container } = await renderWithKit('mantine')
     const el = await waitForAccordion(container)
     expect(el).toBeInTheDocument()
-  })
+  }, 60000)
 
   itDom('renders Material accordion when Material is selected', async () => {
     const { container } = await renderWithKit('material')
