@@ -8,6 +8,7 @@ import ButtonPreview from '../components/ButtonPreview'
 import AccordionPreview from '../components/AccordionPreview'
 import AccordionItemPreview from '../components/AccordionItemPreview'
 import CheckboxItemPreview from '../components/CheckboxItemPreview'
+import CheckboxGroupPreview from '../components/CheckboxGroupPreview'
 import AvatarPreview from '../components/AvatarPreview'
 import ToastPreview from '../components/ToastPreview'
 import BadgePreview from '../components/BadgePreview'
@@ -314,6 +315,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Checkbox group item' ? (
                 <CheckboxItemPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Checkbox group' ? (
+                <CheckboxGroupPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}

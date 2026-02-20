@@ -7774,23 +7774,23 @@
             "layer-0": {
               "background-unchecked": {
                 "$type": "color",
-                "$value": "transparent"
+                "$value": "{brand.layers.layer-0.properties.border-color}"
               },
               "background-checked": {
                 "$type": "color",
-                "$value": "#1a1a1a"
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
               },
               "border-unchecked": {
                 "$type": "color",
-                "$value": "#1a1a1a"
+                "$value": "{brand.layers.layer-0.elements.text.color}"
               },
               "border-checked": {
                 "$type": "color",
-                "$value": "#1a1a1a"
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
               },
               "icon-color": {
                 "$type": "color",
-                "$value": "#ffffff"
+                "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
               },
               "disabled-background": {
                 "$type": "color",
@@ -7926,6 +7926,10 @@
           "icon-size": {
             "$type": "dimension",
             "$value": "{tokens.size.2x}"
+          },
+          "disabled-opacity": {
+            "$type": "number",
+            "$value": "{brand.states.disabled}"
           }
         }
       },
@@ -7937,17 +7941,123 @@
           },
           "colors": {
             "layer-0": {
-              "background-checked": {
+              "selected-background": {
                 "$type": "color",
-                "$value": "#1a1a1a"
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
               },
-              "border-unchecked": {
+              "selected-border": {
                 "$type": "color",
-                "$value": "#1a1a1a"
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "unselected-background": {
+                "$type": "color",
+                "$value": "transparent"
+              },
+              "unselected-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              },
+              "indeterminate-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "indeterminate-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
               },
               "icon-color": {
                 "$type": "color",
-                "$value": "#ffffff"
+                "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
+              }
+            },
+            "layer-1": {
+              "selected-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "selected-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "unselected-background": {
+                "$type": "color",
+                "$value": "transparent"
+              },
+              "unselected-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              },
+              "indeterminate-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "indeterminate-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "icon-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
+              }
+            },
+            "layer-2": {
+              "selected-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "selected-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "unselected-background": {
+                "$type": "color",
+                "$value": "transparent"
+              },
+              "unselected-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              },
+              "indeterminate-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "indeterminate-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "icon-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
+              }
+            },
+            "layer-3": {
+              "selected-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "selected-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "unselected-background": {
+                "$type": "color",
+                "$value": "transparent"
+              },
+              "unselected-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "indeterminate-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "indeterminate-border": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "icon-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
               }
             }
           },
@@ -7971,10 +8081,7 @@
           },
           "icon-size": {
             "$type": "dimension",
-            "$value": {
-              "value": 16,
-              "unit": "px"
-            }
+            "$value": "{brand.dimensions.icons.sm}"
           },
           "disabled-opacity": {
             "$type": "number",
@@ -8005,10 +8112,43 @@
         }
       },
       "checkbox-group": {
+        "variants": {
+          "layouts": {
+            "stacked": {
+              "properties": {
+                "label-field-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{ui-kit.globals.form.properties.label-field-gap-vertical}",
+                    "unit": "px"
+                  }
+                }
+              }
+            },
+            "side-by-side": {
+              "properties": {
+                "gutter": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{ui-kit.globals.form.properties.label-field-gap-horizontal}",
+                    "unit": "px"
+                  }
+                },
+                "vertical-padding": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{ui-kit.globals.form.properties.vertical-item-gap}",
+                    "unit": "px"
+                  }
+                }
+              }
+            }
+          }
+        },
         "properties": {
           "item-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
           },
           "padding": {
             "$type": "dimension",

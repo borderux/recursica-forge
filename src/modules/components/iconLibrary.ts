@@ -89,6 +89,7 @@ import {
   SquaresFour,
   Stack,
   Star,
+  Stop,
   Sun,
   Swap,
   TextAUnderline,
@@ -324,6 +325,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'upload': Upload,
   'split-vertical': SplitVertical,
   'line-segment': LineSegment,
+  'stop': Stop,
 }
 
 /**

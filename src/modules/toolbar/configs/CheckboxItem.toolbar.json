@@ -1,52 +1,85 @@
 {
     "props": {
-        "size": {
-            "icon": "resize",
-            "label": "Size",
-            "visible": true
-        },
-        "border-radius": {
-            "icon": "corners-out",
-            "label": "Corner radius",
-            "visible": true
+        "checkbox": {
+            "icon": "check-square",
+            "label": "Checkbox",
+            "visible": true,
+            "group": {
+                "size": {
+                    "label": "Checkbox size",
+                    "visible": true
+                },
+                "border-radius": {
+                    "label": "Corner radius",
+                    "visible": true
+                },
+                "icon-size": {
+                    "label": "Icon size",
+                    "visible": true
+                },
+                "icon-color": {
+                    "label": "Icon color",
+                    "visible": true
+                },
+                "label-gap": {
+                    "label": "Value checkbox gap",
+                    "visible": true
+                }
+            }
         },
         "border-width": {
             "icon": "arrows-left-right",
             "label": "Border width",
             "visible": false
         },
-        "icon-size": {
-            "icon": "resize",
-            "label": "Icon size",
-            "visible": true
-        },
-        "label-gap": {
-            "icon": "split-horizontal",
-            "label": "Label gap",
-            "visible": true
-        },
-        "colors": {
+        "selected": {
             "icon": "palette",
-            "label": "Colors",
+            "label": "Selected",
             "visible": true,
             "group": {
-                "background-checked": {
-                    "label": "Checked background",
+                "selected-background": {
+                    "label": "Background",
                     "visible": true
                 },
-                "border-unchecked": {
+                "selected-border": {
                     "label": "Border",
                     "visible": true
+                }
+            }
+        },
+        "unselected": {
+            "icon": "square",
+            "label": "Unselected",
+            "visible": true,
+            "group": {
+                "unselected-background": {
+                    "label": "Background",
+                    "visible": true
                 },
-                "icon-color": {
-                    "label": "Icon color",
+                "unselected-border": {
+                    "label": "Border",
+                    "visible": true
+                }
+            }
+        },
+        "indeterminate": {
+            "icon": "minus",
+            "label": "Indeterminate",
+            "visible": true,
+            "group": {
+                "indeterminate-background": {
+                    "label": "Background",
+                    "visible": true
+                },
+                "indeterminate-border": {
+                    "label": "Border",
                     "visible": true
                 }
             }
         },
         "text": {
             "icon": "text-aa",
-            "label": "Label text",
+            "label": "Text style",
             "visible": true,
             "group": {
                 "font-family": {

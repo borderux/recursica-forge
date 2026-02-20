@@ -50,7 +50,7 @@ export default function CheckboxItemPreview({
             padding: '16px',
             width: '100%',
             maxWidth: '400px',
-        }} key={updateKey}>
+        }} data-update-key={updateKey}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                 <CheckboxItem
                     label="Unchecked Checkbox"

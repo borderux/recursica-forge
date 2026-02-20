@@ -1,17 +1,19 @@
 /* Carbon CheckboxItem Overrides */
 
+/* Value text styling with min-height and vertical centering */
 .recursica-carbon-checkbox-item .cds--checkbox-label {
-    /* Carbon uses padding-left on label relative to the checkbox pseudo-element? 
-       Actually Carbon positions checkbox absolute or relative.
-       Typically padding-left creates the gap.
-       Default padding covers checkbox width + gap.
-    */
-    /* We need to adjust padding-left to be checkbox width + gap */
+    /* Carbon uses padding-left on label relative to the checkbox pseudo-element.
+       Padding-left = checkbox width + gap. */
     padding-left: calc(var(--checkbox-size) + var(--checkbox-item-gap)) !important;
-
     font-family: var(--checkbox-item-font-family) !important;
     font-size: var(--checkbox-item-font-size) !important;
     font-weight: var(--checkbox-item-font-weight) !important;
     line-height: var(--checkbox-item-line-height) !important;
+    letter-spacing: var(--checkbox-item-letter-spacing) !important;
+    font-style: var(--checkbox-item-font-style) !important;
+    text-decoration: var(--checkbox-item-text-decoration) !important;
     color: var(--checkbox-item-color) !important;
+    min-height: var(--checkbox-size) !important;
+    display: flex !important;
+    align-items: center !important;
 }

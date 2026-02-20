@@ -687,7 +687,9 @@ export default function ComponentToolbar({
   }, [structure.props, componentName, selectedVariants, selectedLayer, toolbarConfig])
 
   const handleReset = () => {
-    const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+    let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+    // Normalize display names that differ from UIKit.json keys
+    if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
 
     // 1. Remove ALL overrides for this component from the document element
     // This handles all modes, layers, and states by looking for the component key in the variable name

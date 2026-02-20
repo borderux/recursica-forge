@@ -10,35 +10,44 @@
   border-radius: var(--checkbox-radius) !important;
   border-width: var(--checkbox-border-width) !important;
 
-  /* Colors - Unchecked */
+  /* Colors - Unchecked / Unselected */
   background-color: var(--checkbox-bg-unchecked) !important;
   border-color: var(--checkbox-border-unchecked) !important;
 
   transition: all 0.2s ease;
 }
 
-/* Checked State */
+/* Checked / Selected State */
 .recursica-checkbox-root .mantine-Checkbox-input:checked,
 .recursica-checkbox-root .mantine-Checkbox-input[data-checked],
 .recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-input:checked,
 .recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-input[data-checked] {
-  background-color: var(--checkbox-bg-checked, #1a1a1a) !important;
-  border-color: var(--checkbox-border-checked, #1a1a1a) !important;
+  background-color: var(--checkbox-bg-checked) !important;
+  border-color: var(--checkbox-border-checked) !important;
 }
 
-/* Indeterminate State (often treated as checked in Mantine) */
+/* Indeterminate State */
 .recursica-checkbox-root .mantine-Checkbox-input[data-indeterminate],
 .recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-input[data-indeterminate] {
-  background-color: var(--checkbox-bg-checked, #1a1a1a) !important;
-  border-color: var(--checkbox-border-checked, #1a1a1a) !important;
+  background-color: var(--checkbox-bg-indeterminate, var(--checkbox-bg-checked)) !important;
+  border-color: var(--checkbox-border-indeterminate, var(--checkbox-border-checked)) !important;
 }
 
-/* Icon */
+/* Icon - only visible when checked or indeterminate */
 .recursica-checkbox-root .mantine-Checkbox-icon,
 .recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-icon {
   color: var(--checkbox-icon-color, #ffffff) !important;
   width: var(--checkbox-icon-size) !important;
   height: var(--checkbox-icon-size) !important;
+}
+
+/* Hide icon when unchecked - Mantine keeps the SVG in the DOM, so we must explicitly hide it */
+.recursica-checkbox-root .mantine-Checkbox-input:not(:checked):not([data-checked]):not([data-indeterminate])+.mantine-Checkbox-icon,
+.recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-input:not(:checked):not([data-checked]):not([data-indeterminate])+.mantine-Checkbox-icon,
+.recursica-checkbox-root .mantine-Checkbox-input:not(:checked):not([data-checked]):not([data-indeterminate])~.mantine-Checkbox-icon,
+.recursica-checkbox-root.mantine-Checkbox-root .mantine-Checkbox-input:not(:checked):not([data-checked]):not([data-indeterminate])~.mantine-Checkbox-icon {
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
 /* Disabled State */
@@ -48,9 +57,21 @@
   cursor: not-allowed !important;
 }
 
-.recursica-checkbox-root .mantine-Checkbox-input:disabled+.mantine-Checkbox-icon,
-.recursica-checkbox-root[data-disabled] .mantine-Checkbox-icon {
+/* Disabled icon - only apply opacity when checked/indeterminate */
+.recursica-checkbox-root .mantine-Checkbox-input:disabled:checked+.mantine-Checkbox-icon,
+.recursica-checkbox-root .mantine-Checkbox-input:disabled[data-checked]+.mantine-Checkbox-icon,
+.recursica-checkbox-root .mantine-Checkbox-input:disabled[data-indeterminate]+.mantine-Checkbox-icon,
+.recursica-checkbox-root[data-disabled] .mantine-Checkbox-input:checked+.mantine-Checkbox-icon,
+.recursica-checkbox-root[data-disabled] .mantine-Checkbox-input[data-checked]+.mantine-Checkbox-icon,
+.recursica-checkbox-root[data-disabled] .mantine-Checkbox-input[data-indeterminate]+.mantine-Checkbox-icon,
+.recursica-checkbox-root .mantine-Checkbox-input:disabled:checked~.mantine-Checkbox-icon,
+.recursica-checkbox-root .mantine-Checkbox-input:disabled[data-checked]~.mantine-Checkbox-icon,
+.recursica-checkbox-root .mantine-Checkbox-input:disabled[data-indeterminate]~.mantine-Checkbox-icon,
+.recursica-checkbox-root[data-disabled] .mantine-Checkbox-input:checked~.mantine-Checkbox-icon,
+.recursica-checkbox-root[data-disabled] .mantine-Checkbox-input[data-checked]~.mantine-Checkbox-icon,
+.recursica-checkbox-root[data-disabled] .mantine-Checkbox-input[data-indeterminate]~.mantine-Checkbox-icon {
   opacity: var(--checkbox-disabled-opacity, 0.4) !important;
+  visibility: visible !important;
 }
 
 .recursica-checkbox-root[data-disabled] .mantine-Checkbox-label {

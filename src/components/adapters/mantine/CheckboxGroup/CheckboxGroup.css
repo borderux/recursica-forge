@@ -1,6 +1,6 @@
 /* Mantine CheckboxGroup Overrides */
 
-.recursica-checkbox-group {
+.recursica-checkbox-group-items {
     display: flex;
     flex-direction: column;
     gap: var(--checkbox-group-gap);

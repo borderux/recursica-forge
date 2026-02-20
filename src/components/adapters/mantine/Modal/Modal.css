@@ -46,3 +46,29 @@
     /* Footer area */
     margin-top: auto;
 }
+
+/* Palette swatch picker: use absolute position so it scrolls with the page */
+.palette-swatch-picker-overlay.mantine-Modal-root {
+    position: absolute !important;
+    inset: auto !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: visible !important;
+    pointer-events: none !important;
+}
+
+.palette-swatch-picker-overlay .mantine-Modal-inner {
+    position: absolute !important;
+    inset: auto !important;
+    width: auto !important;
+    height: auto !important;
+    display: block !important;
+    overflow: visible !important;
+    pointer-events: none !important;
+}
+
+.palette-swatch-picker-overlay .mantine-Modal-content {
+    pointer-events: auto !important;
+}

@@ -1,4 +1,10 @@
 {
+    "variants": {
+        "layout": {
+            "icon": "layout",
+            "label": "Layout"
+        }
+    },
     "props": {
         "properties": {
             "icon": "stack",
