@@ -19,7 +19,7 @@ export function TypePage() {
   const { mode } = useThemeMode()
   const { theme } = useVars()
   const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  
+
   type Sample = { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }
 
   // Read samples from Brand.json typography
@@ -27,7 +27,7 @@ export function TypePage() {
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
     const typography = root?.typography || {}
     const result: Sample[] = []
-    
+
     // Map of typography keys to display labels and HTML tags
     const labelMap: Record<string, { label: string; tag: keyof JSX.IntrinsicElements }> = {
       'h1': { label: 'H1', tag: 'h1' },
@@ -43,7 +43,7 @@ export function TypePage() {
       'caption': { label: 'Caption', tag: 'p' },
       'overline': { label: 'Overline', tag: 'p' },
     }
-    
+
     // Map Brand.json keys to prefix format used by the component
     const prefixMap: Record<string, string> = {
       'subtitle': 'subtitle-1',
@@ -51,20 +51,18 @@ export function TypePage() {
       'body': 'body-1',
       'body-small': 'body-2',
     }
-    
+
     // Iterate through typography entries in Brand.json
     Object.keys(typography).forEach((key) => {
       if (key.startsWith('$')) return
-      
+
       const typographyEntry = typography[key]
       if (typographyEntry && typeof typographyEntry === 'object' && '$type' in typographyEntry && typographyEntry.$type === 'typography') {
         const labelInfo = labelMap[key]
         if (labelInfo) {
           const prefix = prefixMap[key] || key
-          const defaultText = labelInfo.label === 'Overline' 
-            ? 'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG'
-            : `${labelInfo.label} – The quick brown fox jumps over the lazy dog`
-          
+          const defaultText = `${labelInfo.label} – The quick brown fox jumps over the lazy dog`
+
           result.push({
             label: labelInfo.label,
             tag: labelInfo.tag,
@@ -74,7 +72,7 @@ export function TypePage() {
         }
       }
     })
-    
+
     // Sort samples to maintain a consistent order (h1-h6, then subtitle, body, caption, overline)
     const order = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle-1', 'subtitle-2', 'body-1', 'body-2', 'caption', 'overline']
     result.sort((a, b) => {
@@ -85,7 +83,7 @@ export function TypePage() {
       if (bIndex === -1) return -1
       return aIndex - bIndex
     })
-    
+
     return result
   }, [theme])
 
@@ -99,42 +97,45 @@ export function TypePage() {
     const { mode } = useThemeMode()
     const Tag = tag as any
     const cssVarName = prefixToCssVarName(prefix)
-    
+
     // Build layer-1 base CSS variable prefix
     const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
-    
+
     // CSS variables update automatically, but React needs to re-render to pick up changes
     const style: React.CSSProperties = useMemo(() => ({
       fontFamily: `var(--recursica-brand-typography-${cssVarName}-font-family)`,
       fontSize: `var(--recursica-brand-typography-${cssVarName}-font-size, 16px)`,
       fontWeight: `var(--recursica-brand-typography-${cssVarName}-font-weight, 400)` as any,
+      fontStyle: `var(--recursica-brand-typography-${cssVarName}-font-style, normal)` as any,
       letterSpacing: `var(--recursica-brand-typography-${cssVarName}-font-letter-spacing, 0)`,
       lineHeight: `var(--recursica-brand-typography-${cssVarName}-line-height, normal)` as any,
+      textDecoration: `var(--recursica-brand-typography-${cssVarName}-text-decoration, none)` as any,
+      textTransform: `var(--recursica-brand-typography-${cssVarName}-text-transform, none)` as any,
       color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
       margin: '0',
     }), [cssVarName, mode, layer1Base, updateKey])
-    
+
     // Container style using layer-1 properties
     // When selected, use core alert color for border instead of dropshadow
     const containerStyle = useMemo(() => {
-      const borderColor = isSelected 
+      const borderColor = isSelected
         ? `var(--recursica-brand-themes-${mode}-palettes-core-alert)`
         : `var(${layer1Base}-border-color)`
-      
+
       return {
         backgroundColor: `var(${layer1Base}-surface)`,
         color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-        border: `var(${layer1Base}-border-thickness) solid ${borderColor}`, 
-        borderRadius: `var(${layer1Base}-border-radius)`, 
-        padding: `var(${layer1Base}-padding)`, 
-        display: 'flex' as const, 
-        alignItems: 'center' as const, 
-        gap: 12, 
+        border: `var(${layer1Base}-border-thickness) solid ${borderColor}`,
+        borderRadius: `var(${layer1Base}-border-radius)`,
+        padding: `var(${layer1Base}-padding)`,
+        display: 'flex' as const,
+        alignItems: 'center' as const,
+        gap: 12,
         cursor: 'pointer' as const,
         boxShadow: 'none', // Layer 1 uses elevation-0 (no elevation)
       }
     }, [layer1Base, mode, isSelected, updateKey])
-    
+
     return (
       <div
         onClick={() => onToggle(!isSelected)}
@@ -176,8 +177,8 @@ export function TypePage() {
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto', padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{ 
-          marginTop: 0, 
+        <h1 style={{
+          marginTop: 0,
           marginBottom: 0,
           fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
           fontSize: 'var(--recursica-brand-typography-h1-font-size)',

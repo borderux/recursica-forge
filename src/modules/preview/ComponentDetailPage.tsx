@@ -14,6 +14,7 @@ import ToastPreview from '../components/ToastPreview'
 import BadgePreview from '../components/BadgePreview'
 import ChipPreview from '../components/ChipPreview'
 import LabelPreview from '../components/LabelPreview'
+import LinkPreview from '../components/LinkPreview'
 import BreadcrumbPreview from '../components/BreadcrumbPreview'
 import MenuItemPreview from '../components/MenuItemPreview'
 import MenuPreview from '../components/MenuPreview'
@@ -352,6 +353,12 @@ export default function ComponentDetailPage() {
                 />
               ) : component.name === 'Label' ? (
                 <LabelPreview
+                  selectedVariants={selectedVariants}
+                  selectedLayer={selectedLayer}
+                  componentElevation={componentElevation}
+                />
+              ) : component.name === 'Link' ? (
+                <LinkPreview
                   selectedVariants={selectedVariants}
                   selectedLayer={selectedLayer}
                   componentElevation={componentElevation}

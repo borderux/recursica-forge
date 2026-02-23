@@ -32,6 +32,10 @@ registerComponent('carbon', 'Chip', () => import('../adapters/carbon/Chip/Chip')
 // Label
 registerComponent('carbon', 'Label', () => import('../adapters/carbon/Label/Label'))
 
+// Link
+registerComponent('carbon', 'Link', () => import('../adapters/carbon/Link/Link'))
+
+
 // AssistiveElement
 registerComponent('carbon', 'AssistiveElement', () => import('../adapters/carbon/AssistiveElement/AssistiveElement'))
 

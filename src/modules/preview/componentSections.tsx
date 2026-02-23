@@ -14,6 +14,11 @@ import { CheckboxItem } from '../../components/adapters/CheckboxItem'
 import { CheckboxGroup } from '../../components/adapters/CheckboxGroup'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { Tooltip } from '../../components/adapters/Tooltip'
+import { Link } from '../../components/adapters/Link'
+import { Menu } from '../../components/adapters/Menu'
+import { MenuItem } from '../../components/adapters/MenuItem'
+import { SegmentedControl } from '../../components/adapters/SegmentedControl'
+import { iconNameToReactComponent } from '../components/iconUtils'
 import { FileInput } from '../../components/adapters/FileInput'
 import { FileUpload } from '../../components/adapters/FileUpload'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
@@ -265,7 +270,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/accordion-item`,
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
-        const { Accordion } = require('../../components/adapters/Accordion')
+
 
         return (
           <div style={{ width: '100%', maxWidth: 520 }}>
@@ -572,12 +577,18 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Link',
       url: `${base}/link`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', gap: 12 }}>
-          <a href="#">Default link</a>
-          <a href="#" style={{ opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }} aria-disabled>Disabled link</a>
-        </div>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const ArrowUpRightIcon = iconNameToReactComponent('arrow-top-right-on-square')
+
+        return (
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+            <Link href="#" layer={layer as any}>Link</Link>
+            <Link href="#" layer={layer as any} startIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Link</Link>
+            <Link href="#" layer={layer as any} endIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Link</Link>
+          </div>
+        )
+      },
     },
     {
       name: 'Loader',
@@ -608,9 +619,6 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/menu`,
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
-        const { Menu } = require('../../components/adapters/Menu')
-        const { MenuItem } = require('../../components/adapters/MenuItem')
-        const { iconNameToReactComponent } = require('../components/iconUtils')
         const ChevronRightIcon = iconNameToReactComponent('arrow-right')
         const FileIcon = iconNameToReactComponent('document-text')
 
@@ -653,8 +661,6 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/menu-item`,
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
-        const { MenuItem } = require('../../components/adapters/MenuItem')
-        const { iconNameToReactComponent } = require('../components/iconUtils')
         const ChevronRightIcon = iconNameToReactComponent('arrow-right')
 
         return (
@@ -926,8 +932,6 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/segmented-control-item`,
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
-        const { SegmentedControl } = require('../../components/adapters/SegmentedControl')
-        const { iconNameToReactComponent } = require('../components/iconUtils')
         const HouseIcon = iconNameToReactComponent('house')
         const SlidersIcon = iconNameToReactComponent('sliders-horizontal')
         const UserIcon = iconNameToReactComponent('user')

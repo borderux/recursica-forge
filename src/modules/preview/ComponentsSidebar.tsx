@@ -11,9 +11,8 @@ import { useMemo, useEffect, useState } from 'react'
 import uikitJson from '../../vars/UIKit.json'
 import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
-import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
-import packageJson from '../../../package.json'
+import { SidebarFooter } from '../app/SidebarFooter'
 
 type ComponentItem = {
   name: string
@@ -444,73 +443,7 @@ export function ComponentsSidebar({
         })}
       </nav>
 
-      {/* Footer Links - Fixed at bottom */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--recursica-brand-dimensions-general-sm)',
-          marginTop: 'auto',
-          paddingTop: 'var(--recursica-brand-dimensions-general-lg)',
-          flexShrink: 0,
-        }}
-      >
-        <Button
-          variant="text"
-          size="small"
-          layer="layer-0"
-          onClick={() => window.open('https://www.recursica.com', '_blank', 'noopener,noreferrer')}
-          icon={(() => {
-            const Icon = iconNameToReactComponent('arrow-top-right-on-square')
-            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-          })()}
-          style={{ justifyContent: 'flex-start', width: '100%' }}
-        >
-          Visit Recursica.com
-        </Button>
-        <Button
-          variant="text"
-          size="small"
-          layer="layer-0"
-          onClick={() => window.open('https://www.recursica.com/docs/foundations/colors', '_blank', 'noopener,noreferrer')}
-          icon={(() => {
-            const Icon = iconNameToReactComponent('document-text')
-            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-          })()}
-          style={{ justifyContent: 'flex-start', width: '100%' }}
-        >
-          Read documentation
-        </Button>
-        <Button
-          variant="text"
-          size="small"
-          layer="layer-0"
-          onClick={() => window.open('https://join.slack.com/t/recursica/shared_invite/zt-3emx80y9u-DfG5WO~SApkTJjVCiYk0WQ', '_blank', 'noopener,noreferrer')}
-          icon={(() => {
-            const Icon = iconNameToReactComponent('info')
-            return Icon ? <Icon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
-          })()}
-          style={{ justifyContent: 'flex-start', width: '100%' }}
-        >
-          Help
-        </Button>
-      </div>
-
-      {/* Copyright */}
-      <div
-        style={{
-          marginTop: 'var(--recursica-brand-dimensions-general-md)',
-          fontFamily: 'var(--recursica-brand-typography-body-small-font-family)',
-          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
-        }}
-      >
-        © {new Date().getFullYear()} Border LLC. All rights reserved. Ver: {packageJson.version}
-      </div>
+      <SidebarFooter />
     </aside>
   )
 }
