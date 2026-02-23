@@ -47,6 +47,11 @@ export function ComponentsSidebar({
   const mappedComponents = useMemo(() => {
     const components = (uikitJson as any)?.['ui-kit']?.components || {}
     return new Set(Object.keys(components).map(name => {
+      // Special alias: map checkbox-item to "Checkbox group item" so it nests active under Checkbox group
+      if (name === 'checkbox-item') {
+        return 'Checkbox group item'
+      }
+
       // Convert "button" -> "Button", "text-field" -> "Text field", "menu-item" -> "Menu item", etc.
       const words = name.split('-')
       return words
@@ -71,7 +76,9 @@ export function ComponentsSidebar({
       { name: 'Breadcrumb', url: `${base}/breadcrumb` },
       { name: 'Button', url: `${base}/button` },
       { name: 'Card', url: `${base}/card` },
-      { name: 'Checkbox', url: `${base}/checkbox` },
+      // { name: 'Checkbox', url: `${base}/checkbox` },
+      { name: 'Checkbox group', url: `${base}/checkbox-group` },
+      { name: 'Checkbox group item', url: `${base}/checkbox-group-item` },
       { name: 'Chip', url: `${base}/chip` },
       { name: 'Date picker', url: `${base}/date-picker` },
       { name: 'Dropdown', url: `${base}/dropdown` },

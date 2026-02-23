@@ -226,7 +226,7 @@ export default function Label({
             : (align === 'right' ? 'flex-end' : 'stretch'),
           gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
         }}>
-          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>{children}</span>
+          <span style={{ display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>{children}</span>
           <span
             style={{
               display: 'block',
@@ -239,7 +239,7 @@ export default function Label({
               lineHeight: `var(${optionalLineHeightVar})`,
               textDecoration: (readCssVar(optionalTextDecorationVar) || 'none') as any,
               textTransform: (readCssVar(optionalTextTransformVar) || 'none') as any,
-              overflow: 'hidden',
+              overflow: 'visible',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
               textAlign: align,
@@ -257,7 +257,7 @@ export default function Label({
           width: '100%',
           gap: editIcon ? finalEditIconGap : 0
         }}>
-          <span style={{ display: 'inline-block', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>
+          <span style={{ display: 'inline-block', verticalAlign: 'middle', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>
             {children}
             {variant === 'required' && asteriskColorVar && (
               <span
