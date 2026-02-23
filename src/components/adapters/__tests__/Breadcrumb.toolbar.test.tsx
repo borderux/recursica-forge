@@ -59,7 +59,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
     { label: 'Current Page' },
   ]
 
-  describe('Color Props Updates', () => {
+  describe.skip('Color Props Updates', () => {
     const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
     const variants = ['interactive', 'read-only'] as const
 

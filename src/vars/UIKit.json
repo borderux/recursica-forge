@@ -8053,7 +8053,7 @@
           },
           "padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.0}"
+            "$value": "{brand.dimensions.general.none}"
           }
         }
       },
