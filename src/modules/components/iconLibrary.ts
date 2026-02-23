@@ -76,6 +76,7 @@ import {
   List,
   MagnifyingGlass,
   Minus,
+  MinusSquare,
   Moon,
   PaintBrush,
   PaintBrushBroad,
@@ -98,6 +99,7 @@ import {
   SquaresFour,
   Stack,
   Star,
+  Stop,
   Sun,
   Swap,
   TextAUnderline,
@@ -367,6 +369,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'faders-horizontal': FadersHorizontal,
   'split-vertical': SplitVertical,
   'line-segment': LineSegment,
+  'stop': Stop,
+  'minus-square': MinusSquare,
 }
 
 /**

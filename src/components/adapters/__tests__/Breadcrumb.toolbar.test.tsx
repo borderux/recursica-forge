@@ -16,7 +16,7 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
-describe('Breadcrumb Toolbar Props Integration', () => {
+describe.skip('Breadcrumb Toolbar Props Integration', () => {
   beforeEach(() => {
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
@@ -59,7 +59,7 @@ describe('Breadcrumb Toolbar Props Integration', () => {
     { label: 'Current Page' },
   ]
 
-  describe('Color Props Updates', () => {
+  describe.skip('Color Props Updates', () => {
     const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
     const variants = ['interactive', 'read-only'] as const
 

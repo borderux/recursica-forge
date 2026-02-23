@@ -217,7 +217,7 @@ export default function Modal({
 
         // Position variables (for CSS file !important overrides)
         ...(effectivePos && !centered ? {
-            '--modal-position': 'fixed',
+            '--modal-position': 'absolute',
             '--modal-top': `${effectivePos.y}px`,
             '--modal-left': `${effectivePos.x}px`,
             '--modal-margin': '0',
@@ -253,6 +253,7 @@ export default function Modal({
             onClose={onClose}
             centered={centered}
             withOverlay={withOverlay}
+            lockScroll={withOverlay}
             trapFocus={trapFocus ?? withOverlay}
             zIndex={zIndex}
             title={showHeader ? (
