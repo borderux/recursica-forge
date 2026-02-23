@@ -8,6 +8,7 @@
 import { Link } from '../../components/adapters/Link'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import packageJson from '../../../package.json'
 
 export function SidebarFooter() {
@@ -17,6 +18,40 @@ export function SidebarFooter() {
     const ExternalLinkIcon = iconNameToReactComponent('arrow-top-right-on-square')
     const DocumentIcon = iconNameToReactComponent('document-text')
     const InfoIcon = iconNameToReactComponent('info')
+
+    // Link component color for the copyright links
+    const linkTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', 'layer-0', 'text')
+    const linkHoverColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', 'layer-0', 'text')
+
+    // Link component text properties - default state
+    const linkFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-weight')
+    const linkTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-decoration')
+    const linkTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-transform')
+    const linkFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-style')
+
+    // Link component text properties - hover state
+    const linkHoverFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'font-weight')
+    const linkHoverTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'text-decoration')
+    const linkHoverTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'text-transform')
+    const linkHoverFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'font-style')
+
+    // Hover handlers that apply full Link hover state
+    const handleMouseEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        const el = e.currentTarget
+        el.style.color = `var(${linkHoverColorVar})`
+        el.style.fontWeight = `var(${linkHoverFontWeightVar})`
+        el.style.textDecoration = `var(${linkHoverTextDecorationVar}, none)`
+        el.style.textTransform = `var(${linkHoverTextTransformVar}, none)`
+        el.style.fontStyle = `var(${linkHoverFontStyleVar}, normal)`
+    }
+    const handleMouseLeave = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        const el = e.currentTarget
+        el.style.color = `var(${linkTextColorVar})`
+        el.style.fontWeight = `var(${linkFontWeightVar})`
+        el.style.textDecoration = `var(${linkTextDecorationVar}, none)`
+        el.style.textTransform = `var(${linkTextTransformVar}, none)`
+        el.style.fontStyle = `var(${linkFontStyleVar}, normal)`
+    }
 
     return (
         <>
@@ -69,11 +104,57 @@ export function SidebarFooter() {
                     fontWeight: 'var(--recursica-brand-typography-caption-font-weight)' as any,
                     letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
                     lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
+                    textDecoration: 'var(--recursica-brand-typography-caption-text-decoration)',
+                    textTransform: 'var(--recursica-brand-typography-caption-text-transform)' as any,
+                    fontStyle: 'var(--recursica-brand-typography-caption-font-style)',
                     color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                     opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
-                }}
+                } as React.CSSProperties}
             >
-                © 2025–{new Date().getFullYear()} <Link href="https://www.borderux.com" target="_blank" rel="noopener noreferrer" layer="layer-0" endIcon={ExternalLinkIcon ? <ExternalLinkIcon /> : undefined}>Border LLC</Link>.<br />Version {packageJson.version} · <Link href="https://github.com/borderux/recursica-forge" target="_blank" rel="noopener noreferrer" layer="layer-0" endIcon={ExternalLinkIcon ? <ExternalLinkIcon /> : undefined}>GitHub</Link>
+                © 2025–{new Date().getFullYear()}{' '}
+                <a
+                    href="https://www.borderux.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                        color: `var(${linkTextColorVar})`,
+                        fontWeight: `var(${linkFontWeightVar})`,
+                        textDecoration: `var(${linkTextDecorationVar}, none)`,
+                        textTransform: `var(${linkTextTransformVar}, none)` as any,
+                        fontStyle: `var(${linkFontStyleVar}, normal)`,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25em',
+                    } as React.CSSProperties}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                >
+                    Border LLC
+                    {ExternalLinkIcon && <ExternalLinkIcon style={{ width: '1em', height: '1em', color: 'inherit' }} />}
+                </a>
+                .
+                <br />
+                Version {packageJson.version} ·{' '}
+                <a
+                    href="https://github.com/borderux/recursica-forge"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                        color: `var(${linkTextColorVar})`,
+                        fontWeight: `var(${linkFontWeightVar})`,
+                        textDecoration: `var(${linkTextDecorationVar}, none)`,
+                        textTransform: `var(${linkTextTransformVar}, none)` as any,
+                        fontStyle: `var(${linkFontStyleVar}, normal)`,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25em',
+                    } as React.CSSProperties}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                >
+                    GitHub
+                    {ExternalLinkIcon && <ExternalLinkIcon style={{ width: '1em', height: '1em', color: 'inherit' }} />}
+                </a>
             </div>
         </>
     )

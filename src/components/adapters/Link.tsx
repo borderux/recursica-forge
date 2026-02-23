@@ -303,12 +303,14 @@ function getLinkStyles(
 }
 
 function mapLinkProps(props: LinkProps): any {
-  const { mantine, material, carbon, title, ...rest } = props
+  const { mantine, material, carbon, title, inlineStyle, ...rest } = props
 
   // Base props that work across libraries
+  // Map 'inlineStyle' to 'style' for library adapters
   const baseProps: any = {
     ...rest,
     title: title,
+    style: inlineStyle,
   }
 
   return {
