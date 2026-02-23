@@ -4565,7 +4565,7 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "underline"
+                    "$value": "none"
                   },
                   "text-transform": {
                     "$type": "string",
@@ -4648,41 +4648,105 @@
                   "layer-0": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     }
                   },
                   "layer-1": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     }
                   },
                   "layer-2": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     }
                   },
                   "layer-3": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                    }
+                  }
+                },
+                "text": {
+                  "font-weight": {
+                    "$type": "number",
+                    "$value": "{tokens.font.weights.regular}"
+                  },
+                  "text-decoration": {
+                    "$type": "string",
+                    "$value": "none"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "none"
+                  },
+                  "font-style": {
+                    "$type": "string",
+                    "$value": "normal"
+                  }
+                }
+              }
+            },
+            "visited-hover": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                    }
+                  },
+                  "layer-1": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                    }
+                  },
+                  "layer-2": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                    }
+                  },
+                  "layer-3": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
                     }
                   }
                 },

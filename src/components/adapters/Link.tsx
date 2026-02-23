@@ -31,6 +31,8 @@ export type LinkProps = {
   title?: string
   showIcon?: boolean
   iconPosition?: 'start' | 'end'
+  /** Force a specific visual state for preview (bypasses CSS pseudo-states) */
+  forceState?: 'default' | 'hover' | 'visited' | 'visited-hover'
 } & LibrarySpecificProps
 
 export function Link({
@@ -48,6 +50,7 @@ export function Link({
   title,
   showIcon,
   iconPosition,
+  forceState,
   mantine,
   material,
   carbon,
@@ -134,6 +137,14 @@ export function Link({
     const visitedFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'font-style')
     const visitedTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'colors', layer, 'text')
 
+    // State-variant text CSS variables (visited-hover state)
+    const visitedHoverFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'font-weight')
+    const visitedHoverTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'text-decoration')
+    const visitedHoverTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'text-transform')
+    const visitedHoverFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'font-style')
+    const visitedHoverTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'colors', layer, 'text')
+    const visitedHoverIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'colors', layer, 'icon')
+
     // Calculate dynamic vars - use 'default' state for base color
     const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
     const textHoverVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', layer, 'text')
@@ -145,6 +156,7 @@ export function Link({
       defaultFontWeightVar, defaultTextDecorationVar, defaultTextTransformVar, defaultFontStyleVar,
       hoverFontWeightVar, hoverTextDecorationVar, hoverTextTransformVar, hoverFontStyleVar,
       visitedFontWeightVar, visitedTextDecorationVar, visitedTextTransformVar, visitedFontStyleVar, visitedTextColorVar,
+      visitedHoverFontWeightVar, visitedHoverTextDecorationVar, visitedHoverTextTransformVar, visitedHoverFontStyleVar, visitedHoverTextColorVar, visitedHoverIconColorVar,
       textVar, textHoverVar, iconColorVar, iconGapVar, showIconVar, iconPositionVar, iconNameVar
     ]
 
@@ -229,6 +241,7 @@ export function Link({
     title,
     showIcon,
     iconPosition,
+    forceState,
     mantine,
     material,
     carbon,

@@ -28,20 +28,19 @@ export default function Link({
     style,
     startIcon,
     endIcon,
+    forceState,
     mantine,
     ...props
 }: AdapterLinkProps) {
     const { mode } = useThemeMode()
 
-    // Determine size prefix for CSS variables
-    const sizePrefix = size === 'small' ? 'small' : 'default'
-
     // Use UIKit.json link colors - state-variant colors
     const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
     const textHoverVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', layer, 'text')
 
-    // Get icon gap CSS variable
-    const iconGapVar = getComponentCssVar('Link', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+    // Get icon gap and icon size CSS variables (at component properties level, not under size variants)
+    const iconGapVar = buildComponentCssVarPath('Link', 'properties', 'icon-text-gap')
+    const iconSizeVar = buildComponentCssVarPath('Link', 'properties', 'icon-size')
 
     // Icon color CSS variables (per-state)
     const defaultIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'icon')
@@ -73,6 +72,14 @@ export default function Link({
     const visitedFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'font-style')
     const visitedTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'colors', layer, 'text')
 
+    // State-dependent text properties (visited-hover state)
+    const visitedHoverFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'font-weight')
+    const visitedHoverTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'text-decoration')
+    const visitedHoverTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'text-transform')
+    const visitedHoverFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'font-style')
+    const visitedHoverTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'colors', layer, 'text')
+    const visitedHoverIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'colors', layer, 'icon')
+
     // State to force re-renders when text CSS variables change
     const [, setTextVarsUpdate] = useState(0)
 
@@ -83,6 +90,7 @@ export default function Link({
             defaultFontWeightVar, defaultTextDecorationVar, defaultTextTransformVar, defaultFontStyleVar,
             hoverFontWeightVar, hoverTextDecorationVar, hoverTextTransformVar, hoverFontStyleVar,
             visitedFontWeightVar, visitedTextDecorationVar, visitedTextTransformVar, visitedFontStyleVar, visitedTextColorVar,
+            visitedHoverFontWeightVar, visitedHoverTextDecorationVar, visitedHoverTextTransformVar, visitedHoverFontStyleVar, visitedHoverTextColorVar, visitedHoverIconColorVar,
             defaultIconColorVar, hoverIconColorVar, visitedIconColorVar,
             textVar, textHoverVar, iconGapVar
         ]
@@ -117,6 +125,7 @@ export default function Link({
         defaultFontWeightVar, defaultTextDecorationVar, defaultTextTransformVar, defaultFontStyleVar,
         hoverFontWeightVar, hoverTextDecorationVar, hoverTextTransformVar, hoverFontStyleVar,
         visitedFontWeightVar, visitedTextDecorationVar, visitedTextTransformVar, visitedFontStyleVar, visitedTextColorVar,
+        visitedHoverFontWeightVar, visitedHoverTextDecorationVar, visitedHoverTextTransformVar, visitedHoverFontStyleVar, visitedHoverTextColorVar, visitedHoverIconColorVar,
         defaultIconColorVar, hoverIconColorVar, visitedIconColorVar,
         textVar, textHoverVar, iconGapVar])
 
@@ -141,6 +150,7 @@ export default function Link({
             '--link-color': `var(${textVar})`,
             '--link-hover-color': `var(${textHoverVar})`,
             '--link-icon-gap': `var(${iconGapVar})`,
+            '--link-icon-size': `var(${iconSizeVar})`,
             '--link-font-family': `var(${fontFamilyVar})`,
             '--link-font-size': `var(${fontSizeVar})`,
             '--link-font-weight': `var(${defaultFontWeightVar})`,
@@ -163,27 +173,56 @@ export default function Link({
             '--link-visited-text-transform': readCssVar(visitedTextTransformVar) || 'none',
             '--link-visited-font-style': readCssVar(visitedFontStyleVar) || 'normal',
 
+            // CSS custom properties for visited-hover state
+            '--link-visited-hover-color': `var(${visitedHoverTextColorVar})`,
+            '--link-visited-hover-font-weight': `var(${visitedHoverFontWeightVar})`,
+            '--link-visited-hover-text-decoration': readCssVar(visitedHoverTextDecorationVar) || 'underline',
+            '--link-visited-hover-text-transform': readCssVar(visitedHoverTextTransformVar) || 'none',
+            '--link-visited-hover-font-style': readCssVar(visitedHoverFontStyleVar) || 'normal',
+
             // CSS custom properties for icon color
             '--link-icon-color': `var(${defaultIconColorVar})`,
             '--link-hover-icon-color': `var(${hoverIconColorVar})`,
             '--link-visited-icon-color': `var(${visitedIconColorVar})`,
+            '--link-visited-hover-icon-color': `var(${visitedHoverIconColorVar})`,
 
-            // Directly set default styles
-            color: `var(${textVar})`,
-            fontFamily: `var(${fontFamilyVar})`,
-            fontSize: `var(${fontSizeVar})`,
-            fontWeight: `var(${defaultFontWeightVar})`,
-            fontStyle: (readCssVar(defaultFontStyleVar) || 'normal') as any,
-            letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
-            lineHeight: `var(${lineHeightVar})`,
+            // Compute active text color based on forceState
+            ...(() => {
+                const activeTextVar = forceState === 'hover' ? textHoverVar
+                    : forceState === 'visited' ? visitedTextColorVar
+                        : forceState === 'visited-hover' ? visitedHoverTextColorVar
+                            : textVar
+                const activeFontWeightVar = forceState === 'hover' ? hoverFontWeightVar
+                    : forceState === 'visited' ? visitedFontWeightVar
+                        : forceState === 'visited-hover' ? visitedHoverFontWeightVar
+                            : defaultFontWeightVar
+                const activeTextDecoration = forceState === 'hover' ? (readCssVar(hoverTextDecorationVar) || 'underline')
+                    : forceState === 'visited' ? (readCssVar(visitedTextDecorationVar) || 'underline')
+                        : forceState === 'visited-hover' ? (readCssVar(visitedHoverTextDecorationVar) || 'underline')
+                            : (readCssVar(defaultTextDecorationVar) || 'underline')
+                const activeTextTransform = forceState === 'hover' ? (readCssVar(hoverTextTransformVar) || 'none')
+                    : forceState === 'visited' ? (readCssVar(visitedTextTransformVar) || 'none')
+                        : forceState === 'visited-hover' ? (readCssVar(visitedHoverTextTransformVar) || 'none')
+                            : (readCssVar(defaultTextTransformVar) || 'none')
+                const activeFontStyle = forceState === 'hover' ? (readCssVar(hoverFontStyleVar) || 'normal')
+                    : forceState === 'visited' ? (readCssVar(visitedFontStyleVar) || 'normal')
+                        : forceState === 'visited-hover' ? (readCssVar(visitedHoverFontStyleVar) || 'normal')
+                            : (readCssVar(defaultFontStyleVar) || 'normal')
 
-            // Handle text decoration and transform for default state
-            ...(underline === 'always' ? { textDecoration: 'underline' } : {}),
-            ...(underline === 'none' ? { textDecoration: 'none' } : {}),
-            ...((!underline || underline === 'hover') ? {
-                textDecoration: (readCssVar(defaultTextDecorationVar) || 'underline') as any
-            } : {}),
-            textTransform: (readCssVar(defaultTextTransformVar) || 'none') as any,
+                return {
+                    color: `var(${activeTextVar})`,
+                    fontFamily: `var(${fontFamilyVar})`,
+                    fontSize: `var(${fontSizeVar})`,
+                    fontWeight: `var(${activeFontWeightVar})`,
+                    fontStyle: activeFontStyle as any,
+                    letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+                    lineHeight: `var(${lineHeightVar})`,
+                    textDecoration: (underline === 'always' ? 'underline'
+                        : underline === 'none' ? 'none'
+                            : activeTextDecoration) as any,
+                    textTransform: activeTextTransform as any,
+                }
+            })(),
 
             // Apply emphasis opacity based on variant
             opacity: variant === 'subtle' ? `var(${lowEmphasisOpacityVar})` : `var(${highEmphasisOpacityVar})`,
@@ -201,7 +240,10 @@ export default function Link({
 
 
     return (
-        <MantineAnchor {...mantineProps as any}>
+        <MantineAnchor
+            {...mantineProps as any}
+            {...(forceState && forceState !== 'default' ? { 'data-force-state': forceState } : {})}
+        >
             {startIcon && (
                 <span className="recursica-link-icon-start">
                     {startIcon}

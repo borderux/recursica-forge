@@ -37,11 +37,15 @@
     align-items: center;
     justify-content: center;
     color: var(--link-icon-color, currentColor);
+    width: var(--link-icon-size, 1em);
+    height: var(--link-icon-size, 1em);
 }
 
 .recursica-link-icon-start svg,
 .recursica-link-icon-end svg {
     display: block;
+    width: 100%;
+    height: 100%;
 }
 
 .cds--link:hover .recursica-link-icon-start,
@@ -52,4 +56,58 @@
 .cds--link:visited .recursica-link-icon-start,
 .cds--link:visited .recursica-link-icon-end {
     color: var(--link-visited-icon-color, var(--link-icon-color, currentColor));
+}
+
+.cds--link:visited:hover {
+    color: var(--link-visited-hover-color, var(--link-hover-color)) !important;
+    font-weight: var(--link-visited-hover-font-weight, var(--link-hover-font-weight, var(--link-font-weight)));
+    text-decoration: var(--link-visited-hover-text-decoration, var(--link-hover-text-decoration, var(--link-text-decoration, underline))) !important;
+    text-decoration-color: currentColor !important;
+    text-transform: var(--link-visited-hover-text-transform, var(--link-hover-text-transform, var(--link-text-transform, none)));
+    font-style: var(--link-visited-hover-font-style, var(--link-hover-font-style, var(--link-font-style, normal)));
+}
+
+.cds--link:visited:hover .recursica-link-icon-start,
+.cds--link:visited:hover .recursica-link-icon-end {
+    color: var(--link-visited-hover-icon-color, var(--link-hover-icon-color, var(--link-icon-color, currentColor)));
+}
+
+/* Force state overrides for preview - bypasses CSS pseudo-states */
+.cds--link[data-force-state="hover"] {
+    color: var(--link-hover-color) !important;
+    font-weight: var(--link-hover-font-weight, var(--link-font-weight));
+    text-decoration: var(--link-hover-text-decoration, var(--link-text-decoration, underline)) !important;
+    text-transform: var(--link-hover-text-transform, var(--link-text-transform, none));
+    font-style: var(--link-hover-font-style, var(--link-font-style, normal));
+}
+
+.cds--link[data-force-state="hover"] .recursica-link-icon-start,
+.cds--link[data-force-state="hover"] .recursica-link-icon-end {
+    color: var(--link-hover-icon-color, var(--link-icon-color, currentColor));
+}
+
+.cds--link[data-force-state="visited"] {
+    color: var(--link-visited-color, var(--link-color)) !important;
+    font-weight: var(--link-visited-font-weight, var(--link-font-weight));
+    text-decoration: var(--link-visited-text-decoration, var(--link-text-decoration, underline)) !important;
+    text-transform: var(--link-visited-text-transform, var(--link-text-transform, none));
+    font-style: var(--link-visited-font-style, var(--link-font-style, normal));
+}
+
+.cds--link[data-force-state="visited"] .recursica-link-icon-start,
+.cds--link[data-force-state="visited"] .recursica-link-icon-end {
+    color: var(--link-visited-icon-color, var(--link-icon-color, currentColor));
+}
+
+.cds--link[data-force-state="visited-hover"] {
+    color: var(--link-visited-hover-color, var(--link-hover-color)) !important;
+    font-weight: var(--link-visited-hover-font-weight, var(--link-hover-font-weight, var(--link-font-weight)));
+    text-decoration: var(--link-visited-hover-text-decoration, var(--link-hover-text-decoration, var(--link-text-decoration, underline))) !important;
+    text-transform: var(--link-visited-hover-text-transform, var(--link-hover-text-transform, var(--link-text-transform, none)));
+    font-style: var(--link-visited-hover-font-style, var(--link-hover-font-style, var(--link-font-style, normal)));
+}
+
+.cds--link[data-force-state="visited-hover"] .recursica-link-icon-start,
+.cds--link[data-force-state="visited-hover"] .recursica-link-icon-end {
+    color: var(--link-visited-hover-icon-color, var(--link-hover-icon-color, var(--link-icon-color, currentColor)));
 }

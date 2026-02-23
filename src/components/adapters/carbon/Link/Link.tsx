@@ -28,20 +28,19 @@ export default function Link({
     style,
     startIcon,
     endIcon,
+    forceState,
     carbon,
     ...props
 }: AdapterLinkProps) {
     const { mode } = useThemeMode()
 
-    // Determine size prefix for CSS variables
-    const sizePrefix = size === 'small' ? 'small' : 'default'
-
     // Use UIKit.json link colors - state-variant colors
     const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
     const textHoverVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', layer, 'text')
 
-    // Get icon gap CSS variable
-    const iconGapVar = getComponentCssVar('Link', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+    // Get icon gap and icon size CSS variables (at component properties level, not under size variants)
+    const iconGapVar = buildComponentCssVarPath('Link', 'properties', 'icon-text-gap')
+    const iconSizeVar = buildComponentCssVarPath('Link', 'properties', 'icon-size')
 
     // Icon color CSS variables (per-state)
     const defaultIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'icon')
@@ -72,6 +71,14 @@ export default function Link({
     const visitedTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'text-transform')
     const visitedFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'font-style')
     const visitedTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'colors', layer, 'text')
+
+    // State-dependent text properties (visited-hover state)
+    const visitedHoverFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'font-weight')
+    const visitedHoverTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'text-decoration')
+    const visitedHoverTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'text-transform')
+    const visitedHoverFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'font-style')
+    const visitedHoverTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'colors', layer, 'text')
+    const visitedHoverIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'colors', layer, 'icon')
 
     // State to force re-renders when text CSS variables change
     const [, setTextVarsUpdate] = useState(0)
@@ -117,6 +124,7 @@ export default function Link({
         defaultFontWeightVar, defaultTextDecorationVar, defaultTextTransformVar, defaultFontStyleVar,
         hoverFontWeightVar, hoverTextDecorationVar, hoverTextTransformVar, hoverFontStyleVar,
         visitedFontWeightVar, visitedTextDecorationVar, visitedTextTransformVar, visitedFontStyleVar, visitedTextColorVar,
+        visitedHoverFontWeightVar, visitedHoverTextDecorationVar, visitedHoverTextTransformVar, visitedHoverFontStyleVar, visitedHoverTextColorVar, visitedHoverIconColorVar,
         defaultIconColorVar, hoverIconColorVar, visitedIconColorVar,
         textVar, textHoverVar, iconGapVar])
 
@@ -166,6 +174,7 @@ export default function Link({
             '--link-color': `var(${textVar})`,
             '--link-hover-color': `var(${textHoverVar})`,
             '--link-icon-gap': `var(${iconGapVar})`,
+            '--link-icon-size': `var(${iconSizeVar})`,
             '--link-font-family': `var(${fontFamilyVar})`,
             '--link-font-size': `var(${fontSizeVar})`,
             '--link-font-weight': `var(${defaultFontWeightVar})`,
@@ -186,10 +195,18 @@ export default function Link({
             '--link-visited-text-transform': readCssVar(visitedTextTransformVar) || 'none',
             '--link-visited-font-style': readCssVar(visitedFontStyleVar) || 'normal',
 
+            // CSS custom properties for visited-hover state
+            '--link-visited-hover-color': `var(${visitedHoverTextColorVar})`,
+            '--link-visited-hover-font-weight': `var(${visitedHoverFontWeightVar})`,
+            '--link-visited-hover-text-decoration': readCssVar(visitedHoverTextDecorationVar) || 'underline',
+            '--link-visited-hover-text-transform': readCssVar(visitedHoverTextTransformVar) || 'none',
+            '--link-visited-hover-font-style': readCssVar(visitedHoverFontStyleVar) || 'normal',
+
             // CSS custom properties for icon color
             '--link-icon-color': `var(${defaultIconColorVar})`,
             '--link-hover-icon-color': `var(${hoverIconColorVar})`,
             '--link-visited-icon-color': `var(${visitedIconColorVar})`,
+            '--link-visited-hover-icon-color': `var(${visitedHoverIconColorVar})`,
 
             ...style,
         } as React.CSSProperties,
@@ -199,7 +216,10 @@ export default function Link({
 
 
     return (
-        <CarbonLink {...carbonProps}>
+        <CarbonLink
+            {...carbonProps}
+            {...(forceState && forceState !== 'default' ? { 'data-force-state': forceState } : {})}
+        >
             {startIcon && (
                 <span className="recursica-link-icon-start">
                     {startIcon}

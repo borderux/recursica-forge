@@ -4037,7 +4037,9 @@ export default function PropControlContent({
             groupedProp = prop.borderProps!.get('text')
           }
           // Link icon color: discover from state variant path
-          if (!groupedProp && groupedPropKey === 'icon' && prop.name.toLowerCase() === 'color' && componentName.toLowerCase() === 'link') {
+          // CRITICAL: Always re-find - never use cache. The cache key doesn't include state variant,
+          // so switching states would reuse the wrong prop (e.g. default when hover is selected).
+          if (groupedPropKey === 'icon-color' && componentName.toLowerCase() === 'link') {
             const structure = parseComponentStructure(componentName)
             const selectedState = selectedVariants?.states || 'default'
             const iconColorProp = structure.props.find(p =>
@@ -4052,8 +4054,9 @@ export default function PropControlContent({
               prop.borderProps!.set(groupedPropKey, iconColorProp)
             }
           }
-          // Link text color: discover from state variant path when group is 'color'
-          if (!groupedProp && groupedPropKey === 'text' && prop.name.toLowerCase() === 'color' && componentName.toLowerCase() === 'link') {
+          // Link text color: discover from state variant path
+          // CRITICAL: Always re-find - never use cache (same reason as icon color above).
+          if (groupedPropKey === 'text' && componentName.toLowerCase() === 'link') {
             const structure = parseComponentStructure(componentName)
             const selectedState = selectedVariants?.states || 'default'
             const textColorProp = structure.props.find(p =>
