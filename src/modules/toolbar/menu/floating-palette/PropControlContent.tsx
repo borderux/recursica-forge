@@ -3654,6 +3654,7 @@ export default function PropControlContent({
   if (isTextPropertyGroup) {
     return (
       <TextStyleToolbar
+        key={`${componentName}-${prop.name}-${selectedVariants.states || 'default'}`}
         componentName={componentName}
         textElementName={prop.name}
         selectedVariants={selectedVariants}
@@ -4034,6 +4035,38 @@ export default function PropControlContent({
           }
           if (!groupedProp && groupedPropKey === 'text-color') {
             groupedProp = prop.borderProps!.get('text')
+          }
+          // Link icon color: discover from state variant path
+          if (!groupedProp && groupedPropKey === 'icon' && prop.name.toLowerCase() === 'color' && componentName.toLowerCase() === 'link') {
+            const structure = parseComponentStructure(componentName)
+            const selectedState = selectedVariants?.states || 'default'
+            const iconColorProp = structure.props.find(p =>
+              p.name.toLowerCase() === 'icon' &&
+              p.category === 'colors' &&
+              p.path.includes('states') &&
+              p.path.includes(selectedState) &&
+              p.path.includes(selectedLayer)
+            )
+            if (iconColorProp) {
+              groupedProp = iconColorProp
+              prop.borderProps!.set(groupedPropKey, iconColorProp)
+            }
+          }
+          // Link text color: discover from state variant path when group is 'color'
+          if (!groupedProp && groupedPropKey === 'text' && prop.name.toLowerCase() === 'color' && componentName.toLowerCase() === 'link') {
+            const structure = parseComponentStructure(componentName)
+            const selectedState = selectedVariants?.states || 'default'
+            const textColorProp = structure.props.find(p =>
+              p.name.toLowerCase() === 'text' &&
+              p.category === 'colors' &&
+              p.path.includes('states') &&
+              p.path.includes(selectedState) &&
+              p.path.includes(selectedLayer)
+            )
+            if (textColorProp) {
+              groupedProp = textColorProp
+              prop.borderProps!.set(groupedPropKey, textColorProp)
+            }
           }
           if (!groupedProp && (groupedPropKey.includes('-min-height') || groupedPropKey.includes('-height'))) {
             groupedProp = prop.borderProps!.get(groupedPropKey)

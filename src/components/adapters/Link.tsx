@@ -88,22 +88,22 @@ export function Link({
   let renderedStartIcon = startIcon
   let renderedEndIcon = endIcon
 
-  if (effectiveShowIcon === true) {
-    // Determine which icon we are working with
-    // Force use of original props if they exist, otherwise use the toolbar selection
+  // Only apply toolbar-controlled icon logic when no icons were explicitly passed as props
+  const hasExplicitIcons = startIcon !== undefined || endIcon !== undefined
+
+  if (hasExplicitIcons) {
+    // Keep the explicitly passed icons as-is
+  } else if (effectiveShowIcon === true) {
+    // Determine which icon we are working with from toolbar settings
     const toolbarIcon = IconComponent ? <IconComponent /> : null
-    const iconToRender = startIcon || endIcon || toolbarIcon
 
     if (effectiveIconPosition === 'start') {
-      renderedStartIcon = iconToRender
+      renderedStartIcon = toolbarIcon
       renderedEndIcon = undefined
     } else {
-      renderedEndIcon = iconToRender
+      renderedEndIcon = toolbarIcon
       renderedStartIcon = undefined
     }
-  } else if (effectiveShowIcon === false) {
-    renderedStartIcon = undefined
-    renderedEndIcon = undefined
   }
 
   // State to force re-renders when text CSS variables change
@@ -111,25 +111,41 @@ export function Link({
 
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
-    // Get text CSS variables for reactive updates
+    // Shared text CSS variables (component level)
     const fontFamilyVar = getComponentTextCssVar('Link', 'text', 'font-family')
     const fontSizeVar = getComponentTextCssVar('Link', 'text', 'font-size')
-    const fontWeightVar = getComponentTextCssVar('Link', 'text', 'font-weight')
     const letterSpacingVar = getComponentTextCssVar('Link', 'text', 'letter-spacing')
     const lineHeightVar = getComponentTextCssVar('Link', 'text', 'line-height')
-    const textDecorationVar = getComponentTextCssVar('Link', 'text', 'text-decoration')
-    const textTransformVar = getComponentTextCssVar('Link', 'text', 'text-transform')
-    const fontStyleVar = getComponentTextCssVar('Link', 'text', 'font-style')
+
+    // State-variant text CSS variables (per-state)
+    const defaultFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-weight')
+    const defaultTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-decoration')
+    const defaultTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-transform')
+    const defaultFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-style')
+    const hoverFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'font-weight')
+    const hoverTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'text-decoration')
+    const hoverTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'text-transform')
+    const hoverFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'font-style')
+
+    // State-variant text CSS variables (visited state)
+    const visitedFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'font-weight')
+    const visitedTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'text-decoration')
+    const visitedTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'text-transform')
+    const visitedFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'font-style')
+    const visitedTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'colors', layer, 'text')
 
     // Calculate dynamic vars - use 'default' state for base color
     const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
     const textHoverVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', layer, 'text')
+    const iconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'icon')
     const iconGapVar = buildComponentCssVarPath('Link', 'properties', 'icon-text-gap')
 
     const textCssVars = [
-      fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar,
-      lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar,
-      textVar, textHoverVar, iconGapVar, showIconVar, iconPositionVar, iconNameVar
+      fontFamilyVar, fontSizeVar, letterSpacingVar, lineHeightVar,
+      defaultFontWeightVar, defaultTextDecorationVar, defaultTextTransformVar, defaultFontStyleVar,
+      hoverFontWeightVar, hoverTextDecorationVar, hoverTextTransformVar, hoverFontStyleVar,
+      visitedFontWeightVar, visitedTextDecorationVar, visitedTextTransformVar, visitedFontStyleVar, visitedTextColorVar,
+      textVar, textHoverVar, iconColorVar, iconGapVar, showIconVar, iconPositionVar, iconNameVar
     ]
 
     const handleCssVarUpdate = (e: Event) => {
@@ -164,6 +180,7 @@ export function Link({
   if (!Component) {
     // Fallback to native anchor if component not available
     const iconGapVar = buildComponentCssVarPath('Link', 'properties', 'icon-text-gap')
+    const iconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'icon')
 
     return (
       <a
@@ -183,13 +200,13 @@ export function Link({
         }}
       >
         {renderedStartIcon && (
-          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', color: `var(${iconColorVar})` }}>
             {renderedStartIcon}
           </span>
         )}
         {children}
         {renderedEndIcon && (
-          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', color: `var(${iconColorVar})` }}>
             {renderedEndIcon}
           </span>
         )}
@@ -238,21 +255,18 @@ function getLinkStyles(
 
   // Use UIKit.json link colors from state variants
   const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
-  const textHoverVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', layer, 'text')
 
-  // Get all text properties from component text property group
+  // Shared text properties (component level)
   const fontFamilyVar = getComponentTextCssVar('Link', 'text', 'font-family')
   const fontSizeVar = getComponentTextCssVar('Link', 'text', 'font-size')
-  const fontWeightVar = getComponentTextCssVar('Link', 'text', 'font-weight')
   const letterSpacingVar = getComponentTextCssVar('Link', 'text', 'letter-spacing')
   const lineHeightVar = getComponentTextCssVar('Link', 'text', 'line-height')
-  const textDecorationVar = getComponentTextCssVar('Link', 'text', 'text-decoration')
-  const textTransformVar = getComponentTextCssVar('Link', 'text', 'text-transform')
-  const fontStyleVar = getComponentTextCssVar('Link', 'text', 'font-style')
 
-  // Get CSS variables for text emphasis opacity
-  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
-  const lowEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+  // State-dependent text properties (default state)
+  const fontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-weight')
+  const textDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-decoration')
+  const textTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-transform')
+  const fontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-style')
 
   // Apply styles using CSS variable references directly
   styles.color = `var(${textVar})`

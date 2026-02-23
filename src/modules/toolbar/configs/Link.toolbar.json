@@ -1,6 +1,6 @@
 {
     "variants": {
-        "state": {
+        "states": {
             "icon": "cursor-click",
             "label": "State"
         }
@@ -8,12 +8,12 @@
     "props": {
         "text": {
             "icon": "text-aa",
-            "label": "Text Style",
+            "label": "Text style",
             "visible": true
         },
         "text-color": {
             "icon": "palette",
-            "label": "Text Color",
+            "label": "Text color",
             "visible": true,
             "group": {
                 "text": {
@@ -23,55 +23,24 @@
             }
         },
         "icon": {
-            "icon": "arrows-horizontal",
-            "label": "Icon Settings",
+            "icon": "diamond",
+            "label": "Icon",
             "visible": true,
             "group": {
-                "showIcon": {
-                    "label": "Show Icon",
-                    "type": "boolean",
-                    "visible": true,
-                    "default": false
+                "icon-size": {
+                    "icon": "diamond",
+                    "label": "Icon size",
+                    "visible": true
                 },
-                "iconName": {
-                    "label": "Icon",
-                    "type": "icon-selector",
-                    "visible": true,
-                    "default": "arrow-right"
-                },
-                "iconPosition": {
-                    "label": "Position",
-                    "type": "select",
-                    "visible": true,
-                    "options": [
-                        {
-                            "label": "Start",
-                            "value": "start"
-                        },
-                        {
-                            "label": "End",
-                            "value": "end"
-                        }
-                    ],
-                    "default": "end"
-                }
-            }
-        },
-        "spacing": {
-            "icon": "split-horizontal",
-            "label": "Spacing",
-            "visible": true,
-            "group": {
                 "icon-text-gap": {
                     "label": "Gap between icon and text",
                     "visible": true
+                },
+                "icon-color": {
+                    "label": "Icon color",
+                    "visible": true
                 }
             }
-        },
-        "icon-size": {
-            "icon": "diamond",
-            "label": "Icon Size",
-            "visible": true
         }
     }
 }

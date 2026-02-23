@@ -118,13 +118,24 @@ export default function IconGroupToolbar({
     if (!includeColors || colorProps.length === 0) return []
 
     return colorProps.map(colorPropName => {
+      // Try exact match first, then try without '-color' suffix (e.g., 'icon-color' -> 'icon')
+      const namesToTry = [colorPropName.toLowerCase()]
+      if (colorPropName.toLowerCase().endsWith('-color')) {
+        namesToTry.push(colorPropName.toLowerCase().replace(/-color$/, ''))
+      }
+
       return structure.props.find(p => {
-        if (p.name.toLowerCase() !== colorPropName.toLowerCase()) return false
+        if (!namesToTry.includes(p.name.toLowerCase())) return false
         if (p.category !== 'colors') return false
         if (p.isVariantSpecific && p.variantProp) {
           const selectedVariant = selectedVariants[p.variantProp]
           if (!selectedVariant) return false
           if (!p.path.includes(selectedVariant)) return false
+        }
+        // For Link, icon color is under state variants - also accept 'states' in path
+        if (p.path.includes('states')) {
+          const selectedState = selectedVariants?.states || 'default'
+          if (!p.path.includes(selectedState)) return false
         }
         const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
         if (layerInPath && layerInPath !== selectedLayer) return false
@@ -156,7 +167,8 @@ export default function IconGroupToolbar({
   const iconPositionVar = iconPositionConfig ? `--recursica-ui-kit-components-${componentKebab}-properties-icon-position` : ''
 
   const showIconValue = useCssVar(showIconVar, 'false')
-  const isShowIconActive = String(showIconValue) === 'true'
+  // If there's no showIcon config, treat the icon as always active
+  const isShowIconActive = showIconConfig ? String(showIconValue) === 'true' : true
   const iconPositionValue = useCssVar(iconPositionVar, 'end')
 
   // Helper to update CSS var and dispatch event (since UIKit vars are silent by default)

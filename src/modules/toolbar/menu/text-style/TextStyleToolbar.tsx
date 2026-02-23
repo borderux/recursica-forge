@@ -11,7 +11,7 @@ import { updateCssVar } from '../../../../core/css/updateCssVar'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { toSentenceCase } from '../../utils/componentToolbarUtils'
-import { getComponentTextCssVar } from '../../../../components/utils/cssVarNames'
+import { getComponentTextCssVar, buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
 import { Tooltip } from '../../../../components/adapters/Tooltip'
@@ -56,16 +56,32 @@ export default function TextStyleToolbar({
   const hasSizeSpecificText = componentsWithSizeSpecificText.includes(componentName)
   const sizeVariant = hasSizeSpecificText ? (selectedVariants?.size || selectedVariants?.sizeVariant || undefined) : undefined
 
+  // Components that have state-variant text properties (font-weight, text-decoration, text-transform, font-style)
+  // For these components, the 4 state-dependent props are under variants.states.{state}.properties.text.*
+  const componentsWithStateSpecificText = ['Link']
+  const hasStateSpecificText = componentsWithStateSpecificText.includes(componentName)
+  const selectedState = selectedVariants?.states || 'default'
+
   // Get CSS variables for all text properties
   // Use size variant if available (for components like Avatar where text properties are per size variant)
   const fontFamilyVar = getComponentTextCssVar(componentName as any, textElementName, 'font-family', sizeVariant)
   const fontSizeVar = getComponentTextCssVar(componentName as any, textElementName, 'font-size', sizeVariant)
-  const fontWeightVar = getComponentTextCssVar(componentName as any, textElementName, 'font-weight', sizeVariant)
   const letterSpacingVar = getComponentTextCssVar(componentName as any, textElementName, 'letter-spacing', sizeVariant)
   const lineHeightVar = getComponentTextCssVar(componentName as any, textElementName, 'line-height', sizeVariant)
-  const textDecorationVar = getComponentTextCssVar(componentName as any, textElementName, 'text-decoration', sizeVariant)
-  const textTransformVar = getComponentTextCssVar(componentName as any, textElementName, 'text-transform', sizeVariant)
-  const fontStyleVar = getComponentTextCssVar(componentName as any, textElementName, 'font-style', sizeVariant)
+
+  // State-dependent text properties: route through state variant path when applicable
+  const fontWeightVar = hasStateSpecificText
+    ? buildComponentCssVarPath(componentName as any, 'variants', 'states', selectedState, 'properties', textElementName, 'font-weight')
+    : getComponentTextCssVar(componentName as any, textElementName, 'font-weight', sizeVariant)
+  const textDecorationVar = hasStateSpecificText
+    ? buildComponentCssVarPath(componentName as any, 'variants', 'states', selectedState, 'properties', textElementName, 'text-decoration')
+    : getComponentTextCssVar(componentName as any, textElementName, 'text-decoration', sizeVariant)
+  const textTransformVar = hasStateSpecificText
+    ? buildComponentCssVarPath(componentName as any, 'variants', 'states', selectedState, 'properties', textElementName, 'text-transform')
+    : getComponentTextCssVar(componentName as any, textElementName, 'text-transform', sizeVariant)
+  const fontStyleVar = hasStateSpecificText
+    ? buildComponentCssVarPath(componentName as any, 'variants', 'states', selectedState, 'properties', textElementName, 'font-style')
+    : getComponentTextCssVar(componentName as any, textElementName, 'font-style', sizeVariant)
 
 
   // Get available font families (typefaces)

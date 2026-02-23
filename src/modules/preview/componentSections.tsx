@@ -582,19 +582,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const ArrowUpRightIcon = iconNameToReactComponent('arrow-top-right-on-square')
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-              <Link href="#" layer={layer as any}>Default Link</Link>
-              <Link href="#" layer={layer as any} variant="subtle">Subtle Link</Link>
-            </div>
-            <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-              <Link href="#" layer={layer as any} endIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>External Link</Link>
-              <Link href="#" layer={layer as any} size="small">Small Link</Link>
-            </div>
-            <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-              <Link href="#" layer={layer as any} underline="always">Always Underlined</Link>
-              <Link href="#" layer={layer as any} underline="none">No Underline</Link>
-            </div>
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+            <Link href="#" layer={layer as any}>Link</Link>
+            <Link href="#" layer={layer as any} startIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Link</Link>
+            <Link href="#" layer={layer as any} endIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Link</Link>
           </div>
         )
       },

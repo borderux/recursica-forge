@@ -2,8 +2,31 @@
 
 /* Use high specificity to ensure our styles apply */
 .MuiLink-root {
-    /* Ensure CSS variables take precedence if set */
-    /* Note: We rely on sx prop in component mostly, this is backup */
+    color: var(--link-color) !important;
+    font-family: var(--link-font-family);
+    font-size: var(--link-font-size);
+    font-weight: var(--link-font-weight);
+    letter-spacing: var(--link-letter-spacing);
+    line-height: var(--link-line-height);
+    text-decoration: var(--link-text-decoration, underline) !important;
+    text-transform: var(--link-text-transform, none);
+    font-style: var(--link-font-style, normal);
+}
+
+.MuiLink-root:visited {
+    color: var(--link-visited-color, var(--link-color)) !important;
+    font-weight: var(--link-visited-font-weight, var(--link-font-weight));
+    text-decoration: var(--link-visited-text-decoration, var(--link-text-decoration, underline)) !important;
+    text-transform: var(--link-visited-text-transform, var(--link-text-transform, none));
+    font-style: var(--link-visited-font-style, var(--link-font-style, normal));
+}
+
+.MuiLink-root:hover {
+    color: var(--link-hover-color) !important;
+    font-weight: var(--link-hover-font-weight, var(--link-font-weight));
+    text-decoration: var(--link-hover-text-decoration, var(--link-text-decoration, underline)) !important;
+    text-transform: var(--link-hover-text-transform, var(--link-text-transform, none));
+    font-style: var(--link-hover-font-style, var(--link-font-style, normal));
 }
 
 /* Icons */
@@ -12,9 +35,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    color: var(--link-icon-color, currentColor);
 }
 
 .recursica-link-icon-start svg,
 .recursica-link-icon-end svg {
     display: block;
+}
+
+.MuiLink-root:hover .recursica-link-icon-start,
+.MuiLink-root:hover .recursica-link-icon-end {
+    color: var(--link-hover-icon-color, var(--link-icon-color, currentColor));
+}
+
+.MuiLink-root:visited .recursica-link-icon-start,
+.MuiLink-root:visited .recursica-link-icon-end {
+    color: var(--link-visited-icon-color, var(--link-icon-color, currentColor));
 }

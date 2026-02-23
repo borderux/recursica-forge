@@ -4521,10 +4521,18 @@
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
                     }
                   },
                   "layer-1": {
                     "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "icon": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     }
@@ -4533,13 +4541,39 @@
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
                     }
                   },
                   "layer-3": {
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
                     }
+                  }
+                },
+                "text": {
+                  "font-weight": {
+                    "$type": "number",
+                    "$value": "{tokens.font.weights.regular}"
+                  },
+                  "text-decoration": {
+                    "$type": "string",
+                    "$value": "underline"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "none"
+                  },
+                  "font-style": {
+                    "$type": "string",
+                    "$value": "normal"
                   }
                 }
               }
@@ -4551,10 +4585,18 @@
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
                     }
                   },
                   "layer-1": {
                     "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                    },
+                    "icon": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
                     }
@@ -4563,13 +4605,103 @@
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
                     }
                   },
                   "layer-3": {
                     "text": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
                     }
+                  }
+                },
+                "text": {
+                  "font-weight": {
+                    "$type": "number",
+                    "$value": "{tokens.font.weights.regular}"
+                  },
+                  "text-decoration": {
+                    "$type": "string",
+                    "$value": "underline"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "none"
+                  },
+                  "font-style": {
+                    "$type": "string",
+                    "$value": "normal"
+                  }
+                }
+              }
+            },
+            "visited": {
+              "properties": {
+                "colors": {
+                  "layer-0": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    }
+                  },
+                  "layer-1": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    }
+                  },
+                  "layer-2": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    }
+                  },
+                  "layer-3": {
+                    "text": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    }
+                  }
+                },
+                "text": {
+                  "font-weight": {
+                    "$type": "number",
+                    "$value": "{tokens.font.weights.regular}"
+                  },
+                  "text-decoration": {
+                    "$type": "string",
+                    "$value": "underline"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "none"
+                  },
+                  "font-style": {
+                    "$type": "string",
+                    "$value": "normal"
                   }
                 }
               }
@@ -4589,10 +4721,6 @@
                 "unit": "px"
               }
             },
-            "font-weight": {
-              "$type": "number",
-              "$value": "{tokens.font.weights.regular}"
-            },
             "letter-spacing": {
               "$type": "string",
               "$value": "{tokens.font.letter-spacings.default}"
@@ -4600,18 +4728,6 @@
             "line-height": {
               "$type": "number",
               "$value": "{tokens.font.line-heights.default}"
-            },
-            "text-decoration": {
-              "$type": "string",
-              "$value": "underline"
-            },
-            "text-transform": {
-              "$type": "string",
-              "$value": "none"
-            },
-            "font-style": {
-              "$type": "string",
-              "$value": "normal"
             }
           },
           "icon-text-gap": {

@@ -8,15 +8,26 @@
     font-weight: var(--link-font-weight);
     letter-spacing: var(--link-letter-spacing);
     line-height: var(--link-line-height);
+    text-decoration: var(--link-text-decoration, underline) !important;
+    text-transform: var(--link-text-transform, none);
+    font-style: var(--link-font-style, normal);
 }
 
 .cds--link:visited {
-    color: var(--link-color) !important;
+    color: var(--link-visited-color, var(--link-color)) !important;
+    font-weight: var(--link-visited-font-weight, var(--link-font-weight));
+    text-decoration: var(--link-visited-text-decoration, var(--link-text-decoration, underline)) !important;
+    text-transform: var(--link-visited-text-transform, var(--link-text-transform, none));
+    font-style: var(--link-visited-font-style, var(--link-font-style, normal));
 }
 
 .cds--link:hover {
-    color: var(--link-color) !important;
+    color: var(--link-hover-color) !important;
+    font-weight: var(--link-hover-font-weight, var(--link-font-weight));
+    text-decoration: var(--link-hover-text-decoration, var(--link-text-decoration, underline)) !important;
     text-decoration-color: currentColor !important;
+    text-transform: var(--link-hover-text-transform, var(--link-text-transform, none));
+    font-style: var(--link-hover-font-style, var(--link-font-style, normal));
 }
 
 /* Icons */
@@ -25,9 +36,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    color: var(--link-icon-color, currentColor);
 }
 
 .recursica-link-icon-start svg,
 .recursica-link-icon-end svg {
     display: block;
+}
+
+.cds--link:hover .recursica-link-icon-start,
+.cds--link:hover .recursica-link-icon-end {
+    color: var(--link-hover-icon-color, var(--link-icon-color, currentColor));
+}
+
+.cds--link:visited .recursica-link-icon-start,
+.cds--link:visited .recursica-link-icon-end {
+    color: var(--link-visited-icon-color, var(--link-icon-color, currentColor));
 }
