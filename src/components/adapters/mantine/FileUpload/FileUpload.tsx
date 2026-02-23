@@ -141,9 +141,9 @@ export default function FileUpload({
                 fontWeight: `var(${fontWeightVar})`,
                 letterSpacing: `var(${letterSpacingVar})`,
                 lineHeight: `var(${lineHeightVar})`,
-                textDecoration: `var(${textDecorationVar}, none)`,
-                textTransform: `var(${textTransformVar}, none)` as any,
-                fontStyle: `var(${fontStyleVar}, normal)`,
+                textDecoration: `var(${textDecorationVar})`,
+                textTransform: `var(${textTransformVar})` as any,
+                fontStyle: `var(${fontStyleVar})`,
                 opacity: state === 'disabled' ? `var(${getBrandStateCssVar(mode, 'disabled')})` : 0.8,
                 textAlign: 'center'
             } as React.CSSProperties}>

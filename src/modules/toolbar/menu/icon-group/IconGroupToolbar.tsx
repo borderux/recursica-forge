@@ -273,28 +273,31 @@ export default function IconGroupToolbar({
         </div>
       )}
       {isShowIconActive && iconGapVar && iconGapVisible && (
-        <div className="icon-group-control">
-          <BrandDimensionSliderInline
-            targetCssVar={iconGapVar}
-            label="Icon-text gap"
-            dimensionCategory="general"
-            layer="layer-1"
+      <div className="icon-group-control">
+        <BrandDimensionSliderInline
+          targetCssVar={iconGapVar}
+          label="Icon-text gap"
+          dimensionCategory="general"
+          layer="layer-1"
+        />
+      </div>
+    )
+  }
+  {
+    includeColors && iconColorProps.map((colorProp, index) => {
+      const colorPropName = colorProp.name.toLowerCase()
+      const colorVisible = groupedPropsConfig?.[colorPropName]?.visible !== false
+      return colorVisible ? (
+        <div key={index} className="icon-group-control">
+          <PaletteColorControl
+            targetCssVar={colorProp.cssVar}
+            currentValueCssVar={colorProp.cssVar}
+            label={groupedPropsConfig?.[colorPropName]?.label || colorProp.name.replace(/-/g, ' ').replace(/^\w/, l => l.toUpperCase())}
           />
         </div>
-      )}
-      {includeColors && iconColorProps.map((colorProp, index) => {
-        const colorPropName = colorProp.name.toLowerCase()
-        const colorVisible = groupedPropsConfig?.[colorPropName]?.visible !== false
-        return colorVisible ? (
-          <div key={index} className="icon-group-control">
-            <PaletteColorControl
-              targetCssVar={colorProp.cssVar}
-              currentValueCssVar={colorProp.cssVar}
-              label={groupedPropsConfig?.[colorPropName]?.label || colorProp.name.replace(/-/g, ' ').replace(/^\w/, l => l.toUpperCase())}
-            />
-          </div>
-        ) : null
-      })}
-    </div>
+      ) : null
+    })
+  }
+    </div >
   )
 }
