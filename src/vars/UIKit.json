@@ -4567,10 +4567,6 @@
                     "$type": "string",
                     "$value": "none"
                   },
-                  "text-transform": {
-                    "$type": "string",
-                    "$value": "none"
-                  },
                   "font-style": {
                     "$type": "string",
                     "$value": "normal"
@@ -4631,10 +4627,6 @@
                     "$type": "string",
                     "$value": "underline"
                   },
-                  "text-transform": {
-                    "$type": "string",
-                    "$value": "none"
-                  },
                   "font-style": {
                     "$type": "string",
                     "$value": "normal"
@@ -4692,10 +4684,6 @@
                     "$value": "{tokens.font.weights.regular}"
                   },
                   "text-decoration": {
-                    "$type": "string",
-                    "$value": "none"
-                  },
-                  "text-transform": {
                     "$type": "string",
                     "$value": "none"
                   },
@@ -4759,10 +4747,6 @@
                     "$type": "string",
                     "$value": "underline"
                   },
-                  "text-transform": {
-                    "$type": "string",
-                    "$value": "none"
-                  },
                   "font-style": {
                     "$type": "string",
                     "$value": "normal"
@@ -4804,7 +4788,7 @@
           "icon-size": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.icons.md}",
+              "value": "{brand.dimensions.icons.sm}",
               "unit": "px"
             }
           }

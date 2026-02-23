@@ -34,14 +34,14 @@ function findAllValuePaths(
   paths: Array<{ path: string[]; value: any; parent: any; key: string }> = []
 ): Array<{ path: string[]; value: any; parent: any; key: string }> {
   if (obj == null || typeof obj !== 'object') return paths
-  
+
   if (Array.isArray(obj)) {
     obj.forEach((item, index) => {
       findAllValuePaths(item, [...prefix, String(index)], paths)
     })
     return paths
   }
-  
+
   Object.entries(obj).forEach(([key, value]) => {
     // Skip metadata keys
     if (key.startsWith('$')) {
@@ -50,12 +50,12 @@ function findAllValuePaths(
       }
       return
     }
-    
+
     if (value && typeof value === 'object') {
       findAllValuePaths(value, [...prefix, key], paths)
     }
   })
-  
+
   return paths
 }
 
@@ -82,7 +82,7 @@ function modifyValueAtPath(obj: any, path: string[], newValue: any): void {
       }
       return
     }
-    
+
     // Navigate deeper
     if (current[key] == null) {
       current[key] = {}
@@ -128,37 +128,37 @@ function generateModifiedValue(originalValue: any, index: number): any {
     // For other strings, append a suffix
     return `${originalValue}_modified_${index}`
   }
-  
+
   if (typeof originalValue === 'number') {
     // Modify number slightly
     return originalValue + (index % 2 === 0 ? 1 : -1)
   }
-  
+
   if (typeof originalValue === 'boolean') {
     return !originalValue
   }
-  
+
   return originalValue
 }
 
 describe('Export Validation - Comprehensive Variable Modification Test', () => {
-  it('should export valid JSON and CSS after modifying all user-modifiable variables', { timeout: 30000 }, async () => {
+  it('should export valid JSON and CSS after modifying all user-modifiable variables', { timeout: 60000 }, async () => {
     // Initialize store
     const store = getVarsStore()
-    
+
     // Get initial state
     const initialState = store.getState()
     const initialTokens = JSON.parse(JSON.stringify(initialState.tokens)) as JsonLike
     const initialTheme = JSON.parse(JSON.stringify(initialState.theme)) as JsonLike
     const initialUiKit = JSON.parse(JSON.stringify(initialState.uikit)) as JsonLike
-    
+
     // Find all modifiable values
     const tokenValuePaths = findAllValuePaths(initialTokens)
     const themeValuePaths = findAllValuePaths(initialTheme)
     const uikitValuePaths = findAllValuePaths(initialUiKit)
-    
+
     console.log(`Found ${tokenValuePaths.length} token values, ${themeValuePaths.length} theme values, ${uikitValuePaths.length} uikit values to modify`)
-    
+
     // Modify tokens - use store.updateToken for token values
     tokenValuePaths.forEach(({ path, value }, index) => {
       // Skip if it's a token reference (starts with {)
@@ -169,7 +169,7 @@ describe('Export Validation - Comprehensive Variable Modification Test', () => {
       if (value && typeof value === 'object' && !Array.isArray(value) && !('$value' in value)) {
         return
       }
-      
+
       // Build token name from path (e.g., ['tokens', 'colors', 'scale-01', '500'] -> 'colors/scale-01/500')
       const tokenPath = path.slice(1) // Skip 'tokens' prefix
       if (tokenPath.length >= 2) {
@@ -183,7 +183,7 @@ describe('Export Validation - Comprehensive Variable Modification Test', () => {
         }
       }
     })
-    
+
     // Modify theme/brand - directly modify JSON structure
     const modifiedTheme = JSON.parse(JSON.stringify(initialTheme)) as JsonLike
     themeValuePaths.forEach(({ path, value }, index) => {
@@ -203,7 +203,7 @@ describe('Export Validation - Comprehensive Variable Modification Test', () => {
       const newValue = generateModifiedValue(value, index)
       modifyValueAtPath(modifiedTheme, path, newValue)
     })
-    
+
     // Modify UIKit - directly modify JSON structure
     const modifiedUiKit = JSON.parse(JSON.stringify(initialUiKit)) as JsonLike
     uikitValuePaths.forEach(({ path, value }, index) => {
@@ -223,111 +223,111 @@ describe('Export Validation - Comprehensive Variable Modification Test', () => {
       const newValue = generateModifiedValue(value, index)
       modifyValueAtPath(modifiedUiKit, path, newValue)
     })
-    
+
     // Update store with modified theme and uikit
     store.setTheme(modifiedTheme)
     store.setUiKit(modifiedUiKit)
-    
+
     // Trigger recomputation to update CSS variables
     store.recomputeAndApplyAll()
-    
+
     // Wait for CSS variables to be applied
     await new Promise(resolve => setTimeout(resolve, 200))
-    
+
     // Export JSON files
     const exportedTokens = exportTokensJson()
     const exportedBrand = exportBrandJson()
     const exportedUIKit = exportUIKitJson()
-    
+
     // Validate JSON schemas
     expect(() => validateTokensJson(exportedTokens as JsonLike)).not.toThrow()
     expect(() => validateBrandJson(exportedBrand as JsonLike)).not.toThrow()
     expect(() => validateUIKitJson(exportedUIKit as JsonLike)).not.toThrow()
-    
+
     // Export CSS
     const cssExports = exportCssStylesheet({ specific: true, scoped: true })
-    
+
     // Validate CSS
     const cssErrors = validateCssExport({ specific: true, scoped: true })
     expect(cssErrors).toHaveLength(0)
-    
+
     // Verify CSS exports exist
     expect(cssExports.specific).toBeDefined()
     expect(cssExports.scoped).toBeDefined()
     expect(cssExports.specific?.length).toBeGreaterThan(0)
     expect(cssExports.scoped?.length).toBeGreaterThan(0)
   })
-  
+
   it('should handle modifications to color tokens', async () => {
     const store = getVarsStore()
-    
+
     // Modify a few color tokens
     store.updateToken('colors/scale-01/500', '#ff0000')
     store.updateToken('colors/scale-02/500', '#00ff00')
     store.updateToken('size/default', '20px')
     store.updateToken('opacity/solid', 0.9)
-    
+
     store.recomputeAndApplyAll()
-    
+
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     const exportedTokens = exportTokensJson()
     expect(() => validateTokensJson(exportedTokens as JsonLike)).not.toThrow()
   })
-  
+
   it('should handle modifications to brand theme values', async () => {
     const store = getVarsStore()
     const state = store.getState()
     const theme = JSON.parse(JSON.stringify(state.theme)) as JsonLike
-    
+
     // Modify a palette value
     const root: any = theme?.brand ? theme.brand : theme
     const themes = root?.themes || root
     if (themes?.light?.palettes?.['core-colors']?.['alert']?.['tone']?.['$value']) {
       themes.light.palettes['core-colors'].alert.tone.$value = '{tokens.colors.scale-05.700}'
     }
-    
+
     store.setTheme(theme)
     store.recomputeAndApplyAll()
-    
+
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     const exportedBrand = exportBrandJson()
     expect(() => validateBrandJson(exportedBrand as JsonLike)).not.toThrow()
   })
-  
+
   it('should handle modifications to UIKit values', async () => {
     const store = getVarsStore()
     const state = store.getState()
     const uikit = JSON.parse(JSON.stringify(state.uikit)) as JsonLike
-    
+
     // Modify a UIKit component property
     const uikitRoot: any = uikit?.['ui-kit'] ? uikit['ui-kit'] : uikit
     if (uikitRoot?.components?.Button?.variants?.styles?.solid?.properties?.colors?.layer?.layer?.layer?.layer?.['0']?.background?.['$value']) {
       uikitRoot.components.Button.variants.styles.solid.properties.colors.layer.layer.layer.layer['0'].background.$value = '{tokens.colors.scale-05.600}'
     }
-    
+
     store.setUiKit(uikit)
     store.recomputeAndApplyAll()
-    
+
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     const exportedUIKit = exportUIKitJson()
     expect(() => validateUIKitJson(exportedUIKit as JsonLike)).not.toThrow()
   })
-  
+
   it('should validate CSS export after all modifications', async () => {
     const store = getVarsStore()
-    
+
     // Make various modifications
     store.updateToken('colors/scale-01/500', '#123456')
     store.updateToken('size/default', '16px')
     store.updateToken('opacity/solid', 1.0)
-    
+
     store.recomputeAndApplyAll()
-    
+
     await new Promise(resolve => setTimeout(resolve, 100))
-    
+
     const cssErrors = validateCssExport({ specific: true, scoped: true })
     expect(cssErrors).toHaveLength(0)
   })

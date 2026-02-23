@@ -283,15 +283,10 @@ function getLinkStyles(
 
   // Apply styles using CSS variable references directly
   styles.color = `var(${textVar})`
-  styles.fontFamily = `var(${fontFamilyVar})`
-  styles.fontSize = `var(${fontSizeVar})`
   styles.fontWeight = `var(${fontWeightVar})`
   styles.fontStyle = fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal'
-  styles.letterSpacing = letterSpacingVar ? `var(${letterSpacingVar})` : undefined
-  styles.lineHeight = `var(${lineHeightVar})`
 
   const textDecorationValue = textDecorationVar ? (readCssVar(textDecorationVar) || 'underline') : 'underline'
-  const textTransformValue = textTransformVar ? readCssVar(textTransformVar) : 'none'
 
   if (underline === 'always') {
     styles.textDecoration = 'underline'
@@ -301,8 +296,6 @@ function getLinkStyles(
     // If underline prop is hover or undefined, respect the CSS variable
     styles.textDecoration = (textDecorationValue || 'underline') as any
   }
-
-  styles.textTransform = (textTransformValue || 'none') as any
 
   // Don't apply emphasis opacity - colors are already defined in variants
 

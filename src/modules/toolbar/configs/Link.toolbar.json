@@ -9,7 +9,12 @@
         "text": {
             "icon": "text-aa",
             "label": "Text style",
-            "visible": true
+            "visible": true,
+            "allowedProps": [
+                "font-weight",
+                "font-style",
+                "text-decoration"
+            ]
         },
         "text-color": {
             "icon": "palette",

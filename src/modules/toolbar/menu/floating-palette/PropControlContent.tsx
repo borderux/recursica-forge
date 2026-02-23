@@ -3652,6 +3652,7 @@ export default function PropControlContent({
 
   // If this is a text property group, render TextStyleToolbar
   if (isTextPropertyGroup) {
+    const textPropConfig = getPropConfig(componentName, prop.name)
     return (
       <TextStyleToolbar
         key={`${componentName}-${prop.name}-${selectedVariants.states || 'default'}`}
@@ -3659,6 +3660,7 @@ export default function PropControlContent({
         textElementName={prop.name}
         selectedVariants={selectedVariants}
         selectedLayer={selectedLayer}
+        allowedProps={textPropConfig?.allowedProps}
       />
     )
   }

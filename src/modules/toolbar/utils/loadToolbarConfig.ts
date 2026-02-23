@@ -40,6 +40,7 @@ export interface ToolbarPropConfig {
   propertyType?: 'slider' | 'select' | 'color' | 'text' // Custom property type override
   range?: [number, number] // For slider
   step?: number // For slider
+  allowedProps?: string[] // For restricting which properties are visible in a group like text-style
 }
 
 export interface ToolbarVariantConfig {

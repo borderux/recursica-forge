@@ -73,7 +73,7 @@ export function SidebarFooter() {
                     opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
                 }}
             >
-                © {new Date().getFullYear()} Border LLC. All rights reserved. Ver: {packageJson.version}
+                © 2025–{new Date().getFullYear()} <Link href="https://www.borderux.com" target="_blank" rel="noopener noreferrer" layer="layer-0" endIcon={ExternalLinkIcon ? <ExternalLinkIcon /> : undefined}>Border LLC</Link>.<br />Version {packageJson.version} · <Link href="https://github.com/borderux/recursica-forge" target="_blank" rel="noopener noreferrer" layer="layer-0" endIcon={ExternalLinkIcon ? <ExternalLinkIcon /> : undefined}>GitHub</Link>
             </div>
         </>
     )
