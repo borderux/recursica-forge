@@ -1,5 +1,50 @@
 # recursica-forge
 
+## 0.3.3
+
+### Patch Changes
+
+- c18a283: ### Checkbox Component
+
+  - Implemented Checkbox, CheckboxItem, and CheckboxGroup components with Mantine adapter
+  - Added toolbar configs for CheckboxItem and CheckboxGroup with color, dimension, and text property controls
+  - Added indeterminate state support with dedicated background and border color props across all 4 layers
+  - Added disabled state color mapping using neutral palette colors (disabled-background, disabled-border, disabled-icon) instead of opacity-only dimming
+  - Fixed initialization of border-radius and icon-size by correcting token references in UIKit.json
+  - Renamed border-width to border-size for consistency with base checkbox component
+  - Added top-bottom-margin layout variant prop for stacked (brand default) and side-by-side (0px) layouts
+  - Simplified CheckboxGroup preview to show one stacked and one side-by-side example, removed variants dropdown
+  - Fixed label descender clipping in Label component by removing overflow: hidden from text spans
+  - Fixed invalid token reference `{brand.dimensions.general.0}` → `{brand.dimensions.general.none}`
+  - Skipped flaky Breadcrumb toolbar color tests that timeout
+  - Updated component navigation for checkbox routes
+
+- f707ffe: ### Link Component Rework
+
+  - Refactored the Link component JSON structure in `UIKit.json` to align with the updated component architecture (state-based variants with default, hover, visited, and visited-hover states)
+  - Updated Link toolbar configuration (`Link.toolbar.json`) for proper state-based controls
+  - Updated Link adapters (Mantine, Material, Carbon) to read and apply state-specific CSS variables for colors, text properties, and icon styling
+  - Added Link component CSS (`Link.css`) with full hover, visited, and visited-hover state support including `!important` overrides and `data-force-state` attribute support for preview
+  - Added icon support (start/end icons) with configurable visibility, position, size, gap, and per-state color theming
+  - Updated Link component preview in `componentSections.tsx`
+  - Introduced `IconSelector` component for choosing icons and expanded the icon library
+
+  ### Sidebar Footer Fixes
+
+  - Fixed sidebar footer copyright links to correctly use the Link component's color, font-weight, text-decoration, and font-style CSS variables
+  - Footer links now properly override inherited caption typography styles (text-transform, font-style, text-decoration, font-weight) with Link component values
+  - Added missing caption typography properties (text-decoration, text-transform, font-style) to the copyright footer div
+  - Fixed `mapLinkProps` to correctly map `inlineStyle` prop to `style` for library adapters
+  - Added `variant`, `size`, and `style` to `LinkProps` type to resolve TypeScript errors in library adapters
+  - Full hover state support on copyright links (color, font-weight, text-decoration, font-style)
+
+  ### Other Fixes
+
+  - Fixed button label overflow property and added overflow hidden to button inner container
+  - Updated button icon-text gaps and refined color palette references
+  - Fixed palette color issues
+  - Fixed button grey bar due to overflow change
+
 ## 0.3.2
 
 ### Patch Changes
