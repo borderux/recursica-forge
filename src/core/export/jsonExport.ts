@@ -852,6 +852,68 @@ function normalizeUIKitBrandReferences(obj: any): any {
   return obj
 }
 
+/** Default palette step per theme when emitting default (light: 200/400/400, dark: 800/600/600). */
+const DEFAULT_PALETTE_STEP: Record<string, Record<string, string>> = {
+  light: { neutral: '200', 'palette-1': '400', 'palette-2': '400' },
+  dark: { neutral: '800', 'palette-1': '600', 'palette-2': '600' },
+}
+
+/**
+ * Ensures each theme's neutral, palette-1, palette-2 has a default key with color.tone and color.on-tone
+ * so theme-agnostic refs like {brand.palettes.palette-1.default.color.on-tone} resolve in export.
+ */
+function ensurePaletteDefaults(result: any): void {
+  const themes = result?.themes
+  if (!themes) return
+
+  for (const mode of ['light', 'dark'] as const) {
+    const palettes = themes[mode]?.palettes
+    if (!palettes) continue
+
+    const steps = DEFAULT_PALETTE_STEP[mode]
+    if (!steps) continue
+
+    for (const paletteKey of ['neutral', 'palette-1', 'palette-2'] as const) {
+      const palette = palettes[paletteKey]
+      if (!palette || typeof palette !== 'object') continue
+
+      const step = steps[paletteKey]
+      const toneRef = `{brand.themes.${mode}.palettes.${paletteKey}.${step}.color.tone}`
+      const onToneRef = `{brand.themes.${mode}.palettes.${paletteKey}.${step}.color.on-tone}`
+
+      if (!palette.default) {
+        palette.default = {
+          color: {
+            tone: { $type: 'color', $value: toneRef },
+            'on-tone': { $type: 'color', $value: onToneRef },
+          },
+        }
+        continue
+      }
+
+      const color = palette.default?.color
+      if (!color || typeof color !== 'object') {
+        palette.default = { color: { tone: { $type: 'color', $value: toneRef }, 'on-tone': { $type: 'color', $value: onToneRef } } }
+        continue
+      }
+
+      if (!color.tone || typeof color.tone !== 'object') {
+        color.tone = { $type: 'color', $value: toneRef }
+      }
+      const toneValue = color.tone.$value
+      const stepMatch = typeof toneValue === 'string' ? toneValue.match(/\.(?:neutral|palette-\d+)\.(\d{3,4})\.color\.tone/) : null
+      const resolvedStep = stepMatch ? stepMatch[1] : step
+
+      if (!color['on-tone'] || typeof color['on-tone'] !== 'object') {
+        const baseRef = typeof toneValue === 'string' && toneValue.startsWith('{')
+          ? toneValue.replace(/\.color\.tone\s*\}$/, '.color.on-tone}')
+          : `{brand.themes.${mode}.palettes.${paletteKey}.${resolvedStep}.color.on-tone}`
+        color['on-tone'] = { $type: 'color', $value: baseRef }
+      }
+    }
+  }
+}
+
 /**
  * Exports brand.json from CSS variables
  * Reads CSS variables and converts them back to JSON structure
@@ -974,6 +1036,10 @@ export function exportBrandJson(): object {
       }
     }
   })
+
+  // Ensure each palette (neutral, palette-1, palette-2) has default with both tone and on-tone
+  // so theme-agnostic refs like {brand.palettes.palette-1.default.color.on-tone} resolve in export
+  ensurePaletteDefaults(result)
 
   // Normalize all references to use short alias format (no theme paths)
   // This also fixes any malformed references that may have been created
