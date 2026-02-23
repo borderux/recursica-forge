@@ -11,7 +11,7 @@ import { updateCssVar } from '../../../../core/css/updateCssVar'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { toSentenceCase } from '../../utils/componentToolbarUtils'
-import { getComponentTextCssVar } from '../../../../components/utils/cssVarNames'
+import { getComponentTextCssVar, buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
 import { Tooltip } from '../../../../components/adapters/Tooltip'
@@ -28,6 +28,7 @@ interface TextStyleToolbarProps {
   selectedVariants: Record<string, string>
   selectedLayer: string
   onClose?: () => void
+  allowedProps?: string[]
 }
 
 export default function TextStyleToolbar({
@@ -36,6 +37,7 @@ export default function TextStyleToolbar({
   selectedVariants,
   selectedLayer,
   onClose,
+  allowedProps,
 }: TextStyleToolbarProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
@@ -46,8 +48,13 @@ export default function TextStyleToolbar({
 
   // Reset showAllProperties when component mounts (accordion opens)
   useEffect(() => {
-    setShowAllProperties(false)
-  }, []) // Empty dependency array - only run on mount
+    // Auto-expand if we have specific allowed properties, otherwise start compact
+    setShowAllProperties(!!allowedProps)
+  }, [allowedProps])
+
+  const isAllowed = useCallback((propName: string) => {
+    return !allowedProps || allowedProps.includes(propName)
+  }, [allowedProps])
 
   // Get size variant for variant-specific text properties (e.g., Avatar)
   // Only use size variants for components that actually have size-specific text properties
@@ -56,16 +63,32 @@ export default function TextStyleToolbar({
   const hasSizeSpecificText = componentsWithSizeSpecificText.includes(componentName)
   const sizeVariant = hasSizeSpecificText ? (selectedVariants?.size || selectedVariants?.sizeVariant || undefined) : undefined
 
+  // Components that have state-variant text properties (font-weight, text-decoration, text-transform, font-style)
+  // For these components, the 4 state-dependent props are under variants.states.{state}.properties.text.*
+  const componentsWithStateSpecificText = ['Link']
+  const hasStateSpecificText = componentsWithStateSpecificText.includes(componentName)
+  const selectedState = selectedVariants?.states || 'default'
+
   // Get CSS variables for all text properties
   // Use size variant if available (for components like Avatar where text properties are per size variant)
   const fontFamilyVar = getComponentTextCssVar(componentName as any, textElementName, 'font-family', sizeVariant)
   const fontSizeVar = getComponentTextCssVar(componentName as any, textElementName, 'font-size', sizeVariant)
-  const fontWeightVar = getComponentTextCssVar(componentName as any, textElementName, 'font-weight', sizeVariant)
   const letterSpacingVar = getComponentTextCssVar(componentName as any, textElementName, 'letter-spacing', sizeVariant)
   const lineHeightVar = getComponentTextCssVar(componentName as any, textElementName, 'line-height', sizeVariant)
-  const textDecorationVar = getComponentTextCssVar(componentName as any, textElementName, 'text-decoration', sizeVariant)
-  const textTransformVar = getComponentTextCssVar(componentName as any, textElementName, 'text-transform', sizeVariant)
-  const fontStyleVar = getComponentTextCssVar(componentName as any, textElementName, 'font-style', sizeVariant)
+
+  // State-dependent text properties: route through state variant path when applicable
+  const fontWeightVar = hasStateSpecificText
+    ? buildComponentCssVarPath(componentName as any, 'variants', 'states', selectedState, 'properties', textElementName, 'font-weight')
+    : getComponentTextCssVar(componentName as any, textElementName, 'font-weight', sizeVariant)
+  const textDecorationVar = hasStateSpecificText
+    ? buildComponentCssVarPath(componentName as any, 'variants', 'states', selectedState, 'properties', textElementName, 'text-decoration')
+    : getComponentTextCssVar(componentName as any, textElementName, 'text-decoration', sizeVariant)
+  const textTransformVar = hasStateSpecificText
+    ? buildComponentCssVarPath(componentName as any, 'variants', 'states', selectedState, 'properties', textElementName, 'text-transform')
+    : getComponentTextCssVar(componentName as any, textElementName, 'text-transform', sizeVariant)
+  const fontStyleVar = hasStateSpecificText
+    ? buildComponentCssVarPath(componentName as any, 'variants', 'states', selectedState, 'properties', textElementName, 'font-style')
+    : getComponentTextCssVar(componentName as any, textElementName, 'font-style', sizeVariant)
 
 
   // Get available font families (typefaces)
@@ -1211,7 +1234,7 @@ export default function TextStyleToolbar({
   return (
     <div className="text-style-toolbar">
       {/* Font Family - Always visible */}
-      {fontFamilies.length > 0 && (
+      {fontFamilies.length > 0 && isAllowed('font-family') && (
         <div className="text-style-control">
           <Dropdown
             items={fontFamilies.map(family => ({
@@ -1233,7 +1256,7 @@ export default function TextStyleToolbar({
       )}
 
       {/* Font Size - Always visible */}
-      {fontSizes.length > 0 && (
+      {fontSizes.length > 0 && isAllowed('font-size') && (
         <div className="text-style-control">
           <Slider
             value={fontSizeIndex >= 0 ? fontSizeIndex : 0}
@@ -1276,8 +1299,8 @@ export default function TextStyleToolbar({
         </div>
       )}
 
-      {/* Show All Properties Button - Only shown when not showing all */}
-      {!showAllProperties && (
+      {/* Show All Properties Button - Only shown when not showing all and no property restrictions are specified */}
+      {!showAllProperties && !allowedProps && (
         <div className="text-style-control">
           <Button
             onClick={() => setShowAllProperties(true)}
@@ -1297,7 +1320,7 @@ export default function TextStyleToolbar({
       {showAllProperties && (
         <>
           {/* Font Weight */}
-          {fontWeights.length > 0 && (
+          {fontWeights.length > 0 && isAllowed('font-weight') && (
             <div className="text-style-control">
               <Slider
                 value={fontWeightIndex >= 0 ? fontWeightIndex : 0}
@@ -1341,7 +1364,7 @@ export default function TextStyleToolbar({
           )}
 
           {/* Letter Spacing */}
-          {letterSpacings.length > 0 && (
+          {letterSpacings.length > 0 && isAllowed('letter-spacing') && (
             <div className="text-style-control">
               <Slider
                 value={letterSpacingIndex >= 0 ? letterSpacingIndex : 0}
@@ -1385,7 +1408,7 @@ export default function TextStyleToolbar({
           )}
 
           {/* Line Height */}
-          {lineHeights.length > 0 && (
+          {lineHeights.length > 0 && isAllowed('line-height') && (
             <div className="text-style-control">
               <Slider
                 value={lineHeightIndex >= 0 ? lineHeightIndex : 0}
@@ -1429,7 +1452,7 @@ export default function TextStyleToolbar({
           )}
 
           {/* Font Style (Italics) - Only show if there are multiple options */}
-          {fontStyleOptions.length > 1 && (
+          {fontStyleOptions.length > 1 && isAllowed('font-style') && (
             <div className="text-style-control">
               <Label layer="layer-3" layout="stacked">Style</Label>
               <SegmentedControl
@@ -1443,28 +1466,32 @@ export default function TextStyleToolbar({
           )}
 
           {/* Text Decoration - Moved below Style */}
-          <div className="text-style-control">
-            <Label layer="layer-3" layout="stacked">Decoration</Label>
-            <SegmentedControl
-              items={textDecorationOptions}
-              value={currentTextDecoration}
-              onChange={handleTextDecorationChange}
-              layer="layer-3"
-              showLabel={false}
-            />
-          </div>
+          {isAllowed('text-decoration') && (
+            <div className="text-style-control">
+              <Label layer="layer-3" layout="stacked">Decoration</Label>
+              <SegmentedControl
+                items={textDecorationOptions}
+                value={currentTextDecoration}
+                onChange={handleTextDecorationChange}
+                layer="layer-3"
+                showLabel={false}
+              />
+            </div>
+          )}
 
           {/* Text Transform */}
-          <div className="text-style-control">
-            <Label layer="layer-3" layout="stacked">Case</Label>
-            <SegmentedControl
-              items={textTransformOptions}
-              value={currentTextTransform}
-              onChange={handleTextTransformChange}
-              layer="layer-3"
-              showLabel={false}
-            />
-          </div>
+          {isAllowed('text-transform') && (
+            <div className="text-style-control">
+              <Label layer="layer-3" layout="stacked">Case</Label>
+              <SegmentedControl
+                items={textTransformOptions}
+                value={currentTextTransform}
+                onChange={handleTextTransformChange}
+                layer="layer-3"
+                showLabel={false}
+              />
+            </div>
+          )}
         </>
       )}
     </div>

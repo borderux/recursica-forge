@@ -215,6 +215,7 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  overflow: hidden !important;
 }
 
 /* Ensure solid variant (filled) has a border with the correct color */

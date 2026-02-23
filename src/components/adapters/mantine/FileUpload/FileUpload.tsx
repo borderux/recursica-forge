@@ -62,6 +62,11 @@ export default function FileUpload({
     const fontSizeVar = getComponentTextCssVar('FileUpload', 'text', 'font-size')
     const fontFamilyVar = getComponentTextCssVar('FileUpload', 'text', 'font-family')
     const fontWeightVar = getComponentTextCssVar('FileUpload', 'text', 'font-weight')
+    const letterSpacingVar = getComponentTextCssVar('FileUpload', 'text', 'letter-spacing')
+    const lineHeightVar = getComponentTextCssVar('FileUpload', 'text', 'line-height')
+    const textDecorationVar = getComponentTextCssVar('FileUpload', 'text', 'text-decoration')
+    const textTransformVar = getComponentTextCssVar('FileUpload', 'text', 'text-transform')
+    const fontStyleVar = getComponentTextCssVar('FileUpload', 'text', 'font-style')
 
     // Listen for CSS variable updates
     const [, setUpdate] = useState(0)
@@ -131,10 +136,17 @@ export default function FileUpload({
         >
             <div style={{
                 color: `var(${textColorVar})`,
+                fontFamily: `var(${fontFamilyVar})`,
                 fontSize: `var(${fontSizeVar})`,
+                fontWeight: `var(${fontWeightVar})`,
+                letterSpacing: `var(${letterSpacingVar})`,
+                lineHeight: `var(${lineHeightVar})`,
+                textDecoration: `var(${textDecorationVar})`,
+                textTransform: `var(${textTransformVar})` as any,
+                fontStyle: `var(${fontStyleVar})`,
                 opacity: state === 'disabled' ? `var(${getBrandStateCssVar(mode, 'disabled')})` : 0.8,
                 textAlign: 'center'
-            }}>
+            } as React.CSSProperties}>
                 Drag and drop files here to upload
             </div>
             <Button
