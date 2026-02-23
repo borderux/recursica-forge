@@ -26,13 +26,11 @@ export function SidebarFooter() {
     // Link component text properties - default state
     const linkFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-weight')
     const linkTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-decoration')
-    const linkTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-transform')
     const linkFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-style')
 
     // Link component text properties - hover state
     const linkHoverFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'font-weight')
     const linkHoverTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'text-decoration')
-    const linkHoverTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'text-transform')
     const linkHoverFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'font-style')
 
     // Hover handlers that apply full Link hover state
@@ -40,17 +38,17 @@ export function SidebarFooter() {
         const el = e.currentTarget
         el.style.color = `var(${linkHoverColorVar})`
         el.style.fontWeight = `var(${linkHoverFontWeightVar})`
-        el.style.textDecoration = `var(${linkHoverTextDecorationVar}, none)`
-        el.style.textTransform = `var(${linkHoverTextTransformVar}, none)`
-        el.style.fontStyle = `var(${linkHoverFontStyleVar}, normal)`
+        el.style.textDecoration = `var(${linkHoverTextDecorationVar})`
+        el.style.textTransform = 'none'
+        el.style.fontStyle = `var(${linkHoverFontStyleVar})`
     }
     const handleMouseLeave = (e: React.MouseEvent<HTMLAnchorElement>) => {
         const el = e.currentTarget
         el.style.color = `var(${linkTextColorVar})`
         el.style.fontWeight = `var(${linkFontWeightVar})`
-        el.style.textDecoration = `var(${linkTextDecorationVar}, none)`
-        el.style.textTransform = `var(${linkTextTransformVar}, none)`
-        el.style.fontStyle = `var(${linkFontStyleVar}, normal)`
+        el.style.textDecoration = `var(${linkTextDecorationVar})`
+        el.style.textTransform = 'none'
+        el.style.fontStyle = `var(${linkFontStyleVar})`
     }
 
     return (
@@ -119,9 +117,9 @@ export function SidebarFooter() {
                     style={{
                         color: `var(${linkTextColorVar})`,
                         fontWeight: `var(${linkFontWeightVar})`,
-                        textDecoration: `var(${linkTextDecorationVar}, none)`,
-                        textTransform: `var(${linkTextTransformVar}, none)` as any,
-                        fontStyle: `var(${linkFontStyleVar}, normal)`,
+                        textDecoration: `var(${linkTextDecorationVar})`,
+                        textTransform: 'none' as any,
+                        fontStyle: `var(${linkFontStyleVar})`,
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '0.25em',
@@ -142,9 +140,9 @@ export function SidebarFooter() {
                     style={{
                         color: `var(${linkTextColorVar})`,
                         fontWeight: `var(${linkFontWeightVar})`,
-                        textDecoration: `var(${linkTextDecorationVar}, none)`,
-                        textTransform: `var(${linkTextTransformVar}, none)` as any,
-                        fontStyle: `var(${linkFontStyleVar}, normal)`,
+                        textDecoration: `var(${linkTextDecorationVar})`,
+                        textTransform: 'none' as any,
+                        fontStyle: `var(${linkFontStyleVar})`,
                         display: 'inline-flex',
                         alignItems: 'center',
                         gap: '0.25em',

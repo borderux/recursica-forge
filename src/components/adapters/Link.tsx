@@ -26,11 +26,17 @@ export type LinkProps = {
   onClick?: (e: React.MouseEvent) => void
   className?: string
   inlineStyle?: React.CSSProperties
+  /** Style prop used by library adapters (mapped from inlineStyle by mapLinkProps) */
+  style?: React.CSSProperties
   startIcon?: React.ReactNode
   endIcon?: React.ReactNode
   title?: string
   showIcon?: boolean
   iconPosition?: 'start' | 'end'
+  /** Library-specific variant */
+  variant?: string
+  /** Library-specific size */
+  size?: string
   /** Force a specific visual state for preview (bypasses CSS pseudo-states) */
   forceState?: 'default' | 'hover' | 'visited' | 'visited-hover'
 } & LibrarySpecificProps
