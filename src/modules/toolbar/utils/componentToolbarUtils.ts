@@ -26,6 +26,7 @@ export interface ComponentProp {
   propertyType?: 'slider' | 'select' | 'color' | 'text' // Custom property type override
   range?: [number, number] // For slider
   step?: number // For slider
+  sourceComponent?: string // Component key in UIKit.json where this prop actually lives (for cross-component references)
 }
 
 export interface ComponentStructure {
@@ -48,7 +49,8 @@ export function toSentenceCase(str: string): string {
  * Parses a component's structure from UIKit.json
  */
 export function parseComponentStructure(componentName: string): ComponentStructure {
-  const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+  let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+  if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   const uikitRoot: any = uikitJson
   const components = uikitRoot?.['ui-kit']?.components || {}
   const component = components[componentKey]
@@ -516,6 +518,22 @@ export function parseComponentStructure(componentName: string): ComponentStructu
 
   traverse(component, [])
 
+  // For checkbox-item, also include base checkbox props
+  // since size/border/colors now live on the base checkbox component
+  if (componentKey === 'checkbox-item') {
+    const baseCheckbox = components['checkbox']
+    if (baseCheckbox) {
+      const baseStructure = parseComponentStructure('checkbox')
+      // Add base checkbox props that aren't already defined on checkbox-item
+      for (const baseProp of baseStructure.props) {
+        const exists = props.some(p => p.name === baseProp.name)
+        if (!exists) {
+          props.push({ ...baseProp, sourceComponent: 'checkbox' })
+        }
+      }
+    }
+  }
+
   return { variants, props }
 }
 
@@ -572,7 +590,8 @@ export function getComponentCssVarsForVariants(
  * Gets the default values from UIKit.json for reset functionality
  */
 export function getComponentDefaultValues(componentName: string): Record<string, string> {
-  const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+  let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+  if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   const uikitRoot: any = uikitJson
   const components = uikitRoot?.['ui-kit']?.components || {}
   const component = components[componentKey]
@@ -629,10 +648,12 @@ export function getComponentDefaultValues(componentName: string): Record<string,
 export function getDimensionPropertyType(
   componentName: string,
   propPath: string[],
-  selectedVariants: Record<string, string> = {}
+  selectedVariants: Record<string, string> = {},
+  sourceComponent?: string
 ): 'token' | 'px' | null {
   try {
-    const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+    let componentKey = sourceComponent || componentName.toLowerCase().replace(/\s+/g, '-')
+    if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
     const uikitRoot: any = uikitJson
     const components = uikitRoot?.['ui-kit']?.components || {}
     const component = components[componentKey]
@@ -671,6 +692,11 @@ export function getDimensionPropertyType(
     // Check if we found a dimension property
     if (current && typeof current === 'object' && '$type' in current && current.$type === 'dimension') {
       const value = current.$value
+
+      // Check if $value is a plain string token reference (e.g., "{tokens.border-radius.sm}")
+      if (typeof value === 'string' && value.trim().startsWith('{')) {
+        return 'token'
+      }
 
       // Check if it's an object with value and unit
       if (value && typeof value === 'object' && 'value' in value && 'unit' in value) {

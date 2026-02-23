@@ -19,6 +19,8 @@ import SegmentedControlConfig from '../configs/SegmentedControl.toolbar.json'
 import SegmentedControlItemConfig from '../configs/SegmentedControlItem.toolbar.json'
 import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
 import TextFieldConfig from '../configs/TextField.toolbar.json'
+import CheckboxItemConfig from '../configs/CheckboxItem.toolbar.json'
+import CheckboxGroupConfig from '../configs/CheckboxGroup.toolbar.json'
 import NumberInputConfig from '../configs/NumberInput.toolbar.json'
 import ModalConfig from '../configs/Modal.toolbar.json'
 import DropdownConfig from '../configs/Dropdown.toolbar.json'
@@ -100,6 +102,13 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'text-field':
       case 'text field':
         return TextFieldConfig as unknown as ToolbarConfig
+      case 'checkbox-item':
+      case 'checkbox item':
+      case 'checkbox-group-item':
+        return CheckboxItemConfig as unknown as ToolbarConfig
+      case 'checkbox-group':
+      case 'checkbox group':
+        return CheckboxGroupConfig as unknown as ToolbarConfig
       case 'number-input':
       case 'number input':
       case 'numberinput':

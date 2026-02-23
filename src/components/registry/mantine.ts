@@ -10,6 +10,8 @@ import type { ComponentName } from './types'
 // Button
 registerComponent('mantine', 'Button', () => import('../adapters/mantine/Button/Button'))
 registerComponent('mantine', 'Checkbox', () => import('../adapters/mantine/Checkbox/Checkbox'))
+registerComponent('mantine', 'CheckboxItem', () => import('../adapters/mantine/CheckboxItem/CheckboxItem'))
+registerComponent('mantine', 'CheckboxGroup', () => import('../adapters/mantine/CheckboxGroup/CheckboxGroup'))
 
 // Tabs
 registerComponent('mantine', 'Tabs', () => import('../adapters/mantine/Tabs/Tabs'))
