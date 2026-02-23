@@ -15,6 +15,8 @@ export type ComponentName =
   | 'Card'
   | 'TextField'
   | 'Checkbox'
+  | 'CheckboxItem'
+  | 'CheckboxGroup'
   | 'Radio'
   | 'Select'
   | 'Textarea'

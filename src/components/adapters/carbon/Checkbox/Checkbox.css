@@ -1,0 +1,52 @@
+/* Carbon Checkbox Overrides */
+
+/* The actual input is hidden, layout is label::before/after */
+.recursica-carbon-checkbox .cds--checkbox-label::before {
+    width: var(--checkbox-size) !important;
+    height: var(--checkbox-size) !important;
+    border-radius: var(--checkbox-radius) !important;
+    border-width: var(--checkbox-border-width) !important;
+    border-color: var(--checkbox-border-unchecked) !important;
+    background-color: var(--checkbox-bg-unchecked) !important;
+}
+
+.recursica-carbon-checkbox .cds--checkbox:checked+.cds--checkbox-label::before,
+.recursica-carbon-checkbox .cds--checkbox[data-checked]+.cds--checkbox-label::before,
+.recursica-carbon-checkbox .cds--checkbox[aria-checked="true"]+.cds--checkbox-label::before,
+.recursica-carbon-checkbox .cds--checkbox[aria-checked="mixed"]+.cds--checkbox-label::before {
+    background-color: var(--checkbox-bg-checked) !important;
+    border-color: var(--checkbox-border-checked) !important;
+}
+
+/* Icon (checkmark) */
+.recursica-carbon-checkbox .cds--checkbox-label::after {
+    border-bottom-color: var(--checkbox-icon-color) !important;
+    border-left-color: var(--checkbox-icon-color) !important;
+    /* Carbon uses borders for checkmark. We might not easily replace it with var(--checkbox-icon-size) for dimensions 
+     unless we override positioning.
+     Carbon checkmark is sized via transform?
+  */
+}
+
+/* For mixed state, Carbon uses a dash via ::after */
+.recursica-carbon-checkbox .cds--checkbox[aria-checked="mixed"]+.cds--checkbox-label::after {
+    border-color: var(--checkbox-icon-color) !important;
+    background-color: var(--checkbox-icon-color) !important;
+    /* Depending on impl */
+}
+
+/* Checked state color overrides */
+.recursica-carbon-checkbox .cds--checkbox:checked+.cds--checkbox-label::before {
+    background-color: var(--checkbox-bg-checked) !important;
+    border-color: var(--checkbox-border-checked) !important;
+}
+
+/* Disabled state */
+.recursica-carbon-checkbox .cds--checkbox:disabled+.cds--checkbox-label::before {
+    background-color: var(--checkbox-disabled-bg) !important;
+    border-color: var(--checkbox-disabled-border) !important;
+}
+
+.recursica-carbon-checkbox .cds--checkbox:disabled+.cds--checkbox-label {
+    color: var(--checkbox-disabled-border) !important;
+}

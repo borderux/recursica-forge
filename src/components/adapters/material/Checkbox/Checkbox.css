@@ -1,0 +1,39 @@
+/* Material UI Checkbox Overrides */
+
+.recursica-mui-checkbox-root.MuiCheckbox-root {
+    padding: 0 !important;
+    color: var(--checkbox-border-unchecked) !important;
+    border-radius: var(--checkbox-radius) !important;
+    transition: all 0.2s ease;
+    width: var(--checkbox-size);
+    height: var(--checkbox-size);
+}
+
+.recursica-mui-checkbox-root.Mui-checked {
+    color: var(--checkbox-border-checked) !important;
+}
+
+.recursica-mui-checkbox-root.MuiCheckbox-indeterminate {
+    color: var(--checkbox-border-checked) !important;
+}
+
+.recursica-mui-checkbox-root.Mui-disabled {
+    color: var(--checkbox-disabled-border) !important;
+}
+
+.recursica-mui-checkbox-root svg {
+    /* Scale SVG to icon size */
+    width: var(--checkbox-icon-size) !important;
+    height: var(--checkbox-icon-size) !important;
+}
+
+/* Label Container */
+.recursica-mui-checkbox-label.MuiFormControlLabel-root {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Apply gap between checkbox and label */
+.recursica-mui-checkbox-label .MuiTypography-root {
+    /* Padding left moved to CheckboxItem implementation via var(--checkbox-item-gap) */
+}

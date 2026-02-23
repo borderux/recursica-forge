@@ -225,16 +225,18 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
       const rect = el.getBoundingClientRect()
       const viewportWidth = window.innerWidth
+      const scrollX = window.scrollX || window.pageXOffset || 0
+      const scrollY = window.scrollY || window.pageYOffset || 0
       // Estimate width: label column (110) + 12 swatches (12 * 25) + padding/margins
       const estimatedWidth = 420
 
-      let left = rect.left
+      let left = rect.left + scrollX
       // If the picker would go off the right edge, align its right edge with the button's right edge
-      if (left + estimatedWidth > viewportWidth - 20) {
-        left = Math.max(16, rect.right - estimatedWidth)
+      if (rect.left + estimatedWidth > viewportWidth - 20) {
+        left = Math.max(16 + scrollX, rect.right + scrollX - estimatedWidth)
       }
 
-      setPos({ top: rect.bottom + 8, left })
+      setPos({ top: rect.bottom + scrollY + 8, left })
     }
   }, [tokensJson, opacityOptions])
 
