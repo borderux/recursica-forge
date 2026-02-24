@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.3.4
+
+### Patch Changes
+
+- b7c0383: Fix for safari bug; bundling and lazy loading improvements
+
 ## 0.3.3
 
 ### Patch Changes
