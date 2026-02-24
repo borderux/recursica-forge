@@ -5,7 +5,9 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
+import { SegmentedControl } from '../../components/adapters/SegmentedControl'
 import { Dropdown } from '../../components/adapters/Dropdown'
+import { iconNameToReactComponent } from '../components/iconUtils'
 import { Panel } from '../../components/adapters/Panel'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { buildTypographyVars } from '../../core/resolvers/typography'
@@ -30,10 +32,10 @@ function extractTokenFromCssVar(cssValue: string): string | null {
   if (!cssValue) return null
   // Match patterns like: var(--recursica-tokens-font-sizes-md)
   // Uses plural form
-  const match = cssValue.match(/var\(--recursica-tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights)-([^)]+)\)/)
+  const match = cssValue.match(/var\(--recursica-tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)-([^)]+)\)/)
   if (match) return match[1]
   // Also match: var(--tokens-font-size-md) (without recursica prefix)
-  const match2 = cssValue.match(/var\(--tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights)-([^)]+)\)/)
+  const match2 = cssValue.match(/var\(--tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)-([^)]+)\)/)
   if (match2) return match2[1]
   return null
 }
@@ -129,6 +131,41 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     } catch { }
     return out
   }, [tokens])
+  // Font style segmented control options (icons matching toolbar)
+  const fontStyleItems = useMemo(() => {
+    const RomanIcon = iconNameToReactComponent('radix-font-roman')
+    const ItalicIcon = iconNameToReactComponent('radix-font-italic')
+    return [
+      { value: 'normal', label: 'Normal', icon: RomanIcon ? <RomanIcon size={16} /> : null, tooltip: 'Normal' },
+      { value: 'italic', label: 'Italic', icon: ItalicIcon ? <ItalicIcon size={16} /> : null, tooltip: 'Italic' },
+    ]
+  }, [])
+
+  // Text decoration segmented control options (icons matching toolbar)
+  const textDecorationItems = useMemo(() => {
+    const NoneIcon = iconNameToReactComponent('radix-text-none')
+    const UnderlineIcon = iconNameToReactComponent('radix-underline')
+    const StrikethroughIcon = iconNameToReactComponent('radix-strikethrough')
+    return [
+      { value: 'none', label: 'None', icon: NoneIcon ? <NoneIcon size={16} /> : null, tooltip: 'None' },
+      { value: 'underline', label: 'Underline', icon: UnderlineIcon ? <UnderlineIcon size={16} /> : null, tooltip: 'Underline' },
+      { value: 'line-through', label: 'Line Through', icon: StrikethroughIcon ? <StrikethroughIcon size={16} /> : null, tooltip: 'Line Through' },
+    ]
+  }, [])
+
+  // Text case segmented control options (icons matching toolbar)
+  const textCaseItems = useMemo(() => {
+    const TextNoneIcon = iconNameToReactComponent('radix-text-none')
+    const UppercaseIcon = iconNameToReactComponent('radix-letter-case-uppercase')
+    const LowercaseIcon = iconNameToReactComponent('radix-letter-case-lowercase')
+    const CapitalizeIcon = iconNameToReactComponent('radix-letter-case-capitalize')
+    return [
+      { value: 'none', label: 'Original', icon: TextNoneIcon ? <TextNoneIcon size={16} /> : null, tooltip: 'Original' },
+      { value: 'uppercase', label: 'Uppercase', icon: UppercaseIcon ? <UppercaseIcon size={16} /> : null, tooltip: 'Uppercase' },
+      { value: 'lowercase', label: 'Lowercase', icon: LowercaseIcon ? <LowercaseIcon size={16} /> : null, tooltip: 'Lowercase' },
+      { value: 'capitalize', label: 'Capitalize', icon: CapitalizeIcon ? <CapitalizeIcon size={16} /> : null, tooltip: 'Capitalize' },
+    ]
+  }, [])
   const familyOptions = useMemo(() => {
     const out: Array<{ short: string; label: string; value: string }> = []
     const seen = new Set<string>()
@@ -312,7 +349,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }
 
   // Directly update CSS variables like component toolbar does
-  const updateCssVarValue = useCallback((property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height', tokenShort: string) => {
+  const updateCssVarValue = useCallback((property: 'font-family' | 'font-size' | 'font-weight' | 'font-letter-spacing' | 'line-height' | 'font-style' | 'text-decoration' | 'text-transform', tokenShort: string) => {
     const cssVars: string[] = []
 
     selectedPrefixes.forEach((prefix) => {
@@ -352,6 +389,15 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       } else if (property === 'line-height') {
         cssVar = `--recursica-brand-typography-${cssVarName}-line-height`
         tokenValue = `var(--recursica-tokens-font-line-heights-${tokenShort})`
+      } else if (property === 'font-style') {
+        cssVar = `--recursica-brand-typography-${cssVarName}-font-style`
+        tokenValue = `var(--recursica-tokens-font-styles-${tokenShort})`
+      } else if (property === 'text-decoration') {
+        cssVar = `--recursica-brand-typography-${cssVarName}-text-decoration`
+        tokenValue = `var(--recursica-tokens-font-decorations-${tokenShort})`
+      } else if (property === 'text-transform') {
+        cssVar = `--recursica-brand-typography-${cssVarName}-text-transform`
+        tokenValue = `var(--recursica-tokens-font-cases-${tokenShort})`
       }
 
       if (cssVar && tokenValue) {
@@ -394,10 +440,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
     selectedPrefixes.forEach((prefix) => {
       const cssVarName = prefixToCssVarName(prefix)
-      const properties = ['font-family', 'font-size', 'font-weight', 'font-letter-spacing', 'line-height']
+      const properties = ['font-family', 'font-size', 'font-weight', 'font-letter-spacing', 'line-height', 'font-style', 'text-decoration', 'text-transform']
 
       properties.forEach((prop) => {
-        const cssVar = `--recursica-brand-typography-${cssVarName}-${prop === 'font-letter-spacing' ? 'font-letter-spacing' : prop === 'line-height' ? 'line-height' : prop}`
+        const cssVar = `--recursica-brand-typography-${cssVarName}-${prop}`
 
         // Remove the override first
         document.documentElement.style.removeProperty(cssVar)
@@ -432,6 +478,9 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const spacingCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-letter-spacing` : ''
   const lineHeightCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-line-height` : ''
   const familyCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-family` : ''
+  const styleCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-style` : ''
+  const decorationCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-text-decoration` : ''
+  const transformCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-text-transform` : ''
 
   // Read current values directly from CSS variables (simplified like component toolbar)
   const sizeCurrentToken = useMemo(() => {
@@ -457,6 +506,59 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     const token = getCurrentTokenName(lineHeightCssVar, lineHeightOptions)
     return token
   }, [lineHeightCssVar, lineHeightOptions, updateKey, prefix, open])
+
+  const styleCurrentToken = useMemo(() => {
+    if (!prefix || !open) return undefined
+    return getCurrentTokenName(styleCssVar, fontStyleItems.map(i => ({ short: i.value })))
+  }, [styleCssVar, fontStyleItems, updateKey, prefix, open])
+
+  const decorationCurrentToken = useMemo(() => {
+    if (!prefix || !open) return undefined
+    return getCurrentTokenName(decorationCssVar, textDecorationItems.map(i => ({ short: i.value })))
+  }, [decorationCssVar, textDecorationItems, updateKey, prefix, open])
+
+  const transformCurrentToken = useMemo(() => {
+    if (!prefix || !open) return undefined
+    return getCurrentTokenName(transformCssVar, textCaseItems.map(i => ({ short: i.value })))
+  }, [transformCssVar, textCaseItems, updateKey, prefix, open])
+
+  // Resolve current CSS values for SegmentedControl
+  const currentFontStyleValue = useMemo(() => {
+    if (!prefix || !open) return 'normal'
+    const resolved = readCssVarResolved(styleCssVar) || readCssVar(styleCssVar) || 'normal'
+    return resolved.replace(/^["']|["']$/g, '').trim()
+  }, [styleCssVar, updateKey, prefix, open])
+
+  const currentDecorationValue = useMemo(() => {
+    if (!prefix || !open) return 'none'
+    const resolved = readCssVarResolved(decorationCssVar) || readCssVar(decorationCssVar) || 'none'
+    return resolved.replace(/^["']|["']$/g, '').trim()
+  }, [decorationCssVar, updateKey, prefix, open])
+
+  const currentTransformValue = useMemo(() => {
+    if (!prefix || !open) return 'none'
+    const resolved = readCssVarResolved(transformCssVar) || readCssVar(transformCssVar) || 'none'
+    return resolved.replace(/^["']|["']$/g, '').trim()
+  }, [transformCssVar, updateKey, prefix, open])
+
+  // Handlers for SegmentedControl changes
+  // Map CSS values back to token keys for updateCssVarValue
+  const handleFontStyleChange = useCallback((value: string) => {
+    // Token keys match CSS values for styles: 'normal' -> 'normal', 'italic' -> 'italic'
+    updateCssVarValue('font-style', value)
+  }, [updateCssVarValue])
+
+  const handleDecorationChange = useCallback((value: string) => {
+    // Map CSS values to token keys: 'none' -> 'none', 'underline' -> 'underline', 'line-through' -> 'strikethrough'
+    const tokenMap: Record<string, string> = { 'none': 'none', 'underline': 'underline', 'line-through': 'strikethrough' }
+    updateCssVarValue('text-decoration', tokenMap[value] || value)
+  }, [updateCssVarValue])
+
+  const handleTransformChange = useCallback((value: string) => {
+    // Map CSS values to token keys: 'none' -> 'original', 'uppercase' -> 'uppercase', 'lowercase' -> 'titlecase'
+    const tokenMap: Record<string, string> = { 'none': 'original', 'uppercase': 'uppercase', 'lowercase': 'titlecase', 'capitalize': 'titlecase' }
+    updateCssVarValue('text-transform', tokenMap[value] || value)
+  }, [updateCssVarValue])
 
   // Get current family token short name (not the font value)
   const currentFamilyToken = useMemo(() => {
@@ -707,6 +809,41 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 No line height tokens available
               </div>
             )}
+            {/* Font Style */}
+            <div>
+              <Label layer="layer-3" layout="stacked">Style</Label>
+              <SegmentedControl
+                items={fontStyleItems}
+                value={currentFontStyleValue}
+                onChange={(v) => handleFontStyleChange(v)}
+                layer="layer-3"
+                showLabel={false}
+              />
+            </div>
+
+            {/* Text Decoration */}
+            <div>
+              <Label layer="layer-3" layout="stacked">Decoration</Label>
+              <SegmentedControl
+                items={textDecorationItems}
+                value={currentDecorationValue}
+                onChange={(v) => handleDecorationChange(v)}
+                layer="layer-3"
+                showLabel={false}
+              />
+            </div>
+
+            {/* Text Case */}
+            <div>
+              <Label layer="layer-3" layout="stacked">Case</Label>
+              <SegmentedControl
+                items={textCaseItems}
+                value={currentTransformValue}
+                onChange={(v) => handleTransformChange(v)}
+                layer="layer-3"
+                showLabel={false}
+              />
+            </div>
           </>
         ) : (
           <div style={{ padding: 12, fontSize: 12, opacity: 0.7 }}>

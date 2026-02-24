@@ -2565,7 +2565,7 @@
           "fontWeight": "{tokens.font.weights.regular}",
           "fontStyle": "{tokens.font.styles.normal}",
           "letterSpacing": "{tokens.font.letter-spacings.wide}",
-          "lineHeight": "{tokens.font.line-heights.default}",
+          "lineHeight": "{tokens.font.line-heights.tall}",
           "textCase": "{tokens.font.cases.original}",
           "textDecoration": "{tokens.font.decorations.none}"
         }
@@ -2586,4 +2586,3 @@
     }
   }
 }
-

@@ -258,9 +258,14 @@ export default function FileInput({
                     fontFamily: `var(${valueFontFamilyVar})`,
                     fontSize: `var(${valueFontSizeVar})`,
                     fontWeight: `var(${valueFontWeightVar})`,
+                    letterSpacing: `var(${valueLetterSpacingVar})`,
+                    lineHeight: `var(${valueLineHeightVar})`,
+                    textDecoration: `var(${valueTextDecorationVar})`,
+                    textTransform: `var(${valueTextTransformVar})` as any,
+                    fontStyle: `var(${valueFontStyleVar})`,
                     color: value ? `var(${textVar})` : `var(${textVar})`,
                     opacity: value ? 1 : `var(${placeholderOpacityVar})`,
-                }}>
+                } as React.CSSProperties}>
                     {displayValue}
                 </span>
             )}

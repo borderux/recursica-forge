@@ -3652,12 +3652,15 @@ export default function PropControlContent({
 
   // If this is a text property group, render TextStyleToolbar
   if (isTextPropertyGroup) {
+    const textPropConfig = getPropConfig(componentName, prop.name)
     return (
       <TextStyleToolbar
+        key={`${componentName}-${prop.name}-${selectedVariants.states || 'default'}`}
         componentName={componentName}
         textElementName={prop.name}
         selectedVariants={selectedVariants}
         selectedLayer={selectedLayer}
+        allowedProps={textPropConfig?.allowedProps}
       />
     )
   }
@@ -3817,6 +3820,9 @@ export default function PropControlContent({
   if (propNameLower === 'icon' && groupedPropsConfig) {
     const hasIconSize = 'icon-size' in groupedPropsConfig || 'icon' in groupedPropsConfig
     const hasIconGap = 'icon-text-gap' in groupedPropsConfig || 'spacing' in groupedPropsConfig
+    const hasShowIcon = 'showIcon' in groupedPropsConfig
+    const hasIconPosition = 'iconPosition' in groupedPropsConfig
+    const hasIconName = 'iconName' in groupedPropsConfig
     const hasColors = Object.keys(groupedPropsConfig).some(key =>
       key.includes('color') || key.includes('icon-color')
     )
@@ -3826,7 +3832,7 @@ export default function PropControlContent({
       )
       : []
 
-    if (hasIconSize || hasIconGap || hasColors) {
+    if (hasIconSize || hasIconGap || hasColors || hasShowIcon || hasIconPosition || hasIconName) {
       return (
         <IconGroupToolbar
           componentName={componentName}
@@ -4031,6 +4037,41 @@ export default function PropControlContent({
           }
           if (!groupedProp && groupedPropKey === 'text-color') {
             groupedProp = prop.borderProps!.get('text')
+          }
+          // Link icon color: discover from state variant path
+          // CRITICAL: Always re-find - never use cache. The cache key doesn't include state variant,
+          // so switching states would reuse the wrong prop (e.g. default when hover is selected).
+          if (groupedPropKey === 'icon-color' && componentName.toLowerCase() === 'link') {
+            const structure = parseComponentStructure(componentName)
+            const selectedState = selectedVariants?.states || 'default'
+            const iconColorProp = structure.props.find(p =>
+              p.name.toLowerCase() === 'icon' &&
+              p.category === 'colors' &&
+              p.path.includes('states') &&
+              p.path.includes(selectedState) &&
+              p.path.includes(selectedLayer)
+            )
+            if (iconColorProp) {
+              groupedProp = iconColorProp
+              prop.borderProps!.set(groupedPropKey, iconColorProp)
+            }
+          }
+          // Link text color: discover from state variant path
+          // CRITICAL: Always re-find - never use cache (same reason as icon color above).
+          if (groupedPropKey === 'text' && componentName.toLowerCase() === 'link') {
+            const structure = parseComponentStructure(componentName)
+            const selectedState = selectedVariants?.states || 'default'
+            const textColorProp = structure.props.find(p =>
+              p.name.toLowerCase() === 'text' &&
+              p.category === 'colors' &&
+              p.path.includes('states') &&
+              p.path.includes(selectedState) &&
+              p.path.includes(selectedLayer)
+            )
+            if (textColorProp) {
+              groupedProp = textColorProp
+              prop.borderProps!.set(groupedPropKey, textColorProp)
+            }
           }
           if (!groupedProp && (groupedPropKey.includes('-min-height') || groupedPropKey.includes('-height'))) {
             groupedProp = prop.borderProps!.get(groupedPropKey)
