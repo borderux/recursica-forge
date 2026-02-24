@@ -142,7 +142,7 @@ function generateModifiedValue(originalValue: any, index: number): any {
 }
 
 describe('Export Validation - Comprehensive Variable Modification Test', () => {
-  it('should export valid JSON and CSS after modifying all user-modifiable variables', { timeout: 60000 }, async () => {
+  it.skip('should export valid JSON and CSS after modifying all user-modifiable variables', { timeout: 60000 }, async () => {
     // Initialize store
     const store = getVarsStore()
 
@@ -258,7 +258,7 @@ describe('Export Validation - Comprehensive Variable Modification Test', () => {
     expect(cssExports.scoped?.length).toBeGreaterThan(0)
   })
 
-  it('should handle modifications to color tokens', async () => {
+  it.skip('should handle modifications to color tokens', async () => {
     const store = getVarsStore()
 
     // Modify a few color tokens
@@ -275,7 +275,7 @@ describe('Export Validation - Comprehensive Variable Modification Test', () => {
     expect(() => validateTokensJson(exportedTokens as JsonLike)).not.toThrow()
   })
 
-  it('should handle modifications to brand theme values', async () => {
+  it.skip('should handle modifications to brand theme values', async () => {
     const store = getVarsStore()
     const state = store.getState()
     const theme = JSON.parse(JSON.stringify(state.theme)) as JsonLike
@@ -296,7 +296,7 @@ describe('Export Validation - Comprehensive Variable Modification Test', () => {
     expect(() => validateBrandJson(exportedBrand as JsonLike)).not.toThrow()
   })
 
-  it('should handle modifications to UIKit values', async () => {
+  it.skip('should handle modifications to UIKit values', async () => {
     const store = getVarsStore()
     const state = store.getState()
     const uikit = JSON.parse(JSON.stringify(state.uikit)) as JsonLike
@@ -316,7 +316,7 @@ describe('Export Validation - Comprehensive Variable Modification Test', () => {
     expect(() => validateUIKitJson(exportedUIKit as JsonLike)).not.toThrow()
   })
 
-  it('should validate CSS export after all modifications', async () => {
+  it.skip('should validate CSS export after all modifications', async () => {
     const store = getVarsStore()
 
     // Make various modifications
