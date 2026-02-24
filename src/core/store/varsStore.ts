@@ -14,7 +14,7 @@ import { resolveTokenReferenceToCssVar, parseTokenReference, extractBraceContent
 import { AAComplianceWatcher } from '../compliance/AAComplianceWatcher'
 import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneForCompliance } from '../compliance/coreColorAaCompliance'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
-import { ensureFontLoaded } from '../../modules/type/fontUtils'
+
 import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
 import uikitImport from '../../vars/UIKit.json'
@@ -2145,6 +2145,7 @@ class VarsStore {
             const trimmed = String(family).trim()
             if (!trimmed) return
             // Load font (async is fine, but it must load)
+            const { ensureFontLoaded } = await import('../../modules/type/fontUtils')
             await ensureFontLoaded(trimmed).catch((error) => {
               console.warn(`Failed to load font "${trimmed}" during recompute:`, error)
             })
