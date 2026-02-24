@@ -787,8 +787,12 @@ function normalizeBrandReferences(obj: any): any {
       // Core-black/core-white: normalize to token path (core-colors.black.tone / core-colors.white.tone)
       .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
       .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
-      // Fix malformed references: {brand.palettes.core.white} -> {brand.palettes.core-white}
-      .replace(/{brand\.palettes\.core\.(white|black)}/g, '{brand.palettes.core-$1}')
+      // Already short form: {brand.palettes.core-black} / core-white -> token path
+      .replace(/\{brand\.palettes\.core-black\}/g, '{brand.palettes.core-colors.black.tone}')
+      .replace(/\{brand\.palettes\.core-white\}/g, '{brand.palettes.core-colors.white.tone}')
+      // Fix malformed: {brand.palettes.core.white} / core.black -> token path (not core-white/core-black)
+      .replace(/\{brand\.palettes\.core\.white\}/g, '{brand.palettes.core-colors.white.tone}')
+      .replace(/\{brand\.palettes\.core\.black\}/g, '{brand.palettes.core-colors.black.tone}')
       // Fix malformed references: {brand.palettes.palette.2.000.on.tone} -> {brand.palettes.palette-2.000.color.on-tone}
       .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.on\.tone}/g, '{brand.palettes.palette-$1.$2.color.on-tone}')
       .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.tone}/g, '{brand.palettes.palette-$1.$2.color.tone}')
@@ -1016,10 +1020,10 @@ export function exportBrandJson(): object {
         // It's a reference - normalize to short format
         let jsonValue = brandRef
 
-        // Handle core-white and core-black specially
+        // Core-black/core-white: write token path, not shorthand
         const coreMatch = brandRef.match(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/)
         if (coreMatch) {
-          jsonValue = `{brand.palettes.${coreMatch[2]}}`
+          jsonValue = coreMatch[2] === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'
         } else {
           // Remove theme from reference: {brand.themes.light.palettes.X} -> {brand.palettes.X}
           jsonValue = brandRef.replace(/{brand\.themes\.(light|dark)\./, '{brand.')
