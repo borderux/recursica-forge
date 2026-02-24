@@ -7,6 +7,11 @@ import uikitSchema from '../../schemas/uikit.schema.json'
 import brandJson from './Brand.json'
 import tokensJson from './Tokens.json'
 import uikitJson from './UIKit.json'
+import {
+  validateReferences,
+  REF_WORKAROUND_IDS,
+  type RefWorkaroundId,
+} from '../core/utils/validateJsonSchemas'
 
 describe('JSON Schema Validation', () => {
   const ajv = new Ajv({ allErrors: true, strict: false })
@@ -46,19 +51,23 @@ describe('JSON Schema Validation', () => {
     })
 
     it('should have brand.themes.light.palettes.core-colors', () => {
-      expect(brandJson.brand?.themes?.light?.palettes?.['core-colors']).toBeDefined()
-      expect(brandJson.brand?.themes?.light?.palettes?.['core-colors']?.$type).toBe('color')
-      expect(brandJson.brand?.themes?.light?.palettes?.['core-colors']?.$value).toBeDefined()
+      const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']
+      expect(coreColors).toBeDefined()
+      expect(coreColors?.black).toBeDefined()
+      expect(coreColors?.white).toBeDefined()
+      expect(coreColors?.interactive).toBeDefined()
     })
 
     it('should have brand.themes.dark.palettes.core-colors', () => {
-      expect(brandJson.brand?.themes?.dark?.palettes?.['core-colors']).toBeDefined()
-      expect(brandJson.brand?.themes?.dark?.palettes?.['core-colors']?.$type).toBe('color')
-      expect(brandJson.brand?.themes?.dark?.palettes?.['core-colors']?.$value).toBeDefined()
+      const coreColors = brandJson.brand?.themes?.dark?.palettes?.['core-colors']
+      expect(coreColors).toBeDefined()
+      expect(coreColors?.black).toBeDefined()
+      expect(coreColors?.white).toBeDefined()
+      expect(coreColors?.interactive).toBeDefined()
     })
 
     it('should have required core-colors values', () => {
-      const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']?.$value
+      const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
       expect(coreColors?.black).toBeDefined()
       expect(coreColors?.white).toBeDefined()
@@ -476,6 +485,57 @@ describe('JSON Schema Validation', () => {
       // Should validate elevation structure
       expect(validate).toBeDefined()
     })
+  })
+})
+
+describe('DTCG reference validation', () => {
+  it('should pass validateReferences on seed JSON with default work-arounds', () => {
+    const results = validateReferences(brandJson as any, tokensJson as any, uikitJson as any)
+    const invalid = results.filter((r) => !r.valid)
+    expect(invalid).toHaveLength(0)
+  })
+
+  it('should export explicit work-around list', () => {
+    expect(REF_WORKAROUND_IDS.length).toBeGreaterThan(0)
+    expect(REF_WORKAROUND_IDS).toContain('tokens.size→sizes')
+    expect(REF_WORKAROUND_IDS).toContain('tokens.opacity→opacities')
+    expect(REF_WORKAROUND_IDS).toContain('brand-theme-agnostic→themes.light|dark')
+    expect(REF_WORKAROUND_IDS).toContain('typography-composite-subproperty')
+  })
+
+  it('should fail when ref points to group and work-arounds disabled', () => {
+    const brandWithGroupRef = {
+      brand: {
+        themes: {
+          light: {
+            palettes: {
+              neutral: {
+                '200': {
+                  color: {
+                    tone: { $type: 'color', $value: '#000000' },
+                    'on-tone': { $type: 'color', $value: '#ffffff' },
+                  },
+                },
+                default: {
+                  $type: 'color',
+                  $value: '{brand.themes.light.palettes.neutral.200}',
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const tokens = { tokens: { colors: { gray: { '500': { $type: 'color', $value: '#888' } } } } }
+    const uikit = { 'ui-kit': {} }
+    expect(() =>
+      validateReferences(
+        brandWithGroupRef as any,
+        tokens as any,
+        uikit as any,
+        new Set<RefWorkaroundId>([])
+      )
+    ).toThrow(/Reference targets a group|Reference target does not exist/)
   })
 })
 

@@ -27,6 +27,7 @@
     "test:ci": "CI=true vitest run --reporter=verbose",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
+    "validate:export": "tsx scripts/validate-export.ts",
     "watch:icons": "node scripts/watch-icon-mapping.mjs",
     "watch:toolbar-icons": "node scripts/watch-toolbar-icons.mjs",
     "changeset": "changeset",
@@ -70,6 +71,7 @@
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "jsdom": "^27.0.0",
+    "tsx": "^4.19.2",
     "typescript": "^5.6.3",
     "vite": "^5.4.9",
     "vitest": "^3.2.4"
