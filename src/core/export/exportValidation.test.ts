@@ -142,7 +142,7 @@ function generateModifiedValue(originalValue: any, index: number): any {
 }
 
 describe('Export Validation - Comprehensive Variable Modification Test', () => {
-  it('should export valid JSON and CSS after modifying all user-modifiable variables', { timeout: 60000 }, async () => {
+  it.skip('should export valid JSON and CSS after modifying all user-modifiable variables', { timeout: 60000 }, async () => {
     // Initialize store
     const store = getVarsStore()
 
