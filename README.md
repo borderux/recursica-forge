@@ -6,6 +6,7 @@ A tool for managing Recursica variables, themes, and token definitions
 - Start dev server: `npm run dev` (Vite, default: http://localhost:5173)
 - Run tests: `npm test` (Vitest)
 - Type-check: `npm run type-check`
+- Validate JSON exports: `npm run validate:export` — runs schema and DTCG reference validation on the recursica JSON files in `./export`. To validate another directory: `npm run validate:export -- /path/to/exports`
 
 ## Versioning and Releases
 
