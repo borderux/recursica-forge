@@ -1264,7 +1264,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "leading-icon-color": {
                       "$type": "color",
@@ -1294,7 +1294,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "leading-icon-color": {
                       "$type": "color",
@@ -1324,7 +1324,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "leading-icon-color": {
                       "$type": "color",
@@ -1354,7 +1354,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "leading-icon-color": {
                       "$type": "color",
@@ -1382,27 +1382,27 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "leading-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "selected-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "close-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     }
                   },
                   "layer-1": {
@@ -1412,27 +1412,27 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "leading-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "selected-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "close-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     }
                   },
                   "layer-2": {
@@ -1442,27 +1442,27 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "leading-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "selected-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "close-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     }
                   },
                   "layer-3": {
@@ -1472,27 +1472,27 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "leading-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "selected-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "close-icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     }
                   }
                 }
@@ -1505,11 +1505,11 @@
             "error": {
               "text-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.core-colors.alert}"
+                "$value": "{brand.palettes.core-colors.alert.tone}"
               },
               "icon-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.core-colors.alert}"
+                "$value": "{brand.palettes.core-colors.alert.tone}"
               }
             }
           },
@@ -3899,57 +3899,57 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.warning}"
+                      "$value": "{brand.palettes.core-colors.warning.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.warning}"
+                      "$value": "{brand.palettes.core-colors.warning.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.warning}"
+                      "$value": "{brand.palettes.core-colors.warning.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.warning}"
+                      "$value": "{brand.palettes.core-colors.warning.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   }
                 }
@@ -3961,57 +3961,57 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.success}"
+                      "$value": "{brand.palettes.core-colors.success.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.success}"
+                      "$value": "{brand.palettes.core-colors.success.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.success}"
+                      "$value": "{brand.palettes.core-colors.success.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.success}"
+                      "$value": "{brand.palettes.core-colors.success.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   }
                 }
@@ -4023,57 +4023,57 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white}"
+                      "$value": "{brand.palettes.core-colors.white.tone}"
                     }
                   }
                 }

@@ -781,12 +781,12 @@ function normalizeBrandReferences(obj: any): any {
     // Also fix malformed references that may have been created incorrectly
 
     let normalized = obj
-      // Handle core-colors references
-      .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)}/g, '{brand.palettes.core-colors.$2}')
-      .replace(/{brand\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)}/g, '{brand.palettes.core-colors.$2}')
-      // Handle core-white and core-black (standalone, not in core-colors)
-      .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, '{brand.palettes.$2}')
-      .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, '{brand.palettes.$2}')
+      // Core-colors: normalize to theme-agnostic token paths (.tone)
+      .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix || '.tone'}}`)
+      .replace(/{brand\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix || '.tone'}}`)
+      // Core-black/core-white: normalize to token path (core-colors.black.tone / core-colors.white.tone)
+      .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
+      .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
       // Fix malformed references: {brand.palettes.core.white} -> {brand.palettes.core-white}
       .replace(/{brand\.palettes\.core\.(white|black)}/g, '{brand.palettes.core-$1}')
       // Fix malformed references: {brand.palettes.palette.2.000.on.tone} -> {brand.palettes.palette-2.000.color.on-tone}

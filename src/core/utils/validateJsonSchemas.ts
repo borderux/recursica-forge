@@ -222,9 +222,7 @@ function collectRefs(
 export const REF_WORKAROUND_IDS = [
   'tokens.size→sizes',
   'tokens.opacity→opacities',
-  'brand.palettes.core-black/white→core-colors.black/white.tone',
   'palette-step-group→.color.tone|.color.on-tone',
-  'core-colors-group→.tone|.on-tone',
   'elements.interactive.color→.tone|.on-tone',
   'typography-kebab→camelCase',
   'palette-default→indirection',
@@ -281,13 +279,6 @@ function resolveRefToToken(
         for (const theme of ['light', 'dark'] as const) {
           const alt = `brand.themes.${theme}.${rest}`
           if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'brand-theme-agnostic→themes.light|dark' }
-          const referrerOnTone = referrerLocation.endsWith('on-tone')
-          if (getAtPath(combined, alt) !== undefined) {
-            const withTone = `${alt}.${referrerOnTone ? 'on-tone' : 'tone'}`
-            const withOther = `${alt}.${referrerOnTone ? 'tone' : 'on-tone'}`
-            if (isToken(getAtPath(combined, withTone))) return { resolved: true, workaround: 'brand-theme-agnostic→themes.light|dark' }
-            if (isToken(getAtPath(combined, withOther))) return { resolved: true, workaround: 'brand-theme-agnostic→themes.light|dark' }
-          }
           if (allowedWorkarounds.has('palette-default→indirection') && /^palettes\.(palette-1|palette-2|neutral)\.default\.color\.(tone|on-tone)$/.test(rest)) {
             const defaultTonePath = `brand.themes.${theme}.${rest.replace(/\.(tone|on-tone)$/, '.tone')}`
             const defaultToneToken = getAtPath(combined, defaultTonePath)
@@ -319,18 +310,6 @@ function resolveRefToToken(
     if (parts[1] === 'opacity') {
       const alt = ['tokens', 'opacities', ...parts.slice(2)].join('.')
       if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'tokens.opacity→opacities' }
-    }
-  }
-
-  if (root === 'brand' && allowedWorkarounds.has('brand.palettes.core-black/white→core-colors.black/white.tone')) {
-    if (path === 'brand.palettes.core-black' || path === 'brand.palettes.core-white') {
-      const leaf = path.endsWith('black') ? 'black' : 'white'
-      const referrerOnTone = referrerLocation.endsWith('on-tone')
-      const suffix = referrerOnTone ? 'on-tone' : 'tone'
-      const alt = `brand.themes.light.palettes.core-colors.${leaf}.${suffix}`
-      if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'brand.palettes.core-black/white→core-colors.black/white.tone' }
-      const altDark = `brand.themes.dark.palettes.core-colors.${leaf}.${suffix}`
-      if (isToken(getAtPath(combined, altDark))) return { resolved: true, workaround: 'brand.palettes.core-black/white→core-colors.black/white.tone' }
     }
   }
 
@@ -372,22 +351,6 @@ function resolveRefToToken(
       const suffix = referrerOnTone ? 'color.on-tone' : 'color.tone'
       const alt = `brand.themes.${theme}.palettes.${palette}.${step}.${suffix}`
       if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'palette-step-group→.color.tone|.color.on-tone' }
-    }
-  }
-
-  if (root === 'brand' && allowedWorkarounds.has('core-colors-group→.tone|.on-tone')) {
-    if (
-      /^brand\.themes\.(light|dark)\.palettes\.core-colors\./.test(path) &&
-      !path.endsWith('.tone') &&
-      !path.endsWith('.on-tone') &&
-      getAtPath(combined, path) !== undefined
-    ) {
-      const referrerOnTone = referrerLocation.endsWith('on-tone')
-      const suffix = referrerOnTone ? 'on-tone' : 'tone'
-      const alt = `${path}.${suffix}`
-      if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'core-colors-group→.tone|.on-tone' }
-      const alt2 = `${path}.${referrerOnTone ? 'tone' : 'on-tone'}`
-      if (isToken(getAtPath(combined, alt2))) return { resolved: true, workaround: 'core-colors-group→.tone|.on-tone' }
     }
   }
 
