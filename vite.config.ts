@@ -15,7 +15,7 @@ export default defineConfig({
     exclude: ['phosphor-react'],
   },
   esbuild: {
-    drop: ['console', 'debugger'],
+    drop: process.env.NODE_ENV === 'production' && !process.env.VITEST ? ['console', 'debugger'] as any : [],
   },
   test: {
     environment: 'jsdom',

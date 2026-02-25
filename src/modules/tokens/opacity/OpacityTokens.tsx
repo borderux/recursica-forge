@@ -189,7 +189,7 @@ export default function OpacityTokens() {
                 gap: 'var(--recursica-brand-dimensions-general-md)',
                 alignItems: 'center',
                 paddingTop: 0,
-                paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-gutters-vertical)',
+                paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-general-default)',
               }}>
                 <label htmlFor={it.name} style={{
                   fontSize: 'var(--recursica-brand-typography-body-small-font-size)',

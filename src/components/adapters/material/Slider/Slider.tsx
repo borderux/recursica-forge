@@ -337,9 +337,29 @@ export default function Slider({
                   const clampedValue = Math.max(min, Math.min(max, newValue))
                   if (isRange) {
                     onChange([clampedValue, value[1]])
+                    if (onChangeCommitted) onChangeCommitted([clampedValue, value[1]])
                   } else {
                     onChange(clampedValue)
+                    if (onChangeCommitted) onChangeCommitted(clampedValue)
                   }
+                }
+              }
+            }}
+            onBlur={() => {
+              if (!readOnly && onChangeCommitted) {
+                if (isRange) {
+                  onChangeCommitted([singleValue, value[1]])
+                } else {
+                  onChangeCommitted(singleValue)
+                }
+              }
+            }}
+            onKeyDown={(e) => {
+              if (!readOnly && e.key === 'Enter' && onChangeCommitted) {
+                if (isRange) {
+                  onChangeCommitted([singleValue, value[1]])
+                } else {
+                  onChangeCommitted(singleValue)
                 }
               }
             }}
