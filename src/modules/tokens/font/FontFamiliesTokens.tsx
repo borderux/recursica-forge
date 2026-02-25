@@ -770,6 +770,7 @@ export default function FontFamiliesTokens() {
           typefaces[row.id].$value = row.family
         })
 
+
         store.setTokens(freshTokens)
 
         // Clear typography font-family CSS variables so they get regenerated with new token assignments
@@ -827,6 +828,7 @@ export default function FontFamiliesTokens() {
       const store = getVarsStore()
 
       try {
+
         const tokens = JSON.parse(JSON.stringify(store.getState().tokens)) as any // Deep clone
         const fontRoot = tokens?.tokens?.font || tokens?.font || {}
         const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
