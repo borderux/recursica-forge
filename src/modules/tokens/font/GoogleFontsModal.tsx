@@ -326,6 +326,18 @@ export function GoogleFontsModal({
         // Use selected font or first one
         const fontToLoad = fonts[selectedFontIndex] || fonts[0]
 
+        // Check if font already exists (case-insensitive comparison)
+        const fontToAddLower = fontToLoad.trim().toLowerCase()
+        const isDuplicate = existingFonts.some(existing =>
+          existing.toLowerCase().trim() === fontToAddLower
+        )
+
+        if (isDuplicate) {
+          setError('This font family is already added')
+          setLoading(false)
+          return
+        }
+
         // Extract selected combinations
         const selectedComboArray = Array.from(selectedCombos)
           .map(id => allWeightStyleCombos.find(c => c.id === id))

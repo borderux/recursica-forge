@@ -177,6 +177,15 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     // Token order sequence (from smallest to largest)
     const TOKEN_ORDER = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary']
 
+    // Read overrides to determine which typefaces actually exist
+    // (overrides are the source of truth after add/delete operations)
+    let overrides: Record<string, any> = {}
+    try {
+      overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
+    } catch { }
+    const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
+    const hasTypefaceOverrides = overrideTypefaceKeys.length > 0
+
     // Collect typeface tokens first (they take precedence)
     const typefaceTokens: Array<{ short: string; label: string; value: string; order: number }> = []
     try {
@@ -185,7 +194,11 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       Object.entries(typefaces).forEach(([short, rec]: [string, any]) => {
         // Skip $type and other metadata properties
         if (short === '$type' || short.startsWith('$')) return
-        const val = String((rec as any)?.$value || '').trim()
+        // If overrides exist for typefaces, only include fonts present in overrides
+        if (hasTypefaceOverrides && !overrides[`font/typeface/${short}`]) return
+        // Use override value if available, otherwise use token value
+        const overrideVal = overrides[`font/typeface/${short}`]
+        const val = (typeof overrideVal === 'string' && overrideVal.trim()) ? overrideVal.trim() : String((rec as any)?.$value || '').trim()
         if (isPopulated(val) && !seen.has(val)) {
           seen.add(val)
           const orderIndex = TOKEN_ORDER.indexOf(short)
@@ -198,6 +211,25 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         }
       })
     } catch { }
+
+    // Also add any override-only typefaces not in tokens
+    if (hasTypefaceOverrides) {
+      overrideTypefaceKeys.forEach(k => {
+        const short = k.replace('font/typeface/', '')
+        if (short.startsWith('$')) return
+        const val = String(overrides[k] || '').trim()
+        if (isPopulated(val) && !seen.has(val) && !typefaceTokens.some(t => t.short === short)) {
+          seen.add(val)
+          const orderIndex = TOKEN_ORDER.indexOf(short)
+          typefaceTokens.push({
+            short,
+            label: toTitleCase(short),
+            value: val,
+            order: orderIndex >= 0 ? orderIndex : 999
+          })
+        }
+      })
+    }
 
     // Collect family tokens (only if not already in typeface)
     const familyTokens: Array<{ short: string; label: string; value: string; order: number }> = []
