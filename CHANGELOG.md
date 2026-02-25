@@ -1,5 +1,12 @@
 # recursica-forge
 
+## 0.3.5
+
+### Patch Changes
+
+- 3a6765b: Variable ref fixes and JSON validation
+- 271b7fe: Fix for safari bug; bundling and lazy loading improvements
+
 ## 0.3.4
 
 ### Patch Changes
