@@ -100,13 +100,96 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     try {
       // Check both plural and singular forms
       const fontWeights = (tokens as any)?.tokens?.font?.weights || (tokens as any)?.tokens?.font?.weight || {}
+
+      let allowedWeightKeys: Set<string> | null = null
+
+      if (open && selectedPrefixes.length > 0) {
+        const fontRoot = (tokens as any)?.tokens?.font || (tokens as any)?.font || {}
+        const fontVariants = fontRoot.fontVariants || {}
+
+        let hasFontsWithVariants = false
+        const intersectingWeights = new Set<string>()
+        let isFirstFont = true
+
+        selectedPrefixes.forEach((prefix) => {
+          const cssVar = `--recursica-brand-typography-${prefixToCssVarName(prefix)}-font-family`
+          let cssValue = readCssVarResolved(cssVar) || readCssVar(cssVar) || ''
+
+          // Resolve var() chains
+          let depth = 0
+          while (cssValue.startsWith('var(') && depth < 5) {
+            const varMatch = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+            if (varMatch) {
+              cssValue = readCssVarResolved(varMatch[1]) || readCssVar(varMatch[1]) || ''
+            } else break
+            depth++
+          }
+
+          const fontNameMatch = cssValue.match(/^["']?([^"',]+)["']?/)
+          if (fontNameMatch) {
+            const cleanFontName = fontNameMatch[1].trim().toLowerCase()
+            let variants = fontVariants[cleanFontName]
+
+            // Fallback to older $extensions structure if missing
+            if (!variants || variants.length === 0) {
+              const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+              for (const [key, typefaceDef] of Object.entries(typefaces)) {
+                if (key.startsWith('$')) continue
+                const typeface = typefaceDef as any
+                const value = typeface?.$value
+                let typefaceFontName = ''
+                if (Array.isArray(value) && value.length > 0) {
+                  typefaceFontName = typeof value[0] === 'string' ? value[0].trim().replace(/^["']|["']$/g, '').toLowerCase() : ''
+                } else if (typeof value === 'string') {
+                  typefaceFontName = value.trim().replace(/^["']|["']$/g, '').toLowerCase()
+                }
+                if (typefaceFontName === cleanFontName) {
+                  const exts = typeface?.$extensions
+                  variants = exts?.['com.google.fonts']?.variants || exts?.variants
+                  break
+                }
+              }
+            }
+
+            if (variants && Array.isArray(variants) && variants.length > 0) {
+              hasFontsWithVariants = true
+              const fontWeightKeys = new Set<string>()
+              variants.forEach((variant: any) => {
+                if (variant && typeof variant === 'object' && typeof variant.weight === 'string') {
+                  const weightMatch = variant.weight.match(/\{tokens?\.font\.weights?\.([a-z0-9\-_]+)\}/i)
+                  if (weightMatch && weightMatch[1]) {
+                    fontWeightKeys.add(weightMatch[1])
+                  }
+                }
+              })
+
+              if (isFirstFont) {
+                fontWeightKeys.forEach((k) => intersectingWeights.add(k))
+                isFirstFont = false
+              } else {
+                const toRemove: string[] = []
+                intersectingWeights.forEach((k) => {
+                  if (!fontWeightKeys.has(k)) toRemove.push(k)
+                })
+                toRemove.forEach((k) => intersectingWeights.delete(k))
+              }
+            }
+          }
+        })
+
+        if (hasFontsWithVariants) {
+          allowedWeightKeys = intersectingWeights
+        }
+      }
+
       Object.entries(fontWeights).forEach(([k, rec]: [string, any]) => {
+        if (allowedWeightKeys && !allowedWeightKeys.has(k)) return
         const value = getTokenValue(rec)
         out.push({ short: k, label: toTitleCase(k), value })
       })
     } catch { }
     return out
-  }, [tokens])
+  }, [tokens, open, selectedPrefixes, updateKey])
   const spacingOptions = useMemo(() => {
     const out: Array<{ short: string; label: string; value?: number }> = []
     try {
@@ -271,9 +354,14 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
     // Extract fields and format label with font name in parentheses
     return allTokens.map(({ short, label, value }) => {
+      // Extract just the primary font name (e.g. "Lexend, sans-serif" -> "Lexend")
+      const cleanFontName = value && value.trim()
+        ? value.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
+        : ''
+
       // Format: "Primary (Lexend)" or just "Primary" if no value
-      const displayLabel = value && value.trim()
-        ? `${label} (${value})`
+      const displayLabel = cleanFontName
+        ? `${label} (${cleanFontName})`
         : label
       return { short, label: displayLabel, value }
     })
@@ -587,68 +675,81 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }, [updateCssVarValue])
 
   const handleTransformChange = useCallback((value: string) => {
-    // Map CSS values to token keys: 'none' -> 'original', 'uppercase' -> 'uppercase', 'lowercase' -> 'titlecase'
-    const tokenMap: Record<string, string> = { 'none': 'original', 'uppercase': 'uppercase', 'lowercase': 'titlecase', 'capitalize': 'titlecase' }
+    // Map CSS values to token keys: 'none' -> 'original', 'uppercase' -> 'uppercase', 'lowercase' -> 'lowercase', 'capitalize' -> 'titlecase'
+    const tokenMap: Record<string, string> = { 'none': 'original', 'uppercase': 'uppercase', 'lowercase': 'lowercase', 'capitalize': 'titlecase' }
     updateCssVarValue('text-transform', tokenMap[value] || value)
   }, [updateCssVarValue])
 
   // Get current family token short name (not the font value)
   const currentFamilyToken = useMemo(() => {
-    if (!prefix || !open) return ''
-    try {
-      // Read CSS variable and extract token name
-      const cssValue = readCssVar(familyCssVar) || readCssVarResolved(familyCssVar)
-      if (!cssValue) return ''
+    if (selectedPrefixes.length === 0 || !open) return ''
 
-      // First, try to extract token reference (for backwards compatibility)
-      const tokenMatch = cssValue.match(/var\(--recursica-tokens-font-(?:family|families|typeface|typefaces)-([^)]+)\)/)
-      if (tokenMatch) {
-        return tokenMatch[1]
-      }
+    const getTokenForCssVar = (cssVar: string): string => {
+      try {
+        // Read CSS variable and extract token name
+        const cssValue = readCssVar(cssVar) || readCssVarResolved(cssVar)
+        if (!cssValue) return ''
 
-      // If it's a var() reference, follow the chain
-      if (cssValue.startsWith('var(')) {
-        const varMatch = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
-        if (varMatch) {
-          const innerVar = varMatch[1].trim()
-          const innerValue = readCssVar(innerVar) || readCssVarResolved(innerVar)
-          if (innerValue) {
-            const innerTokenMatch = innerValue.match(/var\(--recursica-tokens-font-(?:family|families|typeface|typefaces)-([^)]+)\)/)
-            if (innerTokenMatch) {
-              return innerTokenMatch[1]
+        // First, try to extract token reference (for backwards compatibility)
+        const tokenMatch = cssValue.match(/var\(--recursica-tokens-font-(?:family|families|typeface|typefaces)-([^)]+)\)/)
+        if (tokenMatch) {
+          return tokenMatch[1]
+        }
+
+        // If it's a var() reference, follow the chain
+        if (cssValue.startsWith('var(')) {
+          const varMatch = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+          if (varMatch) {
+            const innerVar = varMatch[1].trim()
+            const innerValue = readCssVar(innerVar) || readCssVarResolved(innerVar)
+            if (innerValue) {
+              const innerTokenMatch = innerValue.match(/var\(--recursica-tokens-font-(?:family|families|typeface|typefaces)-([^)]+)\)/)
+              if (innerTokenMatch) {
+                return innerTokenMatch[1]
+              }
             }
           }
         }
-      }
 
-      // If no token reference found, try to match the actual font value against familyOptions
-      // The CSS variable now contains the actual font value like "Lexend"
-      // Extract the font name (first part before comma)
-      const fontNameMatch = cssValue.match(/^["']?([^"',]+)["']?/)
-      if (fontNameMatch) {
-        const fontName = fontNameMatch[1].trim()
-        // Try to find a matching option by comparing the font name
-        // Check both the value and the label (which might contain the font name in parentheses)
-        const matchingOption = familyOptions.find((o) => {
-          // Match by exact font name
-          if (o.value && o.value.trim() === fontName) return true
-          // Match by font name in label like "Primary (Lexend)"
-          if (o.label && o.label.includes(`(${fontName})`)) return true
-          // Match by checking if the token CSS variable contains this font name
-          const tokenCssVar = `--recursica-tokens-font-typefaces-${o.short}`
-          const tokenValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
-          if (tokenValue && tokenValue.includes(fontName)) return true
-          return false
-        })
-        if (matchingOption) {
-          return matchingOption.short
+        // If no token reference found, try to match the actual font value against familyOptions
+        const fontNameMatch = cssValue.match(/^["']?([^"',]+)["']?/)
+        if (fontNameMatch) {
+          const fontName = fontNameMatch[1].trim()
+          const matchingOption = familyOptions.find((o) => {
+            if (o.value && o.value.trim() === fontName) return true
+            if (o.label && o.label.includes(`(${fontName})`)) return true
+            const tokenCssVar = `--recursica-tokens-font-typefaces-${o.short}`
+            const tokenValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
+            if (tokenValue && tokenValue.includes(fontName)) return true
+            return false
+          })
+          if (matchingOption) {
+            return matchingOption.short
+          }
+        }
+      } catch (e) {
+        console.warn('Error reading current family token:', e)
+      }
+      return ''
+    }
+
+    // Get the first item's token
+    const firstCssVar = `--recursica-brand-typography-${prefixToCssVarName(selectedPrefixes[0])}-font-family`
+    const firstToken = getTokenForCssVar(firstCssVar)
+
+    // If there are multiple, verify they all match the first one
+    if (selectedPrefixes.length > 1) {
+      for (let i = 1; i < selectedPrefixes.length; i++) {
+        const nextCssVar = `--recursica-brand-typography-${prefixToCssVarName(selectedPrefixes[i])}-font-family`
+        const nextToken = getTokenForCssVar(nextCssVar)
+        if (nextToken !== firstToken) {
+          return '' // Multiple different font families selected
         }
       }
-    } catch (e) {
-      console.warn('Error reading current family token:', e)
     }
-    return ''
-  }, [familyCssVar, familyOptions, updateKey, prefix, open])
+
+    return firstToken
+  }, [selectedPrefixes, familyOptions, updateKey, open])
 
   const { mode } = useThemeMode()
 
@@ -760,7 +861,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
             {weightOptions.length > 0 ? (
               <Slider
-                value={sortedWeightTokens.findIndex(t => t.short === weightCurrentToken) || 0}
+                value={Math.max(0, sortedWeightTokens.findIndex(t => t.short === weightCurrentToken))}
                 onChange={(val) => {
                   const idx = typeof val === 'number' ? val : val[0]
                   const token = sortedWeightTokens[Math.round(idx)]
