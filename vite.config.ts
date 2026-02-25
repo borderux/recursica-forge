@@ -30,12 +30,12 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // React core
-          if (id.includes('node_modules/react/') ||
-            id.includes('node_modules/react-dom/') ||
-            id.includes('node_modules/react/jsx-runtime')) {
-            return 'react-vendor'
-          }
+          // React core (removed manual chunk to avoid initialization order issues with floating-ui)
+          // if (id.includes('node_modules/react/') ||
+          //   id.includes('node_modules/react-dom/') ||
+          //   id.includes('node_modules/react/jsx-runtime')) {
+          //   return 'react-vendor'
+          // }
           // MUI + Emotion must be in the SAME chunk to avoid Safari
           // initialization-order crash (Emotion styled helper must be
           // defined before MUI references it)
@@ -63,10 +63,10 @@ export default defineConfig({
             id.includes('node_modules/react-router/')) {
             return 'router'
           }
-          // Floating UI
-          if (id.includes('node_modules/@floating-ui/')) {
-            return 'floating-ui'
-          }
+          // Floating UI (removed manual chunk)
+          // if (id.includes('node_modules/@floating-ui/')) {
+          //   return 'floating-ui'
+          // }
         },
       },
     },
