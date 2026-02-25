@@ -157,31 +157,33 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
     const rows: FamilyRow[] = []
     const typefaceEntries: Array<{ name: string; value: string; key: string }> = []
 
-    try {
-      const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
-      const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
-      Object.keys(typefaces).filter((k) => !k.startsWith('$')).forEach((k) => {
-        const name = `font/typeface/${k}`
-        const val = typefaces[k]?.$value
-        const value = typeof val === 'string' && val ? val : ''
-        const overrideValue = overrides[name]
-        typefaceEntries.push({
-          name,
-          value: typeof overrideValue === 'string' && overrideValue ? overrideValue : value,
-          key: k
-        })
-      })
-    } catch { }
+    // Check if overrides contain any font/typeface keys
+    const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
+    const hasTypefaceOverrides = overrideTypefaceKeys.length > 0
 
-    Object.keys(overrides).forEach((name) => {
-      if (name.startsWith('font/typeface/')) {
+    if (hasTypefaceOverrides) {
+      // Overrides are the COMPLETE source of truth for typefaces
+      // Only include fonts that exist in overrides (deleted fonts are NOT in overrides)
+      overrideTypefaceKeys.forEach((name) => {
         const key = name.replace('font/typeface/', '')
-        if (!typefaceEntries.some(e => e.key === key)) {
-          const value = String(overrides[name] || '')
+        const value = String(overrides[name] || '').trim()
+        if (value) {
           typefaceEntries.push({ name, value, key })
         }
-      }
-    })
+      })
+    } else {
+      // No overrides — use store tokens as the source
+      try {
+        const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+        const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
+        Object.keys(typefaces).filter((k) => !k.startsWith('$')).forEach((k) => {
+          const name = `font/typeface/${k}`
+          const val = typefaces[k]?.$value
+          const value = typeof val === 'string' && val ? val : ''
+          typefaceEntries.push({ name, value, key: k })
+        })
+      } catch { }
+    }
 
     typefaceEntries.sort((a, b) => {
       const aIndex = ORDER.indexOf(a.key)
@@ -502,6 +504,38 @@ export default function FontFamiliesTokens() {
   useEffect(() => {
     const newRows = buildRows()
     setRows(newRows)
+
+    // Sync store tokens with overrides when overrides have typeface entries
+    // This ensures the store doesn't have stale defaults after font additions/deletions
+    const overrides = readOverrides()
+    const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
+    if (overrideTypefaceKeys.length > 0) {
+      setTimeout(() => {
+        try {
+          const store = getVarsStore()
+          const tokens = JSON.parse(JSON.stringify(store.getState().tokens)) as any
+          const fontRoot = tokens?.tokens?.font || tokens?.font || {}
+          const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+
+          // Remove typefaces not in overrides
+          Object.keys(typefaces).filter(k => !k.startsWith('$')).forEach(k => {
+            if (!overrides[`font/typeface/${k}`]) {
+              delete typefaces[k]
+              removeCssVar(`--recursica-tokens-font-typefaces-${k}`)
+            }
+          })
+
+          // Apply override values
+          overrideTypefaceKeys.forEach(k => {
+            const key = k.replace('font/typeface/', '')
+            if (!typefaces[key]) typefaces[key] = {}
+            typefaces[key].$value = String(overrides[k] || '')
+          })
+
+          store.setTokens(tokens)
+        } catch { }
+      }, 0)
+    }
   }, [tokensJson])
 
   useEffect(() => {
