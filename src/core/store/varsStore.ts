@@ -227,8 +227,73 @@ class VarsStore {
     if (this.lsAvailable) {
       const bundleVersion = computeBundleVersion(tokensImport, themeImport, uikitImport)
       const storedVersion = localStorage.getItem(STORAGE_KEYS.version)
+      console.log('[VarsStore] Version check:', { storedVersion, bundleVersion, match: storedVersion === bundleVersion })
       if (storedVersion !== bundleVersion) {
-        writeLSJson(STORAGE_KEYS.tokens, tokensImport)
+        console.log('[VarsStore] Version MISMATCH - running preservation code')
+        // Preserve user font customizations from previous state before resetting
+        // Font changes can be stored in EITHER rf:tokens OR token-overrides (or both)
+        let preservedTypefaces: Record<string, any> | null = null
+        try {
+          // Source 1: Check rf:tokens (store persistence)
+          const prevTokens = readLSJson(STORAGE_KEYS.tokens, null)
+          if (prevTokens) {
+            const prevFontRoot = (prevTokens as any)?.tokens?.font || (prevTokens as any)?.font || {}
+            const prevTypefaces = prevFontRoot?.typefaces || prevFontRoot?.typeface || {}
+            const staticFontRoot = (tokensImport as any)?.tokens?.font || (tokensImport as any)?.font || {}
+            const staticTypefaces = staticFontRoot?.typefaces || staticFontRoot?.typeface || {}
+
+            const prevKeys = Object.keys(prevTypefaces).filter(k => !k.startsWith('$'))
+            const staticKeys = Object.keys(staticTypefaces).filter(k => !k.startsWith('$'))
+
+            const hasChanges = prevKeys.length !== staticKeys.length || prevKeys.some(k => {
+              const prevVal = prevTypefaces[k]?.$value
+              const staticVal = staticTypefaces[k]?.$value
+              return JSON.stringify(prevVal) !== JSON.stringify(staticVal)
+            })
+
+            console.log('[VarsStore] rf:tokens check:', { prevKeys, staticKeys, hasChanges })
+            if (hasChanges && prevKeys.length > 0) {
+              preservedTypefaces = JSON.parse(JSON.stringify(prevTypefaces))
+              console.log('[VarsStore] Preserved from rf:tokens:', Object.keys(preservedTypefaces!))
+            }
+          }
+
+          // Source 2: Check token-overrides (override persistence from font page)
+          // This takes priority over rf:tokens since it reflects the most recent user actions
+          const overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
+          const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
+          console.log('[VarsStore] token-overrides font keys:', overrideTypefaceKeys)
+          if (overrideTypefaceKeys.length > 0) {
+            // Build typefaces from overrides — this is the most reliable source
+            preservedTypefaces = {}
+            overrideTypefaceKeys.forEach(k => {
+              const key = k.replace('font/typeface/', '')
+              if (key.startsWith('$')) return
+              const val = String(overrides[k] || '').trim()
+              if (val) {
+                preservedTypefaces![key] = { $value: val }
+              }
+            })
+          }
+        } catch { }
+
+        // Reset tokens to fresh import
+        const freshTokens = JSON.parse(JSON.stringify(tokensImport)) as any
+
+        // Merge preserved font typefaces back in
+        console.log('[VarsStore] Final preserved typefaces:', preservedTypefaces ? Object.entries(preservedTypefaces).map(([k, v]: [string, any]) => `${k}: ${v?.$value}`) : 'NONE')
+        if (preservedTypefaces && Object.keys(preservedTypefaces).length > 0) {
+          const fontRoot = freshTokens?.tokens?.font || freshTokens?.font || {}
+          if (fontRoot.typefaces) {
+            fontRoot.typefaces = preservedTypefaces
+          } else if (fontRoot.typeface) {
+            fontRoot.typeface = preservedTypefaces
+          } else {
+            fontRoot.typefaces = preservedTypefaces
+          }
+        }
+
+        writeLSJson(STORAGE_KEYS.tokens, freshTokens)
         const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
         writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
         writeLSJson(STORAGE_KEYS.uikit, uikitImport)
@@ -264,8 +329,10 @@ class VarsStore {
         } catch { }
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
         // Sort font token objects when resetting to maintain consistent order
-        const sortedTokens = sortFontTokenObjects(tokensImport as any)
+        const sortedTokens = sortFontTokenObjects(freshTokens as any)
         this.state = { tokens: sortedTokens, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any, sortedTokens), version: (this.state?.version || 0) + 1 }
+      } else {
+        console.log('[VarsStore] Version MATCH - no reset needed')
       }
       // Ensure keys exist
       if (!localStorage.getItem(STORAGE_KEYS.tokens)) writeLSJson(STORAGE_KEYS.tokens, this.state.tokens)
@@ -462,22 +529,16 @@ class VarsStore {
     }) as EventListener
     window.addEventListener('cssVarsUpdated', onCssVarsUpdated)
 
-    // Run resetAll once after initialization completes
-    // Use setTimeout to ensure all async operations (like initAAWatcher) complete first
+    // Ensure AA compliance check runs on initial load once watcher is ready
     if (!this.hasRunInitialReset) {
       this.hasRunInitialReset = true
-      // Wait for AA watcher to be initialized before calling resetAll
+      // Use setTimeout to allow async operations (like initAAWatcher) to complete
       setTimeout(() => {
-        // Double-check that AA watcher is ready (it's initialized asynchronously)
-        if (this.aaWatcher) {
-          this.resetAll()
-        } else {
-          // If watcher isn't ready yet, wait a bit more and try again
-          setTimeout(() => {
-            this.resetAll()
-          }, 200)
+        if (this.aaWatcher && !this.hasRunInitialAA) {
+          this.aaWatcher.checkAllPaletteOnTones()
+          this.updateCoreColorOnTonesForAA()
         }
-      }, 300) // Initial delay to ensure all initialization is complete
+      }, 300)
     }
   }
 
@@ -568,6 +629,44 @@ class VarsStore {
 
   setTokens(next: JsonLike) { this.writeState({ tokens: next }) }
   setTheme(next: JsonLike) { this.writeState({ theme: next }) }
+  public syncFontsToTokens() {
+    try {
+      const storedFontsRaw = localStorage.getItem('rf:fonts')
+      if (!storedFontsRaw) return
+      const storedFonts = JSON.parse(storedFontsRaw)
+      if (Array.isArray(storedFonts)) {
+        const tokens = JSON.parse(JSON.stringify(this.state.tokens))
+        const fontRoot = tokens?.tokens?.font || tokens?.font || {}
+        if (!fontRoot.typefaces) fontRoot.typefaces = {}
+        if (!fontRoot.families) fontRoot.families = {}
+        const typefaces = fontRoot.typefaces
+        const families = fontRoot.families
+
+        // Keep $ variables but remove all font instances
+        Object.keys(typefaces).forEach(k => { if (!k.startsWith('$')) delete typefaces[k] })
+        Object.keys(families).forEach(k => { if (!k.startsWith('$')) delete families[k] })
+
+        storedFonts.forEach(font => {
+          if (font.id && font.family) {
+            const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
+            typefaces[font.id] = { $value: cleanFamily }
+            families[font.id] = { $value: cleanFamily }
+
+            // Restore the extensions for Google Fonts URL
+            if (font.url) {
+              typefaces[font.id].$extensions = { 'com.google.fonts': { url: font.url } }
+              families[font.id].$extensions = { 'com.google.fonts': { url: font.url } }
+            }
+          }
+        })
+
+        this.setTokens(tokens)
+      }
+    } catch (e) {
+      console.warn('Failed to sync fonts to tokens', e)
+    }
+  }
+
   setUiKit(next: JsonLike) { this.writeState({ uikit: next }) }
 
   /**
@@ -973,9 +1072,10 @@ class VarsStore {
         localStorage.removeItem('elevation-directions')
       } catch { }
 
-      // Explicitly clear dynamic-palettes to remove added palettes
+      // Explicitly clear dynamic-palettes and fonts to remove added palettes/fonts
       try {
         localStorage.removeItem('dynamic-palettes')
+        localStorage.removeItem('rf:fonts')
       } catch { }
 
       writeLSJson(STORAGE_KEYS.tokens, tokensImport)
@@ -1834,6 +1934,125 @@ class VarsStore {
         }
       } catch (e) {
         console.error('[VarsStore] Error generating font cases/decorations CSS variables:', e)
+      }
+      // Tokens: expose ALL font token categories as CSS vars
+      // This ensures font CSS variables are available on every page, not just the font tokens page
+      try {
+        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+        const fontRoot: any = tokensRoot?.font || {}
+        const vars: Record<string, string> = {}
+
+        // Read font typefaces exclusively from rf:fonts local storage
+        let storedFonts: any[] = []
+        try {
+          if (typeof localStorage !== 'undefined') {
+            const raw = localStorage.getItem('rf:fonts')
+            if (raw) storedFonts = JSON.parse(raw)
+          }
+        } catch { }
+
+        // Font typefaces (e.g., --recursica-tokens-font-typefaces-primary)
+        // First, CLEAR all existing font typeface CSS vars from the DOM to remove stale deleted ones
+        if (typeof document !== 'undefined') {
+          const docStyle = document.documentElement.style
+          const propsToRemove: string[] = []
+          for (let i = 0; i < docStyle.length; i++) {
+            const prop = docStyle[i]
+            if (prop && (prop.startsWith('--recursica-tokens-font-typefaces-') || prop.startsWith('--recursica-tokens-font-families-'))) {
+              propsToRemove.push(prop)
+            }
+          }
+          propsToRemove.forEach(prop => docStyle.removeProperty(prop))
+        }
+
+        if (Array.isArray(storedFonts)) {
+          storedFonts.forEach(font => {
+            if (font.id && font.family) {
+              const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
+              vars[`--recursica-tokens-font-typefaces-${font.id}`] = cleanFamily
+              vars[`--recursica-tokens-font-families-${font.id}`] = cleanFamily
+            }
+          })
+        }
+
+        // Font weights (e.g., --recursica-tokens-font-weights-regular)
+        const weights: any = fontRoot?.weights || fontRoot?.weight || {}
+        if (weights && typeof weights === 'object') {
+          Object.keys(weights).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = weights[key]
+            const val = rec?.$value !== undefined ? rec.$value : rec
+            if (val !== undefined && val !== null) {
+              vars[`--recursica-tokens-font-weights-${key}`] = String(val)
+            }
+          })
+        }
+
+        // Font sizes (e.g., --recursica-tokens-font-sizes-md)
+        const sizes: any = fontRoot?.sizes || fontRoot?.size || {}
+        if (sizes && typeof sizes === 'object') {
+          Object.keys(sizes).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = sizes[key]
+            const val = rec?.$value
+            if (val !== undefined && val !== null) {
+              const num = typeof val === 'number' ? val : Number(val)
+              if (Number.isFinite(num)) {
+                vars[`--recursica-tokens-font-sizes-${key}`] = `${num}px`
+              } else if (typeof val === 'string') {
+                vars[`--recursica-tokens-font-sizes-${key}`] = val
+              }
+            }
+          })
+        }
+
+        // Font letter-spacings (e.g., --recursica-tokens-font-letter-spacings-default)
+        const letterSpacings: any = fontRoot?.['letter-spacings'] || fontRoot?.['letter-spacing'] || {}
+        if (letterSpacings && typeof letterSpacings === 'object') {
+          Object.keys(letterSpacings).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = letterSpacings[key]
+            const val = rec?.$value
+            if (val !== undefined && val !== null) {
+              const num = typeof val === 'number' ? val : Number(val)
+              if (Number.isFinite(num)) {
+                vars[`--recursica-tokens-font-letter-spacings-${key}`] = `${num}em`
+              } else if (typeof val === 'string') {
+                vars[`--recursica-tokens-font-letter-spacings-${key}`] = val
+              }
+            }
+          })
+        }
+
+        // Font line-heights (e.g., --recursica-tokens-font-line-heights-normal)
+        const lineHeights: any = fontRoot?.['line-heights'] || fontRoot?.['line-height'] || {}
+        if (lineHeights && typeof lineHeights === 'object') {
+          Object.keys(lineHeights).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = lineHeights[key]
+            const val = rec?.$value
+            if (val !== undefined && val !== null) {
+              vars[`--recursica-tokens-font-line-heights-${key}`] = String(val)
+            }
+          })
+        }
+
+        // Font styles (e.g., --recursica-tokens-font-styles-normal)
+        const styles: any = fontRoot?.styles || fontRoot?.style || {}
+        if (styles && typeof styles === 'object') {
+          Object.keys(styles).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = styles[key]
+            const val = rec?.$value
+            if (typeof val === 'string' && val.trim()) {
+              vars[`--recursica-tokens-font-styles-${key}`] = val.trim()
+            }
+          })
+        }
+
+        Object.assign(allVars, vars)
+      } catch (e) {
+        console.error('[VarsStore] Error generating font token CSS variables:', e)
       }
       // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
       // Generate for both light and dark modes
