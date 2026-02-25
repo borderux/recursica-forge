@@ -1912,6 +1912,19 @@ class VarsStore {
         const hasTypefaceOverrides = overrideTypefaceKeys.length > 0
 
         // Font typefaces (e.g., --recursica-tokens-font-typefaces-primary)
+        // First, CLEAR all existing font typeface CSS vars from the DOM to remove stale deleted ones
+        if (typeof document !== 'undefined') {
+          const docStyle = document.documentElement.style
+          const propsToRemove: string[] = []
+          for (let i = 0; i < docStyle.length; i++) {
+            const prop = docStyle[i]
+            if (prop && prop.startsWith('--recursica-tokens-font-typefaces-')) {
+              propsToRemove.push(prop)
+            }
+          }
+          propsToRemove.forEach(prop => docStyle.removeProperty(prop))
+        }
+
         const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
         if (typefaces && typeof typefaces === 'object') {
           if (hasTypefaceOverrides) {

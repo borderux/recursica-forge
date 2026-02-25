@@ -25,6 +25,37 @@ export function bootstrapTheme() {
 
     const store = getVarsStore()
 
+    // Sync store tokens with font overrides from token-overrides
+    // When overrides have font/typeface entries, they represent the COMPLETE set of user fonts
+    // (deleted fonts are excluded from overrides)
+    try {
+      const overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
+      const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
+      if (overrideTypefaceKeys.length > 0) {
+        const tokens = JSON.parse(JSON.stringify(store.getState().tokens)) as any
+        const fontRoot = tokens?.tokens?.font || tokens?.font || {}
+        const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+
+        // Remove typefaces not in overrides (these were deleted by the user)
+        Object.keys(typefaces).filter(k => !k.startsWith('$')).forEach(k => {
+          if (!overrides[`font/typeface/${k}`]) {
+            delete typefaces[k]
+          }
+        })
+
+        // Apply override values
+        overrideTypefaceKeys.forEach(k => {
+          const key = k.replace('font/typeface/', '')
+          if (!typefaces[key]) typefaces[key] = {}
+          typefaces[key].$value = String(overrides[k] || '')
+        })
+
+        store.setTokens(tokens)
+      }
+    } catch (e) {
+      console.warn('[Bootstrap] Failed to sync font overrides:', e)
+    }
+
     // Load stored custom fonts (npm/git sources) and fonts from tokens on startup
     if (typeof window !== 'undefined') {
       // Use dynamic import to avoid circular dependencies
