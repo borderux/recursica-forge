@@ -9,7 +9,7 @@ import { Switch } from '../../../components/adapters/Switch'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 
 export default function SizeTokens() {
-  const { tokens: tokensJson, resetAll, updateToken } = useVars()
+  const { tokens: tokensJson, resetAll, updateToken, recomputeAndApplyAll } = useVars()
   const { mode } = useThemeMode()
   // Store original values from JSON import (exclude elevation tokens - those are only in brand, not tokens)
   const originalValues = useMemo(() => {
@@ -171,6 +171,8 @@ export default function SizeTokens() {
     try {
       window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, reset: true } }))
     } catch { }
+
+    recomputeAndApplyAll()
   }
 
   const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
@@ -251,6 +253,7 @@ export default function SizeTokens() {
                         setOverride(it.name, computed)
                       }
                     })
+                    recomputeAndApplyAll()
                   }
                 }
                 // When disabling, values will be read from store/overrides which have the original values
@@ -319,7 +322,7 @@ export default function SizeTokens() {
               gap: 'var(--recursica-brand-dimensions-general-md)',
               alignItems: 'center',
               paddingTop: 0,
-              paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-gutters-vertical)',
+              paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-general-default)',
             }}>
               <label htmlFor={it.name} style={{
                 fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
@@ -373,8 +376,12 @@ export default function SizeTokens() {
                         delete next[it.name]
                         return next
                       })
+
+                      recomputeAndApplyAll()
                     } else if (!scaleByDefault) {
                       // Already updated in onChange when auto scale is disabled
+                      // But we still need to recalculate CSS variables that reference this size token
+                      recomputeAndApplyAll()
                     }
                   }}
                   min={0}

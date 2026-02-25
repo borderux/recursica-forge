@@ -1269,6 +1269,33 @@ export default function FontFamiliesTokens() {
                 }
               }
 
+              // Update stored fonts (rf:fonts) so the rows array reflects the sequence change
+              const fonts = getStoredFonts()
+              const oldFontIndex = fonts.findIndex(f => f.id === oldKey)
+              const newFontIndex = fonts.findIndex(f => f.id === newKey)
+
+              if (oldFontIndex !== -1 && newFontIndex !== -1) {
+                // Swap IDs
+                fonts[oldFontIndex].id = newKey
+                fonts[newFontIndex].id = oldKey
+              } else if (oldFontIndex !== -1) {
+                // Just change ID
+                fonts[oldFontIndex].id = newKey
+              }
+
+              // Re-sort the fonts based on ORDER
+              fonts.sort((a, b) => {
+                const aIndex = ORDER.indexOf(a.id)
+                const bIndex = ORDER.indexOf(b.id)
+                if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex
+                if (aIndex !== -1) return -1
+                if (bIndex !== -1) return 1
+                return a.id.localeCompare(b.id)
+              })
+
+              saveStoredFonts(fonts)
+              setRows(buildRows())
+
               // Update store with resequenced tokens
               store.setTokens(tokens)
             }
