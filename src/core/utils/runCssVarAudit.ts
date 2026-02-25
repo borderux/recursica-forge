@@ -496,13 +496,15 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
 
   // Auto-run audit only in development mode after app fully initializes
   // and only if the user has enabled auto-run via the header switch
-  if ((import.meta.env.DEV || process.env.NODE_ENV === 'development') && getCssAuditAutoRun()) {
+  if (import.meta.env.DEV || process.env.NODE_ENV === 'development') {
     const runAuditWhenReady = () => {
-      // Wait for app to be fully loaded, then run audit
-      setTimeout(() => {
-        // Run audit with silent=false to show results
-        runCssVarAudit(false)
-      }, 2000) // 2 second delay to ensure all CSS vars are applied
+      if (getCssAuditAutoRun()) {
+        // Wait for app to be fully loaded, then run audit
+        setTimeout(() => {
+          // Run audit with silent=false to show results
+          runCssVarAudit(false)
+        }, 2000) // 2 second delay to ensure all CSS vars are applied
+      }
     }
 
     // Start after DOM is ready
