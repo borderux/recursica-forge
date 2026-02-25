@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.3.8
+
+### Patch Changes
+
+- a37bd2f: minor fixes and console removals from prod in build process
+
 ## 0.3.7
 
 ### Patch Changes
