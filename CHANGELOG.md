@@ -1,5 +1,15 @@
 # recursica-forge
 
+## 0.3.6
+
+### Patch Changes
+
+- cd3b788: Fix for type issues
+- 7a64dd9: Fix for bug
+- 7a64dd9: Fix for modal max height
+- d878d7c: Fix for safari bug; bundling and lazy loading improvements
+- d878d7c: Trying to fix safari loading issue again
+
 ## 0.3.5
 
 ### Patch Changes
