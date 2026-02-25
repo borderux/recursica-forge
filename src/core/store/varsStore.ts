@@ -227,9 +227,7 @@ class VarsStore {
     if (this.lsAvailable) {
       const bundleVersion = computeBundleVersion(tokensImport, themeImport, uikitImport)
       const storedVersion = localStorage.getItem(STORAGE_KEYS.version)
-      console.log('[VarsStore] Version check:', { storedVersion, bundleVersion, match: storedVersion === bundleVersion })
       if (storedVersion !== bundleVersion) {
-        console.log('[VarsStore] Version MISMATCH - running preservation code')
         // Preserve user font customizations from previous state before resetting
         // Font changes can be stored in EITHER rf:tokens OR token-overrides (or both)
         let preservedTypefaces: Record<string, any> | null = null
@@ -251,10 +249,8 @@ class VarsStore {
               return JSON.stringify(prevVal) !== JSON.stringify(staticVal)
             })
 
-            console.log('[VarsStore] rf:tokens check:', { prevKeys, staticKeys, hasChanges })
             if (hasChanges && prevKeys.length > 0) {
               preservedTypefaces = JSON.parse(JSON.stringify(prevTypefaces))
-              console.log('[VarsStore] Preserved from rf:tokens:', Object.keys(preservedTypefaces!))
             }
           }
 
@@ -262,7 +258,6 @@ class VarsStore {
           // This takes priority over rf:tokens since it reflects the most recent user actions
           const overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
           const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
-          console.log('[VarsStore] token-overrides font keys:', overrideTypefaceKeys)
           if (overrideTypefaceKeys.length > 0) {
             // Build typefaces from overrides — this is the most reliable source
             preservedTypefaces = {}
@@ -281,7 +276,6 @@ class VarsStore {
         const freshTokens = JSON.parse(JSON.stringify(tokensImport)) as any
 
         // Merge preserved font typefaces back in
-        console.log('[VarsStore] Final preserved typefaces:', preservedTypefaces ? Object.entries(preservedTypefaces).map(([k, v]: [string, any]) => `${k}: ${v?.$value}`) : 'NONE')
         if (preservedTypefaces && Object.keys(preservedTypefaces).length > 0) {
           const fontRoot = freshTokens?.tokens?.font || freshTokens?.font || {}
           if (fontRoot.typefaces) {
@@ -331,8 +325,6 @@ class VarsStore {
         // Sort font token objects when resetting to maintain consistent order
         const sortedTokens = sortFontTokenObjects(freshTokens as any)
         this.state = { tokens: sortedTokens, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any, sortedTokens), version: (this.state?.version || 0) + 1 }
-      } else {
-        console.log('[VarsStore] Version MATCH - no reset needed')
       }
       // Ensure keys exist
       if (!localStorage.getItem(STORAGE_KEYS.tokens)) writeLSJson(STORAGE_KEYS.tokens, this.state.tokens)

@@ -14,6 +14,9 @@ export default defineConfig({
     // Individual icon imports will still work fine
     exclude: ['phosphor-react'],
   },
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
