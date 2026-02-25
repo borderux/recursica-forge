@@ -25,36 +25,6 @@ export function bootstrapTheme() {
 
     const store = getVarsStore()
 
-    // Apply font typeface overrides from localStorage to store tokens
-    // This ensures the store reflects user changes (added/deleted/resequenced fonts) on startup
-    try {
-      const overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
-      const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
-      if (overrideTypefaceKeys.length > 0) {
-        const tokens = JSON.parse(JSON.stringify(store.getState().tokens)) as any
-        const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-        const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
-
-        // Remove typeface keys not in overrides
-        Object.keys(typefaces).filter(k => !k.startsWith('$')).forEach(k => {
-          if (!overrides[`font/typeface/${k}`]) {
-            delete typefaces[k]
-          }
-        })
-
-        // Apply override values
-        overrideTypefaceKeys.forEach(k => {
-          const key = k.replace('font/typeface/', '')
-          if (!typefaces[key]) typefaces[key] = {}
-          typefaces[key].$value = String(overrides[k] || '')
-        })
-
-        store.setTokens(tokens)
-      }
-    } catch (e) {
-      console.warn('[Bootstrap] Failed to apply font overrides:', e)
-    }
-
     // Load stored custom fonts (npm/git sources) and fonts from tokens on startup
     if (typeof window !== 'undefined') {
       // Use dynamic import to avoid circular dependencies

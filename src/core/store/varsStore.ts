@@ -228,7 +228,48 @@ class VarsStore {
       const bundleVersion = computeBundleVersion(tokensImport, themeImport, uikitImport)
       const storedVersion = localStorage.getItem(STORAGE_KEYS.version)
       if (storedVersion !== bundleVersion) {
-        writeLSJson(STORAGE_KEYS.tokens, tokensImport)
+        // Preserve user font customizations from previous tokens before resetting
+        let preservedTypefaces: Record<string, any> | null = null
+        try {
+          const prevTokens = readLSJson(STORAGE_KEYS.tokens, null)
+          if (prevTokens) {
+            const prevFontRoot = (prevTokens as any)?.tokens?.font || (prevTokens as any)?.font || {}
+            const prevTypefaces = prevFontRoot?.typefaces || prevFontRoot?.typeface || {}
+            const staticFontRoot = (tokensImport as any)?.tokens?.font || (tokensImport as any)?.font || {}
+            const staticTypefaces = staticFontRoot?.typefaces || staticFontRoot?.typeface || {}
+
+            // Check if user has modified typefaces (different from static import)
+            const prevKeys = Object.keys(prevTypefaces).filter(k => !k.startsWith('$'))
+            const staticKeys = Object.keys(staticTypefaces).filter(k => !k.startsWith('$'))
+
+            const hasChanges = prevKeys.length !== staticKeys.length || prevKeys.some(k => {
+              const prevVal = prevTypefaces[k]?.$value
+              const staticVal = staticTypefaces[k]?.$value
+              return JSON.stringify(prevVal) !== JSON.stringify(staticVal)
+            })
+
+            if (hasChanges && prevKeys.length > 0) {
+              preservedTypefaces = JSON.parse(JSON.stringify(prevTypefaces))
+            }
+          }
+        } catch { }
+
+        // Reset tokens to fresh import
+        const freshTokens = JSON.parse(JSON.stringify(tokensImport)) as any
+
+        // Merge preserved font typefaces back in
+        if (preservedTypefaces) {
+          const fontRoot = freshTokens?.tokens?.font || freshTokens?.font || {}
+          if (fontRoot.typefaces) {
+            fontRoot.typefaces = preservedTypefaces
+          } else if (fontRoot.typeface) {
+            fontRoot.typeface = preservedTypefaces
+          } else {
+            fontRoot.typefaces = preservedTypefaces
+          }
+        }
+
+        writeLSJson(STORAGE_KEYS.tokens, freshTokens)
         const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
         writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
         writeLSJson(STORAGE_KEYS.uikit, uikitImport)
@@ -264,7 +305,7 @@ class VarsStore {
         } catch { }
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
         // Sort font token objects when resetting to maintain consistent order
-        const sortedTokens = sortFontTokenObjects(tokensImport as any)
+        const sortedTokens = sortFontTokenObjects(freshTokens as any)
         this.state = { tokens: sortedTokens, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any, sortedTokens), version: (this.state?.version || 0) + 1 }
       }
       // Ensure keys exist
