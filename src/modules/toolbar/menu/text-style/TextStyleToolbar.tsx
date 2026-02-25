@@ -121,13 +121,10 @@ export default function TextStyleToolbar({
           let fontName = ''
 
           if (resolvedValue) {
-            // Extract font name from resolved value (e.g., "Lexend" or "Lexend, sans-serif" -> "Lexend")
-            // Remove quotes if present
-            const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
-            // Take the first part before comma (font name)
-            const fontNameMatch = cleanValue.match(/^([^,]+)/)
-            if (fontNameMatch) {
-              fontName = fontNameMatch[1].trim()
+            // Extract just the primary font name (e.g. "Lexend, sans-serif" -> "Lexend")
+            const cleanFontName = resolvedValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
+            if (cleanFontName) {
+              fontName = cleanFontName
             }
           }
 

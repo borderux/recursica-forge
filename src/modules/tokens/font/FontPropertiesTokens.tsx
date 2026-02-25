@@ -10,6 +10,7 @@ import { Button } from '../../../components/adapters/Button'
 import { Switch } from '../../../components/adapters/Switch'
 import { Tabs as TabsAdapter } from '../../../components/adapters/Tabs'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
+import { clearStoredFonts } from '../../../core/store/fontStore'
 import tokensImport from '../../../vars/Tokens.json'
 
 export default function FontPropertiesTokens() {
@@ -50,7 +51,7 @@ export default function FontPropertiesTokens() {
     // Reset font token values based on active tab
     try {
       const fontRoot: any = (tokensImport as any)?.tokens?.font || (tokensImport as any)?.font || {}
-      
+
       if (activeTab === 'size') {
         // Reset all font size tokens to defaults
         const sizes: any = fontRoot?.sizes || fontRoot?.size || {}
@@ -85,34 +86,27 @@ export default function FontPropertiesTokens() {
     } catch (error) {
       console.error('Failed to reset font tokens:', error)
     }
-    
+
     // Remove all font/typeface overrides that aren't in the original JSON
     const all = readOverrides()
     const updated: Record<string, any> = {}
-    
+
     // Keep all non-font/typeface overrides
     Object.keys(all).forEach((k) => {
       if (!k.startsWith('font/typeface/')) {
         updated[k] = all[k]
       }
     })
-    
-    // Restore font/typeface values from JSON only (removes any added fonts)
-    try {
-      const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
-      const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
-      Object.keys(typefaces).filter((k) => !k.startsWith('$')).forEach((k) => {
-        const val = typefaces[k]?.$value
-        updated[`font/typeface/${k}`] = typeof val === 'string' && val ? val : ''
-      })
-    } catch {}
-    
+
+    // Clear rf:fonts local storage
+    clearStoredFonts()
+
     writeOverrides(updated)
-    
+
     // Dispatch event with reset flag to trigger FontFamiliesTokens to rebuild
     try {
       window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, reset: true } }))
-    } catch {}
+    } catch { }
   }
 
   return (
@@ -173,8 +167,8 @@ export default function FontPropertiesTokens() {
               <Switch
                 checked={
                   activeTab === 'size' ? autoScaleSize :
-                  activeTab === 'letter-spacing' ? autoScaleLetterSpacing :
-                  autoScaleLineHeight
+                    activeTab === 'letter-spacing' ? autoScaleLetterSpacing :
+                      autoScaleLineHeight
                 }
                 onChange={(checked) => {
                   if (activeTab === 'size') {
