@@ -25,42 +25,13 @@ export function bootstrapTheme() {
 
     const store = getVarsStore()
 
-    // Sync store tokens with font overrides from token-overrides
-    // When overrides have font/typeface entries, they represent the COMPLETE set of user fonts
-    // (deleted fonts are excluded from overrides)
-    try {
-      const overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
-      const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
-      if (overrideTypefaceKeys.length > 0) {
-        const tokens = JSON.parse(JSON.stringify(store.getState().tokens)) as any
-        const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-        const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
 
-        // Remove typefaces not in overrides (these were deleted by the user)
-        Object.keys(typefaces).filter(k => !k.startsWith('$')).forEach(k => {
-          if (!overrides[`font/typeface/${k}`]) {
-            delete typefaces[k]
-          }
-        })
-
-        // Apply override values
-        overrideTypefaceKeys.forEach(k => {
-          const key = k.replace('font/typeface/', '')
-          if (!typefaces[key]) typefaces[key] = {}
-          typefaces[key].$value = String(overrides[k] || '')
-        })
-
-        store.setTokens(tokens)
-      }
-    } catch (e) {
-      console.warn('[Bootstrap] Failed to sync font overrides:', e)
-    }
 
     // Load stored custom fonts (npm/git sources) and fonts from tokens on startup
     if (typeof window !== 'undefined') {
       // Use dynamic import to avoid circular dependencies
       // Import once and use all needed functions
-      import('../modules/type/fontUtils').then(async ({ loadStoredCustomFonts, loadFontsFromTokens, ensureFontLoaded, ensureGoogleFontsPreconnect }) => {
+      import('../modules/type/fontUtils').then(async ({ loadStoredCustomFonts, loadFontsFromStore, ensureFontLoaded, ensureGoogleFontsPreconnect }) => {
         // Ensure preconnect links are added early for performance
         ensureGoogleFontsPreconnect()
 
@@ -69,12 +40,10 @@ export function bootstrapTheme() {
           console.warn('[Bootstrap] Failed to load some custom fonts:', error)
         })
 
-        // Load fonts from token values FIRST to populate fontUrlMap
+        // Load fonts from store FIRST to populate fontUrlMap
         // This MUST complete before recomputeAndApplyAll tries to load fonts
-        // This will load all fonts from Tokens.json including those with URLs in extensions
-        // Pass the CURRENT store tokens (which now include overrides) instead of static import
-        await loadFontsFromTokens(store.getState().tokens).catch((error) => {
-          console.warn('[Bootstrap] Failed to load fonts from tokens:', error)
+        await loadFontsFromStore().catch((error) => {
+          console.warn('[Bootstrap] Failed to load fonts from store:', error)
         })
 
         // Now trigger recompute which will also load fonts, but fontUrlMap is already populated
