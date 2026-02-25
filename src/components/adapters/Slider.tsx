@@ -377,6 +377,30 @@ export function Slider({
             step={step}
             value={singleValue}
             onChange={handleChange}
+            onMouseUp={() => {
+              if (onChangeCommitted) {
+                if (isRange) onChangeCommitted([singleValue, value[1]]);
+                else onChangeCommitted(singleValue);
+              }
+            }}
+            onTouchEnd={() => {
+              if (onChangeCommitted) {
+                if (isRange) onChangeCommitted([singleValue, value[1]]);
+                else onChangeCommitted(singleValue);
+              }
+            }}
+            onKeyUp={(e) => {
+              if (onChangeCommitted && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Home' || e.key === 'End' || e.key === 'PageUp' || e.key === 'PageDown')) {
+                if (isRange) onChangeCommitted([singleValue, value[1]]);
+                else onChangeCommitted(singleValue);
+              }
+            }}
+            onBlur={() => {
+              if (onChangeCommitted) {
+                if (isRange) onChangeCommitted([singleValue, value[1]]);
+                else onChangeCommitted(singleValue);
+              }
+            }}
             disabled={disabled}
             title={computedTooltipText}
             style={{

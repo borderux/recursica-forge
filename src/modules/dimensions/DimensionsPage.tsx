@@ -31,7 +31,7 @@ function toTitleCase(str: string): string {
 
 function getSizeOrder(label: string): number {
   const normalized = label.toLowerCase()
-  
+
   // Define size order from smallest to largest
   const sizeOrder: Record<string, number> = {
     'none': 0,
@@ -47,12 +47,12 @@ function getSizeOrder(label: string): number {
     '5xl': 10,
     '6xl': 11,
   }
-  
+
   // Check if it's a known size name
   if (sizeOrder.hasOwnProperty(normalized)) {
     return sizeOrder[normalized]
   }
-  
+
   // For unknown names (like "horizontal", "vertical"), put them after known sizes
   // Use a large base number + alphabetical order
   return 1000 + normalized.charCodeAt(0)
@@ -80,7 +80,7 @@ export default function DimensionsPage() {
           tokens.push({ name: k, value: num, label })
         }
       })
-    } catch {}
+    } catch { }
     return tokens.sort((a, b) => {
       // Sort by numeric value only (lowest to highest) so slider stops are in increasing order
       return a.value - b.value
@@ -112,7 +112,7 @@ export default function DimensionsPage() {
               }
             }
             const cssVarName = `--recursica-brand-dimensions-${currentPath.join('-')}`
-            
+
             // Read current pixel value from CSS variable
             let currentValue = 0
             try {
@@ -123,8 +123,8 @@ export default function DimensionsPage() {
                   currentValue = parseFloat(match[1])
                 }
               }
-            } catch {}
-            
+            } catch { }
+
             entries.push({ path: currentPath, label: toTitleCase(key), currentToken: tokenName, cssVar: cssVarName, currentValue })
           } else if (value && typeof value === 'object') {
             // Continue traversing (don't pass labelPrefix to avoid prefixing)
@@ -134,7 +134,7 @@ export default function DimensionsPage() {
       }
 
       traverse(dims, [], '')
-    } catch {}
+    } catch { }
     return entries
   }, [themeJson])
 
@@ -145,7 +145,7 @@ export default function DimensionsPage() {
   const findClosestTokenIndex = (pixelValue: number): number => {
     let closestIndex = 0
     let minDiff = Infinity
-    
+
     availableSizeTokens.forEach((token, index) => {
       const diff = Math.abs(token.value - pixelValue)
       if (diff < minDiff) {
@@ -153,7 +153,7 @@ export default function DimensionsPage() {
         closestIndex = index
       }
     })
-    
+
     return closestIndex
   }
 
@@ -212,19 +212,19 @@ export default function DimensionsPage() {
   // Define section order (matching actual category names from dimensions)
   // Note: 'text-size' is excluded as users cannot change text sizes
   const sectionOrder = ['general', 'icons', 'gutters', 'border-radii']
-  
+
   // Sort category keys according to section order, then alphabetically for any not in the order
   // Filter out 'text-size' category completely
   const categoryKeys = useMemo(() => {
     const ordered: (string | undefined)[] = new Array(sectionOrder.length).fill(undefined)
     const unordered: string[] = []
-    
+
     Object.keys(groupedDimensions).forEach((key) => {
       // Hide text-size category completely
       if (key.toLowerCase() === 'text-size') {
         return
       }
-      
+
       const normalizedKey = key.toLowerCase()
       const orderIndex = sectionOrder.findIndex(orderedKey => normalizedKey === orderedKey.toLowerCase())
       if (orderIndex !== -1) {
@@ -233,7 +233,7 @@ export default function DimensionsPage() {
         unordered.push(key)
       }
     })
-    
+
     return [...ordered.filter((k): k is string => k !== undefined), ...unordered.sort()]
   }, [groupedDimensions])
 
@@ -284,7 +284,7 @@ export default function DimensionsPage() {
     })
 
     setTheme(themeCopy)
-    
+
     // Clear slider values for this category to force re-computation
     setSliderValues((prev) => {
       const next = { ...prev }
@@ -368,13 +368,13 @@ export default function DimensionsPage() {
               <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
                 {categoryEntries.map((entry, index) => {
                   const isNone = entry.label.toLowerCase() === 'none'
-                  
+
                   // Find current token index based on pixel value - always ensure it's an integer
                   const baseTokenIndex = sliderValues[entry.cssVar] ?? findClosestTokenIndex(entry.currentValue)
                   const currentTokenIndex = Math.round(baseTokenIndex)
                   const clampedTokenIndex = Math.max(0, Math.min(availableSizeTokens.length - 1, currentTokenIndex))
                   const currentToken = availableSizeTokens[clampedTokenIndex]
-                  
+
                   // Get value label function - always round to get discrete token
                   const getValueLabel = (value: number) => {
                     const roundedIdx = Math.round(value)
@@ -382,18 +382,18 @@ export default function DimensionsPage() {
                     const token = availableSizeTokens[clampedIdx]
                     return token?.label || '—'
                   }
-                  
+
                   const minToken = availableSizeTokens[0]
                   const maxToken = availableSizeTokens[availableSizeTokens.length - 1]
-                  
+
                   // Get tooltip text - show token name (key) in tooltip
                   // availableSizeTokens have a 'name' property which is the token key (e.g., 'sm', 'md', 'lg')
                   // Extract just the key part if it's in format "size/key"
-                  const tokenKey = currentToken?.name?.includes('/') 
+                  const tokenKey = currentToken?.name?.includes('/')
                     ? currentToken.name.split('/').pop() || currentToken.name
                     : currentToken?.name || ''
                   const tooltipText = tokenKey || currentToken?.label || '—'
-                  
+
                   return (
                     <Slider
                       key={entry.cssVar}
