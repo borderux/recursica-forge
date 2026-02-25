@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.3.7
+
+### Patch Changes
+
+- dfd881b: hot fix for vite build failure
+
 ## 0.3.6
 
 ### Patch Changes
