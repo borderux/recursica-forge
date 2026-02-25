@@ -153,28 +153,41 @@ export function GoogleFontsModal({
   }
 
   // Build Google Fonts URL with selected weights and styles
+  // Google Fonts CSS2 API requires combined axis tuples when using multiple axes
+  // Format: family=Font+Name:ital,wght@0,100;0,200;...;1,100;1,200;...
+  // Or for weight only: family=Font+Name:wght@100;200;...
   const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styles: string[]): string => {
     try {
       const urlObj = new URL(baseUrl)
 
-      // Build the family parameter
       // Replace spaces with + for the font name (Google Fonts format)
       const fontNameWithPlus = fontName.replace(/\s+/g, '+')
       let familyParam = fontNameWithPlus
 
-      // Add weights
-      if (weights.length > 0) {
-        const weightsStr = weights.sort((a, b) => a - b).join(';')
-        familyParam += `:wght@${weightsStr}`
-      }
-
-      // Add styles (italic)
       const hasItalic = styles.includes('italic')
-      const hasNormal = styles.includes('normal')
-      if (hasItalic && hasNormal) {
-        familyParam += `:ital@0;1`
-      } else if (hasItalic) {
-        familyParam += `:ital@1`
+      const hasNormal = styles.includes('normal') || (!hasItalic && styles.length === 0)
+      const sortedWeights = [...weights].sort((a, b) => a - b)
+
+      if (sortedWeights.length > 0 && hasItalic && hasNormal) {
+        // Both normal and italic: use combined ital,wght axis tuples
+        // Format: ital,wght@0,100;0,200;...;1,100;1,200;...
+        const tuples: string[] = []
+        // Normal (ital=0) first
+        for (const w of sortedWeights) {
+          tuples.push(`0,${w}`)
+        }
+        // Then italic (ital=1)
+        for (const w of sortedWeights) {
+          tuples.push(`1,${w}`)
+        }
+        familyParam += `:ital,wght@${tuples.join(';')}`
+      } else if (sortedWeights.length > 0 && hasItalic) {
+        // Italic only: use combined ital,wght with ital=1
+        const tuples = sortedWeights.map(w => `1,${w}`)
+        familyParam += `:ital,wght@${tuples.join(';')}`
+      } else if (sortedWeights.length > 0) {
+        // Normal only (or no style specified): use wght axis only
+        familyParam += `:wght@${sortedWeights.join(';')}`
       }
 
       // Manually construct the URL to avoid encoding : and @ characters
@@ -190,10 +203,6 @@ export function GoogleFontsModal({
         }
       })
 
-      // Build family param: don't encode +, :, or @ characters
-      // Google Fonts expects: family=Rubik+Storm:wght@400 (not encoded)
-      // Only encode other special characters in the font name if needed
-      // For now, just use the familyParam as-is since we've already replaced spaces with +
       const allParams = [`family=${familyParam}`, ...otherParams]
 
       return `${baseUrlWithoutSearch}?${allParams.join('&')}`
@@ -316,6 +325,18 @@ export function GoogleFontsModal({
 
         // Use selected font or first one
         const fontToLoad = fonts[selectedFontIndex] || fonts[0]
+
+        // Check if font already exists (case-insensitive comparison)
+        const fontToAddLower = fontToLoad.trim().toLowerCase()
+        const isDuplicate = existingFonts.some(existing =>
+          existing.toLowerCase().trim() === fontToAddLower
+        )
+
+        if (isDuplicate) {
+          setError('This font family is already added')
+          setLoading(false)
+          return
+        }
 
         // Extract selected combinations
         const selectedComboArray = Array.from(selectedCombos)

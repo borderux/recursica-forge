@@ -20,6 +20,7 @@ export type EditFontVariantsModalProps = {
 }
 
 // Parse weights and styles from a Google Fonts URL
+// Handles both combined axis format (ital,wght@0,100;0,200;1,100) and separate axis format (wght@100;200 + ital@0;1)
 const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles: string[] } => {
   const weights: number[] = []
   const styles: string[] = []
@@ -31,39 +32,62 @@ const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles:
     if (familyParams.length > 0) {
       const param = familyParams[0]
 
-      // Parse weights: wght@100..900 or wght@100;200;300
-      const wghtMatch = param.match(/wght@([^:&]+)/)
-      if (wghtMatch) {
-        const wghtValue = wghtMatch[1]
-        // Check if it's a range like 100..900
-        const rangeMatch = wghtValue.match(/^(\d+)\.\.(\d+)$/)
-        if (rangeMatch) {
-          const start = parseInt(rangeMatch[1], 10)
-          const end = parseInt(rangeMatch[2], 10)
-          // Add common weights in range (100, 200, 300, 400, 500, 600, 700, 800, 900)
-          for (let w = start; w <= end; w += 100) {
-            if (w >= 100 && w <= 900) weights.push(w)
-          }
-        } else {
-          // Parse individual weights like 100;200;300 or 400
-          const weightList = wghtValue.split(';')
-          weightList.forEach(w => {
-            const weight = parseInt(w.trim(), 10)
-            if (!isNaN(weight) && weight >= 100 && weight <= 900) {
+      // First try combined axis format: ital,wght@0,100;0,200;...;1,100;1,200;...
+      const combinedMatch = param.match(/ital,wght@([^:&]+)/)
+      if (combinedMatch) {
+        const tuples = combinedMatch[1].split(';')
+        let hasNormal = false
+        let hasItalic = false
+        tuples.forEach(tuple => {
+          const parts = tuple.split(',')
+          if (parts.length === 2) {
+            const ital = parseInt(parts[0].trim(), 10)
+            const weight = parseInt(parts[1].trim(), 10)
+            if (!isNaN(weight) && weight >= 100 && weight <= 900 && !weights.includes(weight)) {
               weights.push(weight)
             }
-          })
+            if (ital === 0) hasNormal = true
+            if (ital === 1) hasItalic = true
+          }
+        })
+        if (hasNormal) styles.push('normal')
+        if (hasItalic) styles.push('italic')
+      } else {
+        // Fallback: Parse separate axis format
+        // Parse weights: wght@100..900 or wght@100;200;300
+        const wghtMatch = param.match(/wght@([^:&]+)/)
+        if (wghtMatch) {
+          const wghtValue = wghtMatch[1]
+          // Check if it's a range like 100..900
+          const rangeMatch = wghtValue.match(/^(\d+)\.\.(\d+)$/)
+          if (rangeMatch) {
+            const start = parseInt(rangeMatch[1], 10)
+            const end = parseInt(rangeMatch[2], 10)
+            // Add common weights in range (100, 200, 300, 400, 500, 600, 700, 800, 900)
+            for (let w = start; w <= end; w += 100) {
+              if (w >= 100 && w <= 900) weights.push(w)
+            }
+          } else {
+            // Parse individual weights like 100;200;300 or 400
+            const weightList = wghtValue.split(';')
+            weightList.forEach(w => {
+              const weight = parseInt(w.trim(), 10)
+              if (!isNaN(weight) && weight >= 100 && weight <= 900) {
+                weights.push(weight)
+              }
+            })
+          }
         }
-      }
 
-      // Parse styles: ital@0;1 or ital@1
-      const italMatch = param.match(/ital@([^:&]+)/)
-      if (italMatch) {
-        const italValue = italMatch[1]
-        if (italValue.includes('0') || italValue.includes('1')) {
-          styles.push('normal')
-          if (italValue.includes('1')) {
-            styles.push('italic')
+        // Parse styles: ital@0;1 or ital@1
+        const italMatch = param.match(/ital@([^:&]+)/)
+        if (italMatch) {
+          const italValue = italMatch[1]
+          if (italValue.includes('0') || italValue.includes('1')) {
+            styles.push('normal')
+            if (italValue.includes('1')) {
+              styles.push('italic')
+            }
           }
         }
       }
@@ -84,28 +108,41 @@ const parseWeightsAndStylesFromUrl = (url: string): { weights: number[]; styles:
 }
 
 // Build Google Fonts URL with selected weights and styles
+// Google Fonts CSS2 API requires combined axis tuples when using multiple axes
+// Format: family=Font+Name:ital,wght@0,100;0,200;...;1,100;1,200;...
+// Or for weight only: family=Font+Name:wght@100;200;...
 const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styles: string[]): string => {
   try {
     const urlObj = new URL(baseUrl)
 
-    // Build the family parameter
     // Replace spaces with + for the font name (Google Fonts format)
     const fontNameWithPlus = fontName.replace(/\s+/g, '+')
     let familyParam = fontNameWithPlus
 
-    // Add weights
-    if (weights.length > 0) {
-      const weightsStr = weights.sort((a, b) => a - b).join(';')
-      familyParam += `:wght@${weightsStr}`
-    }
-
-    // Add styles (italic)
     const hasItalic = styles.includes('italic')
-    const hasNormal = styles.includes('normal')
-    if (hasItalic && hasNormal) {
-      familyParam += `:ital@0;1`
-    } else if (hasItalic) {
-      familyParam += `:ital@1`
+    const hasNormal = styles.includes('normal') || (!hasItalic && styles.length === 0)
+    const sortedWeights = [...weights].sort((a, b) => a - b)
+
+    if (sortedWeights.length > 0 && hasItalic && hasNormal) {
+      // Both normal and italic: use combined ital,wght axis tuples
+      // Format: ital,wght@0,100;0,200;...;1,100;1,200;...
+      const tuples: string[] = []
+      // Normal (ital=0) first
+      for (const w of sortedWeights) {
+        tuples.push(`0,${w}`)
+      }
+      // Then italic (ital=1)
+      for (const w of sortedWeights) {
+        tuples.push(`1,${w}`)
+      }
+      familyParam += `:ital,wght@${tuples.join(';')}`
+    } else if (sortedWeights.length > 0 && hasItalic) {
+      // Italic only: use combined ital,wght with ital=1
+      const tuples = sortedWeights.map(w => `1,${w}`)
+      familyParam += `:ital,wght@${tuples.join(';')}`
+    } else if (sortedWeights.length > 0) {
+      // Normal only (or no style specified): use wght axis only
+      familyParam += `:wght@${sortedWeights.join(';')}`
     }
 
     // Manually construct the URL to avoid encoding : and @ characters
@@ -121,10 +158,6 @@ const buildFontUrl = (baseUrl: string, fontName: string, weights: number[], styl
       }
     })
 
-    // Build family param: don't encode +, :, or @ characters
-    // Google Fonts expects: family=Rubik+Storm:wght@400 (not encoded)
-    // Only encode other special characters in the font name if needed
-    // For now, just use the familyParam as-is since we've already replaced spaces with +
     const allParams = [`family=${familyParam}`, ...otherParams]
 
     return `${baseUrlWithoutSearch}?${allParams.join('&')}`
