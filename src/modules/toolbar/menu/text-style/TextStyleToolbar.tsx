@@ -99,8 +99,18 @@ export default function TextStyleToolbar({
       const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
       const typefaces = tokensRoot?.font?.typefaces || tokensRoot?.font?.typeface || {}
 
+      // Read overrides to determine which typefaces actually exist
+      let overrides: Record<string, any> = {}
+      try {
+        overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
+      } catch { }
+      const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
+      const hasTypefaceOverrides = overrideTypefaceKeys.length > 0
+
       Object.keys(typefaces).forEach(key => {
         if (key.startsWith('$')) return
+        // If overrides exist for typefaces, only include fonts present in overrides
+        if (hasTypefaceOverrides && !overrides[`font/typeface/${key}`]) return
 
         const cssVar = `--recursica-tokens-font-typefaces-${key}`
         const cssValue = readCssVar(cssVar)

@@ -757,6 +757,23 @@ export default function FontFamiliesTokens() {
     setTimeout(() => {
       try {
         const store = getVarsStore()
+        const freshState = store.getState()
+        const freshTokens = JSON.parse(JSON.stringify(freshState.tokens)) as any // Deep clone
+        const freshFontRoot = freshTokens?.tokens?.font || freshTokens?.font || {}
+        const typefaces = freshFontRoot.typefaces || freshFontRoot.typeface || {}
+
+        // Reconstruct typefaces in new order
+        updatedFonts.forEach((row) => {
+          if (!typefaces[row.id]) {
+            typefaces[row.id] = {}
+          }
+          typefaces[row.id].$value = row.family
+        })
+
+        store.setTokens(freshTokens)
+
+        // Clear typography font-family CSS variables so they get regenerated with new token assignments
+        // This ensures typography updates when token sequence changes
         const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
         typographyPrefixes.forEach((prefix) => {
           const cssVar = `--recursica-brand-typography-${prefix}-font-family`
@@ -807,8 +824,48 @@ export default function FontFamiliesTokens() {
     setRows(buildRows())
 
     setTimeout(() => {
+      const store = getVarsStore()
+
       try {
-        const store = getVarsStore()
+        const tokens = JSON.parse(JSON.stringify(store.getState().tokens)) as any // Deep clone
+        const fontRoot = tokens?.tokens?.font || tokens?.font || {}
+        const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+
+        // Get the set of keys that should remain (from newRows)
+        const keptKeys = new Set(updatedFonts.map(r => r.id)) // id contains the correct short sequence
+
+        // Remove all old typeface keys
+        const allTypefaceKeys = Object.keys(typefaces).filter(k => !k.startsWith('$'))
+        allTypefaceKeys.forEach(k => {
+          if (!keptKeys.has(k)) {
+            // Clean up CSS vars for removed key
+            removeCssVar(`--tokens-font-typeface-${k}`)
+            removeCssVar(`--recursica-tokens-font-typefaces-${k}`)
+            delete typefaces[k]
+          }
+        })
+
+        // Apply updated sequences
+        updatedFonts.forEach((row) => {
+          if (!typefaces[row.id]) {
+            typefaces[row.id] = {}
+          }
+          typefaces[row.id].$value = row.family
+        })
+
+        // Update fontVariants: remove entries for deleted fonts
+        if (fontRoot.fontVariants) {
+          const keptFontNames = new Set(updatedFonts.map(r => r.family.trim().replace(/^["']|["']$/g, '').toLowerCase()))
+          Object.keys(fontRoot.fontVariants).forEach(name => {
+            if (!keptFontNames.has(name)) {
+              delete fontRoot.fontVariants[name]
+            }
+          })
+        }
+
+        store.setTokens(tokens)
+
+        // Clear typography font-family CSS variables so they get regenerated
         const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
         typographyPrefixes.forEach((prefix) => {
           const cssVar = `--recursica-brand-typography-${prefix}-font-family`
@@ -817,31 +874,14 @@ export default function FontFamiliesTokens() {
           }
         })
 
-        const state = store.getState()
-        const tokens = JSON.parse(JSON.stringify(state.tokens)) as any
-        const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-
-        // Update fontVariants: remove entries for deleted fonts
-        if (fontRoot.fontVariants) {
-          const keptFontNames = new Set(updatedFonts.map(r => r.family.trim().replace(/^['"]|['"]$/g, '').toLowerCase()))
-          let variantsChanged = false
-          Object.keys(fontRoot.fontVariants).forEach(name => {
-            if (!keptFontNames.has(name)) {
-              delete fontRoot.fontVariants[name]
-              variantsChanged = true
-            }
-          })
-          if (variantsChanged) {
-            store.setTokens(tokens)
-          }
-        }
-
         store.syncFontsToTokens()
       } catch { }
 
       try {
         window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { skipRebuild: true } }))
         window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: {} }))
+        // Trigger recompute of all CSS variables to pick up the deletion
+        store.recomputeAndApplyAll()
       } catch { }
     }, 0)
   }
