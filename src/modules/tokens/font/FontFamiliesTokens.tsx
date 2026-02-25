@@ -222,6 +222,24 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
         try {
           const all = readOverrides()
 
+          // Ensure ALL existing store typefaces are in overrides
+          // This makes overrides a complete snapshot so buildRows() works correctly
+          try {
+            const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+            const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
+            Object.keys(typefaces).filter(k => !k.startsWith('$')).forEach(k => {
+              const overrideKey = `font/typeface/${k}`
+              if (!(overrideKey in all)) {
+                const val = typefaces[k]?.$value
+                if (typeof val === 'string' && val.trim()) {
+                  all[overrideKey] = val.trim()
+                } else if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+                  all[overrideKey] = val[0].trim()
+                }
+              }
+            })
+          } catch { }
+
           // Use provided sequence or find next available
           let sequentialName: string
           if (sequence && ORDER.includes(sequence)) {
@@ -1713,6 +1731,23 @@ export default function FontFamiliesTokens() {
 
             storeCustomFont(fontName, undefined, fontSource)
             const all = readOverrides()
+
+            // Ensure ALL existing store typefaces are in overrides
+            try {
+              const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
+              const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
+              Object.keys(typefaces).filter(k => !k.startsWith('$')).forEach(k => {
+                const overrideKey = `font/typeface/${k}`
+                if (!(overrideKey in all)) {
+                  const val = typefaces[k]?.$value
+                  if (typeof val === 'string' && val.trim()) {
+                    all[overrideKey] = val.trim()
+                  } else if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+                    all[overrideKey] = val[0].trim()
+                  }
+                }
+              })
+            } catch { }
 
             // Use provided sequence or fall back to customModalRowName
             const targetSequence = sequence || (customModalRowName ? customModalRowName.replace('font/typeface/', '') : 'primary')
