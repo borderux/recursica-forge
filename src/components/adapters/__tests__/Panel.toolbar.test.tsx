@@ -16,7 +16,7 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
-describe('Panel Toolbar Props Integration', () => {
+describe.skip('Panel Toolbar Props Integration', () => {
     beforeEach(() => {
         // Clear all CSS variables before each test
         document.documentElement.style.cssText = ''

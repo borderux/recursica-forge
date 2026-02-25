@@ -30,7 +30,7 @@ import { getVarsStore } from '../../../core/store/varsStore'
 import { randomizeAllVariables } from '../../../core/utils/randomizeVariables'
 import { RandomizeOptionsModal } from '../../../core/utils/RandomizeOptionsModal'
 import { getCssAuditAutoRun, setCssAuditAutoRun } from '../../../core/utils/cssAuditPreference'
-import { runCssVarAudit } from '../../../core/utils/runCssVarAudit'
+
 
 export default function MaterialShell({ children, kit, onKitChange }: { children: ReactNode; kit: UiKit; onKitChange: (k: UiKit) => void }) {
   const { resetAll } = useVars()
@@ -371,7 +371,9 @@ export default function MaterialShell({ children, kit, onKitChange }: { children
                           // Trigger audit immediately when enabled
                           if (checked) {
                             setTimeout(() => {
-                              runCssVarAudit(false)
+                              import('../../../core/utils/runCssVarAudit').then(({ runCssVarAudit }) => {
+                                runCssVarAudit(false)
+                              })
                             }, 500) // Small delay to ensure CSS vars are ready
                           }
                         }}
