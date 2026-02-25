@@ -1835,6 +1835,145 @@ class VarsStore {
       } catch (e) {
         console.error('[VarsStore] Error generating font cases/decorations CSS variables:', e)
       }
+      // Tokens: expose ALL font token categories as CSS vars
+      // This ensures font CSS variables are available on every page, not just the font tokens page
+      try {
+        const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+        const fontRoot: any = tokensRoot?.font || {}
+        const vars: Record<string, string> = {}
+
+        // Read overrides from localStorage (source of truth for user changes to typefaces)
+        let overrides: Record<string, any> = {}
+        try {
+          if (typeof localStorage !== 'undefined') {
+            overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
+          }
+        } catch { }
+        const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
+        const hasTypefaceOverrides = overrideTypefaceKeys.length > 0
+
+        // Font typefaces (e.g., --recursica-tokens-font-typefaces-primary)
+        const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
+        if (typefaces && typeof typefaces === 'object') {
+          if (hasTypefaceOverrides) {
+            // Use overrides as source of truth
+            overrideTypefaceKeys.forEach(k => {
+              const key = k.replace('font/typeface/', '')
+              if (key.startsWith('$')) return
+              const val = String(overrides[k] || '').trim()
+              if (val) {
+                vars[`--recursica-tokens-font-typefaces-${key}`] = val
+              }
+            })
+          } else {
+            // Use token values
+            Object.keys(typefaces).forEach(key => {
+              if (key.startsWith('$')) return
+              const rec = typefaces[key]
+              const val = rec?.$value
+              if (typeof val === 'string' && val.trim()) {
+                vars[`--recursica-tokens-font-typefaces-${key}`] = val.trim()
+              } else if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+                vars[`--recursica-tokens-font-typefaces-${key}`] = val[0].trim()
+              }
+            })
+          }
+        }
+
+        // Font families (e.g., --recursica-tokens-font-families-primary)
+        const families: any = fontRoot?.families || fontRoot?.family || {}
+        if (families && typeof families === 'object') {
+          Object.keys(families).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = families[key]
+            const val = rec?.$value
+            if (typeof val === 'string' && val.trim()) {
+              vars[`--recursica-tokens-font-families-${key}`] = val.trim()
+            } else if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'string') {
+              vars[`--recursica-tokens-font-families-${key}`] = val[0].trim()
+            }
+          })
+        }
+
+        // Font weights (e.g., --recursica-tokens-font-weights-regular)
+        const weights: any = fontRoot?.weights || fontRoot?.weight || {}
+        if (weights && typeof weights === 'object') {
+          Object.keys(weights).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = weights[key]
+            const val = rec?.$value !== undefined ? rec.$value : rec
+            if (val !== undefined && val !== null) {
+              vars[`--recursica-tokens-font-weights-${key}`] = String(val)
+            }
+          })
+        }
+
+        // Font sizes (e.g., --recursica-tokens-font-sizes-md)
+        const sizes: any = fontRoot?.sizes || fontRoot?.size || {}
+        if (sizes && typeof sizes === 'object') {
+          Object.keys(sizes).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = sizes[key]
+            const val = rec?.$value
+            if (val !== undefined && val !== null) {
+              const num = typeof val === 'number' ? val : Number(val)
+              if (Number.isFinite(num)) {
+                vars[`--recursica-tokens-font-sizes-${key}`] = `${num}px`
+              } else if (typeof val === 'string') {
+                vars[`--recursica-tokens-font-sizes-${key}`] = val
+              }
+            }
+          })
+        }
+
+        // Font letter-spacings (e.g., --recursica-tokens-font-letter-spacings-default)
+        const letterSpacings: any = fontRoot?.['letter-spacings'] || fontRoot?.['letter-spacing'] || {}
+        if (letterSpacings && typeof letterSpacings === 'object') {
+          Object.keys(letterSpacings).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = letterSpacings[key]
+            const val = rec?.$value
+            if (val !== undefined && val !== null) {
+              const num = typeof val === 'number' ? val : Number(val)
+              if (Number.isFinite(num)) {
+                vars[`--recursica-tokens-font-letter-spacings-${key}`] = `${num}em`
+              } else if (typeof val === 'string') {
+                vars[`--recursica-tokens-font-letter-spacings-${key}`] = val
+              }
+            }
+          })
+        }
+
+        // Font line-heights (e.g., --recursica-tokens-font-line-heights-normal)
+        const lineHeights: any = fontRoot?.['line-heights'] || fontRoot?.['line-height'] || {}
+        if (lineHeights && typeof lineHeights === 'object') {
+          Object.keys(lineHeights).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = lineHeights[key]
+            const val = rec?.$value
+            if (val !== undefined && val !== null) {
+              vars[`--recursica-tokens-font-line-heights-${key}`] = String(val)
+            }
+          })
+        }
+
+        // Font styles (e.g., --recursica-tokens-font-styles-normal)
+        const styles: any = fontRoot?.styles || fontRoot?.style || {}
+        if (styles && typeof styles === 'object') {
+          Object.keys(styles).forEach(key => {
+            if (key.startsWith('$')) return
+            const rec = styles[key]
+            const val = rec?.$value
+            if (typeof val === 'string' && val.trim()) {
+              vars[`--recursica-tokens-font-styles-${key}`] = val.trim()
+            }
+          })
+        }
+
+        Object.assign(allVars, vars)
+      } catch (e) {
+        console.error('[VarsStore] Error generating font token CSS variables:', e)
+      }
       // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
       // Generate for both light and dark modes
       try {
