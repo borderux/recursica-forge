@@ -97,8 +97,21 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
   const { updateToken, tokens: tokensJson } = useVars()
 
   // Get current font count to determine available sequences
+  // Uses overrides as source of truth since that's where deletions take effect
   const getCurrentFontCount = (): number => {
     try {
+      const overrides = readOverrides()
+      const overrideKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
+
+      // If we have overrides, they are the source of truth (deletions remove overrides)
+      if (overrideKeys.length > 0) {
+        return overrideKeys.filter(k => {
+          const val = overrides[k]
+          return typeof val === 'string' && val.trim()
+        }).length
+      }
+
+      // Fallback to tokensJson if no overrides exist
       const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
       const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
       return Object.keys(typefaces).filter((k) => !k.startsWith('$') && typefaces[k]?.$value).length
@@ -1150,10 +1163,10 @@ export default function FontFamiliesTokens() {
               style={{
                 background: `var(${layer1Base}-surface)`,
                 border: `1px solid ${draggedIndex === index
+                  ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
+                  : dragOverIndex === index
                     ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
-                    : dragOverIndex === index
-                      ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
-                      : `var(${layer1Base}-border-color)`
+                    : `var(${layer1Base}-border-color)`
                   }`,
                 borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
                 padding: `var(${layer1Base}-padding)`,
