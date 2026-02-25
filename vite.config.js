@@ -23,26 +23,49 @@ export default defineConfig({
         },
     },
     build: {
-        target: 'es2015',
+        target: 'es2020',
         sourcemap: true,
         chunkSizeWarningLimit: 1000,
         rollupOptions: {
             output: {
-                manualChunks: {
+                manualChunks(id) {
                     // React core
-                    'react-vendor': ['react', 'react-dom', 'react/jsx-runtime'],
-                    // UI library chunks - split by library to avoid large bundles
-                    'mantine-core': ['@mantine/core'],
-                    'mantine-hooks': ['@mantine/hooks'],
-                    'mui-material': ['@mui/material'],
-                    'mui-system': ['@mui/system'],
-                    'carbon-core': ['@carbon/react'],
+                    if (id.includes('node_modules/react/') ||
+                        id.includes('node_modules/react-dom/') ||
+                        id.includes('node_modules/react/jsx-runtime')) {
+                        return 'react-vendor';
+                    }
+                    // MUI + Emotion must be in the SAME chunk to avoid Safari
+                    // initialization-order crash (Emotion styled helper must be
+                    // defined before MUI references it)
+                    if (id.includes('node_modules/@mui/') ||
+                        id.includes('node_modules/@emotion/')) {
+                        return 'mui-vendor';
+                    }
+                    // Mantine
+                    if (id.includes('node_modules/@mantine/core')) {
+                        return 'mantine-core';
+                    }
+                    if (id.includes('node_modules/@mantine/hooks')) {
+                        return 'mantine-hooks';
+                    }
+                    // Carbon
+                    if (id.includes('node_modules/@carbon/')) {
+                        return 'carbon-core';
+                    }
                     // Icon libraries
-                    'icons': ['@phosphor-icons/react'],
+                    if (id.includes('node_modules/@phosphor-icons/')) {
+                        return 'icons';
+                    }
                     // Routing
-                    'router': ['react-router-dom'],
-                    // Floating UI (used by tooltips, popovers, etc.)
-                    'floating-ui': ['@floating-ui/react', '@floating-ui/react-dom'],
+                    if (id.includes('node_modules/react-router-dom/') ||
+                        id.includes('node_modules/react-router/')) {
+                        return 'router';
+                    }
+                    // Floating UI
+                    if (id.includes('node_modules/@floating-ui/')) {
+                        return 'floating-ui';
+                    }
                 },
             },
         },
