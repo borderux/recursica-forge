@@ -228,9 +228,11 @@ class VarsStore {
       const bundleVersion = computeBundleVersion(tokensImport, themeImport, uikitImport)
       const storedVersion = localStorage.getItem(STORAGE_KEYS.version)
       if (storedVersion !== bundleVersion) {
-        // Preserve user font customizations from previous tokens before resetting
+        // Preserve user font customizations from previous state before resetting
+        // Font changes can be stored in EITHER rf:tokens OR token-overrides (or both)
         let preservedTypefaces: Record<string, any> | null = null
         try {
+          // Source 1: Check rf:tokens (store persistence)
           const prevTokens = readLSJson(STORAGE_KEYS.tokens, null)
           if (prevTokens) {
             const prevFontRoot = (prevTokens as any)?.tokens?.font || (prevTokens as any)?.font || {}
@@ -238,7 +240,6 @@ class VarsStore {
             const staticFontRoot = (tokensImport as any)?.tokens?.font || (tokensImport as any)?.font || {}
             const staticTypefaces = staticFontRoot?.typefaces || staticFontRoot?.typeface || {}
 
-            // Check if user has modified typefaces (different from static import)
             const prevKeys = Object.keys(prevTypefaces).filter(k => !k.startsWith('$'))
             const staticKeys = Object.keys(staticTypefaces).filter(k => !k.startsWith('$'))
 
@@ -252,13 +253,30 @@ class VarsStore {
               preservedTypefaces = JSON.parse(JSON.stringify(prevTypefaces))
             }
           }
+
+          // Source 2: Check token-overrides (override persistence from font page)
+          // This takes priority over rf:tokens since it reflects the most recent user actions
+          const overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
+          const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
+          if (overrideTypefaceKeys.length > 0) {
+            // Build typefaces from overrides — this is the most reliable source
+            preservedTypefaces = {}
+            overrideTypefaceKeys.forEach(k => {
+              const key = k.replace('font/typeface/', '')
+              if (key.startsWith('$')) return
+              const val = String(overrides[k] || '').trim()
+              if (val) {
+                preservedTypefaces![key] = { $value: val }
+              }
+            })
+          }
         } catch { }
 
         // Reset tokens to fresh import
         const freshTokens = JSON.parse(JSON.stringify(tokensImport)) as any
 
         // Merge preserved font typefaces back in
-        if (preservedTypefaces) {
+        if (preservedTypefaces && Object.keys(preservedTypefaces).length > 0) {
           const fontRoot = freshTokens?.tokens?.font || freshTokens?.font || {}
           if (fontRoot.typefaces) {
             fontRoot.typefaces = preservedTypefaces
