@@ -6,7 +6,7 @@
     min-width: var(--modal-content-min-width, auto) !important;
     max-width: var(--modal-content-max-width, none) !important;
     min-height: var(--modal-content-min-height, auto) !important;
-    max-height: var(--modal-content-max-height, none) !important;
+    max-height: 80vh !important;
     display: flex !important;
     flex-direction: column !important;
     position: var(--modal-position, relative) !important;
