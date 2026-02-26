@@ -450,7 +450,7 @@ export function PaletteEmphasisCell({
                   <Chip
                     variant="unselected"
                     size="small"
-                    layer="layer-1"
+                    layer="layer-0"
                   >
                     Default
                   </Chip>

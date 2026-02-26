@@ -995,6 +995,12 @@ export default function ColorTokenPicker() {
     // Trigger recalculation of targetResolvedValue to update checkmark
     setCssVarUpdateTrigger((prev) => prev + 1)
 
+    // Persist to UIKit JSON if this is a component variable
+    if (targetVar.includes('-ui-kit-')) {
+      const { updateUIKitValue } = require('../../core/css/updateUIKitValue')
+      updateUIKitValue(targetVar, `var(${tokenCssVar})`)
+    }
+
     // Also update theme JSON for core colors so changes persist across navigation
     // This will also check and update on-tone colors for AA compliance
     // The CSS variable we set above will be preserved by recomputeAndApplyAll's preservation logic

@@ -78,16 +78,16 @@ export function updateCssVar(
 ): boolean {
   const root = document.documentElement
   const trimmedValue = value.trim()
-  
+
   // CRITICAL: UIKit CSS variables should ALWAYS be silent - they're managed via toolbar
   // and don't need to trigger component re-renders (CSS var() references resolve automatically)
   // UIKit vars should never dispatch cssVarsUpdated events - they update the DOM directly
   // and CSS automatically picks up the changes via var() references
-  const isUIKitVar = cssVarName.startsWith('--recursica-ui-kit-components-') || cssVarName.startsWith('--recursica-ui-kit-globals-')
+  const isUIKitVar = cssVarName.includes('-ui-kit-components-') || cssVarName.includes('-ui-kit-globals-')
   // UIKit vars are ALWAYS silent, regardless of the silent parameter
   // For non-UIKit vars, respect the silent parameter
   const shouldBeSilent = isUIKitVar || (silent === true)
-  
+
   // Validate brand vars must use token references
   if (isBrandVar(cssVarName)) {
     const validation = validateCssVarValue(cssVarName, trimmedValue)
@@ -109,10 +109,10 @@ export function updateCssVar(
       }
     }
   }
-  
+
   // Apply the update
   root.style.setProperty(cssVarName, trimmedValue)
-  
+
   // Dispatch event to notify components of CSS variable updates
   // This allows components to reactively update when CSS vars change
   // But suppress during bulk updates to prevent infinite loops
@@ -124,7 +124,7 @@ export function updateCssVar(
     // During suppression, just track the var for later batching
     pendingCssVars.add(cssVarName)
   }
-  
+
   return true
 }
 
@@ -155,7 +155,7 @@ export function updateCssVars(
  */
 function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): string | null {
   const trimmed = value.trim()
-  
+
   // If it's a hex color, try to find matching token
   if (/^#?[0-9a-f]{6}$/i.test(trimmed)) {
     if (tokens) {
@@ -197,14 +197,14 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
       }
     }
   }
-  
+
   // If it looks like a token name, try to convert it
   // Pass tokens to resolve aliases to scale keys
   if (trimmed.includes('/')) {
     const tokenRef = tokenToCssVar(trimmed, tokens)
     if (tokenRef) return tokenRef
   }
-  
+
   return null
 }
 
@@ -217,13 +217,13 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
 export function removeCssVar(cssVarName: string, silent?: boolean): void {
   const root = document.documentElement
   root.style.removeProperty(cssVarName)
-  
+
   // Also remove unprefixed version if it exists
   if (cssVarName.startsWith('--recursica-')) {
     const unprefixed = cssVarName.replace('--recursica-', '--')
     root.style.removeProperty(unprefixed)
   }
-  
+
   // Dispatch event to notify components of CSS variable removal
   // But suppress during bulk updates to prevent infinite loops
   if (!silent && !suppressEvents) {

@@ -299,6 +299,19 @@ export default function Chip({
       '--chip-text-decoration': textDecorationVar ? `var(${textDecorationVar})` : undefined,
       '--chip-text-transform': textTransformVar ? `var(${textTransformVar})` : undefined,
       '--chip-font-style': fontStyleVar ? `var(${fontStyleVar})` : undefined,
+
+      // Inline fallbacks to prevent styling loss on navigation
+      backgroundColor: `var(${chipBgVar})`,
+      color: chipColorVar ? `var(${chipColorVar})` : undefined,
+      paddingLeft: `var(${horizontalPaddingVar})`,
+      paddingRight: `var(${horizontalPaddingVar})`,
+      paddingTop: `var(${verticalPaddingVar})`,
+      paddingBottom: `var(${verticalPaddingVar})`,
+      borderWidth: `var(${borderSizeVar})`,
+      borderRadius: `var(${borderRadiusVar})`,
+      borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
+      borderStyle: 'solid',
+
       // Use Button's min-width and max-width vars (same as Button component)
       '--chip-min-width': `var(${minWidthVar})`,
       '--chip-max-width': `var(${maxWidthVar})`,
