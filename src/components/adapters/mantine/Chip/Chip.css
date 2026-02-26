@@ -1,10 +1,6 @@
 /* Override Mantine Badge styles to use Recursica CSS variables */
 /* Target Mantine Badge with multiple selectors to ensure we catch all variations */
-.recursica-chip-root,
-.mantine-Badge-root,
-[class*="mantine-Badge-root"],
-[class*="Badge-root"],
-.mantine-Badge-root[class*="mantine-Badge"] {
+.recursica-chip-root {
   background-color: var(--chip-bg, var(--mantine-color-gray-1)) !important;
   /* Use UIKit CSS variable directly for reactive updates - toolbar updates this on document root */
   /* Fallback to --chip-color CSS custom property, then to Mantine default */
@@ -42,8 +38,7 @@
 
 /* Disabled state */
 /* Note: Opacity is now set dynamically in the component's style prop based on theme mode */
-.recursica-chip-root[data-disabled],
-.mantine-Badge-root[data-disabled] {
+.recursica-chip-root[data-disabled] {
   cursor: not-allowed !important;
 }
 
@@ -51,15 +46,7 @@
 /* CRITICAL: Ensure icon container always has a size when icon exists */
 /* Use very specific selectors to override Mantine defaults */
 .recursica-chip-root .recursica-chip-left-section,
-.recursica-chip-root .mantine-Badge-leftSection,
-.mantine-Badge-root .recursica-chip-left-section,
-.mantine-Badge-root .mantine-Badge-leftSection,
-.recursica-chip-left-section,
-[class*="mantine-Badge-root"] .mantine-Badge-leftSection,
-.mantine-Badge-leftSection,
-/* Even more specific selectors to ensure we override Mantine's inline styles */
-.mantine-Badge-root[class*="mantine-Badge"] .mantine-Badge-leftSection,
-[class*="mantine-Badge-root"][class*="mantine-Badge"] .mantine-Badge-leftSection {
+.recursica-chip-root .mantine-Badge-leftSection {
   color: var(--chip-leading-icon-color, var(--chip-icon-color, var(--chip-color))) !important;
   /* Icon size - use CSS variable with fallback to UIKit variable */
   /* Force exact size - no growth allowed - use fixed pixel fallback */
@@ -87,12 +74,7 @@
 
 /* SVG inside icon container - must respect container size */
 .recursica-chip-root .recursica-chip-left-section svg,
-.recursica-chip-root .mantine-Badge-leftSection svg,
-.mantine-Badge-root .recursica-chip-left-section svg,
-.mantine-Badge-root .mantine-Badge-leftSection svg,
-.recursica-chip-left-section svg,
-[class*="mantine-Badge-root"] .mantine-Badge-leftSection svg,
-.mantine-Badge-leftSection svg {
+.recursica-chip-root .mantine-Badge-leftSection svg {
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
@@ -110,16 +92,15 @@
 /* Note: Mantine Badge uses .mantine-Badge-section for all sections,
    so .recursica-chip-right-section may not match. Target the actual section wrapper
    and .recursica-chip-delete directly. */
-.recursica-chip-right-section,
-.mantine-Badge-root .mantine-Badge-rightSection,
-.mantine-Badge-rightSection {
+.recursica-chip-root .recursica-chip-right-section,
+.recursica-chip-root .mantine-Badge-rightSection {
   margin-inline-start: var(--chip-icon-text-gap, 4px) !important;
 }
 
 /* Reset the default Mantine 5px margin on the section wrapper containing the delete icon,
    so the gap is fully controlled by .recursica-chip-delete's margin below */
-.mantine-Badge-root .mantine-Badge-section[data-position="right"],
-.mantine-Badge-root>.mantine-Badge-section:last-child:has(.recursica-chip-delete) {
+.recursica-chip-root .mantine-Badge-section[data-position="right"],
+.recursica-chip-root > .mantine-Badge-section:last-child:has(.recursica-chip-delete) {
   margin-inline-start: 0 !important;
 }
 

@@ -53,6 +53,8 @@ export default function Chip({
 
     // Get color CSS variables for reactive updates
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
+    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
     const chipIconColorVarForListener = variant === 'error' || variant === 'error-selected'
       ? getComponentLevelCssVar('Chip', 'colors.error.icon-color')
       : chipColorVarForListener
@@ -65,7 +67,9 @@ export default function Chip({
         updatedVars.some((v: string) => v.includes('chip') || v.includes('components-chip')) ||
         updatedVars.some((cssVar: string) => textCssVars.includes(cssVar)) ||
         updatedVars.includes(chipColorVarForListener) ||
-        updatedVars.includes(chipIconColorVarForListener)
+        updatedVars.includes(chipIconColorVarForListener) ||
+        updatedVars.includes(chipBgForListener) ||
+        updatedVars.includes(chipBorderForListener)
 
       if (shouldUpdate) {
         setUpdateKey(prev => prev + 1)

@@ -75,18 +75,28 @@ export function Chip({
 
     const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
 
+    // Get color CSS variables for reactive updates
+    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    const chipTextForListener = variant === 'error' || variant === 'error-selected'
+      ? getComponentLevelCssVar('Chip', 'colors.error.text-color')
+      : buildVariantColorCssVar('Chip', variant, 'text', layer)
+    const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
+
+    const colorCssVars = [chipBgForListener, chipTextForListener, chipBorderForListener]
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       // Update elevation if it was changed
       const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(elevationVar)
       const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      const shouldUpdateColor = !detail?.cssVars || detail.cssVars.some((cssVar: string) => colorCssVars.includes(cssVar))
 
       if (shouldUpdateElevation) {
         const value = readCssVar(elevationVar)
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
       }
 
-      if (shouldUpdateText) {
+      if (shouldUpdateText || shouldUpdateColor) {
         // Force re-render by updating state
         setTextVarsUpdate(prev => prev + 1)
       }
@@ -98,7 +108,7 @@ export function Chip({
     const observer = new MutationObserver(() => {
       const value = readCssVar(elevationVar)
       setElevationFromVar(value ? parseElevationValue(value) : undefined)
-      // Force re-render for text vars
+      // Force re-render for text vars and color vars
       setTextVarsUpdate(prev => prev + 1)
     })
     observer.observe(document.documentElement, {
@@ -110,7 +120,7 @@ export function Chip({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [elevationVar])
+  }, [elevationVar, variant, layer])
 
   const componentElevation = elevation ?? elevationFromVar ?? undefined
 

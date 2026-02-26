@@ -3845,7 +3845,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.default.color.tone}"
                     }
                   },
                   "layer-1": {
@@ -3859,7 +3859,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.default.color.tone}"
                     }
                   },
                   "layer-2": {
@@ -3873,7 +3873,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.default.color.tone}"
                     }
                   },
                   "layer-3": {
@@ -3887,7 +3887,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.default.color.tone}"
                     }
                   }
                 }
@@ -3903,11 +3903,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.warning.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.warning.tone}"
                     }
                   },
                   "layer-1": {
@@ -3917,11 +3917,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.warning.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.warning.tone}"
                     }
                   },
                   "layer-2": {
@@ -3931,11 +3931,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.warning.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.warning.tone}"
                     }
                   },
                   "layer-3": {
@@ -3945,11 +3945,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.warning.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.warning.tone}"
                     }
                   }
                 }
@@ -3965,11 +3965,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.success.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.success.tone}"
                     }
                   },
                   "layer-1": {
@@ -3979,11 +3979,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.success.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.success.tone}"
                     }
                   },
                   "layer-2": {
@@ -3993,11 +3993,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.success.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.success.tone}"
                     }
                   },
                   "layer-3": {
@@ -4007,11 +4007,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.success.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.success.tone}"
                     }
                   }
                 }
@@ -4027,11 +4027,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.alert.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     }
                   },
                   "layer-1": {
@@ -4041,11 +4041,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.alert.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     }
                   },
                   "layer-2": {
@@ -4055,11 +4055,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.alert.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     }
                   },
                   "layer-3": {
@@ -4069,11 +4069,11 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.alert.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.alert.tone}"
                     }
                   }
                 }

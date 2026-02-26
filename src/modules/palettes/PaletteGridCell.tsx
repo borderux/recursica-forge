@@ -448,7 +448,7 @@ export function PaletteEmphasisCell({
                     opacity: `var(${lowEmphasisCssVar})`
                   }} />
                   <Chip
-                    variant="selected"
+                    variant="unselected"
                     size="small"
                     layer="layer-1"
                   >
