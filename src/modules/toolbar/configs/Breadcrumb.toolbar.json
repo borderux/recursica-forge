@@ -1,49 +1,14 @@
 {
   "props": {
-    "text": {
-      "icon": "text-aa",
-      "label": "Text",
-      "visible": true
-    },
-    "color": {
-      "icon": "paint-bucket",
-      "label": "Color",
-      "visible": true,
-      "group": {
-        "interactive": {
-          "label": "Interactive color",
-          "visible": true
-        },
-        "separator-color": {
-          "label": "Separator color",
-          "visible": true
-        },
-        "read-only": {
-          "label": "Read only color",
-          "visible": true
-        }
-      }
-    },
     "padding": {
       "icon": "square-logo",
       "label": "Padding",
-      "visible": true
-    },
-    "icon-label-gap": {
-      "icon": "split-horizontal",
-      "label": "Icon label gap",
       "visible": true
     },
     "item-gap": {
       "icon": "arrows-left-right",
       "label": "Item gap",
       "visible": true
-    },
-    "icon-size": {
-      "icon": "diamond",
-      "label": "Icon size",
-      "visible": true
     }
   }
 }
-
