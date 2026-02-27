@@ -179,6 +179,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     const [checked2, setChecked2] = React.useState(true)
     const [checked3, setChecked3] = React.useState(false)
     const [checked4, setChecked4] = React.useState(false)
+    const [checked5, setChecked5] = React.useState(false)
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -206,6 +207,12 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           checked={checked4}
           onChange={setChecked4}
           indeterminate
+          layer={layer as any}
+        />
+        <CheckboxItem
+          label="A curious goblin crept through the moonlit forest, clutching a handful of stolen trinkets that sparkled like tiny stars, all the while muttering about the great treasure map he'd found tucked inside an old boot at the bottom of the river"
+          checked={checked5}
+          onChange={setChecked5}
           layer={layer as any}
         />
       </div>
@@ -277,7 +284,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           layer={layer as any}
         />
         <RadioButtonItem
-          label="The quick brown fox jumps over the lazy dog, and as the fox gracefully landed on the other side, the lazy dog slowly opened one eye, yawned, and decided that perhaps today was the day to finally get up and chase after that clever fox"
+          label="Deep in the enchanted caverns beneath the goblin king's throne, a rebellious young goblin discovered an ancient spell book bound in dragon leather, and upon reading the first incantation aloud, accidentally turned every torch in the kingdom bright pink"
           value="option4"
           selected={selected === 'option4'}
           onChange={() => setSelected('option4')}
