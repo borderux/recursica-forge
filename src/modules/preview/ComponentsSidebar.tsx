@@ -87,7 +87,7 @@ export function ComponentsSidebar({
       { name: 'Dropdown', url: `${base}/dropdown` },
       { name: 'File input', url: `${base}/file-input` },
       { name: 'File upload', url: `${base}/file-upload` },
-      { name: 'Hover card', url: `${base}/hover-card` },
+      { name: 'Hover card / Popover', url: `${base}/hover-card` },
       { name: 'Label', url: `${base}/label` },
       { name: 'Link', url: `${base}/link` },
       { name: 'Loader', url: `${base}/loader` },
@@ -97,7 +97,7 @@ export function ComponentsSidebar({
       { name: 'Number input', url: `${base}/number-input` },
       { name: 'Pagination', url: `${base}/pagination` },
       { name: 'Panel', url: `${base}/panel` },
-      { name: 'Popover', url: `${base}/popover` },
+
       // { name: 'Radio button', url: `${base}/radio-button` },
       { name: 'Radio button group', url: `${base}/radio-button-group` },
       { name: 'Radio button group item', url: `${base}/radio-button-group-item` },
