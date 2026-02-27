@@ -47,6 +47,9 @@ registerComponent('mantine', 'AssistiveElement', () => import('../adapters/manti
 // TextField
 registerComponent('mantine', 'TextField', () => import('../adapters/mantine/TextField/TextField'))
 
+// Textarea
+registerComponent('mantine', 'Textarea', () => import('../adapters/mantine/Textarea/Textarea'))
+
 // NumberInput
 registerComponent('mantine', 'NumberInput', () => import('../adapters/mantine/NumberInput/NumberInput'))
 

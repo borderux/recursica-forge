@@ -24,6 +24,7 @@ const SegmentedControlItemPreview = lazy(() => import('../components/SegmentedCo
 const TabsPreview = lazy(() => import('../components/TabsPreview'))
 const AssistiveElementPreview = lazy(() => import('../components/AssistiveElementPreview'))
 const TextFieldPreview = lazy(() => import('../components/TextFieldPreview'))
+const TextareaPreview = lazy(() => import('../components/TextareaPreview'))
 const NumberInputPreview = lazy(() => import('../components/NumberInputPreview'))
 const ModalPreview = lazy(() => import('../components/ModalPreview'))
 const DropdownPreview = lazy(() => import('../components/DropdownPreview'))
@@ -372,6 +373,12 @@ export default function ComponentDetailPage() {
                   />
                 ) : component.name === 'Text field' ? (
                   <TextFieldPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Textarea' ? (
+                  <TextareaPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
