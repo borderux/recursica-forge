@@ -4,10 +4,11 @@
  * Material UI-specific Breadcrumb component that uses CSS variables for theming.
  */
 
-import { Breadcrumbs as MuiBreadcrumbs, Link, Typography } from '@mui/material'
+import { Breadcrumbs as MuiBreadcrumbs } from '@mui/material'
 import type { BreadcrumbProps as AdapterBreadcrumbProps, BreadcrumbItem } from '../../Breadcrumb'
-import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
+import { Link } from '../../Link'
 import './Breadcrumb.css'
 
 export default function Breadcrumb({
@@ -20,28 +21,10 @@ export default function Breadcrumb({
   material,
   ...props
 }: AdapterBreadcrumbProps) {
-  // Get CSS variables for colors
-  // Interactive, read-only, and separator colors are now component-level properties under colors, organized by layer
-  const interactiveColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.interactive`)
-  const readOnlyColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.read-only`)
-  const separatorColorVar = getComponentLevelCssVar('Breadcrumb', `colors.${layer}.separator-color`)
-  
   // Get component-level CSS variables
   const paddingVar = getComponentLevelCssVar('Breadcrumb', 'padding')
-  const iconLabelGapVar = getComponentLevelCssVar('Breadcrumb', 'icon-label-gap')
   const itemGapVar = getComponentLevelCssVar('Breadcrumb', 'item-gap')
-  const iconSizeVar = getComponentLevelCssVar('Breadcrumb', 'icon-size')
-  
-  // Get text CSS variables
-  const fontFamilyVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-family')
-  const fontSizeVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-size')
-  const fontWeightVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-weight')
-  const letterSpacingVar = getComponentTextCssVar('Breadcrumb', 'text', 'letter-spacing')
-  const lineHeightVar = getComponentTextCssVar('Breadcrumb', 'text', 'line-height')
-  const textDecorationVar = getComponentTextCssVar('Breadcrumb', 'text', 'text-decoration')
-  const textTransformVar = getComponentTextCssVar('Breadcrumb', 'text', 'text-transform')
-  const fontStyleVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-style')
-  
+
   // Get separator icon component
   const separatorIconMap: Record<string, string> = {
     slash: 'slash',
@@ -50,108 +33,67 @@ export default function Breadcrumb({
   }
   const separatorIconName = separatorIconMap[separator] || 'slash'
   const SeparatorIcon = iconNameToReactComponent(separatorIconName)
-  
+
   // Get home icon
   const HomeIcon = iconNameToReactComponent('house') || iconNameToReactComponent('home')
-  
+
   // Transform items to Material UI format
   const breadcrumbItems = items.map((item, index) => {
     const isLast = index === items.length - 1
     const isInteractive = !isLast && item.href
-    
-    // Determine which color variant to use
-    const colorVar = isInteractive ? interactiveColorVar : readOnlyColorVar
-    
+
     // Show home icon only on first item if showHomeIcon is true
     const shouldShowHomeIcon = showHomeIcon && index === 0 && HomeIcon
-    
-    const itemContent = (
-      <>
-        {shouldShowHomeIcon && (
-          <HomeIcon
-            style={{
-              width: `var(${iconSizeVar})`,
-              height: `var(${iconSizeVar})`,
-              marginRight: `var(${iconLabelGapVar})`,
-              display: 'inline-block',
-              verticalAlign: 'middle',
-            }}
-          />
-        )}
-        {item.label}
-      </>
-    )
-    
-    if (isLast || !item.href) {
-      // Last item or item without href - render as Typography
-      return (
-        <Typography
-          key={index}
-          className="recursica-breadcrumb-item"
-          data-variant={isInteractive ? 'interactive' : 'read-only'}
-          style={{
-            color: `var(${colorVar})`,
-            display: 'inline-flex',
-            alignItems: 'center',
-          }}
-        >
-          {itemContent}
-        </Typography>
-      )
-    }
-    
-    // Interactive item - render as Link
+
     return (
       <Link
         key={index}
-        href={item.href}
+        href={isInteractive ? item.href : undefined}
+        layer={layer}
+        forceState={isInteractive ? 'default' : 'visited'}
+        underline={isInteractive ? 'hover' : 'none'}
         className="recursica-breadcrumb-item"
-        data-variant="interactive"
-        underline="hover"
-        style={{
-          color: `var(${colorVar})`,
+        inlineStyle={{
           display: 'inline-flex',
           alignItems: 'center',
         }}
+        startIcon={
+          shouldShowHomeIcon ? (
+            <HomeIcon
+              style={{
+                width: '1.25em',
+                height: '1.25em',
+                display: 'inline-block',
+                verticalAlign: 'middle',
+              }}
+            />
+          ) : undefined
+        }
       >
-        {itemContent}
+        {item.label}
       </Link>
     )
   })
-  
+
   // Create separator element - spacing is handled by CSS using item-gap
   const separatorElement = SeparatorIcon ? (
     <SeparatorIcon
       style={{
-        width: `var(${iconSizeVar})`,
-        height: `var(${iconSizeVar})`,
+        width: '1em',
+        height: '1em',
         display: 'inline-block',
         verticalAlign: 'middle',
-        color: `var(${separatorColorVar})`,
       }}
     />
   ) : (
-    <span style={{ fontSize: `var(${iconSizeVar})`, color: `var(${separatorColorVar})` }}>/</span>
+    <span style={{ fontSize: '1em' }}>/</span>
   )
-  
+
   const muiProps = {
     className,
     style: {
       '--breadcrumb-padding': `var(${paddingVar})`,
-      '--breadcrumb-icon-label-gap': `var(${iconLabelGapVar})`,
       '--breadcrumb-item-gap': `var(${itemGapVar})`,
-      '--breadcrumb-icon-size': `var(${iconSizeVar})`,
-      '--breadcrumb-interactive-color': `var(${interactiveColorVar})`,
-      '--breadcrumb-read-only-color': `var(${readOnlyColorVar})`,
-      '--breadcrumb-separator-color': `var(${separatorColorVar})`,
-      '--breadcrumb-font-family': `var(${fontFamilyVar})`,
-      '--breadcrumb-font-size': `var(${fontSizeVar})`,
-      '--breadcrumb-font-weight': `var(${fontWeightVar})`,
-      '--breadcrumb-letter-spacing': `var(${letterSpacingVar})`,
-      '--breadcrumb-line-height': `var(${lineHeightVar})`,
-      '--breadcrumb-text-decoration': `var(${textDecorationVar})`,
-      '--breadcrumb-text-transform': `var(${textTransformVar})`,
-      '--breadcrumb-font-style': `var(${fontStyleVar})`,
       padding: `var(${paddingVar})`,
       ...style,
       ...material?.style,
@@ -160,7 +102,7 @@ export default function Breadcrumb({
     ...material,
     ...props,
   }
-  
+
   return (
     <MuiBreadcrumbs {...muiProps}>
       {breadcrumbItems}

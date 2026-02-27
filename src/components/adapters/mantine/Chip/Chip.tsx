@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
-import { Badge, ActionIcon } from '@mantine/core'
+import { ActionIcon } from '@mantine/core'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
 import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
@@ -54,6 +54,8 @@ export default function Chip({
 
     // Get color CSS variables for reactive updates
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
+    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
     const chipIconColorVarForListener = variant === 'error' || variant === 'error-selected'
       ? getComponentLevelCssVar('Chip', 'colors.error.icon-color')
       : chipColorVarForListener
@@ -66,7 +68,9 @@ export default function Chip({
         updatedVars.some((v: string) => v.includes('chip') || v.includes('components-chip')) ||
         updatedVars.some((cssVar: string) => textCssVars.includes(cssVar)) ||
         updatedVars.includes(chipColorVarForListener) ||
-        updatedVars.includes(chipIconColorVarForListener)
+        updatedVars.includes(chipIconColorVarForListener) ||
+        updatedVars.includes(chipBgForListener) ||
+        updatedVars.includes(chipBorderForListener)
 
       if (shouldUpdate) {
         setUpdateKey(prev => prev + 1)
@@ -237,132 +241,127 @@ export default function Chip({
   ) : undefined
 
   // Merge library-specific props
-  // Note: Mantine Badge doesn't support onClick directly, so use component="button" when onClick is provided
-  const mantineProps: any = {
-    size: mantineSize,
-    disabled,
-    'data-disabled': disabled ? true : undefined,
-    ...(onClick && !disabled ? { component: 'button' as const, type: 'button' as const } : {}),
-    onClick: disabled ? undefined : onClick,
-    // Use native leftSection prop for icon - wrap in container with explicit sizing
-    // For selected variants, show checkmark icon; if there's also a leading icon, show both with leading icon at disabled opacity
-    leftSection: leftSectionContent,
-    // Use native rightSection prop for delete button - CSS will handle styling
-    rightSection: deleteIcon,
-    className,
-    classNames: {
-      root: 'recursica-chip-root mantine-Badge-root',
-      leftSection: 'recursica-chip-left-section',
-      rightSection: 'recursica-chip-right-section',
-      ...mantine?.classNames,
-    },
-    styles: {
-      root: {
-        // Set CSS custom properties in styles.root to ensure they're applied to the root element
-        '--chip-border-size': `var(${borderSizeVar})`,
-        // Set icon-text-gap CSS variable on root element so it's available for CSS to read
-        '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
-        // Border will be set directly via DOM manipulation for real-time updates
-        borderStyle: 'solid',
-        borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
-        // Don't set color inline - let CSS handle it via --chip-color CSS custom property
-        ...mantine?.styles?.root,
-      },
-      leftSection: {
-        // Use UIKit variable directly with explicit constraints to prevent expansion
-        width: icon ? `var(${iconSizeVar}, 16px)` : undefined,
-        height: icon ? `var(${iconSizeVar}, 16px)` : undefined,
-        minWidth: icon ? `var(${iconSizeVar}, 16px)` : undefined,
-        minHeight: icon ? `var(${iconSizeVar}, 16px)` : undefined,
-        maxWidth: icon ? `var(${iconSizeVar}, 16px)` : undefined,
-        maxHeight: icon ? `var(${iconSizeVar}, 16px)` : undefined,
-        flexBasis: icon ? `var(${iconSizeVar}, 16px)` : undefined,
-        flexShrink: 0,
-        flexGrow: 0,
-        overflow: 'hidden',
-        display: icon ? 'inline-flex' : undefined,
-        alignItems: 'center',
-        justifyContent: 'center',
-        // For error variant (including error-selected), also set icon color directly to ensure it's applied
-        ...((variant === 'error' || variant === 'error-selected') && icon ? {
-          color: leadingIconColorVar ? `var(${leadingIconColorVar})` : `var(${chipIconColorVar})`,
-        } : {}),
-        // Don't set margin-inline-end here - let CSS handle it (same approach as Button)
-        ...mantine?.styles?.leftSection,
-      },
-      label: {
-        paddingBottom: '2px',
-        ...mantine?.styles?.label,
-      },
-      ...mantine?.styles,
-    },
-    style: {
-      // Set CSS custom properties for CSS file
-      '--chip-bg': `var(${chipBgVar})`,
-      // Use UIKit CSS variable directly for reactive updates - CSS will reference this
-      '--chip-color': chipColorVar ? `var(${chipColorVar})` : undefined,
-      '--chip-icon-color': chipIconColorVar ? `var(${chipIconColorVar})` : undefined,
-      // Set icon size CSS variable for CSS file - needed even when no icon if checkmark is present
-      '--chip-icon-size': (icon || showCheckmark) ? `var(${iconSizeVar})` : undefined,
-      '--chip-border': `var(${chipBorderVar})`,
-      '--chip-close-icon-size': deletable && onDelete ? `var(${closeIconSizeVar}, 16px)` : '0px',
-      '--chip-leading-icon-color': leadingIconColorVar ? `var(${leadingIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
-      '--chip-selected-icon-color': selectedIconColorVar ? `var(${selectedIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
-      '--chip-close-icon-color': closeIconColorVar ? `var(${closeIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
-      // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
-      // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
-      '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
-      '--chip-padding-x': `var(${horizontalPaddingVar})`,
-      '--chip-padding-y': `var(${verticalPaddingVar})`,
-      '--chip-border-size': `var(${borderSizeVar})`,
-      '--chip-border-radius': `var(${borderRadiusVar})`,
-      // Set CSS custom properties for text styles (used by CSS file)
-      '--chip-font-family': fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
-      '--chip-font-size': fontSizeVar ? `var(${fontSizeVar})` : undefined,
-      '--chip-font-weight': fontWeightVar ? `var(${fontWeightVar})` : undefined,
-      '--chip-letter-spacing': letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
-      '--chip-line-height': lineHeightVar ? `var(${lineHeightVar})` : undefined,
-      '--chip-text-decoration': textDecorationVar ? `var(${textDecorationVar})` : undefined,
-      '--chip-text-transform': textTransformVar ? `var(${textTransformVar})` : undefined,
-      '--chip-font-style': fontStyleVar ? `var(${fontStyleVar})` : undefined,
-      // Apply text styles using CSS variables from text style toolbar (inline fallback)
-      fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
-      fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
-      fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
-      letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
-      lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
-      textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
-      textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
-      fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
-      borderStyle: 'solid',
-      // Use Button's min-width and max-width vars (same as Button component)
-      // Don't use fixed height - let padding and content determine height naturally
-      minWidth: `var(${minWidthVar})`,
-      '--chip-min-width': `var(${minWidthVar})`,
-      '--chip-max-width': `var(${maxWidthVar})`,
-      // Set disabled opacity dynamically based on mode (Bug 2 fix)
-      ...(disabled && {
-        opacity: `var(--recursica-brand-${mode}-state-disabled, 0.5)`,
-      }),
-      ...(() => {
-        const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
-        return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
-      })(),
-      ...style,
-    },
-    ...mantine,
-    ...props,
-  } as any
+  const Component = (onClick && !disabled) ? 'button' : 'div'
+  const isButton = Component === 'button'
 
-  // Use native children prop - CSS will handle icon and delete button styling
-  // Use variant as key to force Mantine to re-render when variant changes
+  const rootStyles = {
+    // Set CSS custom properties in styles.root to ensure they're applied to the root element
+    '--chip-border-size': `var(${borderSizeVar})`,
+    '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
+    borderStyle: 'solid',
+    borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
+
+    // Set CSS custom properties for CSS file
+    '--chip-bg': `var(${chipBgVar})`,
+    '--chip-color': chipColorVar ? `var(${chipColorVar})` : undefined,
+    '--chip-icon-color': chipIconColorVar ? `var(${chipIconColorVar})` : undefined,
+    '--chip-icon-size': (icon || showCheckmark) ? `var(${iconSizeVar})` : undefined,
+    '--chip-border': `var(${chipBorderVar})`,
+    '--chip-close-icon-size': deletable && onDelete ? `var(${closeIconSizeVar}, 16px)` : '0px',
+    '--chip-leading-icon-color': leadingIconColorVar ? `var(${leadingIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
+    '--chip-selected-icon-color': selectedIconColorVar ? `var(${selectedIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
+    '--chip-close-icon-color': closeIconColorVar ? `var(${closeIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
+    '--chip-padding-x': `var(${horizontalPaddingVar})`,
+    '--chip-padding-y': `var(${verticalPaddingVar})`,
+    '--chip-border-radius': `var(${borderRadiusVar})`,
+
+    '--chip-font-family': fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
+    '--chip-font-size': fontSizeVar ? `var(${fontSizeVar})` : undefined,
+    '--chip-font-weight': fontWeightVar ? `var(${fontWeightVar})` : undefined,
+    '--chip-letter-spacing': letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+    '--chip-line-height': lineHeightVar ? `var(${lineHeightVar})` : undefined,
+    '--chip-text-decoration': textDecorationVar ? `var(${textDecorationVar})` : undefined,
+    '--chip-text-transform': textTransformVar ? `var(${textTransformVar})` : undefined,
+    '--chip-font-style': fontStyleVar ? `var(${fontStyleVar})` : undefined,
+
+    fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
+    fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
+    fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
+    letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+    lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
+    textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
+    textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
+    fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
+
+    backgroundColor: `var(${chipBgVar})`,
+    color: chipColorVar ? `var(${chipColorVar})` : undefined,
+    paddingLeft: `var(${horizontalPaddingVar})`,
+    paddingRight: `var(${horizontalPaddingVar})`,
+    paddingTop: `var(${verticalPaddingVar})`,
+    paddingBottom: `var(${verticalPaddingVar})`,
+    borderWidth: `var(${borderSizeVar})`,
+    borderRadius: `var(${borderRadiusVar})`,
+
+    minWidth: `var(${minWidthVar})`,
+    '--chip-min-width': `var(${minWidthVar})`,
+    '--chip-max-width': `var(${maxWidthVar})`,
+
+    ...(disabled && {
+      opacity: `var(--recursica-brand-${mode}-state-disabled, 0.5)`,
+    }),
+    ...(() => {
+      const elevationBoxShadow = getElevationBoxShadow(mode, elevation)
+      return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
+    })(),
+
+    ...mantine?.styles?.root,
+    ...style,
+  }
+
+  const leftSectionStyles = {
+    width: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+    height: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+    minWidth: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+    minHeight: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+    maxWidth: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+    maxHeight: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+    flexBasis: icon ? `var(${iconSizeVar}, 16px)` : undefined,
+    flexShrink: 0,
+    flexGrow: 0,
+    overflow: 'hidden',
+    display: icon ? 'inline-flex' : undefined,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...((variant === 'error' || variant === 'error-selected') && icon ? {
+      color: leadingIconColorVar ? `var(${leadingIconColorVar})` : `var(${chipIconColorVar})`,
+    } : {}),
+    ...mantine?.styles?.leftSection,
+  }
+
   return (
-    <Badge
+    <Component
       key={`chip-${variant}-${layer}`}
-      {...mantineProps}
+      disabled={isButton ? disabled : undefined}
+      data-disabled={disabled ? "true" : undefined}
+      type={isButton ? "button" : undefined}
+      onClick={disabled ? undefined : onClick}
+      className={`recursica-chip-root ${mantine?.classNames?.root || ''} ${className || ''}`.trim()}
+      style={rootStyles as React.CSSProperties}
+      {...props}
     >
-      {children}
-    </Badge>
+      {leftSectionContent && (
+        <span
+          className={`recursica-chip-left-section ${mantine?.classNames?.leftSection || ''}`.trim()}
+          style={leftSectionStyles as React.CSSProperties}
+        >
+          {leftSectionContent}
+        </span>
+      )}
+      <span
+        className={`recursica-chip-label ${mantine?.classNames?.label || ''}`.trim()}
+        style={{ paddingBottom: '2px', ...mantine?.styles?.label }}
+      >
+        {children}
+      </span>
+      {deleteIcon && (
+        <span
+          className={`recursica-chip-right-section ${mantine?.classNames?.rightSection || ''}`.trim()}
+          style={mantine?.styles?.rightSection}
+        >
+          {deleteIcon}
+        </span>
+      )}
+    </Component>
   )
 }
 
