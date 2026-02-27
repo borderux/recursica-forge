@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
-import { iconNameToReactComponent } from '../../components/iconUtils'
+
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import type { JsonLike } from '../../../core/resolvers/tokens'
 import { TextField } from '../../../components/adapters/TextField'
+import { Button } from '../../../components/adapters/Button'
+import { Trash } from '@phosphor-icons/react'
 
 export type ColorScaleProps = {
   family: string
@@ -192,7 +194,7 @@ export function ColorScale({
         display: 'flex',
         justifyContent: 'center',
       }}>
-        <button
+        <Button
           onClick={() => {
             if (!isDeleteDisabled) {
               onDeleteFamily(family)
@@ -206,37 +208,11 @@ export function ColorScale({
                 : 'Cannot delete: this is the last color scale'
               : 'Delete color scale'
           }
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
-            background: 'transparent',
-            cursor: isDeleteDisabled ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 0,
-            opacity: isDeleteDisabled ? 0.5 : 1,
-            color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            if (!isDeleteDisabled) {
-              e.currentTarget.style.opacity = '0.8'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isDeleteDisabled) {
-              e.currentTarget.style.opacity = '1'
-            }
-          }}
-        >
-          {(() => {
-            const TrashIcon = iconNameToReactComponent('trash')
-            return TrashIcon ? <TrashIcon style={{ width: 16, height: 16 }} /> : null
-          })()}
-        </button>
+          variant="outline"
+          size="small"
+          layer="layer-1"
+          icon={<Trash size={16} />}
+        />
       </div>
     </div>
   )
