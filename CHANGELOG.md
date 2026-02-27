@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.3.9
+
+### Patch Changes
+
+- e0b3843: Added link to breadcrumb, replaced checkboxes, and implemented various fixes for Chip and Badge components (including Chip palettes).
+
 ## 0.3.8
 
 ### Patch Changes
