@@ -1,0 +1,9 @@
+/**
+ * Material UI Textarea CSS
+ * 
+ * CSS overrides for Material UI Textarea component.
+ */
+
+.recursica-textarea-wrapper {
+    position: relative;
+}

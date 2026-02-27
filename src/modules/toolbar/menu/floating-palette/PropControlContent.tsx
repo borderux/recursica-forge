@@ -1269,6 +1269,10 @@ export default function PropControlContent({
 
     // Generic Slider implementation for propertyType: 'slider'
     if (propToRender.propertyType === 'slider' || propToRender.type === 'slider') {
+      // Determine if this is a unitless (number) property or a dimension (px) property
+      const isUnitless = propToRender.type === 'number'
+      const unit = isUnitless ? '' : 'px'
+
       const CustomDimensionSlider = () => {
         const minValue = propToRender.range ? propToRender.range[0] : 0
         const maxValue = propToRender.range ? propToRender.range[1] : 500
@@ -1277,7 +1281,11 @@ export default function PropControlContent({
         const [value, setValue] = useState(() => {
           const currentValue = readCssVar(primaryVar)
           const resolvedValue = readCssVarResolved(primaryVar)
-          const valueStr = resolvedValue || currentValue || `${minValue}px`
+          const valueStr = resolvedValue || currentValue || `${minValue}${unit}`
+          if (isUnitless) {
+            const num = parseFloat(valueStr)
+            return !isNaN(num) ? Math.max(minValue, Math.min(maxValue, num)) : minValue
+          }
           const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
           return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
         })
@@ -1286,10 +1294,17 @@ export default function PropControlContent({
           const handleUpdate = () => {
             const currentValue = readCssVar(primaryVar)
             const resolvedValue = readCssVarResolved(primaryVar)
-            const valueStr = resolvedValue || currentValue || `${minValue}px`
-            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-            if (match) {
-              setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+            const valueStr = resolvedValue || currentValue || `${minValue}${unit}`
+            if (isUnitless) {
+              const num = parseFloat(valueStr)
+              if (!isNaN(num)) {
+                setValue(Math.max(minValue, Math.min(maxValue, num)))
+              }
+            } else {
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
             }
           }
           window.addEventListener('cssVarsUpdated', handleUpdate)
@@ -1303,7 +1318,7 @@ export default function PropControlContent({
 
           const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
           cssVarsToUpdate.forEach(cssVar => {
-            updateCssVar(cssVar, `${clampedValue}px`)
+            updateCssVar(cssVar, `${clampedValue}${unit}`)
           })
           window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
             detail: { cssVars: cssVarsToUpdate }
@@ -1322,9 +1337,9 @@ export default function PropControlContent({
             layout="stacked"
             showInput={false}
             showValueLabel={true}
-            valueLabel={(val) => `${Math.round(val)}px`}
-            minLabel={`${minValue}px`}
-            maxLabel={`${maxValue}px`}
+            valueLabel={(val) => `${Math.round(val)}${unit}`}
+            minLabel={`${minValue}${unit}`}
+            maxLabel={`${maxValue}${unit}`}
             showMinMaxLabels={false}
             label={<Label layer={selectedLayer as any} layout="stacked">{label}</Label>}
           />

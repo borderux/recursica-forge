@@ -19,6 +19,7 @@ import SegmentedControlConfig from '../configs/SegmentedControl.toolbar.json'
 import SegmentedControlItemConfig from '../configs/SegmentedControlItem.toolbar.json'
 import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
 import TextFieldConfig from '../configs/TextField.toolbar.json'
+import TextareaConfig from '../configs/Textarea.toolbar.json'
 import CheckboxItemConfig from '../configs/CheckboxItem.toolbar.json'
 import CheckboxGroupConfig from '../configs/CheckboxGroup.toolbar.json'
 import RadioButtonItemConfig from '../configs/RadioButtonItem.toolbar.json'
@@ -106,6 +107,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'text-field':
       case 'text field':
         return TextFieldConfig as unknown as ToolbarConfig
+      case 'textarea':
+        return TextareaConfig as unknown as ToolbarConfig
       case 'checkbox-item':
       case 'checkbox item':
       case 'checkbox-group-item':
