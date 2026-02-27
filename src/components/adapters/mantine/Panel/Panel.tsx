@@ -183,17 +183,10 @@ export default function Panel({
                     {onClose && (
                         <Button
                             variant="text"
+                            size="small"
                             layer={layer}
                             onClick={onClose}
-                            style={{
-                                padding: 0,
-                                minWidth: 0,
-                                width: 24,
-                                height: 24,
-                                '--button-icon-size': '16px',
-                                '--button-padding': '0px',
-                                '--button-padding-x': '0px'
-                            } as any}
+                            style={{ flexShrink: 0 }}
                             icon={<X size={16} />}
                         />
                     )}
