@@ -10,6 +10,9 @@
  * - "Date picker" → "date-picker"
  */
 export function componentNameToSlug(name: string): string {
+  // Special cases for combined component names
+  if (name === 'Hover card / Popover') return 'hover-card'
+
   return name
     .toLowerCase()
     .replace(/\s+/g, '-')
@@ -25,10 +28,13 @@ export function componentNameToSlug(name: string): string {
  * - "menu-item" → "Menu item"
  */
 export function slugToComponentName(slug: string): string {
+  // Special cases for combined component names
+  if (slug === 'hover-card' || slug === 'popover') return 'Hover card / Popover'
+
   const words = slug.split('-')
   return words
-    .map((word, index) => 
-      index === 0 
+    .map((word, index) =>
+      index === 0
         ? word.charAt(0).toUpperCase() + word.slice(1) // First word: capitalize first letter
         : word.toLowerCase() // Subsequent words: lowercase
     )

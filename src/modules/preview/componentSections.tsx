@@ -662,7 +662,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       },
     },
     {
-      name: 'Hover card',
+      name: 'Hover card / Popover',
       url: `${base}/hover-card`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -1011,13 +1011,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         </div>
       ),
     },
-    {
-      name: 'Popover',
-      url: `${base}/popover`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div title="Popover content" style={{ display: 'inline-block', border: '1px solid var(--layers-layer-1-properties-border-color)', padding: '6px 10px', borderRadius: 6, cursor: 'help' }}>Hover for popover</div>
-      ),
-    },
+
     {
       name: 'Radio',
       url: `${base}/radio`,

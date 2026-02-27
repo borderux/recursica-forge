@@ -71,6 +71,7 @@ const router = createBrowserRouter([
         path: '/components',
         element: <PreviewPage />,
         children: [
+          { path: 'popover', element: <Navigate to="/components/hover-card" replace /> },
           { path: ':componentName', element: <ComponentDetailPage /> },
         ],
       },
