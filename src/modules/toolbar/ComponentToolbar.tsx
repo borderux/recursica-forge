@@ -584,6 +584,32 @@ export default function ComponentToolbar({
           propsMap.set(propNameLower, virtualProp)
           seenProps.add(propNameLower)
         }
+
+        // Create virtual props for radio-button-group top-bottom-margin (stacked and side-by-side)
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'radio-button-group' && propNameLower === 'stacked-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'stacked-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('RadioButtonGroup', 'variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'radio-button-group' && propNameLower === 'sbs-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('RadioButtonGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
       }
     }
 
@@ -729,6 +755,7 @@ export default function ComponentToolbar({
     let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
     // Normalize display names that differ from UIKit.json keys
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
+    if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
 
     // 1. Remove ALL overrides for this component from the document element
     // This handles all modes, layers, and states by looking for the component key in the variable name
@@ -763,6 +790,10 @@ export default function ComponentToolbar({
         }
         // For checkbox-item, also include base checkbox component vars
         if (componentKey === 'checkbox-item' && cssVar.includes('-components-checkbox-')) {
+          componentDefaults[cssVar] = value
+        }
+        // For radio-button-item, also include base radio-button component vars
+        if (componentKey === 'radio-button-item' && cssVar.includes('-components-radio-button-')) {
           componentDefaults[cssVar] = value
         }
       })

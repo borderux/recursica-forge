@@ -12,6 +12,9 @@ registerComponent('mantine', 'Button', () => import('../adapters/mantine/Button/
 registerComponent('mantine', 'Checkbox', () => import('../adapters/mantine/Checkbox/Checkbox'))
 registerComponent('mantine', 'CheckboxItem', () => import('../adapters/mantine/CheckboxItem/CheckboxItem'))
 registerComponent('mantine', 'CheckboxGroup', () => import('../adapters/mantine/CheckboxGroup/CheckboxGroup'))
+registerComponent('mantine', 'RadioButton', () => import('../adapters/mantine/RadioButton/RadioButton'))
+registerComponent('mantine', 'RadioButtonItem', () => import('../adapters/mantine/RadioButtonItem/RadioButtonItem'))
+registerComponent('mantine', 'RadioButtonGroup', () => import('../adapters/mantine/RadioButtonGroup/RadioButtonGroup'))
 
 // Tabs
 registerComponent('mantine', 'Tabs', () => import('../adapters/mantine/Tabs/Tabs'))

@@ -12,6 +12,8 @@ import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
 import { CheckboxItem } from '../../components/adapters/CheckboxItem'
 import { CheckboxGroup } from '../../components/adapters/CheckboxGroup'
+import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
+import { RadioButtonGroup } from '../../components/adapters/RadioButtonGroup'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { Tooltip } from '../../components/adapters/Tooltip'
 import { Link } from '../../components/adapters/Link'
@@ -177,6 +179,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     const [checked2, setChecked2] = React.useState(true)
     const [checked3, setChecked3] = React.useState(false)
     const [checked4, setChecked4] = React.useState(false)
+    const [checked5, setChecked5] = React.useState(false)
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -204,6 +207,12 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           checked={checked4}
           onChange={setChecked4}
           indeterminate
+          layer={layer as any}
+        />
+        <CheckboxItem
+          label="A curious goblin crept through the moonlit forest, clutching a handful of stolen trinkets that sparkled like tiny stars, all the while muttering about the great treasure map he'd found tucked inside an old boot at the bottom of the river"
+          checked={checked5}
+          onChange={setChecked5}
           layer={layer as any}
         />
       </div>
@@ -243,6 +252,112 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             layer={layer as any}
           />
         </CheckboxGroup>
+      </div>
+    )
+  }
+
+  function RadioButtonItemExamples({ layer }: { layer: string }) {
+    const [selected, setSelected] = React.useState('option2')
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <RadioButtonItem
+          label="Radio item"
+          value="option1"
+          selected={selected === 'option1'}
+          onChange={() => setSelected('option1')}
+          layer={layer as any}
+        />
+        <RadioButtonItem
+          label="Selected item"
+          value="option2"
+          selected={selected === 'option2'}
+          onChange={() => setSelected('option2')}
+          layer={layer as any}
+        />
+        <RadioButtonItem
+          label="Disabled item"
+          value="option3"
+          selected={false}
+          onChange={() => { }}
+          disabled
+          layer={layer as any}
+        />
+        <RadioButtonItem
+          label="Deep in the enchanted caverns beneath the goblin king's throne, a rebellious young goblin discovered an ancient spell book bound in dragon leather, and upon reading the first incantation aloud, accidentally turned every torch in the kingdom bright pink"
+          value="option4"
+          selected={selected === 'option4'}
+          onChange={() => setSelected('option4')}
+          layer={layer as any}
+        />
+      </div>
+    )
+  }
+
+  function RadioButtonGroupExample({ layer }: { layer: string }) {
+    const [selected1, setSelected1] = React.useState('opt1')
+    const [selected2, setSelected2] = React.useState('opt1')
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
+        <h2 style={{ margin: 0, fontFamily: 'var(--recursica-brand-typography-h2-font-family)', fontSize: 'var(--recursica-brand-typography-h2-font-size)', fontWeight: 'var(--recursica-brand-typography-h2-font-weight)', letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)', lineHeight: 'var(--recursica-brand-typography-h2-line-height)' }}>Stacked</h2>
+        <RadioButtonGroup
+          label="Radio button group"
+          layout="stacked"
+          layer={layer as any}
+          orientation="vertical"
+        >
+          <RadioButtonItem
+            label="Option 1"
+            value="opt1"
+            selected={selected1 === 'opt1'}
+            onChange={() => setSelected1('opt1')}
+            layer={layer as any}
+          />
+          <RadioButtonItem
+            label="Option 2"
+            value="opt2"
+            selected={selected1 === 'opt2'}
+            onChange={() => setSelected1('opt2')}
+            layer={layer as any}
+          />
+          <RadioButtonItem
+            label="Option 3"
+            value="opt3"
+            selected={selected1 === 'opt3'}
+            onChange={() => setSelected1('opt3')}
+            layer={layer as any}
+          />
+        </RadioButtonGroup>
+        <h2 style={{ margin: 0, fontFamily: 'var(--recursica-brand-typography-h2-font-family)', fontSize: 'var(--recursica-brand-typography-h2-font-size)', fontWeight: 'var(--recursica-brand-typography-h2-font-weight)', letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)', lineHeight: 'var(--recursica-brand-typography-h2-line-height)' }}>Side-by-side</h2>
+        <RadioButtonGroup
+          label="Radio button group"
+          layout="side-by-side"
+          layer={layer as any}
+          orientation="vertical"
+        >
+          <RadioButtonItem
+            label="Option 1"
+            value="opt1"
+            selected={selected2 === 'opt1'}
+            onChange={() => setSelected2('opt1')}
+            layer={layer as any}
+          />
+          <RadioButtonItem
+            label="Option 2"
+            value="opt2"
+            selected={selected2 === 'opt2'}
+            onChange={() => setSelected2('opt2')}
+            layer={layer as any}
+          />
+          <RadioButtonItem
+            label="Option 3"
+            value="opt3"
+            selected={selected2 === 'opt3'}
+            onChange={() => setSelected2('opt3')}
+            layer={layer as any}
+          />
+        </RadioButtonGroup>
       </div>
     )
   }
@@ -786,6 +901,22 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
         return <CheckboxGroupExample layer={layer} />
+      },
+    },
+    {
+      name: 'Radio button group item',
+      url: `${base}/radio-button-group-item`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return <RadioButtonItemExamples layer={layer} />
+      },
+    },
+    {
+      name: 'Radio button group',
+      url: `${base}/radio-button-group`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return <RadioButtonGroupExample layer={layer} />
       },
     },
     {

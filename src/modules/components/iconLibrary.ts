@@ -47,6 +47,7 @@ import {
   CheckCircle,
   CheckSquare,
   Circle,
+  CircleDashed,
   CircleHalf,
   CircleHalfTilt,
   Columns,
@@ -371,6 +372,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'line-segment': LineSegment,
   'stop': Stop,
   'minus-square': MinusSquare,
+  'circle-dashed': CircleDashed,
 }
 
 /**

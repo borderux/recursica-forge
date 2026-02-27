@@ -21,6 +21,8 @@ import AssistiveElementConfig from '../configs/AssistiveElement.toolbar.json'
 import TextFieldConfig from '../configs/TextField.toolbar.json'
 import CheckboxItemConfig from '../configs/CheckboxItem.toolbar.json'
 import CheckboxGroupConfig from '../configs/CheckboxGroup.toolbar.json'
+import RadioButtonItemConfig from '../configs/RadioButtonItem.toolbar.json'
+import RadioButtonGroupConfig from '../configs/RadioButtonGroup.toolbar.json'
 import NumberInputConfig from '../configs/NumberInput.toolbar.json'
 import ModalConfig from '../configs/Modal.toolbar.json'
 import DropdownConfig from '../configs/Dropdown.toolbar.json'
@@ -111,6 +113,13 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'checkbox-group':
       case 'checkbox group':
         return CheckboxGroupConfig as unknown as ToolbarConfig
+      case 'radio-button-item':
+      case 'radio button item':
+      case 'radio-button-group-item':
+        return RadioButtonItemConfig as unknown as ToolbarConfig
+      case 'radio-button-group':
+      case 'radio button group':
+        return RadioButtonGroupConfig as unknown as ToolbarConfig
       case 'number-input':
       case 'number input':
       case 'numberinput':
