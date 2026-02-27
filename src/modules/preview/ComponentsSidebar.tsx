@@ -110,6 +110,7 @@ export function ComponentsSidebar({
       { name: 'Switch', url: `${base}/switch` },
       { name: 'Tabs', url: `${base}/tabs` },
       { name: 'Text field', url: `${base}/text-field` },
+      { name: 'Textarea', url: `${base}/textarea` },
       { name: 'Time picker', url: `${base}/time-picker` },
       { name: 'Timeline', url: `${base}/timeline` },
       { name: 'Toast', url: `${base}/toast` },

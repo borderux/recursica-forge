@@ -6,6 +6,7 @@ import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
 import { AssistiveElement } from '../../components/adapters/AssistiveElement'
 import { TextField } from '../../components/adapters/TextField'
+import { Textarea } from '../../components/adapters/Textarea'
 import { NumberInput } from '../../components/adapters/NumberInput'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
@@ -1149,6 +1150,25 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <textarea placeholder="Text area" rows={3} style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layers-layer-1-properties-border-color)' }} />
         </div>
       ),
+    },
+    {
+      name: 'Textarea',
+      url: `${base}/textarea`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+            <Textarea
+              label="Label"
+              placeholder="Enter text..."
+              helpText="Help message"
+              state="default"
+              layout="stacked"
+              layer={layer as any}
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Time picker',

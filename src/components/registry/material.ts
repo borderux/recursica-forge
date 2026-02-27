@@ -45,6 +45,9 @@ registerComponent('material', 'AssistiveElement', () => import('../adapters/mate
 // TextField
 registerComponent('material', 'TextField', () => import('../adapters/material/TextField/TextField'))
 
+// Textarea
+registerComponent('material', 'Textarea', () => import('../adapters/material/Textarea/Textarea'))
+
 // NumberInput
 registerComponent('material', 'NumberInput', () => import('../adapters/material/NumberInput/NumberInput'))
 
