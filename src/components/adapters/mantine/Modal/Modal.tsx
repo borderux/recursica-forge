@@ -294,19 +294,13 @@ export default function Modal({
                     </span>
                     <Button
                         variant="text"
+                        size="small"
                         layer={layer}
                         onClick={(e) => {
                             e.stopPropagation()
                             onClose()
                         }}
-                        style={{
-                            padding: 0,
-                            minWidth: 0,
-                            width: 24,
-                            height: 24,
-                            flexShrink: 0,
-                            '--button-icon-size': '16px',
-                        } as any}
+                        style={{ flexShrink: 0 }}
                         icon={CloseIcon ? <CloseIcon size={16} weight="bold" /> : undefined}
                     />
                 </Group>
