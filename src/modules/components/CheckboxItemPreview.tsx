@@ -16,6 +16,7 @@ export default function CheckboxItemPreview({
     const [checked1, setChecked1] = useState(false)
     const [checked2, setChecked2] = useState(true)
     const [indeterminate, setIndeterminate] = useState(false)
+    const [checkedWrap, setCheckedWrap] = useState(false)
 
     // Listen for CSS variable updates to force re-render
     useEffect(() => {
@@ -91,9 +92,9 @@ export default function CheckboxItemPreview({
                 />
 
                 <CheckboxItem
-                    label="Label wrapping: The quick brown fox jumps over the lazy dog and the label should wrap nicely."
-                    checked={false}
-                    onChange={() => { }}
+                    label="The quick onyx goblin jumps over the lazy dwarf, muttering about a treasure map he found tucked inside an old boot at the bottom of the river, while clutching a handful of stolen trinkets that sparkle like tiny stars in the moonlight"
+                    checked={checkedWrap}
+                    onChange={setCheckedWrap}
                     layer={selectedLayer as any}
                 />
             </div>

@@ -1,0 +1,27 @@
+/* Mantine RadioButtonItem Overrides */
+
+/* Value text styling with min-height and vertical centering */
+.recursica-radio-item.recursica-radio-root .mantine-Radio-label,
+.recursica-radio-item .mantine-Radio-body .mantine-Radio-label {
+    padding-left: var(--radio-item-gap) !important;
+    font-family: var(--radio-item-font-family) !important;
+    font-size: var(--radio-item-font-size) !important;
+    font-weight: var(--radio-item-font-weight) !important;
+    line-height: var(--radio-item-line-height) !important;
+    letter-spacing: var(--radio-item-letter-spacing) !important;
+    font-style: var(--radio-item-font-style) !important;
+    text-decoration: var(--radio-item-text-decoration) !important;
+    text-transform: var(--radio-item-text-transform) !important;
+    color: var(--radio-item-color) !important;
+    min-height: calc(var(--radio-size) + 2 * var(--radio-border-width, 0px)) !important;
+    max-width: var(--radio-item-max-width) !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* Disabled state for RadioButtonItem value text - high specificity */
+.recursica-radio-item.recursica-radio-root[data-disabled] .mantine-Radio-label,
+.recursica-radio-item.recursica-radio-root .mantine-Radio-radio:disabled~.mantine-Radio-label,
+.recursica-radio-item .mantine-Radio-radio:disabled+.mantine-Radio-labelWrapper .mantine-Radio-label {
+    opacity: var(--radio-disabled-opacity, 0.4) !important;
+}

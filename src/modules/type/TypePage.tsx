@@ -62,7 +62,7 @@ export function TypePage() {
         const labelInfo = labelMap[key]
         if (labelInfo) {
           const prefix = prefixMap[key] || key
-          const defaultText = `${labelInfo.label} – The quick brown fox jumps over the lazy dog`
+          const defaultText = `${labelInfo.label} – The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal.`
 
           result.push({
             label: labelInfo.label,

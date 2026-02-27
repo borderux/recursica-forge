@@ -19,6 +19,7 @@ export default function CheckboxItem({
 }: AdapterCheckboxItemProps) {
     // Label gap
     const labelGapVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'label-gap')
+    const maxWidthVar = buildComponentCssVarPath('CheckboxItem', 'properties', 'max-width')
 
     // Text Styles
     const fontFamilyVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-family')
@@ -76,6 +77,7 @@ export default function CheckboxItem({
         '--checkbox-item-text-decoration': `var(${textDecorationVar})`,
         '--checkbox-item-text-transform': `var(${textTransformVar})`,
         '--checkbox-item-color': `var(${colorVar})`,
+        '--checkbox-item-max-width': `var(${maxWidthVar})`,
     }
 
     return (

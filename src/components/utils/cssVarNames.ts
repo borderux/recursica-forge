@@ -113,6 +113,7 @@ export function buildComponentCssVarPath(
   // Normalize display names that differ from UIKit.json keys
   const componentNameMap: Record<string, string> = {
     'checkbox-group-item': 'checkbox-item',
+    'radio-button-group-item': 'radio-button-item',
   }
   let componentKebab = pascalToKebabCase(component)
   if (componentNameMap[componentKebab]) {

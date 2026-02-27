@@ -50,6 +50,10 @@ export function ComponentsSidebar({
       if (name === 'checkbox-item') {
         return 'Checkbox group item'
       }
+      // Special alias: map radio-button-item to "Radio button group item" so it nests active under Radio button group
+      if (name === 'radio-button-item') {
+        return 'Radio button group item'
+      }
 
       // Convert "button" -> "Button", "text-field" -> "Text field", "menu-item" -> "Menu item", etc.
       const words = name.split('-')
@@ -94,7 +98,9 @@ export function ComponentsSidebar({
       { name: 'Pagination', url: `${base}/pagination` },
       { name: 'Panel', url: `${base}/panel` },
       { name: 'Popover', url: `${base}/popover` },
-      { name: 'Radio', url: `${base}/radio` },
+      // { name: 'Radio button', url: `${base}/radio-button` },
+      { name: 'Radio button group', url: `${base}/radio-button-group` },
+      { name: 'Radio button group item', url: `${base}/radio-button-group-item` },
       { name: 'Read only field', url: `${base}/read-only-field` },
       { name: 'Search', url: `${base}/search` },
       { name: 'Segmented control', url: `${base}/segmented-control` },
