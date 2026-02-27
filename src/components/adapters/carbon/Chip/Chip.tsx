@@ -54,6 +54,8 @@ export default function Chip({
 
     // Get color CSS variables for reactive updates
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
+    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
     const chipIconColorVarForListener = variant === 'error' || variant === 'error-selected'
       ? getComponentLevelCssVar('Chip', 'colors.error.icon-color')
       : chipColorVarForListener
@@ -66,7 +68,9 @@ export default function Chip({
         updatedVars.some((v: string) => v.includes('chip') || v.includes('components-chip')) ||
         updatedVars.some((cssVar: string) => textCssVars.includes(cssVar)) ||
         updatedVars.includes(chipColorVarForListener) ||
-        updatedVars.includes(chipIconColorVarForListener)
+        updatedVars.includes(chipIconColorVarForListener) ||
+        updatedVars.includes(chipBgForListener) ||
+        updatedVars.includes(chipBorderForListener)
 
       if (shouldUpdate) {
         setUpdateKey(prev => prev + 1)
@@ -275,6 +279,19 @@ export default function Chip({
       textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
       textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
       fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
+
+      // Inline fallbacks to prevent styling loss on navigation
+      backgroundColor: `var(${chipBgVar})`,
+      color: chipColorVar ? `var(${chipColorVar})` : undefined,
+      paddingLeft: `var(${horizontalPaddingVar})`,
+      paddingRight: `var(${horizontalPaddingVar})`,
+      paddingTop: `var(${verticalPaddingVar})`,
+      paddingBottom: `var(${verticalPaddingVar})`,
+      borderWidth: `var(${borderSizeVar})`,
+      borderRadius: `var(${borderRadiusVar})`,
+      borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
+      borderStyle: 'solid',
+
       // Use Button's min-width and max-width vars (same as Button component)
       // Don't use fixed height - let padding and content determine height naturally
       minWidth: `var(${minWidthVar})`,

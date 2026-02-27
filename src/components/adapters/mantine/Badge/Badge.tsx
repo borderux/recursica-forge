@@ -11,7 +11,6 @@ import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } f
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
-import { useCssVar } from '../../../hooks/useCssVar'
 import './Badge.css'
 
 export default function Badge({
@@ -55,13 +54,21 @@ export default function Badge({
     return value ? parseElevationValue(value) : undefined
   })
 
+  // Force re-render when CSS vars change (needed for Mantine to pick up CSS var changes)
+  const [, setUpdateKey] = useState(0)
+
   useEffect(() => {
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
+
+      // Update elevation if it was changed
       if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
         const value = readCssVar(elevationVar)
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
       }
+
+      // Always trigger re-render on CSS var updates to catch color/font changes
+      setUpdateKey(prev => prev + 1)
     }
 
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
@@ -69,6 +76,7 @@ export default function Badge({
     const observer = new MutationObserver(() => {
       const value = readCssVar(elevationVar)
       setElevationFromVar(value ? parseElevationValue(value) : undefined)
+      setUpdateKey(prev => prev + 1)
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -80,11 +88,6 @@ export default function Badge({
       observer.disconnect()
     }
   }, [elevationVar])
-
-  // Reactively read background and text colors to trigger re-renders when CSS variables are initialized
-  // This ensures the badge renders correctly on first load
-  useCssVar(bgVar, '')
-  useCssVar(textVar, '')
 
   // Determine elevation to apply - prioritize prop, then CSS variable
   const componentElevation = elevation ?? elevationFromVar
@@ -111,8 +114,30 @@ export default function Badge({
         '--badge-border-color': `var(${borderColorVar})`,
         '--badge-padding-vertical': `var(${paddingVerticalVar})`,
         '--badge-padding-horizontal': `var(${paddingHorizontalVar})`,
+
+        // Direct CSS property application to prevent styling loss during navigation
+        backgroundColor: `var(${bgVar})`,
+        color: `var(${textVar})`,
+        fontFamily: `var(${fontFamilyVar})`,
+        fontSize: `var(${fontSizeVar})`,
+        fontWeight: `var(${fontWeightVar})`,
+        letterSpacing: `var(${letterSpacingVar})`,
+        lineHeight: `var(${lineHeightVar})`,
+        textDecoration: `var(${textDecorationVar})`,
+        textTransform: `var(${textTransformVar})`,
+        fontStyle: `var(${fontStyleVar})`,
+        padding: `var(${paddingVerticalVar}) var(${paddingHorizontalVar})`,
+        borderRadius: `var(${borderRadiusVar})`,
+        borderWidth: `var(${borderSizeVar})`,
+        borderStyle: 'solid',
+        borderColor: `var(${borderColorVar})`,
+
         // Set height to auto to override Mantine Badge's default height
         height: 'auto',
+        minHeight: '20px',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         // Apply elevation box-shadow if set
         ...(elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}),
         ...style,

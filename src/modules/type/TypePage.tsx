@@ -10,6 +10,7 @@ import TypeStylePanel from './TypeStylePanel'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { Button } from '../../components/adapters/Button'
+import { Checkbox } from '../../components/adapters/Checkbox'
 
 // local helpers retained for legacy but no longer used directly in this file
 
@@ -141,7 +142,9 @@ export function TypePage() {
         onClick={() => onToggle(!isSelected)}
         style={containerStyle}
       >
-        <input type="checkbox" checked={isSelected} onClick={(e) => e.stopPropagation()} onChange={(e) => onToggle((e.target as HTMLInputElement).checked)} aria-label="Select type sample" />
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox checked={isSelected} onChange={onToggle} layer="layer-1" />
+        </div>
         <Tag style={style}>{text}</Tag>
       </div>
     )

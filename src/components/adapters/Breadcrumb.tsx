@@ -7,8 +7,8 @@
 
 import { Suspense } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+import { Link } from './Link'
 
 export type BreadcrumbItem = {
   label: string
@@ -36,62 +36,29 @@ export function Breadcrumb({
   carbon,
 }: BreadcrumbProps) {
   const Component = useComponent('Breadcrumb')
-  
+
   // Limit to 5 items maximum
   const limitedItems = items.slice(0, 5)
-  
+
   if (!Component) {
-    // Fallback to native HTML if component not available
-    // Get text CSS variables
-    const fontFamilyVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-family')
-    const fontSizeVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-size')
-    const fontWeightVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-weight')
-    const letterSpacingVar = getComponentTextCssVar('Breadcrumb', 'text', 'letter-spacing')
-    const lineHeightVar = getComponentTextCssVar('Breadcrumb', 'text', 'line-height')
-    const textDecorationVar = getComponentTextCssVar('Breadcrumb', 'text', 'text-decoration')
-    const textTransformVar = getComponentTextCssVar('Breadcrumb', 'text', 'text-transform')
-    const fontStyleVar = getComponentTextCssVar('Breadcrumb', 'text', 'font-style')
-    
+    // Fallback to basic HTML with Link component
     return (
       <nav aria-label="Breadcrumb" className={className} style={style}>
         <ol style={{ display: 'flex', alignItems: 'center', gap: '8px', listStyle: 'none', padding: 0, margin: 0 }}>
           {limitedItems.map((item, index) => {
             const isLast = index === limitedItems.length - 1
             const isInteractive = !isLast && item.href
-            
+
             return (
               <li key={index} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 {index > 0 && <span>/</span>}
-                {isInteractive ? (
-                  <a 
-                    href={item.href} 
-                    style={{ 
-                      fontFamily: `var(${fontFamilyVar})`,
-                      fontSize: `var(${fontSizeVar})`,
-                      fontWeight: `var(${fontWeightVar})`,
-                      letterSpacing: `var(${letterSpacingVar})`,
-                      lineHeight: `var(${lineHeightVar})`,
-                      textDecoration: `var(${textDecorationVar})`,
-                      textTransform: `var(${textTransformVar})` as React.CSSProperties['textTransform'],
-                      fontStyle: `var(${fontStyleVar})`,
-                    }}
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <span style={{
-                    fontFamily: `var(${fontFamilyVar})`,
-                    fontSize: `var(${fontSizeVar})`,
-                    fontWeight: `var(${fontWeightVar})`,
-                    letterSpacing: `var(${letterSpacingVar})`,
-                    lineHeight: `var(${lineHeightVar})`,
-                    textDecoration: `var(${textDecorationVar})`,
-                    textTransform: `var(${textTransformVar})` as React.CSSProperties['textTransform'],
-                    fontStyle: `var(${fontStyleVar})`,
-                  }}>
-                    {item.label}
-                  </span>
-                )}
+                <Link
+                  href={isInteractive ? item.href : undefined}
+                  layer={layer}
+                  forceState={isInteractive ? 'default' : 'visited'} // Or just default
+                >
+                  {item.label}
+                </Link>
               </li>
             )
           })}
@@ -99,7 +66,7 @@ export function Breadcrumb({
       </nav>
     )
   }
-  
+
   // Map unified props to library-specific props
   const libraryProps = {
     items: limitedItems,
@@ -112,7 +79,7 @@ export function Breadcrumb({
     material,
     carbon,
   }
-  
+
   return (
     <Suspense fallback={<span />}>
       <Component {...libraryProps} />

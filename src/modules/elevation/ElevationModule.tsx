@@ -1,5 +1,6 @@
 import React from 'react'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { Checkbox } from '../../components/adapters/Checkbox'
 
 export type ElevationExampleProps = {
   label: React.ReactNode
@@ -48,12 +49,12 @@ export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0
     const shadowColor = toRgba(colorHex, alpha)
     return `${offsetXPx}px ${offsetYPx}px ${blurPx}px ${spreadPx}px ${shadowColor}`
   })()
-  
+
   // Add border for elevation 0 (neutral/100, 1px)
   const borderStyle = level === 0 ? {
     border: `1px solid var(--recursica-brand-themes-${mode}-palettes-neutral-100-tone)`,
   } : {}
-  
+
   return (
     <div
       className="elevation-card"
@@ -61,12 +62,13 @@ export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0
       onClick={canToggle ? onToggle : undefined}
     >
       {canToggle && (
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={onToggle}
-          onClick={(e) => e.stopPropagation()}
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={!!isSelected}
+            onChange={() => onToggle?.()}
+            layer="layer-1"
+          />
+        </div>
       )}
       <span style={{ color: 'var(--color-black)' }}>{label}</span>
     </div>
