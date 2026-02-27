@@ -7,6 +7,7 @@
 
 import { useState } from 'react'
 import { Modal } from '../../components/adapters/Modal'
+import { CheckboxItem } from '../../components/adapters/CheckboxItem'
 import type { ComplianceIssue } from './aaComplianceCheck'
 
 interface ComplianceModalProps {
@@ -31,7 +32,7 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
     <Modal
       isOpen={true}
       onClose={onCancel}
-      title="AA Compliance Issues Detected"
+      title="WCAG AA Issues"
       style={{ '--modal-title-color': '#d40d0d' } as React.CSSProperties}
       primaryActionLabel="Continue"
       onPrimaryAction={onAcknowledge}
@@ -75,17 +76,12 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
           </div>
 
           <div style={{ borderTop: '1px solid var(--modal-border-color)', paddingTop: '16px', marginTop: '8px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', gap: '8px' }}>
-              <input
-                type="checkbox"
-                checked={acknowledged}
-                onChange={(e) => setAcknowledged(e.target.checked)}
-                style={{ width: '18px', height: '18px' }}
-              />
-              <span style={{ fontSize: 'inherit' }}>
-                I acknowledge that these color combinations do not meet AA compliance standards
-              </span>
-            </label>
+            <CheckboxItem
+              checked={acknowledged}
+              onChange={(checked: boolean) => setAcknowledged(checked)}
+              label="I acknowledge that these color combinations do not meet AA compliance standards"
+              layer="layer-3"
+            />
           </div>
         </div>
       }
