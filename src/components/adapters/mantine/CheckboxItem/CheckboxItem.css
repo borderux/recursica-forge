@@ -14,6 +14,7 @@
     text-transform: var(--checkbox-item-text-transform) !important;
     color: var(--checkbox-item-color) !important;
     min-height: calc(var(--checkbox-size) + 2 * var(--checkbox-border-width, 0px)) !important;
+    max-width: var(--checkbox-item-max-width) !important;
     display: flex !important;
     align-items: center !important;
 }

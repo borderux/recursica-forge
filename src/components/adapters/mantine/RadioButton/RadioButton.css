@@ -1,0 +1,88 @@
+/* Mantine RadioButton Overrides */
+
+.recursica-radio-root .mantine-Radio-radio,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-radio {
+  /* Box Model */
+  width: var(--radio-size) !important;
+  height: var(--radio-size) !important;
+  min-width: var(--radio-size) !important;
+  min-height: var(--radio-size) !important;
+  border-radius: var(--radio-radius) !important;
+  border-width: var(--radio-border-width) !important;
+  box-sizing: content-box !important;
+
+  /* Colors - Unselected */
+  background-color: var(--radio-bg-unselected) !important;
+  border-color: var(--radio-border-unselected) !important;
+
+  transition: all 0.2s ease;
+}
+
+/* Inner wrapper must account for border drawn outside content-box */
+.recursica-radio-root .mantine-Radio-inner,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-inner {
+  width: calc(var(--radio-size) + 2 * var(--radio-border-width, 0px)) !important;
+  height: calc(var(--radio-size) + 2 * var(--radio-border-width, 0px)) !important;
+  min-width: calc(var(--radio-size) + 2 * var(--radio-border-width, 0px)) !important;
+  min-height: calc(var(--radio-size) + 2 * var(--radio-border-width, 0px)) !important;
+}
+
+/* Selected State */
+.recursica-radio-root .mantine-Radio-radio:checked,
+.recursica-radio-root .mantine-Radio-radio[data-checked],
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-radio:checked,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-radio[data-checked] {
+  background-color: var(--radio-bg-selected) !important;
+  border-color: var(--radio-border-selected) !important;
+}
+
+/* Icon (inner dot) - only visible when selected */
+.recursica-radio-root .mantine-Radio-icon,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-icon {
+  color: var(--radio-icon-color, #ffffff) !important;
+  width: var(--radio-icon-size) !important;
+  height: var(--radio-icon-size) !important;
+}
+
+/* Hide icon when unselected */
+.recursica-radio-root .mantine-Radio-radio:not(:checked):not([data-checked])+.mantine-Radio-icon,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-radio:not(:checked):not([data-checked])+.mantine-Radio-icon,
+.recursica-radio-root .mantine-Radio-radio:not(:checked):not([data-checked])~.mantine-Radio-icon,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-radio:not(:checked):not([data-checked])~.mantine-Radio-icon {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Disabled State - use dedicated disabled colors */
+.recursica-radio-root .mantine-Radio-radio:disabled,
+.recursica-radio-root[data-disabled] .mantine-Radio-radio {
+  background-color: var(--radio-disabled-bg) !important;
+  border-color: var(--radio-disabled-border) !important;
+  cursor: not-allowed !important;
+}
+
+/* Disabled selected - keep disabled colors */
+.recursica-radio-root .mantine-Radio-radio:disabled:checked,
+.recursica-radio-root .mantine-Radio-radio:disabled[data-checked],
+.recursica-radio-root[data-disabled] .mantine-Radio-radio:checked,
+.recursica-radio-root[data-disabled] .mantine-Radio-radio[data-checked] {
+  background-color: var(--radio-disabled-bg) !important;
+  border-color: var(--radio-disabled-border) !important;
+}
+
+/* Disabled icon - use disabled icon color */
+.recursica-radio-root .mantine-Radio-radio:disabled:checked+.mantine-Radio-icon,
+.recursica-radio-root .mantine-Radio-radio:disabled[data-checked]+.mantine-Radio-icon,
+.recursica-radio-root[data-disabled] .mantine-Radio-radio:checked+.mantine-Radio-icon,
+.recursica-radio-root[data-disabled] .mantine-Radio-radio[data-checked]+.mantine-Radio-icon,
+.recursica-radio-root .mantine-Radio-radio:disabled:checked~.mantine-Radio-icon,
+.recursica-radio-root .mantine-Radio-radio:disabled[data-checked]~.mantine-Radio-icon,
+.recursica-radio-root[data-disabled] .mantine-Radio-radio:checked~.mantine-Radio-icon,
+.recursica-radio-root[data-disabled] .mantine-Radio-radio[data-checked]~.mantine-Radio-icon {
+  color: var(--radio-disabled-icon) !important;
+  visibility: visible !important;
+}
+
+.recursica-radio-root[data-disabled] .mantine-Radio-label {
+  opacity: var(--radio-disabled-opacity, 0.4) !important;
+}

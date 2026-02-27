@@ -51,6 +51,7 @@ export function toSentenceCase(str: string): string {
 export function parseComponentStructure(componentName: string): ComponentStructure {
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
+  if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
   const uikitRoot: any = uikitJson
   const components = uikitRoot?.['ui-kit']?.components || {}
   const component = components[componentKey]
@@ -534,6 +535,22 @@ export function parseComponentStructure(componentName: string): ComponentStructu
     }
   }
 
+  // For radio-button-item, also include base radio-button props
+  // since size/border/colors now live on the base radio-button component
+  if (componentKey === 'radio-button-item') {
+    const baseRadio = components['radio-button']
+    if (baseRadio) {
+      const baseStructure = parseComponentStructure('radio-button')
+      // Add base radio-button props that aren't already defined on radio-button-item
+      for (const baseProp of baseStructure.props) {
+        const exists = props.some(p => p.name === baseProp.name)
+        if (!exists) {
+          props.push({ ...baseProp, sourceComponent: 'radio-button' })
+        }
+      }
+    }
+  }
+
   return { variants, props }
 }
 
@@ -592,6 +609,7 @@ export function getComponentCssVarsForVariants(
 export function getComponentDefaultValues(componentName: string): Record<string, string> {
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
+  if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
   const uikitRoot: any = uikitJson
   const components = uikitRoot?.['ui-kit']?.components || {}
   const component = components[componentKey]
@@ -654,6 +672,7 @@ export function getDimensionPropertyType(
   try {
     let componentKey = sourceComponent || componentName.toLowerCase().replace(/\s+/g, '-')
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
+    if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
     const uikitRoot: any = uikitJson
     const components = uikitRoot?.['ui-kit']?.components || {}
     const component = components[componentKey]

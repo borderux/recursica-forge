@@ -1,12 +1,12 @@
 {
     "props": {
-        "checkbox": {
-            "icon": "check-square",
-            "label": "Checkbox",
+        "radio-button": {
+            "icon": "circle",
+            "label": "Radio button",
             "visible": true,
             "group": {
                 "size": {
-                    "label": "Checkbox size",
+                    "label": "Radio button size",
                     "visible": true,
                     "propertyType": "slider",
                     "range": [
@@ -30,7 +30,7 @@
                     "step": 1
                 },
                 "label-gap": {
-                    "label": "Value checkbox gap",
+                    "label": "Value radio button gap",
                     "visible": true
                 },
                 "max-width": {
@@ -50,11 +50,11 @@
             "label": "Selected",
             "visible": true,
             "group": {
-                "background-checked": {
+                "background-selected": {
                     "label": "Background",
                     "visible": true
                 },
-                "border-checked": {
+                "border-selected": {
                     "label": "Border",
                     "visible": true
                 },
@@ -69,30 +69,15 @@
             }
         },
         "unselected": {
-            "icon": "square",
+            "icon": "circle-dashed",
             "label": "Unselected",
             "visible": true,
             "group": {
-                "background-unchecked": {
+                "background-unselected": {
                     "label": "Background",
                     "visible": true
                 },
-                "border-unchecked": {
-                    "label": "Border",
-                    "visible": true
-                }
-            }
-        },
-        "indeterminate": {
-            "icon": "minus",
-            "label": "Indeterminate",
-            "visible": true,
-            "group": {
-                "background-indeterminate": {
-                    "label": "Background",
-                    "visible": true
-                },
-                "border-indeterminate": {
+                "border-unselected": {
                     "label": "Border",
                     "visible": true
                 }

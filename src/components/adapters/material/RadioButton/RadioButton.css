@@ -1,0 +1,32 @@
+/* Material UI RadioButton Overrides */
+
+.recursica-mui-radio-root.MuiRadio-root {
+    padding: 0 !important;
+    color: var(--radio-border-unselected) !important;
+    border-radius: var(--radio-radius) !important;
+    transition: all 0.2s ease;
+    width: var(--radio-size);
+    height: var(--radio-size);
+}
+
+.recursica-mui-radio-root.Mui-checked {
+    color: var(--radio-border-selected) !important;
+}
+
+.recursica-mui-radio-root.Mui-disabled {
+    color: var(--radio-disabled-border) !important;
+}
+
+.recursica-mui-radio-root svg {
+    /* Scale SVG to icon size */
+    width: var(--radio-icon-size) !important;
+    height: var(--radio-icon-size) !important;
+}
+
+/* Label Container */
+.recursica-mui-radio-label.MuiFormControlLabel-root {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Apply gap between radio and label - handled via RadioButtonItem var(--radio-item-gap) */

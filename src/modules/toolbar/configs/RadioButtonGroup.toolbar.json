@@ -1,0 +1,36 @@
+{
+    "props": {
+        "properties": {
+            "icon": "stack",
+            "label": "Spacing",
+            "visible": true,
+            "group": {
+                "item-gap": {
+                    "icon": "split-vertical",
+                    "label": "Item gap",
+                    "visible": true
+                },
+                "padding": {
+                    "icon": "frame-corners",
+                    "label": "Padding",
+                    "visible": true
+                }
+            }
+        },
+        "top-bottom-margin": {
+            "icon": "arrows-up-down",
+            "label": "Top and bottom margin",
+            "visible": true,
+            "group": {
+                "stacked-top-bottom-margin": {
+                    "label": "Stacked",
+                    "visible": true
+                },
+                "sbs-top-bottom-margin": {
+                    "label": "Side-by-side",
+                    "visible": true
+                }
+            }
+        }
+    }
+}

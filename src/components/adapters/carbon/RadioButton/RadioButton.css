@@ -1,0 +1,41 @@
+/* Carbon RadioButton Overrides */
+
+/* The radio appearance circle */
+.recursica-carbon-radio .cds--radio-button__appearance {
+    width: var(--radio-size) !important;
+    height: var(--radio-size) !important;
+    border-radius: var(--radio-radius) !important;
+    border-width: var(--radio-border-width) !important;
+    border-color: var(--radio-border-unselected) !important;
+    background-color: var(--radio-bg-unselected) !important;
+}
+
+/* Selected state */
+.recursica-carbon-radio .cds--radio-button:checked+.cds--radio-button__label .cds--radio-button__appearance,
+.recursica-carbon-radio .cds--radio-button[aria-checked="true"]+.cds--radio-button__label .cds--radio-button__appearance {
+    background-color: var(--radio-bg-selected) !important;
+    border-color: var(--radio-border-selected) !important;
+}
+
+/* Inner dot (selected indicator) */
+.recursica-carbon-radio .cds--radio-button__appearance::after {
+    background-color: var(--radio-icon-color) !important;
+    width: var(--radio-icon-size) !important;
+    height: var(--radio-icon-size) !important;
+    border-radius: var(--radio-radius) !important;
+}
+
+/* Selected state inner dot */
+.recursica-carbon-radio .cds--radio-button:checked+.cds--radio-button__label .cds--radio-button__appearance::after {
+    background-color: var(--radio-icon-color) !important;
+}
+
+/* Disabled state */
+.recursica-carbon-radio .cds--radio-button:disabled+.cds--radio-button__label .cds--radio-button__appearance {
+    background-color: var(--radio-disabled-bg) !important;
+    border-color: var(--radio-disabled-border) !important;
+}
+
+.recursica-carbon-radio .cds--radio-button:disabled+.cds--radio-button__label {
+    color: var(--radio-disabled-border) !important;
+}
