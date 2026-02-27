@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import { hexToHsv, hsvToHex, toKebabCase } from '../tokens/colors/colorUtils'
-import { useThemeMode } from '../theme/ThemeModeContext'
+
 import { useVars } from '../vars/VarsContext'
 import { TextField } from '../../components/adapters/TextField'
+import { CheckboxItem } from '../../components/adapters/CheckboxItem'
+import { Button } from '../../components/adapters/Button'
 import { Modal } from '../../components/adapters/Modal'
+import { Tag } from '@phosphor-icons/react'
 
 export type ColorPickerOverlayProps = {
   tokenName: string
@@ -98,7 +101,7 @@ export function ColorPickerOverlay({
   const thumbLeft = `${hsvState.s * 100}%`
   const thumbTop = `${(1 - hsvState.v) * 100}%`
   const gradientColor = hsvToHex(hsvState.h, 1, 1)
-  const { mode } = useThemeMode()
+
   const { tokens } = useVars()
 
   // Extract scale number and level from token name to display "Scale n / level"
@@ -215,42 +218,38 @@ export function ColorPickerOverlay({
             style={{ flex: 1, fontSize: 13 }}
             layer="layer-3"
           />
-          <button
+          <Button
             title="Name this color"
+            variant="outline"
+            size="small"
+            layer="layer-3"
+            icon={<Tag size={16} />}
             onClick={() => {
               const parts = tokenName.split('/')
               const family = parts.length === 3 ? parts[1] : ''
               const hex = hsvToHex(hsvState.h, hsvState.s, hsvState.v)
               onNameFromHex(family, hex)
             }}
-            style={{
-              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color, rgba(0,0,0,0.1))`,
-              background: 'transparent',
-              cursor: 'pointer',
-              borderRadius: 6,
-              padding: '6px 8px',
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)`
-            }}
-          >🏷️</button>
+          />
         </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-          <input type="checkbox" checked={cascadeUp} onChange={(e) => {
-            const next = e.currentTarget.checked
+        <CheckboxItem
+          checked={cascadeUp}
+          onChange={(next: boolean) => {
             setCascadeUp(next)
-            // Always call onChange when checkbox state changes to trigger cascade
             onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), cascadeDown, next)
-          }} />
-          Cascade colors upward
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
-          <input type="checkbox" checked={cascadeDown} onChange={(e) => {
-            const next = e.currentTarget.checked
+          }}
+          label="Cascade colors upward"
+          layer="layer-3"
+        />
+        <CheckboxItem
+          checked={cascadeDown}
+          onChange={(next: boolean) => {
             setCascadeDown(next)
-            // Always call onChange when checkbox state changes to trigger cascade
             onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), next, cascadeUp)
-          }} />
-          Cascade colors downward
-        </label>
+          }}
+          label="Cascade colors downward"
+          layer="layer-3"
+        />
       </div>
     </Modal>
   )

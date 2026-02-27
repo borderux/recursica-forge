@@ -34,6 +34,7 @@ const FileUploadPreview = lazy(() => import('../components/FileUploadPreview'))
 const PanelPreview = lazy(() => import('../components/PanelPreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from './PreviewPage'
 import ComponentDebugTable from './ComponentDebugTable'
 import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
@@ -225,35 +226,17 @@ export default function ComponentDetailPage() {
         }}>
           {component.name}
         </h1>
-        <a
-          href={component.url}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--recursica-brand-dimensions-general-sm)',
-            padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
-            borderRadius: '999px',
-            border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
-            color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`,
-            textDecoration: 'none',
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.8'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1'
-          }}
-        >
-          {(() => {
+        <Button
+          variant="outline"
+          size="small"
+          onClick={() => window.open(component.url, '_blank')}
+          icon={(() => {
             const FileTextIcon = iconNameToReactComponent('document-text')
             return FileTextIcon ? <FileTextIcon style={{ width: 16, height: 16 }} /> : null
           })()}
+        >
           Read docs
-        </a>
+        </Button>
       </div>
 
       {/* Main Content Container - Wrapped in styled container like tokens sections */}

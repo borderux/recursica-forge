@@ -17,10 +17,12 @@ import { readOverrides } from '../theme/tokenOverrides'
 import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { iconNameToReactComponent } from '../components/iconUtils'
-import Dropdown from '../toolbar/menu/dropdown/Dropdown'
-import '../toolbar/menu/dropdown/Dropdown.css'
+
 import { Label } from '../../components/adapters/Label'
+import { Button } from '../../components/adapters/Button'
+import { Menu } from '../../components/adapters/Menu'
+import { MenuItem } from '../../components/adapters/MenuItem'
+import { DotsThreeOutline, Trash } from '@phosphor-icons/react'
 
 type PaletteGridProps = {
   paletteKey: string
@@ -458,12 +460,26 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
   const layer0Base = `--recursica-brand-themes-${themeMode}-layers-layer-0-properties`
   const layer1Base = `--recursica-brand-themes-${themeMode}-layers-layer-1-properties`
 
-  const EllipsisIcon = iconNameToReactComponent('ellipsis-horizontal')
-  const TrashIcon = iconNameToReactComponent('trash')
+
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuContainerRef = useRef<HTMLDivElement>(null)
+
+  // Close menu on click outside
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuContainerRef.current && !menuContainerRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpen])
 
   return (
     <div
       className="palette-container"
+      data-palette-key={paletteKey}
       style={{
         backgroundColor: `var(${layer1Base}-surface)`,
         border: `1px solid var(${layer1Base}-border-color)`,
@@ -519,49 +535,38 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
             }}
           />
           {deletable && (
-            <Dropdown
-              trigger={
-                <button
-                  type="button"
-                  style={{
-                    padding: `var(--recursica-brand-dimensions-general-sm)`,
-                    border: 'none',
-                    background: 'transparent',
-                    borderRadius: `var(--recursica-brand-dimensions-border-radii-sm)`,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                    opacity: `var(--recursica-brand-themes-${themeMode}-text-emphasis-low)`,
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '1'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = `var(--recursica-brand-themes-${themeMode}-text-emphasis-low)`
-                  }}
-                >
-                  {EllipsisIcon && <EllipsisIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
-                </button>
-              }
-              items={[
-                {
-                  key: 'delete',
-                  label: (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: `var(--recursica-brand-dimensions-general-sm)` }}>
-                      {TrashIcon && <TrashIcon style={{ width: 'var(--recursica-brand-dimensions-icons-sm)', height: 'var(--recursica-brand-dimensions-icons-sm)' }} />}
-                      <span>Delete</span>
-                    </div>
-                  ),
-                },
-              ]}
-              onSelect={(key) => {
-                if (key === 'delete' && onDelete) {
-                  onDelete()
-                }
-              }}
-            />
+            <div ref={menuContainerRef} style={{ position: 'relative' }}>
+              <Button
+                variant="text"
+                size="small"
+                layer="layer-1"
+                icon={<DotsThreeOutline size={16} weight="fill" />}
+                onClick={() => setMenuOpen((prev) => !prev)}
+              />
+              {menuOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: 4,
+                  zIndex: 100,
+                }}>
+                  <Menu layer="layer-1">
+                    <MenuItem
+                      layer="layer-1"
+                      leadingIcon={<Trash size={14} />}
+                      leadingIconType="icon"
+                      onClick={() => {
+                        if (onDelete) onDelete()
+                        setMenuOpen(false)
+                      }}
+                    >
+                      Delete
+                    </MenuItem>
+                  </Menu>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

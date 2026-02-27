@@ -5,6 +5,7 @@ import { readCssVar } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
 
 
 type LayerModuleProps = {
@@ -255,16 +256,14 @@ export default function LayerModule({ level, title, className, children, onSelec
       <div className="layer-content">
         <div className="layer-text-samples">
           {onSelect ? (
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }} onClick={(e) => e.stopPropagation()}>
-              <input
-                type="radio"
-                name="layer-select"
-                checked={!!isSelected}
-                onChange={(e) => { e.stopPropagation(); onSelect?.() }}
-                onClick={(e) => e.stopPropagation()}
+            <div style={{ marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)' }} onClick={(e) => e.stopPropagation()}>
+              <RadioButtonItem
+                selected={!!isSelected}
+                onChange={() => onSelect?.()}
+                label={title || `Layer ${layerId}`}
+                value={`layer-${layerId}`}
               />
-              <span style={{ fontWeight: 700 }}>{title || `Layer ${layerId}`}</span>
-            </label>
+            </div>
           ) : (
             title ? <h3 style={{ ...(headingStyle as any), fontWeight: 700 }}>{title}</h3> : null
           )}

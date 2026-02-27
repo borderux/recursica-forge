@@ -26,6 +26,8 @@ import { Tooltip } from '../../../components/adapters/Tooltip'
 import { Switch } from '../../../components/adapters/Switch'
 import { SegmentedControl } from '../../../components/adapters/SegmentedControl'
 import type { SegmentedControlItem } from '../../../components/adapters/SegmentedControl'
+import { FileUpload } from '../../../components/adapters/FileUpload'
+import type { FileUploadItem } from '../../../components/adapters/FileUpload'
 import { Sidebar } from '../Sidebar'
 import { ThemeSidebar } from '../ThemeSidebar'
 import { ComponentsSidebar } from '../../preview/ComponentsSidebar'
@@ -42,6 +44,7 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
   const { mode, setMode } = useThemeMode()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<FileUploadItem[]>([])
   const [showRandomizeModal, setShowRandomizeModal] = useState(false)
   const [cssAuditAutoRun, setCssAuditAutoRunState] = useState(() => getCssAuditAutoRun())
   const { handleExport, showSelectionModal, showComplianceModal, showValidationModal, showGitHubModal, githubExportFiles, validationErrors, complianceIssues, handleSelectionConfirm, handleSelectionCancel, handleAcknowledge, handleCancel, handleValidationModalClose, handleExportToGithub, handleGitHubExportCancel, handleGitHubExportSuccess } = useJsonExport()
@@ -359,46 +362,42 @@ export default function MantineShell({ children, kit, onKitChange }: { children:
         </div>
         <Modal
           isOpen={isModalOpen}
-          onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
-          title="Import JSON Files"
+          onClose={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]); setUploadedFiles([]) }}
+          title="Import"
           layer="layer-1"
           primaryActionLabel="Import"
           onPrimaryAction={handleImportClick}
           primaryActionDisabled={selectedFileNames.length === 0}
-          onSecondaryAction={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]) }}
+          onSecondaryAction={() => { setIsModalOpen(false); clearSelectedFiles(); setSelectedFileNames([]); setUploadedFiles([]) }}
           content={
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: 'var(--recursica-brand-dimensions-general-default)', fontWeight: 'bold' }}>Select JSON Files:</label>
-                <input
-                  type="file"
-                  accept="application/json,.json"
-                  multiple
-                  onChange={(e) => {
-                    onFileSelect(e.currentTarget.files)
-                    e.currentTarget.value = ''
-                  }}
-                  style={{ marginBottom: 'var(--recursica-brand-dimensions-general-default)' }}
-                />
-                {selectedFileNames.length > 0 && (
-                  <div style={{
-                    fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-medium-emphasis)`,
-                    marginTop: 'var(--recursica-brand-dimensions-general-sm)'
-                  }}>
-                    Selected: {selectedFileNames.join(', ')}
-                  </div>
-                )}
-                <div style={{
-                  fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
-                  marginTop: 'var(--recursica-brand-dimensions-general-sm)'
-                }}>
-                  Upload tokens.json, brand.json, and/or uikit.json files
-                </div>
-              </div>
+              <FileUpload
+                label="JSON File(s)"
+                helpText="tokens.json, brand.json, and/or uikit.json only"
+                accept="application/json,.json"
+                multiple
+                layer="layer-1"
+                layout="stacked"
+                disableTopBottomMargin
+                files={uploadedFiles}
+                onUpload={(files: File[]) => {
+                  const dt = new DataTransfer()
+                  files.forEach(f => dt.items.add(f))
+                  onFileSelect(dt.files)
+                  setUploadedFiles(files.map((f, i) => ({
+                    id: `file-${i}`,
+                    name: f.name,
+                    size: f.size,
+                    type: f.type,
+                    status: 'success' as const,
+                  })))
+                }}
+                onRemove={(fileId: string) => {
+                  setUploadedFiles(prev => prev.filter(f => f.id !== fileId))
+                  setSelectedFiles({})
+                  setSelectedFileNames([])
+                }}
+              />
             </div>
           }
         />
