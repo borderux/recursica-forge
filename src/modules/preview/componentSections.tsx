@@ -664,11 +664,21 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Hover card / Popover',
       url: `${base}/hover-card`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ position: 'relative', display: 'inline-block' }}>
-          <span title="Extra information appears on hover" style={{ textDecoration: 'underline', cursor: 'help' }}>Hover me</span>
-        </div>
-      ),
+      render: (_selectedLayers: Set<LayerOption>) => {
+        const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
+        return (
+          <div style={{
+            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
+            padding: 12,
+            borderRadius: 8,
+            background: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`,
+            boxShadow: layer1Elevation || undefined
+          }}>
+            <strong>Hover card / Popover</strong>
+            <div style={{ fontSize: 12, opacity: 0.75 }}>Content, beak, elevation</div>
+          </div>
+        )
+      },
     },
     {
       name: 'Label',
