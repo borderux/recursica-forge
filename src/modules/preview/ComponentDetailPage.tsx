@@ -33,6 +33,7 @@ const FileInputPreview = lazy(() => import('../components/FileInputPreview'))
 const FileUploadPreview = lazy(() => import('../components/FileUploadPreview'))
 const PanelPreview = lazy(() => import('../components/PanelPreview'))
 const HoverCardPopoverPreview = lazy(() => import('../components/HoverCardPopoverPreview'))
+const PaginationPreview = lazy(() => import('../components/PaginationPreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Button } from '../../components/adapters/Button'
@@ -267,15 +268,15 @@ export default function ComponentDetailPage() {
             alignItems: 'stretch',
             justifyContent: 'space-between',
             gap: 'var(--recursica-brand-dimensions-general-md)',
-            background: `var(${baseLayerBase}-surface)`,
+            background: component.name === 'Pagination' ? 'transparent' : `var(${baseLayerBase}-surface)`,
             padding: `var(${baseLayerBase}-padding)`,
-            border: layerNum !== '0'
+            border: layerNum !== '0' && component.name !== 'Pagination'
               ? `var(${baseLayerBase}-border-thickness, 1px) solid var(${baseLayerBase}-border-color)`
               : 'none',
-            borderRadius: layerNum !== '0'
+            borderRadius: layerNum !== '0' && component.name !== 'Pagination'
               ? `var(${baseLayerBase}-border-radius)`
               : undefined,
-            boxShadow: elevationBoxShadow,
+            boxShadow: component.name === 'Pagination' ? undefined : elevationBoxShadow,
             position: 'relative',
             minHeight: debugMode ? '400px' : 0,
           }}>
@@ -457,6 +458,12 @@ export default function ComponentDetailPage() {
                   />
                 ) : component.name === 'Hover card / Popover' ? (
                   <HoverCardPopoverPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Pagination' ? (
+                  <PaginationPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}

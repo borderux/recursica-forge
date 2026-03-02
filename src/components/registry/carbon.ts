@@ -78,5 +78,8 @@ registerComponent('carbon', 'HoverCard', () => import('../adapters/carbon/HoverC
 // Popover
 registerComponent('carbon', 'Popover', () => import('../adapters/carbon/Popover/Popover'))
 
+// Pagination
+registerComponent('carbon', 'Pagination', () => import('../adapters/carbon/Pagination/Pagination'))
+
 // Add more components as they're implemented
 

@@ -1,0 +1,9 @@
+{
+    "props": {
+        "item-gap": {
+            "icon": "split-horizontal",
+            "label": "Item gap",
+            "visible": true
+        }
+    }
+}
