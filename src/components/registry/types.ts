@@ -58,6 +58,7 @@ export type ComponentName =
   | 'Divider'
   | 'List'
   | 'HoverCard'
+  | 'HoverCardPopover'
   | 'Label'
   | 'AssistiveElement'
 

@@ -3629,7 +3629,8 @@ export default function PropControlContent({
       try {
         const uikitRoot: any = uikitJson
         const components = uikitRoot?.['ui-kit']?.components || {}
-        const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+        let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+        if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
         const component = components[componentKey]
 
         // Try multiple paths to find the text property group

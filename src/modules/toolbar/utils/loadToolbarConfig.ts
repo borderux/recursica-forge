@@ -34,6 +34,7 @@ import ReadOnlyFieldConfig from '../configs/ReadOnlyField.toolbar.json'
 import FileInputConfig from '../configs/FileInput.toolbar.json'
 import FileUploadConfig from '../configs/FileUpload.toolbar.json'
 import PanelConfig from '../configs/Panel.toolbar.json'
+import HoverCardPopoverConfig from '../configs/HoverCardPopover.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -149,6 +150,12 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return FileUploadConfig as unknown as ToolbarConfig
       case 'panel':
         return PanelConfig as unknown as ToolbarConfig
+      case 'hover-card-/-popover':
+      case 'hover-card-popover':
+      case 'hover card / popover':
+      case 'hovercard':
+      case 'hovercardpopover':
+        return HoverCardPopoverConfig as unknown as ToolbarConfig
       default:
         return null
     }

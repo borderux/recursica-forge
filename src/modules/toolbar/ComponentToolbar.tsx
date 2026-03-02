@@ -756,6 +756,7 @@ export default function ComponentToolbar({
     // Normalize display names that differ from UIKit.json keys
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
     if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+    if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
 
     // 1. Remove ALL overrides for this component from the document element
     // This handles all modes, layers, and states by looking for the component key in the variable name

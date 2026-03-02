@@ -92,6 +92,12 @@ registerComponent('mantine', 'FileUpload', () => import('../adapters/mantine/Fil
 // Panel
 registerComponent('mantine', 'Panel', () => import('../adapters/mantine/Panel/Panel'))
 
+// HoverCard
+registerComponent('mantine', 'HoverCard', () => import('../adapters/mantine/HoverCard/HoverCard'))
+
+// Popover
+registerComponent('mantine', 'Popover', () => import('../adapters/mantine/Popover/Popover'))
+
 // Add more components as they're implemented
 // registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))
 // registerComponent('mantine', 'TextField', () => import('../../adapters/mantine/TextField'))

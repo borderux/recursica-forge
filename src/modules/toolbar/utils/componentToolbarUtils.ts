@@ -52,6 +52,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+  if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
   const uikitRoot: any = uikitJson
   const components = uikitRoot?.['ui-kit']?.components || {}
   const component = components[componentKey]
@@ -610,6 +611,7 @@ export function getComponentDefaultValues(componentName: string): Record<string,
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+  if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
   const uikitRoot: any = uikitJson
   const components = uikitRoot?.['ui-kit']?.components || {}
   const component = components[componentKey]
@@ -673,6 +675,7 @@ export function getDimensionPropertyType(
     let componentKey = sourceComponent || componentName.toLowerCase().replace(/\s+/g, '-')
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
     if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+    if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
     const uikitRoot: any = uikitJson
     const components = uikitRoot?.['ui-kit']?.components || {}
     const component = components[componentKey]
