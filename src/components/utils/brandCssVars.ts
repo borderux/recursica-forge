@@ -64,17 +64,17 @@ export function getElevationBoxShadow(
   if (!elevation || elevation === 'elevation-0') {
     return undefined
   }
-  
+
   const elevationMatch = elevation.match(/elevation-(\d+)/)
   if (!elevationMatch) {
     return undefined
   }
-  
+
   const elevationLevel = elevationMatch[1]
   const xAxisVar = `--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis`
   const yAxisVar = `--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis`
   const blurVar = `--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur`
-  
+
   // Read actual CSS variable values to verify they exist and have correct values
   let xAxisValue = 'N/A'
   let yAxisValue = 'N/A'
@@ -85,9 +85,9 @@ export function getElevationBoxShadow(
     yAxisValue = computed.getPropertyValue(yAxisVar) || 'not found'
     blurValue = computed.getPropertyValue(blurVar) || 'not found'
   }
-  
+
   const boxShadow = `var(${xAxisVar}, 0px) var(${yAxisVar}, 0px) var(${blurVar}, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
-  
+
   return boxShadow
 }
 
@@ -104,18 +104,18 @@ export function parseElevationValue(elevationValue: string | undefined): string 
   if (!elevationValue) {
     return undefined
   }
-  
+
   // Check if it's a brand reference
   const match = elevationValue.match(/elevations?\.(elevation-\d+)/)
   if (match) {
     return match[1]
   }
-  
+
   // Check if it's already a direct elevation value
   if (/^elevation-\d+$/.test(elevationValue)) {
     return elevationValue
   }
-  
+
   return undefined
 }
 
@@ -130,7 +130,7 @@ export function extractElevationMode(elevationValue: string | undefined, cssVarN
   if (!elevationValue && !cssVarName) {
     return undefined
   }
-  
+
   // First, try to extract mode from token reference in elevation value
   if (elevationValue) {
     const modeMatch = elevationValue.match(/themes\.(light|dark)\.elevations/)
@@ -138,7 +138,7 @@ export function extractElevationMode(elevationValue: string | undefined, cssVarN
       return modeMatch[1] as 'light' | 'dark'
     }
   }
-  
+
   // If not found in value, try to extract mode from CSS variable name
   // CSS var names like: --recursica-ui-kit-themes-dark-components-toast-properties-elevation-layer-1
   if (cssVarName) {
@@ -147,43 +147,69 @@ export function extractElevationMode(elevationValue: string | undefined, cssVarN
       return varModeMatch[1] as 'light' | 'dark'
     }
   }
-  
+
   return undefined
 }
 
 /**
  * Gets elevation box-shadow for a given layer
- * Reads the elevation CSS variable for the layer and converts it to box-shadow
+ * 
+ * The layer elevation in Brand.json is a composite boxShadow type that references
+ * a top-level elevation (e.g., elevation-2). The token compiler does NOT produce
+ * a single CSS variable for the layer's elevation — instead, the elevation is
+ * stored as sub-properties at the top-level elevations path. 
+ * 
+ * This function resolves the layer → elevation mapping by reading the Brand.json
+ * token structure. Falls back to reading the layer's sub-property CSS variables
+ * if they exist.
  * 
  * @param mode - Theme mode ('light' or 'dark')
  * @param layer - Layer identifier ('layer-0', 'layer-1', 'layer-2', 'layer-3')
- * @returns Box-shadow CSS value or undefined if layer-0 or no elevation found
+ * @returns Box-shadow CSS value or undefined if no elevation found
  * 
  * @example
- * getLayerElevationBoxShadow('light', 'layer-1')
- * => 'var(--recursica-brand-themes-light-elevations-elevation-1-x-axis, 0px) ...'
+ * getLayerElevationBoxShadow('light', 'layer-2')
+ * => 'var(--recursica-brand-themes-light-elevations-elevation-2-x-axis, 0px) ...'
  */
 export function getLayerElevationBoxShadow(
   mode: 'light' | 'dark',
   layer: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 ): string | undefined {
-  // Layer 0 typically doesn't have elevation
-  if (layer === 'layer-0') {
-    return undefined
+  // First, try reading the layer's elevation sub-properties directly
+  // (in case the token compiler does produce them as sub-vars)
+  const layerElevBase = `--recursica-brand-themes-${mode}-layers-${layer}-properties-elevation`
+  const layerYAxis = readCssVar(`${layerElevBase}-y-axis`)
+
+  if (layerYAxis) {
+    // Sub-properties exist at the layer level — build box-shadow from them
+    return `var(${layerElevBase}-x-axis, 0px) var(${layerElevBase}-y-axis, 0px) var(${layerElevBase}-blur, 0px) var(${layerElevBase}-spread, 0px) var(${layerElevBase}-shadow-color, rgba(0, 0, 0, 0))`
   }
-  
-  // Read elevation CSS variable for the layer
-  const elevationCssVar = `--recursica-brand-themes-${mode}-layers-${layer}-properties-elevation`
-  const elevationValue = readCssVar(elevationCssVar)
-  
-  if (!elevationValue) {
-    return undefined
+
+  // Sub-properties don't exist at layer level. Resolve by reading Brand.json's
+  // layer → elevation reference. The elevation property value in Brand.json is
+  // a reference like {brand.themes.light.elevations.elevation-2}.
+  // We try to read the CSS variable for that reference to find the elevation level.
+
+  // Try reading the raw elevation value (might be set as a string ref or value)
+  const elevationValue = readCssVar(`${layerElevBase}`)
+  if (elevationValue) {
+    const elevation = parseElevationValue(elevationValue.trim())
+    if (elevation) {
+      return getElevationBoxShadow(mode, elevation)
+    }
   }
-  
-  // Parse elevation value (could be "elevation-1" or a token reference)
-  const elevation = parseElevationValue(elevationValue.trim())
-  
-  // Convert to box-shadow
+
+  // Last resort: use known Brand.json layer → elevation mapping
+  // This mapping is from Brand.json: each layer's elevation.$value references
+  // a specific top-level elevation level
+  const layerElevationMap: Record<string, string> = {
+    'layer-0': 'elevation-0',
+    'layer-1': 'elevation-0',
+    'layer-2': 'elevation-2',
+    'layer-3': 'elevation-4',
+  }
+
+  const elevation = layerElevationMap[layer]
   return getElevationBoxShadow(mode, elevation)
 }
 

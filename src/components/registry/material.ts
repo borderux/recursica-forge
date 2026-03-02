@@ -72,5 +72,9 @@ registerComponent('material', 'SegmentedControl', () => import('../adapters/mate
 // Tooltip
 registerComponent('material', 'Tooltip', () => import('../adapters/material/Tooltip/Tooltip'))
 
+// Card
+registerComponent('material', 'Card', () => import('../adapters/material/Card/Card'))
+
 // Add more components as they're implemented
+
 

@@ -32,6 +32,7 @@ const ReadOnlyFieldPreview = lazy(() => import('../components/ReadOnlyFieldPrevi
 const FileInputPreview = lazy(() => import('../components/FileInputPreview'))
 const FileUploadPreview = lazy(() => import('../components/FileUploadPreview'))
 const PanelPreview = lazy(() => import('../components/PanelPreview'))
+const CardPreview = lazy(() => import('../components/CardPreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Button } from '../../components/adapters/Button'
@@ -453,6 +454,11 @@ export default function ComponentDetailPage() {
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Card' ? (
+                  <CardPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
                   />
                 ) : (
                   <div style={{
