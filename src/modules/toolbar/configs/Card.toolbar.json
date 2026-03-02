@@ -28,13 +28,7 @@
                 "vertical-gutter": {
                     "icon": "split-vertical",
                     "label": "Vertical gutter",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        48
-                    ],
-                    "step": 4
+                    "visible": true
                 }
             }
         },

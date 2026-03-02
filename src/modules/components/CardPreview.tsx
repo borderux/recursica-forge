@@ -20,7 +20,6 @@ const goblinChapter = "After his legendary leap, Zog the goblin found himself st
 
 const goblinParagraph2 = "\"Down, then,\" Zog muttered, tightening the straps of his obsidian gauntlets. He had not come this far—past the sleeping wyrm, through the Thornroot Maze, and over the lazy dwarf—to turn back now."
 
-const goblinParagraph3 = "With each step down the narrow ledge, Zog felt the weight of a thousand years of stories pressing against his back. He was no longer just a swift creature in a dark world; he was the next chapter in a legend that refused to end."
 
 const shopDescription = "Grindlefax's Emporium has served adventurers for three hundred years. From enchanted compasses that always point to treasure, to ancient maps inked in dragon blood—if it exists, Grindlefax hoards it."
 
@@ -168,14 +167,6 @@ export default function CardPreview({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)', ...bodyStyle }}>
                     <p style={{ margin: 0 }}>{goblinChapter}</p>
                     <p style={{ margin: 0 }}>{goblinParagraph2}</p>
-                </div>
-                <div style={{
-                    borderTop: dividerStyle,
-                    margin: `0 calc(var(${paddingVar}) * -1)`,
-                    padding: `0 var(${paddingVar})`,
-                }} />
-                <div style={{ ...bodyStyle }}>
-                    <p style={{ margin: 0 }}>{goblinParagraph3}</p>
                 </div>
             </div>
 

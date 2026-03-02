@@ -275,8 +275,7 @@ export default function ComponentToolbar({
             // Check if we need to update the cached prop (if layer changed, variant changed, or prop doesn't exist)
             const cachedProp = groupedProps.get(groupedPropKey)
             const needsUpdate = !cachedProp ||
-              (cachedProp.category === 'colors' &&
-                cachedProp.path.some(part => part.startsWith('layer-')) &&
+              (cachedProp.path.some(part => part.startsWith('layer-')) &&
                 !cachedProp.path.includes(selectedLayer)) ||
               (cachedProp.isVariantSpecific && cachedProp.variantProp &&
                 selectedVariants[cachedProp.variantProp] &&
@@ -293,7 +292,7 @@ export default function ComponentToolbar({
                 const nameMatches = p.name.toLowerCase() === groupedPropKey
                 const pathMatches = p.path.includes(parentPropNameLower)
                 // For color props, also filter by selectedLayer to ensure we get the correct layer
-                const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
                 // For variant-specific props, filter by selected variant (e.g., state variant for TextField border-size)
                 let variantMatches = true
                 if (p.isVariantSpecific && p.variantProp) {
@@ -355,7 +354,7 @@ export default function ComponentToolbar({
                 groupedProp = structure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === groupedPropKey
                   // For color props, also filter by selectedLayer
-                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                  const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
                   // For variant-specific props, filter by selected variant
                   let variantMatches = true
                   if (p.isVariantSpecific && p.variantProp) {
@@ -390,7 +389,7 @@ export default function ComponentToolbar({
                   const nameMatches = p.name.toLowerCase() === 'border-color' || (p.name.toLowerCase() === 'border' && p.category === 'colors')
                   const pathMatches = p.path.includes(parentPropNameLower)
                   // For color props, also filter by selectedLayer
-                  const layerMatches = p.category !== 'colors' || !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+                  const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
                   return nameMatches && pathMatches && layerMatches
                 })
                 // For container/selected props, NEVER fall back to name-only match

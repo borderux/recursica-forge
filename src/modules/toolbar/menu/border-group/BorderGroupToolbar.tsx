@@ -87,12 +87,11 @@ function getCssVarsForProp(
       }
     }
 
-    // Check layer matching for color props
-    if (propToCheck.category === 'colors') {
-      const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
-      if (layerInPath) {
-        if (layerInPath !== selectedLayer) return false
-      }
+    // Check layer matching for ANY prop that has layer-X in its path (not just colors)
+    // This ensures Card borders (size category under borders.layer-X) are also filtered
+    const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
+    if (layerInPath) {
+      if (layerInPath !== selectedLayer) return false
     }
 
     return true
@@ -153,11 +152,9 @@ export default function BorderGroupToolbar({
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
       }
-      // Match layer for color props
-      if (p.category === 'colors') {
-        const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
-        if (layerInPath && layerInPath !== selectedLayer) return false
-      }
+      // Match layer for ANY prop that has layer-X in its path (not just colors)
+      const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
+      if (layerInPath && layerInPath !== selectedLayer) return false
       return true
     })
   }, [structure, sizePropName, selectedVariants, selectedLayer])
@@ -170,9 +167,12 @@ export default function BorderGroupToolbar({
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
       }
+      // Match layer for ANY prop that has layer-X in its path
+      const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
+      if (layerInPath && layerInPath !== selectedLayer) return false
       return true
     })
-  }, [structure, radiusPropName, selectedVariants])
+  }, [structure, radiusPropName, selectedVariants, selectedLayer])
 
   const borderStyleProp = useMemo(() => {
     return structure.props.find(p => {
