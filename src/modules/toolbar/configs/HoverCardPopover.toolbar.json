@@ -130,17 +130,6 @@
                         32
                     ],
                     "step": 2
-                },
-                "beak-inset": {
-                    "icon": "arrows-in",
-                    "label": "Beak inset",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        32
-                    ],
-                    "step": 2
                 }
             }
         },

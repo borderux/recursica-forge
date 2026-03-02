@@ -65,7 +65,6 @@ export default function HoverCardPopoverPreview({
     const minWidthVar = getComponentLevelCssVar('HoverCardPopover', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('HoverCardPopover', 'max-width')
     const beakSizeVar = getComponentLevelCssVar('HoverCardPopover', 'beak-size')
-    const beakInsetVar = getComponentLevelCssVar('HoverCardPopover', 'beak-inset')
     const elevationVar = getComponentLevelCssVar('HoverCardPopover', 'elevation')
 
     const fontFamilyVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-family')
@@ -73,6 +72,9 @@ export default function HoverCardPopoverPreview({
     const fontWeightVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-weight')
     const letterSpacingVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'letter-spacing')
     const lineHeightVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'line-height')
+    const fontStyleVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-style')
+    const textDecorationVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'text-decoration')
+    const textTransformVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'text-transform')
 
     // Get the elevation value
     const activeElevation = componentElevation || parseElevationValue(readCssVar(elevationVar))
@@ -91,6 +93,10 @@ export default function HoverCardPopoverPreview({
     })()
 
     const beakSize = parseInt(readCssVar(beakSizeVar) || '16')
+    const borderSize = parseInt(readCssVar(borderSizeVar) || '0')
+
+    // The diagonal of the rotated beak square that protrudes above the card
+    const beakProtrusion = Math.ceil(beakSize / Math.SQRT2 / 2)
 
     // Common styling for static previews
     const cardStyle: React.CSSProperties = {
@@ -106,20 +112,24 @@ export default function HoverCardPopoverPreview({
         fontWeight: `var(${fontWeightVar})`,
         letterSpacing: `var(${letterSpacingVar})`,
         lineHeight: `var(${lineHeightVar})`,
+        fontStyle: `var(${fontStyleVar})`,
+        textDecoration: `var(${textDecorationVar})`,
+        textTransform: `var(${textTransformVar})` as any,
         filter: `drop-shadow(${shadowParams})`,
         position: 'relative',
+        overflow: 'visible',
     }
 
-    // Beak (arrow) styles
+    // Beak (arrow) styles — horizontally centered, offset accounts for border
     const beakStyle: React.CSSProperties = {
         position: 'absolute',
-        top: -beakSize / 2,
-        left: `var(${beakInsetVar}, 16px)`,
+        top: -(beakSize / 2) - borderSize,
+        left: '50%',
         width: beakSize,
         height: beakSize,
         backgroundColor: `var(${bgVar})`,
         border: `var(${borderSizeVar}) solid var(${borderColorVar})`,
-        transform: 'rotate(45deg)',
+        transform: 'translateX(-50%) rotate(45deg)',
         borderBottom: 'none',
         borderRight: 'none',
         boxSizing: 'border-box',
@@ -139,11 +149,11 @@ export default function HoverCardPopoverPreview({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', alignItems: 'center' }}>
                 <h2 style={{
                     margin: 0,
-                    fontFamily: 'var(--recursica-brand-typography-h5-font-family)',
-                    fontSize: 'var(--recursica-brand-typography-h5-font-size)',
-                    fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
-                    letterSpacing: 'var(--recursica-brand-typography-h5-font-letter-spacing)',
-                    lineHeight: 'var(--recursica-brand-typography-h5-line-height)',
+                    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+                    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+                    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+                    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+                    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
                     color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                     opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                 }}>
@@ -151,7 +161,7 @@ export default function HoverCardPopoverPreview({
                 </h2>
                 <div style={cardStyle}>
                     <p style={{ margin: 0 }}>
-                        This is a hover card / popover without a beak (arrow pointer).
+                        The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal.
                     </p>
                 </div>
             </div>
@@ -160,21 +170,21 @@ export default function HoverCardPopoverPreview({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', alignItems: 'center' }}>
                 <h2 style={{
                     margin: 0,
-                    fontFamily: 'var(--recursica-brand-typography-h5-font-family)',
-                    fontSize: 'var(--recursica-brand-typography-h5-font-size)',
-                    fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
-                    letterSpacing: 'var(--recursica-brand-typography-h5-font-letter-spacing)',
-                    lineHeight: 'var(--recursica-brand-typography-h5-line-height)',
+                    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
+                    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
+                    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
+                    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
+                    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
                     color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
                     opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
                 }}>
                     With beak
                 </h2>
-                <div style={{ paddingTop: beakSize / 2 + 4 }}>
+                <div style={{ paddingTop: beakSize / 2 + borderSize + 4 }}>
                     <div style={cardStyle}>
                         <div style={beakStyle} />
                         <p style={{ margin: 0 }}>
-                            This hover card / popover includes a beak (arrow pointer) to indicate the trigger element.
+                            Zog tightened his obsidian gauntlets and leapt across the Crystalline Abyss, chasing the fabled Lantern of Ereth.
                         </p>
                     </div>
                 </div>
@@ -189,7 +199,7 @@ export default function HoverCardPopoverPreview({
                 paddingTop: 'var(--recursica-brand-dimensions-general-lg)',
             }}>
                 <HoverCard
-                    content={<p style={{ margin: 0 }}>Hover card content — appears on hover</p>}
+                    content={<p style={{ margin: 0 }}>A curious goblin peeks from the shadows, eyes gleaming with mischief and pockets full of stolen trinkets.</p>}
                     layer={layer}
                     withBeak
                     position="bottom"
@@ -200,7 +210,7 @@ export default function HoverCardPopoverPreview({
                 </HoverCard>
 
                 <Popover
-                    content={<p style={{ margin: 0 }}>Popover content — toggle with click</p>}
+                    content={<p style={{ margin: 0 }}>The goblin's lantern flickered, casting shifting patterns on the crystal walls of the ancient mine.</p>}
                     layer={layer}
                     isOpen={popoverOpen}
                     onClose={() => setPopoverOpen(false)}

@@ -46,7 +46,6 @@ export default function Popover({
     const minWidthVar = getComponentLevelCssVar('HoverCardPopover', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('HoverCardPopover', 'max-width')
     const beakSizeVar = getComponentLevelCssVar('HoverCardPopover', 'beak-size')
-    const beakInsetVar = getComponentLevelCssVar('HoverCardPopover', 'beak-inset')
 
     // Text properties
     const contentFontFamilyVar = getComponentTextCssVar('HoverCardPopover', 'content-text', 'font-family')
@@ -66,7 +65,7 @@ export default function Popover({
             contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar,
             contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar,
             contentTextDecorationVar, contentTextTransformVar,
-            internalElevationVar, beakSizeVar, beakInsetVar
+            internalElevationVar, beakSizeVar
         ]
 
         const handleCssVarUpdate = (e: Event) => {
@@ -92,10 +91,9 @@ export default function Popover({
             window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
             observer.disconnect()
         }
-    }, [contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar, contentTextDecorationVar, contentTextTransformVar, internalElevationVar, beakSizeVar, beakInsetVar])
+    }, [contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar, contentTextDecorationVar, contentTextTransformVar, internalElevationVar, beakSizeVar])
 
     const beakSizeValue = parseInt(readCssVar(beakSizeVar) || '16')
-    const beakInsetValue = parseInt(readCssVar(beakInsetVar) || '8')
 
     // Get elevation value
     const activeElevation = elevation || parseElevationValue(readCssVar(internalElevationVar))
@@ -144,7 +142,6 @@ export default function Popover({
             position={position}
             withArrow={withBeak}
             arrowSize={beakSizeValue}
-            arrowOffset={beakInsetValue}
             zIndex={zIndex ?? 300}
             {...mantine}
             {...props}

@@ -9282,16 +9282,9 @@
               "unit": "px"
             }
           },
-          "beak-inset": {
-            "$type": "dimension",
-            "$value": {
-              "value": 8,
-              "unit": "px"
-            }
-          },
           "elevation": {
             "$type": "elevation",
-            "$value": "{brand.elevations.elevation-2}"
+            "$value": "{brand.elevations.elevation-1}"
           }
         }
       },
