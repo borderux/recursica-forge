@@ -35,6 +35,7 @@ import FileInputConfig from '../configs/FileInput.toolbar.json'
 import FileUploadConfig from '../configs/FileUpload.toolbar.json'
 import PanelConfig from '../configs/Panel.toolbar.json'
 import HoverCardPopoverConfig from '../configs/HoverCardPopover.toolbar.json'
+import CardConfig from '../configs/Card.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -156,6 +157,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       case 'hovercard':
       case 'hovercardpopover':
         return HoverCardPopoverConfig as unknown as ToolbarConfig
+      case 'card':
+        return CardConfig as unknown as ToolbarConfig
       default:
         return null
     }

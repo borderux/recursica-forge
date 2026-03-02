@@ -855,31 +855,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Card',
       url: `${base}/card`,
       render: (_selectedLayers: Set<LayerOption>) => {
-        const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
-        const layer2Elevation = getLayerElevationBoxShadow(mode, 'layer-2')
         return (
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{
-              width: 240,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
-              borderRadius: 8,
-              padding: 12,
-              boxShadow: layer1Elevation || undefined
-            }}>
-              <strong>Card Title</strong>
-              <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses layer-1 elevation.</p>
-              <a href="#" style={{ fontSize: 12 }}>Learn more</a>
-            </div>
-            <div style={{
-              width: 240,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
-              borderRadius: 8,
-              padding: 12,
-              boxShadow: layer2Elevation || undefined
-            }}>
-              <strong>Higher Elevation</strong>
-              <p style={{ marginTop: 6, fontSize: 12, opacity: 0.8 }}>This card uses layer-2 elevation.</p>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+            <span>Card preview</span>
           </div>
         )
       },

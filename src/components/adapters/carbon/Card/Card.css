@@ -1,0 +1,21 @@
+/* Carbon Card CSS Overrides */
+
+.recursica-card {
+    background: var(--card-bg);
+    border-radius: var(--card-border-radius);
+}
+
+.recursica-card .recursica-card-header {
+    background: var(--card-header-bg);
+    padding: var(--card-header-padding);
+}
+
+.recursica-card .recursica-card-body {
+    color: var(--card-content-color);
+    padding: var(--card-padding);
+}
+
+.recursica-card .recursica-card-footer {
+    background: var(--card-footer-bg);
+    padding: var(--card-footer-padding);
+}
