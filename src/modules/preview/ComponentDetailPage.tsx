@@ -32,6 +32,7 @@ const ReadOnlyFieldPreview = lazy(() => import('../components/ReadOnlyFieldPrevi
 const FileInputPreview = lazy(() => import('../components/FileInputPreview'))
 const FileUploadPreview = lazy(() => import('../components/FileUploadPreview'))
 const PanelPreview = lazy(() => import('../components/PanelPreview'))
+const HoverCardPopoverPreview = lazy(() => import('../components/HoverCardPopoverPreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Button } from '../../components/adapters/Button'
@@ -450,6 +451,12 @@ export default function ComponentDetailPage() {
                   />
                 ) : component.name === 'Panel' ? (
                   <PanelPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Hover card / Popover' ? (
+                  <HoverCardPopoverPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}

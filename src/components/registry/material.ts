@@ -72,5 +72,11 @@ registerComponent('material', 'SegmentedControl', () => import('../adapters/mate
 // Tooltip
 registerComponent('material', 'Tooltip', () => import('../adapters/material/Tooltip/Tooltip'))
 
+// HoverCard
+registerComponent('material', 'HoverCard', () => import('../adapters/material/HoverCard/HoverCard'))
+
+// Popover
+registerComponent('material', 'Popover', () => import('../adapters/material/Popover/Popover'))
+
 // Add more components as they're implemented
 

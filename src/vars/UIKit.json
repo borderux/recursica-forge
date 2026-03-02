@@ -9148,6 +9148,146 @@
           }
         }
       },
+      "hover-card-popover": {
+        "colors": {
+          "layer-0": {
+            "background": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-0.properties.surface}"
+            },
+            "content": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-0.elements.text.color}"
+            },
+            "border-color": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-0.properties.border-color}"
+            }
+          },
+          "layer-1": {
+            "background": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-1.properties.surface}"
+            },
+            "content": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-1.elements.text.color}"
+            },
+            "border-color": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-1.properties.border-color}"
+            }
+          },
+          "layer-2": {
+            "background": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-2.properties.surface}"
+            },
+            "content": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-2.elements.text.color}"
+            },
+            "border-color": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-2.properties.border-color}"
+            }
+          },
+          "layer-3": {
+            "background": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-3.properties.surface}"
+            },
+            "content": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-3.elements.text.color}"
+            },
+            "border-color": {
+              "$type": "color",
+              "$value": "{brand.layers.layer-3.properties.border-color}"
+            }
+          }
+        },
+        "properties": {
+          "content-text": {
+            "font-family": {
+              "$type": "fontFamily",
+              "$value": "{brand.typography.body.fontFamily}"
+            },
+            "font-size": {
+              "$type": "dimension",
+              "$value": "{brand.typography.body.fontSize}"
+            },
+            "font-weight": {
+              "$type": "fontWeight",
+              "$value": "{brand.typography.body.fontWeight}"
+            },
+            "letter-spacing": {
+              "$type": "string",
+              "$value": "{brand.typography.body.letterSpacing}"
+            },
+            "line-height": {
+              "$type": "number",
+              "$value": "{brand.typography.body.lineHeight}"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "{brand.typography.body.fontStyle}"
+            },
+            "text-decoration": {
+              "$type": "string",
+              "$value": "none"
+            },
+            "text-transform": {
+              "$type": "string",
+              "$value": "{brand.typography.body.textCase}"
+            }
+          },
+          "border-radius": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.border-radii.lg}"
+          },
+          "border-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
+          "horizontal-padding": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.xl}"
+          },
+          "vertical-padding": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.lg}"
+          },
+          "min-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 200,
+              "unit": "px"
+            }
+          },
+          "max-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 400,
+              "unit": "px"
+            }
+          },
+          "beak-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 16,
+              "unit": "px"
+            }
+          },
+          "elevation": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-1}"
+          }
+        }
+      },
       "panel": {
         "properties": {
           "colors": {

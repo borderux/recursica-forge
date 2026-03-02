@@ -72,5 +72,11 @@ registerComponent('carbon', 'SegmentedControl', () => import('../adapters/carbon
 // Tooltip
 registerComponent('carbon', 'Tooltip', () => import('../adapters/carbon/Tooltip/Tooltip'))
 
+// HoverCard
+registerComponent('carbon', 'HoverCard', () => import('../adapters/carbon/HoverCard/HoverCard'))
+
+// Popover
+registerComponent('carbon', 'Popover', () => import('../adapters/carbon/Popover/Popover'))
+
 // Add more components as they're implemented
 

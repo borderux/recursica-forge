@@ -54,6 +54,10 @@ export function ComponentsSidebar({
       if (name === 'radio-button-item') {
         return 'Radio button group item'
       }
+      // Special alias: map hover-card-popover to display name with slash
+      if (name === 'hover-card-popover') {
+        return 'Hover card / Popover'
+      }
 
       // Convert "button" -> "Button", "text-field" -> "Text field", "menu-item" -> "Menu item", etc.
       const words = name.split('-')
