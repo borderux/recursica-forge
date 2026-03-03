@@ -1,0 +1,27 @@
+/**
+ * Material UI TimePicker CSS
+ */
+.recursica-time-picker-wrapper {
+    position: relative;
+}
+
+.recursica-time-picker-leading-icon svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+.recursica-time-picker-input::-webkit-calendar-picker-indicator {
+    display: none !important;
+    -webkit-appearance: none !important;
+}
+
+.recursica-time-picker-input::-webkit-inner-spin-button {
+    display: none !important;
+}
+
+.recursica-time-picker-input {
+    box-sizing: border-box;
+    margin: 0;
+}
