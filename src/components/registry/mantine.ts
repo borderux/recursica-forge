@@ -110,5 +110,8 @@ registerComponent('mantine', 'TimePicker', () => import('../adapters/mantine/Tim
 // DatePicker
 registerComponent('mantine', 'DatePicker', () => import('../adapters/mantine/DatePicker/DatePicker'))
 
+// Loader
+registerComponent('mantine', 'Loader', () => import('../adapters/mantine/Loader/Loader'))
+
 // Add more components as they're implemented
 

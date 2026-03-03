@@ -13,6 +13,7 @@ import { Breadcrumb } from '../../components/adapters/Breadcrumb'
 import { Slider } from '../../components/adapters/Slider'
 import { Accordion } from '../../components/adapters/Accordion'
 import { CheckboxItem } from '../../components/adapters/CheckboxItem'
+import { Loader } from '../../components/adapters/Loader'
 import { CheckboxGroup } from '../../components/adapters/CheckboxGroup'
 import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
 import { RadioButtonGroup } from '../../components/adapters/RadioButtonGroup'
@@ -731,11 +732,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/loader`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <div style={{ width: 16, height: 16, border: `2px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderTopColor: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-          <style>
-            {`@keyframes spin { from { transform: rotate(0deg);} to { transform: rotate(360deg);} }`}
-          </style>
-          <span>Loading…</span>
+          <Loader size="default" />
         </div>
       ),
     },

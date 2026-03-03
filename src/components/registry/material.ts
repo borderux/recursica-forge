@@ -90,6 +90,9 @@ registerComponent('material', 'TimePicker', () => import('../adapters/material/T
 // DatePicker
 registerComponent('material', 'DatePicker', () => import('../adapters/material/DatePicker/DatePicker'))
 
+// Loader
+registerComponent('material', 'Loader', () => import('../adapters/material/Loader/Loader'))
+
 // Add more components as they're implemented
 
 
