@@ -35,6 +35,7 @@ const PanelPreview = lazy(() => import('../components/PanelPreview'))
 const HoverCardPopoverPreview = lazy(() => import('../components/HoverCardPopoverPreview'))
 const CardPreview = lazy(() => import('../components/CardPreview'))
 const PaginationPreview = lazy(() => import('../components/PaginationPreview'))
+const DatePickerPreview = lazy(() => import('../components/DatePickerPreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Button } from '../../components/adapters/Button'
@@ -359,6 +360,12 @@ export default function ComponentDetailPage() {
                   />
                 ) : component.name === 'Text field' ? (
                   <TextFieldPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Date picker' ? (
+                  <DatePickerPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}

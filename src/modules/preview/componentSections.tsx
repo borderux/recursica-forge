@@ -25,6 +25,7 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { FileInput } from '../../components/adapters/FileInput'
 import { FileUpload } from '../../components/adapters/FileUpload'
 import { Pagination } from '../../components/adapters/Pagination'
+import { DatePicker } from '../../components/adapters/DatePicker'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -579,12 +580,19 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Date picker',
       url: `${base}/date-picker`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input type="date" />
-          <input type="date" disabled />
-        </div>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ width: '100%', maxWidth: 320 }}>
+            <DatePicker
+              label="Label"
+              placeholder="MM / DD / YY"
+              layout="stacked"
+              layer={layer as any}
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Dropdown',
