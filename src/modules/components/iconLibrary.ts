@@ -49,11 +49,13 @@ import {
   CheckSquare,
   Circle,
   CircleDashed,
-  Clock,
   CircleHalf,
   CircleHalfTilt,
+  CircleNotch,
+  Clock,
   Columns,
   CopySimple,
+  CornersIn,
   CornersOut,
   CursorClick,
   Diamond,
@@ -88,6 +90,7 @@ import {
   PaperPlaneTilt as PaperPlane,
   Pause,
   Pencil,
+  PencilLine,
   Plus,
   Queue,
   Resize,
@@ -384,6 +387,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
 
   // Time
   'clock': Clock,
+  'circle-notch': CircleNotch,
+  'corners': CornersIn,
+  'pencil-line': PencilLine,
 }
 
 /**

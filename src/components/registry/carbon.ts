@@ -90,6 +90,9 @@ registerComponent('carbon', 'TimePicker', () => import('../adapters/carbon/TimeP
 // DatePicker
 registerComponent('carbon', 'DatePicker', () => import('../adapters/carbon/DatePicker/DatePicker'))
 
+// Loader
+registerComponent('carbon', 'Loader', () => import('../adapters/carbon/Loader/Loader'))
+
 // Add more components as they're implemented
 
 

@@ -1,0 +1,104 @@
+/* Material UI Loader CSS Overrides */
+
+/* Bars animation */
+.recursica-loader-material .recursica-loader-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+}
+
+.recursica-loader-material .recursica-loader-bars span {
+    display: inline-block;
+    width: 12.5%;
+    background-color: var(--loader-indicator-color, currentColor);
+    border-radius: 2px;
+    animation: recursica-bars-bounce 1.2s ease-in-out infinite;
+}
+
+.recursica-loader-material .recursica-loader-bars span:nth-child(1) {
+    animation-delay: -0.32s;
+    height: 60%;
+}
+
+.recursica-loader-material .recursica-loader-bars span:nth-child(2) {
+    animation-delay: -0.16s;
+    height: 80%;
+}
+
+.recursica-loader-material .recursica-loader-bars span:nth-child(3) {
+    animation-delay: 0s;
+    height: 100%;
+}
+
+.recursica-loader-material .recursica-loader-bars span:nth-child(4) {
+    animation-delay: 0.16s;
+    height: 80%;
+}
+
+.recursica-loader-material .recursica-loader-bars span:nth-child(5) {
+    animation-delay: 0.32s;
+    height: 60%;
+}
+
+@keyframes recursica-bars-bounce {
+
+    0%,
+    40%,
+    100% {
+        transform: scaleY(0.4);
+    }
+
+    20% {
+        transform: scaleY(1);
+    }
+}
+
+/* Dots animation */
+.recursica-loader-material .recursica-loader-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.recursica-loader-material .recursica-loader-dots span {
+    display: inline-block;
+    width: 25%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: var(--loader-indicator-color, currentColor);
+    animation: recursica-dots-pulse 1.4s ease-in-out infinite both;
+}
+
+.recursica-loader-material .recursica-loader-dots span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.recursica-loader-material .recursica-loader-dots span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.recursica-loader-material .recursica-loader-dots span:nth-child(3) {
+    animation-delay: 0s;
+}
+
+@keyframes recursica-dots-pulse {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Override MUI circular progress color */
+.recursica-loader-material .recursica-loader-oval.MuiCircularProgress-root {
+    color: var(--loader-indicator-color, currentColor) !important;
+}
