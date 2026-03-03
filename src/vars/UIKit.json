@@ -2380,7 +2380,11 @@
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.200.color.tone}"
               },
-              "connector-color": {
+              "completed-connector-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "upcoming-connector-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.200.color.tone}"
               }
@@ -2446,7 +2450,11 @@
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.200.color.tone}"
               },
-              "connector-color": {
+              "completed-connector-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "upcoming-connector-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.200.color.tone}"
               }
@@ -2512,7 +2520,11 @@
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.200.color.tone}"
               },
-              "connector-color": {
+              "completed-connector-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "upcoming-connector-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.200.color.tone}"
               }
@@ -2578,13 +2590,24 @@
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.200.color.tone}"
               },
-              "connector-color": {
+              "completed-connector-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "upcoming-connector-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.200.color.tone}"
               }
             }
           },
-          "connector-size": {
+          "completed-connector-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 2,
+              "unit": "px"
+            }
+          },
+          "upcoming-connector-size": {
             "$type": "dimension",
             "$value": {
               "value": 2,

@@ -46,13 +46,15 @@ export default function Stepper({
     const upcomingDescColorVar = colorVar('upcoming-description-color')
     const upcomingIndicatorBorderColorVar = colorVar('upcoming-indicator-border-color')
 
-    const connectorColorVar = colorVar('connector-color')
+    const completedConnectorColorVar = colorVar('completed-connector-color')
+    const upcomingConnectorColorVar = colorVar('upcoming-connector-color')
 
     // --- Component-level dimension/style properties ---
     // Path: components.stepper.properties.{prop}
     const propVar = (prop: string) => buildComponentCssVarPath('Stepper', 'properties', prop)
 
-    const connectorSizeVar = propVar('connector-size')
+    const completedConnectorSizeVar = propVar('completed-connector-size')
+    const upcomingConnectorSizeVar = propVar('upcoming-connector-size')
     const indicatorBorderRadiusVar = propVar('indicator-border-radius')
     const indicatorBorderSizeVar = propVar('indicator-border-size')
     const stepGapVar = propVar('step-gap')
@@ -112,8 +114,10 @@ export default function Stepper({
         '--stepper-upcoming-desc-color': `var(${upcomingDescColorVar})`,
         '--stepper-upcoming-indicator-border-color': `var(${upcomingIndicatorBorderColorVar})`,
         // Connector
-        '--stepper-connector-color': `var(${connectorColorVar})`,
-        '--stepper-connector-size': `var(${connectorSizeVar})`,
+        '--stepper-completed-connector-color': `var(${completedConnectorColorVar})`,
+        '--stepper-completed-connector-size': `var(${completedConnectorSizeVar})`,
+        '--stepper-upcoming-connector-color': `var(${upcomingConnectorColorVar})`,
+        '--stepper-upcoming-connector-size': `var(${upcomingConnectorSizeVar})`,
         // Dimensions
         '--stepper-indicator-border-radius': `var(${indicatorBorderRadiusVar})`,
         '--stepper-indicator-border-size': `var(${indicatorBorderSizeVar})`,

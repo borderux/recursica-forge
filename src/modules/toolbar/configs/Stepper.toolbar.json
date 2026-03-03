@@ -131,17 +131,34 @@
                 }
             }
         },
-        "connector": {
+        "completed-connector": {
             "icon": "minus",
-            "label": "Connector",
+            "label": "Completed connector",
             "visible": true,
             "group": {
-                "connector-color": {
+                "completed-connector-color": {
                     "icon": "paint-bucket",
                     "label": "Color",
                     "visible": true
                 },
-                "connector-size": {
+                "completed-connector-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Size",
+                    "visible": true
+                }
+            }
+        },
+        "upcoming-connector": {
+            "icon": "minus",
+            "label": "Upcoming connector",
+            "visible": true,
+            "group": {
+                "upcoming-connector-color": {
+                    "icon": "paint-bucket",
+                    "label": "Color",
+                    "visible": true
+                },
+                "upcoming-connector-size": {
                     "icon": "arrows-left-right",
                     "label": "Size",
                     "visible": true
