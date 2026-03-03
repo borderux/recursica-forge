@@ -41,6 +41,7 @@ import TimePickerConfig from '../configs/TimePicker.toolbar.json'
 import DatePickerConfig from '../configs/DatePicker.toolbar.json'
 import LoaderConfig from '../configs/Loader.toolbar.json'
 import StepperConfig from '../configs/Stepper.toolbar.json'
+import LoaderConfig from '../configs/Loader.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -180,6 +181,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return LoaderConfig as unknown as ToolbarConfig
       case 'stepper':
         return StepperConfig as unknown as ToolbarConfig
+      case 'loader':
+        return LoaderConfig as unknown as ToolbarConfig
       default:
         return null
     }
