@@ -40,7 +40,6 @@ export default function PaginationPreview({
                     boundaries={1}
                     withEdges={false}
                     layer={selectedLayer as any}
-                    elevation={componentElevation}
                 />
             </div>
 
@@ -54,7 +53,6 @@ export default function PaginationPreview({
                     boundaries={1}
                     withEdges={true}
                     layer={selectedLayer as any}
-                    elevation={componentElevation}
                 />
             </div>
         </div>
