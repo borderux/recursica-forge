@@ -1,5 +1,70 @@
 # recursica-forge
 
+## 0.3.11
+
+### Patch Changes
+
+- b5a4a2b: Add Hover Card / Popover component
+
+  - New component: Hover Card / Popover with shared UIKit styling (`hover-card-popover`) backed by two separate adapter components (HoverCard and Popover)
+  - Adapter implementations for all three shells: Mantine, Material UI, and Carbon
+  - Supports configurable beak (arrow pointer), border, colors, padding, elevation, min/max width, and content text styling
+  - Preview page with two static examples (with and without beak) and interactive HoverCard/Popover triggers
+  - Toolbar configuration with Beak, Border, Colors, Content text, Elevation, Padding, and Sizes sections
+  - Component-to-kebab-case name mapping fix for `hover-card-/-popover` → `hover-card-popover` in CSS variable path generation, toolbar content text lookup, and reset-to-defaults logic
+  - Beak horizontally centered with proper border-aware positioning
+  - Removed `beak-inset` property from UIKit, toolbar, and both Mantine adapters
+
+- 72793fa: Add Pagination component with variant-based sub-component configuration
+
+  - **New Pagination component**: Full adapter implementation for Mantine, Material UI, and Carbon with page navigation, truncation (ellipsis), and first/last edge controls
+  - **Variant type system (`$type: "variant"`)**: Introduced a new property type in UIKit.json that references button variants, allowing pagination sub-components (active pages, inactive pages, navigation controls) to inherit button style and size configurations
+  - **Toolbar controls**: Added toolbar groups for active page, inactive page, and navigation controls, each with Style (solid/outline/text), Size (default/small), and Display (icon/text/icon+text) dropdowns
+  - **Schema validation**: Updated `validateJsonSchemas.ts` with `variant-group-reference` workaround so variant references to button groups pass validation
+  - **CSS variable resolver**: Added `$type: "variant"` handler in `uikit.ts` that extracts variant names from reference paths for use as CSS variable values
+  - **Export transforms**: Updated both scoped and specific CSS export transforms to handle variant-type properties by extracting the variant name instead of resolving as a CSS variable reference
+  - **Virtual prop path resolution**: Updated `ComponentToolbar.tsx` and `PropControlContent.tsx` to correctly build nested CSS variable paths for grouped toolbar properties (e.g., `navigation-controls.style`)
+  - **Preview component**: Added `PaginationPreview` with simple (5 pages) and many pages (20 pages, with edges) examples
+
+- 510c2eb: Add Loader component with Mantine, Material UI, and Carbon adapters
+
+  - Implement Loader component with three loader types (oval, bars, dots) displayed side by side
+  - Add size variants (small, default, large) with per-variant size, thickness, and border-radius controls
+  - Add toolbar configuration with indicator color picker, size slider (8–100px), thickness slider (1–30px), and border-radius token selector
+  - Add preview component rendering all three sizes with H2 headings
+  - Override Mantine v7 hashed class names via CSS to apply thickness and border-radius to internal loader elements
+  - Fix pre-existing `Corners` icon import bug in iconLibrary (replaced with `CornersIn`)
+  - Add Loader toolbar integration tests
+
+- 89102f8: Add Time Picker component with adapter implementations for Mantine, Material UI, and Carbon. Includes a time input field with a leading clock icon that opens a popover for selecting hours and minutes, and an AM/PM period selector using the Dropdown component with CSS variable overrides to share TimePicker styling (border size, border color, border radius, background color, text color, vertical padding, and text style). Adds TimePicker preview, toolbar configuration, UIKit token definitions, and component registry entries across all three shells.
+- 1272259: Add Date Picker component with calendar popover, month/year dropdown navigation, and prev/next buttons. Includes UIKit configuration, toolbar controls (border, colors, icon, padding, text style, width), and preview layout with stacked and side-by-side variants. Calendar popover uses Popover, Button, and Dropdown sub-components with proper sizing, alignment, and spacing. Skip flaky Card toolbar test for layer-1 border-color.
+- 6a7082c: ### Card Component
+
+  - Added Card component adapter with full support for Mantine, Material UI, and Carbon shells
+  - Implemented per-layer color properties (background, header-background, footer-background, border-color, divider-color, title, content) across all four layers (0–3)
+  - Added per-layer border properties (border-size, border-radius) with toolbar slider controls
+  - Added per-layer elevation properties with elevation slider control in the toolbar
+  - Added component-level layout properties (padding, header-padding, footer-padding, section-gap, vertical-gutter, divider-size, min-width, max-width, header-style)
+  - Created Card toolbar configuration (Card.toolbar.json) with grouped controls for Border, Content, Dividers, Elevation, Footer, Header, and Sizes
+  - Created CardPreview with three distinct goblin-themed preview cards (story chapter, potion item, emporium shop) showcasing headers, footers, images, badges, buttons, and dividers
+  - Added Card.toolbar.test.tsx with 41 integration tests covering color updates, component-level props, multiple simultaneous updates, reactive CSS variable changes, variant switching, and card sections
+  - Added Card entry to UIKit.json with full token structure including per-layer colors, borders, and elevations
+  - Registered Card component in all three shell registries (Mantine, Material, Carbon)
+  - Added card preview images (goblin, potion, shop) to public assets
+
+  ### Toolbar Fixes
+
+  - Fixed toolbar slider values not reflecting correct applied values when switching layers via the segmented control
+  - Fixed layer filtering in getCssVarsForProp to correctly filter by layer for any prop with 'layer-X' in its path (not just colors)
+  - Fixed elevation slider to correctly update the selected layer's elevation in the Card preview by reading from the Card's component-level CSS variable instead of the brand layer system
+  - Fixed button width in Card preview to not stretch full-width (added alignSelf: flex-start)
+  - Fixed letter-spacing CSS variable references in CardPreview to use the correct `font-letter-spacing` suffix matching the typography resolver output
+
+  ### Elevation System
+
+  - Updated brandCssVars.ts with improved elevation resolution including parseElevationValue and extractElevationMode utilities
+  - CardPreview now reads elevation from component-level CSS variables (reactive to toolbar changes) instead of the static brand layer system
+
 ## 0.3.10
 
 ### Patch Changes
