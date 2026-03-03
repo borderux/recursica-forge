@@ -36,6 +36,7 @@ import {
   Article,
   Asterisk,
   Bell,
+
   BugBeetle as Bug,
   CalendarBlank,
   CaretDoubleRight,
@@ -390,6 +391,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'circle-notch': CircleNotch,
   'corners': CornersIn,
   'pencil-line': PencilLine,
+  'border-outer': FrameCorners,
 }
 
 /**
