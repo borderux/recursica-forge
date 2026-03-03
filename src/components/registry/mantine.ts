@@ -104,5 +104,8 @@ registerComponent('mantine', 'Card', () => import('../adapters/mantine/Card/Card
 // Pagination
 registerComponent('mantine', 'Pagination', () => import('../adapters/mantine/Pagination/Pagination'))
 
+// DatePicker
+registerComponent('mantine', 'DatePicker', () => import('../adapters/mantine/DatePicker/DatePicker'))
+
 // Add more components as they're implemented
 

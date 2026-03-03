@@ -37,6 +37,7 @@ import {
   Asterisk,
   Bell,
   BugBeetle as Bug,
+  CalendarBlank,
   CaretDoubleRight,
   CaretDown,
   CaretLeft,
@@ -277,6 +278,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   // UI Components & States
   'house': House,
   'home': House,
+  'calendar': CalendarBlank,
+  'calendar-blank': CalendarBlank,
+  'calendar-days': CalendarBlank,
   'sun': Sun,
   'moon': Moon,
   'eye': Eye,

@@ -1,0 +1,106 @@
+/**
+ * Mantine DatePicker CSS
+ * 
+ * CSS overrides for Mantine DatePicker component.
+ */
+
+.recursica-date-picker-wrapper {
+    position: relative;
+    cursor: pointer;
+}
+
+/* Ensure the Popover's target wrapper inherits the date picker width */
+.recursica-date-picker-popover-target {
+    width: 100% !important;
+}
+
+.recursica-date-picker-input {
+    cursor: pointer;
+}
+
+.recursica-date-picker-leading-icon,
+.recursica-date-picker-trailing-icon {
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+/* Ensure SVG icons scale to fill their container */
+.recursica-date-picker-leading-icon svg,
+.recursica-date-picker-trailing-icon svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+}
+
+/* Calendar popover styles */
+.recursica-date-picker-calendar {
+    user-select: none;
+}
+
+.recursica-date-picker-calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow: visible;
+}
+
+.recursica-date-picker-calendar-grid {
+    border-collapse: collapse;
+    width: 100%;
+    text-align: center;
+}
+
+.recursica-date-picker-calendar-grid th,
+.recursica-date-picker-calendar-grid td {
+    width: calc(100% / 7);
+    text-align: center;
+    padding: 2px;
+}
+
+.recursica-date-picker-calendar-grid th {
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+.recursica-date-picker-calendar-grid td {
+    text-align: center;
+}
+
+.recursica-date-picker-day {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50% !important;
+    --button-min-width: unset !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+}
+
+.recursica-date-picker-day:disabled {
+    opacity: 0.3;
+    cursor: default;
+}
+
+.recursica-date-picker-day.today:not(.selected) {
+    border: 1px solid currentColor;
+    opacity: 0.5;
+}
+
+.recursica-date-picker-day.outside-month {
+    opacity: 0.3;
+}
+
+.recursica-date-picker-calendar-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 8px 4px 4px;
+}
