@@ -35,6 +35,7 @@ const PanelPreview = lazy(() => import('../components/PanelPreview'))
 const HoverCardPopoverPreview = lazy(() => import('../components/HoverCardPopoverPreview'))
 const CardPreview = lazy(() => import('../components/CardPreview'))
 const PaginationPreview = lazy(() => import('../components/PaginationPreview'))
+const TimePickerPreview = lazy(() => import('../components/TimePickerPreview'))
 const DatePickerPreview = lazy(() => import('../components/DatePickerPreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -477,6 +478,12 @@ export default function ComponentDetailPage() {
                   />
                 ) : component.name === 'Pagination' ? (
                   <PaginationPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Time picker' ? (
+                  <TimePickerPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}

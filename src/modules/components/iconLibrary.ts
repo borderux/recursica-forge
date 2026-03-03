@@ -49,6 +49,7 @@ import {
   CheckSquare,
   Circle,
   CircleDashed,
+  Clock,
   CircleHalf,
   CircleHalfTilt,
   Columns,
@@ -380,6 +381,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'circle-dashed': CircleDashed,
   'dots-three': DotsThree,
   'text-columns': TextColumns,
+
+  // Time
+  'clock': Clock,
 }
 
 /**

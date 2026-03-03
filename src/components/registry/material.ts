@@ -84,6 +84,9 @@ registerComponent('material', 'Card', () => import('../adapters/material/Card/Ca
 // Pagination
 registerComponent('material', 'Pagination', () => import('../adapters/material/Pagination/Pagination'))
 
+// TimePicker
+registerComponent('material', 'TimePicker', () => import('../adapters/material/TimePicker/TimePicker'))
+
 // DatePicker
 registerComponent('material', 'DatePicker', () => import('../adapters/material/DatePicker/DatePicker'))
 
