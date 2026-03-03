@@ -900,11 +900,11 @@ export default function PropControlContent({
         if (selectedVariants.style && !p.path.includes(selectedVariants.style)) return false
         if (selectedVariants.orientation && !p.path.includes(selectedVariants.orientation)) return false
       }
-      if (propToCheck.category === 'colors') {
-        const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
-        if (layerInPath) {
-          if (layerInPath !== selectedLayer) return false
-        }
+      // Filter by layer for ANY prop that has layer-X in its path (not just colors)
+      // This ensures Card borders (size category under borders.layer-X) are also filtered
+      const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
+      if (layerInPath) {
+        if (layerInPath !== selectedLayer) return false
       }
       return true
     })
@@ -937,10 +937,9 @@ export default function PropControlContent({
             const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
             if (!variantInPath) return false
 
-            if (propToCheck.category === 'colors') {
-              const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
-              if (layerInPath && layerInPath !== selectedLayer) return false
-            }
+            // Filter by layer for ANY prop with layer in path
+            const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
+            if (layerInPath && layerInPath !== selectedLayer) return false
             return true
           })
         }

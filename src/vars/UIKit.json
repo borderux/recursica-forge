@@ -1023,6 +1023,245 @@
           }
         }
       },
+      "card": {
+        "properties": {
+          "colors": {
+            "layer-0": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "header-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "footer-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
+              },
+              "divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
+              },
+              "title": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              }
+            },
+            "layer-1": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.surface}"
+              },
+              "header-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.surface}"
+              },
+              "footer-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.surface}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
+              },
+              "divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
+              },
+              "title": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              }
+            },
+            "layer-2": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "header-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "footer-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              },
+              "divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              },
+              "title": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              }
+            },
+            "layer-3": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "header-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "footer-background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              },
+              "divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              },
+              "title": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              }
+            }
+          },
+          "borders": {
+            "layer-0": {
+              "border-size": {
+                "$type": "dimension",
+                "$value": "{brand.layers.layer-1.properties.border-thickness}"
+              },
+              "border-radius": {
+                "$type": "dimension",
+                "$value": "{brand.layers.layer-1.properties.border-radius}"
+              }
+            },
+            "layer-1": {
+              "border-size": {
+                "$type": "dimension",
+                "$value": "{brand.layers.layer-2.properties.border-thickness}"
+              },
+              "border-radius": {
+                "$type": "dimension",
+                "$value": "{brand.layers.layer-2.properties.border-radius}"
+              }
+            },
+            "layer-2": {
+              "border-size": {
+                "$type": "dimension",
+                "$value": "{brand.layers.layer-3.properties.border-thickness}"
+              },
+              "border-radius": {
+                "$type": "dimension",
+                "$value": "{brand.layers.layer-3.properties.border-radius}"
+              }
+            },
+            "layer-3": {
+              "border-size": {
+                "$type": "dimension",
+                "$value": "{brand.layers.layer-3.properties.border-thickness}"
+              },
+              "border-radius": {
+                "$type": "dimension",
+                "$value": "{brand.layers.layer-3.properties.border-radius}"
+              }
+            }
+          },
+          "elevations": {
+            "layer-0": {
+              "elevation": {
+                "$type": "elevation",
+                "$value": "{brand.elevations.elevation-0}"
+              }
+            },
+            "layer-1": {
+              "elevation": {
+                "$type": "elevation",
+                "$value": "{brand.elevations.elevation-2}"
+              }
+            },
+            "layer-2": {
+              "elevation": {
+                "$type": "elevation",
+                "$value": "{brand.elevations.elevation-4}"
+              }
+            },
+            "layer-3": {
+              "elevation": {
+                "$type": "elevation",
+                "$value": "{brand.elevations.elevation-4}"
+              }
+            }
+          },
+          "header-style": {
+            "$type": "string",
+            "$value": "h3"
+          },
+          "padding": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.xl}"
+          },
+          "header-padding": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.xl}"
+          },
+          "footer-padding": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.xl}"
+          },
+          "section-gap": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.md}"
+          },
+          "vertical-gutter": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.default}"
+          },
+          "divider-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
+          "min-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 200,
+              "unit": "px"
+            }
+          },
+          "max-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 640,
+              "unit": "px"
+            }
+          }
+        }
+      },
       "chip": {
         "variants": {
           "styles": {

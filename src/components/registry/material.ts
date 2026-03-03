@@ -78,8 +78,12 @@ registerComponent('material', 'HoverCard', () => import('../adapters/material/Ho
 // Popover
 registerComponent('material', 'Popover', () => import('../adapters/material/Popover/Popover'))
 
+// Card
+registerComponent('material', 'Card', () => import('../adapters/material/Card/Card'))
+
 // Pagination
 registerComponent('material', 'Pagination', () => import('../adapters/material/Pagination/Pagination'))
 
 // Add more components as they're implemented
+
 

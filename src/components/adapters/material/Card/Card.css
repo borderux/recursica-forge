@@ -1,0 +1,21 @@
+/* Material UI Card CSS Overrides */
+
+.recursica-card.MuiCard-root {
+    background: var(--card-bg) !important;
+    border-radius: var(--card-border-radius) !important;
+}
+
+.recursica-card .recursica-card-header.MuiCardHeader-root {
+    background: var(--card-header-bg) !important;
+    padding: var(--card-header-padding) !important;
+}
+
+.recursica-card .recursica-card-body.MuiCardContent-root {
+    color: var(--card-content-color) !important;
+    padding: var(--card-padding) !important;
+}
+
+.recursica-card .recursica-card-footer.MuiCardActions-root {
+    background: var(--card-footer-bg) !important;
+    padding: var(--card-footer-padding) !important;
+}
