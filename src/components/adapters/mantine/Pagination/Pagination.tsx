@@ -1,20 +1,18 @@
 /**
  * Mantine Pagination Implementation
  * 
- * Uses the Button adapter component for all interactive elements:
- * - Active page: solid variant
- * - Inactive pages: outline variant
- * - Arrow controls (prev/next/first/last): text variant
+ * Uses the Button adapter component for all interactive elements.
+ * Button variants, sizes, and nav display modes are configurable via CSS variables.
  * 
  * Uses Mantine's usePagination hook for range calculation.
  */
 
-import { useState, useEffect } from 'react'
 import { usePagination } from '@mantine/hooks'
 import { DotsThree, CaretLeft, CaretRight, CaretDoubleLeft, CaretDoubleRight } from '@phosphor-icons/react'
 import { Button } from '../../Button'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { usePaginationConfig } from '../../hooks/usePaginationConfig'
 import type { PaginationProps as AdapterPaginationProps } from '../../Pagination'
 import './Pagination.css'
 
@@ -34,6 +32,7 @@ export default function Pagination({
     ...props
 }: AdapterPaginationProps) {
     const { mode } = useThemeMode()
+    const { activeStyle, activeSize, inactiveStyle, inactiveSize, navStyle, navSize, navDisplay } = usePaginationConfig()
     const pagination = usePagination({
         total,
         page: value,
@@ -51,6 +50,18 @@ export default function Pagination({
     const textColorVar = `${layerBase}-elements-text-color`
     const highEmphasisVar = `${layerBase}-elements-text-high-emphasis`
 
+    // Helper to render nav button content based on display mode
+    const getNavButtonProps = (icon: React.ReactNode, label: string) => {
+        if (navDisplay === 'text') {
+            return { children: label }
+        }
+        if (navDisplay === 'icon+text') {
+            return { icon, children: label }
+        }
+        // icon only (default)
+        return { icon }
+    }
+
     return (
         <nav
             className={`recursica-pagination ${className || ''}`}
@@ -63,27 +74,25 @@ export default function Pagination({
             {/* First page button */}
             {withEdges && (
                 <Button
-                    variant="text"
-                    size="small"
+                    variant={navStyle}
+                    size={navSize}
                     layer={layer}
                     disabled={disabled || pagination.active === 1}
                     onClick={() => pagination.first()}
-                    icon={<CaretDoubleLeft size={16} weight="bold" />}
                     title="First page"
-                    style={{ minWidth: 32, height: 32, padding: '0 4px' }}
+                    {...getNavButtonProps(<CaretDoubleLeft size={16} weight="bold" />, 'First')}
                 />
             )}
 
             {/* Previous page button */}
             <Button
-                variant="text"
-                size="small"
+                variant={navStyle}
+                size={navSize}
                 layer={layer}
                 disabled={disabled || pagination.active === 1}
                 onClick={() => pagination.previous()}
-                icon={<CaretLeft size={16} weight="bold" />}
                 title="Previous page"
-                style={{ minWidth: 32, height: 32, padding: '0 4px' }}
+                {...getNavButtonProps(<CaretLeft size={16} weight="bold" />, 'Prev')}
             />
 
             {/* Page items */}
@@ -114,13 +123,12 @@ export default function Pagination({
                 return (
                     <Button
                         key={item}
-                        variant={isActive ? 'solid' : 'outline'}
-                        size="small"
+                        variant={isActive ? activeStyle : inactiveStyle}
+                        size={isActive ? activeSize : inactiveSize}
                         layer={layer}
                         disabled={disabled}
                         onClick={() => pagination.setPage(item)}
                         title={`Page ${item}`}
-                        style={{ minWidth: 32, height: 32, padding: '0 4px' }}
                     >
                         {item}
                     </Button>
@@ -129,27 +137,25 @@ export default function Pagination({
 
             {/* Next page button */}
             <Button
-                variant="text"
-                size="small"
+                variant={navStyle}
+                size={navSize}
                 layer={layer}
                 disabled={disabled || pagination.active === total}
                 onClick={() => pagination.next()}
-                icon={<CaretRight size={16} weight="bold" />}
                 title="Next page"
-                style={{ minWidth: 32, height: 32, padding: '0 4px' }}
+                {...getNavButtonProps(<CaretRight size={16} weight="bold" />, 'Next')}
             />
 
             {/* Last page button */}
             {withEdges && (
                 <Button
-                    variant="text"
-                    size="small"
+                    variant={navStyle}
+                    size={navSize}
                     layer={layer}
                     disabled={disabled || pagination.active === total}
                     onClick={() => pagination.last()}
-                    icon={<CaretDoubleRight size={16} weight="bold" />}
                     title="Last page"
-                    style={{ minWidth: 32, height: 32, padding: '0 4px' }}
+                    {...getNavButtonProps(<CaretDoubleRight size={16} weight="bold" />, 'Last')}
                 />
             )}
         </nav>

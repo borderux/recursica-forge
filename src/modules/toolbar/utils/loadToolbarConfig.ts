@@ -46,6 +46,8 @@ export interface ToolbarPropConfig {
   range?: [number, number] // For slider
   step?: number // For slider
   allowedProps?: string[] // For restricting which properties are visible in a group like text-style
+  control?: 'dropdown' | 'segmented' // Control type for options-based props
+  options?: Array<string | { label: string; value: string; icon?: string }> // Options for dropdown/segmented controls
 }
 
 export interface ToolbarVariantConfig {

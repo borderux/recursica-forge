@@ -1,5 +1,109 @@
 {
     "props": {
+        "navigation-controls": {
+            "icon": "arrows-left-right",
+            "label": "Navigation controls",
+            "visible": true,
+            "group": {
+                "navigation-controls-style": {
+                    "icon": "squares-four",
+                    "label": "Style",
+                    "visible": true,
+                    "control": "dropdown",
+                    "options": [
+                        "solid",
+                        "outline",
+                        "text"
+                    ]
+                },
+                "navigation-controls-size": {
+                    "icon": "arrows-out-simple",
+                    "label": "Size",
+                    "visible": true,
+                    "control": "dropdown",
+                    "options": [
+                        "default",
+                        "small"
+                    ]
+                },
+                "navigation-controls-display": {
+                    "icon": "text-columns",
+                    "label": "Display",
+                    "visible": true,
+                    "control": "dropdown",
+                    "options": [
+                        {
+                            "label": "Icon only",
+                            "value": "icon"
+                        },
+                        {
+                            "label": "Text only",
+                            "value": "text"
+                        },
+                        {
+                            "label": "Icon + text",
+                            "value": "icon+text"
+                        }
+                    ]
+                }
+            }
+        },
+        "active-pages": {
+            "icon": "check-circle",
+            "label": "Active page",
+            "visible": true,
+            "group": {
+                "active-pages-style": {
+                    "icon": "squares-four",
+                    "label": "Style",
+                    "visible": true,
+                    "control": "dropdown",
+                    "options": [
+                        "solid",
+                        "outline",
+                        "text"
+                    ]
+                },
+                "active-pages-size": {
+                    "icon": "arrows-out-simple",
+                    "label": "Size",
+                    "visible": true,
+                    "control": "dropdown",
+                    "options": [
+                        "default",
+                        "small"
+                    ]
+                }
+            }
+        },
+        "inactive-pages": {
+            "icon": "circle",
+            "label": "Inactive page",
+            "visible": true,
+            "group": {
+                "inactive-pages-style": {
+                    "icon": "squares-four",
+                    "label": "Style",
+                    "visible": true,
+                    "control": "dropdown",
+                    "options": [
+                        "solid",
+                        "outline",
+                        "text"
+                    ]
+                },
+                "inactive-pages-size": {
+                    "icon": "arrows-out-simple",
+                    "label": "Size",
+                    "visible": true,
+                    "control": "dropdown",
+                    "options": [
+                        "default",
+                        "small"
+                    ]
+                }
+            }
+        },
         "item-gap": {
             "icon": "split-horizontal",
             "label": "Item gap",

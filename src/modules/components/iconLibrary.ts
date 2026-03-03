@@ -108,6 +108,7 @@ import {
   TextAlignCenter,
   TextAlignLeft,
   TextAlignRight,
+  TextColumns,
   TextItalic,
   TextStrikethrough,
   TextT,
@@ -374,6 +375,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'minus-square': MinusSquare,
   'circle-dashed': CircleDashed,
   'dots-three': DotsThree,
+  'text-columns': TextColumns,
 }
 
 /**

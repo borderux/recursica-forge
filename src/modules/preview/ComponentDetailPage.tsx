@@ -268,15 +268,15 @@ export default function ComponentDetailPage() {
             alignItems: 'stretch',
             justifyContent: 'space-between',
             gap: 'var(--recursica-brand-dimensions-general-md)',
-            background: component.name === 'Pagination' ? 'transparent' : `var(${baseLayerBase}-surface)`,
+            background: `var(${baseLayerBase}-surface)`,
             padding: `var(${baseLayerBase}-padding)`,
-            border: layerNum !== '0' && component.name !== 'Pagination'
+            border: layerNum !== '0'
               ? `var(${baseLayerBase}-border-thickness, 1px) solid var(${baseLayerBase}-border-color)`
               : 'none',
-            borderRadius: layerNum !== '0' && component.name !== 'Pagination'
+            borderRadius: layerNum !== '0'
               ? `var(${baseLayerBase}-border-radius)`
               : undefined,
-            boxShadow: component.name === 'Pagination' ? undefined : elevationBoxShadow,
+            boxShadow: elevationBoxShadow,
             position: 'relative',
             minHeight: debugMode ? '400px' : 0,
           }}>
