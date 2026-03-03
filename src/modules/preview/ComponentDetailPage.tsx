@@ -33,6 +33,7 @@ const FileInputPreview = lazy(() => import('../components/FileInputPreview'))
 const FileUploadPreview = lazy(() => import('../components/FileUploadPreview'))
 const PanelPreview = lazy(() => import('../components/PanelPreview'))
 const HoverCardPopoverPreview = lazy(() => import('../components/HoverCardPopoverPreview'))
+const CardPreview = lazy(() => import('../components/CardPreview'))
 const PaginationPreview = lazy(() => import('../components/PaginationPreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -461,6 +462,11 @@ export default function ComponentDetailPage() {
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Card' ? (
+                  <CardPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
                   />
                 ) : component.name === 'Pagination' ? (
                   <PaginationPreview

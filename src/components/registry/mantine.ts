@@ -98,10 +98,11 @@ registerComponent('mantine', 'HoverCard', () => import('../adapters/mantine/Hove
 // Popover
 registerComponent('mantine', 'Popover', () => import('../adapters/mantine/Popover/Popover'))
 
+// Card
+registerComponent('mantine', 'Card', () => import('../adapters/mantine/Card/Card'))
+
 // Pagination
 registerComponent('mantine', 'Pagination', () => import('../adapters/mantine/Pagination/Pagination'))
 
 // Add more components as they're implemented
-// registerComponent('mantine', 'Card', () => import('../../adapters/mantine/Card'))
-// registerComponent('mantine', 'TextField', () => import('../../adapters/mantine/TextField'))
 
