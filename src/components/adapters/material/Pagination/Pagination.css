@@ -1,0 +1,8 @@
+/**
+ * Material UI Pagination Styles
+ */
+
+.recursica-pagination-mui {
+    display: flex;
+    align-items: center;
+}

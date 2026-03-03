@@ -24,6 +24,7 @@ import { SegmentedControl } from '../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { FileInput } from '../../components/adapters/FileInput'
 import { FileUpload } from '../../components/adapters/FileUpload'
+import { Pagination } from '../../components/adapters/Pagination'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -976,15 +977,19 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Pagination',
       url: `${base}/pagination`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <button>{'<'}</button>
-          {[1, 2, 3, 4, 5].map((p) => (
-            <button key={p} style={{ padding: '4px 8px', borderRadius: 6, background: p === 2 ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)` : undefined, color: p === 2 ? `var(--recursica-brand-themes-${mode}-palettes-core-white)` : undefined }}>{p}</button>
-          ))}
-          <button>{'>'}</button>
-        </div>
-      ),
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+            <Pagination
+              total={8}
+              defaultValue={3}
+              withEdges={true}
+              layer={layer as any}
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Panel',

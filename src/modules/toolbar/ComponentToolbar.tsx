@@ -474,6 +474,36 @@ export default function ComponentToolbar({
                   groupedProp = layoutProps[0]
                 }
               }
+              // Virtual prop fallback: if config has options (dropdown/segmented), create a virtual prop
+              if (!groupedProp && parentPropConfig.group) {
+                const childConfig = parentPropConfig.group[groupedPropKey] || parentPropConfig.group[groupedPropName]
+                if (childConfig && (childConfig as any).options) {
+                  const normalizedName = componentName.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '') as ComponentName
+                  // Build the correct CSS var path:
+                  // If the child key starts with the parent group name (e.g. "active-pages-style" under "active-pages"),
+                  // extract the suffix and build path as properties/parentName/suffix.
+                  // Otherwise, use the flat key as before.
+                  const parentName = parentPropName.toLowerCase()
+                  let cssVarPath: string
+                  let pathSegments: string[]
+                  if (groupedPropKey.startsWith(parentName + '-')) {
+                    const suffix = groupedPropKey.slice(parentName.length + 1) // "style", "size", etc.
+                    cssVarPath = buildComponentCssVarPath(normalizedName, 'properties', parentName, suffix)
+                    pathSegments = ['properties', parentName, suffix]
+                  } else {
+                    cssVarPath = buildComponentCssVarPath(normalizedName, 'properties', groupedPropKey)
+                    pathSegments = ['properties', groupedPropKey]
+                  }
+                  groupedProp = {
+                    name: groupedPropKey,
+                    category: 'size',
+                    type: 'string',
+                    cssVar: cssVarPath,
+                    path: pathSegments,
+                    isVariantSpecific: false,
+                  }
+                }
+              }
               if (groupedProp) {
                 groupedProps.set(groupedPropKey, groupedProp)
                 // Also update the groupedPropsMap to ensure consistency
@@ -608,6 +638,34 @@ export default function ComponentToolbar({
           }
           propsMap.set(propNameLower, virtualProp)
           seenProps.add(propNameLower)
+        }
+
+        // Create virtual props for Pagination variant/size configuration
+        if (componentName.toLowerCase() === 'pagination') {
+          // New structure: active-pages/{style,size}, inactive-pages/{style,size}, navigation-controls/{style,size}
+          const paginationVirtualProps = [
+            { key: 'active-pages-style', parent: 'active-pages', suffix: 'style' },
+            { key: 'active-pages-size', parent: 'active-pages', suffix: 'size' },
+            { key: 'inactive-pages-style', parent: 'inactive-pages', suffix: 'style' },
+            { key: 'inactive-pages-size', parent: 'inactive-pages', suffix: 'size' },
+            { key: 'navigation-controls-style', parent: 'navigation-controls', suffix: 'style' },
+            { key: 'navigation-controls-size', parent: 'navigation-controls', suffix: 'size' },
+            { key: 'navigation-controls-display', parent: 'navigation-controls', suffix: 'display' },
+          ]
+          for (const { key, parent, suffix } of paginationVirtualProps) {
+            if (propNameLower === key) {
+              const virtualProp: ComponentProp = {
+                name: key,
+                category: 'size',
+                type: 'string',
+                cssVar: buildComponentCssVarPath('Pagination', 'properties', parent, suffix),
+                path: ['properties', parent, suffix],
+                isVariantSpecific: false,
+              }
+              propsMap.set(key, virtualProp)
+              seenProps.add(key)
+            }
+          }
         }
       }
     }

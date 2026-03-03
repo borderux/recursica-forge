@@ -1,0 +1,11 @@
+/**
+ * Mantine Pagination Styles
+ * 
+ * Minimal CSS since the Button component handles its own styling.
+ * Gap is set inline from the component's item-gap CSS variable.
+ */
+
+.recursica-pagination {
+  display: flex;
+  align-items: center;
+}
