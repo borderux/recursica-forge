@@ -187,6 +187,11 @@
                     "step": 8
                 }
             }
+        },
+        "elevation": {
+            "icon": "copy-simple",
+            "label": "Elevation",
+            "visible": true
         }
     }
 }

@@ -4,7 +4,7 @@ import { Badge } from '../../components/adapters/Badge'
 import { Group } from '@mantine/core'
 import { getComponentLevelCssVar } from '../../components/utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
-import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
+import { getElevationBoxShadow, parseElevationValue } from '../../components/utils/brandCssVars'
 import { getCardElevationLayer } from '../../components/adapters/Card'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
@@ -53,8 +53,10 @@ export default function CardPreview({
 
     const containerLayer = selectedLayer as ComponentLayer
 
-    // The card always sits one layer above its container
+    // The card always sits one layer above its container (used for child Badge/Button layer props)
     const cardLayer = getCardElevationLayer(containerLayer)
+
+
 
     // UIKit per-layer CSS vars (reference brand layer props by default, overridable)
     const bgVar = getComponentLevelCssVar('Card', `colors.${containerLayer}.background`)
@@ -67,8 +69,11 @@ export default function CardPreview({
     const borderSizeVar = getComponentLevelCssVar('Card', `borders.${containerLayer}.border-size`)
     const borderRadiusVar = getComponentLevelCssVar('Card', `borders.${containerLayer}.border-radius`)
 
-    // Elevation from the brand layer system (next layer up)
-    const elevationBoxShadow = getLayerElevationBoxShadow(mode, cardLayer)
+    // Elevation from the Card component's own CSS variable (updated by toolbar slider)
+    const elevationVar = getComponentLevelCssVar('Card', `elevations.${containerLayer}.elevation`)
+    const elevationRawValue = readCssVar(elevationVar)
+    const elevationName = parseElevationValue(elevationRawValue || '')
+    const elevationBoxShadow = getElevationBoxShadow(mode, elevationName)
 
     // Card-specific UIKit properties (internal layout, not per-layer)
     const paddingVar = getComponentLevelCssVar('Card', 'padding')
@@ -213,7 +218,7 @@ export default function CardPreview({
                 <div style={{ ...bodyStyle }}>
                     <p style={{ margin: 0 }}>{potionDescription}</p>
                 </div>
-                <Button variant="solid" layer={cardLayer}>
+                <Button variant="solid" layer={cardLayer} style={{ alignSelf: 'flex-start' }}>
                     Add to Inventory
                 </Button>
             </div>
