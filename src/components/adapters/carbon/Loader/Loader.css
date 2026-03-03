@@ -1,0 +1,117 @@
+/* Carbon Loader CSS Overrides */
+
+/* Oval spinner - CSS-based */
+.recursica-loader-carbon .recursica-loader-oval-carbon {
+    border: 3px solid var(--loader-track-color, rgba(0, 0, 0, 0.1));
+    border-top-color: var(--loader-indicator-color, currentColor);
+    border-radius: 50%;
+    animation: recursica-carbon-spin 0.8s linear infinite;
+}
+
+@keyframes recursica-carbon-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Bars animation */
+.recursica-loader-carbon .recursica-loader-bars-carbon {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 2px;
+}
+
+.recursica-loader-carbon .recursica-loader-bars-carbon span {
+    display: inline-block;
+    width: 12.5%;
+    background-color: var(--loader-indicator-color, currentColor);
+    border-radius: 2px;
+    animation: recursica-carbon-bars-bounce 1.2s ease-in-out infinite;
+}
+
+.recursica-loader-carbon .recursica-loader-bars-carbon span:nth-child(1) {
+    animation-delay: -0.32s;
+    height: 60%;
+}
+
+.recursica-loader-carbon .recursica-loader-bars-carbon span:nth-child(2) {
+    animation-delay: -0.16s;
+    height: 80%;
+}
+
+.recursica-loader-carbon .recursica-loader-bars-carbon span:nth-child(3) {
+    animation-delay: 0s;
+    height: 100%;
+}
+
+.recursica-loader-carbon .recursica-loader-bars-carbon span:nth-child(4) {
+    animation-delay: 0.16s;
+    height: 80%;
+}
+
+.recursica-loader-carbon .recursica-loader-bars-carbon span:nth-child(5) {
+    animation-delay: 0.32s;
+    height: 60%;
+}
+
+@keyframes recursica-carbon-bars-bounce {
+
+    0%,
+    40%,
+    100% {
+        transform: scaleY(0.4);
+    }
+
+    20% {
+        transform: scaleY(1);
+    }
+}
+
+/* Dots animation */
+.recursica-loader-carbon .recursica-loader-dots-carbon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.recursica-loader-carbon .recursica-loader-dots-carbon span {
+    display: inline-block;
+    width: 25%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: var(--loader-indicator-color, currentColor);
+    animation: recursica-carbon-dots-pulse 1.4s ease-in-out infinite both;
+}
+
+.recursica-loader-carbon .recursica-loader-dots-carbon span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.recursica-loader-carbon .recursica-loader-dots-carbon span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+.recursica-loader-carbon .recursica-loader-dots-carbon span:nth-child(3) {
+    animation-delay: 0s;
+}
+
+@keyframes recursica-carbon-dots-pulse {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
