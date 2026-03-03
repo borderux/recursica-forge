@@ -1201,10 +1201,36 @@ export default function PropControlContent({
         <>
           {Object.entries(groupedConfigs).map(([childPropName, childConfig], index) => {
             // Find the child property in the component structure
-            const childProp = structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase())
+            let childProp = structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase())
+
+            // If not found in structure, create a virtual prop (e.g., for Pagination config string props)
+            if (!childProp && childConfig.options) {
+              // Build the correct CSS var path for nested properties
+              const parentName = prop.name.toLowerCase()
+              let cssVarPath: string
+              let pathSegments: string[]
+              if (childPropName.startsWith(parentName + '-')) {
+                const suffix = childPropName.slice(parentName.length + 1)
+                cssVarPath = buildComponentCssVarPath(componentName, 'properties', parentName, suffix)
+                pathSegments = ['properties', parentName, suffix]
+              } else {
+                cssVarPath = buildComponentCssVarPath(componentName, 'properties', childPropName)
+                pathSegments = ['properties', childPropName]
+              }
+              childProp = {
+                name: childPropName,
+                category: 'size',
+                type: 'string',
+                cssVar: cssVarPath,
+                path: pathSegments,
+                isVariantSpecific: false,
+              }
+            }
+
             if (!childProp) return null
 
-            const cssVars = getCssVarsForProp(childProp)
+            const isVirtualProp = !structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase())
+            const cssVars = isVirtualProp ? [childProp.cssVar] : getCssVarsForProp(childProp)
             const primaryVar = cssVars[0] || childProp.cssVar
             const label = childConfig.label || getPropLabel(componentName, childPropName) || toSentenceCase(childPropName)
 

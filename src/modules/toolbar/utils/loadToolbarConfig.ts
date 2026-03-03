@@ -35,6 +35,7 @@ import FileInputConfig from '../configs/FileInput.toolbar.json'
 import FileUploadConfig from '../configs/FileUpload.toolbar.json'
 import PanelConfig from '../configs/Panel.toolbar.json'
 import HoverCardPopoverConfig from '../configs/HoverCardPopover.toolbar.json'
+import PaginationConfig from '../configs/Pagination.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -45,6 +46,8 @@ export interface ToolbarPropConfig {
   range?: [number, number] // For slider
   step?: number // For slider
   allowedProps?: string[] // For restricting which properties are visible in a group like text-style
+  control?: 'dropdown' | 'segmented' // Control type for options-based props
+  options?: Array<string | { label: string; value: string; icon?: string }> // Options for dropdown/segmented controls
 }
 
 export interface ToolbarVariantConfig {
@@ -150,6 +153,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return FileUploadConfig as unknown as ToolbarConfig
       case 'panel':
         return PanelConfig as unknown as ToolbarConfig
+      case 'pagination':
+        return PaginationConfig as unknown as ToolbarConfig
       case 'hover-card-/-popover':
       case 'hover-card-popover':
       case 'hover card / popover':

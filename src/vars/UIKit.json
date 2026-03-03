@@ -4153,6 +4153,74 @@
           }
         }
       },
+      "pagination": {
+        "properties": {
+          "colors": {
+            "layer-0": {
+              "dots-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              }
+            },
+            "layer-1": {
+              "dots-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              }
+            },
+            "layer-2": {
+              "dots-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              }
+            },
+            "layer-3": {
+              "dots-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              }
+            }
+          },
+          "item-gap": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.sm}"
+          },
+          "active-pages": {
+            "style": {
+              "$type": "variant",
+              "$value": "{ui-kit.components.button.variants.styles.solid}"
+            },
+            "size": {
+              "$type": "variant",
+              "$value": "{ui-kit.components.button.variants.sizes.small}"
+            }
+          },
+          "inactive-pages": {
+            "style": {
+              "$type": "variant",
+              "$value": "{ui-kit.components.button.variants.styles.outline}"
+            },
+            "size": {
+              "$type": "variant",
+              "$value": "{ui-kit.components.button.variants.sizes.small}"
+            }
+          },
+          "navigation-controls": {
+            "style": {
+              "$type": "variant",
+              "$value": "{ui-kit.components.button.variants.styles.text}"
+            },
+            "size": {
+              "$type": "variant",
+              "$value": "{ui-kit.components.button.variants.sizes.small}"
+            },
+            "display": {
+              "$type": "string",
+              "$value": "icon"
+            }
+          }
+        }
+      },
       "label": {
         "variants": {
           "layouts": {
