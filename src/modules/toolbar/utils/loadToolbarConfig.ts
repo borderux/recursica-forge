@@ -37,6 +37,7 @@ import PanelConfig from '../configs/Panel.toolbar.json'
 import HoverCardPopoverConfig from '../configs/HoverCardPopover.toolbar.json'
 import CardConfig from '../configs/Card.toolbar.json'
 import PaginationConfig from '../configs/Pagination.toolbar.json'
+import DatePickerConfig from '../configs/DatePicker.toolbar.json'
 
 export interface ToolbarPropConfig {
   icon: string
@@ -164,6 +165,10 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return HoverCardPopoverConfig as unknown as ToolbarConfig
       case 'card':
         return CardConfig as unknown as ToolbarConfig
+      case 'date-picker':
+      case 'date picker':
+      case 'datepicker':
+        return DatePickerConfig as unknown as ToolbarConfig
       default:
         return null
     }
