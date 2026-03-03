@@ -84,6 +84,9 @@ registerComponent('carbon', 'Card', () => import('../adapters/carbon/Card/Card')
 // Pagination
 registerComponent('carbon', 'Pagination', () => import('../adapters/carbon/Pagination/Pagination'))
 
+// TimePicker
+registerComponent('carbon', 'TimePicker', () => import('../adapters/carbon/TimePicker/TimePicker'))
+
 // DatePicker
 registerComponent('carbon', 'DatePicker', () => import('../adapters/carbon/DatePicker/DatePicker'))
 

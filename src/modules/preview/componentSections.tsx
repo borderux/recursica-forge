@@ -6,6 +6,7 @@ import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
 import { AssistiveElement } from '../../components/adapters/AssistiveElement'
 import { TextField } from '../../components/adapters/TextField'
+import { TimePicker } from '../../components/adapters/TimePicker'
 import { Textarea } from '../../components/adapters/Textarea'
 import { NumberInput } from '../../components/adapters/NumberInput'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
@@ -1272,6 +1273,31 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           </ul>
         </div>
       ),
+    },
+    {
+      name: 'Time picker',
+      url: `${base}/time-picker`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
+            <TimePicker
+              label="Stacked"
+              defaultValue="09:30"
+              state="default"
+              layout="stacked"
+              layer={layer as any}
+            />
+            <TimePicker
+              label="Side-by-side"
+              defaultValue="14:00"
+              state="default"
+              layout="side-by-side"
+              layer={layer as any}
+            />
+          </div>
+        )
+      },
     },
   ]
     .sort((a, b) => a.name.localeCompare(b.name))
