@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react'
 import { Stepper } from '../../components/adapters/Stepper'
 import type { StepperStepData } from '../../components/adapters/Stepper'
+import { Button } from '../../components/adapters/Button'
 
 interface StepperPreviewProps {
     selectedVariants: Record<string, string>
@@ -79,38 +80,24 @@ export default function StepperPreview({
 
             {/* Controls */}
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <button
+                <Button
+                    variant="outline"
+                    size="default"
+                    layer={selectedLayer as any}
                     onClick={prevStep}
                     disabled={active === 0}
-                    style={{
-                        padding: '6px 16px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--recursica-brand-palettes-neutral-200-color-tone)',
-                        background: 'transparent',
-                        cursor: active === 0 ? 'not-allowed' : 'pointer',
-                        opacity: active === 0 ? 0.5 : 1,
-                        color: 'inherit',
-                        fontSize: '13px',
-                    }}
                 >
-                    Back
-                </button>
-                <button
+                    Previous step
+                </Button>
+                <Button
+                    variant="outline"
+                    size="default"
+                    layer={selectedLayer as any}
                     onClick={nextStep}
                     disabled={active >= STEPS.length}
-                    style={{
-                        padding: '6px 16px',
-                        borderRadius: '6px',
-                        border: '1px solid var(--recursica-brand-palettes-neutral-200-color-tone)',
-                        background: 'transparent',
-                        cursor: active >= STEPS.length ? 'not-allowed' : 'pointer',
-                        opacity: active >= STEPS.length ? 0.5 : 1,
-                        color: 'inherit',
-                        fontSize: '13px',
-                    }}
                 >
                     Next step
-                </button>
+                </Button>
             </div>
         </div>
     )

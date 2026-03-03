@@ -2286,6 +2286,27 @@
                     "value": "{tokens.font.sizes.md}",
                     "unit": "px"
                   }
+                },
+                "indicator-border-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 2,
+                    "unit": "px"
+                  }
+                },
+                "indicator-border-radius": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.border-radii.2xl}",
+                    "unit": "px"
+                  }
+                },
+                "completed-icon-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.icons.default}",
+                    "unit": "px"
+                  }
                 }
               }
             },
@@ -2302,6 +2323,27 @@
                   "$type": "dimension",
                   "$value": {
                     "value": "{tokens.font.sizes.sm}",
+                    "unit": "px"
+                  }
+                },
+                "indicator-border-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 2,
+                    "unit": "px"
+                  }
+                },
+                "indicator-border-radius": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.border-radii.2xl}",
+                    "unit": "px"
+                  }
+                },
+                "completed-icon-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.icons.sm}",
                     "unit": "px"
                   }
                 }
@@ -2611,27 +2653,6 @@
             "$type": "dimension",
             "$value": {
               "value": 2,
-              "unit": "px"
-            }
-          },
-          "indicator-border-size": {
-            "$type": "dimension",
-            "$value": {
-              "value": 2,
-              "unit": "px"
-            }
-          },
-          "indicator-border-radius": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.border-radii.2xl}",
-              "unit": "px"
-            }
-          },
-          "completed-icon-size": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.icons.default}",
               "unit": "px"
             }
           },

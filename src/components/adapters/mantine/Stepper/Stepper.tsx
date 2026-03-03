@@ -55,11 +55,8 @@ export default function Stepper({
 
     const completedConnectorSizeVar = propVar('completed-connector-size')
     const upcomingConnectorSizeVar = propVar('upcoming-connector-size')
-    const indicatorBorderRadiusVar = propVar('indicator-border-radius')
-    const indicatorBorderSizeVar = propVar('indicator-border-size')
     const stepGapVar = propVar('step-gap')
     const indicatorLabelGapVar = propVar('indicator-label-gap')
-    const completedIconSizeVar = propVar('completed-icon-size')
 
     // --- Size variant properties ---
     // Path: components.stepper.variants.sizes.{size}.properties.{prop}
@@ -67,6 +64,9 @@ export default function Stepper({
 
     const indicatorSizeVar = sizeVar('indicator-size')
     const stepNumberFontSizeVar = sizeVar('step-number-font-size')
+    const indicatorBorderRadiusVar = sizeVar('indicator-border-radius')
+    const indicatorBorderSizeVar = sizeVar('indicator-border-size')
+    const completedIconSizeVar = sizeVar('completed-icon-size')
 
     // --- Text style properties ---
     const labelFontFamilyVar = getComponentTextCssVar('Stepper', 'label-text', 'font-family')

@@ -175,8 +175,8 @@
     position: relative !important;
 }
 
-/* Completed step connector: ::after on completed steps */
-.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-step[data-completed]::after {
+/* Completed step connector: ::after on completed steps (except last) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-step[data-completed]:not(:last-child)::after {
     content: '' !important;
     display: block !important;
     position: absolute !important;
@@ -190,7 +190,7 @@
 }
 
 /* Upcoming step connector: ::after on current and upcoming steps (except last) */
-.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-step[data-progress]::after,
+.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-step[data-progress]:not(:last-child)::after,
 .recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-step:not([data-completed]):not([data-progress]):not(:last-child)::after {
     content: '' !important;
     display: block !important;

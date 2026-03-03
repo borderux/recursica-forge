@@ -20,6 +20,28 @@
         }
     },
     "props": {
+        "step-indicator": {
+            "icon": "circle",
+            "label": "Step indicator",
+            "visible": true,
+            "group": {
+                "indicator-border-radius": {
+                    "icon": "corners-out",
+                    "label": "Border radius",
+                    "visible": true
+                },
+                "indicator-border-size": {
+                    "icon": "rows",
+                    "label": "Border size",
+                    "visible": true
+                },
+                "completed-icon-size": {
+                    "icon": "resize",
+                    "label": "Icon size",
+                    "visible": true
+                }
+            }
+        },
         "completed": {
             "icon": "check-circle",
             "label": "Completed step",
@@ -48,21 +70,6 @@
                 "completed-indicator-border-color": {
                     "icon": "paint-brush-broad",
                     "label": "Border color",
-                    "visible": true
-                },
-                "indicator-border-radius": {
-                    "icon": "corners-out",
-                    "label": "Border radius",
-                    "visible": true
-                },
-                "indicator-border-size": {
-                    "icon": "rows",
-                    "label": "Border size",
-                    "visible": true
-                },
-                "completed-icon-size": {
-                    "icon": "resize",
-                    "label": "Icon size",
                     "visible": true
                 }
             }
