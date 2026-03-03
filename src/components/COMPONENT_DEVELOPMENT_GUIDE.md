@@ -2,7 +2,7 @@
 
 This guide provides comprehensive instructions for building new components for all UI libraries (Mantine, Material UI, Carbon) in the Recursica Forge.
 
-> **Note**: Steps marked as "(Optional)" are not required for basic component functionality. Focus on Steps 1-6 for essential component development.
+> **Note**: Steps 1-4 are required for basic component functionality. Steps 5-6 add toolbar configuration and testing.
 
 ## Quick Start
 
@@ -504,11 +504,11 @@ Create implementations for each library simultaneously. Each library implementat
 
 **Adapters must NEVER modify the underlying component structure. Only CSS overrides are allowed.**
 
-### Step 4 (Optional): Create Component Preview
+### Step 4: Create Component Preview
 
 **File**: `src/modules/components/{ComponentName}Preview.tsx`
 
-**Note**: Component previews are optional. Only create one if you want to showcase the component on the components page.
+**Note**: Component previews are required for all components. Every component must have a preview that showcases it on the components page.
 
 Create a preview component that demonstrates the component with different variants and states. This preview is used on the components page.
 

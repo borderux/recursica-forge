@@ -20,7 +20,7 @@ addFormats(ajv)
  */
 function filterCriticalErrors(errors: any[] | null | undefined): any[] {
   if (!errors) return []
-  
+
   return errors.filter(e => {
     // Ignore additionalProperties errors
     if (e.keyword === 'additionalProperties') return false
@@ -42,10 +42,10 @@ function filterCriticalErrors(errors: any[] | null | undefined): any[] {
 export function validateBrandJson(brandJson: JsonLike): void {
   const validate = ajv.compile(brandSchema)
   const valid = validate(brandJson)
-  
+
   if (!valid && validate.errors) {
     const criticalErrors = filterCriticalErrors(validate.errors)
-    
+
     if (criticalErrors.length > 0) {
       console.error('[Schema Validation] Brand.json has critical validation errors:', criticalErrors)
       throw new Error(
@@ -62,10 +62,10 @@ export function validateBrandJson(brandJson: JsonLike): void {
 export function validateTokensJson(tokensJson: JsonLike): void {
   const validate = ajv.compile(tokensSchema)
   const valid = validate(tokensJson)
-  
+
   if (!valid && validate.errors) {
     const criticalErrors = filterCriticalErrors(validate.errors)
-    
+
     if (criticalErrors.length > 0) {
       console.error('[Schema Validation] Tokens.json has critical validation errors:', criticalErrors)
       throw new Error(
@@ -92,12 +92,12 @@ function findThemeReferences(
   if (typeof obj === 'object') {
     for (const [key, value] of Object.entries(obj)) {
       const currentPath = [...path, key]
-      
+
       if (key === '$value' && typeof value === 'string') {
         // Check if the value contains a token reference with theme
         const themePattern = /\{brand\.themes\.(light|dark)\.[^}]+\}/g
         const matches = value.match(themePattern)
-        
+
         if (matches) {
           themeRefs.push({
             path: currentPath.join('.'),
@@ -123,10 +123,10 @@ function findThemeReferences(
 export function validateUIKitJson(uikitJson: JsonLike): void {
   const validate = ajv.compile(uikitSchema)
   const valid = validate(uikitJson)
-  
+
   if (!valid && validate.errors) {
     const criticalErrors = filterCriticalErrors(validate.errors)
-    
+
     if (criticalErrors.length > 0) {
       console.error('[Schema Validation] UIKit.json has critical validation errors:', criticalErrors)
       throw new Error(
@@ -138,12 +138,12 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
 
   // Check for theme references in token references
   const themeRefs = findThemeReferences(uikitJson)
-  
+
   if (themeRefs.length > 0) {
-    const errorMessages = themeRefs.map(ref => 
+    const errorMessages = themeRefs.map(ref =>
       `  - ${ref.path}: "${ref.value}"`
     ).join('\n')
-    
+
     console.error('[Schema Validation] UIKit.json contains theme references:', themeRefs)
     throw new Error(
       `UIKit.json validation failed: Found ${themeRefs.length} theme reference(s). ` +
@@ -228,6 +228,7 @@ export const REF_WORKAROUND_IDS = [
   'palette-default→indirection',
   'brand-theme-agnostic→themes.light|dark',
   'typography-composite-subproperty',
+  'variant-group-reference',
 ] as const
 
 export type RefWorkaroundId = (typeof REF_WORKAROUND_IDS)[number]
@@ -368,6 +369,17 @@ function resolveRefToToken(
           const withLeaf = fullPath.includes('.color.') ? fullPath : `${fullPath}.color.tone`
           if (isToken(getAtPath(combined, withLeaf))) return { resolved: true, workaround: 'palette-default→indirection' }
         }
+      }
+    }
+  }
+
+  // $type: "variant" references intentionally point to variant groups (not leaf tokens).
+  // e.g. {ui-kit.components.button.variants.styles.solid} points to a variant definition group.
+  // Accept the reference if the target exists as a group in the combined tree.
+  if (allowedWorkarounds.has('variant-group-reference')) {
+    if (path.startsWith('ui-kit.components.') && path.includes('.variants.')) {
+      if (strict !== undefined && typeof strict === 'object' && !isToken(strict)) {
+        return { resolved: true, workaround: 'variant-group-reference' }
       }
     }
   }

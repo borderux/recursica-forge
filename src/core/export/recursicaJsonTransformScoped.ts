@@ -612,6 +612,18 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
 
   for (const entry of entries) {
     const { path, value, type: tokenType } = entry
+    // Handle $type: "variant" — extract variant name from brace reference path
+    // e.g. {ui-kit.components.button.variants.styles.solid} → "solid"
+    if (tokenType === 'variant' && typeof value === 'string') {
+      const trimmed = value.trim()
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        const inner = trimmed.slice(1, -1).trim()
+        const lastSegment = inner.split('.').pop() || inner
+        const rootName = pathToVarName(path)
+        rootVarsMap.set(rootName, `"${lastSegment}"`)
+        continue
+      }
+    }
     if (isLayerSpecificUIKitPath(path)) {
       const layer = getLayerFromUIKitPath(path)
       if (layer == null) continue
