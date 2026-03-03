@@ -95,7 +95,7 @@ export default function CardPreview({
         fontFamily: `var(--recursica-brand-typography-${headerStyleValue}-font-family)`,
         fontSize: `var(--recursica-brand-typography-${headerStyleValue}-font-size)`,
         fontWeight: `var(--recursica-brand-typography-${headerStyleValue}-font-weight)`,
-        letterSpacing: `var(--recursica-brand-typography-${headerStyleValue}-letter-spacing)`,
+        letterSpacing: `var(--recursica-brand-typography-${headerStyleValue}-font-letter-spacing)`,
         lineHeight: `var(--recursica-brand-typography-${headerStyleValue}-line-height)`,
         fontStyle: `var(--recursica-brand-typography-${headerStyleValue}-font-style)`,
         textDecoration: 'none',
@@ -115,7 +115,7 @@ export default function CardPreview({
         fontSize: 'var(--recursica-brand-typography-body-font-size)',
         fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
         lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-        letterSpacing: 'var(--recursica-brand-typography-body-letter-spacing)',
+        letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
     } as React.CSSProperties
 
     // Card container base style — uses UIKit per-layer CSS vars
