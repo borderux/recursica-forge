@@ -1,0 +1,127 @@
+/**
+ * TransferList CSS Overrides (Mantine)
+ * 
+ * Styles for the Transfer List component built from Recursica components.
+ */
+
+/* Main container */
+.recursica-transfer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+/* Body: the two panes side by side */
+.recursica-transfer-list-body {
+    display: flex;
+    gap: var(--transfer-list-gap, 12px);
+    align-items: stretch;
+    justify-content: center;
+}
+
+/* Each list pane */
+.recursica-transfer-list-pane {
+    width: var(--transfer-list-width, 200px);
+    display: flex;
+    flex-direction: column;
+    border: var(--transfer-list-border-size, 1px) solid var(--transfer-list-border-color, rgba(128, 128, 128, 0.3));
+    border-radius: var(--transfer-list-border-radius, 8px);
+    background: var(--transfer-list-background, transparent);
+    overflow: hidden;
+}
+
+.recursica-transfer-list--error .recursica-transfer-list-pane {
+    border-color: var(--transfer-list-border-color, #e03131);
+}
+
+.recursica-transfer-list--disabled .recursica-transfer-list-pane {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Pane header with title + count — vertically centered */
+.recursica-transfer-list-pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: var(--transfer-list-v-padding, 8px) var(--transfer-list-h-padding, 12px) 0;
+    min-width: 0;
+    overflow: hidden;
+    margin-bottom: var(--transfer-list-title-filter-gap, 4px);
+}
+
+/* Title heading element — truncates with ellipsis */
+.recursica-transfer-list-title {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--transfer-list-header-color, inherit);
+}
+
+/* Badge should not shrink */
+.recursica-transfer-list-pane-header>*:last-child {
+    flex-shrink: 0;
+}
+
+/* Toolbar row: search + transfer buttons inline */
+.recursica-transfer-list-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 var(--transfer-list-h-padding, 8px);
+    margin-bottom: var(--transfer-list-filter-items-gap, 4px);
+}
+
+/* Search field grows to fill available space */
+.recursica-transfer-list-toolbar .recursica-transfer-list-search {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+}
+
+/* Transfer action buttons row */
+.recursica-transfer-list-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* Item list — height is the primary dimension control */
+.recursica-transfer-list-items {
+    flex: 0 0 auto;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    height: var(--transfer-list-height, 200px);
+    padding: 0 var(--transfer-list-h-padding, 4px) var(--transfer-list-v-padding, 4px);
+}
+
+/* Individual item row */
+.recursica-transfer-list-item {
+    padding: 2px 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+/* Empty state */
+.recursica-transfer-list-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    opacity: 0.5;
+    font-size: 13px;
+    padding: 24px 16px;
+    min-height: 80px;
+}
+
+/* Group container */
+.recursica-transfer-list-group {
+    margin-top: var(--transfer-list-filter-items-gap, 4px);
+}
