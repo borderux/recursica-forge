@@ -36,7 +36,6 @@ import {
   Article,
   Asterisk,
   Bell,
-
   BugBeetle as Bug,
   CalendarBlank,
   CaretDoubleLeft,
@@ -72,6 +71,7 @@ import {
   FileSvg,
   FileText,
   FrameCorners,
+  FunnelSimple,
   GoogleLogo,
   GridFour,
   Heart,
@@ -116,6 +116,7 @@ import {
   TextAlignLeft,
   TextAlignRight,
   TextColumns,
+  TextH,
   TextItalic,
   TextStrikethrough,
   TextT,
@@ -380,6 +381,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'arrows-out-line-vertical': ArrowsOutLineVertical,
   'sliders-horizontal': SlidersHorizontal,
   'faders-horizontal': FadersHorizontal,
+  'funnel-simple': FunnelSimple,
+  'filter': FunnelSimple,
   'split-vertical': SplitVertical,
   'line-segment': LineSegment,
   'stop': Stop,
@@ -394,6 +397,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'corners': CornersIn,
   'pencil-line': PencilLine,
   'border-outer': FrameCorners,
+  'text-h': TextH,
 }
 
 /**

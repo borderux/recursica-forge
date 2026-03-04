@@ -15,7 +15,7 @@
 /* Body: the two panes side by side */
 .recursica-transfer-list-body {
     display: flex;
-    gap: 12px;
+    gap: var(--transfer-list-gap, 12px);
     align-items: stretch;
     width: 100%;
 }
@@ -25,14 +25,16 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    border: 1px solid var(--recursica-transfer-list-border-color, rgba(128, 128, 128, 0.3));
-    border-radius: 8px;
+    min-width: var(--transfer-list-min-width, 0);
+    max-width: var(--transfer-list-max-width, none);
+    border: var(--transfer-list-border-size, 1px) solid var(--transfer-list-border-color, rgba(128, 128, 128, 0.3));
+    border-radius: var(--transfer-list-border-radius, 8px);
+    background: var(--transfer-list-background, transparent);
     overflow: hidden;
 }
 
 .recursica-transfer-list--error .recursica-transfer-list-pane {
-    border-color: var(--recursica-transfer-list-error-border-color, #e03131);
+    border-color: var(--transfer-list-border-color, #e03131);
 }
 
 .recursica-transfer-list--disabled .recursica-transfer-list-pane {
@@ -40,21 +42,36 @@
     pointer-events: none;
 }
 
-/* Pane header with label + count */
+/* Pane header with label + count — vertically centered */
 .recursica-transfer-list-pane-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px 4px;
+    gap: 8px;
+    padding: var(--transfer-list-v-padding, 8px) var(--transfer-list-h-padding, 12px) 4px;
+    min-width: 0;
 }
 
+/* Ensure label truncates */
+.recursica-transfer-list-pane-header>*:first-child {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Badge should not shrink */
+.recursica-transfer-list-pane-header>*:last-child {
+    flex-shrink: 0;
+}
 
 /* Toolbar row: search + transfer buttons inline */
 .recursica-transfer-list-toolbar {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 0 8px 8px;
+    padding: 0 var(--transfer-list-h-padding, 8px) var(--transfer-list-v-padding, 8px);
 }
 
 /* Search field grows to fill available space */
@@ -77,24 +94,18 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    min-height: 160px;
+    min-height: var(--transfer-list-min-height, 160px);
     max-height: 320px;
-    padding: 0 4px 4px;
+    padding: 0 var(--transfer-list-h-padding, 4px) var(--transfer-list-v-padding, 4px);
 }
 
 /* Individual item row */
 .recursica-transfer-list-item {
     padding: 2px 4px;
     border-radius: 4px;
-    transition: background-color 0.1s ease;
-}
-
-.recursica-transfer-list-item:hover {
-    background-color: rgba(128, 128, 128, 0.08);
-}
-
-.recursica-transfer-list-item--selected {
-    background-color: rgba(128, 128, 128, 0.06);
+    min-height: var(--transfer-list-item-height, auto);
+    display: flex;
+    align-items: center;
 }
 
 /* Empty state */

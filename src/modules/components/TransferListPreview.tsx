@@ -76,7 +76,7 @@ export default function TransferListPreview({
                         layer={selectedLayer as any}
                         layout={layoutVariant}
                         searchable
-                        searchPlaceholder="Search items..."
+                        searchPlaceholder="Filter items..."
                         helpText={state === 'default' ? 'Select items and use the arrows to transfer them' : undefined}
                         errorText={state === 'error' ? 'At least 3 materials must be selected for crafting' : undefined}
                     />

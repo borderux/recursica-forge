@@ -75,7 +75,7 @@ export function TransferList({
     state = 'default',
     layer = 'layer-0',
     searchable = true,
-    searchPlaceholder = 'Search...',
+    searchPlaceholder = 'Filter items...',
     required = false,
     optional = false,
     layout = 'stacked',

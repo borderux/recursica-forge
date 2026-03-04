@@ -22,23 +22,11 @@
                     "visible": true,
                     "floatingPaletteLabel": "Pane Background"
                 },
-                "text": {
+                "header-color": {
                     "icon": "text-aa",
-                    "label": "Text color",
+                    "label": "Header color",
                     "visible": true,
-                    "floatingPaletteLabel": "Text Color"
-                },
-                "item-text": {
-                    "icon": "text-aa",
-                    "label": "Item text",
-                    "visible": true,
-                    "floatingPaletteLabel": "Item Text Color"
-                },
-                "item-hover": {
-                    "icon": "cursor-click",
-                    "label": "Item hover",
-                    "visible": true,
-                    "floatingPaletteLabel": "Item Hover Color"
+                    "floatingPaletteLabel": "Header Color"
                 }
             }
         },
@@ -64,10 +52,44 @@
                 }
             }
         },
-        "text": {
+        "box-title-text": {
             "icon": "text-aa",
-            "label": "Text style",
-            "visible": true
+            "label": "Box title style",
+            "visible": true,
+            "group": {
+                "heading-level": {
+                    "icon": "text-h",
+                    "label": "Heading level",
+                    "visible": true,
+                    "control": "dropdown",
+                    "options": [
+                        {
+                            "label": "H1",
+                            "value": "h1"
+                        },
+                        {
+                            "label": "H2",
+                            "value": "h2"
+                        },
+                        {
+                            "label": "H3",
+                            "value": "h3"
+                        },
+                        {
+                            "label": "H4",
+                            "value": "h4"
+                        },
+                        {
+                            "label": "H5",
+                            "value": "h5"
+                        },
+                        {
+                            "label": "H6",
+                            "value": "h6"
+                        }
+                    ]
+                }
+            }
         },
         "padding": {
             "icon": "square-logo",

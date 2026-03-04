@@ -15,6 +15,7 @@ import { CheckboxGroup } from '../../CheckboxGroup'
 import { Badge } from '../../Badge'
 import { Button } from '../../Button'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import type { TransferListItem, TransferListData } from '../../TransferList'
 import type { ComponentLayer } from '../../../registry/types'
 import './TransferList.css'
@@ -86,7 +87,7 @@ function renderItems(
             {ungrouped.map(item => (
                 <div
                     key={item.value}
-                    className={`recursica-transfer-list-item ${selected.has(item.value) ? 'recursica-transfer-list-item--selected' : ''}`}
+                    className="recursica-transfer-list-item"
                 >
                     <CheckboxItem
                         checked={selected.has(item.value)}
@@ -111,7 +112,7 @@ function renderItems(
                         {groups[groupName].map(item => (
                             <div
                                 key={item.value}
-                                className={`recursica-transfer-list-item ${selected.has(item.value) ? 'recursica-transfer-list-item--selected' : ''}`}
+                                className="recursica-transfer-list-item"
                             >
                                 <CheckboxItem
                                     checked={selected.has(item.value)}
@@ -156,7 +157,7 @@ export default function TransferList({
     const isDisabled = state === 'disabled'
 
     // Icons
-    const SearchIcon = useMemo(() => iconNameToReactComponent('search'), [])
+    const FilterIcon = useMemo(() => iconNameToReactComponent('funnel-simple'), [])
     const ChevronRightIcon = useMemo(() => iconNameToReactComponent('chevron-right'), [])
     const ChevronLeftIcon = useMemo(() => iconNameToReactComponent('chevron-left'), [])
     const ChevronsRightIcon = useMemo(() => iconNameToReactComponent('chevron-double-right'), [])
@@ -169,9 +170,55 @@ export default function TransferList({
     const targetCountText = targetSelected.size > 0
         ? `${targetSelected.size} / ${data[1].length}`
         : `${data[1].length}`
+    // Box title text CSS vars
+    const titleFontFamilyVar = getComponentTextCssVar('TransferList', 'box-title-text', 'font-family')
+    const titleFontSizeVar = getComponentTextCssVar('TransferList', 'box-title-text', 'font-size')
+    const titleFontWeightVar = getComponentTextCssVar('TransferList', 'box-title-text', 'font-weight')
+    const titleLetterSpacingVar = getComponentTextCssVar('TransferList', 'box-title-text', 'letter-spacing')
+    const titleLineHeightVar = getComponentTextCssVar('TransferList', 'box-title-text', 'line-height')
+    const titleFontStyleVar = getComponentTextCssVar('TransferList', 'box-title-text', 'font-style')
+    const titleTextDecorationVar = getComponentTextCssVar('TransferList', 'box-title-text', 'text-decoration')
+    const titleTextTransformVar = getComponentTextCssVar('TransferList', 'box-title-text', 'text-transform')
+
+    const titleStyle: React.CSSProperties = {
+        fontFamily: `var(${titleFontFamilyVar})`,
+        fontSize: `var(${titleFontSizeVar})`,
+        fontWeight: `var(${titleFontWeightVar})` as any,
+        letterSpacing: `var(${titleLetterSpacingVar})`,
+        lineHeight: `var(${titleLineHeightVar})`,
+        fontStyle: `var(${titleFontStyleVar})`,
+        textDecoration: `var(${titleTextDecorationVar})`,
+        textTransform: `var(${titleTextTransformVar})` as any,
+        color: 'var(--transfer-list-header-color)',
+    }
+
+    // Border CSS vars
+    const stateName = state === 'error' ? 'error' : state === 'disabled' ? 'disabled' : 'default'
+    const borderRadiusVar = getComponentLevelCssVar('TransferList', 'border-radius')
+    const borderSizeVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'border-size')
+    const borderColorVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'colors', layer, 'border-color')
+
+    // Background + header-color CSS vars
+    const backgroundVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'colors', layer, 'background')
+    const headerColorVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'colors', layer, 'header-color')
+
+    const containerVars = {
+        '--transfer-list-border-radius': `var(${borderRadiusVar}, 8px)`,
+        '--transfer-list-border-size': `var(${borderSizeVar}, 1px)`,
+        '--transfer-list-border-color': `var(${borderColorVar}, rgba(128, 128, 128, 0.3))`,
+        '--transfer-list-background': `var(${backgroundVar}, transparent)`,
+        '--transfer-list-header-color': `var(${headerColorVar})`,
+        '--transfer-list-h-padding': `var(${getComponentLevelCssVar('TransferList', 'horizontal-padding')}, 12px)`,
+        '--transfer-list-v-padding': `var(${getComponentLevelCssVar('TransferList', 'vertical-padding')}, 8px)`,
+        '--transfer-list-gap': `var(${getComponentLevelCssVar('TransferList', 'gap')}, 12px)`,
+        '--transfer-list-item-height': `var(${getComponentLevelCssVar('TransferList', 'item-height')}, auto)`,
+        '--transfer-list-min-height': `var(${getComponentLevelCssVar('TransferList', 'min-height')}, 200px)`,
+        '--transfer-list-min-width': `var(${getComponentLevelCssVar('TransferList', 'min-width')}, 200px)`,
+        '--transfer-list-max-width': `var(${getComponentLevelCssVar('TransferList', 'max-width')}, none)`,
+    } as React.CSSProperties
 
     return (
-        <div className={`recursica-transfer-list ${state === 'error' ? 'recursica-transfer-list--error' : ''} ${isDisabled ? 'recursica-transfer-list--disabled' : ''}`}>
+        <div className={`recursica-transfer-list ${state === 'error' ? 'recursica-transfer-list--error' : ''} ${isDisabled ? 'recursica-transfer-list--disabled' : ''}`} style={containerVars}>
             <div className="recursica-transfer-list-body">
                 {/* Source pane */}
                 <div className="recursica-transfer-list-pane">
@@ -182,6 +229,7 @@ export default function TransferList({
                             layout="stacked"
                             align="left"
                             layer={layer}
+                            style={{ ...titleStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
                         >
                             {sourceLabel}
                         </Label>
@@ -201,7 +249,7 @@ export default function TransferList({
                                     state={isDisabled ? 'disabled' : 'default'}
                                     layer={layer}
                                     disableTopBottomMargin
-                                    leadingIcon={SearchIcon ? <SearchIcon /> : <span>🔍</span>}
+                                    leadingIcon={FilterIcon ? <FilterIcon /> : <span>🔍</span>}
                                 />
                             </div>
                         )}
@@ -238,6 +286,7 @@ export default function TransferList({
                             layout="stacked"
                             align="left"
                             layer={layer}
+                            style={{ ...titleStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
                         >
                             {targetLabel}
                         </Label>
@@ -275,7 +324,7 @@ export default function TransferList({
                                     state={isDisabled ? 'disabled' : 'default'}
                                     layer={layer}
                                     disableTopBottomMargin
-                                    leadingIcon={SearchIcon ? <SearchIcon /> : <span>🔍</span>}
+                                    leadingIcon={FilterIcon ? <FilterIcon /> : <span>🔍</span>}
                                 />
                             </div>
                         )}

@@ -11850,21 +11850,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   },
                   "layer-1": {
@@ -11872,21 +11864,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   },
                   "layer-2": {
@@ -11894,21 +11878,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   },
                   "layer-3": {
@@ -11916,21 +11892,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   }
                 },
@@ -11951,21 +11919,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-error}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   },
                   "layer-1": {
@@ -11973,21 +11933,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-error}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   },
                   "layer-2": {
@@ -11995,21 +11947,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-error}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   },
                   "layer-3": {
@@ -12017,21 +11961,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-error}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   }
                 },
@@ -12052,21 +11988,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   },
                   "layer-1": {
@@ -12074,21 +12002,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   },
                   "layer-2": {
@@ -12096,21 +12016,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   },
                   "layer-3": {
@@ -12118,21 +12030,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     }
                   }
                 },
@@ -12153,21 +12057,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     }
                   },
                   "layer-1": {
@@ -12175,21 +12071,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     }
                   },
                   "layer-2": {
@@ -12197,21 +12085,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-2.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     }
                   },
                   "layer-3": {
@@ -12219,21 +12099,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
-                    "text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
-                    },
-                    "item-text": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
-                    },
-                    "item-hover": {
-                      "$type": "color",
-                      "$value": "{brand.layers.layer-3.properties.surface}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "header-color": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     }
                   }
                 },
@@ -12305,41 +12177,38 @@
               "unit": "px"
             }
           },
-          "text": {
+          "box-title-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.typography.h5.fontFamily}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": {
-                "value": "{tokens.font.sizes.md}",
-                "unit": "px"
-              }
+              "$value": "{brand.typography.h5.fontSize}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.regular}"
+              "$value": "{brand.typography.h5.fontWeight}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.default}"
+              "$value": "{brand.typography.h5.letterSpacing}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.default}"
-            },
-            "text-decoration": {
-              "$type": "string",
-              "$value": "none"
-            },
-            "text-transform": {
-              "$type": "string",
-              "$value": "none"
+              "$value": "{brand.typography.h5.lineHeight}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{brand.typography.h5.fontStyle}"
+            },
+            "text-decoration": {
+              "$type": "string",
+              "$value": "{brand.typography.h5.textDecoration}"
+            },
+            "text-transform": {
+              "$type": "string",
+              "$value": "{brand.typography.h5.textCase}"
             }
           }
         }
