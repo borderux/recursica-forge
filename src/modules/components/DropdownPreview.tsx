@@ -32,15 +32,15 @@ export default function DropdownPreview({
         : ['stacked', 'side-by-side']
 
     const items = [
-        { value: 'option-1', label: 'Option 1', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
-        { value: 'option-2', label: 'Option 2', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
-        { value: 'option-3', label: 'Option 3', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
-        { value: 'option-4', label: 'Option 4', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
-        { value: 'option-5', label: 'Option 5', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
-        { value: 'option-6', label: 'Option 6', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
-        { value: 'option-7', label: 'Option 7', leadingIconType: 'none' as const },
-        { value: 'option-8', label: 'Option 8', leadingIconType: 'none' as const },
-        { value: 'option-9', label: 'Option 9', leadingIconType: 'none' as const },
+        { value: 'option-1', label: 'Obsidian Ingot', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
+        { value: 'option-2', label: 'Moonstone Shard', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
+        { value: 'option-3', label: 'Dragon Scale', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
+        { value: 'option-4', label: 'Mithril Wire', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
+        { value: 'option-5', label: 'Phoenix Flux', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
+        { value: 'option-6', label: 'Runic Dust', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
+        { value: 'option-7', label: 'Enchanted Leather', leadingIconType: 'none' as const },
+        { value: 'option-8', label: 'Crystal Quenching Oil', leadingIconType: 'none' as const },
+        { value: 'option-9', label: 'Shadow Ingot', leadingIconType: 'none' as const },
     ]
 
     const h2Style = {
@@ -74,8 +74,8 @@ export default function DropdownPreview({
                         {state === 'default' && (
                             <>
                                 <Dropdown
-                                    label="Dropdown Label"
-                                    placeholder="Select an option"
+                                    label="Forge Material"
+                                    placeholder="Choose a material"
                                     items={items}
                                     leadingIcon={StarIcon ? <StarIcon /> : undefined}
                                     state="default"
@@ -83,8 +83,8 @@ export default function DropdownPreview({
                                     layer={selectedLayer as any}
                                 />
                                 <Dropdown
-                                    label="Dropdown with Value"
-                                    placeholder="Select an option"
+                                    label="Selected Material"
+                                    placeholder="Choose a material"
                                     items={items}
                                     defaultValue="option-1"
                                     state="default"
@@ -97,11 +97,11 @@ export default function DropdownPreview({
                         {/* Error state */}
                         {state === 'error' && (
                             <Dropdown
-                                label="Dropdown Label"
-                                placeholder="Select an option"
+                                label="Forge Material"
+                                placeholder="Choose a material"
                                 items={items}
                                 leadingIcon={StarIcon ? <StarIcon /> : undefined}
-                                errorText="This field is required"
+                                errorText="A material must be selected before forging"
                                 state="error"
                                 layout={layoutVariant}
                                 layer={selectedLayer as any}
@@ -111,8 +111,8 @@ export default function DropdownPreview({
                         {/* Disabled state */}
                         {state === 'disabled' && (
                             <Dropdown
-                                label="Dropdown Label"
-                                placeholder="Select an option"
+                                label="Forge Material"
+                                placeholder="Choose a material"
                                 items={items}
                                 state="disabled"
                                 layout={layoutVariant}
@@ -123,8 +123,8 @@ export default function DropdownPreview({
                         {/* Focus state */}
                         {state === 'focus' && (
                             <Dropdown
-                                label="Dropdown Label"
-                                placeholder="Select an option"
+                                label="Forge Material"
+                                placeholder="Choose a material"
                                 items={items}
                                 state="focus"
                                 layout={layoutVariant}

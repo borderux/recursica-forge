@@ -29,12 +29,12 @@ export default function ChipPreview({
   }, [selectedAltLayer, selectedLayer])
 
   const arrowIcon = (
-    <svg 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
       strokeLinejoin="round"
     >
       <path d="M5 12h14"></path>
@@ -50,20 +50,20 @@ export default function ChipPreview({
         layer={actualLayer}
         elevation={componentElevation}
       >
-        Default Chip
+        Obsidian
       </Chip>
-      
+
       {/* Deletable chip */}
       <Chip
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
         deletable
-        onDelete={() => {}}
+        onDelete={() => { }}
       >
-        Deletable
+        Moonstone
       </Chip>
-      
+
       {/* Chip with icon */}
       <Chip
         variant={styleVariant}
@@ -71,9 +71,9 @@ export default function ChipPreview({
         elevation={componentElevation}
         icon={arrowIcon}
       >
-        With Icon
+        Dragon Scale
       </Chip>
-      
+
       {/* Chip with icon and deletable */}
       <Chip
         variant={styleVariant}
@@ -81,9 +81,9 @@ export default function ChipPreview({
         elevation={componentElevation}
         icon={arrowIcon}
         deletable
-        onDelete={() => {}}
+        onDelete={() => { }}
       >
-        Deletable with icon
+        Mithril Wire
       </Chip>
     </div>
   )

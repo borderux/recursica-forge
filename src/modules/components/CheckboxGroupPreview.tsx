@@ -81,25 +81,25 @@ function CheckboxGroupSection({
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                 <CheckboxGroup
-                    label="Checkbox group"
+                    label="Forge Equipment"
                     layout={layout}
                     layer={selectedLayer as any}
                     orientation="vertical"
                 >
                     <CheckboxItem
-                        label="Option 1"
+                        label="Obsidian Hammer"
                         checked={values.opt1}
                         onChange={(c) => setValues(p => ({ ...p, opt1: c }))}
                         layer={selectedLayer as any}
                     />
                     <CheckboxItem
-                        label="Option 2"
+                        label="Runic Tongs"
                         checked={values.opt2}
                         onChange={(c) => setValues(p => ({ ...p, opt2: c }))}
                         layer={selectedLayer as any}
                     />
                     <CheckboxItem
-                        label="Option 3"
+                        label="Dragon Bellows"
                         checked={values.opt3}
                         onChange={(c) => setValues(p => ({ ...p, opt3: c }))}
                         layer={selectedLayer as any}

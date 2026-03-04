@@ -268,21 +268,21 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <RadioButtonItem
-          label="Radio item"
+          label="Goblin war axe"
           value="option1"
           selected={selected === 'option1'}
           onChange={() => setSelected('option1')}
           layer={layer as any}
         />
         <RadioButtonItem
-          label="Selected item"
+          label="Obsidian dagger"
           value="option2"
           selected={selected === 'option2'}
           onChange={() => setSelected('option2')}
           layer={layer as any}
         />
         <RadioButtonItem
-          label="Disabled item"
+          label="Forbidden blade"
           value="option3"
           selected={false}
           onChange={() => { }}
@@ -308,27 +308,27 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
         <h2 style={{ margin: 0, fontFamily: 'var(--recursica-brand-typography-h2-font-family)', fontSize: 'var(--recursica-brand-typography-h2-font-size)', fontWeight: 'var(--recursica-brand-typography-h2-font-weight)', letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)', lineHeight: 'var(--recursica-brand-typography-h2-line-height)' }}>Stacked</h2>
         <RadioButtonGroup
-          label="Radio button group"
+          label="Forge Weapon"
           layout="stacked"
           layer={layer as any}
           orientation="vertical"
         >
           <RadioButtonItem
-            label="Option 1"
+            label="Obsidian Hammer"
             value="opt1"
             selected={selected1 === 'opt1'}
             onChange={() => setSelected1('opt1')}
             layer={layer as any}
           />
           <RadioButtonItem
-            label="Option 2"
+            label="Runic Longsword"
             value="opt2"
             selected={selected1 === 'opt2'}
             onChange={() => setSelected1('opt2')}
             layer={layer as any}
           />
           <RadioButtonItem
-            label="Option 3"
+            label="Crystal Spear"
             value="opt3"
             selected={selected1 === 'opt3'}
             onChange={() => setSelected1('opt3')}
@@ -337,27 +337,27 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         </RadioButtonGroup>
         <h2 style={{ margin: 0, fontFamily: 'var(--recursica-brand-typography-h2-font-family)', fontSize: 'var(--recursica-brand-typography-h2-font-size)', fontWeight: 'var(--recursica-brand-typography-h2-font-weight)', letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)', lineHeight: 'var(--recursica-brand-typography-h2-line-height)' }}>Side-by-side</h2>
         <RadioButtonGroup
-          label="Radio button group"
+          label="Forge Weapon"
           layout="side-by-side"
           layer={layer as any}
           orientation="vertical"
         >
           <RadioButtonItem
-            label="Option 1"
+            label="Obsidian Hammer"
             value="opt1"
             selected={selected2 === 'opt1'}
             onChange={() => setSelected2('opt1')}
             layer={layer as any}
           />
           <RadioButtonItem
-            label="Option 2"
+            label="Runic Longsword"
             value="opt2"
             selected={selected2 === 'opt2'}
             onChange={() => setSelected2('opt2')}
             layer={layer as any}
           />
           <RadioButtonItem
-            label="Option 3"
+            label="Crystal Spear"
             value="opt3"
             selected={selected2 === 'opt3'}
             onChange={() => setSelected2('opt3')}

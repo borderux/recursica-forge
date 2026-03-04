@@ -61,18 +61,18 @@ export default function TextFieldPreview({
             {state === 'default' && (
               <>
                 <TextField
-                  label="Label"
-                  placeholder="Placeholder text"
-                  defaultValue="Sample input value"
+                  label="Forge Name"
+                  placeholder="Enter artifact name..."
+                  defaultValue="Obsidian Gauntlets of the Northern Keep"
                   leadingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
                   state="default"
                   layout={layoutVariant}
                   layer={selectedLayer as any}
                 />
                 <TextField
-                  label="Label"
-                  placeholder="Placeholder text"
-                  helpText="Help message"
+                  label="Rune Inscription"
+                  placeholder="Enter rune sequence..."
+                  helpText="Use ancient dwarvish notation"
                   trailingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
                   state="default"
                   layout={layoutVariant}
@@ -85,19 +85,19 @@ export default function TextFieldPreview({
             {state === 'error' && (
               <>
                 <TextField
-                  label="Label"
-                  placeholder="Placeholder text"
-                  defaultValue="Sample input value"
-                  errorText="Error message"
+                  label="Forge Name"
+                  placeholder="Enter artifact name..."
+                  defaultValue="Obsidian Gauntlets"
+                  errorText="Name already claimed by another forge master"
                   leadingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
                   state="error"
                   layout={layoutVariant}
                   layer={selectedLayer as any}
                 />
                 <TextField
-                  label="Label"
-                  placeholder="Placeholder text"
-                  errorText="Error message"
+                  label="Rune Inscription"
+                  placeholder="Enter rune sequence..."
+                  errorText="Invalid rune sequence detected"
                   trailingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
                   state="error"
                   layout={layoutVariant}
@@ -109,9 +109,8 @@ export default function TextFieldPreview({
             {/* Disabled state */}
             {state === 'disabled' && (
               <TextField
-                label="Label"
-                placeholder="Placeholder text"
-                defaultValue=""
+                label="Forge Name"
+                placeholder="Enter artifact name..."
                 state="disabled"
                 layout={layoutVariant}
                 layer={selectedLayer as any}
@@ -121,8 +120,8 @@ export default function TextFieldPreview({
             {/* Focus state (shows default with focus styling via CSS) */}
             {state === 'focus' && (
               <TextField
-                label="Label"
-                placeholder="Placeholder text"
+                label="Forge Name"
+                placeholder="Enter artifact name..."
                 state="focus"
                 layout={layoutVariant}
                 layer={selectedLayer as any}
