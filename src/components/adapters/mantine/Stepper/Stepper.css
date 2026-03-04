@@ -62,7 +62,7 @@
 /* Horizontal: hide Mantine separator, use ::after pseudo-elements on steps */
 .recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] {
     align-items: flex-start !important;
-    gap: 0 !important;
+    gap: var(--stepper-step-gap, 0px) !important;
 }
 
 .recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-separator {
@@ -87,6 +87,17 @@
 /* Also hide sibling separators in vertical mode (Mantine may render both) */
 .recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"]>.mantine-Stepper-separator {
     display: none !important;
+}
+
+/* ---- Label-Description gap ---- */
+.recursica-stepper .mantine-Stepper-stepDescription {
+    margin-top: var(--stepper-label-description-gap, 2px) !important;
+}
+
+/* ---- Max text width ---- */
+.recursica-stepper .mantine-Stepper-stepBody {
+    max-width: var(--stepper-max-text-width, none) !important;
+    overflow: hidden !important;
 }
 
 /* ---- Labels ---- */
@@ -189,7 +200,7 @@
     top: calc((var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
     transform: translateY(-50%) !important;
     left: calc(50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
-    right: calc(-50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
+    right: calc(-50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2 - var(--stepper-step-gap, 0px)) !important;
     height: var(--stepper-completed-connector-size, 2px) !important;
     background-color: var(--stepper-completed-connector-color) !important;
     z-index: 0 !important;
@@ -204,7 +215,7 @@
     top: calc((var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
     transform: translateY(-50%) !important;
     left: calc(50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
-    right: calc(-50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
+    right: calc(-50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2 - var(--stepper-step-gap, 0px)) !important;
     height: var(--stepper-upcoming-connector-size, 2px) !important;
     background-color: var(--stepper-upcoming-connector-color) !important;
     z-index: 0 !important;
@@ -218,7 +229,7 @@
 
 /* Vertical orientation: center label+description on the indicator */
 .recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step {
-    align-items: center !important;
+    align-items: flex-start !important;
     overflow: visible !important;
     position: relative !important;
     min-height: 0 !important;

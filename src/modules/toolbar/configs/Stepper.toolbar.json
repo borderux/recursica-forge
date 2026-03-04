@@ -280,6 +280,22 @@
                     "icon": "arrows-out-cardinal",
                     "label": "Indicator-label gap",
                     "visible": true
+                },
+                "label-description-gap": {
+                    "icon": "arrows-out-cardinal",
+                    "label": "Label-description gap",
+                    "visible": true
+                },
+                "max-text-width": {
+                    "icon": "arrows-out-line-horizontal",
+                    "label": "Max text width",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        40,
+                        1000
+                    ],
+                    "step": 10
                 }
             }
         }

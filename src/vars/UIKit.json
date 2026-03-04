@@ -2307,6 +2307,27 @@
                     "value": "{brand.dimensions.icons.default}",
                     "unit": "px"
                   }
+                },
+                "step-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.md}",
+                    "unit": "px"
+                  }
+                },
+                "indicator-label-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.sm}",
+                    "unit": "px"
+                  }
+                },
+                "label-description-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.sm}",
+                    "unit": "px"
+                  }
                 }
               }
             },
@@ -2344,6 +2365,27 @@
                   "$type": "dimension",
                   "$value": {
                     "value": "{brand.dimensions.icons.sm}",
+                    "unit": "px"
+                  }
+                },
+                "step-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.sm}",
+                    "unit": "px"
+                  }
+                },
+                "indicator-label-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.sm}",
+                    "unit": "px"
+                  }
+                },
+                "label-description-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.none}",
                     "unit": "px"
                   }
                 }
@@ -2656,17 +2698,10 @@
               "unit": "px"
             }
           },
-          "step-gap": {
+          "max-text-width": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.general.md}",
-              "unit": "px"
-            }
-          },
-          "indicator-label-gap": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.general.sm}",
+              "value": 200,
               "unit": "px"
             }
           },
@@ -4945,7 +4980,10 @@
               "properties": {
                 "bottom-padding": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.components.label.properties.stacked.bottom-padding}"
+                  "$value": {
+                    "value": "{brand.dimensions.general.default}",
+                    "unit": "px"
+                  }
                 },
                 "min-height": {
                   "$type": "dimension",
