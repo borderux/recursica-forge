@@ -243,7 +243,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       // Map 'default' to 'primary' for CSS variable names (Brand.json uses 'default', CSS uses 'primary')
       const cssLevel = lvl === 'default' ? 'primary' : lvl
       const toneName = `palette/${pk}/${lvl}/color/tone`
-      const onToneName = `palette/${pk}/${lvl}/on-tone`
+      const onToneName = `palette/${pk}/${lvl}/color/on-tone`
       let toneRaw = themeIndex[`${mode}::${toneName}`]?.value
 
       // Check if on-tone exists in JSON
@@ -405,7 +405,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         // Only set on-tone CSS variable if it doesn't already exist with a valid value
         // This preserves AA-compliant values set by AA compliance checks
         // On-tone vars should never be overwritten by recomputeAndApplyAll after initial load
-        const onToneCssVarName = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${lvl}-on-tone`
+        const onToneCssVarName = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${cssLevel}-on-tone`
         let shouldSetOnTone = true
 
         if (typeof document !== 'undefined') {

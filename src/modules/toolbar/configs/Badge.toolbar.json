@@ -8,12 +8,24 @@
   "props": {
     "background": {
       "icon": "paint-bucket",
-      "label": "Background",
-      "visible": true
+      "label": "Colors",
+      "visible": true,
+      "group": {
+        "background": {
+          "icon": "paint-bucket",
+          "label": "Background",
+          "visible": true
+        },
+        "text-color": {
+          "icon": "text-aa",
+          "label": "Text color",
+          "visible": true
+        }
+      }
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text",
+      "label": "Text style",
       "visible": true
     },
     "padding": {
@@ -67,4 +79,3 @@
     }
   }
 }
-

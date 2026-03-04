@@ -843,11 +843,11 @@ export default function PropControlContent({
 
     const structure = parseComponentStructure(componentName)
 
-    // Special handling for Chip text-color: toolbar config uses "text-color" but UIKit.json uses "text"
-    const isChipTextColor = componentName.toLowerCase() === 'chip' &&
+    // Special handling for Chip/Badge text-color: toolbar config uses "text-color" but UIKit.json uses "text"
+    const isTextColorMapping = (componentName.toLowerCase() === 'chip' || componentName.toLowerCase() === 'badge') &&
       propToCheck.name.toLowerCase() === 'text-color' &&
       propToCheck.category === 'colors'
-    const targetPropName = isChipTextColor ? 'text' : propToCheck.name
+    const targetPropName = isTextColorMapping ? 'text' : propToCheck.name
 
     // For state-specific props (like border-size in TextField), prioritize matching the selected state
     // First, try to find a prop that matches the selected state variant
@@ -3842,6 +3842,7 @@ export default function PropControlContent({
   // Background Module
   if (propNameLower === 'background' && prop.category === 'colors') {
     const hasSelectedBackground = groupedPropsConfig && ('selected-background' in groupedPropsConfig)
+    const hasTextColor = groupedPropsConfig && ('text-color' in groupedPropsConfig)
 
     return (
       <BackgroundToolbar
@@ -3852,6 +3853,7 @@ export default function PropControlContent({
         groupedPropsConfig={groupedPropsConfig || undefined}
         config={{
           includeSelected: !!hasSelectedBackground,
+          includeTextColor: !!hasTextColor,
         }}
       />
     )

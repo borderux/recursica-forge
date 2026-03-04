@@ -4329,13 +4329,13 @@
             "font-size": {
               "$type": "dimension",
               "$value": {
-                "value": "{tokens.font.sizes.sm}",
+                "value": "{tokens.font.sizes.xs}",
                 "unit": "px"
               }
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.regular}"
+              "$value": "{tokens.font.weights.bold}"
             },
             "letter-spacing": {
               "$type": "string",
@@ -4343,7 +4343,7 @@
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.default}"
+              "$value": "{tokens.font.line-heights.shorter}"
             },
             "text-decoration": {
               "$type": "string",
@@ -4351,7 +4351,7 @@
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "uppercase"
             },
             "font-style": {
               "$type": "string",
@@ -4382,7 +4382,7 @@
           "border-radius": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.border-radii.default}",
+              "value": "{brand.dimensions.border-radii.2xl}",
               "unit": "px"
             }
           },
