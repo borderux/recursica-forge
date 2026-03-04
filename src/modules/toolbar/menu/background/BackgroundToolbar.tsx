@@ -19,6 +19,7 @@ interface BackgroundToolbarProps {
   groupedPropsConfig?: Record<string, ToolbarPropConfig> // Config for grouped props with visibility
   config?: {
     includeSelected?: boolean // Whether to include selected-background control
+    includeTextColor?: boolean // Whether to include text-color control
   }
   onClose?: () => void
 }
@@ -34,20 +35,21 @@ export default function BackgroundToolbar({
 }: BackgroundToolbarProps) {
   const {
     includeSelected = false,
+    includeTextColor = false,
   } = config
 
   // Find background-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
-  
+
   const backgroundProp = useMemo(() => {
     // Always search for the correct background prop based on selectedVariants and selectedLayer
     // This ensures we get the right prop when layer or variant changes
-    
+
     // Find all background props that match the layer first
     const layerMatchingProps = structure.props.filter(p => {
       if (p.name.toLowerCase() !== 'background') return false
       if (p.category !== 'colors') return false
-      
+
       // Check layer matching - must match selectedLayer
       const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
       if (layerInPath) {
@@ -58,18 +60,18 @@ export default function BackgroundToolbar({
         // this prop doesn't match (for color props, we expect them to have a layer)
         if (selectedLayer && selectedLayer !== 'layer-0') return false
       }
-      
+
       return true
     })
-    
+
     // If no props match the layer, return undefined
     if (layerMatchingProps.length === 0) {
       return undefined
     }
-    
+
     // Among layer-matching props, prefer variant-specific props that match the selected variant
     const hasVariantSpecificProps = layerMatchingProps.some(p => p.isVariantSpecific && p.variantProp)
-    
+
     if (hasVariantSpecificProps) {
       // There are variant-specific props, so we must match the variant
       const variantMatchingProp = layerMatchingProps.find(p => {
@@ -80,15 +82,15 @@ export default function BackgroundToolbar({
         // Prop path must include the selected variant name
         return p.path.includes(selectedVariant)
       })
-      
+
       // If we found a variant-matching prop, return it
       if (variantMatchingProp) return variantMatchingProp
-      
+
       // If no variant matches but we have variant-specific props, return undefined
       // (we don't want to show a random variant's prop)
       return undefined
     }
-    
+
     // No variant-specific props, return the first layer-matching prop
     return layerMatchingProps[0]
   }, [structure, prop, selectedVariants, selectedLayer])
@@ -104,13 +106,32 @@ export default function BackgroundToolbar({
     })
   }, [structure, includeSelected, selectedLayer])
 
+  const textColorProp = useMemo(() => {
+    if (!includeTextColor) return undefined
+    return structure.props.find(p => {
+      if (p.name.toLowerCase() !== 'text') return false
+      if (p.category !== 'colors') return false
+      const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
+      if (layerInPath && layerInPath !== selectedLayer) return false
+      // Check variant matching
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (!selectedVariant) return false
+        return p.path.includes(selectedVariant)
+      }
+      return true
+    })
+  }, [structure, includeTextColor, selectedLayer, selectedVariants])
+
   // Get CSS variables
   const backgroundVar = backgroundProp?.cssVar || ''
   const selectedBackgroundVar = selectedBackgroundProp?.cssVar || ''
+  const textColorVar = textColorProp?.cssVar || ''
 
   // Check visibility from toolbar config
   const backgroundVisible = groupedPropsConfig?.['background']?.visible !== false
   const selectedBackgroundVisible = groupedPropsConfig?.['selected-background']?.visible !== false
+  const textColorVisible = groupedPropsConfig?.['text-color']?.visible !== false
 
   return (
     <div className="background-toolbar">
@@ -129,6 +150,15 @@ export default function BackgroundToolbar({
             targetCssVar={selectedBackgroundVar}
             currentValueCssVar={selectedBackgroundVar}
             label="Selected background"
+          />
+        </div>
+      )}
+      {includeTextColor && textColorVar && textColorVisible && (
+        <div className="background-control">
+          <PaletteColorControl
+            targetCssVar={textColorVar}
+            currentValueCssVar={textColorVar}
+            label="Text color"
           />
         </div>
       )}

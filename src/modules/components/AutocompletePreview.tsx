@@ -1,20 +1,20 @@
-import { useMemo } from 'react'
-import { Dropdown } from '../../components/adapters/Dropdown'
+import { useMemo, useState } from 'react'
+import { Autocomplete } from '../../components/adapters/Autocomplete'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
-interface DropdownPreviewProps {
+interface AutocompletePreviewProps {
     selectedVariants: Record<string, string>
     selectedLayer: string
     componentElevation?: string
 }
 
-export default function DropdownPreview({
+export default function AutocompletePreview({
     selectedVariants,
     selectedLayer,
     componentElevation,
-}: DropdownPreviewProps) {
+}: AutocompletePreviewProps) {
     const { mode } = useThemeMode()
 
     const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
@@ -22,25 +22,23 @@ export default function DropdownPreview({
 
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
-    const ChevronDownIcon = iconNameToReactComponent('chevron-down')
-    const WarningIcon = iconNameToReactComponent('warning')
     const StarIcon = iconNameToReactComponent('star')
-    const ChevronRightIcon = iconNameToReactComponent('chevron-right')
+    const SearchIcon = iconNameToReactComponent('search')
 
     const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts
         ? [layout]
         : ['stacked', 'side-by-side']
 
     const items = [
-        { value: 'option-1', label: 'Obsidian Ingot', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
-        { value: 'option-2', label: 'Moonstone Shard', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
-        { value: 'option-3', label: 'Dragon Scale', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
-        { value: 'option-4', label: 'Mithril Wire', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
-        { value: 'option-5', label: 'Phoenix Flux', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
-        { value: 'option-6', label: 'Runic Dust', trailingIcon: ChevronRightIcon ? <ChevronRightIcon /> : undefined, leadingIconType: 'none' as const },
-        { value: 'option-7', label: 'Enchanted Leather', leadingIconType: 'none' as const },
-        { value: 'option-8', label: 'Crystal Quenching Oil', leadingIconType: 'none' as const },
-        { value: 'option-9', label: 'Shadow Ingot', leadingIconType: 'none' as const },
+        { value: 'forge-hammer', label: 'Forge Hammer', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
+        { value: 'goblin-pickaxe', label: 'Goblin Pickaxe', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
+        { value: 'enchanted-anvil', label: 'Enchanted Anvil', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
+        { value: 'mithril-tongs', label: 'Mithril Tongs', leadingIconType: 'none' as const },
+        { value: 'dragon-bellows', label: 'Dragon Bellows', leadingIconType: 'none' as const },
+        { value: 'crystal-quenching-oil', label: 'Crystal Quenching Oil', leadingIconType: 'none' as const },
+        { value: 'runic-chisel', label: 'Runic Chisel', leadingIconType: 'none' as const },
+        { value: 'shadow-ingot', label: 'Shadow Ingot', leadingIconType: 'none' as const },
+        { value: 'phoenix-flux', label: 'Phoenix Flux', leadingIconType: 'none' as const },
     ]
 
     const h2Style = {
@@ -73,20 +71,20 @@ export default function DropdownPreview({
                         {/* Default state */}
                         {state === 'default' && (
                             <>
-                                <Dropdown
-                                    label="Forge Material"
-                                    placeholder="Choose a material"
+                                <Autocomplete
+                                    label="Forge Tool"
+                                    placeholder="Search goblin forge tools..."
                                     items={items}
-                                    leadingIcon={StarIcon ? <StarIcon /> : undefined}
+                                    leadingIcon={SearchIcon ? <SearchIcon /> : undefined}
                                     state="default"
                                     layout={layoutVariant}
                                     layer={selectedLayer as any}
                                 />
-                                <Dropdown
-                                    label="Selected Material"
-                                    placeholder="Choose a material"
+                                <Autocomplete
+                                    label="Selected Tool"
+                                    placeholder="Search goblin forge tools..."
                                     items={items}
-                                    defaultValue="option-1"
+                                    defaultValue="Forge Hammer"
                                     state="default"
                                     layout={layoutVariant}
                                     layer={selectedLayer as any}
@@ -96,12 +94,12 @@ export default function DropdownPreview({
 
                         {/* Error state */}
                         {state === 'error' && (
-                            <Dropdown
-                                label="Forge Material"
-                                placeholder="Choose a material"
+                            <Autocomplete
+                                label="Forge Tool"
+                                placeholder="Search goblin forge tools..."
                                 items={items}
-                                leadingIcon={StarIcon ? <StarIcon /> : undefined}
-                                errorText="A material must be selected before forging"
+                                leadingIcon={SearchIcon ? <SearchIcon /> : undefined}
+                                errorText="A goblin must choose a tool"
                                 state="error"
                                 layout={layoutVariant}
                                 layer={selectedLayer as any}
@@ -110,9 +108,9 @@ export default function DropdownPreview({
 
                         {/* Disabled state */}
                         {state === 'disabled' && (
-                            <Dropdown
-                                label="Forge Material"
-                                placeholder="Choose a material"
+                            <Autocomplete
+                                label="Forge Tool"
+                                placeholder="Search goblin forge tools..."
                                 items={items}
                                 state="disabled"
                                 layout={layoutVariant}
@@ -122,9 +120,9 @@ export default function DropdownPreview({
 
                         {/* Focus state */}
                         {state === 'focus' && (
-                            <Dropdown
-                                label="Forge Material"
-                                placeholder="Choose a material"
+                            <Autocomplete
+                                label="Forge Tool"
+                                placeholder="Search goblin forge tools..."
                                 items={items}
                                 state="focus"
                                 layout={layoutVariant}

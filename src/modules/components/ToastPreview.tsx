@@ -47,32 +47,32 @@ export default function ToastPreview({
         layer={actualLayer}
         elevation={componentElevation}
         icon={styleVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : styleVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
-        onClose={styleVariant === 'success' || styleVariant === 'error' ? () => {} : undefined}
+        onClose={styleVariant === 'success' || styleVariant === 'error' ? () => { } : undefined}
       >
-        {styleVariant === 'default' ? 'Default toast message' : 
-         styleVariant === 'success' ? 'Success toast message' : 
-         'Error toast message'}
+        {styleVariant === 'default' ? 'The goblin forge is heating up — new runes detected in the chamber.' :
+          styleVariant === 'success' ? 'Enchantment applied to the forge hammer successfully!' :
+            'The rune inscription failed — the obsidian shard was impure.'}
       </Toast>
       <Toast
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
         icon={styleVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : styleVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
-        onClose={styleVariant === 'success' || styleVariant === 'error' ? () => {} : undefined}
+        onClose={styleVariant === 'success' || styleVariant === 'error' ? () => { } : undefined}
         action={
           <Button
             variant="text"
             size="small"
             layer={actualLayer}
-            onClick={() => {}}
+            onClick={() => { }}
           >
-            Action
+            Undo
           </Button>
         }
       >
-        {styleVariant === 'default' ? 'Toast with action button' : 
-         styleVariant === 'success' ? 'Success toast with action' : 
-         'Error toast with action'}
+        {styleVariant === 'default' ? 'The goblin council has approved your request to enter the deep mines.' :
+          styleVariant === 'success' ? 'Mithril ore successfully smelted into three ingots.' :
+            'Crystal shard shattered during extraction — salvage recommended.'}
       </Toast>
     </div>
   )

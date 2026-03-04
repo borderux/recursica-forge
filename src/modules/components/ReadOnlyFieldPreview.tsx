@@ -59,16 +59,16 @@ export default function ReadOnlyFieldPreview({
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {/* Basic read-only field with value */}
                         <ReadOnlyField
-                            label="Account ID"
-                            value="ACC-12345"
+                            label="Guild ID"
+                            value="GLD-04729"
                             layout={layoutVariant}
                             layer={selectedLayer as any}
                         />
 
                         {/* Read-only field with edit icon */}
                         <ReadOnlyField
-                            label="Email Address"
-                            value="user@example.com"
+                            label="Forge Master"
+                            value="Zog the Swift"
                             layout={layoutVariant}
                             layer={selectedLayer as any}
                             editIcon={EditIcon ? <EditIcon style={{ width: '16px', height: '16px' }} /> : null}
@@ -76,8 +76,8 @@ export default function ReadOnlyFieldPreview({
 
                         {/* Required read-only field */}
                         <ReadOnlyField
-                            label="User Name"
-                            value="John Doe"
+                            label="Rune Name"
+                            value="Aegis of the Northern Keep"
                             required
                             layout={layoutVariant}
                             layer={selectedLayer as any}
@@ -85,7 +85,7 @@ export default function ReadOnlyFieldPreview({
 
                         {/* Read-only field with no value (shows em dash) */}
                         <ReadOnlyField
-                            label="Middle Name"
+                            label="Clan Affiliation"
                             layout={layoutVariant}
                             layer={selectedLayer as any}
                         />

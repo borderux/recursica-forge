@@ -27,28 +27,28 @@ export default function AssistiveElementPreview({
   const iconElement = Icon ? <Icon /> : (variant === 'help' ? <span>ℹ</span> : <span>⚠</span>)
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      gap: 'var(--recursica-brand-dimensions-gutters-vertical)', 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
       width: '300px',
       alignItems: 'flex-start'
     }}>
       <AssistiveElement
         variant={variant}
-        text={`${variant === 'help' ? 'Help' : 'Error'} message`}
+        text={`${variant === 'help' ? 'Use moonstone lacquer for enchanting' : 'Rune inscription failed'}`}
         icon={iconElement}
         layer={selectedLayer as any}
       />
       <AssistiveElement
         variant={variant}
-        text={`This is a longer ${variant === 'help' ? 'help' : 'error'} message that demonstrates how the component handles multiple lines of text`}
+        text={`${variant === 'help' ? 'Apply three coats of lacquer before inscribing. Each coat must dry under starlight for one full cycle.' : 'The obsidian shard was impure. Check your ore source and try again with a fresh ingot.'}`}
         icon={iconElement}
         layer={selectedLayer as any}
       />
       <AssistiveElement
         variant={variant}
-        text={`${variant === 'help' ? 'Help' : 'Error'} message without icon`}
+        text={`${variant === 'help' ? 'Enchantments take effect after cooling' : 'Missing required forge component'}`}
         layer={selectedLayer as any}
       />
     </div>

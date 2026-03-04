@@ -17,104 +17,104 @@ export default function SegmentedControlPreview({
   componentElevation,
 }: SegmentedControlPreviewProps) {
   const { mode } = useThemeMode()
-  
+
   // Extract variants from selectedVariants
   const orientationVariant = (selectedVariants.orientation || 'horizontal') as 'horizontal' | 'vertical'
   const fillWidthVariant = (selectedVariants['fill-width'] || 'false') as 'true' | 'false'
-  
+
   const fillWidth = fillWidthVariant === 'true'
-  
+
   // State for selected values (one for each SegmentedControl)
   const [selectedValue1, setSelectedValue1] = useState<string>('option1')
   const [selectedValue2, setSelectedValue2] = useState<string>('option1')
   const [selectedValue3, setSelectedValue3] = useState<string>('option1')
-  
+
   // Get icons
   const Icon1 = iconNameToReactComponent('house')
   const Icon2 = iconNameToReactComponent('sliders-horizontal')
   const Icon3 = iconNameToReactComponent('user')
   const Icon4 = iconNameToReactComponent('info')
-  
+
   // Create items with icons and labels (original)
   const itemsWithIconsAndLabels = useMemo(() => [
     {
       value: 'option1',
-      label: 'First',
+      label: 'Forge',
       icon: Icon1 ? <Icon1 size={16} /> : undefined,
-      tooltip: 'First',
+      tooltip: 'Forge',
     },
     {
       value: 'option2',
-      label: 'Second',
+      label: 'Mines',
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
-      tooltip: 'Second',
+      tooltip: 'Mines',
     },
     {
       value: 'option3',
-      label: 'Third',
+      label: 'Armory',
       icon: Icon3 ? <Icon3 size={16} /> : undefined,
-      tooltip: 'Third',
+      tooltip: 'Armory',
     },
     {
       value: 'option4',
-      label: 'Fourth',
+      label: 'Treasury',
       icon: Icon4 ? <Icon4 size={16} /> : undefined,
-      tooltip: 'Fourth',
+      tooltip: 'Treasury',
     },
   ], [Icon1, Icon2, Icon3, Icon4])
-  
+
   // Create items with labels only (no icons)
   const itemsWithLabelsOnly = useMemo(() => [
     {
       value: 'option1',
-      label: 'First',
-      tooltip: 'First',
+      label: 'Forge',
+      tooltip: 'Forge',
     },
     {
       value: 'option2',
-      label: 'Second',
-      tooltip: 'Second',
+      label: 'Mines',
+      tooltip: 'Mines',
     },
     {
       value: 'option3',
-      label: 'Third',
-      tooltip: 'Third',
+      label: 'Armory',
+      tooltip: 'Armory',
     },
     {
       value: 'option4',
-      label: 'Fourth',
-      tooltip: 'Fourth',
+      label: 'Treasury',
+      tooltip: 'Treasury',
     },
   ], [])
-  
+
   // Create items with icons only (no labels, but with tooltips)
   const itemsWithIconsOnly = useMemo(() => [
     {
       value: 'option1',
-      label: 'First',
+      label: 'Forge',
       icon: Icon1 ? <Icon1 size={16} /> : undefined,
-      tooltip: 'First',
+      tooltip: 'Forge',
     },
     {
       value: 'option2',
-      label: 'Second',
+      label: 'Mines',
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
-      tooltip: 'Second',
+      tooltip: 'Mines',
     },
     {
       value: 'option3',
-      label: 'Third',
+      label: 'Armory',
       icon: Icon3 ? <Icon3 size={16} /> : undefined,
-      tooltip: 'Third',
+      tooltip: 'Armory',
     },
     {
       value: 'option4',
-      label: 'Fourth',
+      label: 'Treasury',
       icon: Icon4 ? <Icon4 size={16} /> : undefined,
-      tooltip: 'Fourth',
+      tooltip: 'Treasury',
     },
   ], [Icon1, Icon2, Icon3, Icon4])
-  
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%', minWidth: 0, maxWidth: '100%' }}>
       {/* Original: Icons and Labels */}
@@ -129,7 +129,7 @@ export default function SegmentedControlPreview({
           elevation={componentElevation}
         />
       </div>
-      
+
       {/* Labels Only */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl
@@ -142,7 +142,7 @@ export default function SegmentedControlPreview({
           elevation={componentElevation}
         />
       </div>
-      
+
       {/* Icons Only (with tooltips) */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl
