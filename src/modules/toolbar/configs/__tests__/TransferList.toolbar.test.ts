@@ -143,14 +143,13 @@ describe('TransferList Toolbar Config', () => {
         })
     })
 
-    it('should have colors group with the expected sub-props', () => {
-        const colorsConfig = (config.props as any).colors
-        expect(colorsConfig).toBeDefined()
-        expect(colorsConfig.group).toBeDefined()
-        expect(colorsConfig.group.background).toBeDefined()
-        expect(colorsConfig.group.text).toBeDefined()
-        expect(colorsConfig.group['item-text']).toBeDefined()
-        expect(colorsConfig.group['item-hover']).toBeDefined()
+    it('should have box group with the expected sub-props', () => {
+        const boxConfig = (config.props as any).box
+        expect(boxConfig).toBeDefined()
+        expect(boxConfig.group).toBeDefined()
+        expect(boxConfig.group.background).toBeDefined()
+        expect(boxConfig.group['header-color']).toBeDefined()
+        expect(boxConfig.group['heading-level']).toBeDefined()
     })
 
     it('should have border group with the expected sub-props', () => {
@@ -167,10 +166,10 @@ describe('TransferList Toolbar Config', () => {
         expect(dimensionsConfig).toBeDefined()
         expect(dimensionsConfig.group).toBeDefined()
         expect(dimensionsConfig.group.gap).toBeDefined()
-        expect(dimensionsConfig.group['item-height']).toBeDefined()
-        expect(dimensionsConfig.group['min-height']).toBeDefined()
-        expect(dimensionsConfig.group['min-width']).toBeDefined()
-        expect(dimensionsConfig.group['max-width']).toBeDefined()
+        expect(dimensionsConfig.group['title-filter-gap']).toBeDefined()
+        expect(dimensionsConfig.group['filter-items-gap']).toBeDefined()
+        expect(dimensionsConfig.group.height).toBeDefined()
+        expect(dimensionsConfig.group.width).toBeDefined()
     })
 
     it('should have padding group with the expected sub-props', () => {
@@ -179,13 +178,5 @@ describe('TransferList Toolbar Config', () => {
         expect(paddingConfig.group).toBeDefined()
         expect(paddingConfig.group['horizontal-padding']).toBeDefined()
         expect(paddingConfig.group['vertical-padding']).toBeDefined()
-    })
-
-    it('should have text style prop', () => {
-        const textConfig = (config.props as any).text
-        expect(textConfig).toBeDefined()
-        expect(textConfig.icon).toBe('text-aa')
-        expect(textConfig.label).toBe('Text style')
-        expect(textConfig.visible).toBe(true)
     })
 })

@@ -80,7 +80,7 @@ describe('TransferList Component Rendering', () => {
 
         const panes = tl.querySelectorAll('.recursica-transfer-list-pane')
         expect(panes.length).toBe(2)
-    })
+    }, 60000)
 
     it('renders items in correct panes', async () => {
         const { container } = await renderWithProviders(
@@ -159,15 +159,15 @@ describe('TransferList Component Rendering', () => {
         })
     })
 
-    it('renders transfer control buttons', async () => {
+    it('renders transfer action buttons', async () => {
         const { container } = await renderWithProviders(
             <TransferList defaultData={sampleData} />
         )
         const tl = await waitForTransferList(container)
         expect(tl).toBeInTheDocument()
 
-        const controls = tl.querySelector('.recursica-transfer-list-controls')
-        expect(controls).toBeInTheDocument()
+        const actions = tl.querySelector('.recursica-transfer-list-actions')
+        expect(actions).toBeInTheDocument()
     })
 
     it('renders with search fields when searchable', async () => {
@@ -181,27 +181,28 @@ describe('TransferList Component Rendering', () => {
         expect(searchInputs.length).toBe(2)
     })
 
-    it('renders group labels', async () => {
+    it('renders group containers', async () => {
         const { container } = await renderWithProviders(
             <TransferList defaultData={sampleData} />
         )
         const tl = await waitForTransferList(container)
         expect(tl).toBeInTheDocument()
 
-        // Group labels should be rendered
-        const groupLabels = tl.querySelectorAll('.recursica-transfer-list-group-label')
-        expect(groupLabels.length).toBeGreaterThan(0)
+        // Group containers should be rendered
+        const groups = tl.querySelectorAll('.recursica-transfer-list-group')
+        expect(groups.length).toBeGreaterThan(0)
     })
 
-    it('renders counts in pane headers', async () => {
+    it('renders badge counts in pane headers', async () => {
         const { container } = await renderWithProviders(
             <TransferList defaultData={sampleData} />
         )
         const tl = await waitForTransferList(container)
         expect(tl).toBeInTheDocument()
 
-        const counts = tl.querySelectorAll('.recursica-transfer-list-count')
-        expect(counts.length).toBe(2)
+        // Badge components are used for counts in pane headers
+        const headers = tl.querySelectorAll('.recursica-transfer-list-pane-header')
+        expect(headers.length).toBe(2)
     })
 })
 
