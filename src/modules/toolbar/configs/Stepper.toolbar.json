@@ -71,6 +71,16 @@
                     "icon": "paint-brush-broad",
                     "label": "Border color",
                     "visible": true
+                },
+                "completed-connector-color": {
+                    "icon": "paint-bucket",
+                    "label": "Connector color",
+                    "visible": true
+                },
+                "completed-connector-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Connector size",
+                    "visible": true
                 }
             }
         },
@@ -135,39 +145,15 @@
                     "icon": "paint-brush-broad",
                     "label": "Border color",
                     "visible": true
-                }
-            }
-        },
-        "completed-connector": {
-            "icon": "minus",
-            "label": "Completed connector",
-            "visible": true,
-            "group": {
-                "completed-connector-color": {
-                    "icon": "paint-bucket",
-                    "label": "Color",
-                    "visible": true
                 },
-                "completed-connector-size": {
-                    "icon": "arrows-left-right",
-                    "label": "Size",
-                    "visible": true
-                }
-            }
-        },
-        "upcoming-connector": {
-            "icon": "minus",
-            "label": "Upcoming connector",
-            "visible": true,
-            "group": {
                 "upcoming-connector-color": {
                     "icon": "paint-bucket",
-                    "label": "Color",
+                    "label": "Connector color",
                     "visible": true
                 },
                 "upcoming-connector-size": {
                     "icon": "arrows-left-right",
-                    "label": "Size",
+                    "label": "Connector size",
                     "visible": true
                 }
             }
