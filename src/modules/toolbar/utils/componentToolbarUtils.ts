@@ -274,7 +274,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           })
 
           // Also traverse any other keys that aren't styles/sizes/layouts (for backward compatibility)
-          const otherKeys = Object.keys(value).filter(k => !k.startsWith('$') && k !== 'styles' && k !== 'sizes' && k !== 'layouts')
+          const otherKeys = Object.keys(value).filter(k => !k.startsWith('$') && k !== 'styles' && k !== 'sizes' && k !== 'layouts' && k !== 'orientation' && k !== 'fill-width' && k !== 'types' && k !== 'states')
           otherKeys.forEach(otherKey => {
             const otherObj = (value as any)[otherKey]
             if (otherObj && typeof otherObj === 'object') {

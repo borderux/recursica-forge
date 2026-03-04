@@ -65,11 +65,15 @@ export default function Stepper({
     const indicatorBorderRadiusVar = sizeVar('indicator-border-radius')
     const indicatorBorderSizeVar = sizeVar('indicator-border-size')
     const completedIconSizeVar = sizeVar('completed-icon-size')
-    const stepGapVar = sizeVar('step-gap')
-    const indicatorLabelGapVar = sizeVar('indicator-label-gap')
-    const labelDescriptionGapVar = sizeVar('label-description-gap')
 
-    const maxTextWidthVar = propVar('max-text-width')
+    // --- Orientation variant properties ---
+    // Path: components.stepper.variants.orientation.{orientation}.properties.{prop}
+    const orientVar = (prop: string) => buildComponentCssVarPath('Stepper', 'variants', 'orientation', orientation, 'properties', prop)
+
+    const stepGapVar = orientVar('step-gap')
+    const indicatorLabelGapVar = orientVar('indicator-label-gap')
+    const labelDescriptionGapVar = orientVar('label-description-gap')
+    const maxTextWidthVar = orientVar('max-text-width')
 
     // --- Text style properties ---
     const labelFontFamilyVar = getComponentTextCssVar('Stepper', 'label-text', 'font-family')

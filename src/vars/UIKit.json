@@ -2307,27 +2307,6 @@
                     "value": "{brand.dimensions.icons.default}",
                     "unit": "px"
                   }
-                },
-                "step-gap": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.general.md}",
-                    "unit": "px"
-                  }
-                },
-                "indicator-label-gap": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.general.sm}",
-                    "unit": "px"
-                  }
-                },
-                "label-description-gap": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": "{brand.dimensions.general.sm}",
-                    "unit": "px"
-                  }
                 }
               }
             },
@@ -2367,11 +2346,17 @@
                     "value": "{brand.dimensions.icons.sm}",
                     "unit": "px"
                   }
-                },
+                }
+              }
+            }
+          },
+          "orientation": {
+            "horizontal": {
+              "properties": {
                 "step-gap": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.general.sm}",
+                    "value": "{brand.dimensions.general.md}",
                     "unit": "px"
                   }
                 },
@@ -2385,19 +2370,50 @@
                 "label-description-gap": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.general.none}",
+                    "value": "{brand.dimensions.general.sm}",
+                    "unit": "px"
+                  }
+                },
+                "max-text-width": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 200,
                     "unit": "px"
                   }
                 }
               }
-            }
-          },
-          "orientation": {
-            "horizontal": {
-              "properties": {}
             },
             "vertical": {
-              "properties": {}
+              "properties": {
+                "step-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.md}",
+                    "unit": "px"
+                  }
+                },
+                "indicator-label-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.sm}",
+                    "unit": "px"
+                  }
+                },
+                "label-description-gap": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.sm}",
+                    "unit": "px"
+                  }
+                },
+                "max-text-width": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 300,
+                    "unit": "px"
+                  }
+                }
+              }
             }
           }
         },
@@ -2695,13 +2711,6 @@
             "$type": "dimension",
             "$value": {
               "value": 2,
-              "unit": "px"
-            }
-          },
-          "max-text-width": {
-            "$type": "dimension",
-            "$value": {
-              "value": 200,
               "unit": "px"
             }
           },
