@@ -69,18 +69,24 @@
     display: none !important;
 }
 
-/* Vertical: completed connector (separator after completed steps) */
-.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step[data-completed]+.mantine-Stepper-separator {
+/* Vertical: completed connector (verticalSeparator inside completed steps) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step[data-completed] .mantine-Stepper-verticalSeparator {
     width: var(--stepper-completed-connector-size, 2px) !important;
     background-color: var(--stepper-completed-connector-color) !important;
     border: none !important;
 }
 
-/* Vertical: upcoming connector (separator after current/upcoming steps) */
-.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-separator {
+/* Vertical: upcoming connector (verticalSeparator inside current/upcoming steps) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step[data-progress] .mantine-Stepper-verticalSeparator,
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step:not([data-completed]):not([data-progress]) .mantine-Stepper-verticalSeparator {
     width: var(--stepper-upcoming-connector-size, 2px) !important;
     background-color: var(--stepper-upcoming-connector-color) !important;
     border: none !important;
+}
+
+/* Also hide sibling separators in vertical mode (Mantine may render both) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"]>.mantine-Stepper-separator {
+    display: none !important;
 }
 
 /* ---- Labels ---- */
@@ -210,14 +216,41 @@
     text-align: center !important;
 }
 
-/* Vertical orientation: keep side by side */
+/* Vertical orientation: center label+description on the indicator */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step {
+    align-items: center !important;
+    overflow: visible !important;
+    position: relative !important;
+    min-height: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Make stepWrapper static so verticalSeparator positions relative to .step */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-stepWrapper {
+    position: static !important;
+}
+
 .recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-stepBody {
     margin-left: var(--stepper-indicator-label-gap, 8px) !important;
 }
 
-/* Step wrapper spacing — vertical only (horizontal uses gap:0 with pseudo connectors) */
+/* Vertical separator: extend from bottom of indicator to bottom of step + through margin gap */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-verticalSeparator {
+    position: absolute !important;
+    top: calc(var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) !important;
+    bottom: calc(-1 * var(--stepper-step-gap, 16px)) !important;
+    left: calc((var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
+    transform: translateX(-50%) !important;
+    height: auto !important;
+}
+
+/* Step wrapper spacing — vertical uses margin for gap (separator extends into margin) */
 .recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] {
-    gap: var(--stepper-step-gap, 16px) !important;
+    gap: 0 !important;
+}
+
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step:not(:last-child) {
+    margin-bottom: var(--stepper-step-gap, 16px) !important;
 }
 
 /* ---- Completed icon sizing ---- */
