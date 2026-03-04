@@ -28,6 +28,7 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { FileInput } from '../../components/adapters/FileInput'
 import { FileUpload } from '../../components/adapters/FileUpload'
 import { Pagination } from '../../components/adapters/Pagination'
+import { TransferList } from '../../components/adapters/TransferList'
 import { DatePicker } from '../../components/adapters/DatePicker'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
@@ -1266,23 +1267,30 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Transfer list',
       url: `${base}/transfer-list`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, alignItems: 'center' }}>
-          <ul style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 6, padding: 8, margin: 0, listStyle: 'none' }}>
-            <li>Alpha</li>
-            <li>Bravo</li>
-            <li>Charlie</li>
-          </ul>
-          <div style={{ display: 'grid', gap: 6 }}>
-            <button>{'>'}</button>
-            <button>{'<'}</button>
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ width: '100%', maxWidth: 600 }}>
+            <TransferList
+              sourceLabel="Available"
+              targetLabel="Selected"
+              defaultData={[
+                [
+                  { value: 'alpha', label: 'Alpha' },
+                  { value: 'bravo', label: 'Bravo' },
+                  { value: 'charlie', label: 'Charlie' },
+                ],
+                [
+                  { value: 'delta', label: 'Delta' },
+                  { value: 'echo', label: 'Echo' },
+                ],
+              ]}
+              layer={layer as any}
+              searchable={false}
+            />
           </div>
-          <ul style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 6, padding: 8, margin: 0, listStyle: 'none' }}>
-            <li>Delta</li>
-            <li>Echo</li>
-          </ul>
-        </div>
-      ),
+        )
+      },
     },
     {
       name: 'Time picker',

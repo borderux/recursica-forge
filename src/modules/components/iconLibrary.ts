@@ -39,6 +39,7 @@ import {
 
   BugBeetle as Bug,
   CalendarBlank,
+  CaretDoubleLeft,
   CaretDoubleRight,
   CaretDown,
   CaretLeft,
@@ -224,6 +225,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'caret-down': CaretDown,
   'caret-left': CaretLeft,
   'caret-right': CaretRight,
+  'chevron-double-left': CaretDoubleLeft,
   'chevron-double-right': CaretDoubleRight,
   'arrows-up-down': ArrowsVertical,
   'arrows-vertical': ArrowsVertical,

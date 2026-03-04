@@ -1,0 +1,115 @@
+/**
+ * TransferList CSS Overrides (Mantine)
+ * 
+ * Styles for the Transfer List component built from Recursica components.
+ */
+
+/* Main container */
+.recursica-transfer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+}
+
+/* Body: the two panes side by side */
+.recursica-transfer-list-body {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+    width: 100%;
+}
+
+/* Each list pane */
+.recursica-transfer-list-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border: 1px solid var(--recursica-transfer-list-border-color, rgba(128, 128, 128, 0.3));
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.recursica-transfer-list--error .recursica-transfer-list-pane {
+    border-color: var(--recursica-transfer-list-error-border-color, #e03131);
+}
+
+.recursica-transfer-list--disabled .recursica-transfer-list-pane {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Pane header with label + count */
+.recursica-transfer-list-pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 4px;
+}
+
+
+/* Toolbar row: search + transfer buttons inline */
+.recursica-transfer-list-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px 8px;
+}
+
+/* Search field grows to fill available space */
+.recursica-transfer-list-toolbar .recursica-transfer-list-search {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+}
+
+/* Transfer action buttons row */
+.recursica-transfer-list-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+/* Item list */
+.recursica-transfer-list-items {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 160px;
+    max-height: 320px;
+    padding: 0 4px 4px;
+}
+
+/* Individual item row */
+.recursica-transfer-list-item {
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.1s ease;
+}
+
+.recursica-transfer-list-item:hover {
+    background-color: rgba(128, 128, 128, 0.08);
+}
+
+.recursica-transfer-list-item--selected {
+    background-color: rgba(128, 128, 128, 0.06);
+}
+
+/* Empty state */
+.recursica-transfer-list-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    opacity: 0.5;
+    font-size: 13px;
+    padding: 24px 16px;
+    min-height: 80px;
+}
+
+/* Group container */
+.recursica-transfer-list-group {
+    margin-top: 4px;
+}
