@@ -1309,6 +1309,18 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         )
       },
     },
+    {
+      name: 'Stepper',
+      url: `${base}/stepper`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+            <span>Stepper preview</span>
+          </div>
+        )
+      },
+    },
   ]
     .sort((a, b) => a.name.localeCompare(b.name))
 }

@@ -116,5 +116,8 @@ registerComponent('mantine', 'DatePicker', () => import('../adapters/mantine/Dat
 // Loader
 registerComponent('mantine', 'Loader', () => import('../adapters/mantine/Loader/Loader'))
 
+// Stepper
+registerComponent('mantine', 'Stepper', () => import('../adapters/mantine/Stepper/Stepper'))
+
 // Add more components as they're implemented
 
