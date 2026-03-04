@@ -1,0 +1,289 @@
+{
+    "variants": {
+        "size": {
+            "icon": "resize",
+            "label": "Size",
+            "visible": true,
+            "options": [
+                "large",
+                "small"
+            ]
+        },
+        "orientation": {
+            "icon": "arrows-out-cardinal",
+            "label": "Orientation",
+            "visible": true,
+            "options": [
+                "horizontal",
+                "vertical"
+            ]
+        }
+    },
+    "props": {
+        "step-indicator": {
+            "icon": "circle",
+            "label": "Step indicator",
+            "visible": true,
+            "group": {
+                "indicator-border-radius": {
+                    "icon": "corners-out",
+                    "label": "Border radius",
+                    "visible": true
+                },
+                "indicator-border-size": {
+                    "icon": "rows",
+                    "label": "Border size",
+                    "visible": true
+                },
+                "completed-icon-size": {
+                    "icon": "resize",
+                    "label": "Icon size",
+                    "visible": true
+                }
+            }
+        },
+        "completed": {
+            "icon": "check-circle",
+            "label": "Completed step",
+            "visible": true,
+            "group": {
+                "completed-indicator-background": {
+                    "icon": "paint-bucket",
+                    "label": "Background color",
+                    "visible": true
+                },
+                "completed-indicator-text": {
+                    "icon": "text-aa",
+                    "label": "Icon / number color",
+                    "visible": true
+                },
+                "completed-label-color": {
+                    "icon": "text-aa",
+                    "label": "Label color",
+                    "visible": true
+                },
+                "completed-description-color": {
+                    "icon": "text-aa",
+                    "label": "Description color",
+                    "visible": true
+                },
+                "completed-indicator-border-color": {
+                    "icon": "paint-brush-broad",
+                    "label": "Border color",
+                    "visible": true
+                },
+                "completed-connector-color": {
+                    "icon": "paint-bucket",
+                    "label": "Connector color",
+                    "visible": true
+                },
+                "completed-connector-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Connector size",
+                    "visible": true
+                }
+            }
+        },
+        "current": {
+            "icon": "cursor-click",
+            "label": "Current step",
+            "visible": true,
+            "group": {
+                "current-indicator-background": {
+                    "icon": "paint-bucket",
+                    "label": "Background color",
+                    "visible": true
+                },
+                "current-indicator-text": {
+                    "icon": "text-aa",
+                    "label": "Icon / number color",
+                    "visible": true
+                },
+                "current-label-color": {
+                    "icon": "text-aa",
+                    "label": "Label color",
+                    "visible": true
+                },
+                "current-description-color": {
+                    "icon": "text-aa",
+                    "label": "Description color",
+                    "visible": true
+                },
+                "current-indicator-border-color": {
+                    "icon": "paint-brush-broad",
+                    "label": "Border color",
+                    "visible": true
+                }
+            }
+        },
+        "upcoming": {
+            "icon": "clock",
+            "label": "Upcoming step",
+            "visible": true,
+            "group": {
+                "upcoming-indicator-background": {
+                    "icon": "paint-bucket",
+                    "label": "Background color",
+                    "visible": true
+                },
+                "upcoming-indicator-text": {
+                    "icon": "text-aa",
+                    "label": "Icon / number color",
+                    "visible": true
+                },
+                "upcoming-label-color": {
+                    "icon": "text-aa",
+                    "label": "Label color",
+                    "visible": true
+                },
+                "upcoming-description-color": {
+                    "icon": "text-aa",
+                    "label": "Description color",
+                    "visible": true
+                },
+                "upcoming-indicator-border-color": {
+                    "icon": "paint-brush-broad",
+                    "label": "Border color",
+                    "visible": true
+                },
+                "upcoming-connector-color": {
+                    "icon": "paint-bucket",
+                    "label": "Connector color",
+                    "visible": true
+                },
+                "upcoming-connector-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Connector size",
+                    "visible": true
+                }
+            }
+        },
+        "label-text": {
+            "icon": "text-aa",
+            "label": "Label text style",
+            "visible": true,
+            "group": {
+                "font-family": {
+                    "icon": "text-aa",
+                    "label": "Font family",
+                    "visible": true
+                },
+                "font-size": {
+                    "icon": "text-aa",
+                    "label": "Font size",
+                    "visible": true
+                },
+                "font-weight": {
+                    "icon": "text-aa",
+                    "label": "Font weight",
+                    "visible": true
+                },
+                "letter-spacing": {
+                    "icon": "text-aa",
+                    "label": "Letter spacing",
+                    "visible": true
+                },
+                "line-height": {
+                    "icon": "text-aa",
+                    "label": "Line height",
+                    "visible": true
+                },
+                "text-decoration": {
+                    "icon": "text-aa",
+                    "label": "Text decoration",
+                    "visible": true
+                },
+                "text-transform": {
+                    "icon": "text-aa",
+                    "label": "Text transform",
+                    "visible": true
+                },
+                "font-style": {
+                    "icon": "text-aa",
+                    "label": "Font style",
+                    "visible": true
+                }
+            }
+        },
+        "description-text": {
+            "icon": "text-aa",
+            "label": "Description text style",
+            "visible": true,
+            "group": {
+                "font-family": {
+                    "icon": "text-aa",
+                    "label": "Font family",
+                    "visible": true
+                },
+                "font-size": {
+                    "icon": "text-aa",
+                    "label": "Font size",
+                    "visible": true
+                },
+                "font-weight": {
+                    "icon": "text-aa",
+                    "label": "Font weight",
+                    "visible": true
+                },
+                "letter-spacing": {
+                    "icon": "text-aa",
+                    "label": "Letter spacing",
+                    "visible": true
+                },
+                "line-height": {
+                    "icon": "text-aa",
+                    "label": "Line height",
+                    "visible": true
+                },
+                "text-decoration": {
+                    "icon": "text-aa",
+                    "label": "Text decoration",
+                    "visible": true
+                },
+                "text-transform": {
+                    "icon": "text-aa",
+                    "label": "Text transform",
+                    "visible": true
+                },
+                "font-style": {
+                    "icon": "text-aa",
+                    "label": "Font style",
+                    "visible": true
+                }
+            }
+        },
+        "spacing": {
+            "icon": "split-horizontal",
+            "label": "Spacing",
+            "visible": true,
+            "group": {
+                "step-gap": {
+                    "icon": "arrows-out-cardinal",
+                    "label": "Step gap",
+                    "visible": true
+                },
+                "indicator-label-gap": {
+                    "icon": "arrows-out-cardinal",
+                    "label": "Indicator-label gap",
+                    "visible": true
+                },
+                "label-description-gap": {
+                    "icon": "arrows-out-cardinal",
+                    "label": "Label-description gap",
+                    "visible": true
+                },
+                "max-text-width": {
+                    "icon": "arrows-out-line-horizontal",
+                    "label": "Max text width",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        40,
+                        1000
+                    ],
+                    "step": 10
+                }
+            }
+        }
+    }
+}
