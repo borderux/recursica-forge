@@ -28,6 +28,7 @@ const TextareaPreview = lazy(() => import('../components/TextareaPreview'))
 const NumberInputPreview = lazy(() => import('../components/NumberInputPreview'))
 const ModalPreview = lazy(() => import('../components/ModalPreview'))
 const DropdownPreview = lazy(() => import('../components/DropdownPreview'))
+const AutocompletePreview = lazy(() => import('../components/AutocompletePreview'))
 const ReadOnlyFieldPreview = lazy(() => import('../components/ReadOnlyFieldPreview'))
 const FileInputPreview = lazy(() => import('../components/FileInputPreview'))
 const FileUploadPreview = lazy(() => import('../components/FileUploadPreview'))
@@ -387,6 +388,12 @@ export default function ComponentDetailPage() {
                   />
                 ) : component.name === 'Dropdown' ? (
                   <DropdownPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Autocomplete' ? (
+                  <AutocompletePreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}

@@ -56,17 +56,17 @@ export default function TextareaPreview({
                         {state === 'default' && (
                             <>
                                 <Textarea
-                                    label="Label"
-                                    placeholder="Placeholder text"
-                                    defaultValue="Sample textarea value"
+                                    label="Forge Notes"
+                                    placeholder="Describe the enchantment process..."
+                                    defaultValue="The obsidian gauntlets require three coats of moonstone lacquer before the rune inscription can begin. Each coat must dry under starlight for at least one full cycle."
                                     state="default"
                                     layout={layoutVariant}
                                     layer={selectedLayer as any}
                                 />
                                 <Textarea
-                                    label="Label"
-                                    placeholder="Placeholder text"
-                                    helpText="Help message"
+                                    label="Expedition Log"
+                                    placeholder="Record your journey through the deep mines..."
+                                    helpText="Include any unusual sightings or ore deposits"
                                     state="default"
                                     layout={layoutVariant}
                                     layer={selectedLayer as any}
@@ -78,18 +78,18 @@ export default function TextareaPreview({
                         {state === 'error' && (
                             <>
                                 <Textarea
-                                    label="Label"
-                                    placeholder="Placeholder text"
-                                    defaultValue="Sample textarea value"
-                                    errorText="Error message"
+                                    label="Forge Notes"
+                                    placeholder="Describe the enchantment process..."
+                                    defaultValue="The obsidian gauntlets require three coats of moonstone lacquer."
+                                    errorText="Incomplete enchantment — missing rune sequence"
                                     state="error"
                                     layout={layoutVariant}
                                     layer={selectedLayer as any}
                                 />
                                 <Textarea
-                                    label="Label"
-                                    placeholder="Placeholder text"
-                                    errorText="Error message"
+                                    label="Expedition Log"
+                                    placeholder="Record your journey through the deep mines..."
+                                    errorText="Log entry cannot be empty"
                                     state="error"
                                     layout={layoutVariant}
                                     layer={selectedLayer as any}
@@ -100,9 +100,8 @@ export default function TextareaPreview({
                         {/* Disabled state */}
                         {state === 'disabled' && (
                             <Textarea
-                                label="Label"
-                                placeholder="Placeholder text"
-                                defaultValue=""
+                                label="Forge Notes"
+                                placeholder="Describe the enchantment process..."
                                 state="disabled"
                                 layout={layoutVariant}
                                 layer={selectedLayer as any}
@@ -112,8 +111,8 @@ export default function TextareaPreview({
                         {/* Focus state (shows default with focus styling via CSS) */}
                         {state === 'focus' && (
                             <Textarea
-                                label="Label"
-                                placeholder="Placeholder text"
+                                label="Forge Notes"
+                                placeholder="Describe the enchantment process..."
                                 state="focus"
                                 layout={layoutVariant}
                                 layer={selectedLayer as any}

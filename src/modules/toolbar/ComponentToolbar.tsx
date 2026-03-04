@@ -68,7 +68,7 @@ export default function ComponentToolbar({
       'Accordion', 'Avatar', 'Badge', 'Breadcrumb', 'Button', 'Card', 'Checkbox', 'Chip',
       'Date picker', 'Dropdown', 'File input', 'File upload', 'Hover card / Popover', 'Label', 'Link',
       'Loader', 'Menu', 'Menu item', 'Modal', 'Number input', 'Pagination', 'Panel',
-      'Radio', 'Read-only field', 'Search', 'Segmented control', 'Slider', 'Stepper', 'Switch',
+      'Radio', 'Read-only field', 'Autocomplete', 'Segmented control', 'Slider', 'Stepper', 'Switch',
       'Tabs', 'Text field', 'Time picker', 'Timeline', 'Toast', 'Tooltip', 'Transfer list',
     ]
 
@@ -226,7 +226,17 @@ export default function ComponentToolbar({
         // Skip if it's already in propsMap or if it has a group (groups are handled separately)
         if (!propsMap.has(configPropNameLower) && !propConfig.group) {
           // Check if this prop exists in structure but wasn't added (shouldn't happen, but check anyway)
-          const structureProp = structure.props.find(p => p.name.toLowerCase() === configPropNameLower)
+          let structureProp = structure.props.find(p => p.name.toLowerCase() === configPropNameLower)
+          // Special case: text-color in toolbar config maps to "text" in UIKit structure (colors category)
+          if (!structureProp && configPropNameLower === 'text-color') {
+            const textColorProp = structure.props.find(p =>
+              p.name.toLowerCase() === 'text' && p.category === 'colors'
+            )
+            if (textColorProp) {
+              // Clone the prop with name overridden to "text-color" so label/icon lookup uses the config's text-color entry
+              structureProp = { ...textColorProp, name: 'text-color' }
+            }
+          }
           if (structureProp) {
             // It exists in structure but wasn't added - add it now
             if (!seenProps.has(configPropNameLower)) {
@@ -451,6 +461,19 @@ export default function ComponentToolbar({
                   p.path.includes('separator-color') &&
                   p.path.includes(selectedLayer)
                 )
+              }
+              // Special case: text-color maps to "text" prop under colors.layer-X
+              if (!groupedProp && groupedPropKey === 'text-color') {
+                groupedProp = structure.props.find(p =>
+                  p.name.toLowerCase() === 'text' &&
+                  p.category === 'colors' &&
+                  p.path.includes('colors') &&
+                  p.path.includes(selectedLayer)
+                )
+                // Clone with overridden name so label/icon lookup works correctly
+                if (groupedProp) {
+                  groupedProp = { ...groupedProp, name: 'text-color' }
+                }
               }
               // If still not found, try to find it by exact name match (case-insensitive)
               // For variant-specific props, find the first matching prop regardless of variant

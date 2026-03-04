@@ -14,7 +14,7 @@ export default function SegmentedControlItemPreview({
   componentElevation,
 }: SegmentedControlItemPreviewProps) {
   const [updateKey, setUpdateKey] = useState(0)
-  
+
   // Listen for CSS variable updates to force re-render
   // CRITICAL: Skip UIKit vars - they're silent and don't need component re-renders
   useEffect(() => {
@@ -24,8 +24,8 @@ export default function SegmentedControlItemPreview({
         const detail = (e as CustomEvent).detail
         const updatedVars = detail?.cssVars || []
         // If all vars are UIKit vars, skip re-render
-        const nonUIKitVars = updatedVars.filter((v: string) => 
-          !v.startsWith('--recursica-ui-kit-components-') && 
+        const nonUIKitVars = updatedVars.filter((v: string) =>
+          !v.startsWith('--recursica-ui-kit-components-') &&
           !v.startsWith('--recursica-ui-kit-globals-')
         )
         if (updatedVars.length > 0 && nonUIKitVars.length === 0) {
@@ -34,77 +34,77 @@ export default function SegmentedControlItemPreview({
       }
       setUpdateKey(prev => prev + 1)
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     window.addEventListener('cssVarsReset', handleCssVarUpdate)
-    
+
     // CRITICAL: Removed MutationObserver - it was causing flickering
     // UIKit vars are silent and don't dispatch cssVarsUpdated events
     // Non-UIKit vars will dispatch cssVarsUpdated events (already filtered in handleCssVarUpdate)
     // cssVarsReset events are bulk updates that should trigger re-renders
     // The component's own MutationObserver already handles style changes for non-UIKit vars
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
     }
   }, [])
-  
+
   // Get icons
   const Icon1 = iconNameToReactComponent('house')
   const Icon2 = iconNameToReactComponent('sliders-horizontal')
-  
+
   // State for selected values
   const [selectedValue1, setSelectedValue1] = useState<string>('option1')
   const [selectedValue2, setSelectedValue2] = useState<string>('option2')
   const [selectedValue3, setSelectedValue3] = useState<string>('option1')
-  
+
   // Create items with icons and labels
   const itemsWithIconsAndLabels = [
     {
       value: 'option1',
-      label: 'First',
+      label: 'Forge',
       icon: Icon1 ? <Icon1 size={16} /> : undefined,
-      tooltip: 'First',
+      tooltip: 'Forge',
     },
     {
       value: 'option2',
-      label: 'Second',
+      label: 'Mines',
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
-      tooltip: 'Second',
+      tooltip: 'Mines',
     },
   ]
-  
+
   // Create items with labels only
   const itemsWithLabelsOnly = [
     {
       value: 'option1',
-      label: 'First',
-      tooltip: 'First',
+      label: 'Forge',
+      tooltip: 'Forge',
     },
     {
       value: 'option2',
-      label: 'Second',
-      tooltip: 'Second',
+      label: 'Mines',
+      tooltip: 'Mines',
     },
   ]
-  
+
   // Create items with icons only
   const itemsWithIconsOnly = [
     {
       value: 'option1',
-      label: 'First',
+      label: 'Forge',
       icon: Icon1 ? <Icon1 size={16} /> : undefined,
-      tooltip: 'First',
+      tooltip: 'Forge',
     },
     {
       value: 'option2',
-      label: 'Second',
+      label: 'Mines',
       icon: Icon2 ? <Icon2 size={16} /> : undefined,
-      tooltip: 'Second',
+      tooltip: 'Mines',
     },
   ]
-  
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
       {/* Icons and Labels - showing selected item styling */}
@@ -121,7 +121,7 @@ export default function SegmentedControlItemPreview({
           componentNameForCssVars="SegmentedControlItem"
         />
       </div>
-      
+
       {/* Labels Only - showing selected item styling */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl
@@ -136,7 +136,7 @@ export default function SegmentedControlItemPreview({
           componentNameForCssVars="SegmentedControlItem"
         />
       </div>
-      
+
       {/* Icons Only - showing selected item styling */}
       <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
         <SegmentedControl

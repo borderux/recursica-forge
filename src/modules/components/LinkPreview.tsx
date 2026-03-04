@@ -17,9 +17,9 @@ export default function LinkPreview({
 
     return (
         <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-            <Link href="#" layer={selectedLayer as any} forceState={state}>Link</Link>
-            <Link href="#" layer={selectedLayer as any} forceState={state} startIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Link</Link>
-            <Link href="#" layer={selectedLayer as any} forceState={state} endIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Link</Link>
+            <Link href="#" layer={selectedLayer as any} forceState={state}>Visit the Forge</Link>
+            <Link href="#" layer={selectedLayer as any} forceState={state} startIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Goblin Archives</Link>
+            <Link href="#" layer={selectedLayer as any} forceState={state} endIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Rune Codex</Link>
         </div>
     )
 }

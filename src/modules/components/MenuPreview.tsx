@@ -14,33 +14,33 @@ export default function MenuPreview({
   componentElevation,
 }: MenuPreviewProps) {
   const [updateKey, setUpdateKey] = useState(0)
-  
+
   // Listen for CSS variable updates to force re-render
   useEffect(() => {
     const handleCssVarUpdate = () => {
       setUpdateKey(prev => prev + 1)
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     window.addEventListener('cssVarsReset', handleCssVarUpdate)
-    
+
     // Also listen for style changes on documentElement
     const observer = new MutationObserver(handleCssVarUpdate)
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [])
-  
+
   return (
-    <div style={{ 
-      display: 'flex', 
+    <div style={{
+      display: 'flex',
       justifyContent: 'center',
       width: '100%',
       padding: '16px',
@@ -58,7 +58,7 @@ export default function MenuPreview({
           disabled={false}
           divider="bottom"
         >
-          Menu item 1
+          Temper Steel
         </MenuItem>
         <MenuItem
           variant="default"
@@ -68,7 +68,7 @@ export default function MenuPreview({
           disabled={false}
           divider="bottom"
         >
-          Menu item 2
+          Forge New Blade
         </MenuItem>
         <MenuItem
           variant="default"
@@ -78,7 +78,7 @@ export default function MenuPreview({
           disabled={false}
           divider="bottom"
         >
-          Menu item 3
+          Inspect Rune Stones
         </MenuItem>
         <MenuItem
           variant="default"
@@ -88,7 +88,7 @@ export default function MenuPreview({
           disabled={false}
           divider="bottom"
         >
-          Menu item 4
+          Smelt Ore
         </MenuItem>
         <MenuItem
           variant="default"
@@ -98,7 +98,7 @@ export default function MenuPreview({
           disabled={false}
           divider="bottom"
         >
-          Menu item 5
+          Enchant Weapon
         </MenuItem>
         <MenuItem
           variant="default"
@@ -108,7 +108,7 @@ export default function MenuPreview({
           disabled={false}
           divider="none"
         >
-          Menu item 6
+          Sharpen Edges
         </MenuItem>
       </Menu>
     </div>

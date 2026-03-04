@@ -106,7 +106,7 @@ export function ComponentsSidebar({
       { name: 'Radio button group', url: `${base}/radio-button-group` },
       { name: 'Radio button group item', url: `${base}/radio-button-group-item` },
       { name: 'Read only field', url: `${base}/read-only-field` },
-      { name: 'Search', url: `${base}/search` },
+      { name: 'Autocomplete', url: `${base}/autocomplete` },
       { name: 'Segmented control', url: `${base}/segmented-control` },
       { name: 'Segmented control item', url: `${base}/segmented-control-item` },
       { name: 'Slider', url: `${base}/slider` },

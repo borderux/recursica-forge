@@ -54,21 +54,21 @@ export default function CheckboxItemPreview({
         }} data-update-key={updateKey}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                 <CheckboxItem
-                    label="Unchecked Checkbox"
+                    label="Sharpen the blade"
                     checked={checked1}
                     onChange={setChecked1}
                     layer={selectedLayer as any}
                 />
 
                 <CheckboxItem
-                    label="Checked Checkbox"
+                    label="Polish the runes"
                     checked={checked2}
                     onChange={setChecked2}
                     layer={selectedLayer as any}
                 />
 
                 <CheckboxItem
-                    label="Indeterminate Checkbox"
+                    label="Inspect the quenching oil"
                     checked={indeterminate}
                     indeterminate
                     onChange={setIndeterminate}
@@ -76,7 +76,7 @@ export default function CheckboxItemPreview({
                 />
 
                 <CheckboxItem
-                    label="Disabled Unchecked"
+                    label="Forbidden enchantment"
                     checked={false}
                     disabled
                     onChange={() => { }}
@@ -84,7 +84,7 @@ export default function CheckboxItemPreview({
                 />
 
                 <CheckboxItem
-                    label="Disabled Checked"
+                    label="Ancient ward applied"
                     checked={true}
                     disabled
                     onChange={() => { }}

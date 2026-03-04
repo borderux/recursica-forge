@@ -15,36 +15,36 @@ export default function MenuItemPreview({
   componentElevation,
 }: MenuItemPreviewProps) {
   const [updateKey, setUpdateKey] = useState(0)
-  
+
   // Listen for CSS variable updates to force re-render
   useEffect(() => {
     const handleCssVarUpdate = () => {
       setUpdateKey(prev => prev + 1)
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     window.addEventListener('cssVarsReset', handleCssVarUpdate)
-    
+
     // Also listen for style changes on documentElement
     const observer = new MutationObserver(handleCssVarUpdate)
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [])
-  
+
   const ChevronRightIcon = iconNameToReactComponent('arrow-right')
   const FileIcon = iconNameToReactComponent('document-text')
-  
+
   return (
-    <div style={{ 
-      display: 'flex', 
+    <div style={{
+      display: 'flex',
       justifyContent: 'center',
       width: '100%',
       padding: '16px',
@@ -65,9 +65,9 @@ export default function MenuItemPreview({
           disabled={false}
           divider="bottom"
         >
-          Default item
+          Forge Hammer
         </MenuItem>
-        
+
         {/* Second item: Selected state - with leading icon, supporting text, no trailing icon */}
         <MenuItem
           key={`selected-${updateKey}`}
@@ -75,14 +75,14 @@ export default function MenuItemPreview({
           layer={selectedLayer as any}
           leadingIcon={FileIcon ? <FileIcon /> : undefined}
           leadingIconType="icon"
-          supportingText="Supporting text"
+          supportingText="Used for enchanting armor"
           selected={true}
           disabled={false}
           divider="bottom"
         >
-          Selected item
+          Runic Anvil
         </MenuItem>
-        
+
         {/* Third item: Disabled state */}
         <MenuItem
           key={`disabled-${updateKey}`}
@@ -94,7 +94,7 @@ export default function MenuItemPreview({
           disabled={true}
           divider="none"
         >
-          Disabled item
+          Crystal Quencher
         </MenuItem>
       </Menu>
     </div>

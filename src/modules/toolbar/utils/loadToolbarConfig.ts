@@ -27,6 +27,7 @@ import RadioButtonGroupConfig from '../configs/RadioButtonGroup.toolbar.json'
 import NumberInputConfig from '../configs/NumberInput.toolbar.json'
 import ModalConfig from '../configs/Modal.toolbar.json'
 import DropdownConfig from '../configs/Dropdown.toolbar.json'
+import AutocompleteConfig from '../configs/Autocomplete.toolbar.json'
 import TabsConfig from '../configs/Tabs.toolbar.json'
 import TooltipConfig from '../configs/Tooltip.toolbar.json'
 import LinkConfig from '../configs/Link.toolbar.json'
@@ -140,6 +141,8 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return ModalConfig as unknown as ToolbarConfig
       case 'dropdown':
         return DropdownConfig as unknown as ToolbarConfig
+      case 'autocomplete':
+        return AutocompleteConfig as unknown as ToolbarConfig
       case 'tabs':
         return TabsConfig as unknown as ToolbarConfig
       case 'tooltip':

@@ -17,7 +17,7 @@ export default function AvatarPreview({
   // Secondary style: solid, ghost (only for text and icon)
   const primaryStyle = selectedVariants.style || 'text'
   const secondaryStyle = selectedVariants['style-secondary'] || 'ghost'
-  
+
   // Build combined variant string
   let colorVariant: string
   if (primaryStyle === 'image') {
@@ -33,7 +33,7 @@ export default function AvatarPreview({
   // If variant is an icon variant and no fallback is provided, the Avatar component
   // will automatically use the "user" icon from Phosphor
   // If variant is "image", the Avatar component will automatically use the placeholder image
-  const fallback = colorVariant?.startsWith('icon') || colorVariant === 'image' ? undefined : 'AB'
+  const fallback = colorVariant?.startsWith('icon') || colorVariant === 'image' ? undefined : 'ZG'
 
   return (
     <div style={{
@@ -49,6 +49,7 @@ export default function AvatarPreview({
         elevation={componentElevation}
         shape="square"
         fallback={fallback}
+        src={colorVariant === 'image' ? '/avatar-goblin.png' : undefined}
       />
     </div>
   )

@@ -27,23 +27,23 @@ export default function AccordionPreview({
     })
   }, [allowMultiple])
 
-  const fruits = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry']
-  const iconNames = ['circle', 'square', 'diamond', 'circle', 'square']
-  
-  const items = fruits.map((fruit, index) => {
+  const chapters = ['The Forge Entrance', 'The Crystalline Abyss', 'The Thornroot Maze', 'The Dragon\'s Lair', 'The Northern Keep']
+  const iconNames = ['fire', 'diamond', 'tree', 'shield', 'crown']
+
+  const items = chapters.map((chapter, index) => {
     const itemId = `item-${index + 1}`
     const iconName = iconNames[index % iconNames.length]
     const IconComponent = iconNameToReactComponent(iconName)
     return {
       id: itemId,
-      title: fruit,
+      title: chapter,
       content: 'Replace slot with content (component instance)',
-      divider: index < fruits.length - 1, // Add divider between items except the last one
+      divider: index < chapters.length - 1, // Add divider between items except the last one
       open: openItems.has(itemId),
       icon: index % 2 === 0 ? IconComponent : undefined, // Add icon to alternating items (even indices)
     }
   })
-  
+
   return (
     <div style={{ width: '100%', maxWidth: 520 }}>
       <Accordion

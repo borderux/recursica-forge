@@ -44,7 +44,7 @@ export type ComponentName =
   | 'Panel'
   | 'Popover'
   | 'ReadOnlyField'
-  | 'Search'
+  | 'Autocomplete'
   | 'SegmentedControl'
   | 'SegmentedControlItem'
   | 'Slider'
