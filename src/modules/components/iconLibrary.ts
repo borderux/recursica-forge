@@ -392,9 +392,6 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'corners': CornersIn,
   'pencil-line': PencilLine,
   'border-outer': FrameCorners,
-  'circle-notch': CircleNotch,
-  'corners': CornersIn,
-  'pencil-line': PencilLine,
 }
 
 /**
