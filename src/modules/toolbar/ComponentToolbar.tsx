@@ -68,7 +68,7 @@ export default function ComponentToolbar({
       'Accordion', 'Avatar', 'Badge', 'Breadcrumb', 'Button', 'Card', 'Checkbox', 'Chip',
       'Date picker', 'Dropdown', 'File input', 'File upload', 'Hover card / Popover', 'Label', 'Link',
       'Loader', 'Menu', 'Menu item', 'Modal', 'Number input', 'Pagination', 'Panel',
-      'Radio', 'Read-only field', 'Search', 'Segmented control', 'Slider', 'Stepper', 'Switch',
+      'Radio', 'Read-only field', 'Autocomplete', 'Segmented control', 'Slider', 'Stepper', 'Switch',
       'Tabs', 'Text field', 'Time picker', 'Timeline', 'Toast', 'Tooltip', 'Transfer list',
     ]
 

@@ -18,6 +18,7 @@ import { CheckboxGroup } from '../../components/adapters/CheckboxGroup'
 import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
 import { RadioButtonGroup } from '../../components/adapters/RadioButtonGroup'
 import { Dropdown } from '../../components/adapters/Dropdown'
+import { Autocomplete } from '../../components/adapters/Autocomplete'
 import { Tooltip } from '../../components/adapters/Tooltip'
 import { Link } from '../../components/adapters/Link'
 import { Menu } from '../../components/adapters/Menu'
@@ -1032,14 +1033,26 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       ),
     },
     {
-      name: 'Search',
-      url: `${base}/search`,
-      render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input placeholder="Search…" style={{ padding: 8, borderRadius: 6, border: '1px solid var(--layers-layer-1-properties-border-color)' }} />
-          <button>Go</button>
-        </div>
-      ),
+      name: 'Autocomplete',
+      url: `${base}/autocomplete`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const items = [
+          { value: 'forge-hammer', label: 'Forge Hammer' },
+          { value: 'goblin-pickaxe', label: 'Goblin Pickaxe' },
+          { value: 'enchanted-anvil', label: 'Enchanted Anvil' },
+        ]
+        return (
+          <div style={{ width: '100%', maxWidth: 320 }}>
+            <Autocomplete
+              label="Forge Tool"
+              items={items}
+              layer={layer as any}
+              placeholder="Search goblin forge tools..."
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Segmented control',

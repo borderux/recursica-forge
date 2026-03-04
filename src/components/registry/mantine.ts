@@ -56,6 +56,9 @@ registerComponent('mantine', 'NumberInput', () => import('../adapters/mantine/Nu
 // Dropdown
 registerComponent('mantine', 'Dropdown', () => import('../adapters/mantine/Dropdown/Dropdown'))
 
+// Autocomplete
+registerComponent('mantine', 'Autocomplete', () => import('../adapters/mantine/Autocomplete/Autocomplete'))
+
 // Breadcrumb
 registerComponent('mantine', 'Breadcrumb', () => import('../adapters/mantine/Breadcrumb/Breadcrumb'))
 
