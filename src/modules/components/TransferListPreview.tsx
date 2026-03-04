@@ -63,7 +63,7 @@ export default function TransferListPreview({
             alignItems: 'center',
         }}>
             {layoutsToShow.map((layoutVariant) => (
-                <div key={layoutVariant} style={{ width: '100%', maxWidth: '680px' }}>
+                <div key={layoutVariant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                     <h2 style={h2Style}>
                         {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
                     </h2>
@@ -77,7 +77,7 @@ export default function TransferListPreview({
                         layout={layoutVariant}
                         searchable
                         searchPlaceholder="Filter items..."
-                        helpText={state === 'default' ? 'Select items and use the arrows to transfer them' : undefined}
+                        helpText={state !== 'error' ? 'Select items and use the arrows to transfer them' : undefined}
                         errorText={state === 'error' ? 'At least 3 materials must be selected for crafting' : undefined}
                     />
                 </div>

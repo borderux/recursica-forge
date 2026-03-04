@@ -8,6 +8,7 @@
 
 import { Suspense, useState, useMemo, useCallback } from 'react'
 import { useComponent } from '../hooks/useComponent'
+import { buildComponentCssVarPath } from '../utils/cssVarNames'
 import { Label } from './Label'
 import { AssistiveElement } from './AssistiveElement'
 import { TextField } from './TextField'
@@ -235,6 +236,13 @@ export function TransferList({
         </Label>
     ) : null
 
+    // Top-bottom margin from layout variant (like Textarea)
+    const topBottomMarginVar = buildComponentCssVarPath('TransferList', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')
+    const marginStyle = {
+        marginTop: `var(${topBottomMarginVar})`,
+        marginBottom: `var(${topBottomMarginVar})`,
+    }
+
     // If a library component is available, use it
     if (Component) {
         const componentBody = (
@@ -274,7 +282,7 @@ export function TransferList({
 
         if (layout === 'side-by-side' && labelElement) {
             return (
-                <div className={className} style={style}>
+                <div className={className} style={{ ...marginStyle, ...style }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, width: '100%' }}>
                         <div style={{ flexShrink: 0 }}>
                             {labelElement}
@@ -288,7 +296,7 @@ export function TransferList({
         }
 
         return (
-            <div className={className} style={style}>
+            <div className={className} style={{ ...marginStyle, ...style }}>
                 {labelElement}
                 {componentBody}
             </div>

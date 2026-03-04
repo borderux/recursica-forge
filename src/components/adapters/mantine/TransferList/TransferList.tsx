@@ -8,14 +8,14 @@
  */
 
 import { useMemo } from 'react'
-import { Label } from '../../Label'
 import { TextField } from '../../TextField'
 import { CheckboxItem } from '../../CheckboxItem'
 import { CheckboxGroup } from '../../CheckboxGroup'
 import { Badge } from '../../Badge'
 import { Button } from '../../Button'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
-import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { useCssVar } from '../../../hooks/useCssVar'
 import type { TransferListItem, TransferListData } from '../../TransferList'
 import type { ComponentLayer } from '../../../registry/types'
 import './TransferList.css'
@@ -170,27 +170,11 @@ export default function TransferList({
     const targetCountText = targetSelected.size > 0
         ? `${targetSelected.size} / ${data[1].length}`
         : `${data[1].length}`
-    // Box title text CSS vars
-    const titleFontFamilyVar = getComponentTextCssVar('TransferList', 'box-title-text', 'font-family')
-    const titleFontSizeVar = getComponentTextCssVar('TransferList', 'box-title-text', 'font-size')
-    const titleFontWeightVar = getComponentTextCssVar('TransferList', 'box-title-text', 'font-weight')
-    const titleLetterSpacingVar = getComponentTextCssVar('TransferList', 'box-title-text', 'letter-spacing')
-    const titleLineHeightVar = getComponentTextCssVar('TransferList', 'box-title-text', 'line-height')
-    const titleFontStyleVar = getComponentTextCssVar('TransferList', 'box-title-text', 'font-style')
-    const titleTextDecorationVar = getComponentTextCssVar('TransferList', 'box-title-text', 'text-decoration')
-    const titleTextTransformVar = getComponentTextCssVar('TransferList', 'box-title-text', 'text-transform')
 
-    const titleStyle: React.CSSProperties = {
-        fontFamily: `var(${titleFontFamilyVar})`,
-        fontSize: `var(${titleFontSizeVar})`,
-        fontWeight: `var(${titleFontWeightVar})` as any,
-        letterSpacing: `var(${titleLetterSpacingVar})`,
-        lineHeight: `var(${titleLineHeightVar})`,
-        fontStyle: `var(${titleFontStyleVar})`,
-        textDecoration: `var(${titleTextDecorationVar})`,
-        textTransform: `var(${titleTextTransformVar})` as any,
-        color: 'var(--transfer-list-header-color)',
-    }
+    // Heading level from CSS var (dropdown writes here)
+    const headingLevelVar = getComponentLevelCssVar('TransferList', 'heading-level')
+    const headingLevel = useCssVar(headingLevelVar, 'h4') as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headingLevel) ? headingLevel : 'h4') as keyof JSX.IntrinsicElements
 
     // Border CSS vars
     const stateName = state === 'error' ? 'error' : state === 'disabled' ? 'disabled' : 'default'
@@ -211,10 +195,10 @@ export default function TransferList({
         '--transfer-list-h-padding': `var(${getComponentLevelCssVar('TransferList', 'horizontal-padding')}, 12px)`,
         '--transfer-list-v-padding': `var(${getComponentLevelCssVar('TransferList', 'vertical-padding')}, 8px)`,
         '--transfer-list-gap': `var(${getComponentLevelCssVar('TransferList', 'gap')}, 12px)`,
-        '--transfer-list-item-height': `var(${getComponentLevelCssVar('TransferList', 'item-height')}, auto)`,
-        '--transfer-list-min-height': `var(${getComponentLevelCssVar('TransferList', 'min-height')}, 200px)`,
-        '--transfer-list-min-width': `var(${getComponentLevelCssVar('TransferList', 'min-width')}, 200px)`,
-        '--transfer-list-max-width': `var(${getComponentLevelCssVar('TransferList', 'max-width')}, none)`,
+        '--transfer-list-title-filter-gap': `var(${getComponentLevelCssVar('TransferList', 'title-filter-gap')}, 4px)`,
+        '--transfer-list-filter-items-gap': `var(${getComponentLevelCssVar('TransferList', 'filter-items-gap')}, 4px)`,
+        '--transfer-list-height': `var(${getComponentLevelCssVar('TransferList', 'height')}, 200px)`,
+        '--transfer-list-width': `var(${getComponentLevelCssVar('TransferList', 'width')}, 200px)`,
     } as React.CSSProperties
 
     return (
@@ -222,17 +206,11 @@ export default function TransferList({
             <div className="recursica-transfer-list-body">
                 {/* Source pane */}
                 <div className="recursica-transfer-list-pane">
-                    {/* Pane header with label and badge count */}
+                    {/* Pane header with title and badge count */}
                     <div className="recursica-transfer-list-pane-header">
-                        <Label
-                            variant="default"
-                            layout="stacked"
-                            align="left"
-                            layer={layer}
-                            style={{ ...titleStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
-                        >
+                        <HeadingTag className="recursica-transfer-list-title">
                             {sourceLabel}
-                        </Label>
+                        </HeadingTag>
                         <Badge size="small" layer={layer}>
                             {sourceCountText}
                         </Badge>
@@ -279,17 +257,11 @@ export default function TransferList({
 
                 {/* Target pane */}
                 <div className="recursica-transfer-list-pane">
-                    {/* Pane header with label and badge count */}
+                    {/* Pane header with title and badge count */}
                     <div className="recursica-transfer-list-pane-header">
-                        <Label
-                            variant="default"
-                            layout="stacked"
-                            align="left"
-                            layer={layer}
-                            style={{ ...titleStyle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}
-                        >
+                        <HeadingTag className="recursica-transfer-list-title">
                             {targetLabel}
-                        </Label>
+                        </HeadingTag>
                         <Badge size="small" layer={layer}>
                             {targetCountText}
                         </Badge>

@@ -11835,10 +11835,26 @@
         "variants": {
           "layouts": {
             "stacked": {
-              "properties": {}
+              "properties": {
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.default}",
+                    "unit": "px"
+                  }
+                }
+              }
             },
             "side-by-side": {
-              "properties": {}
+              "properties": {
+                "top-bottom-margin": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 0,
+                    "unit": "px"
+                  }
+                }
+              }
             }
           },
           "states": {
@@ -12149,66 +12165,36 @@
               "unit": "px"
             }
           },
-          "item-height": {
-            "$type": "dimension",
-            "$value": {
-              "value": 36,
-              "unit": "px"
-            }
-          },
-          "min-height": {
+          "height": {
             "$type": "dimension",
             "$value": {
               "value": 200,
               "unit": "px"
             }
           },
-          "max-width": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{ui-kit.globals.form.field.size.max-width}",
-              "unit": "px"
-            }
-          },
-          "min-width": {
+          "width": {
             "$type": "dimension",
             "$value": {
               "value": 200,
               "unit": "px"
             }
           },
-          "box-title-text": {
-            "font-family": {
-              "$type": "string",
-              "$value": "{brand.typography.h5.fontFamily}"
-            },
-            "font-size": {
-              "$type": "dimension",
-              "$value": "{brand.typography.h5.fontSize}"
-            },
-            "font-weight": {
-              "$type": "number",
-              "$value": "{brand.typography.h5.fontWeight}"
-            },
-            "letter-spacing": {
-              "$type": "string",
-              "$value": "{brand.typography.h5.letterSpacing}"
-            },
-            "line-height": {
-              "$type": "number",
-              "$value": "{brand.typography.h5.lineHeight}"
-            },
-            "font-style": {
-              "$type": "string",
-              "$value": "{brand.typography.h5.fontStyle}"
-            },
-            "text-decoration": {
-              "$type": "string",
-              "$value": "{brand.typography.h5.textDecoration}"
-            },
-            "text-transform": {
-              "$type": "string",
-              "$value": "{brand.typography.h5.textCase}"
+          "heading-level": {
+            "$type": "string",
+            "$value": "h4"
+          },
+          "title-filter-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.sm}",
+              "unit": "px"
+            }
+          },
+          "filter-items-gap": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.sm}",
+              "unit": "px"
             }
           }
         }
