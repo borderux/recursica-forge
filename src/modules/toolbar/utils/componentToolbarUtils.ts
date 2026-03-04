@@ -274,7 +274,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
           })
 
           // Also traverse any other keys that aren't styles/sizes/layouts (for backward compatibility)
-          const otherKeys = Object.keys(value).filter(k => !k.startsWith('$') && k !== 'styles' && k !== 'sizes' && k !== 'layouts')
+          const otherKeys = Object.keys(value).filter(k => !k.startsWith('$') && k !== 'styles' && k !== 'sizes' && k !== 'layouts' && k !== 'orientation' && k !== 'fill-width' && k !== 'types' && k !== 'states')
           otherKeys.forEach(otherKey => {
             const otherObj = (value as any)[otherKey]
             if (otherObj && typeof otherObj === 'object') {
@@ -437,7 +437,7 @@ export function parseComponentStructure(componentName: string): ComponentStructu
         // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text, min-max-label, read-only-value, value, placeholder)
         // Text property groups are objects containing text-related properties (font-family, font-size, etc.)
         // We need to create a prop for the parent group so it shows up in the toolbar
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder']
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder']
         const isTextPropertyGroup = textPropertyGroupNames.includes(key.toLowerCase()) &&
           typeof value === 'object' &&
           value !== null &&

@@ -1,0 +1,280 @@
+/* ==========================================================================
+   Recursica Stepper – Mantine CSS Overrides
+   
+   Uses CSS custom properties set on the root .recursica-stepper element.
+   Targets Mantine's Stepper class names with high specificity.
+   ========================================================================== */
+
+/* ---- Indicator (stepIcon) ---- */
+
+/* Completed step indicator */
+.recursica-stepper .mantine-Stepper-step[data-completed] .mantine-Stepper-stepIcon {
+    background-color: var(--stepper-completed-indicator-bg) !important;
+    color: var(--stepper-completed-indicator-text) !important;
+    border: var(--stepper-indicator-border-size, 2px) solid var(--stepper-completed-indicator-border-color) !important;
+    border-radius: var(--stepper-indicator-border-radius, 50%) !important;
+    width: var(--stepper-indicator-size, 42px) !important;
+    height: var(--stepper-indicator-size, 42px) !important;
+    min-width: var(--stepper-indicator-size, 42px) !important;
+    min-height: var(--stepper-indicator-size, 42px) !important;
+    font-size: var(--stepper-step-number-font-size, 16px) !important;
+    box-sizing: content-box !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Current step indicator */
+.recursica-stepper .mantine-Stepper-step[data-progress] .mantine-Stepper-stepIcon {
+    background-color: var(--stepper-current-indicator-bg) !important;
+    color: var(--stepper-current-indicator-text) !important;
+    border: var(--stepper-indicator-border-size, 2px) solid var(--stepper-current-indicator-border-color) !important;
+    border-radius: var(--stepper-indicator-border-radius, 50%) !important;
+    width: var(--stepper-indicator-size, 42px) !important;
+    height: var(--stepper-indicator-size, 42px) !important;
+    min-width: var(--stepper-indicator-size, 42px) !important;
+    min-height: var(--stepper-indicator-size, 42px) !important;
+    font-size: var(--stepper-step-number-font-size, 16px) !important;
+    box-sizing: content-box !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Upcoming step indicator */
+.recursica-stepper .mantine-Stepper-step:not([data-completed]):not([data-progress]) .mantine-Stepper-stepIcon {
+    background-color: var(--stepper-upcoming-indicator-bg) !important;
+    color: var(--stepper-upcoming-indicator-text) !important;
+    border: var(--stepper-indicator-border-size, 2px) solid var(--stepper-upcoming-indicator-border-color) !important;
+    border-radius: var(--stepper-indicator-border-radius, 50%) !important;
+    width: var(--stepper-indicator-size, 42px) !important;
+    height: var(--stepper-indicator-size, 42px) !important;
+    min-width: var(--stepper-indicator-size, 42px) !important;
+    min-height: var(--stepper-indicator-size, 42px) !important;
+    font-size: var(--stepper-step-number-font-size, 16px) !important;
+    box-sizing: content-box !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* ---- Connector / Separator ---- */
+
+/* Override Mantine's separator height/width based on orientation */
+
+/* Horizontal: hide Mantine separator, use ::after pseudo-elements on steps */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] {
+    align-items: flex-start !important;
+    gap: var(--stepper-step-gap, 0px) !important;
+}
+
+.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-separator {
+    display: none !important;
+}
+
+/* Vertical: completed connector (verticalSeparator inside completed steps) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step[data-completed] .mantine-Stepper-verticalSeparator {
+    width: var(--stepper-completed-connector-size, 2px) !important;
+    background-color: var(--stepper-completed-connector-color) !important;
+    border: none !important;
+}
+
+/* Vertical: upcoming connector (verticalSeparator inside current/upcoming steps) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step[data-progress] .mantine-Stepper-verticalSeparator,
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step:not([data-completed]):not([data-progress]) .mantine-Stepper-verticalSeparator {
+    width: var(--stepper-upcoming-connector-size, 2px) !important;
+    background-color: var(--stepper-upcoming-connector-color) !important;
+    border: none !important;
+}
+
+/* Also hide sibling separators in vertical mode (Mantine may render both) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"]>.mantine-Stepper-separator {
+    display: none !important;
+}
+
+/* ---- Label-Description gap ---- */
+.recursica-stepper .mantine-Stepper-stepDescription {
+    margin-top: var(--stepper-label-description-gap, 2px) !important;
+}
+
+/* ---- Max text width ---- */
+.recursica-stepper .mantine-Stepper-stepBody {
+    max-width: var(--stepper-max-text-width, none) !important;
+    overflow: hidden !important;
+}
+
+/* ---- Labels ---- */
+
+/* Completed step label */
+.recursica-stepper .mantine-Stepper-step[data-completed] .mantine-Stepper-stepLabel {
+    color: var(--stepper-completed-label-color) !important;
+    font-family: var(--stepper-label-font-family, inherit) !important;
+    font-size: var(--stepper-label-font-size, 14px) !important;
+    font-weight: var(--stepper-label-font-weight, 500) !important;
+    letter-spacing: var(--stepper-label-letter-spacing, normal) !important;
+    line-height: var(--stepper-label-line-height, 1.5) !important;
+    text-decoration: var(--stepper-label-text-decoration, none) !important;
+    text-transform: var(--stepper-label-text-transform, none) !important;
+    font-style: var(--stepper-label-font-style, normal) !important;
+}
+
+/* Current step label */
+.recursica-stepper .mantine-Stepper-step[data-progress] .mantine-Stepper-stepLabel {
+    color: var(--stepper-current-label-color) !important;
+    font-family: var(--stepper-label-font-family, inherit) !important;
+    font-size: var(--stepper-label-font-size, 14px) !important;
+    font-weight: var(--stepper-label-font-weight, 500) !important;
+    letter-spacing: var(--stepper-label-letter-spacing, normal) !important;
+    line-height: var(--stepper-label-line-height, 1.5) !important;
+    text-decoration: var(--stepper-label-text-decoration, none) !important;
+    text-transform: var(--stepper-label-text-transform, none) !important;
+    font-style: var(--stepper-label-font-style, normal) !important;
+}
+
+/* Upcoming step label */
+.recursica-stepper .mantine-Stepper-step:not([data-completed]):not([data-progress]) .mantine-Stepper-stepLabel {
+    color: var(--stepper-upcoming-label-color) !important;
+    font-family: var(--stepper-label-font-family, inherit) !important;
+    font-size: var(--stepper-label-font-size, 14px) !important;
+    font-weight: var(--stepper-label-font-weight, 500) !important;
+    letter-spacing: var(--stepper-label-letter-spacing, normal) !important;
+    line-height: var(--stepper-label-line-height, 1.5) !important;
+    text-decoration: var(--stepper-label-text-decoration, none) !important;
+    text-transform: var(--stepper-label-text-transform, none) !important;
+    font-style: var(--stepper-label-font-style, normal) !important;
+}
+
+/* ---- Descriptions ---- */
+
+/* Completed step description */
+.recursica-stepper .mantine-Stepper-step[data-completed] .mantine-Stepper-stepDescription {
+    color: var(--stepper-completed-desc-color) !important;
+    font-family: var(--stepper-desc-font-family, inherit) !important;
+    font-size: var(--stepper-desc-font-size, 12px) !important;
+    font-weight: var(--stepper-desc-font-weight, 400) !important;
+    letter-spacing: var(--stepper-desc-letter-spacing, normal) !important;
+    line-height: var(--stepper-desc-line-height, 1.5) !important;
+    text-decoration: var(--stepper-desc-text-decoration, none) !important;
+    text-transform: var(--stepper-desc-text-transform, none) !important;
+    font-style: var(--stepper-desc-font-style, normal) !important;
+}
+
+/* Current step description */
+.recursica-stepper .mantine-Stepper-step[data-progress] .mantine-Stepper-stepDescription {
+    color: var(--stepper-current-desc-color) !important;
+    font-family: var(--stepper-desc-font-family, inherit) !important;
+    font-size: var(--stepper-desc-font-size, 12px) !important;
+    font-weight: var(--stepper-desc-font-weight, 400) !important;
+    letter-spacing: var(--stepper-desc-letter-spacing, normal) !important;
+    line-height: var(--stepper-desc-line-height, 1.5) !important;
+    text-decoration: var(--stepper-desc-text-decoration, none) !important;
+    text-transform: var(--stepper-desc-text-transform, none) !important;
+    font-style: var(--stepper-desc-font-style, normal) !important;
+}
+
+/* Upcoming step description */
+.recursica-stepper .mantine-Stepper-step:not([data-completed]):not([data-progress]) .mantine-Stepper-stepDescription {
+    color: var(--stepper-upcoming-desc-color) !important;
+    font-family: var(--stepper-desc-font-family, inherit) !important;
+    font-size: var(--stepper-desc-font-size, 12px) !important;
+    font-weight: var(--stepper-desc-font-weight, 400) !important;
+    letter-spacing: var(--stepper-desc-letter-spacing, normal) !important;
+    line-height: var(--stepper-desc-line-height, 1.5) !important;
+    text-decoration: var(--stepper-desc-text-decoration, none) !important;
+    text-transform: var(--stepper-desc-text-transform, none) !important;
+    font-style: var(--stepper-desc-font-style, normal) !important;
+}
+
+/* ---- Spacing ---- */
+
+/* Horizontal orientation: equal-width steps, text below indicator, ::after connectors */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-step {
+    flex: 1 !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    position: relative !important;
+}
+
+/* Completed step connector: ::after on completed steps (except last) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-step[data-completed]:not(:last-child)::after {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    top: calc((var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
+    transform: translateY(-50%) !important;
+    left: calc(50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
+    right: calc(-50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2 - var(--stepper-step-gap, 0px)) !important;
+    height: var(--stepper-completed-connector-size, 2px) !important;
+    background-color: var(--stepper-completed-connector-color) !important;
+    z-index: 0 !important;
+}
+
+/* Upcoming step connector: ::after on current and upcoming steps (except last) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-step[data-progress]:not(:last-child)::after,
+.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-step:not([data-completed]):not([data-progress]):not(:last-child)::after {
+    content: '' !important;
+    display: block !important;
+    position: absolute !important;
+    top: calc((var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
+    transform: translateY(-50%) !important;
+    left: calc(50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
+    right: calc(-50% + (var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2 - var(--stepper-step-gap, 0px)) !important;
+    height: var(--stepper-upcoming-connector-size, 2px) !important;
+    background-color: var(--stepper-upcoming-connector-color) !important;
+    z-index: 0 !important;
+}
+
+.recursica-stepper .mantine-Stepper-steps[data-orientation="horizontal"] .mantine-Stepper-stepBody {
+    margin-left: 0 !important;
+    margin-top: var(--stepper-indicator-label-gap, 8px) !important;
+    text-align: center !important;
+}
+
+/* Vertical orientation: center label+description on the indicator */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step {
+    align-items: flex-start !important;
+    overflow: visible !important;
+    position: relative !important;
+    min-height: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Make stepWrapper static so verticalSeparator positions relative to .step */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-stepWrapper {
+    position: static !important;
+}
+
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-stepBody {
+    margin-left: var(--stepper-indicator-label-gap, 8px) !important;
+}
+
+/* Vertical separator: extend from bottom of indicator to bottom of step + through margin gap */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-verticalSeparator {
+    position: absolute !important;
+    top: calc(var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) !important;
+    bottom: calc(-1 * var(--stepper-step-gap, 16px)) !important;
+    left: calc((var(--stepper-indicator-size, 42px) + var(--stepper-indicator-border-size, 2px) * 2) / 2) !important;
+    transform: translateX(-50%) !important;
+    height: auto !important;
+}
+
+/* Step wrapper spacing — vertical uses margin for gap (separator extends into margin) */
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] {
+    gap: 0 !important;
+}
+
+.recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step:not(:last-child) {
+    margin-bottom: var(--stepper-step-gap, 16px) !important;
+}
+
+/* ---- Completed icon sizing ---- */
+.recursica-stepper .mantine-Stepper-stepCompletedIcon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: inherit !important;
+}
+
+.recursica-stepper .mantine-Stepper-stepCompletedIcon svg {
+    width: var(--stepper-completed-icon-size, 60%) !important;
+    height: var(--stepper-completed-icon-size, 60%) !important;
+    color: inherit !important;
+    fill: currentColor !important;
+}
