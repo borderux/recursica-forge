@@ -36,9 +36,9 @@ import {
   Article,
   Asterisk,
   Bell,
-
   BugBeetle as Bug,
   CalendarBlank,
+  CaretDoubleLeft,
   CaretDoubleRight,
   CaretDown,
   CaretLeft,
@@ -71,6 +71,7 @@ import {
   FileSvg,
   FileText,
   FrameCorners,
+  FunnelSimple,
   GoogleLogo,
   GridFour,
   Heart,
@@ -115,6 +116,7 @@ import {
   TextAlignLeft,
   TextAlignRight,
   TextColumns,
+  TextH,
   TextItalic,
   TextStrikethrough,
   TextT,
@@ -224,6 +226,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'caret-down': CaretDown,
   'caret-left': CaretLeft,
   'caret-right': CaretRight,
+  'chevron-double-left': CaretDoubleLeft,
   'chevron-double-right': CaretDoubleRight,
   'arrows-up-down': ArrowsVertical,
   'arrows-vertical': ArrowsVertical,
@@ -378,6 +381,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'arrows-out-line-vertical': ArrowsOutLineVertical,
   'sliders-horizontal': SlidersHorizontal,
   'faders-horizontal': FadersHorizontal,
+  'funnel-simple': FunnelSimple,
+  'filter': FunnelSimple,
   'split-vertical': SplitVertical,
   'line-segment': LineSegment,
   'stop': Stop,
@@ -392,6 +397,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'corners': CornersIn,
   'pencil-line': PencilLine,
   'border-outer': FrameCorners,
+  'text-h': TextH,
 }
 
 /**

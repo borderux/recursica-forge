@@ -119,5 +119,8 @@ registerComponent('mantine', 'Loader', () => import('../adapters/mantine/Loader/
 // Stepper
 registerComponent('mantine', 'Stepper', () => import('../adapters/mantine/Stepper/Stepper'))
 
+// TransferList
+registerComponent('mantine', 'TransferList', () => import('../adapters/mantine/TransferList/TransferList'))
+
 // Add more components as they're implemented
 
