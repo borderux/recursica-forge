@@ -76,6 +76,7 @@ import {
   FunnelSimple,
   GoogleLogo,
   GridFour,
+  Hammer,
   Heart,
   House,
   Info,
@@ -115,6 +116,7 @@ import {
   Stop,
   Sun,
   Swap,
+  Sword,
   TextAUnderline,
   TextAa,
   TextAlignCenter,
@@ -413,6 +415,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'crown': Crown,
   'lightning': Lightning,
   'sparkle': Sparkle,
+  'sword': Sword,
+  'hammer': Hammer,
 }
 
 /**
