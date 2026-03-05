@@ -65,7 +65,6 @@ function buildCssVars(layer: string, bulletType: string) {
         '--timeline-active-connector-size': `var(${timelinePropVar('active-connector-size')})`,
         '--timeline-inactive-connector-size': `var(${timelinePropVar('inactive-connector-size')})`,
         // Spacing (from parent timeline)
-        '--timeline-item-gap': `var(${timelinePropVar('item-gap')})`,
         '--timeline-bullet-content-gap': `var(${timelinePropVar('bullet-content-gap')})`,
         '--timeline-max-text-width': `var(${timelinePropVar('max-text-width')})`,
         // Text colors (from parent timeline)

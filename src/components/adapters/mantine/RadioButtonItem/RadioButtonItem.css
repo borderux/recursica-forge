@@ -8,10 +8,7 @@
     font-size: var(--radio-item-font-size) !important;
     font-weight: var(--radio-item-font-weight) !important;
     line-height: var(--radio-item-line-height) !important;
-    letter-spacing: var(--radio-item-letter-spacing) !important;
-    font-style: var(--radio-item-font-style) !important;
-    text-decoration: var(--radio-item-text-decoration) !important;
-    text-transform: var(--radio-item-text-transform) !important;
+
     color: var(--radio-item-color) !important;
     min-height: calc(var(--radio-size) + 2 * var(--radio-border-width, 0px)) !important;
     max-width: var(--radio-item-max-width) !important;
