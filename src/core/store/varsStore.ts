@@ -1070,6 +1070,12 @@ class VarsStore {
         localStorage.removeItem('rf:fonts')
       } catch { }
 
+      // Clear deleted color families and order so all original scales reappear
+      try {
+        localStorage.removeItem('deleted-color-families')
+        localStorage.removeItem('color-family-order')
+      } catch { }
+
       writeLSJson(STORAGE_KEYS.tokens, tokensImport)
       writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
       writeLSJson(STORAGE_KEYS.uikit, uikitImport)
