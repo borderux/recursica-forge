@@ -80,6 +80,7 @@ import {
   House,
   Info,
   Layout,
+  Lightning,
   LineSegment,
   Link,
   List,
@@ -103,6 +104,7 @@ import {
   Shield,
   SignOut,
   SlidersHorizontal,
+  Sparkle,
   SplitHorizontal,
   SplitVertical,
   Square,
@@ -409,6 +411,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'tree': Tree,
   'shield': Shield,
   'crown': Crown,
+  'lightning': Lightning,
+  'sparkle': Sparkle,
 }
 
 /**
