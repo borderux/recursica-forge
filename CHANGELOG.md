@@ -1,5 +1,80 @@
 # recursica-forge
 
+## 0.4.0
+
+### Minor Changes
+
+- 9e51c83: All core components are now feature complete.
+
+  ### Fixes & Improvements
+
+  - **Timeline**: Fixed right-aligned timeline layout issues (itemTitle/itemContent display, itemBody flex alignment). Added `title-description-gap` and `description-timestamp-gap` spacing tokens to the toolbar. Removed non-existent `item-gap` property reference from TimelineBulletPreview.
+
+  - **CSS Variable Audit Fixes**: Removed references to non-existent text properties (`letter-spacing`, `font-style`, `text-decoration`, `text-transform`) in CheckboxItem and RadioButtonItem adapters across Mantine, Material, and Carbon. Fixed PanelPreview typography variables (`letter-spacing` → `font-letter-spacing`).
+
+  - **Icon Library**: Added `Fire`, `Tree`, `Shield`, `Crown`, `Lightning`, `Sparkle`, `Sword`, and `Hammer` Phosphor icons to the icon library. Removed duplicate `TextAUnderline` import.
+
+  - **Preview Icon Updates**: Replaced inline SVG arrow icons with contextual Phosphor icons across ButtonPreview, ChipPreview, SegmentedControlPreview, SegmentedControlItemPreview, and TabsPreview. Icons now match their associated text labels (e.g., Forge→fire, Mines→diamond, Armory→shield, Treasury→crown).
+
+  - **Goblin Text Updates**: Updated AccordionPreview, AccordionItemPreview, and ButtonPreview with thematic goblin-flavored sample content.
+
+  - **Removed "Show Unmapped" Feature**: Removed the toggle and related filtering logic from ComponentsSidebar, ComponentToolbar, and PreviewPage as it was non-functional.
+
+  - **Test Fix**: Fixed TransferList toolbar test (`renders items in correct panes`) by wrapping checkbox assertion in `waitFor` to account for Suspense lazy-loading.
+
+### Patch Changes
+
+- cc3cb05: Add Loader component with Mantine, Material UI, and Carbon adapters
+
+  - Implement Loader component with three loader types (oval, bars, dots) displayed side by side
+  - Add size variants (small, default, large) with per-variant size, thickness, and border-radius controls
+  - Add toolbar configuration with indicator color picker, size slider (8–100px), thickness slider (1–30px), and border-radius token selector
+  - Add preview component rendering all three sizes with H2 headings
+  - Override Mantine v7 hashed class names via CSS to apply thickness and border-radius to internal loader elements
+  - Fix pre-existing `Corners` icon import bug in iconLibrary (replaced with `CornersIn`)
+  - Add Loader toolbar integration tests
+
+- a3aaf71: Add Transfer List component
+
+  - New Transfer List component built from Recursica primitives (TextField, CheckboxItem, CheckboxGroup, Badge, Button, Label)
+  - Supports stacked and side-by-side layouts with transfer actions between source and target panes
+  - Searchable/filterable item lists with grouped items and item counts via Badge
+  - Toolbar controls for border (size, radius, color), box (background, header color, title heading level), dimensions (box gap, title-filter gap, filter-items gap, height, width), and padding (horizontal, vertical)
+  - Height and width sliders with 200–500px range per pane
+  - State variants: default, focus, error, disabled
+  - Layer support (layer-0 through layer-3) with per-layer color tokens
+  - Top/bottom margins for both stacked and side-by-side layouts
+  - Preview page with centered layout and assistive text for all non-error states
+  - Toolbar and component rendering tests
+
+- 070b4a2: Add Timeline and Timeline Bullet components
+
+  - Add new Timeline component (Mantine adapter) with left-aligned and right-aligned layouts
+  - Add Timeline Bullet component with four variants: default (dot), icon, icon-alternative, and avatar
+  - Avatar bullet size dynamically maps to Avatar component size variants (small, default, large)
+  - Active/inactive states with separate opacity, background, border, and icon color tokens per bullet variant
+  - Connector (line) styling with active/inactive colors and configurable thickness
+  - Title, description, and timestamp text sections with independent text style and color controls per layer
+  - Spacing controls: title-description gap, description-timestamp gap, bullet-content gap, and max text width
+  - Toolbar configs for both Timeline and Timeline Bullet with grouped controls (connector, colors, spacing, text styles, dimensions, avatar, border, background)
+  - Reset for Timeline and Timeline Bullet operates independently
+  - Bullet column auto-sizes to the widest bullet variant; bullets and connectors are centered within the column
+  - Right-aligned layout: text right-aligned with constrained max-width, bullets and connectors on the right
+  - Unitless CSS variable resolution for opacity and scale properties in the UIKit resolver
+  - Icon-alternative bullet colors updated to use neutral palette references
+  - Avatar bullet colors updated to use palette-2 references
+
+- cc3cb05: Stepper component: horizontal and vertical connector layout fixes, split completed/upcoming connector styling, size variant step indicator updates, description text styling, vertical/horizontal spacing properties (step-gap, indicator-label-gap, label-description-gap, max-text-width) moved to orientation variants for independent control, vertical indicator top-alignment, toolbar group consolidation (merged connector props into step groups), and orientation variant discovery fix in toolbar utility.
+- 4efa591: Add Autocomplete component and fix Badge toolbar
+
+  - Add new Autocomplete component (Mantine adapter) with filterable input, menu dropdown, clear button, and placeholder opacity support
+  - Replace Search component with Autocomplete in the component sidebar and routing
+  - Update sample text across component previews to use goblin-themed placeholder copy
+  - Add goblin avatar image for Avatar preview
+  - Fix Badge text color not appearing in toolbar: group Background and Text color under a unified "Colors" section
+  - Fix palette on-tone color resolution for correct Badge text contrast
+  - Extend BackgroundToolbar to support optional text-color control
+
 ## 0.3.11
 
 ### Patch Changes
