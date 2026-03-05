@@ -1,0 +1,385 @@
+/* ==========================================================================
+   Recursica Timeline – Mantine CSS Overrides
+   
+   Uses CSS custom properties set on the root .recursica-timeline element.
+   Targets Mantine's Timeline class names with high specificity.
+   ========================================================================== */
+
+/* ---- Root Timeline ---- */
+.recursica-timeline.mantine-Timeline-root {
+    /* Column width = largest bullet across all variants so nothing overlaps */
+    --_tl-bullet-size: max(var(--timeline-default-bullet-size, 20px),
+            var(--timeline-icon-bullet-size, 24px),
+            var(--timeline-icon-alt-bullet-size, 28px),
+            var(--timeline-avatar-bullet-size, 40px));
+    --_tl-line-width: var(--timeline-active-connector-size, 2px);
+}
+
+/* ---- Center all bullets horizontally in the bullet column (left-aligned) ---- */
+.recursica-timeline .mantine-Timeline-itemBullet {
+    left: calc(var(--_tl-bullet-size) / 2) !important;
+    transform: translateX(-50%) !important;
+}
+
+/* ---- Center connectors (::before lines) in the bullet column (left-aligned) ---- */
+.recursica-timeline .mantine-Timeline-item::before {
+    inset-inline-start: calc(var(--_tl-bullet-size) / 2) !important;
+    transform: translateX(-50%) !important;
+}
+
+/* ---- Right-aligned: bullet on the right side ---- */
+.recursica-timeline[data-align="right"] .mantine-Timeline-itemBullet {
+    left: auto !important;
+    right: calc(var(--_tl-bullet-size) / 2) !important;
+    transform: translateX(50%) !important;
+}
+
+/* ---- Right-aligned: connector on the right side ---- */
+.recursica-timeline[data-align="right"] .mantine-Timeline-item::before {
+    inset-inline-start: auto !important;
+    inset-inline-end: calc(var(--_tl-bullet-size) / 2) !important;
+    transform: translateX(50%) !important;
+}
+
+/* ---- Default Bullet (no custom child) ---- */
+
+/* Active default bullet */
+.recursica-timeline .mantine-Timeline-item[data-active] .mantine-Timeline-itemBullet:not([data-with-child]),
+.recursica-timeline .mantine-Timeline-item[data-line-active] .mantine-Timeline-itemBullet:not([data-with-child]) {
+    background-color: var(--timeline-default-active-bullet-bg) !important;
+    border-color: var(--timeline-default-active-bullet-border) !important;
+    border-width: var(--timeline-default-bullet-border-size, 2px) !important;
+    border-style: solid !important;
+    border-radius: var(--timeline-default-bullet-border-radius, 50%) !important;
+    width: var(--timeline-default-bullet-size, 20px) !important;
+    height: var(--timeline-default-bullet-size, 20px) !important;
+    min-width: var(--timeline-default-bullet-size, 20px) !important;
+    min-height: var(--timeline-default-bullet-size, 20px) !important;
+}
+
+/* Inactive default bullet */
+.recursica-timeline .mantine-Timeline-item:not([data-active]):not([data-line-active]) .mantine-Timeline-itemBullet:not([data-with-child]) {
+    background-color: var(--timeline-default-inactive-bullet-bg) !important;
+    border-color: var(--timeline-default-inactive-bullet-border) !important;
+    border-width: var(--timeline-default-bullet-border-size, 2px) !important;
+    border-style: solid !important;
+    border-radius: var(--timeline-default-bullet-border-radius, 50%) !important;
+    width: var(--timeline-default-bullet-size, 20px) !important;
+    height: var(--timeline-default-bullet-size, 20px) !important;
+    min-width: var(--timeline-default-bullet-size, 20px) !important;
+    min-height: var(--timeline-default-bullet-size, 20px) !important;
+}
+
+/* ---- Icon Bullet (custom child with icon, no ThemeIcon wrapper) ---- */
+
+/* Bullet container for icon items — clear Mantine defaults */
+.recursica-timeline .mantine-Timeline-itemBullet[data-with-child] {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+/* Active icon bullet container (exclude icon-alt and avatar) */
+.recursica-timeline .mantine-Timeline-item[data-active] .mantine-Timeline-itemBullet[data-with-child]:not(:has(.recursica-timeline-icon-alt-bullet)):not(:has(.recursica-timeline-avatar-bullet)),
+.recursica-timeline .mantine-Timeline-item[data-line-active] .mantine-Timeline-itemBullet[data-with-child]:not(:has(.recursica-timeline-icon-alt-bullet)):not(:has(.recursica-timeline-avatar-bullet)) {
+    color: var(--timeline-icon-active-icon-color) !important;
+    background-color: var(--timeline-icon-active-bullet-bg, transparent) !important;
+    border: var(--timeline-icon-bullet-border-size, 2px) solid var(--timeline-icon-active-bullet-border) !important;
+    border-radius: var(--timeline-icon-bullet-border-radius, 50%) !important;
+    width: var(--timeline-icon-bullet-size, 24px) !important;
+    height: var(--timeline-icon-bullet-size, 24px) !important;
+    min-width: var(--timeline-icon-bullet-size, 24px) !important;
+    min-height: var(--timeline-icon-bullet-size, 24px) !important;
+}
+
+/* Icon size inside icon bullets */
+.recursica-timeline .mantine-Timeline-itemBullet[data-with-child]:not(:has(.recursica-timeline-icon-alt-bullet)):not(:has(.recursica-timeline-avatar-bullet)) svg {
+    width: var(--timeline-icon-icon-size, 16px) !important;
+    height: var(--timeline-icon-icon-size, 16px) !important;
+}
+
+/* Inactive icon bullet container (exclude icon-alt and avatar) */
+.recursica-timeline .mantine-Timeline-item:not([data-active]):not([data-line-active]) .mantine-Timeline-itemBullet[data-with-child]:not(:has(.recursica-timeline-icon-alt-bullet)):not(:has(.recursica-timeline-avatar-bullet)) {
+    color: var(--timeline-icon-inactive-icon-color) !important;
+    background-color: var(--timeline-icon-inactive-bullet-bg, transparent) !important;
+    border: var(--timeline-icon-bullet-border-size, 2px) solid var(--timeline-icon-inactive-bullet-border) !important;
+    border-radius: var(--timeline-icon-bullet-border-radius, 50%) !important;
+    width: var(--timeline-icon-bullet-size, 24px) !important;
+    height: var(--timeline-icon-bullet-size, 24px) !important;
+    min-width: var(--timeline-icon-bullet-size, 24px) !important;
+    min-height: var(--timeline-icon-bullet-size, 24px) !important;
+}
+
+/* ---- Icon-Alternative Bullet (ThemeIcon wrapper) ---- */
+
+/* Active icon-alt bullet */
+.recursica-timeline .mantine-Timeline-item[data-active] .recursica-timeline-icon-alt-bullet,
+.recursica-timeline .mantine-Timeline-item[data-line-active] .recursica-timeline-icon-alt-bullet {
+    background-color: var(--timeline-icon-alt-active-bullet-bg) !important;
+    color: var(--timeline-icon-alt-active-icon-color) !important;
+    border: var(--timeline-icon-alt-bullet-border-size, 2px) solid var(--timeline-icon-alt-active-bullet-border) !important;
+    width: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    height: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    min-width: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    min-height: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    border-radius: var(--timeline-icon-alt-bullet-border-radius, 50%) !important;
+}
+
+/* Inactive icon-alt bullet */
+.recursica-timeline .mantine-Timeline-item:not([data-active]):not([data-line-active]) .recursica-timeline-icon-alt-bullet {
+    background-color: var(--timeline-icon-alt-inactive-bullet-bg) !important;
+    color: var(--timeline-icon-alt-inactive-icon-color) !important;
+    border: var(--timeline-icon-alt-bullet-border-size, 2px) solid var(--timeline-icon-alt-inactive-bullet-border) !important;
+    width: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    height: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    min-width: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    min-height: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    border-radius: var(--timeline-icon-alt-bullet-border-radius, 50%) !important;
+}
+
+/* Icon size inside icon-alt bullets */
+.recursica-timeline .recursica-timeline-icon-alt-bullet svg {
+    width: var(--timeline-icon-alt-icon-size, 16px) !important;
+    height: var(--timeline-icon-alt-icon-size, 16px) !important;
+}
+
+/* Icon-alt bullet container — expand to fit ThemeIcon */
+.recursica-timeline .mantine-Timeline-itemBullet:has(.recursica-timeline-icon-alt-bullet) {
+    width: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    height: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    min-width: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    min-height: var(--timeline-icon-alt-bullet-size, 28px) !important;
+    border: none !important;
+    background: none !important;
+}
+
+/* ---- Avatar Bullet ---- */
+
+/* Avatar bullet container — expand to fit avatar */
+.recursica-timeline .mantine-Timeline-itemBullet:has(.recursica-timeline-avatar-bullet) {
+    width: var(--timeline-avatar-bullet-size, 40px) !important;
+    height: var(--timeline-avatar-bullet-size, 40px) !important;
+    min-width: var(--timeline-avatar-bullet-size, 40px) !important;
+    min-height: var(--timeline-avatar-bullet-size, 40px) !important;
+    border: none !important;
+    background: none !important;
+}
+
+/* Avatar wrapper div — receives bullet background color + border */
+.recursica-timeline .mantine-Timeline-item[data-active] .recursica-timeline-avatar-container,
+.recursica-timeline .mantine-Timeline-item[data-line-active] .recursica-timeline-avatar-container {
+    background-color: var(--timeline-avatar-active-bg) !important;
+    border: var(--timeline-avatar-border-size, 2px) solid var(--timeline-avatar-active-border, transparent) !important;
+    border-radius: var(--timeline-avatar-border-radius, 50%) !important;
+    overflow: hidden;
+    width: var(--timeline-avatar-bullet-size, 40px);
+    height: var(--timeline-avatar-bullet-size, 40px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recursica-timeline .mantine-Timeline-item:not([data-active]):not([data-line-active]) .recursica-timeline-avatar-container {
+    background-color: var(--timeline-avatar-inactive-bg) !important;
+    border: var(--timeline-avatar-border-size, 2px) solid var(--timeline-avatar-inactive-border, transparent) !important;
+    border-radius: var(--timeline-avatar-border-radius, 50%) !important;
+    overflow: hidden;
+    width: var(--timeline-avatar-bullet-size, 40px);
+    height: var(--timeline-avatar-bullet-size, 40px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Avatar image — opacity controlled via CSS var (active/inactive) */
+.recursica-timeline .mantine-Timeline-item[data-active] .recursica-timeline-avatar-bullet,
+.recursica-timeline .mantine-Timeline-item[data-line-active] .recursica-timeline-avatar-bullet {
+    width: var(--timeline-avatar-bullet-size, 40px) !important;
+    height: var(--timeline-avatar-bullet-size, 40px) !important;
+    min-width: var(--timeline-avatar-bullet-size, 40px) !important;
+    min-height: var(--timeline-avatar-bullet-size, 40px) !important;
+    opacity: var(--timeline-avatar-active-opacity, 1);
+}
+
+.recursica-timeline .mantine-Timeline-item:not([data-active]):not([data-line-active]) .recursica-timeline-avatar-bullet {
+    width: var(--timeline-avatar-bullet-size, 40px) !important;
+    height: var(--timeline-avatar-bullet-size, 40px) !important;
+    min-width: var(--timeline-avatar-bullet-size, 40px) !important;
+    min-height: var(--timeline-avatar-bullet-size, 40px) !important;
+    opacity: var(--timeline-avatar-inactive-opacity, 0.5);
+}
+
+/* ---- Connector / Line ---- */
+
+/* Active line (between items before active index) */
+.recursica-timeline .mantine-Timeline-item[data-line-active]::before {
+    background-color: var(--timeline-active-connector-color) !important;
+    width: var(--timeline-active-connector-size, 2px) !important;
+    border: none !important;
+}
+
+/* Inactive line (after active index) */
+.recursica-timeline .mantine-Timeline-item:not([data-line-active])::before {
+    background-color: var(--timeline-inactive-connector-color) !important;
+    width: var(--timeline-inactive-connector-size, 2px) !important;
+    border: none !important;
+}
+
+/* ---- Title ---- */
+
+/* Active item title */
+.recursica-timeline .mantine-Timeline-item[data-active] .mantine-Timeline-itemTitle,
+.recursica-timeline .mantine-Timeline-item[data-line-active] .mantine-Timeline-itemTitle {
+    color: var(--timeline-active-title-color) !important;
+    font-family: var(--timeline-title-font-family, inherit) !important;
+    font-size: var(--timeline-title-font-size, 14px) !important;
+    font-weight: var(--timeline-title-font-weight, 500) !important;
+    letter-spacing: var(--timeline-title-letter-spacing, normal) !important;
+    line-height: var(--timeline-title-line-height, 1.5) !important;
+    text-decoration: var(--timeline-title-text-decoration, none) !important;
+    text-transform: var(--timeline-title-text-transform, none) !important;
+    font-style: var(--timeline-title-font-style, normal) !important;
+}
+
+/* Inactive item title */
+.recursica-timeline .mantine-Timeline-item:not([data-active]):not([data-line-active]) .mantine-Timeline-itemTitle {
+    color: var(--timeline-inactive-title-color) !important;
+    font-family: var(--timeline-title-font-family, inherit) !important;
+    font-size: var(--timeline-title-font-size, 14px) !important;
+    font-weight: var(--timeline-title-font-weight, 500) !important;
+    letter-spacing: var(--timeline-title-letter-spacing, normal) !important;
+    line-height: var(--timeline-title-line-height, 1.5) !important;
+    text-decoration: var(--timeline-title-text-decoration, none) !important;
+    text-transform: var(--timeline-title-text-transform, none) !important;
+    font-style: var(--timeline-title-font-style, normal) !important;
+}
+
+/* ---- Title min-height per bullet variant ---- */
+
+/* All titles: flex so vertical centering works */
+.recursica-timeline .mantine-Timeline-itemTitle {
+    display: flex;
+    align-items: center;
+    max-width: var(--timeline-max-text-width, 300px);
+}
+
+/* Max text width for description and timestamp */
+.recursica-timeline .recursica-timeline-description,
+.recursica-timeline .recursica-timeline-timestamp {
+    max-width: var(--timeline-max-text-width, 300px);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Right-aligned: push title text to the right */
+.recursica-timeline[data-align="right"] .mantine-Timeline-itemTitle {
+    justify-content: flex-end;
+}
+
+/* Default bullet (no child) */
+.recursica-timeline .mantine-Timeline-item:has(.mantine-Timeline-itemBullet:not([data-with-child])) .mantine-Timeline-itemTitle {
+    min-height: var(--timeline-default-bullet-size, 20px);
+}
+
+/* Icon bullet (with child, excludes icon-alt and avatar) */
+.recursica-timeline .mantine-Timeline-item:has(.mantine-Timeline-itemBullet[data-with-child]):not(:has(.recursica-timeline-icon-alt-bullet)):not(:has(.recursica-timeline-avatar-bullet)) .mantine-Timeline-itemTitle {
+    min-height: var(--timeline-icon-bullet-size, 24px);
+}
+
+/* Icon-alternative bullet */
+.recursica-timeline .mantine-Timeline-item:has(.recursica-timeline-icon-alt-bullet) .mantine-Timeline-itemTitle {
+    min-height: var(--timeline-icon-alt-bullet-size, 28px);
+}
+
+/* Avatar bullet */
+.recursica-timeline .mantine-Timeline-item:has(.recursica-timeline-avatar-bullet) .mantine-Timeline-itemTitle {
+    min-height: var(--timeline-avatar-bullet-size, 40px);
+}
+
+/* ---- Description text ---- */
+
+/* Active item description */
+.recursica-timeline .mantine-Timeline-item[data-active] .recursica-timeline-description,
+.recursica-timeline .mantine-Timeline-item[data-line-active] .recursica-timeline-description {
+    color: var(--timeline-active-description-color) !important;
+    font-family: var(--timeline-description-font-family, inherit) !important;
+    font-size: var(--timeline-description-font-size, 13px) !important;
+    font-weight: var(--timeline-description-font-weight, 400) !important;
+    letter-spacing: var(--timeline-description-letter-spacing, normal) !important;
+    line-height: var(--timeline-description-line-height, 1.5) !important;
+    text-decoration: var(--timeline-description-text-decoration, none) !important;
+    text-transform: var(--timeline-description-text-transform, none) !important;
+    font-style: var(--timeline-description-font-style, normal) !important;
+}
+
+/* Inactive item description */
+.recursica-timeline .mantine-Timeline-item:not([data-active]):not([data-line-active]) .recursica-timeline-description {
+    color: var(--timeline-inactive-description-color) !important;
+    font-family: var(--timeline-description-font-family, inherit) !important;
+    font-size: var(--timeline-description-font-size, 13px) !important;
+    font-weight: var(--timeline-description-font-weight, 400) !important;
+    letter-spacing: var(--timeline-description-letter-spacing, normal) !important;
+    line-height: var(--timeline-description-line-height, 1.5) !important;
+    text-decoration: var(--timeline-description-text-decoration, none) !important;
+    text-transform: var(--timeline-description-text-transform, none) !important;
+    font-style: var(--timeline-description-font-style, normal) !important;
+}
+
+/* ---- Timestamp text ---- */
+
+/* Active item timestamp */
+.recursica-timeline .mantine-Timeline-item[data-active] .recursica-timeline-timestamp,
+.recursica-timeline .mantine-Timeline-item[data-line-active] .recursica-timeline-timestamp {
+    color: var(--timeline-active-timestamp-color) !important;
+    font-family: var(--timeline-timestamp-font-family, inherit) !important;
+    font-size: var(--timeline-timestamp-font-size, 12px) !important;
+    font-weight: var(--timeline-timestamp-font-weight, 400) !important;
+    letter-spacing: var(--timeline-timestamp-letter-spacing, normal) !important;
+    line-height: var(--timeline-timestamp-line-height, 1.5) !important;
+    text-decoration: var(--timeline-timestamp-text-decoration, none) !important;
+    text-transform: var(--timeline-timestamp-text-transform, none) !important;
+    font-style: var(--timeline-timestamp-font-style, normal) !important;
+    margin-top: 4px;
+}
+
+/* Inactive item timestamp */
+.recursica-timeline .mantine-Timeline-item:not([data-active]):not([data-line-active]) .recursica-timeline-timestamp {
+    color: var(--timeline-inactive-timestamp-color) !important;
+    font-family: var(--timeline-timestamp-font-family, inherit) !important;
+    font-size: var(--timeline-timestamp-font-size, 12px) !important;
+    font-weight: var(--timeline-timestamp-font-weight, 400) !important;
+    letter-spacing: var(--timeline-timestamp-letter-spacing, normal) !important;
+    line-height: var(--timeline-timestamp-line-height, 1.5) !important;
+    text-decoration: var(--timeline-timestamp-text-decoration, none) !important;
+    text-transform: var(--timeline-timestamp-text-transform, none) !important;
+    font-style: var(--timeline-timestamp-font-style, normal) !important;
+    margin-top: 4px;
+}
+
+/* ---- Spacing ---- */
+
+/* Item gap (vertical spacing between items) */
+.recursica-timeline .mantine-Timeline-item:not(:last-child) {
+    padding-bottom: var(--timeline-item-gap, 20px) !important;
+}
+
+/* Ensure item body has enough room for the bullet column + gap */
+.recursica-timeline .mantine-Timeline-item {
+    padding-inline-start: calc(var(--_tl-bullet-size) + var(--timeline-bullet-content-gap, 12px)) !important;
+}
+
+/* Right-aligned timeline: flip padding */
+.recursica-timeline[data-align="right"] .mantine-Timeline-item {
+    padding-inline-start: 0 !important;
+    padding-inline-end: calc(var(--_tl-bullet-size) + var(--timeline-bullet-content-gap, 12px)) !important;
+}
+
+/* Bullet-to-content gap - reset extra padding since it's handled by item padding */
+.recursica-timeline .mantine-Timeline-itemBody {
+    padding-left: 0 !important;
+}
+
+/* Right-aligned timeline body */
+.recursica-timeline[data-align="right"] .mantine-Timeline-itemBody {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}

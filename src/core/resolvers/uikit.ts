@@ -291,12 +291,16 @@ function traverseUIKit(
             // For numbers, add px if no unit (unless it's already a string with unit)
             if (type === 'number') {
               if (typeof val === 'number') {
-                vars[cssVarName] = `${val}px`
+                // Unitless number properties (opacity, scale, etc.) should NOT get px suffix
+                // Heuristic: values 0-1 (common for opacity) or var names containing 'opacity' are unitless
+                const isUnitless = cssVarName.includes('opacity') || cssVarName.includes('scale') || cssVarName.includes('line-height')
+                vars[cssVarName] = isUnitless ? `${val}` : `${val}px`
               } else if (typeof val === 'string') {
                 // Check if string already has a unit
                 const trimmed = val.trim()
                 if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
-                  vars[cssVarName] = `${trimmed}px`
+                  const isUnitless = cssVarName.includes('opacity') || cssVarName.includes('scale') || cssVarName.includes('line-height')
+                  vars[cssVarName] = isUnitless ? trimmed : `${trimmed}px`
                 } else {
                   vars[cssVarName] = trimmed
                 }
