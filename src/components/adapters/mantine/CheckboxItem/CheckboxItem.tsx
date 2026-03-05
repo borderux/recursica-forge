@@ -26,10 +26,6 @@ export default function CheckboxItem({
     const fontSizeVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-size')
     const fontWeightVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-weight')
     const lineHeightVar = getComponentTextCssVar('CheckboxItem', 'text', 'line-height')
-    const letterSpacingVar = getComponentTextCssVar('CheckboxItem', 'text', 'letter-spacing')
-    const fontStyleVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-style')
-    const textDecorationVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-decoration')
-    const textTransformVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-transform')
     const colorVar = getComponentTextCssVar('CheckboxItem', 'text', 'color')
 
     // Checkbox props from base Checkbox component
@@ -72,10 +68,6 @@ export default function CheckboxItem({
         '--checkbox-item-font-size': `var(${fontSizeVar})`,
         '--checkbox-item-font-weight': `var(${fontWeightVar})`,
         '--checkbox-item-line-height': `var(${lineHeightVar})`,
-        '--checkbox-item-letter-spacing': `var(${letterSpacingVar})`,
-        '--checkbox-item-font-style': `var(${fontStyleVar})`,
-        '--checkbox-item-text-decoration': `var(${textDecorationVar})`,
-        '--checkbox-item-text-transform': `var(${textTransformVar})`,
         '--checkbox-item-color': `var(${colorVar})`,
         '--checkbox-item-max-width': `var(${maxWidthVar})`,
     }

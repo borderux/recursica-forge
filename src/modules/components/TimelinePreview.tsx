@@ -181,10 +181,26 @@ function buildCssVars(layer: string) {
         '--timeline-icon-alt-bullet-border-radius': `var(${bulletPropVar('icon-alternative', 'border-radius')})`,
 
         // Avatar bullet (from TimelineBullet > variants > types > avatar)
-        '--timeline-avatar-bullet-size': `var(${bulletPropVar('avatar', 'bullet-size')})`,
+        // Avatar size resolves through Avatar component's sizes variants (small/default/large)
+        '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'size')}, 32px)`,
+        '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'size')}, 40px)`,
+        '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'size')}, 64px)`,
+        '--timeline-avatar-bullet-size': (() => {
+            const sizeVarName = bulletPropVar('avatar', 'avatar-size')
+            const sizeValue = typeof document !== 'undefined'
+                ? getComputedStyle(document.documentElement).getPropertyValue(sizeVarName).trim().replace(/^["']|["']$/g, '')
+                : 'default'
+            const sizeKey = sizeValue === 'small' || sizeValue === 'large' ? sizeValue : 'default'
+            return `var(--timeline-avatar-size-${sizeKey}, 40px)`
+        })(),
         '--timeline-avatar-active-bg': `var(${bulletColorVar('avatar', layer, 'active-background')})`,
         '--timeline-avatar-inactive-bg': `var(${bulletColorVar('avatar', layer, 'inactive-background')})`,
-        '--timeline-avatar-opacity': `var(${bulletPropVar('avatar', 'avatar-opacity')})`,
+        '--timeline-avatar-active-border': `var(${bulletColorVar('avatar', layer, 'active-border-color')})`,
+        '--timeline-avatar-inactive-border': `var(${bulletColorVar('avatar', layer, 'inactive-border-color')})`,
+        '--timeline-avatar-border-size': `var(${bulletPropVar('avatar', 'border-size')})`,
+        '--timeline-avatar-border-radius': `var(${bulletPropVar('avatar', 'border-radius')})`,
+        '--timeline-avatar-active-opacity': `var(${bulletPropVar('avatar', 'active-avatar-opacity')})`,
+        '--timeline-avatar-inactive-opacity': `var(${bulletPropVar('avatar', 'inactive-avatar-opacity')})`,
 
         // Text colors (from parent timeline)
         '--timeline-active-title-color': `var(${timelineColorVar('active-title-color')})`,
@@ -195,9 +211,10 @@ function buildCssVars(layer: string) {
         '--timeline-inactive-timestamp-color': `var(${timelineColorVar('inactive-timestamp-color')})`,
 
         // Spacing
-        '--timeline-item-gap': `var(${timelinePropVar('item-gap')})`,
         '--timeline-bullet-content-gap': `var(${timelinePropVar('bullet-content-gap')})`,
         '--timeline-max-text-width': `var(${timelinePropVar('max-text-width')})`,
+        '--timeline-title-description-gap': `var(${timelinePropVar('title-description-gap')})`,
+        '--timeline-description-timestamp-gap': `var(${timelinePropVar('description-timestamp-gap')})`,
 
         // Text styles
         '--timeline-title-font-family': `var(${textVar('title-text', 'font-family')})`,

@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Chip } from '../../components/adapters/Chip'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { iconNameToReactComponent } from './iconUtils'
 
 interface ChipPreviewProps {
   selectedVariants: Record<string, string> // e.g., { color: "unselected", size: "default" }
@@ -28,19 +29,10 @@ export default function ChipPreview({
     return selectedLayer as any
   }, [selectedAltLayer, selectedLayer])
 
-  const arrowIcon = (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M5 12h14"></path>
-      <path d="M12 5l7 7-7 7"></path>
-    </svg>
-  )
+  const DiamondIcon = iconNameToReactComponent('diamond')
+  const SparkleIcon = iconNameToReactComponent('sparkle')
+  const ShieldIcon = iconNameToReactComponent('shield')
+  const LightningIcon = iconNameToReactComponent('lightning')
 
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -69,7 +61,7 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        icon={arrowIcon}
+        icon={ShieldIcon ? <ShieldIcon /> : undefined}
       >
         Dragon Scale
       </Chip>
@@ -79,7 +71,7 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
-        icon={arrowIcon}
+        icon={LightningIcon ? <LightningIcon /> : undefined}
         deletable
         onDelete={() => { }}
       >
@@ -88,4 +80,3 @@ export default function ChipPreview({
     </div>
   )
 }
-

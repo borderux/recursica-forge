@@ -61,34 +61,9 @@ export default function ComponentToolbar({
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
   const { tokens, theme, uikit } = useVars()
-  const { showUnmapped, setShowUnmapped, debugMode, setDebugMode } = useDebugMode()
+  const { debugMode, setDebugMode } = useDebugMode()
   const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
 
-  // Calculate unmapped count (same logic as ComponentsSidebar)
-  const { unmappedCount, totalCount } = useMemo(() => {
-    const components = (uikitJson as any)?.['ui-kit']?.components || {}
-    const mappedComponents = new Set(Object.keys(components).map(name => {
-      const words = name.split('-')
-      return words
-        .map((word, index) =>
-          index === 0
-            ? word.charAt(0).toUpperCase() + word.slice(1)
-            : word.toLowerCase()
-        )
-        .join(' ')
-    }))
-
-    const baseComponents = [
-      'Accordion', 'Avatar', 'Badge', 'Breadcrumb', 'Button', 'Card', 'Checkbox', 'Chip',
-      'Date picker', 'Dropdown', 'File input', 'File upload', 'Hover card / Popover', 'Label', 'Link',
-      'Loader', 'Menu', 'Menu item', 'Modal', 'Number input', 'Pagination', 'Panel',
-      'Radio', 'Read-only field', 'Autocomplete', 'Segmented control', 'Slider', 'Stepper', 'Switch',
-      'Tabs', 'Text field', 'Time picker', 'Timeline', 'Toast', 'Tooltip', 'Transfer list',
-    ]
-
-    const unmapped = baseComponents.filter(name => !mappedComponents.has(name)).length
-    return { unmappedCount: unmapped, totalCount: baseComponents.length }
-  }, [])
 
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
@@ -1163,28 +1138,7 @@ export default function ComponentToolbar({
         flexDirection: 'column',
         gap: 'var(--recursica-brand-dimensions-general-sm)',
       }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--recursica-brand-dimensions-general-default)',
-        }}>
-          <Switch
-            checked={showUnmapped}
-            onChange={setShowUnmapped}
-            layer="layer-0"
-          />
-          <label
-            onClick={() => setShowUnmapped(!showUnmapped)}
-            style={{
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
-              opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis)`,
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              cursor: 'pointer',
-              flex: 1,
-            }}>
-            Show unmapped ({unmappedCount} / {totalCount})
-          </label>
-        </div>
+
         <div style={{
           display: 'flex',
           alignItems: 'center',

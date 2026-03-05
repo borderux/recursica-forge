@@ -1,6 +1,7 @@
 import { Button } from '../../components/adapters/Button'
 import { readCssVar } from '../../core/css/readCssVar'
 import { getComponentCssVar } from '../../components/utils/cssVarNames'
+import { iconNameToReactComponent } from './iconUtils'
 import './ButtonPreview.css'
 
 interface ButtonPreviewProps {
@@ -25,22 +26,17 @@ export default function ButtonPreview({
   const sizePrefix = sizeVariant === 'small' ? 'small' : 'default'
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
-  
 
-  // Icon SVG element
-  const iconSvg = (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14"></path>
-      <path d="M12 5l7 7-7 7"></path>
-    </svg>
-  )
 
-  // Icon element with proper container for left-side icons (used by Button component)
-  const iconElement = iconSvg
+  // Phosphor icon elements
+  const SwordIcon = iconNameToReactComponent('sword')
+  const HammerIcon = iconNameToReactComponent('hammer')
+  const leadingIcon = SwordIcon ? <SwordIcon /> : undefined
+  const trailingIconElement = HammerIcon ? <HammerIcon /> : undefined
 
   // Icon element with proper container for right-side icons
   const rightIconElement = (
-    <span 
+    <span
       className="recursica-button-trailing-icon"
       style={{
         display: 'inline-flex',
@@ -58,7 +54,7 @@ export default function ButtonPreview({
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-        {iconSvg}
+        {trailingIconElement}
       </span>
     </span>
   )
@@ -73,29 +69,29 @@ export default function ButtonPreview({
           layer={actualLayer}
           elevation={componentElevation}
         >
-          Button
+          Enter Forge
         </Button>
-        
+
         {/* Button with icon on left */}
         <Button
           variant={styleVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
           elevation={componentElevation}
-          icon={iconElement}
+          icon={leadingIcon}
         >
-          Button
+          Draw Sword
         </Button>
-        
+
         {/* Icon-only button */}
         <Button
           variant={styleVariant as any}
           size={sizeVariant as any}
           layer={actualLayer}
           elevation={componentElevation}
-          icon={iconElement}
+          icon={leadingIcon}
         />
-        
+
         {/* Button with icon on right */}
         <Button
           variant={styleVariant as any}
@@ -103,17 +99,17 @@ export default function ButtonPreview({
           layer={actualLayer}
           elevation={componentElevation}
           material={{
-            endIcon: iconSvg
+            endIcon: trailingIconElement
           }}
           mantine={{
-            rightSection: iconSvg
+            rightSection: trailingIconElement
           }}
         >
-          Button
+          Forge Hammer
           {/* Only add rightIconElement for Carbon - Mantine uses rightSection prop, Material uses endIcon */}
           {rightIconElement}
         </Button>
-        
+
         {/* Disabled button */}
         <Button
           variant={styleVariant as any}
@@ -122,7 +118,7 @@ export default function ButtonPreview({
           elevation={componentElevation}
           disabled
         >
-          Button
+          Sealed Gate
         </Button>
       </div>
     </div>

@@ -9,10 +9,6 @@
     font-size: var(--checkbox-item-font-size) !important;
     font-weight: var(--checkbox-item-font-weight) !important;
     line-height: var(--checkbox-item-line-height) !important;
-    letter-spacing: var(--checkbox-item-letter-spacing) !important;
-    font-style: var(--checkbox-item-font-style) !important;
-    text-decoration: var(--checkbox-item-text-decoration) !important;
-    text-transform: var(--checkbox-item-text-transform) !important;
     color: var(--checkbox-item-color) !important;
     min-height: var(--checkbox-size) !important;
     max-width: var(--checkbox-item-max-width) !important;
