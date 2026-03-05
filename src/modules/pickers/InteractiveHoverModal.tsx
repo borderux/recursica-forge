@@ -43,7 +43,7 @@ export function InteractiveHoverModal({
         style={{
           background: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface))`,
           color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color, var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color))`,
-          border: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-thickness, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-thickness)) solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color))`,
+          border: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-size, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-size)) solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color))`,
           borderRadius: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-radius, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-radius))`,
           boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
           padding: 24,

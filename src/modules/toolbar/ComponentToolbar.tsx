@@ -6,7 +6,7 @@
  */
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { parseComponentStructure, toSentenceCase, ComponentProp } from './utils/componentToolbarUtils'
+import { parseComponentStructure, toSentenceCase, ComponentProp, pathMatchesVariant, VARIANT_PROP_TO_CATEGORY } from './utils/componentToolbarUtils'
 import VariantDropdown from './menu/dropdown/VariantDropdown'
 import VariantSwitch from './menu/dropdown/VariantSwitch'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
@@ -51,6 +51,8 @@ const SUB_COMPONENT_MAP: Record<string, string[]> = {
 function getSubComponentSuffixes(componentKey: string): string[] {
   return SUB_COMPONENT_MAP[componentKey] || []
 }
+
+// pathMatchesVariant and VARIANT_PROP_TO_CATEGORY imported from shared utils
 
 export default function ComponentToolbar({
   componentName,
@@ -188,9 +190,9 @@ export default function ComponentToolbar({
         } else if (prop.isVariantSpecific && existing.isVariantSpecific) {
           // Both are variant-specific - prefer the one that matches selected variant
           const existingMatches = existing.variantProp && selectedVariants[existing.variantProp] &&
-            existing.path.includes(selectedVariants[existing.variantProp])
+            pathMatchesVariant(existing.path, existing.variantProp, selectedVariants[existing.variantProp])
           const newMatches = prop.variantProp && selectedVariants[prop.variantProp] &&
-            prop.path.includes(selectedVariants[prop.variantProp])
+            pathMatchesVariant(prop.path, prop.variantProp, selectedVariants[prop.variantProp])
 
           if (newMatches && !existingMatches) {
             // New prop matches selected variant, existing doesn't - use new one
@@ -217,10 +219,21 @@ export default function ComponentToolbar({
           // Check if this prop exists in structure but wasn't added (shouldn't happen, but check anyway)
           let structureProp = structure.props.find(p => p.name.toLowerCase() === configPropNameLower)
           // Special case: text-color in toolbar config maps to "text" in UIKit structure (colors category)
+          // Must also filter by selected variant for components with variant-specific colors
           if (!structureProp && configPropNameLower === 'text-color') {
-            const textColorProp = structure.props.find(p =>
-              p.name.toLowerCase() === 'text' && p.category === 'colors'
-            )
+            const textColorProp = structure.props.find(p => {
+              if (p.name.toLowerCase() !== 'text' || p.category !== 'colors') return false
+              // Filter by variant if prop is variant-specific
+              if (p.isVariantSpecific && p.variantProp) {
+                const selectedVariant = selectedVariants[p.variantProp]
+                if (!selectedVariant) return false
+                if (!pathMatchesVariant(p.path, p.variantProp, selectedVariant)) return false
+              }
+              // Filter by layer
+              const layerInPath = p.path.find(part => part.startsWith('layer-'))
+              if (layerInPath && layerInPath !== selectedLayer) return false
+              return true
+            })
             if (textColorProp) {
               // Clone the prop with name overridden to "text-color" so label/icon lookup uses the config's text-color entry
               structureProp = { ...textColorProp, name: 'text-color' }
@@ -278,7 +291,7 @@ export default function ComponentToolbar({
                 !cachedProp.path.includes(selectedLayer)) ||
               (cachedProp.isVariantSpecific && cachedProp.variantProp &&
                 selectedVariants[cachedProp.variantProp] &&
-                !cachedProp.path.includes(selectedVariants[cachedProp.variantProp]))
+                !pathMatchesVariant(cachedProp.path, cachedProp.variantProp, selectedVariants[cachedProp.variantProp]))
 
             if (!groupedProps.has(groupedPropKey) || needsUpdate) {
               // For nested property groups like "container", "selected", "selected-item", and "unselected-item", match props by name AND path
@@ -297,8 +310,7 @@ export default function ComponentToolbar({
                 if (p.isVariantSpecific && p.variantProp) {
                   const selectedVariant = selectedVariants[p.variantProp]
                   if (selectedVariant) {
-                    const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-                    variantMatches = !!variantInPath
+                    variantMatches = pathMatchesVariant(p.path, p.variantProp, selectedVariant)
                   } else {
                     // If no variant is selected for this variantProp, don't match variant-specific props
                     variantMatches = false
@@ -341,33 +353,32 @@ export default function ComponentToolbar({
               if (!groupedProp && groupedPropKey === 'tabs-content-gap' && componentName.toLowerCase() === 'tabs') {
                 groupedProp = structure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'tabs-content-gap'
-                  const styleMatches = !selectedVariants.style || p.path.includes(selectedVariants.style)
-                  const orientationMatches = !selectedVariants.orientation || p.path.includes(selectedVariants.orientation)
+                  const styleMatches = !selectedVariants.style || pathMatchesVariant(p.path, 'style', selectedVariants.style)
+                  const orientationMatches = !selectedVariants.orientation || pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
                   return nameMatches && styleMatches && orientationMatches
                 })
               }
 
-              // For container/selected props, NEVER fall back to name-only match - this would cause wrong props to be selected
-              // Only fall back to name-only match for other grouped props
-              if (!groupedProp && !isNestedPropertyGroup) {
+              // Special case: "text" or "text-hover" as children of the "text-color" group
+              // Need to find color-category props specifically (not text-group props which also have name "text")
+              // and filter by selected variant for components with variant-specific colors (e.g., Button)
+              if (!groupedProp && (groupedPropKey === 'text' || groupedPropKey === 'text-hover') && parentPropNameLower === 'text-color') {
                 groupedProp = structure.props.find(p => {
-                  const nameMatches = p.name.toLowerCase() === groupedPropKey
-                  // For color props, also filter by selectedLayer
-                  const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
-                  // For variant-specific props, filter by selected variant
-                  let variantMatches = true
+                  if (p.name.toLowerCase() !== groupedPropKey || p.category !== 'colors' || !p.path.includes('colors')) return false
+                  // Filter by layer
+                  const layerInPath = p.path.find(part => part.startsWith('layer-'))
+                  if (layerInPath && layerInPath !== selectedLayer) return false
+                  // Filter by variant if prop is variant-specific
                   if (p.isVariantSpecific && p.variantProp) {
                     const selectedVariant = selectedVariants[p.variantProp]
-                    if (selectedVariant) {
-                      const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-                      variantMatches = !!variantInPath
-                    } else {
-                      variantMatches = false
-                    }
+                    if (!selectedVariant) return false
+                    if (!pathMatchesVariant(p.path, p.variantProp, selectedVariant)) return false
                   }
-                  return nameMatches && layerMatches && variantMatches
+                  return true
                 })
               }
+
+
 
               // For nested property groups (selected, unselected, etc.), fall back to component-level
               // props that don't have the parent path (e.g., icon-size in a "selected" group)
@@ -452,27 +463,28 @@ export default function ComponentToolbar({
                 )
               }
               // Special case: text-color maps to "text" prop under colors.layer-X
+              // Must also filter by selected variant for components with variant-specific colors (e.g., Button solid/outline/text)
               if (!groupedProp && groupedPropKey === 'text-color') {
-                groupedProp = structure.props.find(p =>
-                  p.name.toLowerCase() === 'text' &&
-                  p.category === 'colors' &&
-                  p.path.includes('colors') &&
-                  p.path.includes(selectedLayer)
-                )
+                groupedProp = structure.props.find(p => {
+                  if (p.name.toLowerCase() !== 'text' || p.category !== 'colors' || !p.path.includes('colors')) return false
+                  // Filter by layer
+                  const layerInPath = p.path.find(part => part.startsWith('layer-'))
+                  if (layerInPath && layerInPath !== selectedLayer) return false
+                  // Filter by variant if prop is variant-specific
+                  if (p.isVariantSpecific && p.variantProp) {
+                    const selectedVariant = selectedVariants[p.variantProp]
+                    if (!selectedVariant) return false
+                    if (!pathMatchesVariant(p.path, p.variantProp, selectedVariant)) return false
+                  }
+                  return true
+                })
                 // Clone with overridden name so label/icon lookup works correctly
                 if (groupedProp) {
                   groupedProp = { ...groupedProp, name: 'text-color' }
                 }
               }
-              // If still not found, try to find it by exact name match (case-insensitive)
-              // For variant-specific props, find the first matching prop regardless of variant
-              // BUT: For container/selected/selected-item props, NEVER fall back to name-only match
-              if (!groupedProp && !isNestedPropertyGroup) {
-                groupedProp = structure.props.find(p =>
-                  p.name.toLowerCase() === groupedPropKey ||
-                  p.name === groupedPropName
-                )
-              }
+
+
               // Special handling: if parent prop is "spacing" or "layout", collect props from all layout variants
               if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'layout')) {
                 // Find props that match the name and are variant-specific for layout
@@ -700,13 +712,13 @@ export default function ComponentToolbar({
 
         // Check if this prop belongs to the selected variant
         // For nested variants (like Avatar's style and style-secondary), we need to check all variant levels
-        const variantInPath = prop.path.find(pathPart => pathPart === selectedVariant)
+        const variantInPath = pathMatchesVariant(prop.path, prop.variantProp, selectedVariant)
 
         if (!variantInPath) {
           // The primary variant is not in the path, check if any selected variant matches
           // This handles cases where we might have multiple variant levels
-          const allSelectedVariants = Object.values(selectedVariants)
-          const hasAnySelectedVariant = allSelectedVariants.some(v => prop.path.includes(v))
+          const allSelectedVariants = Object.entries(selectedVariants)
+          const hasAnySelectedVariant = allSelectedVariants.some(([vProp, vName]) => pathMatchesVariant(prop.path, vProp, vName))
 
           if (!hasAnySelectedVariant) {
             return false

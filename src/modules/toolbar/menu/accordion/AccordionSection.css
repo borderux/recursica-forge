@@ -91,7 +91,7 @@ html[data-theme-mode="dark"] .accordion-toggle-icon {
   margin-top: 0;
   padding: var(--recursica-brand-themes-light-layers-layer-1-properties-padding);
   background: var(--recursica-brand-themes-light-layers-layer-1-properties-surface);
-  border: var(--recursica-brand-themes-light-layers-layer-1-properties-border-thickness) solid var(--recursica-brand-themes-light-layers-layer-1-properties-border-color);
+  border: var(--recursica-brand-themes-light-layers-layer-1-properties-border-size) solid var(--recursica-brand-themes-light-layers-layer-1-properties-border-color);
   border-radius: var(--recursica-brand-themes-light-layers-layer-1-properties-border-radius);
   display: flex;
   flex-direction: column;

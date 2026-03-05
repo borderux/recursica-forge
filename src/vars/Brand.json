@@ -63,7 +63,7 @@
                 "$type": "number",
                 "$value": "{tokens.sizes.3x}"
               },
-              "border-thickness": {
+              "border-size": {
                 "$type": "number",
                 "$value": {
                   "value": 0,
@@ -74,7 +74,7 @@
           },
           "layer-1": {
             "properties": {
-              "border-thickness": {
+              "border-size": {
                 "$type": "number",
                 "$value": {
                   "value": 2,
@@ -163,7 +163,7 @@
                 "$type": "color",
                 "$value": "{brand.themes.light.palettes.neutral.100.color.tone}"
               },
-              "border-thickness": {
+              "border-size": {
                 "$type": "number",
                 "$value": {
                   "value": 0,
@@ -270,7 +270,7 @@
                 "$type": "color",
                 "$value": "{brand.themes.light.palettes.neutral.200.color.tone}"
               },
-              "border-thickness": {
+              "border-size": {
                 "$type": "number",
                 "$value": {
                   "value": 0,
@@ -1193,7 +1193,7 @@
                 "$type": "number",
                 "$value": "{tokens.sizes.3x}"
               },
-              "border-thickness": {
+              "border-size": {
                 "$type": "number",
                 "$value": {
                   "value": 0,
@@ -1204,7 +1204,7 @@
           },
           "layer-1": {
             "properties": {
-              "border-thickness": {
+              "border-size": {
                 "$type": "number",
                 "$value": {
                   "value": 2,
@@ -1285,7 +1285,7 @@
                 "$type": "color",
                 "$value": "{brand.themes.dark.palettes.neutral.300.color.tone}"
               },
-              "border-thickness": {
+              "border-size": {
                 "$type": "number",
                 "$value": {
                   "value": 0,
@@ -1376,7 +1376,7 @@
                 "$type": "color",
                 "$value": "{brand.themes.dark.palettes.neutral.200.color.tone}"
               },
-              "border-thickness": {
+              "border-size": {
                 "$type": "number",
                 "$value": {
                   "value": 0,

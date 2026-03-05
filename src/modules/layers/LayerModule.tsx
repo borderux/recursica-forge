@@ -241,7 +241,7 @@ export default function LayerModule({ level, title, className, children, onSelec
     backgroundColor: paletteBackground ?? `var(${brandBase}surface)`,
     color: `var(${brandBase.replace("properties-", "elements-")}text-color)`,
     padding: `var(${brandBase}padding)`,
-    border: includeBorder ? `var(${brandBase}border-thickness) solid var(${brandBase}border-color)` : undefined,
+    border: includeBorder ? `var(${brandBase}border-size) solid var(${brandBase}border-color)` : undefined,
     borderRadius: includeBorder ? `var(${brandBase}border-radius)` : undefined,
     cursor: onSelect ? 'pointer' as const : undefined,
     boxShadow: cssVarBoxShadow,
