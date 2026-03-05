@@ -5,59 +5,61 @@
  * via pull requests. Authentication is obtained via GitHub OAuth; see RECURSICA_API_GITHUB_OAUTH.md.
  */
 
-const STORAGE_KEY = 'rf:github:auth'
+const STORAGE_KEY = "rf:github:auth";
 
 export interface GitHubAuth {
-  accessToken: string
-  tokenType: 'Bearer'
-  storedAt: number
+  accessToken: string;
+  tokenType: "Bearer";
+  storedAt: number;
 }
 
 export interface GitHubUser {
-  login: string
-  name?: string
-  avatar_url?: string
+  login: string;
+  name?: string;
+  avatar_url?: string;
 }
 
 export interface GitHubRepository {
-  id: number
-  name: string
-  full_name: string
-  owner: { login: string }
-  default_branch: string
-  private: boolean
+  id: number;
+  name: string;
+  full_name: string;
+  owner: { login: string };
+  default_branch: string;
+  private: boolean;
 }
 
 /** Repository list item: real GitHub repo or the synthetic sandbox entry. */
-export type RepositoryOption = GitHubRepository & { isSandbox?: true }
+export type RepositoryOption = GitHubRepository & { isSandbox?: true };
 
-const SANDBOX_ENTRY_ID = -1
+const SANDBOX_ENTRY_ID = -1;
 
 /** Synthetic list entry for "Recursica Sandbox (come play around)" — PR is created via api.recursica.com create-pr. */
 export const SANDBOX_ENTRY: RepositoryOption = {
   id: SANDBOX_ENTRY_ID,
-  name: 'Recursica Sandbox (come play around)',
-  full_name: 'recursica/recursica-sandbox',
-  owner: { login: 'recursica' },
-  default_branch: 'main',
+  name: "recursica-sandbox",
+  full_name: "borderux/recursica-sandbox",
+  owner: { login: "borderux" },
+  default_branch: "main",
   private: false,
   isSandbox: true,
-}
+};
 
-export function isSandboxRepo(repo: RepositoryOption): repo is RepositoryOption & { isSandbox: true } {
-  return (repo as RepositoryOption & { isSandbox?: true }).isSandbox === true
+export function isSandboxRepo(
+  repo: RepositoryOption,
+): repo is RepositoryOption & { isSandbox: true } {
+  return (repo as RepositoryOption & { isSandbox?: true }).isSandbox === true;
 }
 
 export interface GitHubPullRequest {
-  number: number
-  html_url: string
-  title: string
+  number: number;
+  html_url: string;
+  title: string;
 }
 
 export interface GitHubFileContent {
-  content: string
-  encoding: 'base64' | 'utf-8'
-  sha?: string
+  content: string;
+  encoding: "base64" | "utf-8";
+  sha?: string;
 }
 
 /**
@@ -65,9 +67,9 @@ export interface GitHubFileContent {
  */
 export function storeAuth(auth: GitHubAuth): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(auth))
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
   } catch (error) {
-    throw new Error('Failed to store GitHub authentication')
+    throw new Error("Failed to store GitHub authentication");
   }
 }
 
@@ -76,12 +78,12 @@ export function storeAuth(auth: GitHubAuth): void {
  */
 export function getStoredAuth(): GitHubAuth | null {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (!stored) return null
-    const auth = JSON.parse(stored) as GitHubAuth
-    return auth
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return null;
+    const auth = JSON.parse(stored) as GitHubAuth;
+    return auth;
   } catch {
-    return null
+    return null;
   }
 }
 
@@ -90,78 +92,79 @@ export function getStoredAuth(): GitHubAuth | null {
  */
 export function clearAuth(): void {
   try {
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(STORAGE_KEY);
   } catch {
     // Ignore errors
   }
 }
 
-
 /**
  * Validates a GitHub token by fetching the authenticated user
  */
 export async function validateToken(token: string): Promise<GitHubUser> {
-  const response = await fetch('https://api.github.com/user', {
+  const response = await fetch("https://api.github.com/user", {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/vnd.github.v3+json',
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github.v3+json",
     },
-  })
+  });
 
   if (!response.ok) {
     if (response.status === 401) {
-      throw new Error('Invalid or expired token')
+      throw new Error("Invalid or expired token");
     }
-    throw new Error(`GitHub API error: ${response.statusText}`)
+    throw new Error(`GitHub API error: ${response.statusText}`);
   }
 
-  return response.json() as Promise<GitHubUser>
+  return response.json() as Promise<GitHubUser>;
 }
 
 /**
  * Gets the authenticated user's information
  */
 export async function getAuthenticatedUser(token: string): Promise<GitHubUser> {
-  return validateToken(token)
+  return validateToken(token);
 }
 
 /**
  * Lists repositories accessible to the authenticated user
  */
-export async function getUserRepositories(token: string): Promise<GitHubRepository[]> {
-  const repos: GitHubRepository[] = []
-  let page = 1
-  const perPage = 100
+export async function getUserRepositories(
+  token: string,
+): Promise<GitHubRepository[]> {
+  const repos: GitHubRepository[] = [];
+  let page = 1;
+  const perPage = 100;
 
   while (true) {
     const response = await fetch(
       `https://api.github.com/user/repos?per_page=${perPage}&page=${page}&sort=updated&affiliation=owner,collaborator,organization_member`,
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.v3+json',
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
         },
-      }
-    )
+      },
+    );
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error('Invalid or expired token')
+        throw new Error("Invalid or expired token");
       }
-      throw new Error(`GitHub API error: ${response.statusText}`)
+      throw new Error(`GitHub API error: ${response.statusText}`);
     }
 
-    const pageRepos = (await response.json()) as GitHubRepository[]
-    if (pageRepos.length === 0) break
+    const pageRepos = (await response.json()) as GitHubRepository[];
+    if (pageRepos.length === 0) break;
 
-    repos.push(...pageRepos)
+    repos.push(...pageRepos);
 
     // If we got fewer than perPage, we're done
-    if (pageRepos.length < perPage) break
-    page++
+    if (pageRepos.length < perPage) break;
+    page++;
   }
 
-  return repos
+  return repos;
 }
 
 /**
@@ -170,51 +173,56 @@ export async function getUserRepositories(token: string): Promise<GitHubReposito
 export async function getRepository(
   token: string,
   owner: string,
-  repo: string
+  repo: string,
 ): Promise<GitHubRepository> {
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}`,
     {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
       },
-    }
-  )
+    },
+  );
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error(`Repository ${owner}/${repo} not found`)
+      throw new Error(`Repository ${owner}/${repo} not found`);
     }
-    throw new Error(`GitHub API error: ${response.statusText}`)
+    throw new Error(`GitHub API error: ${response.statusText}`);
   }
 
-  return response.json() as Promise<GitHubRepository>
+  return response.json() as Promise<GitHubRepository>;
 }
 
 /**
  * Gets the SHA of the latest commit on a branch
  */
-async function getBranchSha(token: string, owner: string, repo: string, branch: string): Promise<string> {
+async function getBranchSha(
+  token: string,
+  owner: string,
+  repo: string,
+  branch: string,
+): Promise<string> {
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${branch}`,
     {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
       },
-    }
-  )
+    },
+  );
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error(`Branch ${branch} not found`)
+      throw new Error(`Branch ${branch} not found`);
     }
-    throw new Error(`GitHub API error: ${response.statusText}`)
+    throw new Error(`GitHub API error: ${response.statusText}`);
   }
 
-  const data = (await response.json()) as { object: { sha: string } }
-  return data.object.sha
+  const data = (await response.json()) as { object: { sha: string } };
+  return data.object.sha;
 }
 
 /**
@@ -225,33 +233,37 @@ export async function createBranch(
   owner: string,
   repo: string,
   branchName: string,
-  baseBranch: string
+  baseBranch: string,
 ): Promise<void> {
-  const baseSha = await getBranchSha(token, owner, repo, baseBranch)
+  const baseSha = await getBranchSha(token, owner, repo, baseBranch);
 
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/git/refs`,
     {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         ref: `refs/heads/${branchName}`,
         sha: baseSha,
       }),
-    }
-  )
+    },
+  );
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: response.statusText }))
-    if (response.status === 422 && error.message?.includes('already exists')) {
+    const error = await response
+      .json()
+      .catch(() => ({ message: response.statusText }));
+    if (response.status === 422 && error.message?.includes("already exists")) {
       // Branch already exists, that's okay - we'll update it
-      return
+      return;
     }
-    throw new Error(`Failed to create branch: ${error.message || response.statusText}`)
+    throw new Error(
+      `Failed to create branch: ${error.message || response.statusText}`,
+    );
   }
 }
 
@@ -263,37 +275,97 @@ async function getFileSha(
   owner: string,
   repo: string,
   path: string,
-  branch: string
+  branch: string,
 ): Promise<string | null> {
   try {
     const response = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`,
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(
+        path,
+      )}?ref=${branch}`,
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.v3+json',
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
         },
-      }
-    )
+      },
+    );
 
     // 404 is expected for new files - return null silently
     if (response.status === 404) {
-      return null
+      return null;
     }
 
     if (!response.ok) {
-      throw new Error(`GitHub API error: ${response.statusText}`)
+      throw new Error(`GitHub API error: ${response.statusText}`);
     }
 
-    const data = (await response.json()) as GitHubFileContent
-    return data.sha || null
+    const data = (await response.json()) as GitHubFileContent;
+    return data.sha || null;
   } catch (error) {
     // Handle network errors or other issues
     // If it's a 404-related error, return null (file doesn't exist)
-    if (error instanceof TypeError || (error instanceof Error && error.message.includes('404'))) {
-      return null
+    if (
+      error instanceof TypeError ||
+      (error instanceof Error && error.message.includes("404"))
+    ) {
+      return null;
     }
-    throw error
+    throw error;
+  }
+}
+
+/**
+ * Gets the decoded content of a file from a repository
+ */
+export async function getFileContent(
+  token: string,
+  owner: string,
+  repo: string,
+  path: string,
+  branch: string,
+): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(
+        path,
+      )}?ref=${branch}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as GitHubFileContent;
+
+    if (data.content && data.encoding === "base64") {
+      // Use standard base64 decoding that handles UTF-8
+      const binaryStr = atob(data.content.replace(/\s/g, ""));
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+      return new TextDecoder("utf-8").decode(bytes);
+    }
+
+    return null;
+  } catch (error) {
+    if (
+      error instanceof TypeError ||
+      (error instanceof Error && error.message.includes("404"))
+    ) {
+      return null;
+    }
+    throw error;
   }
 }
 
@@ -307,21 +379,23 @@ export async function createOrUpdateFile(
   path: string,
   content: string,
   branch: string,
-  message: string
+  message: string,
 ): Promise<void> {
-  const existingSha = await getFileSha(token, owner, repo, path, branch)
+  const existingSha = await getFileSha(token, owner, repo, path, branch);
 
   // Encode content as base64
-  const base64Content = btoa(unescape(encodeURIComponent(content)))
+  const base64Content = btoa(unescape(encodeURIComponent(content)));
 
   const response = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`,
+    `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(
+      path,
+    )}`,
     {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         message,
@@ -329,12 +403,16 @@ export async function createOrUpdateFile(
         branch,
         ...(existingSha ? { sha: existingSha } : {}),
       }),
-    }
-  )
+    },
+  );
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: response.statusText }))
-    throw new Error(`Failed to create/update file: ${error.message || response.statusText}`)
+    const error = await response
+      .json()
+      .catch(() => ({ message: response.statusText }));
+    throw new Error(
+      `Failed to create/update file: ${error.message || response.statusText}`,
+    );
   }
 }
 
@@ -348,16 +426,16 @@ export async function createPullRequest(
   title: string,
   body: string,
   head: string,
-  base: string
+  base: string,
 ): Promise<GitHubPullRequest> {
   const response = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/pulls`,
     {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         title,
@@ -365,13 +443,17 @@ export async function createPullRequest(
         head,
         base,
       }),
-    }
-  )
+    },
+  );
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: response.statusText }))
-    throw new Error(`Failed to create pull request: ${error.message || response.statusText}`)
+    const error = await response
+      .json()
+      .catch(() => ({ message: response.statusText }));
+    throw new Error(
+      `Failed to create pull request: ${error.message || response.statusText}`,
+    );
   }
 
-  return response.json() as Promise<GitHubPullRequest>
+  return response.json() as Promise<GitHubPullRequest>;
 }
