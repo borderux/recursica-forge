@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
@@ -24,7 +24,7 @@ export type ColorScaleProps = {
   onChange: (tokenName: string, hex: string, cascadeDown: boolean, cascadeUp: boolean) => void
   onFamilyNameChange: (family: string, newName: string) => void
   onDeleteFamily: (family: string) => void
-  usageLocations: Array<{ label: string; url: string }>
+  usageLocations: Array<{ label: string; url: string; targetMode?: 'Light' | 'Dark' }>
   isLastColorScale: boolean
   tokens?: JsonLike
 }
@@ -50,7 +50,8 @@ export function ColorScale({
 }: ColorScaleProps) {
   if (deletedFamilies[family]) return null
 
-  const { mode } = useThemeMode()
+  const { mode, setMode } = useThemeMode()
+  const navigate = useNavigate()
 
   const level500 = levels.find((l) => l.level === '500')
   const borderColor = level500 ? (values[level500.entry.name] || level500.entry.value) : 'transparent'
@@ -225,7 +226,11 @@ export function ColorScale({
           gap: 2,
         }}>
           <span style={{
-            fontSize: 'var(--recursica-brand-typography-caption-font-size, 11px)',
+            fontFamily: 'var(--recursica-brand-typography-subtitle-font-family)',
+            fontSize: 'var(--recursica-brand-typography-subtitle-font-size)',
+            fontWeight: 'var(--recursica-brand-typography-subtitle-font-weight)',
+            letterSpacing: 'var(--recursica-brand-typography-subtitle-font-letter-spacing)',
+            lineHeight: 'var(--recursica-brand-typography-subtitle-line-height)',
             color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
             opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis, 0.6)`,
           }}>Used in:</span>
@@ -234,12 +239,19 @@ export function ColorScale({
               key={i}
               to={loc.url}
               style={{
-                fontSize: 'var(--recursica-brand-typography-caption-font-size, 11px)',
                 color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone, #0066cc)`,
                 textDecoration: 'none',
+                textAlign: 'center',
               }}
-              onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
-              onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+              onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'none'}
+              onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                if (loc.targetMode && loc.targetMode.toLowerCase() !== mode) {
+                  e.preventDefault()
+                  setMode(loc.targetMode.toLowerCase() as 'light' | 'dark')
+                  navigate(loc.url)
+                }
+              }}
             >
               {loc.label}
             </Link>

@@ -617,16 +617,6 @@ export default function ColorTokens() {
 
   // Build detailed usage map: family -> Array<{ label, url }>
   const colorScaleUsageMap = useMemo(() => {
-    const usageMap = new Map<string, Array<{ label: string; url: string }>>()
-
-    const addUsage = (family: string, label: string, url: string) => {
-      if (!usageMap.has(family)) usageMap.set(family, [])
-      const list = usageMap.get(family)!
-      // Avoid duplicates
-      if (!list.some((u) => u.label === label && u.url === url)) {
-        list.push({ label, url })
-      }
-    }
 
     // Helper to resolve a token reference string to its color family alias
     const resolveToFamily = (ref: string, mode: 'light' | 'dark'): string | null => {
@@ -689,6 +679,18 @@ export default function ColorTokens() {
       return { label: pk, url: '/theme/palettes' }
     }
 
+    // Collect raw usages per mode: family -> { label, url } -> Set<mode>
+    type UsageKey = string // "label|||url"
+    const rawUsages = new Map<string, Map<UsageKey, Set<'light' | 'dark'>>>()
+
+    const addRawUsage = (family: string, label: string, url: string, mode: 'light' | 'dark') => {
+      if (!rawUsages.has(family)) rawUsages.set(family, new Map())
+      const familyMap = rawUsages.get(family)!
+      const key: UsageKey = `${label}|||${url}`
+      if (!familyMap.has(key)) familyMap.set(key, new Set())
+      familyMap.get(key)!.add(mode)
+    }
+
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const themes = root?.themes || root
@@ -704,13 +706,15 @@ export default function ColorTokens() {
           if (pk === 'core' || pk === 'core-colors') {
             // For core-colors, check each sub-key individually for more granular labels
             Object.keys(paletteData).forEach((subKey) => {
+              // Skip meta keys like $type, $value
+              if (subKey.startsWith('$')) return
               const subData = paletteData[subKey]
               if (!subData || typeof subData !== 'object') return
               const families = extractFamiliesFromObj(subData, mode)
               const subLabel = coreColorLabels[subKey] || subKey
               families.forEach((fam) => {
                 if (fam && fam !== 'translucent') {
-                  addUsage(fam, `Core: ${subLabel}`, '/theme/core-properties')
+                  addRawUsage(fam, `Core: ${subLabel}`, '/theme/core-properties', mode)
                 }
               })
             })
@@ -720,7 +724,7 @@ export default function ColorTokens() {
             const info = paletteKeyToInfo(pk)
             families.forEach((fam) => {
               if (fam && fam !== 'translucent') {
-                addUsage(fam, info.label, info.url)
+                addRawUsage(fam, info.label, info.url, mode)
               }
             })
           }
@@ -730,11 +734,28 @@ export default function ColorTokens() {
       console.warn('Error checking palette usage:', err)
     }
 
+    // Merge: if a usage exists in both modes, list once without suffix.
+    // If only in one mode, append "(Light)" or "(Dark)".
+    const usageMap = new Map<string, Array<{ label: string; url: string; targetMode?: 'Light' | 'Dark' }>>()
+    rawUsages.forEach((familyMap, family) => {
+      const entries: Array<{ label: string; url: string; targetMode?: 'Light' | 'Dark' }> = []
+      familyMap.forEach((modes, key) => {
+        const [label, url] = key.split('|||')
+        if (modes.size === 2) {
+          entries.push({ label, url })
+        } else {
+          const modeStr = modes.has('light') ? 'Light' : 'Dark'
+          entries.push({ label: `${label} (${modeStr})`, url, targetMode: modeStr })
+        }
+      })
+      if (entries.length > 0) usageMap.set(family, entries)
+    })
+
     return usageMap
   }, [theme, tokensJson])
 
   // Helper: get usage locations for a family
-  const getUsageLocations = (family: string): Array<{ label: string; url: string }> => {
+  const getUsageLocations = (family: string): Array<{ label: string; url: string; targetMode?: 'Light' | 'Dark' }> => {
     return colorScaleUsageMap.get(family) || []
   }
 

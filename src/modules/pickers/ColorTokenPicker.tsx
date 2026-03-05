@@ -337,13 +337,12 @@ export default function ColorTokenPicker() {
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const themes = root?.themes || root
 
-      // Navigate to core-colors.$value
+      // Navigate to core-colors (direct children, no $value wrapper)
       if (!themes[modeLower]) themes[modeLower] = {}
       if (!themes[modeLower].palettes) themes[modeLower].palettes = {}
       if (!themes[modeLower].palettes['core-colors']) themes[modeLower].palettes['core-colors'] = {}
-      if (!themes[modeLower].palettes['core-colors'].$value) themes[modeLower].palettes['core-colors'].$value = {}
 
-      const coreColors = themes[modeLower].palettes['core-colors'].$value
+      const coreColors = themes[modeLower].palettes['core-colors']
 
       // Build the token reference string: {tokens.colors.{family}.{level}}
       const tokenParts = tokenName.split('/')
@@ -450,13 +449,13 @@ export default function ColorTokenPicker() {
         const tokenIndex = buildTokenIndex(tokensJson)
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
         const themes = root?.themes || root
-        const coreColorsObj = themes?.[modeLower]?.palettes?.['core-colors']?.$value || {}
+        const coreColorsObj = themes?.[modeLower]?.palettes?.['core-colors'] || {}
 
         // Get OLD white tone scale key from current theme (before update) for comparison
         // We need to check if on-tones are using the OLD white, not the new one
         const oldRoot: any = themeJson?.brand ? themeJson.brand : themeJson
         const oldThemes = oldRoot?.themes || oldRoot
-        const oldCoreColorsObj = oldThemes?.[modeLower]?.palettes?.['core-colors']?.$value || {}
+        const oldCoreColorsObj = oldThemes?.[modeLower]?.palettes?.['core-colors'] || {}
         const oldWhiteColorDef = oldCoreColorsObj.white
         let oldWhiteScaleKey: string | null = null
         if (oldWhiteColorDef?.tone?.$value) {
@@ -765,9 +764,8 @@ export default function ColorTokenPicker() {
           if (!themes[modeLower]) themes[modeLower] = {}
           if (!themes[modeLower].palettes) themes[modeLower].palettes = {}
           if (!themes[modeLower].palettes['core-colors']) themes[modeLower].palettes['core-colors'] = {}
-          if (!themes[modeLower].palettes['core-colors'].$value) themes[modeLower].palettes['core-colors'].$value = {}
 
-          const coreColors = themes[modeLower].palettes['core-colors'].$value
+          const coreColors = themes[modeLower].palettes['core-colors']
           if (!coreColors.interactive) {
             coreColors.interactive = { default: {}, hover: {} }
           }
@@ -820,7 +818,7 @@ export default function ColorTokenPicker() {
               const startIdx = LEVELS.indexOf(normalizedInteractiveLevel)
 
               if (startIdx !== -1 && interactiveScaleKey) {
-                const coreColorsPath = themes[modeLower].palettes['core-colors'].$value
+                const coreColorsPath = themes[modeLower].palettes['core-colors']
 
                 // Helper to resolve tone reference to hex
                 const context: TokenReferenceContext = {
