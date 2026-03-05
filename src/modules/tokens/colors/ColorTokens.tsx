@@ -178,23 +178,34 @@ export default function ColorTokens() {
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
   }, [])
-  const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>({})
+  // Initialize deletedFamilies synchronously from localStorage to prevent race condition
+  // (previously, a useEffect would briefly overwrite localStorage with {} on mount)
+  const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>(() => {
+    try {
+      const raw = localStorage.getItem('deleted-color-families')
+      return raw ? (JSON.parse(raw) || {}) : {}
+    } catch { return {} }
+  })
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
   const [showAddColorModal, setShowAddColorModal] = useState(false)
   const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-themes-light-palettes-core-black)')
 
-  // Initialize deleted families from localStorage
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('deleted-color-families')
-      if (raw) setDeletedFamilies(JSON.parse(raw) || {})
-    } catch { }
-  }, [])
+  // Persist deletedFamilies to localStorage when it changes
   useEffect(() => {
     try { localStorage.setItem('deleted-color-families', JSON.stringify(deletedFamilies)) } catch { }
   }, [deletedFamilies])
+
+  // Listen for theme reset to clear deleted families and family order
+  useEffect(() => {
+    const handleReset = () => {
+      setDeletedFamilies({})
+      setFamilyOrder([])
+    }
+    window.addEventListener('themeReset', handleReset)
+    return () => window.removeEventListener('themeReset', handleReset)
+  }, [])
 
   // Initialize family names from localStorage
   useEffect(() => {
@@ -604,97 +615,128 @@ export default function ColorTokens() {
     }
   }
 
-  // Check if a color scale is used in palettes
-  const isColorScaleUsedInPalettes = useMemo(() => {
-    const usedFamilies = new Set<string>()
+  // Build detailed usage map: family -> Array<{ label, url }>
+  const colorScaleUsageMap = useMemo(() => {
+    const usageMap = new Map<string, Array<{ label: string; url: string }>>()
 
-    // Helper function to extract all family names referenced in palette data
-    const extractReferencedFamilies = (obj: any, mode: 'light' | 'dark'): Set<string> => {
+    const addUsage = (family: string, label: string, url: string) => {
+      if (!usageMap.has(family)) usageMap.set(family, [])
+      const list = usageMap.get(family)!
+      // Avoid duplicates
+      if (!list.some((u) => u.label === label && u.url === url)) {
+        list.push({ label, url })
+      }
+    }
+
+    // Helper to resolve a token reference string to its color family alias
+    const resolveToFamily = (ref: string, mode: 'light' | 'dark'): string | null => {
+      if (!ref.includes('{') || !ref.includes('}')) return null
+      const tokenIndex = buildTokenIndex(tokensJson)
+      const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
+      const parsed = parseTokenReference(ref, context)
+      if (!parsed || parsed.type !== 'token' || parsed.path.length < 2) return null
+      if (parsed.path[0] === 'colors') {
+        const scaleOrAlias = parsed.path[1]
+        if (scaleOrAlias?.startsWith('scale-')) {
+          const tokensRoot: any = (tokensJson as any)?.tokens || {}
+          const colorsRoot: any = tokensRoot?.colors || {}
+          const scale = colorsRoot?.[scaleOrAlias]
+          if (scale?.alias && typeof scale.alias === 'string') return scale.alias.trim() || null
+          return null
+        }
+        return scaleOrAlias?.trim() || null
+      }
+      if (parsed.path[0] === 'color') return parsed.path[1]?.trim() || null
+      return null
+    }
+
+    // Recursively extract families from an arbitrary palette object
+    const extractFamiliesFromObj = (obj: any, mode: 'light' | 'dark'): Set<string> => {
       const families = new Set<string>()
       if (!obj || typeof obj !== 'object') return families
-
       if (Array.isArray(obj)) {
-        obj.forEach((item) => {
-          extractReferencedFamilies(item, mode).forEach((f) => families.add(f))
-        })
+        obj.forEach((item) => extractFamiliesFromObj(item, mode).forEach((f) => families.add(f)))
         return families
       }
-
       for (const [, value] of Object.entries(obj)) {
         if (typeof value === 'string') {
-          // Only check strings that look like token references (contain braces)
-          if (value.includes('{') && value.includes('}')) {
-            // Use centralized parser to check for token references
-            const tokenIndex = buildTokenIndex(tokensJson)
-            const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
-            const parsed = parseTokenReference(value, context)
-            if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'colors') {
-              // New format: colors.scale-XX.level or colors.alias.level
-              const scaleOrAlias = parsed.path[1]
-              if (scaleOrAlias && scaleOrAlias.startsWith('scale-')) {
-                // If it's a scale key, find the alias from tokens
-                const tokensRoot: any = (tokensJson as any)?.tokens || {}
-                const colorsRoot: any = tokensRoot?.colors || {}
-                const scale = colorsRoot?.[scaleOrAlias]
-                if (scale && typeof scale === 'object' && scale.alias && typeof scale.alias === 'string') {
-                  const alias = scale.alias.trim()
-                  if (alias) {
-                    families.add(alias)
-                  }
-                }
-                // Don't add scale key as fallback - only add if we have a valid alias
-              } else if (scaleOrAlias && !scaleOrAlias.startsWith('scale-')) {
-                // It's already an alias - only add if it's a valid non-empty string
-                const alias = scaleOrAlias.trim()
-                if (alias) {
-                  families.add(alias)
-                }
-              }
-            }
-          }
+          const fam = resolveToFamily(value, mode)
+          if (fam) families.add(fam)
         } else if (value && typeof value === 'object') {
-          extractReferencedFamilies(value, mode).forEach((f) => families.add(f))
+          extractFamiliesFromObj(value, mode).forEach((f) => families.add(f))
         }
       }
       return families
     }
 
-    // Check palettes in both light and dark modes - only check actual theme data
+    // Human-readable labels for core color sub-keys
+    const coreColorLabels: Record<string, string> = {
+      interactive: 'Interactive',
+      alert: 'Alert',
+      warning: 'Warning',
+      success: 'Success',
+      black: 'Black',
+      white: 'White',
+    }
+
+    // Palette key to human label + URL
+    const paletteKeyToInfo = (pk: string, index?: number): { label: string; url: string } => {
+      if (pk === 'core' || pk === 'core-colors') return { label: 'Core Properties', url: '/theme/core-properties' }
+      if (pk === 'neutral') return { label: 'Neutral Palette', url: '/theme/palettes' }
+      // palette-N
+      const match = pk.match(/^palette-(\d+)$/)
+      if (match) return { label: `Palette ${match[1]}`, url: '/theme/palettes' }
+      return { label: pk, url: '/theme/palettes' }
+    }
+
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = root?.themes || root
 
-      // Check both light and dark modes
       for (const mode of ['light', 'dark'] as const) {
         const modePalettes: any = themes?.[mode]?.palettes || root?.[mode]?.palettes || {}
-
-        // Get all palette keys (including core, neutral, and all numbered palettes)
         const paletteKeys = Object.keys(modePalettes)
 
-        // Check each palette (including core) for referenced families
         paletteKeys.forEach((pk) => {
           const paletteData = modePalettes[pk]
-          if (paletteData && typeof paletteData === 'object') {
-            const referencedFamilies = extractReferencedFamilies(paletteData, mode)
-            referencedFamilies.forEach((fam) => {
-              if (fam && typeof fam === 'string' && fam !== 'translucent' && fam.trim()) {
-                usedFamilies.add(fam)
+          if (!paletteData || typeof paletteData !== 'object') return
+
+          if (pk === 'core' || pk === 'core-colors') {
+            // For core-colors, check each sub-key individually for more granular labels
+            Object.keys(paletteData).forEach((subKey) => {
+              const subData = paletteData[subKey]
+              if (!subData || typeof subData !== 'object') return
+              const families = extractFamiliesFromObj(subData, mode)
+              const subLabel = coreColorLabels[subKey] || subKey
+              families.forEach((fam) => {
+                if (fam && fam !== 'translucent') {
+                  addUsage(fam, `Core: ${subLabel}`, '/theme/core-properties')
+                }
+              })
+            })
+          } else {
+            // Numbered palettes and neutral
+            const families = extractFamiliesFromObj(paletteData, mode)
+            const info = paletteKeyToInfo(pk)
+            families.forEach((fam) => {
+              if (fam && fam !== 'translucent') {
+                addUsage(fam, info.label, info.url)
               }
             })
           }
         })
       }
     } catch (err) {
-      // Silently fail - if we can't check, assume not used (safer for deletion)
       console.warn('Error checking palette usage:', err)
     }
 
-    return (family: string) => {
-      if (!family || typeof family !== 'string') return false
-      return usedFamilies.has(family)
-    }
+    return usageMap
   }, [theme, tokensJson])
+
+  // Helper: get usage locations for a family
+  const getUsageLocations = (family: string): Array<{ label: string; url: string }> => {
+    return colorScaleUsageMap.get(family) || []
+  }
 
   // Count total color scales (excluding deleted ones)
   const totalColorScales = useMemo(() => {
@@ -732,35 +774,65 @@ export default function ColorTokens() {
       // Deep clone tokens to avoid mutation
       const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
       const tokensRoot = nextTokens?.tokens || {}
-      const colorsRoot = tokensRoot?.color || {}
+      const oldColorsRoot = tokensRoot?.color || {}
+      const newColorsRoot = tokensRoot?.colors || {}
+      let tokensChanged = false
 
-      // Delete the color family from tokens
-      if (colorsRoot[family]) {
-        delete colorsRoot[family]
+      // Delete from OLD color structure (color.family)
+      if (oldColorsRoot[family]) {
+        delete oldColorsRoot[family]
+        tokensChanged = true
+      }
+
+      // Delete from NEW colors structure (colors.scale-XX with matching alias)
+      let deletedScaleKey: string | null = null
+      Object.keys(newColorsRoot).forEach((scaleKey) => {
+        if (!scaleKey.startsWith('scale-')) return
+        const scale = newColorsRoot[scaleKey]
+        if (scale && typeof scale === 'object' && scale.alias === family) {
+          delete newColorsRoot[scaleKey]
+          deletedScaleKey = scaleKey
+          tokensChanged = true
+        }
+      })
+
+      if (tokensChanged) {
         setTokens(nextTokens)
       }
 
-      // Remove all CSS variables for this color family
+      // Remove all CSS variables for this color family from inline styles
       const root = document.documentElement
       const style = root.style
       const cssVarsToRemove: string[] = []
 
-      // Collect all CSS variables for this color family from inline styles
       // Iterate backwards to avoid index shifting issues
       for (let i = style.length - 1; i >= 0; i--) {
         const prop = style[i]
-        if (prop && prop.startsWith(`--recursica-tokens-color-${family}-`)) {
+        if (!prop) continue
+        // Match old format: --recursica-tokens-color-{family}-*
+        if (prop.startsWith(`--recursica-tokens-color-${family}-`)) {
+          cssVarsToRemove.push(prop)
+        }
+        // Match new format by alias: --recursica-tokens-colors-{family}-*
+        if (prop.startsWith(`--recursica-tokens-colors-${family}-`)) {
+          cssVarsToRemove.push(prop)
+        }
+        // Match new format by scale key: --recursica-tokens-colors-{scale-XX}-*
+        if (deletedScaleKey && prop.startsWith(`--recursica-tokens-colors-${deletedScaleKey}-`)) {
           cssVarsToRemove.push(prop)
         }
       }
 
-      // Remove all CSS variables
+      // Remove all collected CSS variables
       cssVarsToRemove.forEach(prop => root.style.removeProperty(prop))
 
-      // Update local values state - remove all tokens for this family
+      // Update local values state - remove all tokens for this family (both formats)
       const newValues = { ...values }
       Object.keys(newValues).forEach((tokenName) => {
-        if (tokenName.startsWith(`color/${family}/`)) {
+        if (tokenName.startsWith(`color/${family}/`) || tokenName.startsWith(`colors/${family}/`)) {
+          delete newValues[tokenName]
+        }
+        if (deletedScaleKey && tokenName.startsWith(`colors/${deletedScaleKey}/`)) {
           delete newValues[tokenName]
         }
       })
@@ -998,7 +1070,7 @@ export default function ColorTokens() {
             onChange={handleColorChange}
             onFamilyNameChange={handleFamilyNameChange}
             onDeleteFamily={handleDeleteFamily}
-            isUsedInPalettes={isColorScaleUsedInPalettes(family)}
+            usageLocations={getUsageLocations(family)}
             isLastColorScale={totalColorScales <= 1}
             tokens={tokensJson}
           />

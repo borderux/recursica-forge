@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
 
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
@@ -23,7 +24,7 @@ export type ColorScaleProps = {
   onChange: (tokenName: string, hex: string, cascadeDown: boolean, cascadeUp: boolean) => void
   onFamilyNameChange: (family: string, newName: string) => void
   onDeleteFamily: (family: string) => void
-  isUsedInPalettes: boolean
+  usageLocations: Array<{ label: string; url: string }>
   isLastColorScale: boolean
   tokens?: JsonLike
 }
@@ -43,7 +44,7 @@ export function ColorScale({
   onChange,
   onFamilyNameChange,
   onDeleteFamily,
-  isUsedInPalettes,
+  usageLocations,
   isLastColorScale,
   tokens,
 }: ColorScaleProps) {
@@ -55,6 +56,7 @@ export function ColorScale({
   const borderColor = level500 ? (values[level500.entry.name] || level500.entry.value) : 'transparent'
 
   const displayFamilyName = toTitleCase(familyNames[family] ?? family)
+  const isUsedInPalettes = usageLocations.length > 0
   const isDeleteDisabled = isUsedInPalettes || isLastColorScale
 
   // Local state for input value (for immediate UI feedback)
@@ -214,6 +216,36 @@ export function ColorScale({
           icon={<Trash size={16} />}
         />
       </div>
+      {isUsedInPalettes && (
+        <div style={{
+          marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 2,
+        }}>
+          <span style={{
+            fontSize: 'var(--recursica-brand-typography-caption-font-size, 11px)',
+            color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
+            opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis, 0.6)`,
+          }}>Used in:</span>
+          {usageLocations.map((loc, i) => (
+            <Link
+              key={i}
+              to={loc.url}
+              style={{
+                fontSize: 'var(--recursica-brand-typography-caption-font-size, 11px)',
+                color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone, #0066cc)`,
+                textDecoration: 'none',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+              onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+            >
+              {loc.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
