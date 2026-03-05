@@ -125,6 +125,7 @@ import {
   Trash,
   Upload,
   User,
+  UserCircle,
   Warning,
   X,
 } from '@phosphor-icons/react'
@@ -388,7 +389,6 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'stop': Stop,
   'minus-square': MinusSquare,
   'circle-dashed': CircleDashed,
-  'dots-three': DotsThree,
   'text-columns': TextColumns,
 
   // Time
@@ -397,6 +397,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'corners': CornersIn,
   'pencil-line': PencilLine,
   'border-outer': FrameCorners,
+  'user-circle': UserCircle,
   'text-h': TextH,
 }
 

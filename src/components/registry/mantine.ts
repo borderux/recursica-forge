@@ -118,6 +118,7 @@ registerComponent('mantine', 'Loader', () => import('../adapters/mantine/Loader/
 
 // Stepper
 registerComponent('mantine', 'Stepper', () => import('../adapters/mantine/Stepper/Stepper'))
+registerComponent('mantine', 'Timeline', () => import('../adapters/mantine/Timeline/Timeline'))
 
 // TransferList
 registerComponent('mantine', 'TransferList', () => import('../adapters/mantine/TransferList/TransferList'))

@@ -30,6 +30,7 @@ import { FileUpload } from '../../components/adapters/FileUpload'
 import { Pagination } from '../../components/adapters/Pagination'
 import { TransferList } from '../../components/adapters/TransferList'
 import { DatePicker } from '../../components/adapters/DatePicker'
+import { Timeline } from '../../components/adapters/Timeline'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -1191,16 +1192,30 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Timeline',
       url: `${base}/timeline`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {[['08:00', 'Start'], ['10:30', 'Checkpoint'], ['13:00', 'Finish']].map(([t, l], i) => (
-            <li key={t} style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 8 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: i === 2 ? 'var(--layer-palettes-core-success)' : 'var(--layer-palettes-core-interactive-default-tone)' }} />
-              <span style={{ width: 60, opacity: 0.7 }}>{t}</span>
-              <span>{l}</span>
-            </li>
-          ))}
-        </ul>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+          <span>Timeline preview</span>
+        </div>
       ),
+    },
+    {
+      name: 'Timeline bullet',
+      url: `${base}/timeline-bullet`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ display: 'flex', justifyContent: 'flex-start', minHeight: 200, padding: 16 }}>
+            <Timeline
+              active={0}
+              align="left"
+              layer={layer}
+              items={[
+                { title: 'Active' },
+                { title: 'Inactive' },
+              ]}
+            />
+          </div>
+        )
+      },
     },
     {
       name: 'Toast',

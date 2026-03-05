@@ -52,6 +52,7 @@ export type ComponentName =
   | 'Tabs'
   | 'TimePicker'
   | 'Timeline'
+  | 'TimelineBullet'
   | 'Toast'
   | 'Tooltip'
   | 'TransferList'

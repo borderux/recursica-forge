@@ -38,6 +38,20 @@ export interface ComponentToolbarProps {
   onLayerChange: (layer: string) => void
 }
 
+/**
+ * Returns suffixes that disambiguate sub-components whose CSS var keys
+ * share a prefix with the given componentKey.
+ * e.g. "timeline" has sub-component "timeline-bullet", so suffix is "bullet-".
+ */
+const SUB_COMPONENT_MAP: Record<string, string[]> = {
+  'timeline': ['bullet-'],
+  // Add more entries here as needed for other parent/child component pairs
+}
+
+function getSubComponentSuffixes(componentKey: string): string[] {
+  return SUB_COMPONENT_MAP[componentKey] || []
+}
+
 export default function ComponentToolbar({
   componentName,
   selectedVariants,
@@ -838,6 +852,27 @@ export default function ComponentToolbar({
     if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
 
+    // Helper: check if a CSS var belongs to exactly this component (not a sub-component).
+    // e.g. for componentKey "timeline", match "-components-timeline-variants-..."
+    // but NOT "-components-timeline-bullet-..." which is a different component.
+    const isExactComponentVar = (cssVar: string) => {
+      const marker = `-components-${componentKey}-`
+      const idx = cssVar.indexOf(marker)
+      if (idx === -1) return false
+      // Check what follows the component key to ensure it's not a sub-component
+      const afterKey = cssVar.substring(idx + marker.length)
+      // Sub-components continue with another word segment (e.g., "bullet-...")
+      // Real property paths start with known segments like "variants-", "properties-", "text-"
+      // A simple heuristic: if componentKey is a prefix of a longer component name,
+      // the next segment would be the sub-component suffix. We check against known
+      // sub-component keys that share this prefix.
+      const subComponentSuffixes = getSubComponentSuffixes(componentKey)
+      for (const suffix of subComponentSuffixes) {
+        if (afterKey.startsWith(suffix)) return false
+      }
+      return true
+    }
+
     // 1. Remove ALL overrides for this component from the document element
     // This handles all modes, layers, and states by looking for the component key in the variable name
     if (typeof document !== 'undefined') {
@@ -846,9 +881,7 @@ export default function ComponentToolbar({
 
       for (let i = 0; i < style.length; i++) {
         const prop = style[i]
-        // Match --recursica-ui-kit-themes-{mode}-components-{componentKey}-...
-        // and --recursica-ui-kit-components-{componentKey}-...
-        if (prop.includes(`-components-${componentKey}-`)) {
+        if (isExactComponentVar(prop)) {
           propsToRemove.push(prop)
         }
       }
@@ -866,7 +899,7 @@ export default function ComponentToolbar({
     // Filter to only this component's variables from both modes
     const filterAndAdd = (allVars: Record<string, string>, currentMode: 'light' | 'dark') => {
       Object.entries(allVars).forEach(([cssVar, value]) => {
-        if (cssVar.includes(`-components-${componentKey}-`)) {
+        if (isExactComponentVar(cssVar)) {
           componentDefaults[cssVar] = value
         }
         // For checkbox-item, also include base checkbox component vars
@@ -1052,7 +1085,19 @@ export default function ComponentToolbar({
             return false
           }
           const isVisible = getPropVisible(componentName, prop.name)
-          return isVisible
+          if (!isVisible) return false
+
+          // Filter by showForVariants if specified at top level
+          if ((propConfig as any).showForVariants && (propConfig as any).showForVariants.length > 0) {
+            const anyVariantMatch = (propConfig as any).showForVariants.some((v: string) =>
+              Object.values(selectedVariants).includes(v)
+            )
+            if (!anyVariantMatch) {
+              return false
+            }
+          }
+
+          return true
         }).map(prop => {
           const Icon = getPropIconComponent(prop)
           const propKey = prop.name

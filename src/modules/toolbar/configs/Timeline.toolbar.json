@@ -1,0 +1,263 @@
+{
+    "props": {
+        "connector": {
+            "icon": "minus",
+            "label": "Connector",
+            "visible": true,
+            "group": {
+                "active-connector-color": {
+                    "icon": "paint-bucket",
+                    "label": "Active color",
+                    "visible": true
+                },
+                "inactive-connector-color": {
+                    "icon": "paint-bucket",
+                    "label": "Inactive color",
+                    "visible": true
+                },
+                "active-connector-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Active size",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        1,
+                        10
+                    ],
+                    "step": 1
+                },
+                "inactive-connector-size": {
+                    "icon": "arrows-left-right",
+                    "label": "Inactive size",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        1,
+                        10
+                    ],
+                    "step": 1
+                }
+            }
+        },
+        "title": {
+            "icon": "text-aa",
+            "label": "Title",
+            "visible": true,
+            "group": {
+                "active-title-color": {
+                    "icon": "paint-bucket",
+                    "label": "Active color",
+                    "visible": true
+                },
+                "inactive-title-color": {
+                    "icon": "paint-bucket",
+                    "label": "Inactive color",
+                    "visible": true
+                }
+            }
+        },
+        "description": {
+            "icon": "text-aa",
+            "label": "Description",
+            "visible": true,
+            "group": {
+                "active-description-color": {
+                    "icon": "paint-bucket",
+                    "label": "Active color",
+                    "visible": true
+                },
+                "inactive-description-color": {
+                    "icon": "paint-bucket",
+                    "label": "Inactive color",
+                    "visible": true
+                }
+            }
+        },
+        "timestamp": {
+            "icon": "text-aa",
+            "label": "Timestamp",
+            "visible": true,
+            "group": {
+                "active-timestamp-color": {
+                    "icon": "paint-bucket",
+                    "label": "Active color",
+                    "visible": true
+                },
+                "inactive-timestamp-color": {
+                    "icon": "paint-bucket",
+                    "label": "Inactive color",
+                    "visible": true
+                }
+            }
+        },
+        "title-text": {
+            "icon": "text-aa",
+            "label": "Title text style",
+            "visible": true,
+            "group": {
+                "font-family": {
+                    "icon": "text-aa",
+                    "label": "Font family",
+                    "visible": true
+                },
+                "font-size": {
+                    "icon": "text-aa",
+                    "label": "Font size",
+                    "visible": true
+                },
+                "font-weight": {
+                    "icon": "text-aa",
+                    "label": "Font weight",
+                    "visible": true
+                },
+                "letter-spacing": {
+                    "icon": "text-aa",
+                    "label": "Letter spacing",
+                    "visible": true
+                },
+                "line-height": {
+                    "icon": "text-aa",
+                    "label": "Line height",
+                    "visible": true
+                },
+                "text-decoration": {
+                    "icon": "text-aa",
+                    "label": "Text decoration",
+                    "visible": true
+                },
+                "text-transform": {
+                    "icon": "text-aa",
+                    "label": "Text transform",
+                    "visible": true
+                },
+                "font-style": {
+                    "icon": "text-aa",
+                    "label": "Font style",
+                    "visible": true
+                }
+            }
+        },
+        "description-text": {
+            "icon": "text-aa",
+            "label": "Description text style",
+            "visible": true,
+            "group": {
+                "font-family": {
+                    "icon": "text-aa",
+                    "label": "Font family",
+                    "visible": true
+                },
+                "font-size": {
+                    "icon": "text-aa",
+                    "label": "Font size",
+                    "visible": true
+                },
+                "font-weight": {
+                    "icon": "text-aa",
+                    "label": "Font weight",
+                    "visible": true
+                },
+                "letter-spacing": {
+                    "icon": "text-aa",
+                    "label": "Letter spacing",
+                    "visible": true
+                },
+                "line-height": {
+                    "icon": "text-aa",
+                    "label": "Line height",
+                    "visible": true
+                },
+                "text-decoration": {
+                    "icon": "text-aa",
+                    "label": "Text decoration",
+                    "visible": true
+                },
+                "text-transform": {
+                    "icon": "text-aa",
+                    "label": "Text transform",
+                    "visible": true
+                },
+                "font-style": {
+                    "icon": "text-aa",
+                    "label": "Font style",
+                    "visible": true
+                }
+            }
+        },
+        "timestamp-text": {
+            "icon": "text-aa",
+            "label": "Timestamp text style",
+            "visible": true,
+            "group": {
+                "font-family": {
+                    "icon": "text-aa",
+                    "label": "Font family",
+                    "visible": true
+                },
+                "font-size": {
+                    "icon": "text-aa",
+                    "label": "Font size",
+                    "visible": true
+                },
+                "font-weight": {
+                    "icon": "text-aa",
+                    "label": "Font weight",
+                    "visible": true
+                },
+                "letter-spacing": {
+                    "icon": "text-aa",
+                    "label": "Letter spacing",
+                    "visible": true
+                },
+                "line-height": {
+                    "icon": "text-aa",
+                    "label": "Line height",
+                    "visible": true
+                },
+                "text-decoration": {
+                    "icon": "text-aa",
+                    "label": "Text decoration",
+                    "visible": true
+                },
+                "text-transform": {
+                    "icon": "text-aa",
+                    "label": "Text transform",
+                    "visible": true
+                },
+                "font-style": {
+                    "icon": "text-aa",
+                    "label": "Font style",
+                    "visible": true
+                }
+            }
+        },
+        "spacing": {
+            "icon": "split-horizontal",
+            "label": "Spacing",
+            "visible": true,
+            "group": {
+                "item-gap": {
+                    "icon": "arrows-out-cardinal",
+                    "label": "Item gap",
+                    "visible": true
+                },
+                "bullet-content-gap": {
+                    "icon": "split-horizontal",
+                    "label": "Bullet content gap",
+                    "visible": true
+                },
+                "max-text-width": {
+                    "icon": "arrows-left-right",
+                    "label": "Max text width",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        100,
+                        600
+                    ],
+                    "step": 10
+                }
+            }
+        }
+    }
+}
