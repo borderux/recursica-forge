@@ -40,6 +40,8 @@ const TimePickerPreview = lazy(() => import('../components/TimePickerPreview'))
 const DatePickerPreview = lazy(() => import('../components/DatePickerPreview'))
 const LoaderPreview = lazy(() => import('../components/LoaderPreview'))
 const StepperPreview = lazy(() => import('../components/StepperPreview'))
+const TimelinePreview = lazy(() => import('../components/TimelinePreview'))
+const TimelineBulletPreview = lazy(() => import('../components/TimelineBulletPreview'))
 const TransferListPreview = lazy(() => import('../components/TransferListPreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -506,6 +508,18 @@ export default function ComponentDetailPage() {
                   />
                 ) : component.name === 'Stepper' ? (
                   <StepperPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Timeline' ? (
+                  <TimelinePreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Timeline bullet' ? (
+                  <TimelineBulletPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}

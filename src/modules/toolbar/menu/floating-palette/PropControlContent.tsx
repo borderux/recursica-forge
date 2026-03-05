@@ -61,16 +61,20 @@ function SegmentedControlFromCssVar({
   primaryVar: string
   cssVars: string[]
   label: string
-  options: Array<{ value: string; icon?: string }>
+  options: Array<string | { value: string; icon?: string }>
 }) {
-  const currentValue = useCssVar(primaryVar, options[0]?.value ?? '')
-  const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || (options[0]?.value ?? '')
+  const firstValue = typeof options[0] === 'string' ? options[0] : options[0]?.value ?? ''
+  const currentValue = useCssVar(primaryVar, firstValue)
+  const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || firstValue
   const items = options.map((opt) => {
-    const IconComp = opt.icon ? iconNameToReactComponent(opt.icon) : null
+    // Normalize: options can be plain strings or { value, icon } objects
+    const optValue = typeof opt === 'string' ? opt : opt.value
+    const optIcon = typeof opt === 'string' ? undefined : opt.icon
+    const IconComp = optIcon ? iconNameToReactComponent(optIcon) : null
     return {
-      value: opt.value,
+      value: optValue,
       icon: IconComp ? React.createElement(IconComp, { size: 16 }) : undefined,
-      tooltip: opt.value.charAt(0).toUpperCase() + opt.value.slice(1),
+      tooltip: optValue ? optValue.charAt(0).toUpperCase() + optValue.slice(1) : '',
     }
   })
   return (
@@ -3644,7 +3648,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text']
 
   // Always check UIKit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly
@@ -3711,15 +3715,21 @@ export default function PropControlContent({
   const groupedPropsConfig = getGroupedProps(componentName, prop.name)
 
   // Border Group Module
+  // Skip the BorderGroupToolbar shortcut when the config uses active/inactive border colors
+  // (e.g., TimelineBullet) — those need the generic grouped handler to render each color separately
   if (propNameLower === 'border' && groupedPropsConfig) {
     const hasBorderSize = 'border-size' in groupedPropsConfig
     const hasBorderRadius = 'border-radius' in groupedPropsConfig
     const hasBorderColor = 'border-color' in groupedPropsConfig || 'border' in groupedPropsConfig
+    const hasActiveBorderColor = 'active-border-color' in groupedPropsConfig
+    const hasInactiveBorderColor = 'inactive-border-color' in groupedPropsConfig
     // Determine the actual color prop name from config (could be "border-color" or "border")
     const borderColorPropName = 'border-color' in groupedPropsConfig ? 'border-color' :
       'border' in groupedPropsConfig ? 'border' : 'border-color'
 
-    if (hasBorderSize || hasBorderRadius) {
+    // Only use BorderGroupToolbar for standard border-color pattern;
+    // fall through to generic handler for active/inactive border colors
+    if ((hasBorderSize || hasBorderRadius) && !hasActiveBorderColor && !hasInactiveBorderColor) {
       return (
         <BorderGroupToolbar
           componentName={componentName}
@@ -3916,6 +3926,16 @@ export default function PropControlContent({
         {groupedPropEntries.map(([groupedPropName, groupedPropConfig], index) => {
           if (groupedPropConfig.visible === false) {
             return null
+          }
+
+          // Filter by showForVariants if specified
+          if (groupedPropConfig.showForVariants && groupedPropConfig.showForVariants.length > 0) {
+            const anyVariantMatch = groupedPropConfig.showForVariants.some(v =>
+              Object.values(selectedVariants).includes(v)
+            )
+            if (!anyVariantMatch) {
+              return null
+            }
           }
 
           const groupedPropKey = groupedPropName.toLowerCase()
@@ -4155,6 +4175,33 @@ export default function PropControlContent({
                 return null
               }
               // Note: min-height is now available for both stacked and side-by-side layouts
+            }
+          }
+
+          // General fallback: For variant-specific grouped props (e.g. active-border-color in the border group
+          // when the prop originates from colors under a specific variant), search structure.props by name,
+          // selected layer, and selected variant.
+          if (!groupedProp) {
+            const structure = parseComponentStructure(componentName)
+            const matchingProp = structure.props.find(p => {
+              const nameMatches = p.name.toLowerCase() === groupedPropKey
+              // For color props, filter by selectedLayer
+              const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
+              // For variant-specific props, filter by selected variant
+              let variantMatches = true
+              if (p.isVariantSpecific && p.variantProp) {
+                const selectedVariant = selectedVariants[p.variantProp]
+                if (selectedVariant) {
+                  variantMatches = p.path.includes(selectedVariant)
+                } else {
+                  variantMatches = false
+                }
+              }
+              return nameMatches && layerMatches && variantMatches
+            })
+            if (matchingProp) {
+              groupedProp = matchingProp
+              prop.borderProps!.set(groupedPropKey, matchingProp)
             }
           }
 

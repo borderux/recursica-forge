@@ -117,6 +117,7 @@ export function ComponentsSidebar({
       { name: 'Textarea', url: `${base}/textarea` },
       { name: 'Time picker', url: `${base}/time-picker` },
       { name: 'Timeline', url: `${base}/timeline` },
+      { name: 'Timeline bullet', url: `${base}/timeline-bullet` },
       { name: 'Toast', url: `${base}/toast` },
       { name: 'Tooltip', url: `${base}/tooltip` },
       { name: 'Transfer list', url: `${base}/transfer-list` },
@@ -142,10 +143,16 @@ export function ComponentsSidebar({
     const itemMap = new Map<string, ComponentItem>()
     const parentMap = new Map<string, TreeNode>()
 
-    // First pass: separate parents and items
+    // First pass: separate parents and child items
     allComponents.forEach(comp => {
-      const isItem = comp.name.endsWith(' item')
-      const parentName = isItem ? comp.name.replace(' item', '') : comp.name
+      const isItem = comp.name.endsWith(' item') || comp.name.endsWith(' bullet')
+      // Derive parent name by stripping the suffix
+      let parentName = comp.name
+      if (comp.name.endsWith(' item')) {
+        parentName = comp.name.replace(/ item$/, '')
+      } else if (comp.name.endsWith(' bullet')) {
+        parentName = comp.name.replace(/ bullet$/, '')
+      }
 
       if (isItem) {
         // Store item for second pass
@@ -443,7 +450,16 @@ export function ComponentsSidebar({
                             }}
                           />
                         )}
-                        Item
+                        {/* Display the suffix after the parent name, capitalized */}
+                        {(() => {
+                          const parentName = node.name.toLowerCase()
+                          const childName = child.name.toLowerCase()
+                          if (childName.startsWith(parentName + ' ')) {
+                            const suffix = child.name.substring(node.name.length + 1)
+                            return suffix.charAt(0).toUpperCase() + suffix.slice(1)
+                          }
+                          return child.name
+                        })()}
                       </button>
                     )
                   })}

@@ -42,6 +42,8 @@ import TimePickerConfig from '../configs/TimePicker.toolbar.json'
 import DatePickerConfig from '../configs/DatePicker.toolbar.json'
 import LoaderConfig from '../configs/Loader.toolbar.json'
 import StepperConfig from '../configs/Stepper.toolbar.json'
+import TimelineConfig from '../configs/Timeline.toolbar.json'
+import TimelineBulletConfig from '../configs/TimelineBullet.toolbar.json'
 import TransferListConfig from '../configs/TransferList.toolbar.json'
 
 export interface ToolbarPropConfig {
@@ -55,6 +57,7 @@ export interface ToolbarPropConfig {
   allowedProps?: string[] // For restricting which properties are visible in a group like text-style
   control?: 'dropdown' | 'segmented' // Control type for options-based props
   options?: Array<string | { label: string; value: string; icon?: string }> // Options for dropdown/segmented controls
+  showForVariants?: string[] // Only show this prop when one of these variant values is selected
 }
 
 export interface ToolbarVariantConfig {
@@ -184,6 +187,11 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
         return LoaderConfig as unknown as ToolbarConfig
       case 'stepper':
         return StepperConfig as unknown as ToolbarConfig
+      case 'timeline':
+        return TimelineConfig as unknown as ToolbarConfig
+      case 'timeline-bullet':
+      case 'timeline bullet':
+        return TimelineBulletConfig as unknown as ToolbarConfig
       case 'transfer-list':
       case 'transfer list':
       case 'transferlist':
