@@ -12,6 +12,8 @@ import { useState, useEffect } from "react";
 import { Modal } from "../../components/adapters/Modal";
 import { Button } from "../../components/adapters/Button";
 import { TextField } from "../../components/adapters/TextField";
+import { Dropdown } from "../../components/adapters/Dropdown";
+import type { DropdownItem } from "../../components/adapters/Dropdown";
 import {
   getStoredAuth,
   clearAuth,
@@ -75,8 +77,6 @@ export function GitHubExportModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdPr, setCreatedPr] = useState<GitHubPullRequest | null>(null);
-  const [manualRepoUrl, setManualRepoUrl] = useState("");
-  const [showManualUrlInput, setShowManualUrlInput] = useState(false);
 
   // Check for existing auth on mount
   useEffect(() => {
@@ -307,50 +307,6 @@ export function GitHubExportModal({
     }
   };
 
-  const parseRepositoryUrl = (
-    url: string,
-  ): { owner: string; repo: string } | null => {
-    try {
-      const cleanUrl = url.trim().replace(/\.git$/, "");
-      let match = cleanUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
-      if (!match) match = cleanUrl.match(/^([^\/]+)\/([^\/]+)$/);
-      if (match) return { owner: match[1], repo: match[2] };
-      return null;
-    } catch {
-      return null;
-    }
-  };
-
-  const handleManualRepoSubmit = async () => {
-    const parsed = parseRepositoryUrl(manualRepoUrl);
-    if (!parsed) {
-      setError(
-        "Invalid repository URL. Please use format: owner/repo or https://github.com/owner/repo",
-      );
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const authToken = token || getStoredAuth()?.accessToken;
-      if (!authToken) throw new Error("No authentication token available");
-      const repoInfo = await getRepository(
-        authToken,
-        parsed.owner,
-        parsed.repo,
-      );
-      handleRepoSelect(repoInfo);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to fetch repository information",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const getModalTitle = () => {
     switch (step) {
       case "auth":
@@ -420,19 +376,16 @@ export function GitHubExportModal({
           {step === "repositories" && (
             <>
               {user && (
-                <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                  <a
-                    href={`https://github.com/${user.login}`}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    style={{
-                      fontSize: "14px",
-                      textDecoration: "none",
-                      opacity: 0.7,
-                    }}
-                  >
-                    Logged in as: <strong>{user.login}</strong>
-                  </a>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    marginBottom: "8px",
+                  }}
+                >
+                  <Button variant='outline' size='small' onClick={handleLogout}>
+                    Logout
+                  </Button>
                 </div>
               )}
               {error && (
@@ -462,113 +415,56 @@ export function GitHubExportModal({
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: "14px" }}>
-                    Select your repository from the list below
-                  </div>
-                  <div
-                    style={{
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                      border: "1px solid var(--modal-border-color)",
-                      borderRadius: "var(--modal-border-radius)",
-                    }}
-                  >
-                    {repositories.length === 0 ? (
-                      <div
-                        style={{
-                          textAlign: "center",
-                          padding: "40px",
-                          opacity: 0.5,
-                        }}
-                      >
-                        No repositories available
-                      </div>
-                    ) : (
-                      repositories.map((repo) => {
+                  {repositories.length === 0 ? (
+                    <div
+                      style={{
+                        textAlign: "center",
+                        padding: "40px",
+                        opacity: 0.5,
+                        border:
+                          "1px solid var(--modal-border-color, rgba(0,0,0,0.1))",
+                        borderRadius: "var(--modal-border-radius)",
+                      }}
+                    >
+                      No repositories available
+                    </div>
+                  ) : (
+                    <Dropdown
+                      label='Select Repository'
+                      placeholder='Choose a repository...'
+                      layer='layer-1'
+                      items={repositories.map((repo): DropdownItem => {
                         const StarIcon = iconNameToReactComponent("star");
                         const isSandbox = isSandboxRepo(repo);
                         const label = isSandbox
                           ? "Recursica Sandbox (come play around)"
                           : `${repo.owner.login} / ${repo.name}`;
-                        return (
-                          <div
-                            key={repo.id}
-                            onClick={() => handleRepoSelect(repo)}
-                            style={{
-                              width: "100%",
-                              padding: "8px 12px",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                              textAlign: "left",
-                              borderBottom: `1px solid var(--modal-border-color)`,
-                              cursor: "pointer",
-                              fontSize: "14px",
-                              backgroundColor: `var(--modal-bg)`,
-                            }}
-                          >
-                            {isSandbox && StarIcon ? (
-                              <StarIcon size={16} style={{ flexShrink: 0 }} />
-                            ) : null}
-                            <span
-                              style={{
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {label}
-                            </span>
-                          </div>
+                        return {
+                          value: repo.id.toString(),
+                          label: label,
+                          leadingIcon:
+                            isSandbox && StarIcon ? (
+                              <StarIcon style={{ width: 16, height: 16 }} />
+                            ) : undefined,
+                          leadingIconType: isSandbox ? "icon" : "none",
+                        };
+                      })}
+                      onChange={(val) => {
+                        const repo = repositories.find(
+                          (r) => r.id.toString() === val,
                         );
-                      })
-                    )}
-                  </div>
-                  {!showManualUrlInput ? (
-                    <div style={{ textAlign: "center" }}>
-                      <Button
-                        variant='text'
-                        onClick={() => setShowManualUrlInput(true)}
-                        style={{
-                          fontSize: "14px",
-                          textDecoration: "underline",
-                        }}
-                      >
-                        Don't see your repository in the list? Click here.
-                      </Button>
-                    </div>
-                  ) : (
-                    <div>
-                      <label
-                        style={{
-                          display: "block",
-                          marginBottom: "8px",
-                          fontSize: "14px",
-                          fontWeight: "500",
-                        }}
-                      >
-                        Enter Repository URL
-                      </label>
-                      <div style={{ display: "flex", gap: "8px" }}>
-                        <TextField
-                          value={manualRepoUrl}
-                          onChange={(e) => setManualRepoUrl(e.target.value)}
-                          placeholder='https://github.com/owner/repo or owner/repo'
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleManualRepoSubmit();
-                          }}
-                          style={{ flex: 1, fontSize: "14px" }}
-                          layer='layer-3'
-                        />
-                        <Button
-                          variant='solid'
-                          onClick={handleManualRepoSubmit}
-                          disabled={!manualRepoUrl.trim() || loading}
-                        >
-                          Use URL
-                        </Button>
-                      </div>
-                    </div>
+                        if (repo) handleRepoSelect(repo);
+                      }}
+                      mantine={{
+                        styles: {
+                          dropdown: {
+                            maxHeight:
+                              "calc(var(--recursica-component-menu-item-min-height, 36px) * 5.5)",
+                            overflowY: "auto",
+                          },
+                        },
+                      }}
+                    />
                   )}
                 </>
               )}
@@ -618,12 +514,11 @@ export function GitHubExportModal({
                   </div>
                   <div style={{ textAlign: "center", marginTop: "20px" }}>
                     <Button
-                      variant='solid'
+                      variant='outline'
                       onClick={() => {
                         window.open(createdPr.html_url, "_blank");
                         if (onSuccess) onSuccess(createdPr.html_url);
                       }}
-                      style={{ backgroundColor: "#24292e", color: "white" }}
                     >
                       View Pull Request →
                     </Button>
@@ -660,9 +555,8 @@ export function GitHubExportModal({
               </div>
               <div style={{ textAlign: "center", marginTop: "20px" }}>
                 <Button
-                  variant='solid'
+                  variant='outline'
                   onClick={() => window.open(createdPr.html_url, "_blank")}
-                  style={{ backgroundColor: "#24292e", color: "white" }}
                 >
                   View Pull Request →
                 </Button>
