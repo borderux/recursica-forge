@@ -2,11 +2,9 @@ import { useState, useEffect, createContext, useContext } from 'react'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { ComponentsSidebar } from './ComponentsSidebar'
 
-const DebugModeContext = createContext<{ 
+const DebugModeContext = createContext<{
   debugMode: boolean
   setDebugMode: (value: boolean) => void
-  showUnmapped: boolean
-  setShowUnmapped: (value: boolean) => void
 } | undefined>(undefined)
 
 export function useDebugMode() {
@@ -14,13 +12,12 @@ export function useDebugMode() {
   if (!context) {
     // Return default values if context is not available (e.g., during hot reload)
     console.warn('useDebugMode called outside PreviewPage context, using defaults')
-    return { debugMode: false, setDebugMode: () => {}, showUnmapped: false, setShowUnmapped: () => {} }
+    return { debugMode: false, setDebugMode: () => { } }
   }
   return context
 }
 
 export default function PreviewPage() {
-  const [showUnmapped, setShowUnmapped] = useState(false)
   const [debugMode, setDebugMode] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
@@ -34,11 +31,9 @@ export default function PreviewPage() {
   }, [location.pathname, navigate])
 
   return (
-    <DebugModeContext.Provider value={{ debugMode, setDebugMode, showUnmapped, setShowUnmapped }}>
+    <DebugModeContext.Provider value={{ debugMode, setDebugMode }}>
       <div style={{ display: 'flex', height: debugMode ? 'auto' : '100%', minHeight: debugMode ? undefined : '100%' }}>
-        <ComponentsSidebar 
-          showUnmapped={showUnmapped} 
-          onShowUnmappedChange={setShowUnmapped}
+        <ComponentsSidebar
           debugMode={debugMode}
           onDebugModeChange={setDebugMode}
         />

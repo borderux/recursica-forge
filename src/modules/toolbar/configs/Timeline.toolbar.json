@@ -236,11 +236,6 @@
             "label": "Spacing",
             "visible": true,
             "group": {
-                "item-gap": {
-                    "icon": "arrows-out-cardinal",
-                    "label": "Item gap",
-                    "visible": true
-                },
                 "bullet-content-gap": {
                     "icon": "split-horizontal",
                     "label": "Bullet content gap",

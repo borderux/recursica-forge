@@ -28,13 +28,9 @@ type TreeNode = {
 }
 
 export function ComponentsSidebar({
-  showUnmapped,
-  onShowUnmappedChange,
   debugMode,
   onDebugModeChange,
 }: {
-  showUnmapped: boolean
-  onShowUnmappedChange: (show: boolean) => void
   debugMode: boolean
   onDebugModeChange: (show: boolean) => void
 }) {
@@ -129,13 +125,8 @@ export function ComponentsSidebar({
       }))
   }, [mappedComponents])
 
-  // All component sections (filtered based on showUnmapped)
-  const allComponents = useMemo(() => {
-    return baseComponents.filter(comp => {
-      if (comp.isMapped) return true
-      return showUnmapped
-    })
-  }, [baseComponents, showUnmapped])
+  // All components (no filtering)
+  const allComponents = baseComponents
 
   // Build tree structure: group items ending with " item" under their parent
   const componentTree = useMemo(() => {
@@ -230,11 +221,7 @@ export function ComponentsSidebar({
       }
     }
   }, [currentComponent, componentTree])
-  const unmappedCount = useMemo(() => {
-    return baseComponents.filter(c => !c.isMapped).length
-  }, [baseComponents])
 
-  const totalCount = baseComponents.length
 
   // Redirect to first component if on /components without a component name
   useEffect(() => {

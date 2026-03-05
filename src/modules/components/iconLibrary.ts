@@ -58,6 +58,7 @@ import {
   CopySimple,
   CornersIn,
   CornersOut,
+  Crown,
   CursorClick,
   Diamond,
   DiamondsFour,
@@ -70,6 +71,7 @@ import {
   FadersHorizontal,
   FileSvg,
   FileText,
+  Fire,
   FrameCorners,
   FunnelSimple,
   GoogleLogo,
@@ -98,6 +100,7 @@ import {
   Resize,
   Rows,
   Scales,
+  Shield,
   SignOut,
   SlidersHorizontal,
   SplitHorizontal,
@@ -123,6 +126,7 @@ import {
   TextUnderline,
   ThumbsUp,
   Trash,
+  Tree,
   Upload,
   User,
   UserCircle,
@@ -399,6 +403,12 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'border-outer': FrameCorners,
   'user-circle': UserCircle,
   'text-h': TextH,
+
+  // Nature & Objects
+  'fire': Fire,
+  'tree': Tree,
+  'shield': Shield,
+  'crown': Crown,
 }
 
 /**
