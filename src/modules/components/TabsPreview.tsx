@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Tabs } from '../../components/adapters/Tabs'
 import { Tabs as MantineTabs } from '@mantine/core'
-import { Image, ChatCircle, Gear } from '@phosphor-icons/react'
+import { iconNameToReactComponent } from './iconUtils'
 import { Badge } from '../../components/adapters/Badge'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useCssVar } from '../../components/hooks/useCssVar'
@@ -126,6 +126,11 @@ export default function TabsPreview({
     const panelStyle = contentPanelStyle(modeLower)
     const tabSetProps = { variant, orientation, tabContentAlignment, layer: selectedLayer, contentPanel: panelStyle }
 
+    // Get contextual icons for tabs
+    const FireIcon = iconNameToReactComponent('fire')
+    const DiamondIcon = iconNameToReactComponent('diamond')
+    const ShieldIcon = iconNameToReactComponent('shield')
+
     const headerToPreviewGap = 'var(--recursica-brand-dimensions-general-default)'
     const previewToHeaderGap = 'var(--recursica-brand-dimensions-gutters-vertical)'
     const vertGutter = 'var(--recursica-brand-dimensions-gutters-vertical)'
@@ -148,9 +153,9 @@ export default function TabsPreview({
                         <div style={previewMargin}>
                             <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
                                 <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Forge</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Mines</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Armory</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</MantineTabs.Tab>
                                 </MantineTabs.List>
                                 <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
                                 <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
@@ -203,9 +208,9 @@ export default function TabsPreview({
                                 <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
                                 <MantineTabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
                                 <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Forge</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Mines</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Armory</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</MantineTabs.Tab>
                                 </MantineTabs.List>
                             </Tabs>
                         </div>
@@ -254,9 +259,9 @@ export default function TabsPreview({
                         <div style={previewMargin}>
                             <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
                                 <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Forge</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Mines</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Armory</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</MantineTabs.Tab>
                                 </MantineTabs.List>
                                 <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
                                 <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
@@ -306,9 +311,9 @@ export default function TabsPreview({
                         <div style={previewMargin}>
                             <Tabs value={value5 ?? undefined} onChange={(v) => setValue5(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
                                 <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery" leftSection={<Image size={16} weight="regular" />}>Forge</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages" leftSection={<ChatCircle size={16} weight="regular" />}>Mines</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings" leftSection={<Gear size={16} weight="regular" />}>Armory</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</MantineTabs.Tab>
+                                    <MantineTabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</MantineTabs.Tab>
                                 </MantineTabs.List>
                                 <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
                                 <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>

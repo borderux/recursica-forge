@@ -309,6 +309,7 @@
     text-decoration: var(--timeline-description-text-decoration, none) !important;
     text-transform: var(--timeline-description-text-transform, none) !important;
     font-style: var(--timeline-description-font-style, normal) !important;
+    margin-top: var(--timeline-title-description-gap, 4px);
 }
 
 /* Inactive item description */
@@ -322,6 +323,7 @@
     text-decoration: var(--timeline-description-text-decoration, none) !important;
     text-transform: var(--timeline-description-text-transform, none) !important;
     font-style: var(--timeline-description-font-style, normal) !important;
+    margin-top: var(--timeline-title-description-gap, 4px);
 }
 
 /* ---- Timestamp text ---- */
@@ -338,7 +340,7 @@
     text-decoration: var(--timeline-timestamp-text-decoration, none) !important;
     text-transform: var(--timeline-timestamp-text-transform, none) !important;
     font-style: var(--timeline-timestamp-font-style, normal) !important;
-    margin-top: 4px;
+    margin-top: var(--timeline-description-timestamp-gap, 4px);
 }
 
 /* Inactive item timestamp */
@@ -352,7 +354,7 @@
     text-decoration: var(--timeline-timestamp-text-decoration, none) !important;
     text-transform: var(--timeline-timestamp-text-transform, none) !important;
     font-style: var(--timeline-timestamp-font-style, normal) !important;
-    margin-top: 4px;
+    margin-top: var(--timeline-description-timestamp-gap, 4px);
 }
 
 /* ---- Spacing ---- */
@@ -382,4 +384,7 @@
 .recursica-timeline[data-align="right"] .mantine-Timeline-itemBody {
     padding-left: 0 !important;
     padding-right: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
 }

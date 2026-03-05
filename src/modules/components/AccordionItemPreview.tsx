@@ -65,18 +65,18 @@ export default function AccordionItemPreview({
             {
               id: 'item-1',
               title: 'The Forge Entrance',
-              content: 'This demonstrates AccordionItem properties. The header uses AccordionItem colors, padding, icon-size, and icon-gap. The content uses AccordionItem content-background, content-text, and content-padding.',
+              content: 'The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. Sparks fly from the ancient anvil as Zog lands, his obsidian gauntlets ringing against the forge floor. The air is thick with the scent of molten iron and goblin grease.',
               open: openItems.has('item-1'),
               divider: true,
-              icon: CircleIcon, // Add icon to first item (even index)
+              icon: CircleIcon,
             },
             {
               id: 'item-2',
               title: 'The quick onyx goblin jumps over the lazy dwarf, muttering about a treasure map he found tucked inside an old boot at the bottom of the river, while clutching a handful of stolen trinkets that sparkle like tiny stars in the moonlight of the crystalline abyss far below the obsidian mountains',
-              content: 'This demonstrates AccordionItem properties with a long header title that should truncate with an ellipsis.',
+              content: '"Down, then," Zog muttered, tightening the straps of his obsidian gauntlets. He had not come this far—past the sleeping wyrm, through the Thornroot Maze, and over the lazy dwarf—to turn back now. The lantern\'s glow pulsed like a heartbeat, casting shifting patterns on the crystal walls.',
               open: openItems.has('item-2'),
               divider: false,
-              icon: undefined, // No icon for second item (odd index)
+              icon: undefined,
             },
           ]}
           layer={selectedLayer as any}

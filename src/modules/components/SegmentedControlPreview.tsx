@@ -30,10 +30,10 @@ export default function SegmentedControlPreview({
   const [selectedValue3, setSelectedValue3] = useState<string>('option1')
 
   // Get icons
-  const Icon1 = iconNameToReactComponent('house')
-  const Icon2 = iconNameToReactComponent('sliders-horizontal')
-  const Icon3 = iconNameToReactComponent('user')
-  const Icon4 = iconNameToReactComponent('info')
+  const Icon1 = iconNameToReactComponent('fire')
+  const Icon2 = iconNameToReactComponent('diamond')
+  const Icon3 = iconNameToReactComponent('shield')
+  const Icon4 = iconNameToReactComponent('crown')
 
   // Create items with icons and labels (original)
   const itemsWithIconsAndLabels = useMemo(() => [

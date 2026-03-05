@@ -25,10 +25,7 @@ export default function RadioButtonItem({
     const fontSizeVar = getComponentTextCssVar('RadioButtonItem', 'text', 'font-size')
     const fontWeightVar = getComponentTextCssVar('RadioButtonItem', 'text', 'font-weight')
     const lineHeightVar = getComponentTextCssVar('RadioButtonItem', 'text', 'line-height')
-    const letterSpacingVar = getComponentTextCssVar('RadioButtonItem', 'text', 'letter-spacing')
-    const fontStyleVar = getComponentTextCssVar('RadioButtonItem', 'text', 'font-style')
-    const textDecorationVar = getComponentTextCssVar('RadioButtonItem', 'text', 'text-decoration')
-    const textTransformVar = getComponentTextCssVar('RadioButtonItem', 'text', 'text-transform')
+
     const colorVar = getComponentTextCssVar('RadioButtonItem', 'text', 'color')
 
     // RadioButton props from base RadioButton component
@@ -67,10 +64,7 @@ export default function RadioButtonItem({
         '--radio-item-font-size': `var(${fontSizeVar})`,
         '--radio-item-font-weight': `var(${fontWeightVar})`,
         '--radio-item-line-height': `var(${lineHeightVar})`,
-        '--radio-item-letter-spacing': `var(${letterSpacingVar})`,
-        '--radio-item-font-style': `var(${fontStyleVar})`,
-        '--radio-item-text-decoration': `var(${textDecorationVar})`,
-        '--radio-item-text-transform': `var(${textTransformVar})`,
+
         '--radio-item-color': `var(${colorVar})`,
         '--radio-item-max-width': `var(${maxWidthVar})`,
     }

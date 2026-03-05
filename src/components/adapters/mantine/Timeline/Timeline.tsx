@@ -135,9 +135,10 @@ export default function Timeline({
         '--timeline-inactive-timestamp-color': `var(${timelineColorVar('inactive-timestamp-color')})`,
 
         // Spacing (from Timeline parent)
-        '--timeline-item-gap': `var(${timelinePropVar('item-gap')})`,
         '--timeline-bullet-content-gap': `var(${timelinePropVar('bullet-content-gap')})`,
         '--timeline-max-text-width': `var(${timelinePropVar('max-text-width')})`,
+        '--timeline-title-description-gap': `var(${timelinePropVar('title-description-gap')})`,
+        '--timeline-description-timestamp-gap': `var(${timelinePropVar('description-timestamp-gap')})`,
 
         // Title text style
         '--timeline-title-font-family': `var(${titleFontFamilyVar})`,
