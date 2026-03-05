@@ -51,8 +51,8 @@ export default function SegmentedControlItemPreview({
   }, [])
 
   // Get icons
-  const Icon1 = iconNameToReactComponent('house')
-  const Icon2 = iconNameToReactComponent('sliders-horizontal')
+  const Icon1 = iconNameToReactComponent('fire')
+  const Icon2 = iconNameToReactComponent('diamond')
 
   // State for selected values
   const [selectedValue1, setSelectedValue1] = useState<string>('option1')
