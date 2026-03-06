@@ -984,7 +984,7 @@ export default function ComponentToolbar({
   }
 
   return (
-    <div className="component-toolbar-panel" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
       <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)` }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
