@@ -8,12 +8,13 @@
   border-radius: var(--menu-border-radius, 4px);
   min-width: var(--menu-min-width, 140px);
   max-width: var(--menu-max-width, 464px);
+  max-height: var(--menu-max-height, 600px);
   padding: var(--menu-padding, 0px);
   gap: var(--menu-item-gap, 0px);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.mantine-menu > * {
+.mantine-menu>* {
   width: 100%;
 }
-

@@ -33,11 +33,11 @@
         }
       }
     },
-    "width": {
-      "icon": "arrows-left-right",
-      "label": "Width",
+    "size": {
+      "icon": "arrows-out",
+      "label": "Size",
       "visible": true,
-      "floatingPaletteLabel": "Width",
+      "floatingPaletteLabel": "Size",
       "group": {
         "min-width": {
           "icon": "arrows-in-line-horizontal",
@@ -50,6 +50,18 @@
           "label": "Max width",
           "visible": true,
           "floatingPaletteLabel": "Maximum Width"
+        },
+        "max-height": {
+          "icon": "arrows-out-line-vertical",
+          "label": "Max height",
+          "visible": true,
+          "floatingPaletteLabel": "Maximum Height",
+          "propertyType": "slider",
+          "range": [
+            200,
+            1000
+          ],
+          "step": 10
         }
       }
     },
@@ -81,4 +93,3 @@
     }
   }
 }
-

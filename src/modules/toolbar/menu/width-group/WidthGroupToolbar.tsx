@@ -22,10 +22,12 @@ interface WidthGroupToolbarProps {
   groupedPropsConfig?: Record<string, ToolbarPropConfig> // Config for grouped props with visibility
   config?: {
     includeHeight?: boolean // Whether to include min-height control
+    includeMaxHeight?: boolean // Whether to include max-height control
     propNameMapping?: {
       min?: string // default: "min-width"
       max?: string // default: "max-width"
       height?: string // default: "min-height"
+      maxHeight?: string // default: "max-height"
     }
   }
   onClose?: () => void
@@ -42,12 +44,14 @@ export default function WidthGroupToolbar({
 }: WidthGroupToolbarProps) {
   const {
     includeHeight = false,
+    includeMaxHeight = false,
     propNameMapping = {},
   } = config
 
   const minWidthPropName = propNameMapping.min || 'min-width'
   const maxWidthPropName = propNameMapping.max || 'max-width'
   const minHeightPropName = propNameMapping.height || 'min-height'
+  const maxHeightPropName = propNameMapping.maxHeight || 'max-height'
 
   // Find width-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
@@ -89,10 +93,24 @@ export default function WidthGroupToolbar({
     })
   }, [structure, minHeightPropName, includeHeight, selectedVariants])
 
+  const maxHeightProp = useMemo(() => {
+    if (!includeMaxHeight) return undefined
+    return structure.props.find(p => {
+      if (p.name.toLowerCase() !== maxHeightPropName.toLowerCase()) return false
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (!selectedVariant) return false
+        if (!p.path.includes(selectedVariant)) return false
+      }
+      return true
+    })
+  }, [structure, maxHeightPropName, includeMaxHeight, selectedVariants])
+
   // Get CSS variables
   const minWidthVar = minWidthProp?.cssVar || ''
   const maxWidthVar = maxWidthProp?.cssVar || ''
   const minHeightVar = minHeightProp?.cssVar || ''
+  const maxHeightVar = maxHeightProp?.cssVar || ''
 
   // Get min/max values based on component and prop type
   const getWidthSliderRange = useCallback((propName: string, compName: string) => {
@@ -127,6 +145,7 @@ export default function WidthGroupToolbar({
     if (propNameLower === 'min-width') return { min: 50, max: 500 }
     if (propNameLower === 'max-width') return { min: 200, max: 1000 }
     if (propNameLower === 'min-height') return { min: 40, max: 200 }
+    if (propNameLower === 'max-height') return { min: 200, max: 1000 }
 
     return { min: 0, max: 1000 }
   }, [])
@@ -345,6 +364,79 @@ export default function WidthGroupToolbar({
   const minWidthVisible = groupedPropsConfig?.['min-width']?.visible !== false
   const maxWidthVisible = groupedPropsConfig?.['max-width']?.visible !== false
   const minHeightVisible = groupedPropsConfig?.['min-height']?.visible !== false
+  const maxHeightVisible = groupedPropsConfig?.['max-height']?.visible !== false
+
+  // Max Height Control
+  const MaxHeightControl = useMemo(() => {
+    if (!includeMaxHeight || !maxHeightVar) return null
+    const configProp = groupedPropsConfig?.['max-height']
+    const range = configProp?.range ? { min: configProp.range[0], max: configProp.range[1] } : getWidthSliderRange('max-height', componentName)
+    const stepValue = configProp?.step || 10
+
+    return () => {
+      const [value, setValue] = useState(() => {
+        const currentValue = readCssVar(maxHeightVar)
+        const resolvedValue = readCssVarResolved(maxHeightVar)
+        const valueStr = resolvedValue || currentValue || '0px'
+        const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+        return match ? Math.max(range.min, Math.min(range.max, parseFloat(match[1]))) : range.min
+      })
+
+      useEffect(() => {
+        const handleUpdate = () => {
+          const currentValue = readCssVar(maxHeightVar)
+          const resolvedValue = readCssVarResolved(maxHeightVar)
+          const valueStr = resolvedValue || currentValue || '0px'
+          const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+          if (match) {
+            setValue(Math.max(range.min, Math.min(range.max, parseFloat(match[1]))))
+          }
+        }
+        window.addEventListener('cssVarsUpdated', handleUpdate)
+        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+      }, [maxHeightVar, range])
+
+      const handleChange = useCallback((val: number | [number, number]) => {
+        const numValue = typeof val === 'number' ? val : val[0]
+        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+        setValue(clampedValue)
+        updateCssVar(maxHeightVar, `${clampedValue}px`)
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [maxHeightVar] }
+        }))
+      }, [maxHeightVar, range])
+
+      const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+        const numValue = typeof val === 'number' ? val : val[0]
+        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+        setValue(clampedValue)
+        updateCssVar(maxHeightVar, `${clampedValue}px`)
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [maxHeightVar] }
+        }))
+      }, [maxHeightVar, range])
+
+      return (
+        <Slider
+          value={value}
+          onChange={handleChange}
+          onChangeCommitted={handleChangeCommitted}
+          min={range.min}
+          max={range.max}
+          step={stepValue}
+          layer="layer-1"
+          layout="stacked"
+          showInput={false}
+          showValueLabel={true}
+          valueLabel={(val) => `${Math.round(val)}px`}
+          minLabel={`${range.min}px`}
+          maxLabel={`${range.max}px`}
+          showMinMaxLabels={false}
+          label={<Label layer="layer-1" layout="stacked">Max height</Label>}
+        />
+      )
+    }
+  }, [maxHeightVar, includeMaxHeight, componentName, getWidthSliderRange, groupedPropsConfig])
 
   return (
     <div className="width-group-toolbar">
@@ -361,6 +453,11 @@ export default function WidthGroupToolbar({
       {MinHeightControl && minHeightVisible && (
         <div className="width-group-control">
           <MinHeightControl />
+        </div>
+      )}
+      {MaxHeightControl && maxHeightVisible && (
+        <div className="width-group-control">
+          <MaxHeightControl />
         </div>
       )}
     </div>

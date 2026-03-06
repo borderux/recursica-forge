@@ -3814,10 +3814,11 @@ export default function PropControlContent({
   }
 
   // Width Group Module
-  if (propNameLower === 'width' && groupedPropsConfig) {
+  if ((propNameLower === 'width' || propNameLower === 'size') && groupedPropsConfig) {
     const hasMinWidth = 'min-width' in groupedPropsConfig
     const hasMaxWidth = 'max-width' in groupedPropsConfig
     const hasMinHeight = 'min-height' in groupedPropsConfig
+    const hasMaxHeight = 'max-height' in groupedPropsConfig
 
     if (hasMinWidth || hasMaxWidth) {
       return (
@@ -3829,6 +3830,7 @@ export default function PropControlContent({
           groupedPropsConfig={groupedPropsConfig}
           config={{
             includeHeight: !!hasMinHeight,
+            includeMaxHeight: !!hasMaxHeight,
           }}
         />
       )
