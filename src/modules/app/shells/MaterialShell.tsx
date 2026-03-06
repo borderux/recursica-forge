@@ -98,6 +98,20 @@ export default function MaterialShell({
     clearSelectedFiles,
   } = useJsonImport();
 
+  // Sync ?mode= query param on navigation — switches theme and cleans URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const urlMode = params.get('mode');
+    if (urlMode && (urlMode === 'light' || urlMode === 'dark') && urlMode !== mode) {
+      setMode(urlMode);
+    }
+    if (urlMode) {
+      params.delete('mode');
+      const cleanSearch = params.toString();
+      navigate(location.pathname + (cleanSearch ? `?${cleanSearch}` : ''), { replace: true });
+    }
+  }, [location.search]);
+
   // Determine current route for navigation highlighting
   const currentRoute = useMemo(() => {
     if (location.pathname.startsWith("/tokens")) return "tokens";

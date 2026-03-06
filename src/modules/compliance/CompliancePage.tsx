@@ -6,7 +6,6 @@
  */
 
 import { useState, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useCompliance } from '../../core/compliance/ComplianceContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import type { ComplianceIssue } from '../../core/compliance/ComplianceService'
@@ -20,10 +19,10 @@ import { getVarsStore } from '../../core/store/varsStore'
 import './CompliancePage.css'
 
 const typeLabels: Record<string, string> = {
-    'palette-on-tone': 'Palette On-Tone',
-    'layer-text': 'Layer Text',
-    'layer-interactive': 'Layer Interactive',
-    'core-on-tone': 'Core Color',
+    'palette-on-tone': 'Palette on-tone',
+    'layer-text': 'Layer text',
+    'layer-interactive': 'Layer interactive',
+    'core-on-tone': 'Core color',
 }
 
 /**
@@ -49,29 +48,28 @@ function formatColorLabel(hex: string): string {
 }
 
 /**
- * Map an issue type + location to a target route and mode.
- * Returns { path, targetMode } so we can navigate + switch mode if needed.
+ * Build an href for an issue's target page, including ?mode= query param.
  */
-function getIssueNavTarget(issue: ComplianceIssue): { path: string; targetMode: 'light' | 'dark' } {
-    const targetMode = issue.mode
+function getIssueHref(issue: ComplianceIssue): string {
+    let path: string
     switch (issue.type) {
         case 'palette-on-tone':
-            return { path: '/theme/palettes', targetMode }
         case 'core-on-tone':
-            return { path: '/theme/palettes', targetMode }
+            path = '/theme/palettes'
+            break
         case 'layer-text':
-            return { path: '/theme/layers', targetMode }
         case 'layer-interactive':
-            return { path: '/theme/layers', targetMode }
+            path = '/theme/layers'
+            break
         default:
-            return { path: '/theme/core-properties', targetMode }
+            path = '/theme/core-properties'
     }
+    return `${path}?mode=${issue.mode}`
 }
 
 export default function CompliancePage() {
     const { issues, applySuggestion, applyAllSuggestions, runScan } = useCompliance()
-    const { mode, setMode } = useThemeMode()
-    const navigate = useNavigate()
+    const { mode } = useThemeMode()
     const [showConfirmAll, setShowConfirmAll] = useState(false)
 
     const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
@@ -96,13 +94,6 @@ export default function CompliancePage() {
         setTimeout(() => runScan(), 200)
     }
 
-    const handleLocationClick = (issue: ComplianceIssue) => {
-        const { path, targetMode } = getIssueNavTarget(issue)
-        if (targetMode !== mode) {
-            setMode(targetMode)
-        }
-        navigate(path)
-    }
 
     const CheckIcon = iconNameToReactComponent('check-circle')
     const WrenchIcon = iconNameToReactComponent('wrench')
@@ -135,7 +126,7 @@ export default function CompliancePage() {
                         margin: 0,
                     }}
                 >
-                    AA Compliance
+                    WCAG AA compliance
                 </h1>
                 <div className="compliance-page__header-actions">
                     <Button variant="outline" onClick={runScan}>
@@ -147,7 +138,7 @@ export default function CompliancePage() {
                             onClick={() => setShowConfirmAll(true)}
                             icon={WrenchIcon ? <WrenchIcon style={{ width: 14, height: 14 }} /> : undefined}
                         >
-                            Fix All ({fixableCount})
+                            Fix all ({fixableCount})
                         </Button>
                     )}
                 </div>
@@ -168,7 +159,7 @@ export default function CompliancePage() {
                             borderColor: `var(${layer0Base}-border-color)`,
                         }}
                     >
-                        <h3 style={{ margin: '0 0 8px 0' }}>Apply All Fixes?</h3>
+                        <h3 style={{ margin: '0 0 8px 0' }}>Apply all fixes?</h3>
                         <p style={{
                             margin: '0 0 16px 0',
                             opacity: `var(${layer0Elements}-text-low-emphasis)`,
@@ -181,7 +172,7 @@ export default function CompliancePage() {
                                 Cancel
                             </Button>
                             <Button variant="solid" onClick={handleFixAll}>
-                                Apply All
+                                Apply all
                             </Button>
                         </div>
                     </div>
@@ -242,7 +233,7 @@ export default function CompliancePage() {
                                     <th style={{ width: 72, textAlign: 'center' }}>Fix</th>
                                     <th></th>
                                     <th style={{ width: 200 }}>Location</th>
-                                    <th style={{ width: 170 }}>Contrast Ratios</th>
+                                    <th style={{ width: 170 }}>Contrast ratios</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -306,11 +297,7 @@ export default function CompliancePage() {
                                         {/* Location (link) */}
                                         <td>
                                             <Link
-                                                onClick={(e) => {
-                                                    e.preventDefault()
-                                                    handleLocationClick(issue)
-                                                }}
-                                                href="#"
+                                                href={getIssueHref(issue)}
                                             >
                                                 {issue.location}
                                             </Link>

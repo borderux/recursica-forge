@@ -30,7 +30,7 @@ export function ComplianceModal({ onAcknowledge, onCancel }: ComplianceModalProp
     <Modal
       isOpen={true}
       onClose={onCancel}
-      title="WCAG AA Issues"
+      title="WCAG AA compliance"
       primaryActionLabel="Continue"
       onPrimaryAction={onAcknowledge}
       primaryActionDisabled={!acknowledged}

@@ -34,7 +34,7 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
       }
       // Close all open pickers, overlays, and panels when switching modes
       window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
-    } catch {}
+    } catch { }
   }
 
   // Sync varsStore mode on mount and set data attributes
