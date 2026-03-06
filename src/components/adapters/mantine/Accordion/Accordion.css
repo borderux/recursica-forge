@@ -82,7 +82,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-color: var(--accordion-item-overlay-color, #000000);
+  background-color: var(--accordion-item-hover-color, #000000);
   opacity: var(--accordion-item-hover-opacity, 0.08);
   border-radius: var(--accordion-item-border-radius, 4px);
   pointer-events: none;

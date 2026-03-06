@@ -94,6 +94,23 @@
       "label": "Icon size",
       "visible": true
     },
+    "hover": {
+      "icon": "cursor-click",
+      "label": "Hover",
+      "visible": true,
+      "group": {
+        "hover-color": {
+          "icon": "paint-bucket",
+          "label": "Color",
+          "visible": true
+        },
+        "hover-opacity": {
+          "icon": "eye",
+          "label": "Opacity",
+          "visible": true
+        }
+      }
+    },
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",

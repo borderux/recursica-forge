@@ -46,9 +46,9 @@ export default function Button({
   const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
   const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
 
-  // Get hover opacity and overlay color from brand theme (not user-configurable)
-  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
-  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
+  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
+  const hoverColorVar = getComponentLevelCssVar('Button', 'hover-color')
+  const hoverOpacityVar = getComponentLevelCssVar('Button', 'hover-opacity')
   // Build border color CSS var path directly to ensure it matches UIKit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
 
@@ -283,7 +283,7 @@ export default function Button({
           '--button-bg': `var(${buttonBgVar})`
         }),
         '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-        '--button-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
+        '--button-hover-color': `var(${hoverColorVar}, #000000)`, // Hover color
         // Set button color without fallback to Mantine colors
         '--button-color': buttonColorRef,
         // Set button border color CSS variable for CSS file override

@@ -7,7 +7,7 @@ import { Accordion as MantineAccordion } from '@mantine/core'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import type { AccordionProps as AdapterAccordionProps } from '../../Accordion'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar, getGlobalCssVar } from '../../../utils/cssVarNames'
-import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
+import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import './Accordion.css'
 
@@ -30,7 +30,7 @@ export default function Accordion({
   onItemToggle: (id: string, open: boolean) => void
 }) {
   const { mode } = useThemeMode()
-  
+
   // Container properties (Accordion)
   const containerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background')
   const containerBorderVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'border-color')
@@ -40,7 +40,7 @@ export default function Accordion({
   const containerMinWidthVar = getComponentLevelCssVar('Accordion', 'min-width')
   const containerMaxWidthVar = getComponentLevelCssVar('Accordion', 'max-width')
   const itemGapVar = getComponentLevelCssVar('Accordion', 'item-gap')
-  
+
   // Elevation - reactive pattern for toolbar control
   const elevationVar = getComponentLevelCssVar('Accordion', 'elevation')
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
@@ -48,13 +48,13 @@ export default function Accordion({
     const value = readCssVar(elevationVar)
     return value ? parseElevationValue(value) : undefined
   })
-  
+
   // State to force re-render when container CSS variables change
   const [, setContainerVarsUpdate] = useState(0)
-  
+
   useEffect(() => {
     if (!elevationVar) return
-    
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
@@ -62,10 +62,10 @@ export default function Accordion({
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     window.addEventListener('cssVarsReset', handleCssVarUpdate)
-    
+
     const observer = new MutationObserver(() => {
       const value = readCssVar(elevationVar)
       setElevationFromVar(value ? parseElevationValue(value) : undefined)
@@ -74,35 +74,35 @@ export default function Accordion({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [elevationVar])
-  
+
   // Listen for container CSS variable updates
   useEffect(() => {
     const containerCssVars = [
       containerBgVar, containerBorderVar, containerBorderSizeVar, containerBorderRadiusVar,
       containerPaddingVar, containerMinWidthVar, containerMaxWidthVar, itemGapVar
     ]
-    
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const updatedVars = detail?.cssVars || []
-      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => 
+      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) =>
         containerCssVars.includes(cssVar)
       )
       if (shouldUpdate) {
         setContainerVarsUpdate(prev => prev + 1)
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     window.addEventListener('cssVarsReset', handleCssVarUpdate)
-    
+
     const observer = new MutationObserver(() => {
       setContainerVarsUpdate(prev => prev + 1)
     })
@@ -110,14 +110,14 @@ export default function Accordion({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [containerBgVar, containerBorderVar, containerBorderSizeVar, containerBorderRadiusVar, containerPaddingVar, containerMinWidthVar, containerMaxWidthVar, itemGapVar])
-  
+
   const componentElevation = elevation ?? elevationFromVar ?? undefined
   const elevationBoxShadow = componentElevation && componentElevation !== 'elevation-0'
     ? getElevationBoxShadow(mode, componentElevation)
@@ -131,10 +131,10 @@ export default function Accordion({
   const dividerColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'divider')
   const contentBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-background')
   const contentTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-text')
-  
-  // Get hover opacity and overlay color from brand theme (not user-configurable)
-  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
-  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
+
+  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
+  const hoverColorVar = getComponentLevelCssVar('AccordionItem', 'hover-color')
+  const hoverOpacityVar = getComponentLevelCssVar('AccordionItem', 'hover-opacity')
 
   const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
   const contentPaddingVar = getComponentLevelCssVar('AccordionItem', 'content-padding')
@@ -143,7 +143,7 @@ export default function Accordion({
   const borderRadiusVar = getComponentLevelCssVar('AccordionItem', 'border-radius')
   const headerContentGapVar = getComponentLevelCssVar('AccordionItem', 'header-content-gap')
   const formVerticalItemGapVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
-  
+
   // Item elevation - reactive pattern for toolbar control
   const itemElevationVar = getComponentLevelCssVar('AccordionItem', 'elevation')
   const [itemElevationFromVar, setItemElevationFromVar] = useState<string | undefined>(() => {
@@ -151,10 +151,10 @@ export default function Accordion({
     const value = readCssVar(itemElevationVar)
     return value ? parseElevationValue(value) : undefined
   })
-  
+
   useEffect(() => {
     if (!itemElevationVar) return
-    
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       if (!detail?.cssVars || detail.cssVars.includes(itemElevationVar)) {
@@ -162,10 +162,10 @@ export default function Accordion({
         setItemElevationFromVar(value ? parseElevationValue(value) : undefined)
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     window.addEventListener('cssVarsReset', handleCssVarUpdate)
-    
+
     const observer = new MutationObserver(() => {
       const value = readCssVar(itemElevationVar)
       setItemElevationFromVar(value ? parseElevationValue(value) : undefined)
@@ -174,14 +174,14 @@ export default function Accordion({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       window.removeEventListener('cssVarsReset', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [itemElevationVar])
-  
+
   const itemElevationBoxShadow = itemElevationFromVar && itemElevationFromVar !== 'elevation-0'
     ? getElevationBoxShadow(mode, itemElevationFromVar)
     : undefined
@@ -195,7 +195,7 @@ export default function Accordion({
   const headerTextDecorationVar = getComponentTextCssVar('AccordionItem', 'header-text', 'text-decoration')
   const headerTextTransformVar = getComponentTextCssVar('AccordionItem', 'header-text', 'text-transform')
   const headerFontStyleVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-style')
-  
+
   // Get content text properties
   const contentFontFamilyVar = getComponentTextCssVar('AccordionItem', 'content-text', 'font-family')
   const contentFontSizeVar = getComponentTextCssVar('AccordionItem', 'content-text', 'font-size')
@@ -205,10 +205,10 @@ export default function Accordion({
   const contentTextDecorationVar = getComponentTextCssVar('AccordionItem', 'content-text', 'text-decoration')
   const contentTextTransformVar = getComponentTextCssVar('AccordionItem', 'content-text', 'text-transform')
   const contentFontStyleVar = getComponentTextCssVar('AccordionItem', 'content-text', 'font-style')
-  
+
   // State to force re-renders when text CSS variables change
   const [textVarsUpdate, setTextVarsUpdate] = useState(0)
-  
+
   // Read resolved CSS variable values for use in Mantine's styles prop
   // Mantine's styles prop may not resolve CSS variables properly, so we use resolved values
   // These are recalculated on every render when textVarsUpdate changes
@@ -220,7 +220,7 @@ export default function Accordion({
   const headerLineHeight = readCssVarResolved(headerLineHeightVar) || undefined
   const headerTextDecoration = readCssVarResolved(headerTextDecorationVar) || undefined
   const headerTextTransform = readCssVarResolved(headerTextTransformVar) || undefined
-  
+
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     const textCssVars = [
@@ -229,21 +229,21 @@ export default function Accordion({
       contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar,
       contentLineHeightVar, contentTextDecorationVar, contentTextTransformVar, contentFontStyleVar
     ]
-    
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const updatedVars = detail?.cssVars || []
       // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
       const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
-      
+
       if (shouldUpdate) {
         // Force re-render by updating state
         setTextVarsUpdate(prev => prev + 1)
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
+
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       // Force re-render for text vars
@@ -253,7 +253,7 @@ export default function Accordion({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
@@ -266,7 +266,7 @@ export default function Accordion({
   ])
 
   const value = allowMultiple ? openItems : openItems[0] || null
-  
+
   // Memoize styles object to ensure it's recreated when textVarsUpdate changes
   const mantineStyles = useMemo(() => {
     const controlStyles = {
@@ -349,7 +349,7 @@ export default function Accordion({
         ['--accordion-item-header-bg-expanded' as string]: `var(${headerBgExpandedVar})`,
         ['--accordion-item-header-text' as string]: `var(${headerTextVar})`,
         ['--accordion-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-        ['--accordion-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
+        ['--accordion-item-hover-color' as string]: `var(${hoverColorVar}, #000000)`, // Hover color
         ['--accordion-item-icon-color' as string]: `var(${iconColorVar})`,
         ['--accordion-item-divider-color' as string]: `var(${dividerColorVar})`,
         ['--accordion-item-content-bg' as string]: `var(${contentBgVar})`,
