@@ -217,6 +217,7 @@ export default function ComponentDetailPage() {
       height: debugMode ? 'auto' : '100%',
       minHeight: debugMode ? undefined : 0,
       padding: 'var(--recursica-brand-dimensions-general-xl)',
+      overflowY: 'auto',
     }}>
       {/* Header Section */}
       <div style={{
@@ -256,8 +257,7 @@ export default function ComponentDetailPage() {
         border: `1px solid var(${layer1Base}-border-color)`,
         borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
         display: 'flex',
-        flex: debugMode ? undefined : 1,
-        minHeight: debugMode ? undefined : 0,
+        alignItems: 'flex-start',
         width: '100%',
       }}>
         {/* Preview Area - Left Side */}
@@ -266,12 +266,13 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          minHeight: debugMode ? undefined : 0,
           padding: 'var(--recursica-brand-dimensions-general-xl)',
+          position: 'sticky',
+          top: 0,
+          alignSelf: 'flex-start',
         }}>
           {/* Preview Section */}
           <div style={{
-            flex: debugMode ? undefined : 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'stretch',
@@ -287,7 +288,7 @@ export default function ComponentDetailPage() {
               : undefined,
             boxShadow: elevationBoxShadow,
             position: 'relative',
-            minHeight: debugMode ? '400px' : 0,
+            minHeight: '400px',
           }}>
             {/* Component Preview */}
             <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', width: '100%', minWidth: 0 }}>
@@ -552,8 +553,6 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           borderLeft: `1px solid var(${layer1Base}-border-color)`,
-          minHeight: debugMode ? undefined : 0,
-          height: debugMode ? undefined : '100%',
         }}>
           <ComponentToolbar
             componentName={componentName as ComponentName}
