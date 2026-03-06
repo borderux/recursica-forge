@@ -1,5 +1,30 @@
 # recursica-forge
 
+## 0.5.1
+
+### Patch Changes
+
+- b848955: Fix button toolbar text color not updating based on selected variant
+
+  - Fixed variant name collision in toolbar prop resolution where the "text" variant name matched the "text" prop name in other variants' paths, causing the toolbar to always show the Solid variant's text color even when editing Text or Outline variants
+  - Extracted `pathMatchesVariant` helper to shared `componentToolbarUtils.ts` — checks variant names at their structural position in the path (after the category key like "styles") instead of using `path.includes()` which caused false positives
+  - Fixed `getCssVarsForProp` in `PropControlContent.tsx` to use `pathMatchesVariant` for accurate variant-specific CSS variable resolution
+  - Removed generic name-only fallback lookups in `ComponentToolbar.tsx` that bypassed category and variant filtering
+  - Unified border property naming to `border-size` across UIKit.json, toolbar configs, and component implementations
+  - Stored elevation per variant for the Button component
+  - Updated Brand.json with variant-specific color tokens for Button text colors (on-tone for Solid, tone for Text/Outline)
+
+- 9ff7710: Fix core color management and color scale usage tracking
+
+  - Fix theme corruption when changing core colors via the color picker (removed erroneous `$value` wrapper on `core-colors`)
+  - Fix "Reset all" button for base colors not restoring defaults correctly
+  - Fix deleted color palettes reappearing when navigating between sections
+  - Fix color scale deletion not enabling the trash icon for unused scales
+  - Add "Used in" usage list below each color scale showing where it is referenced (palettes and core colors)
+  - Style "Used in" label with subtitle typography and usage items as themed links
+  - Show mode-specific usage labels: usages in both light and dark modes display without a suffix, while single-mode usages show "(Light)" or "(Dark)"
+  - Clicking a mode-specific usage link navigates to the referenced page and automatically switches the theme mode
+
 ## 0.5.0
 
 ### Minor Changes
