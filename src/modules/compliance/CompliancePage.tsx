@@ -5,7 +5,7 @@
  * Grouped by type, with inline swatch previews and one-click fix buttons.
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useCompliance } from '../../core/compliance/ComplianceContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import type { ComplianceIssue } from '../../core/compliance/ComplianceService'
@@ -16,6 +16,7 @@ import { Link } from '../../components/adapters/Link'
 import { Tooltip } from '../../components/adapters/Tooltip'
 import { findColorFamilyAndLevel } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
+import { updateCssVar } from '../../core/css/updateCssVar'
 import './CompliancePage.css'
 
 const typeLabels: Record<string, string> = {
@@ -72,26 +73,70 @@ export default function CompliancePage() {
     const { mode } = useThemeMode()
     const [showConfirmAll, setShowConfirmAll] = useState(false)
 
+    // Snapshot issues on mount so rows persist after fixing
+    const snapshotRef = useRef<ComplianceIssue[] | null>(null)
+    if (snapshotRef.current === null && issues.length > 0) {
+        snapshotRef.current = [...issues]
+    }
+
+    // Track which issues have been fixed (id → original CSS var value for undo)
+    const [fixedMap, setFixedMap] = useState<Record<string, string>>({})
+
+    const displayIssues = snapshotRef.current ?? issues
+
     const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
     const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
     const layer0Elements = layer0Base.replace('-properties', '-elements')
 
     const groupedIssues = useMemo(() => {
         const groups: Record<string, ComplianceIssue[]> = {}
-        issues.forEach(issue => {
+        displayIssues.forEach(issue => {
             const groupKey = issue.type
             if (!groups[groupKey]) groups[groupKey] = []
             groups[groupKey].push(issue)
         })
         return groups
-    }, [issues])
+    }, [displayIssues])
 
-    const fixableCount = issues.filter(i => i.suggestion).length
+    const unfixedCount = displayIssues.filter(i => i.suggestion && !fixedMap[i.id]).length
+
+    const handleFix = (issue: ComplianceIssue) => {
+        if (!issue.suggestion) return
+        // Store the original value before applying the fix
+        const style = getComputedStyle(document.documentElement)
+        const originalValue = style.getPropertyValue(issue.suggestion.targetCssVar).trim()
+        applySuggestion(issue.id)
+        setFixedMap(prev => ({ ...prev, [issue.id]: originalValue }))
+    }
+
+    const handleUndo = (issue: ComplianceIssue) => {
+        if (!issue.suggestion || !fixedMap[issue.id]) return
+        // Restore the original CSS var value
+        const store = getVarsStore()
+        const tokens = store.getState().tokens
+        if (tokens) {
+            updateCssVar(issue.suggestion.targetCssVar, fixedMap[issue.id], tokens)
+        }
+        setFixedMap(prev => {
+            const next = { ...prev }
+            delete next[issue.id]
+            return next
+        })
+    }
 
     const handleFixAll = () => {
-        applyAllSuggestions()
+        displayIssues.forEach(issue => {
+            if (issue.suggestion && !fixedMap[issue.id]) {
+                handleFix(issue)
+            }
+        })
         setShowConfirmAll(false)
-        setTimeout(() => runScan(), 200)
+    }
+
+    const handleRescan = () => {
+        snapshotRef.current = null
+        setFixedMap({})
+        runScan()
     }
 
 
@@ -129,16 +174,16 @@ export default function CompliancePage() {
                     WCAG AA compliance
                 </h1>
                 <div className="compliance-page__header-actions">
-                    <Button variant="outline" onClick={runScan}>
+                    <Button variant="outline" onClick={handleRescan}>
                         Rescan
                     </Button>
-                    {fixableCount > 0 && (
+                    {unfixedCount > 0 && (
                         <Button
                             variant="solid"
                             onClick={() => setShowConfirmAll(true)}
                             icon={WrenchIcon ? <WrenchIcon style={{ width: 14, height: 14 }} /> : undefined}
                         >
-                            Fix all ({fixableCount})
+                            Fix all ({unfixedCount})
                         </Button>
                     )}
                 </div>
@@ -165,7 +210,7 @@ export default function CompliancePage() {
                             opacity: `var(${layer0Elements}-text-low-emphasis)`,
                             fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
                         }}>
-                            This will apply {fixableCount} suggested fixes. Some changes may alter your theme's visual design.
+                            This will apply {unfixedCount} suggested fixes. Some changes may alter your theme's visual design.
                         </p>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                             <Button variant="outline" onClick={() => setShowConfirmAll(false)}>
@@ -241,7 +286,10 @@ export default function CompliancePage() {
                                     <tr
                                         key={issue.id}
                                         className="compliance-table__row"
-                                        style={{ borderColor: `var(${layer0Base}-border-color)` }}
+                                        style={{
+                                            borderColor: `var(${layer0Base}-border-color)`,
+                                            opacity: fixedMap[issue.id] ? 0.45 : 1,
+                                        }}
                                     >
                                         {/* Mode */}
                                         <td className="compliance-table__td-center">
@@ -279,18 +327,28 @@ export default function CompliancePage() {
                                             )}
                                         </td>
 
-                                        {/* Fix button */}
+                                        {/* Fix / Undo button */}
                                         <td>
                                             {issue.suggestion && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="small"
-                                                    onClick={() => applySuggestion(issue.id)}
-                                                    title={issue.suggestion.description}
-                                                    icon={WrenchIcon ? <WrenchIcon style={{ width: 12, height: 12 }} /> : undefined}
-                                                >
-                                                    Fix
-                                                </Button>
+                                                fixedMap[issue.id] ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="small"
+                                                        onClick={() => handleUndo(issue)}
+                                                    >
+                                                        Undo
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="small"
+                                                        onClick={() => handleFix(issue)}
+                                                        title={issue.suggestion.description}
+                                                        icon={WrenchIcon ? <WrenchIcon style={{ width: 12, height: 12 }} /> : undefined}
+                                                    >
+                                                        Fix
+                                                    </Button>
+                                                )
                                             )}
                                         </td>
 
