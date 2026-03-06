@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { hexToHsv, hsvToHex } from '../tokens/colors/colorUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { TextField } from '../../components/adapters/TextField'
@@ -17,12 +17,18 @@ export function ColorPickerModal({
   onClose,
   onAccept,
 }: ColorPickerModalProps) {
+  const svRef = useRef<HTMLDivElement | null>(null)
+  const hRef = useRef<HTMLDivElement | null>(null)
   const [hsvState, setHsvState] = useState<{ h: number; s: number; v: number }>(() =>
     hexToHsv(/^#([0-9a-f]{6})$/i.test(defaultHex) ? defaultHex : '#000000')
   )
   const [hexInput, setHexInput] = useState<string>(() =>
     (/^#([0-9a-f]{6})$/i.test(defaultHex) ? defaultHex : '#000000').toLowerCase()
   )
+
+  // Keep a ref to hsvState so mousemove handlers always see the latest value
+  const hsvRef = useRef(hsvState)
+  hsvRef.current = hsvState
 
   useEffect(() => {
     if (open) {
@@ -36,24 +42,28 @@ export function ColorPickerModal({
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n))
 
-  const handleSV = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
-    const s = clamp((e.clientX - rect.left) / rect.width, 0, 1)
-    const v = clamp(1 - (e.clientY - rect.top) / rect.height, 0, 1)
-    const next = { ...hsvState, s, v }
+  const updateSV = useCallback((clientX: number, clientY: number) => {
+    const el = svRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const s = clamp((clientX - rect.left) / rect.width, 0, 1)
+    const v = clamp(1 - (clientY - rect.top) / rect.height, 0, 1)
+    const next = { ...hsvRef.current, s, v }
     setHsvState(next)
-    const hex = hsvToHex(next.h, next.s, next.v).toLowerCase()
-    setHexInput(hex)
-  }
+    hsvRef.current = next
+    setHexInput(hsvToHex(next.h, next.s, next.v).toLowerCase())
+  }, [])
 
-  const handleH = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
-    const h = clamp(((e.clientX - rect.left) / rect.width) * 360, 0, 360)
-    const next = { ...hsvState, h }
+  const updateH = useCallback((clientX: number) => {
+    const el = hRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const h = clamp(((clientX - rect.left) / rect.width) * 360, 0, 360)
+    const next = { ...hsvRef.current, h }
     setHsvState(next)
-    const hex = hsvToHex(next.h, next.s, next.v).toLowerCase()
-    setHexInput(hex)
-  }
+    hsvRef.current = next
+    setHexInput(hsvToHex(next.h, next.s, next.v).toLowerCase())
+  }, [])
 
   const handleAccept = () => {
     const hex = hsvToHex(hsvState.h, hsvState.s, hsvState.v).toLowerCase()
@@ -62,6 +72,7 @@ export function ColorPickerModal({
 
   const thumbLeft = `${hsvState.s * 100}%`
   const thumbTop = `${(1 - hsvState.v) * 100}%`
+  const hueThumbLeft = `${(hsvState.h / 360) * 100}%`
   const gradientColor = hsvToHex(hsvState.h, 1, 1)
   const currentHex = hsvToHex(hsvState.h, hsvState.s, hsvState.v).toLowerCase()
   const { mode } = useThemeMode()
@@ -82,12 +93,19 @@ export function ColorPickerModal({
       showFooter={true}
       padding={true}
       zIndex={20000}
+      trapFocus={false}
     >
       <div style={{ display: 'grid', gap: 16 }}>
         <div
+          ref={svRef}
           onMouseDown={(e) => {
-            handleSV(e)
-            const move = (ev: MouseEvent) => handleSV(ev as any)
+            e.preventDefault()
+            e.stopPropagation()
+            updateSV(e.clientX, e.clientY)
+            const move = (ev: MouseEvent) => {
+              ev.preventDefault()
+              updateSV(ev.clientX, ev.clientY)
+            }
             const up = () => {
               window.removeEventListener('mousemove', move)
               window.removeEventListener('mouseup', up)
@@ -115,14 +133,21 @@ export function ColorPickerModal({
               borderRadius: '50%',
               border: '2px solid #fff',
               boxShadow: '0 0 0 1px rgba(0,0,0,0.5)',
+              pointerEvents: 'none',
             }}
           />
         </div>
 
         <div
+          ref={hRef}
           onMouseDown={(e) => {
-            handleH(e)
-            const move = (ev: MouseEvent) => handleH(ev as any)
+            e.preventDefault()
+            e.stopPropagation()
+            updateH(e.clientX)
+            const move = (ev: MouseEvent) => {
+              ev.preventDefault()
+              updateH(ev.clientX)
+            }
             const up = () => {
               window.removeEventListener('mousemove', move)
               window.removeEventListener('mouseup', up)
@@ -131,13 +156,29 @@ export function ColorPickerModal({
             window.addEventListener('mouseup', up)
           }}
           style={{
+            position: 'relative',
             width: '100%',
             height: 16,
             borderRadius: 8,
             background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)',
             cursor: 'ew-resize',
           }}
-        />
+        >
+          <div
+            style={{
+              position: 'absolute',
+              left: hueThumbLeft,
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 16,
+              height: 16,
+              borderRadius: '50%',
+              border: '2px solid #fff',
+              boxShadow: '0 0 0 1px rgba(0,0,0,0.5)',
+              pointerEvents: 'none',
+            }}
+          />
+        </div>
 
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <div
@@ -170,4 +211,3 @@ export function ColorPickerModal({
     </Modal>
   )
 }
-
