@@ -17,6 +17,7 @@ import { storeCustomFont, loadFontFromNpm, loadFontFromGit, ensureFontLoaded } f
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { Chip } from '../../../components/adapters/Chip'
+import { Badge } from '../../../components/adapters/Badge'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../../components/utils/brandCssVars'
 import { readCssVarResolved } from '../../../core/css/readCssVar'
@@ -987,13 +988,13 @@ export default function FontFamiliesTokens() {
                 })()}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-default)', flexShrink: 0 }}>
-                <Chip
-                  variant="unselected"
+                <Badge
+                  variant="primary-color"
                   size="small"
                   layer="layer-1"
                 >
                   {label}
-                </Chip>
+                </Badge>
                 <h2 style={{
                   margin: 0,
                   fontFamily: `var(${fontFamilyVar})`,
