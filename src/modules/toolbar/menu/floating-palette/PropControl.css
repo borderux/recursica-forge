@@ -29,7 +29,7 @@ html[data-theme-mode="dark"] .prop-control-label {
 .prop-control-input {
   flex: 1;
   padding: var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md);
-  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness, var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
+  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-size, var(--recursica-brand-themes-light-layers-layer-3-properties-border-size)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
   border-radius: var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius, var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius));
   background: var(--recursica-brand-themes-light-layers-layer-3-properties-surface, var(--recursica-brand-themes-light-layers-layer-3-properties-surface));
   color: var(--recursica-brand-themes-light-layers-layer-3-elements-text-color, var(--recursica-brand-themes-light-layers-layer-3-elements-text-color));
@@ -53,7 +53,7 @@ html[data-theme-mode="dark"] .prop-control-input:focus {
 
 .prop-control-unit-select {
   padding: var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md);
-  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness, var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
+  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-size, var(--recursica-brand-themes-light-layers-layer-3-properties-border-size)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
   border-radius: var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius, var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius));
   background: var(--recursica-brand-themes-light-layers-layer-3-properties-surface, var(--recursica-brand-themes-light-layers-layer-3-properties-surface));
   color: var(--recursica-brand-themes-light-layers-layer-3-elements-text-color, var(--recursica-brand-themes-light-layers-layer-3-elements-text-color));
@@ -78,7 +78,7 @@ html[data-theme-mode="dark"] .prop-control-unit-select:focus {
 
 .prop-control-readonly {
   padding: var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md);
-  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness, var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
+  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-size, var(--recursica-brand-themes-light-layers-layer-3-properties-border-size)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
   border-radius: var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius, var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius));
   background: var(--recursica-brand-themes-light-layers-layer-3-properties-surface, var(--recursica-brand-themes-light-layers-layer-3-properties-surface));
   color: var(--recursica-brand-themes-light-layers-layer-3-elements-text-color, var(--recursica-brand-themes-light-layers-layer-3-elements-text-color));

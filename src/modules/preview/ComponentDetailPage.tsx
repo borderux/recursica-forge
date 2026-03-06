@@ -280,7 +280,7 @@ export default function ComponentDetailPage() {
             background: `var(${baseLayerBase}-surface)`,
             padding: `var(${baseLayerBase}-padding)`,
             border: layerNum !== '0'
-              ? `var(${baseLayerBase}-border-thickness, 1px) solid var(${baseLayerBase}-border-color)`
+              ? `var(${baseLayerBase}-border-size, 1px) solid var(${baseLayerBase}-border-color)`
               : 'none',
             borderRadius: layerNum !== '0'
               ? `var(${baseLayerBase}-border-radius)`

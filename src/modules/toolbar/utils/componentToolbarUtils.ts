@@ -35,6 +35,47 @@ export interface ComponentStructure {
 }
 
 /**
+ * Maps toolbar variant prop names to the corresponding category key used in UIKit paths.
+ * e.g., toolbar uses "style" but UIKit paths use "styles"
+ */
+export const VARIANT_PROP_TO_CATEGORY: Record<string, string> = {
+  'style': 'styles',
+  'size': 'sizes',
+  'layout': 'layouts',
+  'types': 'types',
+  'states': 'states',
+  'orientation': 'orientation',
+  'style-secondary': 'styles', // nested variant under styles
+  'color': 'styles', // legacy mapping
+}
+
+/**
+ * Checks if a prop's path matches a specific variant by verifying the variant name
+ * appears at the correct structural position (right after the category key).
+ * 
+ * This avoids false positives when a variant name collides with a prop name.
+ * e.g., variant "text" should NOT match a prop named "text" in the solid variant's path:
+ *   [variants, styles, solid, properties, colors, layer-0, text] — "text" here is a prop name, not the variant
+ */
+export function pathMatchesVariant(path: string[], variantProp: string, variantName: string): boolean {
+  const categoryKey = VARIANT_PROP_TO_CATEGORY[variantProp]
+  if (!categoryKey) {
+    // Unknown variant prop — fall back to checking if variantName appears after 'variants' in path
+    const variantsIdx = path.indexOf('variants')
+    if (variantsIdx === -1) return false
+    // Check position right after 'variants' + category
+    return path[variantsIdx + 2] === variantName
+  }
+  // Find the category key in the path and check if the variant name follows it
+  for (let i = 0; i < path.length - 1; i++) {
+    if (path[i] === categoryKey && path[i + 1] === variantName) {
+      return true
+    }
+  }
+  return false
+}
+
+/**
  * Converts kebab-case to sentence case
  * e.g., "border-radius" -> "Border radius"
  */

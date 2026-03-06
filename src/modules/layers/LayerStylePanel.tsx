@@ -605,11 +605,11 @@ export default function LayerStylePanel({
       : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-border-radius`
   }, [selectedLevels, mode, layerKey, isOnlyLayer0])
 
-  const borderThicknessCssVar = useMemo(() => {
+  const borderSizeCssVar = useMemo(() => {
     if (isOnlyLayer0) return ''
     return selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-border-thickness`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-border-thickness`
+      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-border-size`
+      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-border-size`
   }, [selectedLevels, mode, layerKey, isOnlyLayer0])
 
   // Consolidated listener for CSS variable updates with debouncing
@@ -622,7 +622,7 @@ export default function LayerStylePanel({
       if (!Array.isArray(updatedVars)) return
 
       // Check if any of our CSS vars were updated
-      const relevantVars = [paddingCssVar, borderRadiusCssVar, borderThicknessCssVar].filter(Boolean)
+      const relevantVars = [paddingCssVar, borderRadiusCssVar, borderSizeCssVar].filter(Boolean)
       const hasRelevantUpdate = relevantVars.some(v => updatedVars.includes(v))
 
       if (!hasRelevantUpdate) return
@@ -671,8 +671,8 @@ export default function LayerStylePanel({
                 })
               }
             }
-          } else if (cssVar === borderThicknessCssVar) {
-            const cssValue = readCssVar(borderThicknessCssVar)
+          } else if (cssVar === borderSizeCssVar) {
+            const cssValue = readCssVar(borderSizeCssVar)
             if (cssValue) {
               const match = cssValue.match(/^(\d+(?:\.\d+)?)px$/)
               if (match) {
@@ -680,7 +680,7 @@ export default function LayerStylePanel({
                 onUpdate((layerSpec: any) => {
                   const next = JSON.parse(JSON.stringify(layerSpec || {}))
                   if (!next.properties) next.properties = {}
-                  next.properties['border-thickness'] = { $type: 'number', $value: pxValue }
+                  next.properties['border-size'] = { $type: 'number', $value: pxValue }
                   return next
                 })
               }
@@ -698,7 +698,7 @@ export default function LayerStylePanel({
       }
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
     }
-  }, [paddingCssVar, borderRadiusCssVar, borderThicknessCssVar, onUpdate])
+  }, [paddingCssVar, borderRadiusCssVar, borderSizeCssVar, onUpdate])
 
   const updateValue = (path: string[], raw: string) => {
     const value: any = (() => {
@@ -729,7 +729,7 @@ export default function LayerStylePanel({
     const pathKey = path.join('.')
     const isColor = typeHint === 'color' || /(color|hover-color)$/.test(pathKey)
     const isOpacity = typeHint === 'number' && /(high-emphasis|low-emphasis)$/.test(pathKey)
-    const isSize = typeHint === 'number' && /(padding|border-radius|border-thickness)$/.test(pathKey)
+    const isSize = typeHint === 'number' && /(padding|border-radius|border-size)$/.test(pathKey)
     const options = isColor ? colorOptions : isOpacity ? opacityOptions : isSize ? sizeOptions : []
     const isSelect = options.length > 0
 
@@ -980,9 +980,9 @@ export default function LayerStylePanel({
             }}
           />
         )}
-        {!isOnlyLayer0 && borderThicknessCssVar && (() => {
+        {!isOnlyLayer0 && borderSizeCssVar && (() => {
           const currentValue = (() => {
-            const v = (spec as any)?.properties?.['border-thickness']?.$value
+            const v = (spec as any)?.properties?.['border-size']?.$value
             return typeof v === 'number' ? v : 0
           })()
 
@@ -991,9 +991,9 @@ export default function LayerStylePanel({
               value={currentValue}
               onChange={(value) => {
                 const numValue = typeof value === 'number' ? value : value[0]
-                updateValue(['properties', 'border-thickness'], String(Number.isFinite(numValue) ? numValue : 0))
+                updateValue(['properties', 'border-size'], String(Number.isFinite(numValue) ? numValue : 0))
                 // Also update CSS var directly
-                updateCssVarFn(borderThicknessCssVar, `${numValue}px`, tokensJson)
+                updateCssVarFn(borderSizeCssVar, `${numValue}px`, tokensJson)
               }}
               min={0}
               max={20}
@@ -1004,7 +1004,7 @@ export default function LayerStylePanel({
               showValueLabel={true}
               showMinMaxLabels={false}
               valueLabel={(val) => `${val}px`}
-              label={<Label layer="layer-3" layout="stacked">Border Thickness</Label>}
+              label={<Label layer="layer-3" layout="stacked">Border Size</Label>}
             />
           )
         })()}

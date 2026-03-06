@@ -42,7 +42,7 @@ export default function LayersPage() {
       const textColorVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-elements-text-color`
       const paddingVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-padding`
       const borderRadiusVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-radius`
-      const borderThicknessVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-thickness`
+      const borderThicknessVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-size`
       const elevationVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-elevation`
 
       rootEl.style.removeProperty(surfaceVar)

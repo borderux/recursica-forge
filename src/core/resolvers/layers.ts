@@ -293,7 +293,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       bcolRaw = (bcolRaw as any)['$value']
     }
     const bcolVarRef = coerceToVarRef(bcolRaw)
-    const bthRaw = spec?.properties?.['border-thickness']
+    const bthRaw = spec?.properties?.['border-size']
     const bthSizeKey = parseSizeTokenRef(bthRaw)
     const bth = resolveRef(bthRaw)
     const bradRaw = spec?.properties?.['border-radius']
@@ -363,10 +363,10 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     }
     if (bcolVarRef) { result[`${brandBase}border-color`] = bcolVarRef }
     if (bthSizeKey) {
-      result[`${brandBase}border-thickness`] = `var(--recursica-tokens-size-${bthSizeKey})`
+      result[`${brandBase}border-size`] = `var(--recursica-tokens-size-${bthSizeKey})`
     } else if (bth != null) {
-      // Border thickness should always use direct pixel values, not tokens
-      const v = toCssValue(bth, 'px')!; result[`${brandBase}border-thickness`] = v
+      // Border size should always use direct pixel values, not tokens
+      const v = toCssValue(bth, 'px')!; result[`${brandBase}border-size`] = v
     }
     if (bradVarRef) {
       // Handle brand dimension references like {brand.dimensions.border-radius.md}
