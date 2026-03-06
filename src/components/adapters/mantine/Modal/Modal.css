@@ -1,5 +1,18 @@
 /* Mantine Modal Overrides */
 
+/* Modal overlay - uses brand-level overlay settings */
+.recursica-modal.mantine-Modal-root .mantine-Modal-overlay,
+.mantine-Modal-root.recursica-modal~.mantine-Modal-overlay {
+    background-color: var(--recursica-brand-themes-light-state-overlay-color, rgba(0, 0, 0, 1)) !important;
+    opacity: var(--recursica-brand-themes-light-state-overlay-opacity, 0.5) !important;
+}
+
+html[data-theme-mode="dark"] .recursica-modal.mantine-Modal-root .mantine-Modal-overlay,
+html[data-theme-mode="dark"] .mantine-Modal-root.recursica-modal~.mantine-Modal-overlay {
+    background-color: var(--recursica-brand-themes-dark-state-overlay-color, rgba(0, 0, 0, 1)) !important;
+    opacity: var(--recursica-brand-themes-dark-state-overlay-opacity, 0.5) !important;
+}
+
 .recursica-modal .mantine-Modal-content {
     background-color: var(--modal-bg) !important;
     border-radius: var(--modal-border-radius) !important;

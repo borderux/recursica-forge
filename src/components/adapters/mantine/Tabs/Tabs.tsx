@@ -9,9 +9,7 @@
 import { useRef } from 'react'
 import { Tabs as MantineTabs } from '@mantine/core'
 import type { TabsProps as AdapterTabsProps } from '../../Tabs'
-import { getComponentCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { getBrandStateCssVar } from '../../../utils/brandCssVars'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { getComponentCssVar, getComponentTextCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import './Tabs.css'
 
 export default function Tabs({
@@ -28,7 +26,7 @@ export default function Tabs({
   mantine,
   ...props
 }: AdapterTabsProps & { layer?: string }) {
-  const { mode } = useThemeMode()
+
 
   // Determine the variant style (default to 'default' if not specified)
   const variantStyle = variant || 'default'
@@ -82,9 +80,9 @@ export default function Tabs({
   const minWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'min-width')
   const maxWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'max-width')
 
-  // Get hover opacity and overlay color from brand theme (not user-configurable)
-  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
-  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
+  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
+  const hoverColorVar = getComponentLevelCssVar('Tabs', 'hover-color')
+  const hoverOpacityVar = getComponentLevelCssVar('Tabs', 'hover-opacity')
 
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -151,7 +149,7 @@ export default function Tabs({
       '--recursica-tabs-content-justify': tabContentAlignment === 'center' ? 'center' : tabContentAlignment === 'right' ? 'flex-end' : 'flex-start',
       // Hover state (inactive tabs only)
       '--recursica-tabs-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-      '--recursica-tabs-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
+      '--recursica-tabs-hover-color': `var(${hoverColorVar}, #000000)`, // Hover color
       ...style,
       ...mantine?.style,
     },

@@ -307,7 +307,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--button-overlay-color, #000000);
+  background-color: var(--button-hover-color, #000000);
   opacity: var(--button-hover-opacity, 0.08);
   border-radius: inherit;
   pointer-events: none;

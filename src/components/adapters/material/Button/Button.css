@@ -10,14 +10,14 @@
 
 /* Ensure right-side icons (spans containing SVGs) are visible */
 /* Target spans that contain SVGs but aren't Material's startIcon */
-.MuiButton-root > span:has(svg):not(.MuiButton-startIcon),
+.MuiButton-root>span:has(svg):not(.MuiButton-startIcon),
 .MuiButton-root span span:has(svg),
-.MuiButton-root > span > span:has(svg),
+.MuiButton-root>span>span:has(svg),
 /* Also target spans that are direct children of button when they contain SVGs */
-.MuiButton-root > span[style*="inline-flex"]:has(svg):not(.MuiButton-startIcon),
+.MuiButton-root>span[style*="inline-flex"]:has(svg):not(.MuiButton-startIcon),
 /* Target wrapper spans that contain icon spans */
-.MuiButton-root > span[style*="display"] > span:has(svg),
-.MuiButton-root > span[style*="flex"] > span:has(svg) {
+.MuiButton-root>span[style*="display"]>span:has(svg),
+.MuiButton-root>span[style*="flex"]>span:has(svg) {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -31,7 +31,7 @@
 }
 
 /* Ensure wrapper spans that contain icons are visible */
-.MuiButton-root > span:has(> span:has(svg)) {
+.MuiButton-root>span:has(> span:has(svg)) {
   display: flex !important;
   align-items: center !important;
   visibility: visible !important;
@@ -40,7 +40,7 @@
 
 /* Ensure nested spans with SVGs are visible */
 .MuiButton-root span span svg,
-.MuiButton-root > span > span svg {
+.MuiButton-root>span>span svg {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -142,7 +142,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--button-overlay-color, #000000);
+  background-color: var(--button-hover-color, #000000);
   opacity: var(--button-hover-opacity, 0.08);
   border-radius: inherit;
   pointer-events: none;
@@ -155,4 +155,3 @@
   transition: none !important;
   animation: none !important;
 }
-

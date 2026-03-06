@@ -564,6 +564,14 @@
               "value": 500,
               "unit": "px"
             }
+          },
+          "hover-color": {
+            "$type": "color",
+            "$value": "{brand.palettes.core-colors.black.tone}"
+          },
+          "hover-opacity": {
+            "$type": "number",
+            "$value": "{tokens.opacity.mist}"
           }
         }
       },
@@ -4358,6 +4366,14 @@
               "$type": "string",
               "$value": "normal"
             }
+          },
+          "hover-color": {
+            "$type": "color",
+            "$value": "{brand.palettes.core-colors.black.tone}"
+          },
+          "hover-opacity": {
+            "$type": "number",
+            "$value": "{tokens.opacity.mist}"
           }
         }
       },
@@ -5017,6 +5033,14 @@
               "$type": "string",
               "$value": "normal"
             }
+          },
+          "hover-color": {
+            "$type": "color",
+            "$value": "{brand.palettes.core-colors.black.tone}"
+          },
+          "hover-opacity": {
+            "$type": "number",
+            "$value": "{tokens.opacity.mist}"
           }
         }
       },
@@ -10838,6 +10862,14 @@
               "$type": "string",
               "$value": "normal"
             }
+          },
+          "hover-color": {
+            "$type": "color",
+            "$value": "{brand.palettes.core-colors.black.tone}"
+          },
+          "hover-opacity": {
+            "$type": "number",
+            "$value": "{tokens.opacity.mist}"
           }
         }
       },
