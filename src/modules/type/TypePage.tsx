@@ -5,11 +5,9 @@
  * applied globally and renders each sample without any editing UI.
  */
 import { useMemo, useState, useEffect } from 'react'
-import TypeTokensPanel from './TypeTokensPanel'
 import TypeStylePanel from './TypeStylePanel'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
-import { Button } from '../../components/adapters/Button'
 import { Checkbox } from '../../components/adapters/Checkbox'
 
 // local helpers retained for legacy but no longer used directly in this file
@@ -150,7 +148,6 @@ export function TypePage() {
     )
   }
 
-  const [isPanelOpen, setIsPanelOpen] = useState(false)
   const [updateKey, setUpdateKey] = useState(0)
   const [selected, setSelected] = useState<string[]>([])
   // Listen for type choices changes and CSS variable updates - CSS variables update automatically, but React needs to re-render
@@ -163,15 +160,11 @@ export function TypePage() {
       window.removeEventListener('cssVarsUpdated', handler as any)
     }
   }, [])
-  // Open/close style panel automatically based on selection
-  useEffect(() => {
-    if (selected.length > 0) setIsPanelOpen(false) // leave tokens panel closed when editing styles
-  }, [selected])
+
 
   // Close panels when mode changes
   useEffect(() => {
     const handleCloseAll = () => {
-      setIsPanelOpen(false)
       setSelected([])
     }
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
@@ -179,19 +172,16 @@ export function TypePage() {
   }, [])
   return (
     <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto', padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1 style={{
-          marginTop: 0,
-          marginBottom: 0,
-          fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h1-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-        }}>Type</h1>
-        <Button onClick={() => setIsPanelOpen(true)} variant="outline" size="small" layer="layer-0">Edit Type Tokens</Button>
-      </div>
+      <h1 style={{
+        marginTop: 0,
+        marginBottom: 0,
+        fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
+        fontSize: 'var(--recursica-brand-typography-h1-font-size)',
+        fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
+        letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
+        lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
+        color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+      }}>Type</h1>
       {samples.map((s) => (
         <SimpleTypeSample
           key={`${s.label}-${updateKey}`}
@@ -215,7 +205,7 @@ export function TypePage() {
           }}
         />
       ))}
-      <TypeTokensPanel open={isPanelOpen} onClose={() => setIsPanelOpen(false)} />
+
       <TypeStylePanel open={selected.length > 0} selectedPrefixes={selected} title={selected.length === 1 ? (samples.find((x) => x.prefix === selected[0])?.label || 'Type') : 'Multiple'} onClose={() => setSelected([])} />
     </div>
   )

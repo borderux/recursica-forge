@@ -7,7 +7,8 @@
  */
 
 import { Paper, Box } from '@mantine/core'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from '@phosphor-icons/react'
 import { Button } from '../../Button'
 import type { PanelProps as AdapterPanelProps } from '../../Panel'
@@ -16,6 +17,7 @@ import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brand
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './Panel.css'
+import './PanelOverlay.css'
 
 export default function Panel({
     children,
@@ -34,6 +36,29 @@ export default function Panel({
     ...props
 }: AdapterPanelProps) {
     const { mode } = useThemeMode()
+    const [isClosing, setIsClosing] = useState(false)
+    const closingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    // Clean up timer on unmount
+    useEffect(() => {
+        return () => {
+            if (closingTimerRef.current) clearTimeout(closingTimerRef.current)
+        }
+    }, [])
+
+    const handleClose = useCallback(() => {
+        if (!onClose) return
+        if (!overlay) {
+            onClose()
+            return
+        }
+        if (isClosing) return
+        setIsClosing(true)
+        closingTimerRef.current = setTimeout(() => {
+            setIsClosing(false)
+            onClose()
+        }, 200) // matches CSS exit animation duration
+    }, [onClose, overlay, isClosing])
 
     // Build CSS variable names for colors
     const bgVar = getComponentLevelCssVar('Panel', `colors.${layer}.background`)
@@ -185,7 +210,7 @@ export default function Panel({
                             variant="text"
                             size="small"
                             layer={layer}
-                            onClick={onClose}
+                            onClick={handleClose}
                             style={{ flexShrink: 0 }}
                             icon={<X size={16} />}
                         />
@@ -220,22 +245,18 @@ export default function Panel({
     )
 
     if (overlay) {
-        return (
+        const closingClass = isClosing ? ' closing' : ''
+        return createPortal(
             <div
-                style={{
-                    position: 'fixed',
-                    top: 0,
-                    bottom: 0,
-                    [position]: 0,
-                    width: width || 'auto',
-                    zIndex: zIndex || 1000,
-                    pointerEvents: 'auto',
-                }}
+                className={`panel-overlay-container panel-overlay-container--${position}${closingClass}`}
+                style={{ width: width || '400px', zIndex: zIndex || 10000 }}
             >
                 {panelContent}
-            </div>
+            </div>,
+            document.body
         )
     }
 
     return panelContent
 }
+
