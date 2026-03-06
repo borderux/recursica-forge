@@ -14,6 +14,7 @@ import { resolveTokenReferenceToCssVar, parseTokenReference, extractBraceContent
 import { AAComplianceWatcher } from '../compliance/AAComplianceWatcher'
 import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneForCompliance } from '../compliance/coreColorAaCompliance'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
+import { getComplianceService } from '../compliance/ComplianceService'
 
 import tokensImport from '../../vars/Tokens.json'
 import themeImport from '../../vars/Brand.json'
@@ -390,6 +391,13 @@ class VarsStore {
 
     // Initialize AA compliance watcher
     this.initAAWatcher()
+
+    // Connect compliance service to token/theme getters
+    const complianceService = getComplianceService()
+    complianceService.connect(
+      () => this.state.tokens,
+      () => this.state.theme
+    )
 
     // React to type choice changes and palette changes (centralized)
     // Debounce palette var changes to prevent infinite loops
@@ -2712,6 +2720,9 @@ class VarsStore {
           }
         })
       }
+
+      // Trigger compliance scan after CSS vars are fully updated
+      getComplianceService().triggerScan()
     }
   }
 

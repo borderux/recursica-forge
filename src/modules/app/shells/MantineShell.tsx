@@ -47,8 +47,8 @@ import { Sidebar } from "../Sidebar";
 import { ThemeSidebar } from "../ThemeSidebar";
 import { ComponentsSidebar } from "../../preview/ComponentsSidebar";
 import { getComponentCssVar } from "../../../components/utils/cssVarNames";
-import { getVarsStore } from "../../../core/store/varsStore";
 import { createBugReport } from "../utils/bugReport";
+import { useCompliance } from "../../../core/compliance/ComplianceContext";
 import { randomizeAllVariables } from "../../../core/utils/randomizeVariables";
 import { RandomizeOptionsModal } from "../../../core/utils/RandomizeOptionsModal";
 import {
@@ -67,6 +67,7 @@ export default function MantineShell({
 }) {
   const { resetAll } = useVars();
   const { mode, setMode } = useThemeMode();
+  const { issueCount } = useCompliance();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([]);
   const [showRandomizeModal, setShowRandomizeModal] = useState(false);
@@ -302,7 +303,25 @@ export default function MantineShell({
             >
               <MantineTabs.List>
                 <MantineTabs.Tab value='tokens'>Tokens</MantineTabs.Tab>
-                <MantineTabs.Tab value='theme'>Theme</MantineTabs.Tab>
+                <MantineTabs.Tab value='theme'>
+                  <Tooltip label={issueCount > 0 ? `${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}` : ''}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {issueCount > 0 && (() => {
+                        const WarningIcon = iconNameToReactComponent("warning");
+                        return WarningIcon ? (
+                          <WarningIcon
+                            style={{
+                              width: 14,
+                              height: 14,
+                              color: `var(--recursica-brand-themes-${mode}-palettes-core-alert-tone)`,
+                            }}
+                          />
+                        ) : null;
+                      })()}
+                      Theme
+                    </span>
+                  </Tooltip>
+                </MantineTabs.Tab>
                 <MantineTabs.Tab value='components'>Components</MantineTabs.Tab>
               </MantineTabs.List>
             </Tabs>
@@ -381,28 +400,7 @@ export default function MantineShell({
                   onClick={handleExport}
                 />
               </Tooltip>
-              <Tooltip label='Check AA Compliance'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const CheckIcon = iconNameToReactComponent("check-circle");
-                    return CheckIcon ? (
-                      <CheckIcon
-                        style={{
-                          width:
-                            "var(--recursica-brand-dimensions-icons-default)",
-                          height:
-                            "var(--recursica-brand-dimensions-icons-default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => {
-                    getVarsStore().updateCoreColorOnTonesForAA();
-                  }}
-                />
-              </Tooltip>
+
               <Tooltip label='Report a bug'>
                 <Button
                   variant='outline'

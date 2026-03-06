@@ -8,6 +8,7 @@ import { UiKitProvider } from './modules/uikit/UiKitContext'
 import { ThemeModeProvider } from './modules/theme/ThemeModeContext'
 import { VarsProvider } from './modules/vars/VarsContext'
 import { UnifiedThemeProvider } from './components/providers/UnifiedThemeProvider'
+import { ComplianceProvider } from './core/compliance/ComplianceContext'
 import './styles/index.css'
 import './styles/theme.css.ts'
 import { bootstrapTheme } from './core/bootstrap'
@@ -23,6 +24,7 @@ const LayersPage = React.lazy(() => import('./modules/layers/LayersPage'))
 const ElevationsPage = React.lazy(() => import('./modules/elevation/ElevationsPage'))
 const ThemePage = React.lazy(() => import('./modules/theme/ThemePage'))
 const DimensionsPage = React.lazy(() => import('./modules/dimensions/DimensionsPage'))
+const CompliancePage = React.lazy(() => import('./modules/compliance/CompliancePage'))
 
 // Initialize component registries
 import './components/registry/mantine'
@@ -92,6 +94,7 @@ const router = createBrowserRouter([
           { path: 'elevations', element: <ElevationsPage /> },
           { path: 'layers', element: <LayersPage /> },
           { path: 'dimensions', element: <DimensionsPage /> },
+          { path: 'compliance', element: <CompliancePage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },
@@ -113,9 +116,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <UiKitProvider>
       <ThemeModeProvider>
         <VarsProvider>
-          <UnifiedThemeProvider>
-            <RouterProvider router={router} />
-          </UnifiedThemeProvider>
+          <ComplianceProvider>
+            <UnifiedThemeProvider>
+              <RouterProvider router={router} />
+            </UnifiedThemeProvider>
+          </ComplianceProvider>
         </VarsProvider>
       </ThemeModeProvider>
     </UiKitProvider>

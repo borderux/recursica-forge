@@ -135,6 +135,7 @@ import {
   User,
   UserCircle,
   Warning,
+  Wrench,
   X,
 } from '@phosphor-icons/react'
 
@@ -417,6 +418,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'sparkle': Sparkle,
   'sword': Sword,
   'hammer': Hammer,
+  'wrench': Wrench,
 }
 
 /**

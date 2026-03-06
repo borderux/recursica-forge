@@ -38,7 +38,7 @@ import { ThemeSidebar } from "../ThemeSidebar";
 import { Modal } from "../../../components/adapters/Modal";
 import { Dropdown } from "../../../components/adapters/Dropdown";
 import { getComponentCssVar } from "../../../components/utils/cssVarNames";
-import { getVarsStore } from "../../../core/store/varsStore";
+import { useCompliance } from "../../../core/compliance/ComplianceContext";
 import { randomizeAllVariables } from "../../../core/utils/randomizeVariables";
 import { RandomizeOptionsModal } from "../../../core/utils/RandomizeOptionsModal";
 import {
@@ -57,6 +57,7 @@ export default function MaterialShell({
 }) {
   const { resetAll } = useVars();
   const { mode, setMode } = useThemeMode();
+  const { issueCount } = useCompliance();
   const location = useLocation();
   const navigate = useNavigate();
   const [mat, setMat] = useState<any>(null);
@@ -386,9 +387,9 @@ export default function MaterialShell({
                         currentRoute === "tokens"
                           ? 1
                           : `var(${layer0Base.replace(
-                              "-properties",
-                              "-elements",
-                            )}-text-low-emphasis)`,
+                            "-properties",
+                            "-elements",
+                          )}-text-low-emphasis)`,
                       fontWeight:
                         currentRoute === "tokens"
                           ? 600
@@ -410,7 +411,25 @@ export default function MaterialShell({
                   />
                   <Tab
                     value='theme'
-                    label='Theme'
+                    label={
+                      <Tooltip label={issueCount > 0 ? `${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}` : ''}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {issueCount > 0 && (() => {
+                            const WarningIcon = iconNameToReactComponent("warning");
+                            return WarningIcon ? (
+                              <WarningIcon
+                                style={{
+                                  width: 14,
+                                  height: 14,
+                                  color: `var(--recursica-brand-themes-${mode}-palettes-core-alert-tone)`,
+                                }}
+                              />
+                            ) : null;
+                          })()}
+                          Theme
+                        </span>
+                      </Tooltip>
+                    }
                     sx={{
                       color: `var(${buttonTextText})`,
                       backgroundColor: `var(${buttonTextBg})`,
@@ -418,9 +437,9 @@ export default function MaterialShell({
                         currentRoute === "theme"
                           ? 1
                           : `var(${layer0Base.replace(
-                              "-properties",
-                              "-elements",
-                            )}-text-low-emphasis)`,
+                            "-properties",
+                            "-elements",
+                          )}-text-low-emphasis)`,
                       fontWeight:
                         currentRoute === "theme"
                           ? 600
@@ -450,9 +469,9 @@ export default function MaterialShell({
                         currentRoute === "components"
                           ? 1
                           : `var(${layer0Base.replace(
-                              "-properties",
-                              "-elements",
-                            )}-text-low-emphasis)`,
+                            "-properties",
+                            "-elements",
+                          )}-text-low-emphasis)`,
                       fontWeight:
                         currentRoute === "components"
                           ? 600
@@ -550,28 +569,7 @@ export default function MaterialShell({
                   onClick={handleExport}
                 />
               </Tooltip>
-              <Tooltip label='Check AA Compliance'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const CheckIcon = iconNameToReactComponent("check-circle");
-                    return CheckIcon ? (
-                      <CheckIcon
-                        style={{
-                          width:
-                            "var(--recursica-brand-dimensions-icons-default)",
-                          height:
-                            "var(--recursica-brand-dimensions-icons-default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => {
-                    getVarsStore().updateCoreColorOnTonesForAA();
-                  }}
-                />
-              </Tooltip>
+
               <Tooltip label='Report a bug'>
                 <Button
                   variant='outline'
