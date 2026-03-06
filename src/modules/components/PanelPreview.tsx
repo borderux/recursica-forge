@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+
 import { Panel } from '../../components/adapters/Panel'
 import { Button } from '../../components/adapters/Button'
 import { X } from '@phosphor-icons/react'
@@ -109,9 +110,11 @@ export default function PanelPreview({
     // The panel footer content
     const panelFooter = (onClose?: () => void) => (
         <Group justify="flex-end" gap={`var(${footerButtonGapVar})`}>
-            <Button variant="text" layer={layer} onClick={onClose}>
-                Close
-            </Button>
+            {onClose && (
+                <Button variant="text" layer={layer} onClick={onClose}>
+                    Close
+                </Button>
+            )}
             <Button variant="solid" layer={layer}>
                 Continue
             </Button>
@@ -131,11 +134,8 @@ export default function PanelPreview({
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'flex-end',
-            marginTop: 'calc(var(--recursica-brand-dimensions-general-md) * -1)',
-            marginRight: 'calc(var(--recursica-brand-dimensions-general-md) * -1)',
-            marginBottom: 'calc(var(--recursica-brand-dimensions-general-md) * -1)',
-            marginLeft: 'auto',
+            justifyContent: 'center',
+            alignItems: 'center',
             height: 'calc(100% + var(--recursica-brand-dimensions-general-md) * 2)',
             alignSelf: 'stretch',
         } as any}>
@@ -172,7 +172,7 @@ export default function PanelPreview({
                         background: `var(${hfBgVar})`,
                     }}>
                         <span style={headerStyle}>
-                            Right panel
+                            Goblin's Rest
                         </span>
                         <Button
                             variant="text"
@@ -232,30 +232,20 @@ export default function PanelPreview({
                 </div>
             </div>
 
-            {/* Active Panel */}
+            {/* Active Panel — uses Panel's built-in overlay mode with animation */}
             {activePanel && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        bottom: 0,
-                        [activePanel]: 0,
-                        width: '400px',
-                        zIndex: 1000,
-                        pointerEvents: 'auto',
-                    }}
+                <Panel
+                    overlay
+                    title="The Crystalline Abyss"
+                    position={activePanel}
+                    layer={layer}
+                    elevation={componentElevation}
+                    onClose={() => setActivePanel(null)}
+                    footer={panelFooter()}
+                    width="400px"
                 >
-                    <Panel
-                        title="The Crystalline Abyss"
-                        position={activePanel}
-                        layer={layer}
-                        elevation={componentElevation}
-                        onClose={() => setActivePanel(null)}
-                        footer={panelFooter(() => setActivePanel(null))}
-                    >
-                        {panelBody}
-                    </Panel>
-                </div>
+                    {panelBody}
+                </Panel>
             )}
         </div>
     )

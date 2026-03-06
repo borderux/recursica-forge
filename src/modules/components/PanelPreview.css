@@ -1,0 +1,106 @@
+/* Panel overlay slide-in/out animations */
+
+@keyframes panel-slide-in-right {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes panel-slide-out-right {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes panel-slide-in-left {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes panel-slide-out-left {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+@keyframes panel-overlay-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes panel-overlay-fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+.panel-overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--recursica-brand-themes-light-states-overlay-color, rgba(0, 0, 0, 1));
+    opacity: var(--recursica-brand-themes-light-states-overlay-opacity, 0.5);
+    animation: panel-overlay-fade-in 200ms ease-out forwards;
+}
+
+html[data-theme-mode="dark"] .panel-overlay-backdrop {
+    background: var(--recursica-brand-themes-dark-states-overlay-color, rgba(0, 0, 0, 1));
+    opacity: var(--recursica-brand-themes-dark-states-overlay-opacity, 0.5);
+}
+
+.panel-overlay-backdrop.closing {
+    animation: panel-overlay-fade-out 200ms ease-in forwards;
+}
+
+.panel-overlay-container {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 400px;
+    z-index: 10000;
+    pointer-events: auto;
+}
+
+.panel-overlay-container--right {
+    right: 0;
+    animation: panel-slide-in-right 250ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+.panel-overlay-container--left {
+    left: 0;
+    animation: panel-slide-in-left 250ms cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+.panel-overlay-container--right.closing {
+    animation: panel-slide-out-right 200ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
+
+.panel-overlay-container--left.closing {
+    animation: panel-slide-out-left 200ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+}
