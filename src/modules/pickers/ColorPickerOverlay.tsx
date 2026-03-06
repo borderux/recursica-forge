@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { hexToHsv, hsvToHex, toKebabCase } from '../tokens/colors/colorUtils'
 
 import { useVars } from '../vars/VarsContext'
@@ -35,6 +35,16 @@ export function ColorPickerOverlay({
   const [cascadeDown, setCascadeDown] = useState<boolean>(false)
   const [cascadeUp, setCascadeUp] = useState<boolean>(false)
   const [hexInput, setHexInput] = useState<string>(() => (/^#([0-9a-f]{6})$/i.test(currentHex) ? currentHex : hsvToHex(hsvState.h, hsvState.s, hsvState.v)).toLowerCase())
+
+  // Keep refs to state so mousemove handlers always see the latest values
+  const hsvRef = useRef(hsvState)
+  hsvRef.current = hsvState
+  const cascadeDownRef = useRef(cascadeDown)
+  cascadeDownRef.current = cascadeDown
+  const cascadeUpRef = useRef(cascadeUp)
+  cascadeUpRef.current = cascadeUp
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   useEffect(() => {
     setHsvState(hexToHsv(/^#([0-9a-f]{6})$/i.test(currentHex) ? currentHex : '#000000'))
@@ -73,33 +83,36 @@ export function ColorPickerOverlay({
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n))
 
-  const handleSV = (clientX: number, clientY: number) => {
+  const updateSV = useCallback((clientX: number, clientY: number) => {
     const el = svRef.current
     if (!el) return
     const rect = el.getBoundingClientRect()
     const s = clamp((clientX - rect.left) / rect.width, 0, 1)
     const v = clamp(1 - (clientY - rect.top) / rect.height, 0, 1)
-    const next = { ...hsvState, s, v }
+    const next = { ...hsvRef.current, s, v }
     setHsvState(next)
+    hsvRef.current = next
     const hex = hsvToHex(next.h, next.s, next.v).toLowerCase()
     setHexInput(hex)
-    onChange(hex, cascadeDown, cascadeUp)
-  }
+    onChangeRef.current(hex, cascadeDownRef.current, cascadeUpRef.current)
+  }, [])
 
-  const handleH = (clientX: number) => {
+  const updateH = useCallback((clientX: number) => {
     const el = hRef.current
     if (!el) return
     const rect = el.getBoundingClientRect()
     const h = clamp(((clientX - rect.left) / rect.width) * 360, 0, 360)
-    const next = { ...hsvState, h }
+    const next = { ...hsvRef.current, h }
     setHsvState(next)
+    hsvRef.current = next
     const hex = hsvToHex(next.h, next.s, next.v).toLowerCase()
     setHexInput(hex)
-    onChange(hex, cascadeDown, cascadeUp)
-  }
+    onChangeRef.current(hex, cascadeDownRef.current, cascadeUpRef.current)
+  }, [])
 
   const thumbLeft = `${hsvState.s * 100}%`
   const thumbTop = `${(1 - hsvState.v) * 100}%`
+  const hueThumbLeft = `${(hsvState.h / 360) * 100}%`
   const gradientColor = hsvToHex(hsvState.h, 1, 1)
 
   const { tokens } = useVars()
@@ -181,27 +194,39 @@ export function ColorPickerOverlay({
         <div
           ref={svRef}
           onMouseDown={(e) => {
-            handleSV(e.clientX, e.clientY)
-            const move = (ev: MouseEvent) => handleSV(ev.clientX, ev.clientY)
+            e.preventDefault()
+            e.stopPropagation()
+            updateSV(e.clientX, e.clientY)
+            const move = (ev: MouseEvent) => {
+              ev.preventDefault()
+              updateSV(ev.clientX, ev.clientY)
+            }
             const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
             window.addEventListener('mousemove', move)
             window.addEventListener('mouseup', up)
           }}
           style={{ position: 'relative', width: '100%', height: 180, borderRadius: 8, background: `linear-gradient(0deg, #000, transparent), linear-gradient(90deg, #fff, ${gradientColor})`, cursor: 'crosshair' }}
         >
-          <div style={{ position: 'absolute', left: thumbLeft, top: thumbTop, transform: 'translate(-50%, -50%)', width: 12, height: 12, borderRadius: '50%', border: '2px solid #fff', boxShadow: '0 0 0 1px rgba(0,0,0,0.5)' }} />
+          <div style={{ position: 'absolute', left: thumbLeft, top: thumbTop, transform: 'translate(-50%, -50%)', width: 12, height: 12, borderRadius: '50%', border: '2px solid #fff', boxShadow: '0 0 0 1px rgba(0,0,0,0.5)', pointerEvents: 'none' }} />
         </div>
         <div
           ref={hRef}
           onMouseDown={(e) => {
-            handleH(e.clientX)
-            const move = (ev: MouseEvent) => handleH(ev.clientX)
+            e.preventDefault()
+            e.stopPropagation()
+            updateH(e.clientX)
+            const move = (ev: MouseEvent) => {
+              ev.preventDefault()
+              updateH(ev.clientX)
+            }
             const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
             window.addEventListener('mousemove', move)
             window.addEventListener('mouseup', up)
           }}
-          style={{ width: '100%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)', cursor: 'ew-resize' }}
-        />
+          style={{ position: 'relative', width: '100%', height: 12, borderRadius: 6, background: 'linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)', cursor: 'ew-resize' }}
+        >
+          <div style={{ position: 'absolute', left: hueThumbLeft, top: '50%', transform: 'translate(-50%, -50%)', width: 12, height: 12, borderRadius: '50%', border: '2px solid #fff', boxShadow: '0 0 0 1px rgba(0,0,0,0.5)', pointerEvents: 'none' }} />
+        </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <TextField
             value={hexInput}
