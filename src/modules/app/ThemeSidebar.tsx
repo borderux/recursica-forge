@@ -11,6 +11,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { Tabs } from '../../components/adapters/Tabs'
 import { SidebarFooter } from './SidebarFooter'
 import { useCompliance } from '../../core/compliance/ComplianceContext'
+import { Badge } from '../../components/adapters/Badge'
 
 type ThemeNavItem = 'core-properties' | 'type' | 'palettes' | 'elevations' | 'layers' | 'dimensions' | 'compliance'
 
@@ -86,21 +87,9 @@ export function ThemeSidebar() {
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {item.label}
                   {item.key === 'compliance' && issueCount > 0 && (
-                    <span
-                      style={{
-                        backgroundColor: `var(--recursica-brand-themes-${mode}-palettes-core-alert-tone)`,
-                        color: `var(--recursica-brand-themes-${mode}-palettes-core-alert-on-tone)`,
-                        fontSize: 10,
-                        fontWeight: 700,
-                        borderRadius: 10,
-                        padding: '1px 6px',
-                        minWidth: 18,
-                        textAlign: 'center',
-                        lineHeight: '16px',
-                      }}
-                    >
+                    <Badge variant="alert" size="small">
                       {issueCount}
-                    </span>
+                    </Badge>
                   )}
                 </span>
               </MantineTabs.Tab>

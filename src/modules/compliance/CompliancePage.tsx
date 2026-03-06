@@ -5,7 +5,7 @@
  * Grouped by type, with inline swatch previews and one-click fix buttons.
  */
 
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useCompliance } from '../../core/compliance/ComplianceContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import type { ComplianceIssue } from '../../core/compliance/ComplianceService'
@@ -73,14 +73,36 @@ export default function CompliancePage() {
     const { mode } = useThemeMode()
     const [showConfirmAll, setShowConfirmAll] = useState(false)
 
-    // Snapshot issues on mount so rows persist after fixing
+    // Snapshot issues so rows persist after fixing (not removed by auto-rescan)
     const snapshotRef = useRef<ComplianceIssue[] | null>(null)
-    if (snapshotRef.current === null && issues.length > 0) {
+    const resettingRef = useRef(false)
+
+    // Initial snapshot: only set once on first render with data, and not during reset
+    if (snapshotRef.current === null && issues.length > 0 && !resettingRef.current) {
         snapshotRef.current = [...issues]
     }
 
     // Track which issues have been fixed (id → original CSS var value for undo)
     const [fixedMap, setFixedMap] = useState<Record<string, string>>({})
+
+    // Listen for reset events to clear local state
+    useEffect(() => {
+        const handleReset = () => {
+            snapshotRef.current = null
+            resettingRef.current = true
+            setFixedMap({})
+        }
+        window.addEventListener('complianceReset', handleReset)
+        return () => window.removeEventListener('complianceReset', handleReset)
+    }, [])
+
+    // After reset, wait for fresh issues from rescan then re-snapshot
+    useEffect(() => {
+        if (resettingRef.current && issues.length > 0) {
+            snapshotRef.current = [...issues]
+            resettingRef.current = false
+        }
+    }, [issues])
 
     const displayIssues = snapshotRef.current ?? issues
 

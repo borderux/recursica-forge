@@ -536,9 +536,10 @@ export default function MaterialShell({
                     ) : null;
                   })()}
                   onClick={() => {
+                    window.dispatchEvent(new CustomEvent('complianceReset'));
                     clearOverrides(tokensJson as any);
                     resetAll();
-                    setTimeout(() => runScan(), 300);
+                    setTimeout(() => runScan(), 1000);
                   }}
                 />
               </Tooltip>
