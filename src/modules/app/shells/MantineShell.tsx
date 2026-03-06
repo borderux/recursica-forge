@@ -67,7 +67,7 @@ export default function MantineShell({
 }) {
   const { resetAll } = useVars();
   const { mode, setMode } = useThemeMode();
-  const { issueCount } = useCompliance();
+  const { issueCount, runScan } = useCompliance();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([]);
   const [showRandomizeModal, setShowRandomizeModal] = useState(false);
@@ -370,6 +370,7 @@ export default function MantineShell({
                   onClick={() => {
                     clearOverrides(tokensJson as any);
                     resetAll();
+                    setTimeout(() => runScan(), 300);
                   }}
                 />
               </Tooltip>

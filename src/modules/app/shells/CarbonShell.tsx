@@ -66,7 +66,7 @@ export default function CarbonShell({
 }) {
   const { resetAll } = useVars();
   const { mode, setMode } = useThemeMode();
-  const { issueCount } = useCompliance();
+  const { issueCount, runScan } = useCompliance();
   const location = useLocation();
   const navigate = useNavigate();
   const buttonBorderRadius = getComponentCssVar(
@@ -521,6 +521,7 @@ export default function CarbonShell({
                   onClick={() => {
                     clearOverrides(tokensJson as any);
                     resetAll();
+                    setTimeout(() => runScan(), 300);
                   }}
                 />
               </Tooltip>

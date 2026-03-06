@@ -57,7 +57,7 @@ export default function MaterialShell({
 }) {
   const { resetAll } = useVars();
   const { mode, setMode } = useThemeMode();
-  const { issueCount } = useCompliance();
+  const { issueCount, runScan } = useCompliance();
   const location = useLocation();
   const navigate = useNavigate();
   const [mat, setMat] = useState<any>(null);
@@ -538,6 +538,7 @@ export default function MaterialShell({
                   onClick={() => {
                     clearOverrides(tokensJson as any);
                     resetAll();
+                    setTimeout(() => runScan(), 300);
                   }}
                 />
               </Tooltip>
