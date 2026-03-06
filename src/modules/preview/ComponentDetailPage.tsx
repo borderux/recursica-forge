@@ -266,8 +266,10 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          minHeight: debugMode ? undefined : 0,
           padding: 'var(--recursica-brand-dimensions-general-xl)',
+          position: 'sticky',
+          top: 0,
+          alignSelf: 'flex-start',
         }}>
           {/* Preview Section */}
           <div style={{
