@@ -9,27 +9,28 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Modal } from '../../components/adapters/Modal'
 import { CheckboxItem } from '../../components/adapters/CheckboxItem'
-import type { ComplianceIssue } from './aaComplianceCheck'
+import { Link } from '../../components/adapters/Link'
+import { useCompliance } from '../compliance/ComplianceContext'
+import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 
 interface ComplianceModalProps {
-  issues: ComplianceIssue[]
+  issues: unknown[]
   onAcknowledge: () => void
   onCancel: () => void
 }
 
-export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceModalProps) {
+export function ComplianceModal({ onAcknowledge, onCancel }: ComplianceModalProps) {
   const [acknowledged, setAcknowledged] = useState(false)
   const navigate = useNavigate()
-
-  const lightCount = issues.filter(i => i.mode === 'light').length
-  const darkCount = issues.filter(i => i.mode === 'dark').length
+  const { issueCount } = useCompliance()
+  const { mode } = useThemeMode()
+  const layer3Elements = `--recursica-brand-themes-${mode}-layers-layer-3-elements`
 
   return (
     <Modal
       isOpen={true}
       onClose={onCancel}
       title="WCAG AA Issues"
-      style={{ '--modal-title-color': '#d40d0d' } as React.CSSProperties}
       primaryActionLabel="Continue"
       onPrimaryAction={onAcknowledge}
       primaryActionDisabled={!acknowledged}
@@ -39,62 +40,52 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
       size={480}
       scrollable={false}
       content={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            padding: '16px',
-            borderRadius: '8px',
-            backgroundColor: 'rgba(212, 13, 13, 0.08)',
-            border: '1px solid rgba(212, 13, 13, 0.2)',
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          color: `var(${layer3Elements}-text-color)`,
+          opacity: `var(${layer3Elements}-text-high-emphasis)`,
+        }}>
+          <h4 style={{
+            margin: 0,
+            fontSize: 'var(--recursica-brand-typography-h4-font-size)',
+            fontWeight: 'var(--recursica-brand-typography-h4-font-weight)',
+            fontFamily: 'var(--recursica-brand-typography-h4-font-family)',
+            letterSpacing: 'var(--recursica-brand-typography-h4-font-letter-spacing)',
+            lineHeight: 'var(--recursica-brand-typography-h4-line-height)',
           }}>
-            <span style={{ fontSize: '28px' }}>⚠️</span>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: '1.05em' }}>
-                {issues.length} compliance issue{issues.length !== 1 ? 's' : ''} found
-              </div>
-              <div style={{ fontSize: '0.85em', opacity: 0.7, marginTop: '2px' }}>
-                {lightCount > 0 && `${lightCount} in light mode`}
-                {lightCount > 0 && darkCount > 0 && ' · '}
-                {darkCount > 0 && `${darkCount} in dark mode`}
-              </div>
-            </div>
-          </div>
+            {issueCount} {issueCount === 1 ? 'issue' : 'issues'} found
+          </h4>
 
-          <p style={{ margin: 0, opacity: 0.7, fontSize: '0.9em' }}>
+          <p style={{
+            margin: 0,
+            fontSize: 'var(--recursica-brand-typography-body-font-size)',
+            fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+            fontFamily: 'var(--recursica-brand-typography-body-font-family)',
+            letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
+            lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+          }}>
             Your theme has color combinations that don't meet WCAG AA contrast requirements (4.5:1 ratio).
             You can review and fix them on the Compliance page.
           </p>
 
-          <button
-            onClick={() => {
+          <Link
+            onClick={(e) => {
+              e.preventDefault()
               onCancel()
               navigate('/theme/compliance')
             }}
-            style={{
-              background: 'none',
-              border: '1px solid currentColor',
-              borderRadius: '6px',
-              padding: '8px 16px',
-              cursor: 'pointer',
-              color: 'inherit',
-              opacity: 0.8,
-              fontSize: '0.9em',
-              textAlign: 'center',
-              transition: 'opacity 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.8')}
+            href="#"
           >
             View Compliance Page →
-          </button>
+          </Link>
 
           <div style={{ borderTop: '1px solid var(--modal-border-color, rgba(128,128,128,0.2))', paddingTop: '16px', marginTop: '4px' }}>
             <CheckboxItem
               checked={acknowledged}
               onChange={(checked: boolean) => setAcknowledged(checked)}
-              label="I acknowledge these issues and wish to proceed with export"
+              label="Export with compliance issues"
               layer="layer-3"
             />
           </div>

@@ -246,7 +246,7 @@ export class AAComplianceWatcher {
         // Step until AA compliant with this layer's surface
         const steppedHex = stepUntilAACompliant(hex, surfaceHex, 'darker', this.tokens)
         const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
-        updateCssVar(asteriskColorVar, cssVarRef, this.tokens)
+        if (cssVarRef) updateCssVar(asteriskColorVar, cssVarRef, this.tokens)
       }
     }
   }
@@ -302,7 +302,7 @@ export class AAComplianceWatcher {
           // Step until AA compliant
           const steppedHex = stepUntilAACompliant(hex, surfaceHex, 'darker', this.tokens)
           const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
-          updateCssVar(asteriskColorVar, cssVarRef, this.tokens)
+          if (cssVarRef) updateCssVar(asteriskColorVar, cssVarRef, this.tokens)
         } else {
           // Fallback to findAaCompliantColor if token not found
           const aaCompliantColor = findAaCompliantColor(surfaceHex, coreToken, opacity, this.tokens)
@@ -450,7 +450,7 @@ export class AAComplianceWatcher {
                       if (steppedContrast >= AA) {
                         // Found AA-compliant color in the scale, convert to CSS var
                         const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
-                        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                        if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
                         return
                       }
                     }
@@ -490,7 +490,7 @@ export class AAComplianceWatcher {
         // Step until AA compliant
         const steppedHex = stepUntilAACompliant(coreInteractiveHex, surfaceHex, 'darker', this.tokens)
         const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
-        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+        if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
       }
       return
     } else if (elementName === 'interactive-on-tone') {
@@ -512,7 +512,7 @@ export class AAComplianceWatcher {
           // Step until AA compliant against the interactive tone
           const steppedHex = stepUntilAACompliant(coreOnToneHex, interactiveToneHex, 'darker', this.tokens)
           const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
-          updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+          if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
         }
       }
       return
@@ -535,7 +535,7 @@ export class AAComplianceWatcher {
           // Step until AA compliant against the interactive hover tone
           const steppedHex = stepUntilAACompliant(coreOnToneHex, interactiveToneHoverHex, 'darker', this.tokens)
           const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
-          updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+          if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
         }
       }
       return
@@ -549,7 +549,7 @@ export class AAComplianceWatcher {
         // Step until AA compliant
         const steppedHex = stepUntilAACompliant(coreInteractiveHex, surfaceHex, 'darker', this.tokens)
         const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
-        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+        if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
       }
       return
     }
@@ -585,7 +585,7 @@ export class AAComplianceWatcher {
           if (currentContrast >= AA) {
             // Current color passes, use it
             const cssVarRef = hexToCssVarRef(hex, this.tokens)
-            updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+            if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
             return
           }
         }
@@ -618,7 +618,7 @@ export class AAComplianceWatcher {
                     const testContrast = contrastRatio(surfaceHex, testBlended)
                     if (testContrast >= AA) {
                       const cssVarRef = hexToCssVarRef(testHexNormalized, this.tokens)
-                      updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                      if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
                       return
                     }
                   }
@@ -641,7 +641,7 @@ export class AAComplianceWatcher {
                     const testContrast = contrastRatio(surfaceHex, testBlended)
                     if (testContrast >= AA) {
                       const cssVarRef = hexToCssVarRef(testHexNormalized, this.tokens)
-                      updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                      if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
                       return
                     }
                   }
@@ -653,7 +653,7 @@ export class AAComplianceWatcher {
 
         // If no stepped color passes, use the original color (will show warning in UI)
         const cssVarRef = hexToCssVarRef(hex, this.tokens)
-        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+        if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
       } else {
         // Fallback to findAaCompliantColor if token not found
         const aaCompliantColor = findAaCompliantColor(surfaceHex, coreToken, opacity, this.tokens)
@@ -705,7 +705,7 @@ export class AAComplianceWatcher {
                       const testContrast = contrastRatio(surfaceHex, testBlended)
                       if (testContrast >= AA) {
                         const cssVarRef = hexToCssVarRef(testHexNormalized, this.tokens)
-                        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                        if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
                         return
                       }
                     }
@@ -727,7 +727,7 @@ export class AAComplianceWatcher {
                       const testContrast = contrastRatio(surfaceHex, testBlended)
                       if (testContrast >= AA) {
                         const cssVarRef = hexToCssVarRef(testHexNormalized, this.tokens)
-                        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+                        if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
                         return
                       }
                     }

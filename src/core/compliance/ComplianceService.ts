@@ -11,7 +11,7 @@ import { resolveCssVarToHex } from './layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
-import { findColorFamilyAndLevel, stepUntilAACompliant, hexToCssVarRef } from './layerColorStepping'
+import { findColorFamilyAndLevel, getAllFamilyColors, hexToCssVarRef } from './layerColorStepping'
 import { updateCssVar } from '../css/updateCssVar'
 
 // ─── Types ───
@@ -378,6 +378,13 @@ class ComplianceServiceImpl {
 
     // ─── Suggestion generators ───
 
+    /**
+     * Generate a suggestion for a failing on-tone.
+     * Strategy:
+     *  1. Try every level in the on-tone's own color family against toneHex
+     *  2. Try black and white token values
+     *  3. If nothing passes, step the tone color and retry with all on-tone candidates
+     */
     private generateOnToneSuggestion(
         toneHex: string,
         onToneCssVar: string,
@@ -386,38 +393,66 @@ class ComplianceServiceImpl {
         _mode: 'light' | 'dark'
     ): SuggestedFix | null {
         try {
-            // Try black and white as on-tone
-            const blackContrast = contrastRatio(toneHex, '#000000')
-            const whiteContrast = contrastRatio(toneHex, '#ffffff')
+            // Get the current on-tone's color, and all levels in its family
+            const onToneValue = readCssVar(onToneCssVar)
+            if (!onToneValue) return null
+            const onToneHex = resolveCssVarToHex(onToneValue, _tokenIndex as any)
+            if (!onToneHex) return null
 
-            if (blackContrast >= AA_THRESHOLD || whiteContrast >= AA_THRESHOLD) {
-                const useBlack = blackContrast >= whiteContrast
-                const suggestedHex = useBlack ? '#000000' : '#ffffff'
-                const suggestedLabel = useBlack ? 'black' : 'white'
-                const cssVarRef = hexToCssVarRef(suggestedHex, tokens)
-
-                return {
-                    description: `Change on-tone to ${suggestedLabel} (${contrastRatio(toneHex, suggestedHex).toFixed(2)}:1)`,
-                    targetCssVar: onToneCssVar,
-                    suggestedValue: cssVarRef,
-                    suggestedHex,
-                    resultingRatio: useBlack ? blackContrast : whiteContrast,
+            // 1. Try all levels in the on-tone's own family
+            const familyColors = getAllFamilyColors(onToneHex, tokens)
+            const candidate = this.findBestPassingColor(familyColors, toneHex, onToneHex)
+            if (candidate) {
+                const cssVarRef = hexToCssVarRef(candidate.hex, tokens)
+                if (cssVarRef) {
+                    return {
+                        description: `Change on-tone to ${candidate.family}/${candidate.level} (${contrastRatio(toneHex, candidate.hex).toFixed(2)}:1)`,
+                        targetCssVar: onToneCssVar,
+                        suggestedValue: cssVarRef,
+                        suggestedHex: candidate.hex,
+                        resultingRatio: contrastRatio(toneHex, candidate.hex),
+                    }
                 }
             }
 
-            // Try stepping through token scale
-            const steppedHex = stepUntilAACompliant(toneHex, toneHex, 'lighter', tokens)
-            if (steppedHex && steppedHex !== toneHex) {
-                const steppedRatio = contrastRatio(toneHex, steppedHex)
-                if (steppedRatio >= AA_THRESHOLD) {
-                    const cssVarRef = hexToCssVarRef(steppedHex, tokens)
-                    return {
-                        description: `Step color to ${steppedHex} (${steppedRatio.toFixed(2)}:1)`,
-                        targetCssVar: onToneCssVar,
-                        suggestedValue: cssVarRef,
-                        suggestedHex: steppedHex,
-                        resultingRatio: steppedRatio,
+            // 2. Try black and white token values
+            const bwResult = this.tryBlackWhiteTokens(toneHex, onToneCssVar, tokens)
+            if (bwResult) return bwResult
+
+            // 3. Step the tone to adjacent levels and retry
+            const toneFamilyColors = getAllFamilyColors(toneHex, tokens)
+            if (toneFamilyColors.length === 0) return null
+
+            // Try each tone level, checking all on-tone family colors + black/white
+            const toneFound = findColorFamilyAndLevel(toneHex, tokens)
+            if (!toneFound) return null
+            const toneIdx = toneFamilyColors.findIndex(c => c.level === toneFound.level)
+
+            // Search outward from current tone level
+            for (let offset = 1; offset < toneFamilyColors.length; offset++) {
+                for (const dir of [-1, 1]) {
+                    const idx = toneIdx + (offset * dir)
+                    if (idx < 0 || idx >= toneFamilyColors.length) continue
+                    const altTone = toneFamilyColors[idx]
+
+                    // Try on-tone family colors against this alternate tone
+                    const altCandidate = this.findBestPassingColor(familyColors, altTone.hex, onToneHex)
+                    if (altCandidate) {
+                        const cssVarRef = hexToCssVarRef(altCandidate.hex, tokens)
+                        if (cssVarRef) {
+                            return {
+                                description: `Change on-tone to ${altCandidate.family}/${altCandidate.level} (${contrastRatio(altTone.hex, altCandidate.hex).toFixed(2)}:1)`,
+                                targetCssVar: onToneCssVar,
+                                suggestedValue: cssVarRef,
+                                suggestedHex: altCandidate.hex,
+                                resultingRatio: contrastRatio(toneHex, altCandidate.hex),
+                            }
+                        }
                     }
+
+                    // Try black/white against this alternate tone
+                    const bw = this.tryBlackWhiteTokens(altTone.hex, onToneCssVar, tokens)
+                    if (bw) return bw
                 }
             }
 
@@ -427,6 +462,13 @@ class ComplianceServiceImpl {
         }
     }
 
+    /**
+     * Generate a suggestion for a failing foreground color (layer text or interactive).
+     * Strategy:
+     *  1. Try every level in the foreground's own color family against backgroundHex
+     *  2. Try black and white token values
+     *  3. If nothing passes, return null (changing the background is out of scope)
+     */
     private generateSteppedColorSuggestion(
         foregroundHex: string,
         backgroundHex: string,
@@ -435,52 +477,97 @@ class ComplianceServiceImpl {
         _mode: 'light' | 'dark'
     ): SuggestedFix | null {
         try {
-            // Try stepping darker
-            const darkerHex = stepUntilAACompliant(foregroundHex, backgroundHex, 'darker', tokens)
-            const darkerRatio = contrastRatio(backgroundHex, darkerHex)
-
-            // Try stepping lighter
-            const lighterHex = stepUntilAACompliant(foregroundHex, backgroundHex, 'lighter', tokens)
-            const lighterRatio = contrastRatio(backgroundHex, lighterHex)
-
-            // Pick the better option that's closer to the original color
-            let bestHex = foregroundHex
-            let bestRatio = contrastRatio(backgroundHex, foregroundHex)
-
-            if (darkerRatio >= AA_THRESHOLD && lighterRatio >= AA_THRESHOLD) {
-                // Both work — pick the one closer to the original
-                const darkerDist = Math.abs(darkerRatio - AA_THRESHOLD)
-                const lighterDist = Math.abs(lighterRatio - AA_THRESHOLD)
-                bestHex = darkerDist <= lighterDist ? darkerHex : lighterHex
-                bestRatio = darkerDist <= lighterDist ? darkerRatio : lighterRatio
-            } else if (darkerRatio >= AA_THRESHOLD) {
-                bestHex = darkerHex
-                bestRatio = darkerRatio
-            } else if (lighterRatio >= AA_THRESHOLD) {
-                bestHex = lighterHex
-                bestRatio = lighterRatio
-            }
-
-            if (bestRatio >= AA_THRESHOLD && bestHex !== foregroundHex) {
-                const cssVarRef = hexToCssVarRef(bestHex, tokens)
-                const family = findColorFamilyAndLevel(bestHex, tokens)
-                const desc = family
-                    ? `Step to ${family.family}/${family.level} (${bestRatio.toFixed(2)}:1)`
-                    : `Step to ${bestHex} (${bestRatio.toFixed(2)}:1)`
-
-                return {
-                    description: desc,
-                    targetCssVar,
-                    suggestedValue: cssVarRef,
-                    suggestedHex: bestHex,
-                    resultingRatio: bestRatio,
+            // 1. Try all levels in the foreground's family
+            const familyColors = getAllFamilyColors(foregroundHex, tokens)
+            const candidate = this.findBestPassingColor(familyColors, backgroundHex, foregroundHex)
+            if (candidate) {
+                const cssVarRef = hexToCssVarRef(candidate.hex, tokens)
+                if (cssVarRef) {
+                    const family = findColorFamilyAndLevel(candidate.hex, tokens)
+                    const desc = family
+                        ? `Step to ${family.family}/${family.level} (${contrastRatio(backgroundHex, candidate.hex).toFixed(2)}:1)`
+                        : `Step to ${candidate.hex} (${contrastRatio(backgroundHex, candidate.hex).toFixed(2)}:1)`
+                    return {
+                        description: desc,
+                        targetCssVar,
+                        suggestedValue: cssVarRef,
+                        suggestedHex: candidate.hex,
+                        resultingRatio: contrastRatio(backgroundHex, candidate.hex),
+                    }
                 }
             }
+
+            // 2. Try black and white
+            const bwResult = this.tryBlackWhiteTokens(backgroundHex, targetCssVar, tokens)
+            if (bwResult) return bwResult
 
             return null
         } catch {
             return null
         }
+    }
+
+    /**
+     * From a list of color candidates, find the one that:
+     *  - passes AA against surfaceHex
+     *  - is closest to the original color (least visual disruption)
+     */
+    private findBestPassingColor(
+        candidates: { hex: string; family: string; level: string }[],
+        surfaceHex: string,
+        originalHex: string
+    ): { hex: string; family: string; level: string } | null {
+        let best: { hex: string; family: string; level: string } | null = null
+        let bestDistance = Infinity
+
+        for (const c of candidates) {
+            const ratio = contrastRatio(surfaceHex, c.hex)
+            if (ratio >= AA_THRESHOLD) {
+                // Prefer the candidate closest to the original
+                const dist = Math.abs(ratio - AA_THRESHOLD)
+                if (dist < bestDistance) {
+                    bestDistance = dist
+                    best = c
+                }
+            }
+        }
+
+        return best
+    }
+
+    /**
+     * Try black and white token values as suggestions.
+     * Only returns if the value exists as an exact token.
+     */
+    private tryBlackWhiteTokens(
+        surfaceHex: string,
+        targetCssVar: string,
+        tokens: JsonLike
+    ): SuggestedFix | null {
+        const blackContrast = contrastRatio(surfaceHex, '#000000')
+        const whiteContrast = contrastRatio(surfaceHex, '#ffffff')
+
+        // Try whichever has better contrast first
+        const attempts: { hex: string; label: string; ratio: number }[] = blackContrast >= whiteContrast
+            ? [{ hex: '#000000', label: 'black', ratio: blackContrast }, { hex: '#ffffff', label: 'white', ratio: whiteContrast }]
+            : [{ hex: '#ffffff', label: 'white', ratio: whiteContrast }, { hex: '#000000', label: 'black', ratio: blackContrast }]
+
+        for (const attempt of attempts) {
+            if (attempt.ratio >= AA_THRESHOLD) {
+                const cssVarRef = hexToCssVarRef(attempt.hex, tokens)
+                if (cssVarRef) {
+                    return {
+                        description: `Change to ${attempt.label} (${attempt.ratio.toFixed(2)}:1)`,
+                        targetCssVar,
+                        suggestedValue: cssVarRef,
+                        suggestedHex: attempt.hex,
+                        resultingRatio: attempt.ratio,
+                    }
+                }
+            }
+        }
+
+        return null
     }
 }
 

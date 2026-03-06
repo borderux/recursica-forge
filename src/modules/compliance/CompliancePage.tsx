@@ -14,6 +14,9 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { Badge } from '../../components/adapters/Badge'
 import { Button } from '../../components/adapters/Button'
 import { Link } from '../../components/adapters/Link'
+import { Tooltip } from '../../components/adapters/Tooltip'
+import { findColorFamilyAndLevel } from '../../core/compliance/layerColorStepping'
+import { getVarsStore } from '../../core/store/varsStore'
 import './CompliancePage.css'
 
 const typeLabels: Record<string, string> = {
@@ -21,6 +24,28 @@ const typeLabels: Record<string, string> = {
     'layer-text': 'Layer Text',
     'layer-interactive': 'Layer Interactive',
     'core-on-tone': 'Core Color',
+}
+
+/**
+ * Format a hex color into a human-readable scale label.
+ * e.g. { family: 'scale-01', level: '500' } → 'Scale 1 / 500'
+ */
+function formatColorLabel(hex: string): string {
+    try {
+        const store = getVarsStore()
+        const tokens = store.getState().tokens
+        if (!tokens) return ''
+        const info = findColorFamilyAndLevel(hex, tokens)
+        if (!info) return ''
+        // Convert 'scale-01' → 'Scale 1', 'scale-10' → 'Scale 10'
+        const scaleMatch = info.family.match(/^scale-(\d+)$/)
+        const familyLabel = scaleMatch
+            ? `Scale ${parseInt(scaleMatch[1], 10)}`
+            : info.family.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        return `${familyLabel} / ${info.level}`
+    } catch {
+        return ''
+    }
 }
 
 /**
@@ -213,11 +238,11 @@ export default function CompliancePage() {
                             <thead>
                                 <tr style={{ borderColor: `var(${layer0Base}-border-color)` }}>
                                     <th style={{ width: 48 }} className="compliance-table__th-center">Mode</th>
-                                    <th style={{ width: 72 }}>Issue</th>
-                                    <th style={{ width: 72 }}>Fix</th>
-                                    <th>Location</th>
-                                    <th style={{ width: 170 }}>Ratios</th>
-                                    <th style={{ width: 72 }}></th>
+                                    <th style={{ width: 72, textAlign: 'center' }}>Issue</th>
+                                    <th style={{ width: 72, textAlign: 'center' }}>Fix</th>
+                                    <th></th>
+                                    <th style={{ width: 200 }}>Location</th>
+                                    <th style={{ width: 170 }}>Contrast Ratios</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -237,27 +262,44 @@ export default function CompliancePage() {
 
                                         {/* Issue swatch (current) */}
                                         <td>
-                                            <div
-                                                className="compliance-table__swatch"
-                                                style={{ backgroundColor: issue.toneHex }}
-                                                title={`BG: ${issue.toneHex}  FG: ${issue.onToneHex}`}
-                                            >
-                                                <span style={{ color: issue.onToneHex }}>Aa</span>
-                                            </div>
+                                            <Tooltip label={formatColorLabel(issue.onToneHex)}>
+                                                <div
+                                                    className="compliance-table__swatch"
+                                                    style={{ backgroundColor: issue.toneHex }}
+                                                >
+                                                    <span style={{ color: issue.onToneHex }}>Aa</span>
+                                                </div>
+                                            </Tooltip>
                                         </td>
 
                                         {/* Fix swatch (suggested) */}
                                         <td>
                                             {issue.suggestion ? (
-                                                <div
-                                                    className="compliance-table__swatch"
-                                                    style={{ backgroundColor: issue.toneHex }}
-                                                    title={`Suggested FG: ${issue.suggestion.suggestedHex}`}
-                                                >
-                                                    <span style={{ color: issue.suggestion.suggestedHex }}>Aa</span>
-                                                </div>
+                                                <Tooltip label={formatColorLabel(issue.suggestion.suggestedHex)}>
+                                                    <div
+                                                        className="compliance-table__swatch"
+                                                        style={{ backgroundColor: issue.toneHex }}
+                                                    >
+                                                        <span style={{ color: issue.suggestion.suggestedHex }}>Aa</span>
+                                                    </div>
+                                                </Tooltip>
                                             ) : (
                                                 <span style={{ opacity: 0.25 }}>—</span>
+                                            )}
+                                        </td>
+
+                                        {/* Fix button */}
+                                        <td>
+                                            {issue.suggestion && (
+                                                <Button
+                                                    variant="outline"
+                                                    size="small"
+                                                    onClick={() => applySuggestion(issue.id)}
+                                                    title={issue.suggestion.description}
+                                                    icon={WrenchIcon ? <WrenchIcon style={{ width: 12, height: 12 }} /> : undefined}
+                                                >
+                                                    Fix
+                                                </Button>
                                             )}
                                         </td>
 
@@ -291,21 +333,6 @@ export default function CompliancePage() {
                                                     </>
                                                 )}
                                             </div>
-                                        </td>
-
-                                        {/* Fix button */}
-                                        <td>
-                                            {issue.suggestion && (
-                                                <Button
-                                                    variant="outline"
-                                                    size="small"
-                                                    onClick={() => applySuggestion(issue.id)}
-                                                    title={issue.suggestion.description}
-                                                    icon={WrenchIcon ? <WrenchIcon style={{ width: 12, height: 12 }} /> : undefined}
-                                                >
-                                                    Fix
-                                                </Button>
-                                            )}
                                         </td>
                                     </tr>
                                 ))}

@@ -304,7 +304,7 @@ export default function MantineShell({
               <MantineTabs.List>
                 <MantineTabs.Tab value='tokens'>Tokens</MantineTabs.Tab>
                 <MantineTabs.Tab value='theme'>
-                  <Tooltip label={issueCount > 0 ? `${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}` : ''}>
+                  <Tooltip label={issueCount > 0 ? `${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}` : ''} withinPortal={true} position="bottom" mantine={{ offset: 14 }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       {issueCount > 0 && (() => {
                         const WarningIcon = iconNameToReactComponent("warning");
