@@ -10921,6 +10921,13 @@
               }
             }
           },
+          "max-height": {
+            "$type": "dimension",
+            "$value": {
+              "value": 600,
+              "unit": "px"
+            }
+          },
           "elevation": {
             "$type": "elevation",
             "$value": "{brand.elevations.elevation-1}"
