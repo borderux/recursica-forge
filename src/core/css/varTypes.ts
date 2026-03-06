@@ -94,9 +94,9 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
         }
       }
     }
-    // Special case: border-thickness can use direct pixel values (0-20px)
+    // Special case: border-size can use direct pixel values (0-20px)
     // This allows users to set border thickness directly without requiring tokens
-    if (cssVarName.includes('border-thickness')) {
+    if (cssVarName.includes('border-size')) {
       // Allow pixel values like "0px", "2px", "20px", etc.
       if (/^\d+px$/.test(trimmed)) {
         return { valid: true }

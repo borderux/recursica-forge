@@ -189,7 +189,7 @@ export default function Modal({
         '--modal-divider': `var(${dividerColorVar})`,
         '--modal-divider-thickness': `var(${scrollDividerThicknessVar})`,
         '--modal-border-radius': `var(${borderRadiusVar})`,
-        '--modal-border-thickness': `var(${borderSizeVar})`,
+        '--modal-border-size': `var(${borderSizeVar})`,
         '--modal-padding-x': `var(${horizontalPaddingVar})`,
         '--modal-padding-y': `var(${verticalPaddingVar})`,
         '--modal-button-gap': `var(${buttonGapVar}, 0px)`,
@@ -317,7 +317,7 @@ export default function Modal({
                 content: {
                     backgroundColor: 'var(--modal-bg)',
                     borderRadius: 'var(--modal-border-radius)',
-                    border: 'var(--modal-border-thickness) solid var(--modal-border-color)',
+                    border: 'var(--modal-border-size) solid var(--modal-border-color)',
                     overflow: 'visible',
                     display: 'flex',
                     flexDirection: 'column',

@@ -1,6 +1,6 @@
 // Extract the rendering logic from PropControl for use in accordions
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
-import { ComponentProp, toSentenceCase, parseComponentStructure, getDimensionPropertyType } from '../../utils/componentToolbarUtils'
+import { ComponentProp, toSentenceCase, parseComponentStructure, getDimensionPropertyType, pathMatchesVariant } from '../../utils/componentToolbarUtils'
 import { getPropLabel, getGroupedProps, getPropConfig, type ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
@@ -880,8 +880,7 @@ export default function PropControlContent({
           // If no variant is selected for this variantProp, don't match variant-specific props
           return false
         }
-        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-        if (!variantInPath) {
+        if (!pathMatchesVariant(p.path, p.variantProp, selectedVariant)) {
           // Prop is variant-specific but doesn't match selected variant - skip it
           return false
         }
@@ -891,8 +890,7 @@ export default function PropControlContent({
       if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
         const selectedVariant = selectedVariants[propToCheck.variantProp]
         if (!selectedVariant) return false
-        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-        if (!variantInPath) return false
+        if (!pathMatchesVariant(p.path, propToCheck.variantProp, selectedVariant)) return false
       }
       // Props under both style and orientation (e.g. tabs-content-gap under styles.pills.orientation.horizontal)
       // must match BOTH selectedVariants.style and selectedVariants.orientation
@@ -1147,7 +1145,7 @@ export default function PropControlContent({
   }
 
   // This function is responsible for rendering one or more controls for a given property.
-  // It handles "combined" props like border (border-color, border-thickness, border-radius)
+  // It handles "combined" props like border (border-color, border-size, border-radius)
   // as well as any generic groups defined in the toolbar JSON
   const renderPropControl = (prop: ComponentProp) => {
     // 1. Handle combined "border" props (legacy specialized handling)
@@ -4192,7 +4190,7 @@ export default function PropControlContent({
               if (p.isVariantSpecific && p.variantProp) {
                 const selectedVariant = selectedVariants[p.variantProp]
                 if (selectedVariant) {
-                  variantMatches = p.path.includes(selectedVariant)
+                  variantMatches = pathMatchesVariant(p.path, p.variantProp, selectedVariant)
                 } else {
                   variantMatches = false
                 }

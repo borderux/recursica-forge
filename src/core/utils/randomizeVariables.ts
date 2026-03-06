@@ -634,14 +634,14 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         }
       }
 
-      // Skip dimension objects in layer properties EXCEPT border-thickness (which should be randomized)
+      // Skip dimension objects in layer properties EXCEPT border-size (which should be randomized)
       // But allow layer elements (text, interactive, etc.) to be randomized
       // Check if path ends with ['$value', 'value'] which indicates we're inside a dimension object
       const isLayerProperty = /layer.*\.properties/.test(pathStr) || (pathStr.includes('layer-') && pathStr.includes('properties'))
       const isLayerElement = pathStr.includes('layer') && pathStr.includes('elements')
-      const isBorderThickness = pathStr.includes('border-thickness')
+      const isBorderThickness = pathStr.includes('border-size')
       const isInsideDimensionValue = path.length >= 2 && path[path.length - 2] === '$value' && path[path.length - 1] === 'value'
-      // Only skip dimension objects in properties (except border-thickness), not in elements
+      // Only skip dimension objects in properties (except border-size), not in elements
       if (isLayerProperty && !isLayerElement && !isBorderThickness && (isDimension || isInsideDimensionValue)) {
         return
       }
@@ -772,7 +772,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         pathStr.includes('element-text-color') ||
         pathStr.includes('elements') // All element colors (text, interactive, alert, warning, success)
       )
-      const isLayerSize = isLayer && (pathStr.includes('padding') || pathStr.includes('border-radius') || pathStr.includes('border-thickness'))
+      const isLayerSize = isLayer && (pathStr.includes('padding') || pathStr.includes('border-radius') || pathStr.includes('border-size'))
 
 
       // For high, low, disabled, and hover opacities, randomize by picking a random opacity token reference
@@ -1069,7 +1069,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
             }
           }
         } else if (isLayerSize) {
-          // Layer size properties (padding, border-radius, border-thickness)
+          // Layer size properties (padding, border-radius, border-size)
           // Check if this is a token reference (dimension token) that should be randomized
           if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
             // Randomize the token reference by picking a random size token
@@ -1087,7 +1087,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
               newValue = value
             }
           } else if (typeof value === 'object' && value !== null && 'value' in value && 'unit' in value) {
-            // Dimension object (border-thickness) - randomize the value
+            // Dimension object (border-size) - randomize the value
             const randomValue = Math.floor(Math.random() * 201) // 0-200px
             newValue = { value: randomValue, unit: value.unit }
           } else {
@@ -1559,7 +1559,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       const pathStr = path.join('.')
       const isColor = pathStr.includes('color') || pathStr.includes('background') || pathStr.includes('fill') || pathStr.includes('surface') || pathStr.includes('stroke') || pathStr.includes('shadow') || pathStr.includes('tint')
 
-      const isBorder = pathStr.includes('border-size') || pathStr.includes('border-width') || pathStr.includes('divider-size') || pathStr.includes('thickness') || pathStr.includes('border-thickness')
+      const isBorder = pathStr.includes('border-size') || pathStr.includes('border-width') || pathStr.includes('divider-size') || pathStr.includes('thickness') || pathStr.includes('border-size')
       const isRadius = pathStr.includes('radius') || pathStr.includes('corner')
       const isGap = pathStr.includes('gap') || pathStr.includes('gutter') || pathStr.includes('spacing')
       const isIconSize = pathStr.includes('icon-size') || pathStr.includes('icon.size') || (pathStr.includes('icon') && !pathStr.includes('color'))

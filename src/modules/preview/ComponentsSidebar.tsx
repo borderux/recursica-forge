@@ -249,7 +249,7 @@ export function ComponentsSidebar({
         top: 0,
         alignSelf: 'flex-start',
         backgroundColor: `var(${layer0Base}-surface)`,
-        borderRightWidth: `var(${layer0Base}-border-thickness, 1px)`,
+        borderRightWidth: `var(${layer0Base}-border-size, 1px)`,
         borderRightStyle: 'solid',
         borderRightColor: `var(${layer0Base}-border-color)`,
         display: 'flex',

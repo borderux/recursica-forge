@@ -126,7 +126,7 @@ export function TypePage() {
       return {
         backgroundColor: `var(${layer1Base}-surface)`,
         color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-        border: `var(${layer1Base}-border-thickness) solid ${borderColor}`,
+        border: `var(${layer1Base}-border-size) solid ${borderColor}`,
         borderRadius: `var(${layer1Base}-border-radius)`,
         padding: `var(${layer1Base}-padding)`,
         display: 'flex' as const,

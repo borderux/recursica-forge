@@ -24,7 +24,7 @@ html[data-theme-mode="dark"] .dimension-token-label {
   align-items: center;
   justify-content: space-between;
   padding: var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md);
-  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness, var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
+  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-size, var(--recursica-brand-themes-light-layers-layer-3-properties-border-size)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
   border-radius: var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius, var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius));
   background: var(--recursica-brand-themes-light-layers-layer-3-properties-surface, var(--recursica-brand-themes-light-layers-layer-3-properties-surface));
   color: var(--recursica-brand-themes-light-layers-layer-3-elements-text-color, var(--recursica-brand-themes-light-layers-layer-3-elements-text-color));
@@ -66,7 +66,7 @@ html[data-theme-mode="dark"] .dimension-token-button:hover {
   max-height: 300px;
   overflow-y: auto;
   background: var(--recursica-brand-themes-light-layers-layer-3-properties-surface, var(--recursica-brand-themes-light-layers-layer-3-properties-surface));
-  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness, var(--recursica-brand-themes-light-layers-layer-3-properties-border-thickness)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
+  border: var(--recursica-brand-themes-light-layers-layer-3-properties-border-size, var(--recursica-brand-themes-light-layers-layer-3-properties-border-size)) solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color, var(--recursica-brand-themes-light-layers-layer-3-properties-border-color));
   border-radius: var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius, var(--recursica-brand-themes-light-layers-layer-3-properties-border-radius));
   box-shadow: var(--recursica-brand-themes-light-elevations-elevation-4-x-axis, 0px) var(--recursica-brand-themes-light-elevations-elevation-4-y-axis, 0px) var(--recursica-brand-themes-light-elevations-elevation-4-blur, 0px) var(--recursica-brand-themes-light-elevations-elevation-4-spread, 0px) var(--recursica-brand-themes-light-elevations-elevation-4-shadow-color, rgba(0, 0, 0, 0.1));
   z-index: 1001;
