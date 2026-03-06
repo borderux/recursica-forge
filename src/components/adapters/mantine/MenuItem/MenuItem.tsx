@@ -90,9 +90,9 @@ export default function MenuItem({
   const supportingTextTransformVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'text-transform')
   const supportingFontStyleVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-style')
 
-  // Get hover opacity and overlay color from brand theme (not user-configurable)
-  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
-  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
+  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
+  const hoverColorVar = getComponentLevelCssVar('MenuItem', 'hover-color')
+  const hoverOpacityVar = getComponentLevelCssVar('MenuItem', 'hover-opacity')
 
   // Read background color to check if it's null/transparent
   const bgColorValue = readCssVar(unselectedBgVar)
@@ -149,7 +149,7 @@ export default function MenuItem({
           ['--menu-item-supporting-text-color' as string]: `var(${supportingTextColorVar})`,
           ['--menu-item-opacity' as string]: disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : (finalOpacityVar ? `var(${finalOpacityVar}, 1)` : '1'),
           ['--menu-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-          ['--menu-item-overlay-color' as string]: `var(${overlayColorVar}, #000000)`, // Overlay color
+          ['--menu-item-hover-color' as string]: `var(${hoverColorVar}, #000000)`, // Hover color
           // Apply text styles using CSS variables from text style toolbar
           fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
           fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,

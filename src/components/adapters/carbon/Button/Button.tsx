@@ -30,28 +30,28 @@ export default function Button({
   ...props
 }: AdapterButtonProps) {
   const { mode } = useThemeMode()
-  
+
   // Map unified variant to Carbon kind
   const carbonKind = variant === 'solid' ? 'primary' : variant === 'outline' ? 'secondary' : 'tertiary'
-  
+
   // Map unified size to Carbon size
   const carbonSize = size === 'small' ? 'sm' : 'md'
-  
+
   // Determine size prefix for CSS variables
   const sizePrefix = size === 'small' ? 'small' : 'default'
-  
+
   const cssVarVariant = variant
-  
+
   // Use UIKit.json button colors for standard layers
   const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
   const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
   // Build border color CSS var path directly to ensure it matches UIKit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
-  
-  // Get hover opacity and overlay color from brand theme (not user-configurable)
-  const hoverOpacityVar = getBrandStateCssVar(mode, 'hover')
-  const overlayColorVar = getBrandStateCssVar(mode, 'overlay.color')
-  
+
+  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
+  const hoverColorVar = getComponentLevelCssVar('Button', 'hover-color')
+  const hoverOpacityVar = getComponentLevelCssVar('Button', 'hover-opacity')
+
   // Get icon size and gap CSS variables
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
@@ -60,7 +60,7 @@ export default function Button({
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
-  
+
   // Get all text properties from component text property group
   const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
   const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
@@ -70,7 +70,7 @@ export default function Button({
   const textDecorationVar = getComponentTextCssVar('Button', 'text', 'text-decoration')
   const textTransformVar = getComponentTextCssVar('Button', 'text', 'text-transform')
   const fontStyleVar = getComponentTextCssVar('Button', 'text', 'font-style')
-  
+
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
   // Reactively read border-size to trigger re-renders when it changes
@@ -85,7 +85,7 @@ export default function Button({
     }
     return borderSizeValueRaw || '1px'
   })
-  
+
   useEffect(() => {
     const updateBorderSize = () => {
       const resolved = readCssVarResolved(borderSizeVar, 10, '1px')
@@ -100,9 +100,9 @@ export default function Button({
       }
       setBorderSizeValue(borderSizeValueRaw || '1px')
     }
-    
+
     updateBorderSize()
-    
+
     // Listen for CSS variable updates
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
@@ -110,9 +110,9 @@ export default function Button({
         updateBorderSize()
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
+
     // Also watch for direct style changes
     const observer = new MutationObserver(() => {
       updateBorderSize()
@@ -121,32 +121,32 @@ export default function Button({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [borderSizeVar, borderSizeValueRaw])
-  
+
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
-  
+
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
-    
+
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
-      
+
       if (shouldUpdateText) {
         // Force re-render by updating state
         setTextVarsUpdate(prev => prev + 1)
       }
     }
-    
+
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
+
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
       // Force re-render for text vars
@@ -156,23 +156,23 @@ export default function Button({
       attributes: true,
       attributeFilter: ['style'],
     })
-    
+
     return () => {
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
   }, [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar])
-  
+
   // Detect icon-only button (icon exists but no children)
   const isIconOnly = icon && !children
-  
+
   // Read the actual background color value to check if it's transparent
   // If it's transparent, set it directly to override library defaults
   const bgColorValue = readCssVar(buttonBgVar)
-  const backgroundColorValue = bgColorValue === 'transparent' 
-    ? 'transparent' 
+  const backgroundColorValue = bgColorValue === 'transparent'
+    ? 'transparent'
     : `var(${buttonBgVar})`
-  
+
   // Merge library-specific props
   const carbonProps = {
     kind: carbonKind as 'primary' | 'secondary' | 'danger' | 'ghost' | 'danger--primary' | 'danger--ghost' | 'danger--tertiary' | 'tertiary',
@@ -205,7 +205,7 @@ export default function Button({
         '--button-border-color': `var(${buttonBorderColorVar})`,
       } : {}),
       '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-      '--button-overlay-color': `var(${overlayColorVar}, #000000)`, // Overlay color
+      '--button-hover-color': `var(${hoverColorVar}, #000000)`, // Hover color
       // Don't set border inline - let CSS file handle it via --button-border-color
       // For text variant, explicitly remove border
       ...(variant === 'text' ? {
@@ -251,7 +251,7 @@ export default function Button({
     ...carbon,
     ...props,
   }
-  
+
   // Use native children prop - CSS will handle icon placement and text truncation
   return (
     <CarbonButton {...carbonProps}>

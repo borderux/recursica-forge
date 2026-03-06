@@ -149,6 +149,21 @@
           "floatingPaletteLabel": "Item Gap"
         }
       }
+    },
+    "hover": {
+      "icon": "cursor-click",
+      "label": "Hover",
+      "visible": true,
+      "group": {
+        "hover-color": {
+          "label": "Color",
+          "visible": true
+        },
+        "hover-opacity": {
+          "label": "Opacity",
+          "visible": true
+        }
+      }
     }
   }
 }

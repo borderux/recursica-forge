@@ -44,7 +44,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-color: var(--menu-item-overlay-color, #000000);
+  background-color: var(--menu-item-hover-color, #000000);
   opacity: var(--menu-item-hover-opacity, 0.08);
   border-radius: var(--menu-item-border-radius, 4px);
   pointer-events: none;
