@@ -6,41 +6,46 @@ import { getVarsStore } from '../store/varsStore'
 
 /**
  * Converts a UIKit CSS variable name to a JSON path
+ * Does a greedy match against the actual UIKit JSON schema to properly
+ * handle hyphenated keys like `border-size` or `min-height`.
  * 
  * @example
- * cssVarToUIKitPath('--recursica-ui-kit-themes-light-components-chip-variants-styles-unselected-properties-colors-layer-0-background')
- * => ['ui-kit', 'components', 'chip', 'variants', 'styles', 'unselected', 'properties', 'colors', 'layer-0', 'background']
+ * cssVarToUIKitPath('--recursica-ui-kit-themes-light-components-chip-variants-styles-unselected-properties-colors-layer-0-background', currentUIKit)
  */
-function cssVarToUIKitPath(cssVar: string): string[] | null {
-    // Format: --recursica-ui-kit-themes-{mode}-components-... or --recursica-ui-kit-components-...
-    // But UIKit JSON doesn't have mode in the path, so we strip it
+function cssVarToUIKitPath(cssVar: string, rootObj: any): string[] | null {
     const match = cssVar.match(/^--recursica-ui-kit-(?:themes-(?:light|dark)-)?(.+)$/)
     if (!match) return null
 
-    const pathString = match[1] // e.g., "components-chip-variants-styles-unselected-properties-colors-layer-0-background"
-
-    // Split and reconstruct, handling known multi-word segments
+    const pathString = match[1]
     const parts = pathString.split('-')
     const path: string[] = ['ui-kit']
+    let current = rootObj?.['ui-kit'] || rootObj
     let i = 0
 
     while (i < parts.length) {
-        const part = parts[i]
+        if (!current || typeof current !== 'object') {
+            // Reached a leaf or undefined node, assume the rest is one long hyphenated key
+            path.push(parts.slice(i).join('-'))
+            break
+        }
 
-        // Check for known multi-word segments
-        if (part === 'layer' && i + 1 < parts.length && /^\d+$/.test(parts[i + 1])) {
-            // layer-0, layer-1, etc.
-            path.push(`${part}-${parts[i + 1]}`)
-            i += 2
-        } else if (part === 'border' && i + 1 < parts.length && parts[i + 1] === 'color') {
-            // border-color
-            path.push('border-color')
-            i += 2
-        } else if (part === 'tabs' && i + 2 < parts.length && parts[i + 1] === 'content' && parts[i + 2] === 'gap') {
-            path.push('tabs-content-gap')
-            i += 3
-        } else {
-            path.push(part)
+        // Greedy match: try longest possible key combinations
+        let matched = false
+        for (let j = parts.length; j > i; j--) {
+            const candidateKey = parts.slice(i, j).join('-')
+            if (candidateKey in current) {
+                path.push(candidateKey)
+                current = current[candidateKey]
+                i = j
+                matched = true
+                break
+            }
+        }
+
+        // If no match found in schema, fallback to word-by-word
+        if (!matched) {
+            path.push(parts[i])
+            current = current[parts[i]]
             i++
         }
     }
@@ -51,16 +56,10 @@ function cssVarToUIKitPath(cssVar: string): string[] | null {
 /**
  * Updates a value in the UIKit JSON at the specified path
  * 
- * @param cssVar - The CSS variable name (e.g., '--recursica-ui-kit-themes-light-components-chip-...')
- * @param value - The new value (e.g., '{brand.palettes.palette-1.500.tone}')
+ * @param cssVar - The CSS variable name
+ * @param value - The new value
  */
 export function updateUIKitValue(cssVar: string, value: string): boolean {
-    const path = cssVarToUIKitPath(cssVar)
-    if (!path) {
-        console.warn(`[updateUIKitValue] Could not parse CSS var: ${cssVar}`)
-        return false
-    }
-
     // Get current UIKit JSON
     const currentUIKit = getVarsStore().getState().uikit
     if (!currentUIKit || typeof currentUIKit !== 'object') {
@@ -68,8 +67,16 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         return false
     }
 
-    // Deep clone the UIKit JSON
-    const updatedUIKit = JSON.parse(JSON.stringify(currentUIKit))
+    const path = cssVarToUIKitPath(cssVar, currentUIKit)
+    if (!path) {
+        console.warn(`[updateUIKitValue] Could not parse CSS var: ${cssVar}`)
+        return false
+    }
+
+    // IMPORTANT: Mutate currentUIKit directly for performance!
+    // Since this runs 60 times a second on slider drags, deep cloning freezes the UI.
+    // VarsStore's writeState method now safely debounces the LocalStorage save.
+    const updatedUIKit = currentUIKit
 
     // Navigate to the target location
     let current: any = updatedUIKit
@@ -190,19 +197,48 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         }
     }
 
+    // Parse value if it's a pixel dimension
+    let numericValue: string | number = tokenValue
+    let isDimensionHint = false
+
+    if (typeof tokenValue === 'string') {
+        if (tokenValue.endsWith('px')) {
+            const parsed = parseFloat(tokenValue)
+            if (!isNaN(parsed)) {
+                numericValue = parsed
+                isDimensionHint = true
+            }
+        } else if (tokenValue.includes('.dimensions.')) {
+            isDimensionHint = true
+        }
+    }
+
     // Update the value, preserving $type if it exists
-    if (current[finalKey] && typeof current[finalKey] === 'object' && '$type' in current[finalKey]) {
+    if (current[finalKey] && typeof current[finalKey] === 'object') {
         const existingType = (current[finalKey] as any).$type
-        if (existingType === 'dimension') {
-            (current[finalKey] as any).$value = { value: tokenValue, unit: 'px' }
+        const hasUnitObject = current[finalKey].$value && typeof current[finalKey].$value === 'object' && 'unit' in current[finalKey].$value
+
+        if (existingType === 'dimension' || hasUnitObject) {
+            current[finalKey].$type = existingType || 'dimension'
+            current[finalKey].$value = { value: numericValue, unit: 'px' }
+        } else if (existingType === 'number') {
+            current[finalKey].$value = numericValue
         } else {
-            (current[finalKey] as any).$value = tokenValue
+            // Keep original format (e.g., color, raw string)
+            current[finalKey].$value = tokenValue
         }
     } else {
-        // Create new entry with type
-        current[finalKey] = {
-            $type: 'color', // Assume color for now, could be enhanced
-            $value: tokenValue
+        // Create new entry
+        if (isDimensionHint) {
+            current[finalKey] = {
+                $type: 'dimension',
+                $value: { value: numericValue, unit: 'px' }
+            }
+        } else {
+            current[finalKey] = {
+                $type: 'color', // Fallback
+                $value: tokenValue
+            }
         }
     }
 

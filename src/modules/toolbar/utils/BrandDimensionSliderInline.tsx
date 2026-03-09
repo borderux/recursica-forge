@@ -8,7 +8,6 @@
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { updateUIKitValue } from '../../../core/css/updateUIKitValue'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
@@ -215,10 +214,6 @@ export default function BrandDimensionSliderInline({
 
       cssVars.forEach(cssVar => {
         updateCssVar(cssVar, tokenValue)
-        // Persist to UIKit JSON so recomputeAndApplyAll doesn't overwrite
-        if (cssVar.includes('-ui-kit-')) {
-          updateUIKitValue(cssVar, tokenValue)
-        }
         justSetValueRef.current = tokenValue
         setTimeout(() => {
           justSetValueRef.current = null
