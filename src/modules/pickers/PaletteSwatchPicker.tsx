@@ -8,7 +8,6 @@ import { Dropdown } from '../../components/adapters/Dropdown'
 import { Modal } from '../../components/adapters/Modal'
 import { Label } from '../../components/adapters/Label'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
-import { updateUIKitValue } from '../../core/css/updateUIKitValue'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
   const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
@@ -412,15 +411,6 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
                         // Update CSS variables for immediate visual feedback
                         cssVarsToUpdate.forEach((v) => updateCssVar(v, paletteVarRef, tokensJson))
-
-                        // Persist to UIKit JSON if this is a component variable
-                        if (cssVarsToUpdate.some(v => v.includes('-ui-kit-'))) {
-                          cssVarsToUpdate.forEach((v) => {
-                            if (v.includes('-ui-kit-')) {
-                              updateUIKitValue(v, paletteVarRef)
-                            }
-                          })
-                        }
 
                         if (isOverlay && setTheme && themeJson) {
                           try {

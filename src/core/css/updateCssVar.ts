@@ -10,6 +10,7 @@
 
 import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
+import { updateUIKitValue, removeUIKitValue } from './updateUIKitValue'
 
 // Global flag to suppress events during bulk updates
 let suppressEvents = false
@@ -83,7 +84,7 @@ export function updateCssVar(
   // and don't need to trigger component re-renders (CSS var() references resolve automatically)
   // UIKit vars should never dispatch cssVarsUpdated events - they update the DOM directly
   // and CSS automatically picks up the changes via var() references
-  const isUIKitVar = cssVarName.includes('-ui-kit-components-') || cssVarName.includes('-ui-kit-globals-')
+  const isUIKitVar = cssVarName.includes('-ui-kit-') && (cssVarName.includes('-components-') || cssVarName.includes('-globals-'))
   // UIKit vars are ALWAYS silent, regardless of the silent parameter
   // For non-UIKit vars, respect the silent parameter
   const shouldBeSilent = isUIKitVar || (silent === true)
@@ -112,6 +113,11 @@ export function updateCssVar(
 
   // Apply the update
   root.style.setProperty(cssVarName, trimmedValue)
+
+  // CRITICAL FIX: Ensure all UIKit var changes from any slider/picker save to JSON store automatically
+  if (isUIKitVar) {
+    updateUIKitValue(cssVarName, trimmedValue)
+  }
 
   // Dispatch event to notify components of CSS variable updates
   // This allows components to reactively update when CSS vars change
@@ -222,6 +228,12 @@ export function removeCssVar(cssVarName: string, silent?: boolean): void {
   if (cssVarName.startsWith('--recursica-')) {
     const unprefixed = cssVarName.replace('--recursica-', '--')
     root.style.removeProperty(unprefixed)
+  }
+
+  // Ensure UIKit removal syncs with JSON store 
+  const isUIKitVar = cssVarName.includes('-ui-kit-') && (cssVarName.includes('-components-') || cssVarName.includes('-globals-'))
+  if (isUIKitVar) {
+    removeUIKitValue(cssVarName)
   }
 
   // Dispatch event to notify components of CSS variable removal
