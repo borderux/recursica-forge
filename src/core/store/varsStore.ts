@@ -396,7 +396,8 @@ class VarsStore {
     const complianceService = getComplianceService()
     complianceService.connect(
       () => this.state.tokens,
-      () => this.state.theme
+      () => this.state.theme,
+      (theme: JsonLike) => this.writeState({ theme }, true) // skipRecompute: persist only, don't re-apply
     )
 
     // React to type choice changes and palette changes (centralized)

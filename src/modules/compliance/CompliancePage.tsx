@@ -9,6 +9,7 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import { useCompliance } from '../../core/compliance/ComplianceContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import type { ComplianceIssue } from '../../core/compliance/ComplianceService'
+import { getComplianceService } from '../../core/compliance/ComplianceService'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Badge } from '../../components/adapters/Badge'
 import { Button } from '../../components/adapters/Button'
@@ -135,11 +136,13 @@ export default function CompliancePage() {
 
     const handleUndo = (issue: ComplianceIssue) => {
         if (!issue.suggestion || !fixedMap[issue.id]) return
-        // Restore the original CSS var value
+        // Restore the original CSS var value and persist to theme JSON
         const store = getVarsStore()
         const tokens = store.getState().tokens
         if (tokens) {
             updateCssVar(issue.suggestion.targetCssVar, fixedMap[issue.id], tokens)
+            // Also persist the undo to theme JSON
+            getComplianceService().persistUndo(issue.suggestion.targetCssVar, fixedMap[issue.id])
         }
         setFixedMap(prev => {
             const next = { ...prev }
@@ -203,15 +206,14 @@ export default function CompliancePage() {
                     <Button variant="outline" onClick={handleRescan}>
                         Rescan
                     </Button>
-                    {unfixedCount > 0 && (
-                        <Button
-                            variant="solid"
-                            onClick={() => setShowConfirmAll(true)}
-                            icon={WrenchIcon ? <WrenchIcon style={{ width: 14, height: 14 }} /> : undefined}
-                        >
-                            Fix all ({unfixedCount})
-                        </Button>
-                    )}
+                    <Button
+                        variant="solid"
+                        onClick={() => setShowConfirmAll(true)}
+                        icon={WrenchIcon ? <WrenchIcon style={{ width: 14, height: 14 }} /> : undefined}
+                        disabled={unfixedCount === 0}
+                    >
+                        Fix all{unfixedCount > 0 ? ` (${unfixedCount})` : ''}
+                    </Button>
                 </div>
             </div>
 

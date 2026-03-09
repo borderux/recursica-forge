@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
@@ -9,6 +8,7 @@ import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import brandDefault from '../../vars/Brand.json'
 import { Button } from '../../components/adapters/Button'
+import { Tooltip } from '../../components/adapters/Tooltip'
 
 
 
@@ -42,9 +42,7 @@ function EmphasisCell({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
-  const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null)
   const cellRef = useRef<HTMLDivElement>(null)
   const AA = 4.5
 
@@ -111,54 +109,28 @@ function EmphasisCell({
   const showAAWarning = aaStatus ? !aaStatus.passesAA : false
   const WarningIcon = iconNameToReactComponent('warning')
 
-  // Update tooltip position when hovering (debounced to avoid excessive calculations)
-  useEffect(() => {
-    if (!isHovered) {
-      setTooltipPosition(null)
-      return
-    }
-
-    if (!cellRef.current) return
-
-    // Use requestAnimationFrame to batch position updates
-    const updatePosition = () => {
-      if (cellRef.current && isHovered) {
-        const rect = cellRef.current.getBoundingClientRect()
-        setTooltipPosition({
-          top: rect.bottom + window.scrollY + 4,
-          left: rect.left + window.scrollX + rect.width / 2,
-        })
-      }
-    }
-
-    const rafId = requestAnimationFrame(updatePosition)
-    return () => cancelAnimationFrame(rafId)
-  }, [isHovered])
+  const tooltipLabel = aaStatus
+    ? `AA Compliance Issue: Both black and white don't pass contrast (≥4.5:1). Current: ${aaStatus.currentRatio.toFixed(2)}:1`
+    : 'AA Compliance Issue'
 
   return (
-    <>
-      <div
-        ref={cellRef}
-        className="palette-box"
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {showAAWarning ? (
+    <div
+      ref={cellRef}
+      className="palette-box"
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {showAAWarning ? (
+        <Tooltip label={tooltipLabel}>
           <div
             className="palette-warning"
             style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
               color: `var(${onToneCssVar})`,
               display: 'flex',
               alignItems: 'center',
@@ -168,53 +140,20 @@ function EmphasisCell({
           >
             {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
           </div>
-        ) : (
-          <div
-            className="palette-dot"
-            style={{
-              backgroundColor: `var(${onToneCssVar})`,
-              opacity: `var(${emphasisCssVar})`,
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-            }}
-          />
-        )}
-      </div>
-      {showAAWarning && isHovered && tooltipPosition && createPortal(
+        </Tooltip>
+      ) : (
         <div
+          className="palette-dot"
           style={{
-            position: 'absolute',
-            top: `${tooltipPosition.top}px`,
-            left: `${tooltipPosition.left}px`,
-            transform: 'translateX(-50%)',
-            padding: '8px 12px',
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
-            borderRadius: '6px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 9999,
-            minWidth: '200px',
-            fontSize: '12px',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
+            backgroundColor: `var(${onToneCssVar})`,
+            opacity: `var(${emphasisCssVar})`,
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
           }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
-            AA Compliance Issue
-          </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
-            Both black and white don't pass contrast (≥4.5:1)
-          </div>
-          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`, opacity: 0.8 }}>
-            Current: {aaStatus?.currentRatio.toFixed(2)}:1
-          </div>
-        </div>,
-        document.body
+        />
       )}
-    </>
+    </div>
   )
 }
 
@@ -234,9 +173,7 @@ function InteractiveCell({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode: themeMode } = useThemeMode()
-  const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null)
   const cellRef = useRef<HTMLDivElement>(null)
   const AA = 4.5
 
@@ -282,56 +219,29 @@ function InteractiveCell({
 
   const showAAWarning = aaStatus ? !aaStatus.passesAA : false
   const WarningIcon = iconNameToReactComponent('warning')
-  const { mode } = useThemeMode()
 
-  // Update tooltip position when hovering (debounced to avoid excessive calculations)
-  useEffect(() => {
-    if (!isHovered) {
-      setTooltipPosition(null)
-      return
-    }
-
-    if (!cellRef.current) return
-
-    // Use requestAnimationFrame to batch position updates
-    const updatePosition = () => {
-      if (cellRef.current && isHovered) {
-        const rect = cellRef.current.getBoundingClientRect()
-        setTooltipPosition({
-          top: rect.bottom + window.scrollY + 4,
-          left: rect.left + window.scrollX + rect.width / 2,
-        })
-      }
-    }
-
-    const rafId = requestAnimationFrame(updatePosition)
-    return () => cancelAnimationFrame(rafId)
-  }, [isHovered])
+  const tooltipLabel = aaStatus
+    ? `AA Compliance Issue: Interactive color contrast ratio ${aaStatus.currentRatio.toFixed(2)}:1 < 4.5:1`
+    : 'AA Compliance Issue'
 
   return (
-    <>
-      <div
-        ref={cellRef}
-        className="palette-box"
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {showAAWarning ? (
+    <div
+      ref={cellRef}
+      className="palette-box"
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {showAAWarning ? (
+        <Tooltip label={tooltipLabel}>
           <div
             className="palette-warning"
             style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
               color: `var(${interactiveCssVar})`,
               display: 'flex',
               alignItems: 'center',
@@ -340,49 +250,19 @@ function InteractiveCell({
           >
             {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
           </div>
-        ) : (
-          <div
-            className="palette-dot"
-            style={{
-              backgroundColor: `var(${interactiveCssVar})`,
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-            }}
-          />
-        )}
-      </div>
-      {showAAWarning && isHovered && tooltipPosition && createPortal(
+        </Tooltip>
+      ) : (
         <div
+          className="palette-dot"
           style={{
-            position: 'absolute',
-            top: `${tooltipPosition.top}px`,
-            left: `${tooltipPosition.left}px`,
-            transform: 'translateX(-50%)',
-            padding: '8px 12px',
-            backgroundColor: `var(--recursica-brand-themes-${themeMode}-layers-layer-1-properties-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${themeMode}-layers-layer-1-properties-border-color)`,
-            borderRadius: '6px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 9999,
-            minWidth: '200px',
-            fontSize: '12px',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
+            backgroundColor: `var(${interactiveCssVar})`,
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
           }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
-            AA Compliance Issue
-          </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
-            Interactive color contrast ratio {aaStatus?.currentRatio.toFixed(2)}:1 {'<'} 4.5:1
-          </div>
-        </div>,
-        document.body
+        />
       )}
-    </>
+    </div>
   )
 }
 
