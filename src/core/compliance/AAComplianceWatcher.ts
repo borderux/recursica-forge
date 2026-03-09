@@ -3,7 +3,7 @@ import type { JsonLike } from '../resolvers/tokens'
 import { findAaCompliantColor } from '../resolvers/colorSteppingForAa'
 import { updateCssVar } from '../css/updateCssVar'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../css/readCssVar'
-import { contrastRatio, hexToRgb } from '../../modules/theme/contrastUtil'
+import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../../modules/theme/contrastUtil'
 import { parseTokenReference } from '../utils/tokenReferenceParser'
 import {
   resolveCssVarToHex,
@@ -12,37 +12,7 @@ import {
   findColorFamilyAndLevel
 } from './layerColorStepping'
 
-// Helper to blend foreground over background with opacity
-function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): string | undefined {
-  if (!fgHex || !bgHex) return undefined
-  try {
-    const toRgb = (h: string): [number, number, number] => {
-      const s = h.startsWith('#') ? h.slice(1) : h
-      return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)]
-    }
-    const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
-    const a = clamp01(typeof opacity === 'number' ? opacity : 1)
-    const [fr, fg, fb] = toRgb(fgHex.replace('#', ''))
-    const [br, bgc, bb] = toRgb(bgHex.replace('#', ''))
-    const rr = Math.round(a * fr + (1 - a) * br)
-    const rg = Math.round(a * fg + (1 - a) * bgc)
-    const rb = Math.round(a * fb + (1 - a) * bb)
-    const toHex = (n: number) => n.toString(16).padStart(2, '0')
-    return `#${toHex(rr)}${toHex(rg)}${toHex(rb)}`
-  } catch { return fgHex }
-}
 
-// Helper to blend foreground over background with opacity (for palette on-tone calculation)
-function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
-  const fg = hexToRgb(fgHex)
-  const bg = hexToRgb(bgHex)
-  if (!fg || !bg) return fgHex
-  const a = Math.max(0, Math.min(1, opacity))
-  const r = Math.round(a * fg.r + (1 - a) * bg.r)
-  const g = Math.round(a * fg.g + (1 - a) * bg.g)
-  const b = Math.round(a * fg.b + (1 - a) * bg.b)
-  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
-}
 
 // Helper to get opacity value from CSS var
 function getOpacityValue(opacityVar: string | undefined, tokenIndex: { get: (path: string) => any } | Map<string, any>): number {
@@ -136,10 +106,10 @@ export class AAComplianceWatcher {
     const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${mode}-text-emphasis-low`)
 
     // Blend white and black with tone using both opacity values
-    const whiteHighBlended = blendHexOver(white, toneHex, highEmphasisOpacity)
-    const whiteLowBlended = blendHexOver(white, toneHex, lowEmphasisOpacity)
-    const blackHighBlended = blendHexOver(black, toneHex, highEmphasisOpacity)
-    const blackLowBlended = blendHexOver(black, toneHex, lowEmphasisOpacity)
+    const whiteHighBlended = blendHexWithOpacity(white, toneHex, highEmphasisOpacity)
+    const whiteLowBlended = blendHexWithOpacity(white, toneHex, lowEmphasisOpacity)
+    const blackHighBlended = blendHexWithOpacity(black, toneHex, highEmphasisOpacity)
+    const blackLowBlended = blendHexWithOpacity(black, toneHex, lowEmphasisOpacity)
 
     // Calculate contrast ratios with opacity applied
     const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
@@ -424,7 +394,7 @@ export class AAComplianceWatcher {
 
             if (onToneHex) {
               // Blend the on-tone with opacity
-              const blendedOnTone = blendHexOverBg(onToneHex, surfaceHex, opacity)
+              const blendedOnTone = blendHexWithOpacity(onToneHex, surfaceHex, opacity)
 
               if (blendedOnTone) {
                 // Check if the current on-tone passes AA
@@ -443,7 +413,7 @@ export class AAComplianceWatcher {
                   if (onToneColorInfo) {
                     // Step through the on-tone scale to find AA-compliant color
                     const steppedHex = stepUntilAACompliant(onToneHex, surfaceHex, 'darker', this.tokens, 10)
-                    const steppedBlended = blendHexOverBg(steppedHex, surfaceHex, opacity)
+                    const steppedBlended = blendHexWithOpacity(steppedHex, surfaceHex, opacity)
 
                     if (steppedBlended) {
                       const steppedContrast = contrastRatio(surfaceHex, steppedBlended)
@@ -578,7 +548,7 @@ export class AAComplianceWatcher {
         const AA = 4.5
 
         // First, check if the current color (blended with opacity) passes AA
-        const blendedColor = blendHexOverBg(hex, surfaceHex, opacity)
+        const blendedColor = blendHexWithOpacity(hex, surfaceHex, opacity)
         if (blendedColor) {
           const currentContrast = contrastRatio(surfaceHex, blendedColor)
 
@@ -613,7 +583,7 @@ export class AAComplianceWatcher {
                 }
                 if (typeof testHex === 'string') {
                   const testHexNormalized = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-                  const testBlended = blendHexOverBg(testHexNormalized, surfaceHex, opacity)
+                  const testBlended = blendHexWithOpacity(testHexNormalized, surfaceHex, opacity)
                   if (testBlended) {
                     const testContrast = contrastRatio(surfaceHex, testBlended)
                     if (testContrast >= AA) {
@@ -636,7 +606,7 @@ export class AAComplianceWatcher {
                 }
                 if (typeof testHex === 'string') {
                   const testHexNormalized = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-                  const testBlended = blendHexOverBg(testHexNormalized, surfaceHex, opacity)
+                  const testBlended = blendHexWithOpacity(testHexNormalized, surfaceHex, opacity)
                   if (testBlended) {
                     const testContrast = contrastRatio(surfaceHex, testBlended)
                     if (testContrast >= AA) {
@@ -670,7 +640,7 @@ export class AAComplianceWatcher {
         const coreColorHex = resolveCssVarToHex(coreColorValue, this.tokenIndex)
         if (coreColorHex) {
           const AA = 4.5
-          const blendedColor = blendHexOverBg(coreColorHex, surfaceHex, opacity)
+          const blendedColor = blendHexWithOpacity(coreColorHex, surfaceHex, opacity)
           if (blendedColor) {
             const currentContrast = contrastRatio(surfaceHex, blendedColor)
             if (currentContrast >= AA) {
@@ -700,7 +670,7 @@ export class AAComplianceWatcher {
                   }
                   if (typeof testHex === 'string') {
                     const testHexNormalized = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-                    const testBlended = blendHexOverBg(testHexNormalized, surfaceHex, opacity)
+                    const testBlended = blendHexWithOpacity(testHexNormalized, surfaceHex, opacity)
                     if (testBlended) {
                       const testContrast = contrastRatio(surfaceHex, testBlended)
                       if (testContrast >= AA) {
@@ -722,7 +692,7 @@ export class AAComplianceWatcher {
                   }
                   if (typeof testHex === 'string') {
                     const testHexNormalized = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-                    const testBlended = blendHexOverBg(testHexNormalized, surfaceHex, opacity)
+                    const testBlended = blendHexWithOpacity(testHexNormalized, surfaceHex, opacity)
                     if (testBlended) {
                       const testContrast = contrastRatio(surfaceHex, testBlended)
                       if (testContrast >= AA) {

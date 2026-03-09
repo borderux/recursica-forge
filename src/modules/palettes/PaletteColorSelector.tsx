@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
-import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
+import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { updateCssVar, suppressCssVarEvents, clearPendingCssVars } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -18,17 +18,7 @@ type PaletteColorSelectorProps = {
   onFamilyChange?: (family: string) => void
 }
 
-// Blend a foreground color over a background color with opacity
-function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
-  const fg = hexToRgb(fgHex)
-  const bg = hexToRgb(bgHex)
-  if (!fg || !bg) return fgHex
-  const a = Math.max(0, Math.min(1, opacity))
-  const r = Math.round(a * fg.r + (1 - a) * bg.r)
-  const g = Math.round(a * fg.g + (1 - a) * bg.g)
-  const b = Math.round(a * fg.b + (1 - a) * bg.b)
-  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
-}
+
 
 // readCssVarNumber is now imported from centralized utility
 
@@ -56,10 +46,10 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
 
   // Blend white and black with tone using both opacity values
-  const whiteHighBlended = blendHexOver(white, toneHex, highEmphasisOpacity)
-  const whiteLowBlended = blendHexOver(white, toneHex, lowEmphasisOpacity)
-  const blackHighBlended = blendHexOver(black, toneHex, highEmphasisOpacity)
-  const blackLowBlended = blendHexOver(black, toneHex, lowEmphasisOpacity)
+  const whiteHighBlended = blendHexWithOpacity(white, toneHex, highEmphasisOpacity)
+  const whiteLowBlended = blendHexWithOpacity(white, toneHex, lowEmphasisOpacity)
+  const blackHighBlended = blendHexWithOpacity(black, toneHex, highEmphasisOpacity)
+  const blackLowBlended = blendHexWithOpacity(black, toneHex, lowEmphasisOpacity)
 
   // Calculate contrast ratios with opacity applied
   const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
@@ -453,10 +443,10 @@ export default function PaletteColorSelector({
         const AA = 4.5
 
         // Check both core colors with opacity blending
-        const whiteHighBlended = blendHexOver(normalizedWhite, hex, highEmphasisOpacity)
-        const whiteLowBlended = blendHexOver(normalizedWhite, hex, lowEmphasisOpacity)
-        const blackHighBlended = blendHexOver(normalizedBlack, hex, highEmphasisOpacity)
-        const blackLowBlended = blendHexOver(normalizedBlack, hex, lowEmphasisOpacity)
+        const whiteHighBlended = blendHexWithOpacity(normalizedWhite, hex, highEmphasisOpacity)
+        const whiteLowBlended = blendHexWithOpacity(normalizedWhite, hex, lowEmphasisOpacity)
+        const blackHighBlended = blendHexWithOpacity(normalizedBlack, hex, highEmphasisOpacity)
+        const blackLowBlended = blendHexWithOpacity(normalizedBlack, hex, lowEmphasisOpacity)
 
         const whiteHighContrast = contrastRatio(hex, whiteHighBlended)
         const whiteLowContrast = contrastRatio(hex, whiteLowBlended)
@@ -532,10 +522,10 @@ export default function PaletteColorSelector({
                 const otherHighEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeKeyLower}-text-emphasis-high`)
                 const otherLowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeKeyLower}-text-emphasis-low`)
 
-                const otherWhiteHighBlended = blendHexOver(otherNormalizedWhite, hex, otherHighEmphasisOpacity)
-                const otherWhiteLowBlended = blendHexOver(otherNormalizedWhite, hex, otherLowEmphasisOpacity)
-                const otherBlackHighBlended = blendHexOver(otherNormalizedBlack, hex, otherHighEmphasisOpacity)
-                const otherBlackLowBlended = blendHexOver(otherNormalizedBlack, hex, otherLowEmphasisOpacity)
+                const otherWhiteHighBlended = blendHexWithOpacity(otherNormalizedWhite, hex, otherHighEmphasisOpacity)
+                const otherWhiteLowBlended = blendHexWithOpacity(otherNormalizedWhite, hex, otherLowEmphasisOpacity)
+                const otherBlackHighBlended = blendHexWithOpacity(otherNormalizedBlack, hex, otherHighEmphasisOpacity)
+                const otherBlackLowBlended = blendHexWithOpacity(otherNormalizedBlack, hex, otherLowEmphasisOpacity)
 
                 const otherWhiteHighContrast = contrastRatio(hex, otherWhiteHighBlended)
                 const otherWhiteLowContrast = contrastRatio(hex, otherWhiteLowBlended)

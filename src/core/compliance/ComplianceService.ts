@@ -6,11 +6,11 @@
  * Replaces the scattered compliance checking across the codebase.
  */
 
-import { readCssVar } from '../css/readCssVar'
+import { readCssVar, readCssVarNumber } from '../css/readCssVar'
 import { resolveCssVarToHex } from './layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
-import { contrastRatio } from '../../modules/theme/contrastUtil'
+import { contrastRatio, blendHexWithOpacity } from '../../modules/theme/contrastUtil'
 import { findColorFamilyAndLevel, getAllFamilyColors, hexToCssVarRef } from './layerColorStepping'
 import { updateCssVar } from '../css/updateCssVar'
 
@@ -29,6 +29,7 @@ export interface ComplianceIssue {
     type: 'palette-on-tone' | 'layer-text' | 'layer-interactive' | 'core-on-tone'
     mode: 'light' | 'dark'
     location: string
+    emphasis?: 'high' | 'low'
     toneHex: string
     onToneHex: string
     contrastRatio: number
@@ -84,7 +85,10 @@ class ComplianceServiceImpl {
                 // 3. Check layer text colors
                 this.checkLayerTextColors(newIssues, tokenIndex, tokens, mode)
 
-                // 4. Check layer interactive colors
+                // 4. Check layer text with emphasis opacity
+                this.checkLayerTextEmphasis(newIssues, tokenIndex, tokens, mode)
+
+                // 5. Check layer interactive colors
                 this.checkLayerInteractiveColors(newIssues, tokenIndex, tokens, mode)
             }
 
@@ -173,7 +177,13 @@ class ComplianceServiceImpl {
             const root: any = (theme as any)?.brand ? (theme as any).brand : theme
             const themes = root?.themes || root
             const palettes = themes?.[mode]?.palettes || {}
-            const levels = ['900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
+            const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
+
+            // Read emphasis opacity values (use readCssVarNumber to resolve var() references)
+            const highEmphasisVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
+            const lowEmphasisVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+            const highOpacity = readCssVarNumber(highEmphasisVar, 1)
+            const lowOpacity = readCssVarNumber(lowEmphasisVar, 0.6)
 
             Object.keys(palettes).forEach((paletteKey) => {
                 if (paletteKey === 'core' || paletteKey === 'core-colors') return
@@ -190,21 +200,70 @@ class ComplianceServiceImpl {
                     const onToneHex = resolveCssVarToHex(onToneValue, tokenIndex as any)
                     if (!toneHex || !onToneHex) return
 
-                    const ratio = contrastRatio(toneHex, onToneHex)
-                    if (ratio < AA_THRESHOLD) {
-                        const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode)
-                        issues.push({
-                            id: `palette-${paletteKey}-${level}-${mode}`,
-                            type: 'palette-on-tone',
-                            mode,
-                            location: `Palette ${paletteKey}, Level ${level}`,
-                            toneHex,
-                            onToneHex,
-                            contrastRatio: ratio,
-                            requiredRatio: AA_THRESHOLD,
-                            message: `On-tone contrast ${ratio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                            suggestion
-                        })
+                    // Check high-emphasis on-tone (on-tone blended at high emphasis opacity)
+                    if (!isNaN(highOpacity) && highOpacity < 1) {
+                        const blendedHigh = blendHexWithOpacity(onToneHex, toneHex, highOpacity)
+                        if (blendedHigh) {
+                            const highRatio = contrastRatio(toneHex, blendedHigh)
+                            if (highRatio < AA_THRESHOLD) {
+                                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode)
+                                issues.push({
+                                    id: `palette-${paletteKey}-${level}-high-${mode}`,
+                                    type: 'palette-on-tone',
+                                    mode,
+                                    location: `Palette ${paletteKey.replace('palette-', '')} / ${level}`,
+                                    emphasis: 'high',
+                                    toneHex,
+                                    onToneHex: blendedHigh,
+                                    contrastRatio: highRatio,
+                                    requiredRatio: AA_THRESHOLD,
+                                    message: `High emphasis on-tone contrast ${highRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
+                                    suggestion
+                                })
+                            }
+                        }
+                    } else {
+                        // High emphasis is 1.0, check raw contrast
+                        const ratio = contrastRatio(toneHex, onToneHex)
+                        if (ratio < AA_THRESHOLD) {
+                            const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode)
+                            issues.push({
+                                id: `palette-${paletteKey}-${level}-high-${mode}`,
+                                type: 'palette-on-tone',
+                                mode,
+                                location: `Palette ${paletteKey.replace('palette-', '')} / ${level}`,
+                                emphasis: 'high',
+                                toneHex,
+                                onToneHex,
+                                contrastRatio: ratio,
+                                requiredRatio: AA_THRESHOLD,
+                                message: `High emphasis on-tone contrast ${ratio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
+                                suggestion
+                            })
+                        }
+                    }
+
+                    // Check low-emphasis on-tone (on-tone blended at low emphasis opacity)
+                    if (!isNaN(lowOpacity) && lowOpacity < 1) {
+                        const blendedLow = blendHexWithOpacity(onToneHex, toneHex, lowOpacity)
+                        if (blendedLow) {
+                            const lowRatio = contrastRatio(toneHex, blendedLow)
+                            if (lowRatio < AA_THRESHOLD) {
+                                issues.push({
+                                    id: `palette-${paletteKey}-${level}-low-${mode}`,
+                                    type: 'palette-on-tone',
+                                    mode,
+                                    location: `Palette ${paletteKey.replace('palette-', '')} / ${level}`,
+                                    emphasis: 'low',
+                                    toneHex,
+                                    onToneHex: blendedLow,
+                                    contrastRatio: lowRatio,
+                                    requiredRatio: AA_THRESHOLD,
+                                    message: `Low emphasis on-tone contrast ${lowRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
+                                    suggestion: null
+                                })
+                            }
+                        }
                     }
                 })
             })
@@ -219,11 +278,75 @@ class ComplianceServiceImpl {
         tokens: JsonLike,
         mode: 'light' | 'dark'
     ) {
-        const coreColorKeys = ['alert', 'warning', 'success', 'black', 'white']
+        // Simple core colors: tone / on-tone
+        const simpleCoreColors = ['alert', 'warning', 'success', 'black', 'white']
 
-        coreColorKeys.forEach((colorKey) => {
+        simpleCoreColors.forEach((colorKey) => {
             const toneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorKey}-tone`
             const onToneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorKey}-on-tone`
+
+            const toneValue = readCssVar(toneVar)
+            const onToneValue = readCssVar(onToneVar)
+            if (!toneValue || !onToneValue) return
+
+            const toneHex = resolveCssVarToHex(toneValue, tokenIndex as any)
+            const onToneHex = resolveCssVarToHex(onToneValue, tokenIndex as any)
+            if (!toneHex || !onToneHex) return
+
+            // Check full-opacity (high emphasis) on-tone
+            const ratio = contrastRatio(toneHex, onToneHex)
+            if (ratio < AA_THRESHOLD) {
+                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode)
+                issues.push({
+                    id: `core-${colorKey}-${mode}`,
+                    type: 'core-on-tone',
+                    mode,
+                    location: `Core / ${colorKey.charAt(0).toUpperCase() + colorKey.slice(1)}`,
+                    emphasis: 'high',
+                    toneHex,
+                    onToneHex,
+                    contrastRatio: ratio,
+                    requiredRatio: AA_THRESHOLD,
+                    message: `High emphasis on-tone contrast ${ratio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
+                    suggestion
+                })
+            }
+
+            // Check low-emphasis on-tone (on-tone blended at low emphasis opacity)
+            const lowEmphasisVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+            const opacity = readCssVarNumber(lowEmphasisVar, 1)
+            if (opacity < 1) {
+                const blendedHex = blendHexWithOpacity(onToneHex, toneHex, opacity)
+                if (blendedHex) {
+                    const lowRatio = contrastRatio(toneHex, blendedHex)
+                    if (lowRatio < AA_THRESHOLD) {
+                        issues.push({
+                            id: `core-${colorKey}-low-emphasis-${mode}`,
+                            type: 'core-on-tone',
+                            mode,
+                            location: `Core / ${colorKey.charAt(0).toUpperCase() + colorKey.slice(1)}`,
+                            emphasis: 'low',
+                            toneHex,
+                            onToneHex: blendedHex,
+                            contrastRatio: lowRatio,
+                            requiredRatio: AA_THRESHOLD,
+                            message: `Low emphasis on-tone contrast ${lowRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
+                            suggestion: null
+                        })
+                    }
+                }
+            }
+        })
+
+        // Interactive core colors: default and hover variants
+        const interactiveVariants = [
+            { variant: 'default', label: 'Interactive default' },
+            { variant: 'hover', label: 'Interactive hover' },
+        ]
+
+        interactiveVariants.forEach(({ variant, label }) => {
+            const toneVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-${variant}-tone`
+            const onToneVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-${variant}-on-tone`
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -237,10 +360,10 @@ class ComplianceServiceImpl {
             if (ratio < AA_THRESHOLD) {
                 const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode)
                 issues.push({
-                    id: `core-${colorKey}-${mode}`,
+                    id: `core-interactive-${variant}-${mode}`,
                     type: 'core-on-tone',
                     mode,
-                    location: `Core color: ${colorKey}`,
+                    location: `Core / ${label}`,
                     toneHex,
                     onToneHex,
                     contrastRatio: ratio,
@@ -267,10 +390,10 @@ class ComplianceServiceImpl {
             if (!surfaceHex) continue
 
             const textProps = [
-                { key: 'text-color', label: 'Text Color' },
-                { key: 'text-alert', label: 'Alert Text' },
-                { key: 'text-success', label: 'Success Text' },
-                { key: 'text-warning', label: 'Warning Text' },
+                { key: 'text-color', label: 'Text color' },
+                { key: 'text-alert', label: 'Alert text' },
+                { key: 'text-success', label: 'Success text' },
+                { key: 'text-warning', label: 'Warning text' },
             ]
 
             textProps.forEach(({ key, label }) => {
@@ -290,7 +413,7 @@ class ComplianceServiceImpl {
                         id: `layer-${layer}-${key}-${mode}`,
                         type: 'layer-text',
                         mode,
-                        location: `Layer ${layer}: ${label}`,
+                        location: `Layer ${layer} / ${label}`,
                         toneHex: surfaceHex,
                         onToneHex: textHex,
                         contrastRatio: ratio,
@@ -300,6 +423,58 @@ class ComplianceServiceImpl {
                     })
                 }
             })
+        }
+    }
+
+    /**
+     * Check layer text colors with low-emphasis opacity applied.
+     * Blends text color with surface at the emphasis opacity to compute effective contrast.
+     */
+    private checkLayerTextEmphasis(
+        issues: ComplianceIssue[],
+        tokenIndex: ReturnType<typeof buildTokenIndex>,
+        tokens: JsonLike,
+        mode: 'light' | 'dark'
+    ) {
+        for (let layer = 0; layer <= 3; layer++) {
+            const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-properties-surface`
+            const surfaceValue = readCssVar(surfaceVar)
+            if (!surfaceValue) continue
+
+            const surfaceHex = resolveCssVarToHex(surfaceValue, tokenIndex as any)
+            if (!surfaceHex) continue
+
+            const textVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-text-color`
+            const textValue = readCssVar(textVar)
+            if (!textValue) continue
+
+            const textHex = resolveCssVarToHex(textValue, tokenIndex as any)
+            if (!textHex) continue
+
+            // Check low-emphasis text
+            const lowEmphasisVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-text-low-emphasis`
+            const opacity = readCssVarNumber(lowEmphasisVar, 1)
+            if (opacity >= 1) continue
+
+            // Blend text color with surface at the given opacity
+            const blendedHex = blendHexWithOpacity(textHex, surfaceHex, opacity)
+            if (!blendedHex) continue
+
+            const ratio = contrastRatio(surfaceHex, blendedHex)
+            if (ratio < AA_THRESHOLD) {
+                issues.push({
+                    id: `layer-${layer}-text-low-emphasis-${mode}`,
+                    type: 'layer-text',
+                    mode,
+                    location: `Layer ${layer} / Low emphasis text`,
+                    toneHex: surfaceHex,
+                    onToneHex: blendedHex,
+                    contrastRatio: ratio,
+                    requiredRatio: AA_THRESHOLD,
+                    message: `Low emphasis text contrast ${ratio.toFixed(2)}:1 vs surface is below ${AA_THRESHOLD}:1`,
+                    suggestion: null // Emphasis is an opacity, not a color — no auto-fix
+                })
+            }
         }
     }
 
@@ -332,7 +507,7 @@ class ComplianceServiceImpl {
                             id: `layer-${layer}-interactive-color-${mode}`,
                             type: 'layer-interactive',
                             mode,
-                            location: `Layer ${layer}: Interactive Color`,
+                            location: `Layer ${layer} / Interactive color`,
                             toneHex: surfaceHex,
                             onToneHex: interactiveHex,
                             contrastRatio: ratio,
@@ -362,7 +537,7 @@ class ComplianceServiceImpl {
                             id: `layer-${layer}-interactive-ontone-${mode}`,
                             type: 'layer-interactive',
                             mode,
-                            location: `Layer ${layer}: Interactive On-Tone`,
+                            location: `Layer ${layer} / Interactive on-tone`,
                             toneHex: iToneHex,
                             onToneHex: iOnToneHex,
                             contrastRatio: ratio,

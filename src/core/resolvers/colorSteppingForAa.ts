@@ -1,30 +1,9 @@
-import { contrastRatio } from '../../modules/theme/contrastUtil'
+import { contrastRatio, blendHexWithOpacity } from '../../modules/theme/contrastUtil'
 import type { JsonLike } from './tokens'
 import { buildTokenIndex } from './tokens'
 import { readCssVar } from '../css/readCssVar'
 
-// Helper to blend foreground over background with opacity
-function blendHexOverBg(fgHex?: string, bgHex?: string, opacity?: number): string | undefined {
-  if (!fgHex || !bgHex) return undefined
-  try {
-    const toRgb = (h: string): [number, number, number] => {
-      const s = h.startsWith('#') ? h.slice(1) : h
-      const r = parseInt(s.slice(0, 2), 16)
-      const g = parseInt(s.slice(2, 4), 16)
-      const b = parseInt(s.slice(4, 6), 16)
-      return [r, g, b]
-    }
-    const clamp01 = (n: number) => Math.max(0, Math.min(1, n))
-    const a = clamp01(typeof opacity === 'number' ? opacity : 1)
-    const [fr, fg, fb] = toRgb(fgHex.replace('#',''))
-    const [br, bgc, bb] = toRgb(bgHex.replace('#',''))
-    const rr = Math.round(a * fr + (1 - a) * br)
-    const rg = Math.round(a * fg + (1 - a) * bgc)
-    const rb = Math.round(a * fb + (1 - a) * bb)
-    const toHex = (n: number) => n.toString(16).padStart(2, '0')
-    return `#${toHex(rr)}${toHex(rg)}${toHex(rb)}`
-  } catch { return fgHex }
-}
+
 
 // Helper to resolve CSS var to hex (recursively)
 function resolveCssVarToHex(cssVar: string, tokenIndex: { get: (path: string) => any } | Map<string, any>, depth = 0): string | null {
@@ -36,7 +15,7 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: { get: (path: string) =>
       const h = trimmed.toLowerCase()
       return h.startsWith('#') ? h : `#${h}`
     }
-    
+
     // If it's a var(), extract the var name and resolve
     const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
     if (varMatch) {
@@ -46,7 +25,7 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: { get: (path: string) =>
         return resolveCssVarToHex(value, tokenIndex, depth + 1)
       }
     }
-    
+
     // Try to get from token index if it's a token reference
     const tokenMatch = trimmed.match(/--recursica-tokens-color-([a-z0-9-]+)-(\d+|050|000)/)
     if (tokenMatch) {
@@ -58,7 +37,7 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: { get: (path: string) =>
         return h
       }
     }
-    
+
     // Try palette var reference
     const paletteMatch = trimmed.match(/--recursica-brand-light-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
     if (paletteMatch) {
@@ -69,7 +48,7 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: { get: (path: string) =>
         return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)
       }
     }
-  } catch {}
+  } catch { }
   return null
 }
 
@@ -91,18 +70,18 @@ export function findAaCompliantColor(
   const AA = 4.5
   const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900']
   const tokenIndex = buildTokenIndex(tokens)
-  
+
   // If no core token, try white/black
   if (!coreToken) {
     const whiteHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-white)', tokenIndex) || '#ffffff'
     const blackHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-black)', tokenIndex) || '#000000'
-    
-    const whiteFinal = blendHexOverBg(whiteHex, surfaceHex, opacity) || whiteHex
-    const blackFinal = blendHexOverBg(blackHex, surfaceHex, opacity) || blackHex
-    
+
+    const whiteFinal = blendHexWithOpacity(whiteHex, surfaceHex, opacity) || whiteHex
+    const blackFinal = blendHexWithOpacity(blackHex, surfaceHex, opacity) || blackHex
+
     const whiteContrast = contrastRatio(surfaceHex, whiteFinal)
     const blackContrast = contrastRatio(surfaceHex, blackFinal)
-    
+
     if (whiteContrast >= AA) {
       return 'var(--recursica-brand-light-palettes-core-white)'
     }
@@ -114,11 +93,11 @@ export function findAaCompliantColor(
       ? 'var(--recursica-brand-light-palettes-core-white)'
       : 'var(--recursica-brand-light-palettes-core-black)'
   }
-  
+
   const normalizedStartLevel = coreToken.level === '000' ? '050' : coreToken.level
   const startIdx = LEVELS.indexOf(normalizedStartLevel)
   if (startIdx === -1) return null
-  
+
   // First, try stepping lighter (lower index = lighter)
   for (let i = startIdx - 1; i >= 0; i--) {
     const level = LEVELS[i]
@@ -126,14 +105,14 @@ export function findAaCompliantColor(
     const hex = tokenIndex.get(`color/${coreToken.family}/${normalizedLevel}`)
     if (typeof hex === 'string') {
       const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-      const final = blendHexOverBg(h, surfaceHex, opacity) || h
+      const final = blendHexWithOpacity(h, surfaceHex, opacity) || h
       const c = contrastRatio(surfaceHex, final)
       if (c >= AA) {
         return `var(--recursica-tokens-color-${coreToken.family}-${normalizedLevel})`
       }
     }
   }
-  
+
   // If lighter didn't work, try darker (higher index = darker)
   for (let i = startIdx + 1; i < LEVELS.length; i++) {
     const level = LEVELS[i]
@@ -141,24 +120,24 @@ export function findAaCompliantColor(
     const hex = tokenIndex.get(`color/${coreToken.family}/${normalizedLevel}`)
     if (typeof hex === 'string') {
       const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-      const final = blendHexOverBg(h, surfaceHex, opacity) || h
+      const final = blendHexWithOpacity(h, surfaceHex, opacity) || h
       const c = contrastRatio(surfaceHex, final)
       if (c >= AA) {
         return `var(--recursica-tokens-color-${coreToken.family}-${normalizedLevel})`
       }
     }
   }
-  
+
   // If no token level works, try white/black
   const whiteHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-white)', tokenIndex) || '#ffffff'
   const blackHex = resolveCssVarToHex('var(--recursica-brand-light-palettes-core-black)', tokenIndex) || '#000000'
-  
-  const whiteFinal = blendHexOverBg(whiteHex, surfaceHex, opacity) || whiteHex
-  const blackFinal = blendHexOverBg(blackHex, surfaceHex, opacity) || blackHex
-  
+
+  const whiteFinal = blendHexWithOpacity(whiteHex, surfaceHex, opacity) || whiteHex
+  const blackFinal = blendHexWithOpacity(blackHex, surfaceHex, opacity) || blackHex
+
   const whiteContrast = contrastRatio(surfaceHex, whiteFinal)
   const blackContrast = contrastRatio(surfaceHex, blackFinal)
-  
+
   if (whiteContrast >= AA) {
     return 'var(--recursica-brand-light-palettes-core-white)'
   }

@@ -169,6 +169,8 @@ export default function CompliancePage() {
     const SunIcon = iconNameToReactComponent('sun')
     const MoonIcon = iconNameToReactComponent('moon')
     const ArrowRightIcon = iconNameToReactComponent('arrow-right')
+    const ArrowUpIcon = iconNameToReactComponent('arrow-up')
+    const ArrowDownIcon = iconNameToReactComponent('arrow-down')
 
     return (
         <div
@@ -301,7 +303,7 @@ export default function CompliancePage() {
                                     <th style={{ width: 72, textAlign: 'center' }}>Issue</th>
                                     <th style={{ width: 72, textAlign: 'center' }}>Fix</th>
                                     <th></th>
-                                    <th style={{ width: 200 }}>Location</th>
+                                    <th style={{ width: 400 }}>Location</th>
                                     <th style={{ width: 170 }}>Contrast ratios</th>
                                 </tr>
                             </thead>
@@ -327,7 +329,7 @@ export default function CompliancePage() {
                                                 }
                                             </td>
 
-                                            {/* Issue swatch (current) */}
+                                            {/* Issue swatch (current) — always show */}
                                             <td>
                                                 <Tooltip label={formatColorLabel(issue.onToneHex)}>
                                                     <div
@@ -339,9 +341,9 @@ export default function CompliancePage() {
                                                 </Tooltip>
                                             </td>
 
-                                            {/* Fix swatch (suggested) */}
+                                            {/* Fix swatch (suggested) — only show when there's a valid suggestion */}
                                             <td>
-                                                {issue.suggestion ? (
+                                                {issue.suggestion && suggestionPasses ? (
                                                     <Tooltip label={formatColorLabel(issue.suggestion.suggestedHex)}>
                                                         <div
                                                             className="compliance-table__swatch"
@@ -357,42 +359,47 @@ export default function CompliancePage() {
 
                                             {/* Fix / Undo button or message */}
                                             <td>
-                                                {issue.suggestion && (
-                                                    suggestionPasses ? (
-                                                        fixedMap[issue.id] ? (
-                                                            <Button
-                                                                variant="outline"
-                                                                size="small"
-                                                                onClick={() => handleUndo(issue)}
-                                                            >
-                                                                Undo
-                                                            </Button>
-                                                        ) : (
-                                                            <Button
-                                                                variant="outline"
-                                                                size="small"
-                                                                onClick={() => handleFix(issue)}
-                                                                title={issue.suggestion.description}
-                                                                icon={WrenchIcon ? <WrenchIcon style={{ width: 12, height: 12 }} /> : undefined}
-                                                            >
-                                                                Fix
-                                                            </Button>
-                                                        )
+                                                {issue.suggestion && suggestionPasses ? (
+                                                    fixedMap[issue.id] ? (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="small"
+                                                            onClick={() => handleUndo(issue)}
+                                                        >
+                                                            Undo
+                                                        </Button>
                                                     ) : (
-                                                        <span style={{
-                                                            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                                                            opacity: 0.5,
-                                                        }}>
-                                                            Cannot find a compliant on-tone color for this tone
-                                                        </span>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="small"
+                                                            onClick={() => handleFix(issue)}
+                                                            title={issue.suggestion.description}
+                                                            icon={WrenchIcon ? <WrenchIcon style={{ width: 12, height: 12 }} /> : undefined}
+                                                        >
+                                                            Fix
+                                                        </Button>
                                                     )
+                                                ) : (
+                                                    <span style={{
+                                                        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                                                        opacity: 0.5,
+                                                    }}>
+                                                        Cannot find a compliant on-tone color for this tone
+                                                    </span>
                                                 )}
                                             </td>
 
-                                            {/* Location (link) */}
+                                            {/* Location (link) with emphasis icon */}
                                             <td>
                                                 <Link
                                                     href={getIssueHref(issue)}
+                                                    endIcon={
+                                                        issue.emphasis === 'high' && ArrowUpIcon
+                                                            ? <Tooltip label="High emphasis"><ArrowUpIcon style={{ width: 14, height: 14 }} /></Tooltip>
+                                                            : issue.emphasis === 'low' && ArrowDownIcon
+                                                                ? <Tooltip label="Low emphasis"><ArrowDownIcon style={{ width: 14, height: 14 }} /></Tooltip>
+                                                                : undefined
+                                                    }
                                                 >
                                                     {issue.location}
                                                 </Link>

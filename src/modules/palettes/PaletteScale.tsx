@@ -1,7 +1,7 @@
 import { PaletteEmphasisCell, PalettePrimaryIndicatorCell } from './PaletteGridCell'
 import type { JsonLike } from '../../core/resolvers/tokens'
 import { readCssVar } from '../../core/css/readCssVar'
-import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
+import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
@@ -11,17 +11,7 @@ import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { useThemeMode } from '../theme/ThemeModeContext'
 
-// Helper to blend foreground over background with opacity
-function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
-  const fg = hexToRgb(fgHex)
-  const bg = hexToRgb(bgHex)
-  if (!fg || !bg) return fgHex
-  const a = Math.max(0, Math.min(1, opacity))
-  const r = Math.round(a * fg.r + (1 - a) * bg.r)
-  const g = Math.round(a * fg.g + (1 - a) * bg.g)
-  const b = Math.round(a * fg.b + (1 - a) * bg.b)
-  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
-}
+
 
 // Helper to extract token name from CSS variable value
 function extractTokenNameFromCssVar(cssVarValue: string | undefined): string | null {
@@ -125,73 +115,24 @@ export function PaletteScaleHeader({
       const onToneHex = resolveCssVarToHex(onToneValue, tokenIndex)
 
       if (toneHex && onToneHex) {
-        // Get high emphasis opacity value
-        const highEmphasisResolved = readCssVarResolved(highEmphasisCssVar) || readCssVar(highEmphasisCssVar)
-        let highOpacityRaw: number = 1
-        if (highEmphasisResolved) {
-          const tokenMatch = highEmphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
-          if (tokenMatch) {
-            const [, tokenName] = tokenMatch
-            const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
-            if (typeof tokenValue === 'number') {
-              highOpacityRaw = tokenValue
-            } else {
-              highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
-            }
-          } else {
-            highOpacityRaw = parseFloat(highEmphasisResolved)
-            if (isNaN(highOpacityRaw)) {
-              highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
-            }
-          }
-        } else {
-          highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
-        }
-        const highOpacity = (highOpacityRaw && !isNaN(highOpacityRaw) && highOpacityRaw > 0)
-          ? (highOpacityRaw <= 1 ? highOpacityRaw : highOpacityRaw / 100)
-          : 1
-
-        // Get low emphasis opacity value
-        const lowEmphasisResolved = readCssVarResolved(lowEmphasisCssVar) || readCssVar(lowEmphasisCssVar)
-        let lowOpacityRaw: number = 1
-        if (lowEmphasisResolved) {
-          const tokenMatch = lowEmphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
-          if (tokenMatch) {
-            const [, tokenName] = tokenMatch
-            const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
-            if (typeof tokenValue === 'number') {
-              lowOpacityRaw = tokenValue
-            } else {
-              lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
-            }
-          } else {
-            lowOpacityRaw = parseFloat(lowEmphasisResolved)
-            if (isNaN(lowOpacityRaw)) {
-              lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
-            }
-          }
-        } else {
-          lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
-        }
-        const lowOpacity = (lowOpacityRaw && !isNaN(lowOpacityRaw) && lowOpacityRaw > 0)
-          ? (lowOpacityRaw <= 1 ? lowOpacityRaw : lowOpacityRaw / 100)
-          : 1
+        const highOpacity = readCssVarNumber(highEmphasisCssVar, 1)
+        const lowOpacity = readCssVarNumber(lowEmphasisCssVar, 1)
 
         // Check if black and white pass AA for BOTH high and low emphasis
         const black = '#000000'
         const white = '#ffffff'
 
         // Check high emphasis
-        const blackHighBlended = blendHexOver(black, toneHex, highOpacity)
-        const whiteHighBlended = blendHexOver(white, toneHex, highOpacity)
+        const blackHighBlended = blendHexWithOpacity(black, toneHex, highOpacity) ?? black
+        const whiteHighBlended = blendHexWithOpacity(white, toneHex, highOpacity) ?? white
         const blackHighContrast = contrastRatio(toneHex, blackHighBlended)
         const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
         const blackHighPasses = blackHighContrast >= 4.5
         const whiteHighPasses = whiteHighContrast >= 4.5
 
         // Check low emphasis
-        const blackLowBlended = blendHexOver(black, toneHex, lowOpacity)
-        const whiteLowBlended = blendHexOver(white, toneHex, lowOpacity)
+        const blackLowBlended = blendHexWithOpacity(black, toneHex, lowOpacity) ?? black
+        const whiteLowBlended = blendHexWithOpacity(white, toneHex, lowOpacity) ?? white
         const blackLowContrast = contrastRatio(toneHex, blackLowBlended)
         const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
         const blackLowPasses = blackLowContrast >= 4.5

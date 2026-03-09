@@ -69,4 +69,24 @@ export function pickAAColorStepInFamily(
   return best
 }
 
+/**
+ * Blend a foreground hex color over a background hex color at a given opacity.
+ * Uses standard alpha compositing: result = fg * opacity + bg * (1 - opacity)
+ * 
+ * @param fgHex - Foreground color (e.g., text color)
+ * @param bgHex - Background color (e.g., surface/tone color)
+ * @param opacity - Opacity value between 0 and 1
+ * @returns Blended hex color string, or null if inputs are invalid
+ */
+export function blendHexWithOpacity(fgHex: string, bgHex: string, opacity: number): string | undefined {
+  const fg = hexToRgb(fgHex)
+  const bg = hexToRgb(bgHex)
+  if (!fg || !bg) return undefined
 
+  const a = Math.max(0, Math.min(1, opacity))
+  const r = Math.round(a * fg.r + (1 - a) * bg.r)
+  const g = Math.round(a * fg.g + (1 - a) * bg.g)
+  const b = Math.round(a * fg.b + (1 - a) * bg.b)
+
+  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
+}

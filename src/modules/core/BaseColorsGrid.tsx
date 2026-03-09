@@ -3,24 +3,14 @@ import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
-import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
+import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import brandDefault from '../../vars/Brand.json'
 import { Button } from '../../components/adapters/Button'
 
-// Helper to blend foreground over background with opacity
-function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
-  const fg = hexToRgb(fgHex)
-  const bg = hexToRgb(bgHex)
-  if (!fg || !bg) return fgHex
-  const a = Math.max(0, Math.min(1, opacity))
-  const r = Math.round(a * fg.r + (1 - a) * bg.r)
-  const g = Math.round(a * fg.g + (1 - a) * bg.g)
-  const b = Math.round(a * fg.b + (1 - a) * bg.b)
-  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
-}
+
 
 // Helper to get border color for swatches based on color type
 function getSwatchBorderColor(colorName: string, modeLower: string): string {
@@ -89,44 +79,19 @@ function EmphasisCell({
 
     if (!toneHex || !onToneHex) return null
 
-    // Get emphasis opacity value
-    const emphasisResolved = readCssVarResolved(emphasisCssVar) || readCssVar(emphasisCssVar)
-    let opacityRaw: number = 1
-
-    if (emphasisResolved) {
-      const tokenMatch = emphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
-      if (tokenMatch) {
-        const [, tokenName] = tokenMatch
-        const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
-        if (typeof tokenValue === 'number') {
-          opacityRaw = tokenValue
-        } else {
-          opacityRaw = readCssVarNumber(emphasisCssVar, 1)
-        }
-      } else {
-        opacityRaw = parseFloat(emphasisResolved)
-        if (isNaN(opacityRaw)) {
-          opacityRaw = readCssVarNumber(emphasisCssVar, 1)
-        }
-      }
-    } else {
-      opacityRaw = readCssVarNumber(emphasisCssVar, 1)
-    }
-
-    const opacity = (opacityRaw && !isNaN(opacityRaw) && opacityRaw > 0)
-      ? Math.max(0, Math.min(1, opacityRaw))
-      : 1
+    // Get emphasis opacity using readCssVarNumber (resolves var() references via computed style)
+    const opacity = readCssVarNumber(emphasisCssVar, 1)
 
     // Blend on-tone color over tone color with opacity
-    const onToneBlended = blendHexOver(onToneHex, toneHex, opacity)
+    const onToneBlended = blendHexWithOpacity(onToneHex, toneHex, opacity) ?? onToneHex
     const currentRatio = contrastRatio(toneHex, onToneBlended)
     const passesAA = currentRatio >= AA
 
     // Check if black and white pass AA with opacity
     const black = '#000000'
     const white = '#ffffff'
-    const blackBlended = blendHexOver(black, toneHex, opacity)
-    const whiteBlended = blendHexOver(white, toneHex, opacity)
+    const blackBlended = blendHexWithOpacity(black, toneHex, opacity) ?? black
+    const whiteBlended = blendHexWithOpacity(white, toneHex, opacity) ?? white
     const blackContrast = contrastRatio(toneHex, blackBlended)
     const whiteContrast = contrastRatio(toneHex, whiteBlended)
     const blackPasses = blackContrast >= AA
