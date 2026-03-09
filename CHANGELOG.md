@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.5.5
+
+### Patch Changes
+
+- 4ee3695: Fix to button export handling
+
 ## 0.5.4
 
 ### Patch Changes
