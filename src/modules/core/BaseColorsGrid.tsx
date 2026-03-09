@@ -127,7 +127,7 @@ function EmphasisCell({
       }}
     >
       {showAAWarning ? (
-        <Tooltip label={tooltipLabel}>
+        <Tooltip label={tooltipLabel} withinPortal>
           <div
             className="palette-warning"
             style={{
@@ -135,6 +135,7 @@ function EmphasisCell({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              width: '100%',
               opacity: `var(${emphasisCssVar})`
             }}
           >
@@ -238,7 +239,7 @@ function InteractiveCell({
       }}
     >
       {showAAWarning ? (
-        <Tooltip label={tooltipLabel}>
+        <Tooltip label={tooltipLabel} withinPortal>
           <div
             className="palette-warning"
             style={{
@@ -246,6 +247,7 @@ function InteractiveCell({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              width: '100%',
             }}
           >
             {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
