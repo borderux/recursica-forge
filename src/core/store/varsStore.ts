@@ -208,6 +208,7 @@ class VarsStore {
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
   private hasRunInitialReset: boolean = false
   private hasRunInitialAA: boolean = false
+  private uikitSaveTimeout: ReturnType<typeof setTimeout> | null = null
 
   constructor() {
     const tokensRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
@@ -609,7 +610,13 @@ class VarsStore {
     if (this.lsAvailable) {
       if (next.tokens) writeLSJson(STORAGE_KEYS.tokens, this.state.tokens)
       if (next.theme) writeLSJson(STORAGE_KEYS.theme, this.state.theme)
-      if (next.uikit) writeLSJson(STORAGE_KEYS.uikit, this.state.uikit)
+      if (next.uikit) {
+        if (this.uikitSaveTimeout) clearTimeout(this.uikitSaveTimeout)
+        const latestUIKit = this.state.uikit
+        this.uikitSaveTimeout = setTimeout(() => {
+          writeLSJson(STORAGE_KEYS.uikit, latestUIKit)
+        }, 300)
+      }
       if (next.palettes) writeLSJson(STORAGE_KEYS.palettes, this.state.palettes)
       if (next.elevation) writeLSJson(STORAGE_KEYS.elevation, this.state.elevation)
     }
