@@ -32,6 +32,8 @@ export interface ComplianceIssue {
     emphasis?: 'high' | 'low'
     toneHex: string
     onToneHex: string
+    /** The raw (unblended) on-tone hex, before emphasis opacity is applied */
+    rawOnToneHex?: string
     contrastRatio: number
     requiredRatio: number
     message: string
@@ -255,6 +257,7 @@ class ComplianceServiceImpl {
                                     emphasis: 'high',
                                     toneHex,
                                     onToneHex: blendedHigh,
+                                    rawOnToneHex: onToneHex,
                                     contrastRatio: highRatio,
                                     requiredRatio: AA_THRESHOLD,
                                     message: `High emphasis on-tone contrast ${highRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
@@ -275,6 +278,7 @@ class ComplianceServiceImpl {
                                 emphasis: 'high',
                                 toneHex,
                                 onToneHex,
+                                rawOnToneHex: onToneHex,
                                 contrastRatio: ratio,
                                 requiredRatio: AA_THRESHOLD,
                                 message: `High emphasis on-tone contrast ${ratio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
@@ -298,6 +302,7 @@ class ComplianceServiceImpl {
                                     emphasis: 'low',
                                     toneHex,
                                     onToneHex: blendedLow,
+                                    rawOnToneHex: onToneHex,
                                     contrastRatio: lowRatio,
                                     requiredRatio: AA_THRESHOLD,
                                     message: `Low emphasis on-tone contrast ${lowRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
@@ -346,6 +351,7 @@ class ComplianceServiceImpl {
                     emphasis: 'high',
                     toneHex,
                     onToneHex,
+                    rawOnToneHex: onToneHex,
                     contrastRatio: ratio,
                     requiredRatio: AA_THRESHOLD,
                     message: `High emphasis on-tone contrast ${ratio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
@@ -370,6 +376,7 @@ class ComplianceServiceImpl {
                             emphasis: 'low',
                             toneHex,
                             onToneHex: blendedHex,
+                            rawOnToneHex: onToneHex,
                             contrastRatio: lowRatio,
                             requiredRatio: AA_THRESHOLD,
                             message: `Low emphasis on-tone contrast ${lowRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,

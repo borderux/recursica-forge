@@ -92,10 +92,11 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
             level,
             emphasis,
             emphasisOpacity,
+            issue.rawOnToneHex,
         )
 
         // Override the failing tone's contrast ratio with the actual value from the issue
-        // testOnToneCompliance tests both black & white, but the issue has the actual failing ratio
+        // since the issue may have additional context (e.g., opacity blending) that we match
         const failingTone = tones.find(t => t.isFailing)
         if (failingTone) {
             failingTone.contrastRatio = issue.contrastRatio

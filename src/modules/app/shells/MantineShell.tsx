@@ -679,72 +679,29 @@ export default function MantineShell({
           isOpen={showResetConfirm}
           onClose={() => { if (!isResetting) setShowResetConfirm(false) }}
           title="Reset all changes"
-          showFooter={false}
-          showSecondaryButton={false}
           layer="layer-1"
           centered={true}
           zIndex={30000}
-        >
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--recursica-brand-dimensions-general-lg)',
-            padding: 'var(--recursica-brand-dimensions-general-default)',
-          }}>
-            <p style={{
-              margin: 0,
-              fontSize: 'var(--recursica-brand-typography-body-font-size)',
-              fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-              lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-            }}>
-              Are you sure you want to reset all changes? This will restore the theme to its default state.
-            </p>
-            <div style={{
-              display: 'flex',
-              gap: 'var(--recursica-brand-dimensions-general-default)',
-              justifyContent: 'flex-end',
-            }}>
-              <Button
-                variant="outline"
-                size="small"
-                onClick={() => setShowResetConfirm(false)}
-                disabled={isResetting}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="solid"
-                size="small"
-                disabled={isResetting}
-                icon={isResetting ? (() => {
-                  const SpinnerIcon = iconNameToReactComponent('circle-notch');
-                  return SpinnerIcon ? (
-                    <SpinnerIcon
-                      style={{
-                        width: 'var(--recursica-brand-dimensions-icons-default)',
-                        height: 'var(--recursica-brand-dimensions-icons-default)',
-                        animation: 'spin 1s linear infinite',
-                      }}
-                    />
-                  ) : null;
-                })() : undefined}
-                onClick={() => {
-                  setIsResetting(true);
-                  window.dispatchEvent(new CustomEvent('complianceReset'));
-                  clearOverrides(tokensJson as any);
-                  resetAll();
-                  setTimeout(() => {
-                    runScan();
-                    setIsResetting(false);
-                    setShowResetConfirm(false);
-                  }, 1500);
-                }}
-              >
-                {isResetting ? 'Resetting…' : 'Reset'}
-              </Button>
-            </div>
-          </div>
-        </Modal>
+          showFooter={true}
+          showSecondaryButton={true}
+          secondaryActionLabel="Cancel"
+          onSecondaryAction={() => setShowResetConfirm(false)}
+          secondaryActionDisabled={isResetting}
+          primaryActionLabel={isResetting ? 'Resetting…' : 'Reset'}
+          primaryActionDisabled={isResetting}
+          onPrimaryAction={() => {
+            setIsResetting(true);
+            window.dispatchEvent(new CustomEvent('complianceReset'));
+            clearOverrides(tokensJson as any);
+            resetAll();
+            setTimeout(() => {
+              runScan();
+              setIsResetting(false);
+              setShowResetConfirm(false);
+            }, 1500);
+          }}
+          content="Are you sure you want to reset all changes? This will restore the theme to its default state."
+        />
       </div>
     </MantineProvider>
   );

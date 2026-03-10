@@ -21,6 +21,7 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVarNumber } from '../../core/css/readCssVar'
 import { generateSuggestedTones } from './toneInterpolation'
 import { SuggestTonesModal } from './SuggestTonesModal'
+import { Modal } from '../../components/adapters/Modal'
 import './CompliancePage.css'
 
 const typeLabels: Record<string, string> = {
@@ -349,6 +350,7 @@ export default function CompliancePage() {
                 failingHex, aboveHex, belowHex,
                 aboveLevel, belowLevel, level,
                 emphasis, emphasisOpacity,
+                issue.rawOnToneHex,
             )
 
             const hasCompliant = tones.some(t => !t.isReference && !t.isFailing && t.isCompliant)
@@ -409,39 +411,20 @@ export default function CompliancePage() {
             </div>
 
             {/* Confirm Fix All dialog */}
-            {showConfirmAll && (
-                <div
-                    className="compliance-page__confirm-overlay"
-                    onClick={() => setShowConfirmAll(false)}
-                >
-                    <div
-                        className="compliance-page__confirm-dialog"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                            backgroundColor: `var(${layer1Base}-surface)`,
-                            color: `var(${layer0Elements}-text-color)`,
-                            borderColor: `var(${layer0Base}-border-color)`,
-                        }}
-                    >
-                        <h3 style={{ margin: '0 0 8px 0' }}>Apply all fixes?</h3>
-                        <p style={{
-                            margin: '0 0 16px 0',
-                            opacity: `var(${layer0Elements}-text-low-emphasis)`,
-                            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                        }}>
-                            This will apply {unfixedCount} suggested fixes. Some changes may alter your theme's visual design.
-                        </p>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                            <Button variant="outline" onClick={() => setShowConfirmAll(false)}>
-                                Cancel
-                            </Button>
-                            <Button variant="solid" onClick={handleFixAll}>
-                                Apply all
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal
+                isOpen={showConfirmAll}
+                onClose={() => setShowConfirmAll(false)}
+                title="Apply all fixes?"
+                layer="layer-1"
+                centered={true}
+                showFooter={true}
+                showSecondaryButton={true}
+                secondaryActionLabel="Cancel"
+                onSecondaryAction={() => setShowConfirmAll(false)}
+                primaryActionLabel="Apply all"
+                onPrimaryAction={handleFixAll}
+                content={`This will apply ${unfixedCount} suggested fixes. Some changes may alter your theme's visual design.`}
+            />
 
             {/* Empty state */}
             {issues.length === 0 && (
@@ -461,8 +444,9 @@ export default function CompliancePage() {
                 </div>
             )}
 
-            {/* Issue tables grouped by type */}
-            {Object.entries(groupedIssues).map(([type, groupIssues]) => (
+
+            {/* Issue tables grouped by type — only show when there are active issues */}
+            {issues.length > 0 && Object.entries(groupedIssues).map(([type, groupIssues]) => (
                 <div key={type} className="compliance-page__group">
                     <h2
                         className="compliance-page__group-title"

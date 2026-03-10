@@ -130,8 +130,22 @@ const AA_THRESHOLD = 4.5
 export function testOnToneCompliance(
     toneHex: string,
     emphasis: 'high' | 'low',
-    emphasisOpacity: number
+    emphasisOpacity: number,
+    actualOnToneHex?: string
 ): { onTone: 'black' | 'white' | null; ratio: number; isCompliant: boolean } {
+    // If the actual on-tone is provided, test against that specific color
+    if (actualOnToneHex) {
+        const effective = emphasis === 'high' && emphasisOpacity >= 1
+            ? actualOnToneHex
+            : blendHexWithOpacity(actualOnToneHex, toneHex, emphasisOpacity) || actualOnToneHex
+        const ratio = contrastRatio(toneHex, effective)
+        const isCompliant = ratio >= AA_THRESHOLD
+        // Determine if the actual on-tone is closer to black or white
+        const onTone = luminanceOf(actualOnToneHex) > 0.5 ? 'white' as const : 'black' as const
+        return { onTone, ratio, isCompliant }
+    }
+
+    // Fallback: test both black and white, pick the best
     const black = '#000000'
     const white = '#ffffff'
 
@@ -157,6 +171,16 @@ export function testOnToneCompliance(
     }
 }
 
+/** Helper to get relative luminance from hex */
+function luminanceOf(hex: string): number {
+    const h = hex.startsWith('#') ? hex.slice(1) : hex
+    const r = parseInt(h.slice(0, 2), 16) / 255
+    const g = parseInt(h.slice(2, 4), 16) / 255
+    const b = parseInt(h.slice(4, 6), 16) / 255
+    const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+    return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+}
+
 /**
  * Generate suggested tones for a failing compliance issue.
  * 
@@ -178,12 +202,13 @@ export function generateSuggestedTones(
     failingLevel: string,
     emphasis: 'high' | 'low',
     emphasisOpacity: number,
+    actualOnToneHex?: string,
 ): SuggestedTone[] {
     const tones: SuggestedTone[] = []
 
     // Above reference (darker in light mode, lighter in dark mode)
     if (aboveHex && aboveLevel) {
-        const test = testOnToneCompliance(aboveHex, emphasis, emphasisOpacity)
+        const test = testOnToneCompliance(aboveHex, emphasis, emphasisOpacity, actualOnToneHex)
         tones.push({
             hex: aboveHex,
             isReference: true,
@@ -198,7 +223,7 @@ export function generateSuggestedTones(
         // 3 interpolated tones between above and failing
         const interpAbove = interpolateOklch(aboveHex, failingHex, 3)
         interpAbove.forEach((hex, i) => {
-            const test = testOnToneCompliance(hex, emphasis, emphasisOpacity)
+            const test = testOnToneCompliance(hex, emphasis, emphasisOpacity, actualOnToneHex)
             tones.push({
                 hex,
                 isReference: false,
@@ -212,7 +237,7 @@ export function generateSuggestedTones(
     }
 
     // The failing tone itself
-    const failTest = testOnToneCompliance(failingHex, emphasis, emphasisOpacity)
+    const failTest = testOnToneCompliance(failingHex, emphasis, emphasisOpacity, actualOnToneHex)
     tones.push({
         hex: failingHex,
         isReference: false,
@@ -229,7 +254,7 @@ export function generateSuggestedTones(
         // 3 interpolated tones between failing and below
         const interpBelow = interpolateOklch(failingHex, belowHex, 3)
         interpBelow.forEach((hex, i) => {
-            const test = testOnToneCompliance(hex, emphasis, emphasisOpacity)
+            const test = testOnToneCompliance(hex, emphasis, emphasisOpacity, actualOnToneHex)
             const offset = aboveHex ? 4 : 1  // Numbering continues from above options
             tones.push({
                 hex,
@@ -242,7 +267,7 @@ export function generateSuggestedTones(
             })
         })
 
-        const test = testOnToneCompliance(belowHex, emphasis, emphasisOpacity)
+        const test = testOnToneCompliance(belowHex, emphasis, emphasisOpacity, actualOnToneHex)
         tones.push({
             hex: belowHex,
             isReference: true,
