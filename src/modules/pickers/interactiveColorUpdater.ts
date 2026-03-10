@@ -1,6 +1,6 @@
 import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
-import { pickAAOnTone, contrastRatio, hexToRgb } from '../theme/contrastUtil'
+import { pickAAOnTone, contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import type { JsonLike } from '../../core/resolvers/tokens'
 import { resolveTokenReferenceToValue, resolveTokenReferenceToCssVar, extractBraceContent, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
@@ -12,17 +12,7 @@ import {
   hexToCssVarRef
 } from '../../core/compliance/layerColorStepping'
 
-// Helper to blend foreground over background with opacity
-function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
-  const fg = hexToRgb(fgHex)
-  const bg = hexToRgb(bgHex)
-  if (!fg || !bg) return fgHex
-  const a = Math.max(0, Math.min(1, opacity))
-  const r = Math.round(a * fg.r + (1 - a) * bg.r)
-  const g = Math.round(a * fg.g + (1 - a) * bg.g)
-  const b = Math.round(a * fg.b + (1 - a) * bg.b)
-  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
-}
+
 
 // Update on-tone colors for AA compliance with stepping logic
 function updateOnToneColors(
@@ -294,7 +284,7 @@ function updateLayerInteractiveColors(interactiveHex: string, tokens: JsonLike, 
 
     // Update the CSS var - prefer token reference if available, otherwise use hex
     const cssVarRef = hexToCssVarRef(colorHex, tokens)
-    updateCssVar(interactiveVar, cssVarRef, tokens)
+    if (cssVarRef) updateCssVar(interactiveVar, cssVarRef, tokens)
   }
 
 }
@@ -311,17 +301,21 @@ export function updateInteractiveColor(
 
   // Update default tone
   const defaultToneRef = hexToCssVarRef(normalizedHex, tokens)
-  updateCssVar(
-    `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`,
-    defaultToneRef,
-    tokens
-  )
+  if (defaultToneRef) {
+    updateCssVar(
+      `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`,
+      defaultToneRef,
+      tokens
+    )
+  }
   // Also update the main interactive var for backward compatibility
-  updateCssVar(
-    `--recursica-brand-themes-${mode}-palettes-core-interactive`,
-    defaultToneRef,
-    tokens
-  )
+  if (defaultToneRef) {
+    updateCssVar(
+      `--recursica-brand-themes-${mode}-palettes-core-interactive`,
+      defaultToneRef,
+      tokens
+    )
+  }
 
   // Update hover tone based on option
   let hoverHex: string
@@ -341,11 +335,13 @@ export function updateInteractiveColor(
 
   // Update hover tone CSS var
   const hoverToneRef = hexToCssVarRef(hoverHex, tokens)
-  updateCssVar(
-    `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`,
-    hoverToneRef,
-    tokens
-  )
+  if (hoverToneRef) {
+    updateCssVar(
+      `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`,
+      hoverToneRef,
+      tokens
+    )
+  }
 
   // Update on-tone colors for AA compliance
   updateOnToneColors(normalizedHex, hoverHex, tokens, mode, theme, setTheme)
@@ -726,10 +722,10 @@ export function updateCoreColorOnTones(
       if (!toneHex) continue
 
       // Check contrast with opacity blending for both high and low emphasis
-      const whiteHighBlended = blendHexOver(normalizedWhite, toneHex, highEmphasisOpacity)
-      const whiteLowBlended = blendHexOver(normalizedWhite, toneHex, lowEmphasisOpacity)
-      const blackHighBlended = blendHexOver(normalizedBlack, toneHex, highEmphasisOpacity)
-      const blackLowBlended = blendHexOver(normalizedBlack, toneHex, lowEmphasisOpacity)
+      const whiteHighBlended = blendHexWithOpacity(normalizedWhite, toneHex, highEmphasisOpacity)
+      const whiteLowBlended = blendHexWithOpacity(normalizedWhite, toneHex, lowEmphasisOpacity)
+      const blackHighBlended = blendHexWithOpacity(normalizedBlack, toneHex, highEmphasisOpacity)
+      const blackLowBlended = blendHexWithOpacity(normalizedBlack, toneHex, lowEmphasisOpacity)
 
       const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
       const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)

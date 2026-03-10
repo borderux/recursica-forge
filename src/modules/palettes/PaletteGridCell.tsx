@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
-import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
+import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import type { JsonLike } from '../../core/resolvers/tokens'
@@ -12,17 +12,7 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { Chip } from '../../components/adapters/Chip'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 
-// Helper to blend foreground over background with opacity
-function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
-  const fg = hexToRgb(fgHex)
-  const bg = hexToRgb(bgHex)
-  if (!fg || !bg) return fgHex
-  const a = Math.max(0, Math.min(1, opacity))
-  const r = Math.round(a * fg.r + (1 - a) * bg.r)
-  const g = Math.round(a * fg.g + (1 - a) * bg.g)
-  const b = Math.round(a * fg.b + (1 - a) * bg.b)
-  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
-}
+
 
 // Helper to extract token name from CSS variable value
 // e.g., "var(--recursica-tokens-color-gray-100)" -> "color/gray/100"
@@ -141,95 +131,17 @@ export function PaletteEmphasisCell({
 
     if (!toneHex || !onToneHex) return null
 
-    // Get current emphasis opacity value (normalize to 0-1 range)
-    const emphasisResolved = readCssVarResolved(emphasisCssVar) || readCssVar(emphasisCssVar)
-    let opacityRaw: number = 1
-
-    if (emphasisResolved) {
-      const tokenMatch = emphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
-      if (tokenMatch) {
-        const [, tokenName] = tokenMatch
-        const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
-        if (typeof tokenValue === 'number') {
-          opacityRaw = tokenValue
-        } else {
-          opacityRaw = readCssVarNumber(emphasisCssVar, 1)
-        }
-      } else {
-        opacityRaw = parseFloat(emphasisResolved)
-        if (isNaN(opacityRaw)) {
-          opacityRaw = readCssVarNumber(emphasisCssVar, 1)
-        }
-      }
-    } else {
-      opacityRaw = readCssVarNumber(emphasisCssVar, 1)
-    }
-
-    const opacity = (opacityRaw && !isNaN(opacityRaw) && opacityRaw > 0)
-      ? (opacityRaw <= 1 ? opacityRaw : opacityRaw / 100)
-      : 1
+    // Get emphasis opacity using readCssVarNumber (resolves var() references via computed style)
+    const opacity = readCssVarNumber(emphasisCssVar, 1)
 
     // Also get high and low emphasis opacities to check both
     const highEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
     const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
-
-    const highEmphasisResolved = readCssVarResolved(highEmphasisCssVar) || readCssVar(highEmphasisCssVar)
-    const lowEmphasisResolved = readCssVarResolved(lowEmphasisCssVar) || readCssVar(lowEmphasisCssVar)
-
-    let highOpacityRaw: number = 1
-    let lowOpacityRaw: number = 1
-
-    // Parse high emphasis opacity
-    if (highEmphasisResolved) {
-      const tokenMatch = highEmphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
-      if (tokenMatch) {
-        const [, tokenName] = tokenMatch
-        const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
-        if (typeof tokenValue === 'number') {
-          highOpacityRaw = tokenValue
-        } else {
-          highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
-        }
-      } else {
-        highOpacityRaw = parseFloat(highEmphasisResolved)
-        if (isNaN(highOpacityRaw)) {
-          highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
-        }
-      }
-    } else {
-      highOpacityRaw = readCssVarNumber(highEmphasisCssVar, 1)
-    }
-
-    // Parse low emphasis opacity
-    if (lowEmphasisResolved) {
-      const tokenMatch = lowEmphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
-      if (tokenMatch) {
-        const [, tokenName] = tokenMatch
-        const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
-        if (typeof tokenValue === 'number') {
-          lowOpacityRaw = tokenValue
-        } else {
-          lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
-        }
-      } else {
-        lowOpacityRaw = parseFloat(lowEmphasisResolved)
-        if (isNaN(lowOpacityRaw)) {
-          lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
-        }
-      }
-    } else {
-      lowOpacityRaw = readCssVarNumber(lowEmphasisCssVar, 1)
-    }
-
-    const highOpacity = (highOpacityRaw && !isNaN(highOpacityRaw) && highOpacityRaw > 0)
-      ? (highOpacityRaw <= 1 ? highOpacityRaw : highOpacityRaw / 100)
-      : 1
-    const lowOpacity = (lowOpacityRaw && !isNaN(lowOpacityRaw) && lowOpacityRaw > 0)
-      ? (lowOpacityRaw <= 1 ? lowOpacityRaw : lowOpacityRaw / 100)
-      : 1
+    const highOpacity = readCssVarNumber(highEmphasisCssVar, 1)
+    const lowOpacity = readCssVarNumber(lowEmphasisCssVar, 1)
 
     // Blend on-tone with tone using current emphasis opacity
-    const blendedOnTone = blendHexOver(onToneHex, toneHex, opacity)
+    const blendedOnTone = blendHexWithOpacity(onToneHex, toneHex, opacity) ?? onToneHex
     const currentRatio = contrastRatio(toneHex, blendedOnTone)
     const passesAA = currentRatio >= AA
 
@@ -242,27 +154,28 @@ export function PaletteEmphasisCell({
     const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
 
     // Check high emphasis
-    const blackHighBlended = blendHexOver(black, toneHex, highOpacity)
-    const whiteHighBlended = blendHexOver(white, toneHex, highOpacity)
+    const blackHighBlended = blendHexWithOpacity(black, toneHex, highOpacity) ?? black
+    const whiteHighBlended = blendHexWithOpacity(white, toneHex, highOpacity) ?? white
     const blackHighContrast = contrastRatio(toneHex, blackHighBlended)
     const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
     const blackHighPasses = blackHighContrast >= AA
     const whiteHighPasses = whiteHighContrast >= AA
 
     // Check low emphasis
-    const blackLowBlended = blendHexOver(black, toneHex, lowOpacity)
-    const whiteLowBlended = blendHexOver(white, toneHex, lowOpacity)
+    const blackLowBlended = blendHexWithOpacity(black, toneHex, lowOpacity) ?? black
+    const whiteLowBlended = blendHexWithOpacity(white, toneHex, lowOpacity) ?? white
     const blackLowContrast = contrastRatio(toneHex, blackLowBlended)
     const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
     const blackLowPasses = blackLowContrast >= AA
     const whiteLowPasses = whiteLowContrast >= AA
 
-    // Tone fails AA if both black and white fail for EITHER emphasis level
-    const toneFailsAA = (!blackHighPasses && !whiteHighPasses) || (!blackLowPasses && !whiteLowPasses)
+    // Per-emphasis failure flags
+    const highFailsAA = !blackHighPasses && !whiteHighPasses
+    const lowFailsAA = !blackLowPasses && !whiteLowPasses
 
     // For current emphasis level
-    const blackBlended = blendHexOver(black, toneHex, opacity)
-    const whiteBlended = blendHexOver(white, toneHex, opacity)
+    const blackBlended = blendHexWithOpacity(black, toneHex, opacity) ?? black
+    const whiteBlended = blendHexWithOpacity(white, toneHex, opacity) ?? white
     const blackContrast = contrastRatio(toneHex, blackBlended)
     const whiteContrast = contrastRatio(toneHex, whiteBlended)
     const blackPasses = blackContrast >= AA
@@ -276,7 +189,8 @@ export function PaletteEmphasisCell({
       toneHex,
       onToneHex,
       opacity,
-      toneFailsAA, // New: indicates if tone fails AA for either emphasis level
+      highFailsAA,
+      lowFailsAA,
     }
   }, [toneCssVar, onToneCssVar, emphasisCssVar, tokens, paletteKey, level, updateTrigger, mode])
 
@@ -290,8 +204,10 @@ export function PaletteEmphasisCell({
     ? (!aaStatus.passesAA && !aaStatus.blackPasses && !aaStatus.whitePasses)
     : false
 
-  // If tone fails AA for either emphasis level, both cells should open color picker (not set primary)
-  const shouldOpenColorPicker = aaStatus?.toneFailsAA ?? false
+  // If THIS cell's emphasis level fails AA, show color picker instead of set-primary
+  const shouldOpenColorPicker = aaStatus
+    ? (emphasisType === 'high' ? aaStatus.highFailsAA : aaStatus.lowFailsAA)
+    : false
 
 
   return (

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
@@ -50,8 +50,7 @@ export function ColorScale({
 }: ColorScaleProps) {
   if (deletedFamilies[family]) return null
 
-  const { mode, setMode } = useThemeMode()
-  const navigate = useNavigate()
+  const { mode } = useThemeMode()
 
   const level500 = levels.find((l) => l.level === '500')
   const borderColor = level500 ? (values[level500.entry.name] || level500.entry.value) : 'transparent'
@@ -234,28 +233,27 @@ export function ColorScale({
             color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
             opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis, 0.6)`,
           }}>Used in:</span>
-          {usageLocations.map((loc, i) => (
-            <Link
-              key={i}
-              to={loc.url}
-              style={{
-                color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone, #0066cc)`,
-                textDecoration: 'none',
-                textAlign: 'center',
-              }}
-              onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'underline'}
-              onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'none'}
-              onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
-                if (loc.targetMode && loc.targetMode.toLowerCase() !== mode) {
-                  e.preventDefault()
-                  setMode(loc.targetMode.toLowerCase() as 'light' | 'dark')
-                  navigate(loc.url)
-                }
-              }}
-            >
-              {loc.label}
-            </Link>
-          ))}
+          {usageLocations.map((loc, i) => {
+            const targetMode = loc.targetMode?.toLowerCase() as 'light' | 'dark' | undefined
+            const href = targetMode && targetMode !== mode
+              ? `${loc.url}?mode=${targetMode}`
+              : loc.url
+            return (
+              <Link
+                key={i}
+                to={href}
+                style={{
+                  color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone, #0066cc)`,
+                  textDecoration: 'none',
+                  textAlign: 'center',
+                }}
+                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'underline'}
+                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'none'}
+              >
+                {loc.label}
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>

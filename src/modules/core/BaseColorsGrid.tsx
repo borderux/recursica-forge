@@ -1,26 +1,16 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
-import { contrastRatio, hexToRgb } from '../theme/contrastUtil'
+import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import brandDefault from '../../vars/Brand.json'
 import { Button } from '../../components/adapters/Button'
+import { Tooltip } from '../../components/adapters/Tooltip'
 
-// Helper to blend foreground over background with opacity
-function blendHexOver(fgHex: string, bgHex: string, opacity: number): string {
-  const fg = hexToRgb(fgHex)
-  const bg = hexToRgb(bgHex)
-  if (!fg || !bg) return fgHex
-  const a = Math.max(0, Math.min(1, opacity))
-  const r = Math.round(a * fg.r + (1 - a) * bg.r)
-  const g = Math.round(a * fg.g + (1 - a) * bg.g)
-  const b = Math.round(a * fg.b + (1 - a) * bg.b)
-  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`
-}
+
 
 // Helper to get border color for swatches based on color type
 function getSwatchBorderColor(colorName: string, modeLower: string): string {
@@ -52,9 +42,7 @@ function EmphasisCell({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
-  const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null)
   const cellRef = useRef<HTMLDivElement>(null)
   const AA = 4.5
 
@@ -89,44 +77,19 @@ function EmphasisCell({
 
     if (!toneHex || !onToneHex) return null
 
-    // Get emphasis opacity value
-    const emphasisResolved = readCssVarResolved(emphasisCssVar) || readCssVar(emphasisCssVar)
-    let opacityRaw: number = 1
-
-    if (emphasisResolved) {
-      const tokenMatch = emphasisResolved.match(/--recursica-tokens-opacity-([a-z0-9-]+)/)
-      if (tokenMatch) {
-        const [, tokenName] = tokenMatch
-        const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
-        if (typeof tokenValue === 'number') {
-          opacityRaw = tokenValue
-        } else {
-          opacityRaw = readCssVarNumber(emphasisCssVar, 1)
-        }
-      } else {
-        opacityRaw = parseFloat(emphasisResolved)
-        if (isNaN(opacityRaw)) {
-          opacityRaw = readCssVarNumber(emphasisCssVar, 1)
-        }
-      }
-    } else {
-      opacityRaw = readCssVarNumber(emphasisCssVar, 1)
-    }
-
-    const opacity = (opacityRaw && !isNaN(opacityRaw) && opacityRaw > 0)
-      ? Math.max(0, Math.min(1, opacityRaw))
-      : 1
+    // Get emphasis opacity using readCssVarNumber (resolves var() references via computed style)
+    const opacity = readCssVarNumber(emphasisCssVar, 1)
 
     // Blend on-tone color over tone color with opacity
-    const onToneBlended = blendHexOver(onToneHex, toneHex, opacity)
+    const onToneBlended = blendHexWithOpacity(onToneHex, toneHex, opacity) ?? onToneHex
     const currentRatio = contrastRatio(toneHex, onToneBlended)
     const passesAA = currentRatio >= AA
 
     // Check if black and white pass AA with opacity
     const black = '#000000'
     const white = '#ffffff'
-    const blackBlended = blendHexOver(black, toneHex, opacity)
-    const whiteBlended = blendHexOver(white, toneHex, opacity)
+    const blackBlended = blendHexWithOpacity(black, toneHex, opacity) ?? black
+    const whiteBlended = blendHexWithOpacity(white, toneHex, opacity) ?? white
     const blackContrast = contrastRatio(toneHex, blackBlended)
     const whiteContrast = contrastRatio(toneHex, whiteBlended)
     const blackPasses = blackContrast >= AA
@@ -146,110 +109,52 @@ function EmphasisCell({
   const showAAWarning = aaStatus ? !aaStatus.passesAA : false
   const WarningIcon = iconNameToReactComponent('warning')
 
-  // Update tooltip position when hovering (debounced to avoid excessive calculations)
-  useEffect(() => {
-    if (!isHovered) {
-      setTooltipPosition(null)
-      return
-    }
-
-    if (!cellRef.current) return
-
-    // Use requestAnimationFrame to batch position updates
-    const updatePosition = () => {
-      if (cellRef.current && isHovered) {
-        const rect = cellRef.current.getBoundingClientRect()
-        setTooltipPosition({
-          top: rect.bottom + window.scrollY + 4,
-          left: rect.left + window.scrollX + rect.width / 2,
-        })
-      }
-    }
-
-    const rafId = requestAnimationFrame(updatePosition)
-    return () => cancelAnimationFrame(rafId)
-  }, [isHovered])
+  const tooltipLabel = aaStatus
+    ? `AA Compliance Issue: Both black and white don't pass contrast (≥4.5:1). Current: ${aaStatus.currentRatio.toFixed(2)}:1`
+    : 'AA Compliance Issue'
 
   return (
-    <>
-      <div
-        ref={cellRef}
-        className="palette-box"
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {showAAWarning ? (
+    <div
+      ref={cellRef}
+      className="palette-box"
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {showAAWarning ? (
+        <Tooltip label={tooltipLabel} withinPortal>
           <div
             className="palette-warning"
             style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
               color: `var(${onToneCssVar})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              width: '100%',
               opacity: `var(${emphasisCssVar})`
             }}
           >
             {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
           </div>
-        ) : (
-          <div
-            className="palette-dot"
-            style={{
-              backgroundColor: `var(${onToneCssVar})`,
-              opacity: `var(${emphasisCssVar})`,
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-            }}
-          />
-        )}
-      </div>
-      {showAAWarning && isHovered && tooltipPosition && createPortal(
+        </Tooltip>
+      ) : (
         <div
+          className="palette-dot"
           style={{
-            position: 'absolute',
-            top: `${tooltipPosition.top}px`,
-            left: `${tooltipPosition.left}px`,
-            transform: 'translateX(-50%)',
-            padding: '8px 12px',
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
-            borderRadius: '6px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 9999,
-            minWidth: '200px',
-            fontSize: '12px',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
+            backgroundColor: `var(${onToneCssVar})`,
+            opacity: `var(${emphasisCssVar})`,
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
           }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
-            AA Compliance Issue
-          </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
-            Both black and white don't pass contrast (≥4.5:1)
-          </div>
-          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`, opacity: 0.8 }}>
-            Current: {aaStatus?.currentRatio.toFixed(2)}:1
-          </div>
-        </div>,
-        document.body
+        />
       )}
-    </>
+    </div>
   )
 }
 
@@ -269,9 +174,7 @@ function InteractiveCell({
 }) {
   const { tokens: tokensJson } = useVars()
   const { mode: themeMode } = useThemeMode()
-  const [isHovered, setIsHovered] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null)
   const cellRef = useRef<HTMLDivElement>(null)
   const AA = 4.5
 
@@ -317,107 +220,51 @@ function InteractiveCell({
 
   const showAAWarning = aaStatus ? !aaStatus.passesAA : false
   const WarningIcon = iconNameToReactComponent('warning')
-  const { mode } = useThemeMode()
 
-  // Update tooltip position when hovering (debounced to avoid excessive calculations)
-  useEffect(() => {
-    if (!isHovered) {
-      setTooltipPosition(null)
-      return
-    }
-
-    if (!cellRef.current) return
-
-    // Use requestAnimationFrame to batch position updates
-    const updatePosition = () => {
-      if (cellRef.current && isHovered) {
-        const rect = cellRef.current.getBoundingClientRect()
-        setTooltipPosition({
-          top: rect.bottom + window.scrollY + 4,
-          left: rect.left + window.scrollX + rect.width / 2,
-        })
-      }
-    }
-
-    const rafId = requestAnimationFrame(updatePosition)
-    return () => cancelAnimationFrame(rafId)
-  }, [isHovered])
+  const tooltipLabel = aaStatus
+    ? `AA Compliance Issue: Interactive color contrast ratio ${aaStatus.currentRatio.toFixed(2)}:1 < 4.5:1`
+    : 'AA Compliance Issue'
 
   return (
-    <>
-      <div
-        ref={cellRef}
-        className="palette-box"
-        style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {showAAWarning ? (
+    <div
+      ref={cellRef}
+      className="palette-box"
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {showAAWarning ? (
+        <Tooltip label={tooltipLabel} withinPortal>
           <div
             className="palette-warning"
             style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
               color: `var(${interactiveCssVar})`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              width: '100%',
             }}
           >
             {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
           </div>
-        ) : (
-          <div
-            className="palette-dot"
-            style={{
-              backgroundColor: `var(${interactiveCssVar})`,
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-            }}
-          />
-        )}
-      </div>
-      {showAAWarning && isHovered && tooltipPosition && createPortal(
+        </Tooltip>
+      ) : (
         <div
+          className="palette-dot"
           style={{
-            position: 'absolute',
-            top: `${tooltipPosition.top}px`,
-            left: `${tooltipPosition.left}px`,
-            transform: 'translateX(-50%)',
-            padding: '8px 12px',
-            backgroundColor: `var(--recursica-brand-themes-${themeMode}-layers-layer-1-properties-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${themeMode}-layers-layer-1-properties-border-color)`,
-            borderRadius: '6px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 9999,
-            minWidth: '200px',
-            fontSize: '12px',
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
+            backgroundColor: `var(${interactiveCssVar})`,
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
           }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
-            AA Compliance Issue
-          </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
-            Interactive color contrast ratio {aaStatus?.currentRatio.toFixed(2)}:1 {'<'} 4.5:1
-          </div>
-        </div>,
-        document.body
+        />
       )}
-    </>
+    </div>
   )
 }
 

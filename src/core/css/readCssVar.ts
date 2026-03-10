@@ -18,12 +18,12 @@
  */
 export function readCssVar(cssVarName: string, fallback?: string): string | undefined {
   if (typeof document === 'undefined') return fallback
-  
+
   try {
     // Check inline style first (what we set via updateCssVar)
     const inlineValue = document.documentElement.style.getPropertyValue(cssVarName)
     if (inlineValue !== '') return inlineValue.trim()
-    
+
     // Fall back to computed style
     const computedValue = getComputedStyle(document.documentElement).getPropertyValue(cssVarName)
     if (computedValue !== '') return computedValue.trim()
@@ -41,11 +41,28 @@ export function readCssVar(cssVarName: string, fallback?: string): string | unde
  * @returns The numeric value, or fallback if not found/invalid
  */
 export function readCssVarNumber(cssVarName: string, fallback: number = 0): number {
-  const value = readCssVar(cssVarName)
-  if (!value) return fallback
-  
-  const num = parseFloat(value)
-  return Number.isFinite(num) ? num : fallback
+  if (typeof document === 'undefined') return fallback
+
+  try {
+    // Check inline style first
+    const inlineValue = document.documentElement.style.getPropertyValue(cssVarName)
+    if (inlineValue !== '') {
+      const num = parseFloat(inlineValue.trim())
+      if (Number.isFinite(num)) return num
+      // Inline value might be a var() reference — fall through to computed
+    }
+
+    // Computed style fully resolves var() chains to final values
+    const computedValue = getComputedStyle(document.documentElement).getPropertyValue(cssVarName)
+    if (computedValue !== '') {
+      const num = parseFloat(computedValue.trim())
+      if (Number.isFinite(num)) return num
+    }
+
+    return fallback
+  } catch {
+    return fallback
+  }
 }
 
 /**
@@ -64,17 +81,17 @@ export function readCssVarResolved(
   fallback?: string
 ): string | undefined {
   if (maxDepth <= 0) return fallback
-  
+
   const value = readCssVar(cssVarName)
   if (!value) return fallback
-  
+
   // If it's a var() reference, resolve it
   const varMatch = value.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
   if (varMatch) {
     const innerVarName = varMatch[1].trim()
     return readCssVarResolved(innerVarName, maxDepth - 1, fallback)
   }
-  
+
   return value
 }
 

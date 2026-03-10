@@ -47,8 +47,8 @@ import { Sidebar } from "../Sidebar";
 import { ThemeSidebar } from "../ThemeSidebar";
 import { ComponentsSidebar } from "../../preview/ComponentsSidebar";
 import { getComponentCssVar } from "../../../components/utils/cssVarNames";
-import { getVarsStore } from "../../../core/store/varsStore";
 import { createBugReport } from "../utils/bugReport";
+import { useCompliance } from "../../../core/compliance/ComplianceContext";
 import { randomizeAllVariables } from "../../../core/utils/randomizeVariables";
 import { RandomizeOptionsModal } from "../../../core/utils/RandomizeOptionsModal";
 import {
@@ -67,9 +67,12 @@ export default function MantineShell({
 }) {
   const { resetAll } = useVars();
   const { mode, setMode } = useThemeMode();
+  const { issueCount, runScan } = useCompliance();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([]);
   const [showRandomizeModal, setShowRandomizeModal] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [cssAuditAutoRun, setCssAuditAutoRunState] = useState(() =>
     getCssAuditAutoRun(),
   );
@@ -103,6 +106,21 @@ export default function MantineShell({
   } = useJsonImport();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Sync ?mode= query param on navigation — switches theme and cleans URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const urlMode = params.get('mode');
+    if (urlMode && (urlMode === 'light' || urlMode === 'dark') && urlMode !== mode) {
+      setMode(urlMode);
+    }
+    // Clean the mode param from the URL
+    if (urlMode) {
+      params.delete('mode');
+      const cleanSearch = params.toString();
+      navigate(location.pathname + (cleanSearch ? `?${cleanSearch}` : ''), { replace: true });
+    }
+  }, [location.search]);
 
   // Determine current route for navigation highlighting
   const currentRoute = useMemo(() => {
@@ -302,7 +320,25 @@ export default function MantineShell({
             >
               <MantineTabs.List>
                 <MantineTabs.Tab value='tokens'>Tokens</MantineTabs.Tab>
-                <MantineTabs.Tab value='theme'>Theme</MantineTabs.Tab>
+                <MantineTabs.Tab value='theme'>
+                  <Tooltip label={issueCount > 0 ? `${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}` : ''} withinPortal={true} position="bottom" mantine={{ offset: 14 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {issueCount > 0 && (() => {
+                        const WarningIcon = iconNameToReactComponent("warning");
+                        return WarningIcon ? (
+                          <WarningIcon
+                            style={{
+                              width: 14,
+                              height: 14,
+                              color: `var(--recursica-brand-themes-${mode}-palettes-core-alert-tone)`,
+                            }}
+                          />
+                        ) : null;
+                      })()}
+                      Theme
+                    </span>
+                  </Tooltip>
+                </MantineTabs.Tab>
                 <MantineTabs.Tab value='components'>Components</MantineTabs.Tab>
               </MantineTabs.List>
             </Tabs>
@@ -333,10 +369,7 @@ export default function MantineShell({
                       />
                     ) : null;
                   })()}
-                  onClick={() => {
-                    clearOverrides(tokensJson as any);
-                    resetAll();
-                  }}
+                  onClick={() => setShowResetConfirm(true)}
                 />
               </Tooltip>
               <Tooltip label='Import theme'>
@@ -381,28 +414,7 @@ export default function MantineShell({
                   onClick={handleExport}
                 />
               </Tooltip>
-              <Tooltip label='Check AA Compliance'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const CheckIcon = iconNameToReactComponent("check-circle");
-                    return CheckIcon ? (
-                      <CheckIcon
-                        style={{
-                          width:
-                            "var(--recursica-brand-dimensions-icons-default)",
-                          height:
-                            "var(--recursica-brand-dimensions-icons-default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => {
-                    getVarsStore().updateCoreColorOnTonesForAA();
-                  }}
-                />
-              </Tooltip>
+
               <Tooltip label='Report a bug'>
                 <Button
                   variant='outline'
@@ -660,6 +672,35 @@ export default function MantineShell({
           filesToImport={filesToImport}
           onAcknowledge={handleDirtyAcknowledgeWithClose}
           onCancel={handleDirtyCancel}
+        />
+
+        {/* Reset Confirmation Modal */}
+        <Modal
+          isOpen={showResetConfirm}
+          onClose={() => { if (!isResetting) setShowResetConfirm(false) }}
+          title="Reset all changes"
+          layer="layer-1"
+          centered={true}
+          zIndex={30000}
+          showFooter={true}
+          showSecondaryButton={true}
+          secondaryActionLabel="Cancel"
+          onSecondaryAction={() => setShowResetConfirm(false)}
+          secondaryActionDisabled={isResetting}
+          primaryActionLabel={isResetting ? 'Resetting…' : 'Reset'}
+          primaryActionDisabled={isResetting}
+          onPrimaryAction={() => {
+            setIsResetting(true);
+            window.dispatchEvent(new CustomEvent('complianceReset'));
+            clearOverrides(tokensJson as any);
+            resetAll();
+            setTimeout(() => {
+              runScan();
+              setIsResetting(false);
+              setShowResetConfirm(false);
+            }, 1500);
+          }}
+          content="Are you sure you want to reset all changes? This will restore the theme to its default state."
         />
       </div>
     </MantineProvider>
