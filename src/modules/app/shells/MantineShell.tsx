@@ -71,6 +71,8 @@ export default function MantineShell({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([]);
   const [showRandomizeModal, setShowRandomizeModal] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [cssAuditAutoRun, setCssAuditAutoRunState] = useState(() =>
     getCssAuditAutoRun(),
   );
@@ -367,12 +369,7 @@ export default function MantineShell({
                       />
                     ) : null;
                   })()}
-                  onClick={() => {
-                    window.dispatchEvent(new CustomEvent('complianceReset'));
-                    clearOverrides(tokensJson as any);
-                    resetAll();
-                    setTimeout(() => runScan(), 1000);
-                  }}
+                  onClick={() => setShowResetConfirm(true)}
                 />
               </Tooltip>
               <Tooltip label='Import theme'>
@@ -676,6 +673,78 @@ export default function MantineShell({
           onAcknowledge={handleDirtyAcknowledgeWithClose}
           onCancel={handleDirtyCancel}
         />
+
+        {/* Reset Confirmation Modal */}
+        <Modal
+          isOpen={showResetConfirm}
+          onClose={() => { if (!isResetting) setShowResetConfirm(false) }}
+          title="Reset all changes"
+          showFooter={false}
+          showSecondaryButton={false}
+          layer="layer-1"
+          centered={true}
+          zIndex={30000}
+        >
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--recursica-brand-dimensions-general-lg)',
+            padding: 'var(--recursica-brand-dimensions-general-default)',
+          }}>
+            <p style={{
+              margin: 0,
+              fontSize: 'var(--recursica-brand-typography-body-font-size)',
+              fontFamily: 'var(--recursica-brand-typography-body-font-family)',
+              lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+            }}>
+              Are you sure you want to reset all changes? This will restore the theme to its default state.
+            </p>
+            <div style={{
+              display: 'flex',
+              gap: 'var(--recursica-brand-dimensions-general-default)',
+              justifyContent: 'flex-end',
+            }}>
+              <Button
+                variant="outline"
+                size="small"
+                onClick={() => setShowResetConfirm(false)}
+                disabled={isResetting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="solid"
+                size="small"
+                disabled={isResetting}
+                icon={isResetting ? (() => {
+                  const SpinnerIcon = iconNameToReactComponent('circle-notch');
+                  return SpinnerIcon ? (
+                    <SpinnerIcon
+                      style={{
+                        width: 'var(--recursica-brand-dimensions-icons-default)',
+                        height: 'var(--recursica-brand-dimensions-icons-default)',
+                        animation: 'spin 1s linear infinite',
+                      }}
+                    />
+                  ) : null;
+                })() : undefined}
+                onClick={() => {
+                  setIsResetting(true);
+                  window.dispatchEvent(new CustomEvent('complianceReset'));
+                  clearOverrides(tokensJson as any);
+                  resetAll();
+                  setTimeout(() => {
+                    runScan();
+                    setIsResetting(false);
+                    setShowResetConfirm(false);
+                  }, 1500);
+                }}
+              >
+                {isResetting ? 'Resetting…' : 'Reset'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </MantineProvider>
   );
