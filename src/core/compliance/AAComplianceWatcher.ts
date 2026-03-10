@@ -448,7 +448,7 @@ export class AAComplianceWatcher {
         // Step until AA compliant
         const steppedHex = stepUntilAACompliant(coreInteractiveHex, surfaceHex, 'darker', this.tokens)
         const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
-        updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+        if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
       }
       return
     } else if (elementName === 'interactive-tone-hover') {

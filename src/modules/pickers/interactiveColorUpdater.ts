@@ -284,7 +284,7 @@ function updateLayerInteractiveColors(interactiveHex: string, tokens: JsonLike, 
 
     // Update the CSS var - prefer token reference if available, otherwise use hex
     const cssVarRef = hexToCssVarRef(colorHex, tokens)
-    updateCssVar(interactiveVar, cssVarRef, tokens)
+    if (cssVarRef) updateCssVar(interactiveVar, cssVarRef, tokens)
   }
 
 }
@@ -301,17 +301,21 @@ export function updateInteractiveColor(
 
   // Update default tone
   const defaultToneRef = hexToCssVarRef(normalizedHex, tokens)
-  updateCssVar(
-    `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`,
-    defaultToneRef,
-    tokens
-  )
+  if (defaultToneRef) {
+    updateCssVar(
+      `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`,
+      defaultToneRef,
+      tokens
+    )
+  }
   // Also update the main interactive var for backward compatibility
-  updateCssVar(
-    `--recursica-brand-themes-${mode}-palettes-core-interactive`,
-    defaultToneRef,
-    tokens
-  )
+  if (defaultToneRef) {
+    updateCssVar(
+      `--recursica-brand-themes-${mode}-palettes-core-interactive`,
+      defaultToneRef,
+      tokens
+    )
+  }
 
   // Update hover tone based on option
   let hoverHex: string
@@ -331,11 +335,13 @@ export function updateInteractiveColor(
 
   // Update hover tone CSS var
   const hoverToneRef = hexToCssVarRef(hoverHex, tokens)
-  updateCssVar(
-    `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`,
-    hoverToneRef,
-    tokens
-  )
+  if (hoverToneRef) {
+    updateCssVar(
+      `--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`,
+      hoverToneRef,
+      tokens
+    )
+  }
 
   // Update on-tone colors for AA compliance
   updateOnToneColors(normalizedHex, hoverHex, tokens, mode, theme, setTheme)
