@@ -10,8 +10,50 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 
 export default function ElementsModalDemo() {
   const { mode } = useThemeMode()
-  const { tokens: tokensJson } = useVars()
+  const { tokens: tokensJson, theme, setTheme } = useVars()
   const modeLower = mode.toLowerCase()
+
+  // Helper to persist an opacity token reference to the theme JSON
+  const persistToThemeJson = (path: 'text-emphasis-high' | 'text-emphasis-low' | 'state-disabled', tokenKey: string) => {
+    if (!theme || !setTheme) return
+    try {
+      const themeCopy = JSON.parse(JSON.stringify(theme))
+      const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+      const themes = root?.themes || root
+      const modeKey = modeLower
+      const newValue = `{tokens.opacity.${tokenKey}}`
+
+      if (path === 'text-emphasis-high') {
+        if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
+        const te = themes[modeKey]['text-emphasis']
+        if (te.high && typeof te.high === 'object' && '$value' in te.high) {
+          te.high.$value = newValue
+        } else {
+          te.high = { $type: 'number', $value: newValue }
+        }
+      } else if (path === 'text-emphasis-low') {
+        if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
+        const te = themes[modeKey]['text-emphasis']
+        if (te.low && typeof te.low === 'object' && '$value' in te.low) {
+          te.low.$value = newValue
+        } else {
+          te.low = { $type: 'number', $value: newValue }
+        }
+      } else if (path === 'state-disabled') {
+        if (!themes[modeKey].states) themes[modeKey].states = {}
+        const st = themes[modeKey].states
+        if (st.disabled && typeof st.disabled === 'object' && '$value' in st.disabled) {
+          st.disabled.$value = newValue
+        } else {
+          st.disabled = { $type: 'number', $value: newValue }
+        }
+      }
+
+      setTheme(themeCopy)
+    } catch (err) {
+      console.error('Failed to persist emphasis/state change to theme JSON:', err)
+    }
+  }
 
   // Get opacity tokens and build dropdown options
   const opacityOptions = useMemo(() => {
@@ -304,6 +346,7 @@ export default function ElementsModalDemo() {
                   const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
                   const targetCssVar = `--recursica-brand-themes-${modeLower}-text-emphasis-high`
                   updateCssVar(targetCssVar, `var(${opacityCssVar})`)
+                  persistToThemeJson('text-emphasis-high', tokenKey)
                   setSelectedHigh(val)
                 }
               }}
@@ -324,6 +367,7 @@ export default function ElementsModalDemo() {
                   const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
                   const targetCssVar = `--recursica-brand-themes-${modeLower}-text-emphasis-low`
                   updateCssVar(targetCssVar, `var(${opacityCssVar})`)
+                  persistToThemeJson('text-emphasis-low', tokenKey)
                   setSelectedLow(val)
                 }
               }}
@@ -344,6 +388,7 @@ export default function ElementsModalDemo() {
                   const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
                   const targetCssVar = `--recursica-brand-themes-${modeLower}-state-disabled`
                   updateCssVar(targetCssVar, `var(${opacityCssVar})`)
+                  persistToThemeJson('state-disabled', tokenKey)
                   setSelectedDisabled(val)
                 }
               }}
@@ -383,6 +428,11 @@ export default function ElementsModalDemo() {
                     updateCssVar(highCssVar, `var(--recursica-tokens-opacities-${defaultHighToken})`)
                     updateCssVar(lowCssVar, `var(--recursica-tokens-opacities-${defaultLowToken})`)
                     updateCssVar(disabledCssVar, `var(--recursica-tokens-opacities-${defaultDisabledToken})`)
+
+                    // Persist resets to theme JSON
+                    persistToThemeJson('text-emphasis-high', defaultHighToken)
+                    persistToThemeJson('text-emphasis-low', defaultLowToken)
+                    persistToThemeJson('state-disabled', defaultDisabledToken)
 
                     // Update dropdown selections
                     setSelectedHigh(defaultHighToken)

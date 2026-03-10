@@ -15,9 +15,11 @@ import { Badge } from '../../components/adapters/Badge'
 import { Button } from '../../components/adapters/Button'
 import { Link } from '../../components/adapters/Link'
 import { Tooltip } from '../../components/adapters/Tooltip'
-import { findColorFamilyAndLevel } from '../../core/compliance/layerColorStepping'
+import { findColorFamilyAndLevel, getAllFamilyColorsByKey } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
 import { updateCssVar } from '../../core/css/updateCssVar'
+import { readCssVarNumber } from '../../core/css/readCssVar'
+import { generateSuggestedTones } from './toneInterpolation'
 import { SuggestTonesModal } from './SuggestTonesModal'
 import './CompliancePage.css'
 
@@ -194,6 +196,57 @@ export default function CompliancePage() {
             handleRescan()
         }, 500)
     }
+
+    // Standard scale levels in order
+    const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
+
+    // Pre-compute which unfixable issues have compliant tone suggestions
+    const suggestableIssues = useMemo(() => {
+        const set = new Set<string>()
+        const store = getVarsStore()
+        const tokens = store.getState().tokens
+        if (!tokens) return set
+
+        const unfixable = (snapshotRef.current || issues).filter(i => !i.suggestion)
+        for (const issue of unfixable) {
+            const info = findColorFamilyAndLevel(issue.toneHex, tokens)
+            if (!info) continue
+
+            const { family, level } = info
+            const familyColors = getAllFamilyColorsByKey(family, tokens)
+            if (familyColors.length === 0) continue
+
+            const orderedLevels = issue.mode === 'dark' ? [...LEVELS].reverse() : [...LEVELS]
+            const currentIdx = orderedLevels.indexOf(level)
+            if (currentIdx === -1) continue
+
+            const aboveIdx = currentIdx > 0 ? currentIdx - 1 : -1
+            const belowIdx = currentIdx < orderedLevels.length - 1 ? currentIdx + 1 : -1
+            const aboveLevel = aboveIdx >= 0 ? orderedLevels[aboveIdx] : null
+            const belowLevel = belowIdx >= 0 ? orderedLevels[belowIdx] : null
+
+            const colorMap = new Map(familyColors.map(c => [c.level, c.hex]))
+            const aboveHex = aboveLevel ? colorMap.get(aboveLevel) || null : null
+            const belowHex = belowLevel ? colorMap.get(belowLevel) || null : null
+            const failingHex = colorMap.get(level) || issue.toneHex
+
+            const emphasis = issue.emphasis || 'high'
+            const emphasisVar = emphasis === 'high'
+                ? `--recursica-brand-themes-${issue.mode}-text-emphasis-high`
+                : `--recursica-brand-themes-${issue.mode}-text-emphasis-low`
+            const emphasisOpacity = readCssVarNumber(emphasisVar, emphasis === 'high' ? 1 : 0.6)
+
+            const tones = generateSuggestedTones(
+                failingHex, aboveHex, belowHex,
+                aboveLevel, belowLevel, level,
+                emphasis, emphasisOpacity,
+            )
+
+            const hasCompliant = tones.some(t => !t.isReference && !t.isFailing && t.isCompliant)
+            if (hasCompliant) set.add(issue.id)
+        }
+        return set
+    }, [issues])
 
 
     const CheckIcon = iconNameToReactComponent('check-circle')
@@ -410,7 +463,7 @@ export default function CompliancePage() {
                                                             Fix
                                                         </Button>
                                                     )
-                                                ) : (
+                                                ) : suggestableIssues.has(issue.id) ? (
                                                     <Button
                                                         variant="outline"
                                                         size="small"
@@ -418,6 +471,10 @@ export default function CompliancePage() {
                                                     >
                                                         Suggest tones
                                                     </Button>
+                                                ) : (
+                                                    <span style={{ opacity: 0.5, fontSize: 12 }}>
+                                                        Cannot find a compliant on-tone color for this tone
+                                                    </span>
                                                 )}
                                             </td>
 
