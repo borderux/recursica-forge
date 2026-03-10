@@ -142,6 +142,7 @@ export default function CompliancePage() {
             snapshotRef.current = null
             resettingRef.current = true
             setFixedMap({})
+            setSuggestFixedMap({})
         }
         window.addEventListener('complianceReset', handleReset)
         return () => window.removeEventListener('complianceReset', handleReset)
@@ -213,6 +214,7 @@ export default function CompliancePage() {
     const handleRescan = () => {
         snapshotRef.current = null
         setFixedMap({})
+        setSuggestFixedMap({})
         runScan()
     }
 
@@ -251,11 +253,11 @@ export default function CompliancePage() {
         // Track for undo
         setSuggestFixedMap(prev => ({ ...prev, [issue.id]: { family, level, originalHex } }))
 
-        // Force CSS vars to rebuild from new tokens, then rescan
+        // Re-scan after CSS vars rebuild (don't use handleRescan — it clears undo maps)
         setTimeout(() => {
-            // Re-assert the CSS var in case recomputeAndApplyAll overwrote it
             document.documentElement.style.setProperty(tokenCssVar, newHex)
-            handleRescan()
+            snapshotRef.current = null
+            runScan()
         }, 500)
     }
 
@@ -293,10 +295,11 @@ export default function CompliancePage() {
             return next
         })
 
-        // Rescan after restoring
+        // Re-scan after restoring (don't use handleRescan — it clears undo maps)
         setTimeout(() => {
             document.documentElement.style.setProperty(tokenCssVar, undoInfo.originalHex)
-            handleRescan()
+            snapshotRef.current = null
+            runScan()
         }, 500)
     }
 
@@ -310,7 +313,10 @@ export default function CompliancePage() {
         const tokens = store.getState().tokens
         if (!tokens) return set
 
-        const unfixable = (snapshotRef.current || issues).filter(i => !i.suggestion)
+        // Include issues that have no fix suggestion, OR whose suggestion doesn't actually pass
+        const unfixable = (snapshotRef.current || issues).filter(i =>
+            !i.suggestion || (i.suggestion.resultingRatio < i.requiredRatio)
+        )
         for (const issue of unfixable) {
             const info = findColorFamilyAndLevel(issue.toneHex, tokens)
             if (!info) continue
@@ -505,7 +511,7 @@ export default function CompliancePage() {
                                             className="compliance-table__row"
                                             style={{
                                                 borderColor: `var(${layer0Base}-border-color)`,
-                                                opacity: fixedMap[issue.id] ? 0.45 : 1,
+                                                opacity: (fixedMap[issue.id] || suggestFixedMap[issue.id]) ? 0.45 : 1,
                                             }}
                                         >
                                             {/* Mode */}

@@ -289,6 +289,7 @@ class ComplianceServiceImpl {
                         if (blendedLow) {
                             const lowRatio = contrastRatio(toneHex, blendedLow)
                             if (lowRatio < AA_THRESHOLD) {
+                                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, lowOpacity)
                                 issues.push({
                                     id: `palette-${paletteKey}-${level}-low-${mode}`,
                                     type: 'palette-on-tone',
@@ -300,7 +301,7 @@ class ComplianceServiceImpl {
                                     contrastRatio: lowRatio,
                                     requiredRatio: AA_THRESHOLD,
                                     message: `Low emphasis on-tone contrast ${lowRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                                    suggestion: null
+                                    suggestion
                                 })
                             }
                         }
@@ -360,6 +361,7 @@ class ComplianceServiceImpl {
                 if (blendedHex) {
                     const lowRatio = contrastRatio(toneHex, blendedHex)
                     if (lowRatio < AA_THRESHOLD) {
+                        const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, opacity)
                         issues.push({
                             id: `core-${colorKey}-low-emphasis-${mode}`,
                             type: 'core-on-tone',
@@ -371,7 +373,7 @@ class ComplianceServiceImpl {
                             contrastRatio: lowRatio,
                             requiredRatio: AA_THRESHOLD,
                             message: `Low emphasis on-tone contrast ${lowRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                            suggestion: null
+                            suggestion
                         })
                     }
                 }
