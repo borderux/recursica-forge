@@ -1,85 +1,91 @@
 /**
  * AA Compliance Modal Component
  * 
- * Displays AA compliance issues and requires user acknowledgment
- * before allowing JSON export.
+ * Simplified acknowledgment modal — shows issue count and links
+ * to the Compliance page for details. Requires checkbox before export.
  */
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Modal } from '../../components/adapters/Modal'
 import { CheckboxItem } from '../../components/adapters/CheckboxItem'
-import type { ComplianceIssue } from './aaComplianceCheck'
+import { Link } from '../../components/adapters/Link'
+import { useCompliance } from '../compliance/ComplianceContext'
+import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 
 interface ComplianceModalProps {
-  issues: ComplianceIssue[]
+  issues: unknown[]
   onAcknowledge: () => void
   onCancel: () => void
 }
 
-export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceModalProps) {
+export function ComplianceModal({ onAcknowledge, onCancel }: ComplianceModalProps) {
   const [acknowledged, setAcknowledged] = useState(false)
-
-  const groupedIssues = issues.reduce((acc, issue) => {
-    const key = `${issue.type}-${issue.mode}`
-    if (!acc[key]) {
-      acc[key] = []
-    }
-    acc[key].push(issue)
-    return acc
-  }, {} as Record<string, ComplianceIssue[]>)
+  const navigate = useNavigate()
+  const { issueCount } = useCompliance()
+  const { mode } = useThemeMode()
+  const layer3Elements = `--recursica-brand-themes-${mode}-layers-layer-3-elements`
 
   return (
     <Modal
       isOpen={true}
       onClose={onCancel}
-      title="WCAG AA Issues"
-      style={{ '--modal-title-color': '#d40d0d' } as React.CSSProperties}
+      title="WCAG AA compliance"
       primaryActionLabel="Continue"
       onPrimaryAction={onAcknowledge}
       primaryActionDisabled={!acknowledged}
       secondaryActionLabel="Cancel"
       onSecondaryAction={onCancel}
       layer="layer-3"
-      size={600}
-      scrollable={true}
+      size={480}
+      scrollable={false}
       content={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <p style={{ margin: 0, opacity: 0.7 }}>
-            The following color combinations do not meet WCAG AA contrast requirements (4.5:1 ratio).
-            You must acknowledge these deficiencies before exporting.
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '16px',
+          color: `var(${layer3Elements}-text-color)`,
+          opacity: `var(${layer3Elements}-text-high-emphasis)`,
+        }}>
+          <h4 style={{
+            margin: 0,
+            fontSize: 'var(--recursica-brand-typography-h4-font-size)',
+            fontWeight: 'var(--recursica-brand-typography-h4-font-weight)',
+            fontFamily: 'var(--recursica-brand-typography-h4-font-family)',
+            letterSpacing: 'var(--recursica-brand-typography-h4-font-letter-spacing)',
+            lineHeight: 'var(--recursica-brand-typography-h4-line-height)',
+          }}>
+            {issueCount} {issueCount === 1 ? 'issue' : 'issues'} found
+          </h4>
+
+          <p style={{
+            margin: 0,
+            fontSize: 'var(--recursica-brand-typography-body-font-size)',
+            fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+            fontFamily: 'var(--recursica-brand-typography-body-font-family)',
+            letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
+            lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+          }}>
+            Your theme has color combinations that don't meet WCAG AA contrast requirements (4.5:1 ratio).
+            You can review and fix them on the Compliance page.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {Object.entries(groupedIssues).map(([key, groupIssues]) => (
-              <div key={key}>
-                <h3 style={{
-                  margin: '0 0 8px 0',
-                  fontSize: 'inherit',
-                  fontWeight: 'bold',
-                  textTransform: 'capitalize',
-                  fontFamily: 'inherit'
-                }}>
-                  {groupIssues[0].type.replace(/-/g, ' ')} ({groupIssues[0].mode})
-                </h3>
-                <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                  {groupIssues.map((issue, idx) => (
-                    <li key={idx} style={{ marginBottom: '4px' }}>
-                      <strong>{issue.location}:</strong> {issue.message}
-                      <div style={{ fontSize: '0.85em', opacity: 0.6, marginTop: '2px' }}>
-                        Tone: {issue.toneHex} | On-tone: {issue.onToneHex} | Ratio: {issue.contrastRatio.toFixed(2)}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          <Link
+            onClick={(e) => {
+              e.preventDefault()
+              onCancel()
+              navigate('/theme/compliance')
+            }}
+            href="#"
+          >
+            View Compliance Page →
+          </Link>
 
-          <div style={{ borderTop: '1px solid var(--modal-border-color)', paddingTop: '16px', marginTop: '8px' }}>
+          <div style={{ borderTop: '1px solid var(--modal-border-color, rgba(128,128,128,0.2))', paddingTop: '16px', marginTop: '4px' }}>
             <CheckboxItem
               checked={acknowledged}
               onChange={(checked: boolean) => setAcknowledged(checked)}
-              label="I acknowledge that these color combinations do not meet AA compliance standards"
+              label="Export with compliance issues"
               layer="layer-3"
             />
           </div>
@@ -88,4 +94,3 @@ export function ComplianceModal({ issues, onAcknowledge, onCancel }: ComplianceM
     />
   )
 }
-

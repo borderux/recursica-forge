@@ -411,6 +411,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     const twarnVarRef = coerceToVarRef(twarnRaw)
     const tsuccessVarRef = coerceToVarRef(tsuccessRaw)
 
+
     // Also resolve for hex calculations (used for AA compliance)
     const talert = resolveRef(talertRaw)
     const twarn = resolveRef(twarnRaw)
@@ -582,6 +583,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     const itoneHoverVar = coerceToVarRef(itoneHoverRaw) || coerceToVarRef(ibgHoverRaw)
     const ionToneVar = coerceToVarRef(ionToneRaw) || coerceToVarRef(itextRaw)
     const ionToneHoverVar = coerceToVarRef(ionToneHoverRaw) || coerceToVarRef(itextHoverRaw)
+
 
     // Helper to get default reference for interactive properties
     const getDefaultInteractiveRef = (property: 'tone' | 'tone-hover' | 'on-tone' | 'on-tone-hover'): string => {

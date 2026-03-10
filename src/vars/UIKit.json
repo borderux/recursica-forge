@@ -6284,41 +6284,41 @@
                   "layer-0": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.600.color.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.600.color.tone}"
                     }
                   },
                   "layer-1": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.600.color.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.600.color.tone}"
                     }
                   },
                   "layer-2": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.600.color.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.600.color.tone}"
                     }
                   },
                   "layer-3": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.600.color.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.600.color.tone}"
                     }
                   }
                 },
@@ -6344,41 +6344,41 @@
                   "layer-0": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.700.color.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.700.color.tone}"
                     }
                   },
                   "layer-1": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.700.color.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.700.color.tone}"
                     }
                   },
                   "layer-2": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.700.color.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.700.color.tone}"
                     }
                   },
                   "layer-3": {
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.700.color.tone}"
                     },
                     "icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.default.color.on-tone}"
+                      "$value": "{brand.palettes.palette-1.700.color.tone}"
                     }
                   }
                 },

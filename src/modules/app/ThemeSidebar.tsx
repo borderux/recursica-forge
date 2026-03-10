@@ -10,13 +10,16 @@ import { Tabs as MantineTabs } from '@mantine/core'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { Tabs } from '../../components/adapters/Tabs'
 import { SidebarFooter } from './SidebarFooter'
+import { useCompliance } from '../../core/compliance/ComplianceContext'
+import { Badge } from '../../components/adapters/Badge'
 
-type ThemeNavItem = 'core-properties' | 'type' | 'palettes' | 'elevations' | 'layers' | 'dimensions'
+type ThemeNavItem = 'core-properties' | 'type' | 'palettes' | 'elevations' | 'layers' | 'dimensions' | 'compliance'
 
 export function ThemeSidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { mode } = useThemeMode()
+  const { issueCount } = useCompliance()
 
   // Determine current sub-route for navigation highlighting
   const getCurrentNavItem = (): ThemeNavItem => {
@@ -26,6 +29,7 @@ export function ThemeSidebar() {
     if (location.pathname.includes('/theme/elevations')) return 'elevations'
     if (location.pathname.includes('/theme/layers')) return 'layers'
     if (location.pathname.includes('/theme/dimensions')) return 'dimensions'
+    if (location.pathname.includes('/theme/compliance')) return 'compliance'
     return 'core-properties' // default
   }
 
@@ -45,6 +49,7 @@ export function ThemeSidebar() {
     { key: 'elevations', label: 'Elevations' },
     { key: 'layers', label: 'Layers' },
     { key: 'dimensions', label: 'Dimensions' },
+    { key: 'compliance', label: 'Compliance' },
   ]
 
   return (
@@ -79,7 +84,14 @@ export function ThemeSidebar() {
           <MantineTabs.List style={{ flexDirection: 'column', flex: 1 }}>
             {navItems.map((item) => (
               <MantineTabs.Tab key={item.key} value={item.key}>
-                {item.label}
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {item.label}
+                  {item.key === 'compliance' && issueCount > 0 && (
+                    <Badge variant="alert" size="small">
+                      {issueCount}
+                    </Badge>
+                  )}
+                </span>
               </MantineTabs.Tab>
             ))}
           </MantineTabs.List>

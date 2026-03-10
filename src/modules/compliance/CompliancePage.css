@@ -1,0 +1,158 @@
+/**
+ * CompliancePage Styles — Table layout
+ */
+
+.compliance-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--recursica-brand-dimensions-gutters-vertical);
+}
+
+/* ─── Header ─── */
+
+.compliance-page__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--recursica-brand-dimensions-general-lg);
+    flex-wrap: wrap;
+}
+
+.compliance-page__header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--recursica-brand-dimensions-gutters-horizontal);
+}
+
+/* ─── Empty state ─── */
+
+.compliance-page__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--recursica-brand-dimensions-general-sm);
+    padding: var(--recursica-brand-dimensions-general-xl) 0;
+    text-align: center;
+}
+
+.compliance-page__empty-icon {
+    margin-bottom: var(--recursica-brand-dimensions-general-sm);
+    opacity: 0.5;
+}
+
+/* ─── Groups ─── */
+
+.compliance-page__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--recursica-brand-dimensions-general-default);
+}
+
+.compliance-page__group-title {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ─── Table ─── */
+
+.compliance-table__wrapper {
+    border: 1px solid;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.compliance-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--recursica-brand-typography-body-small-font-size, 13px);
+}
+
+.compliance-table thead tr {
+    border-bottom: 1px solid;
+}
+
+.compliance-table th {
+    text-align: left;
+    padding: 8px 12px;
+    white-space: nowrap;
+    /* Use subtitle-small type style */
+    font-size: var(--recursica-brand-typography-subtitle-small-font-size);
+    font-weight: var(--recursica-brand-typography-subtitle-small-font-weight);
+    font-family: var(--recursica-brand-typography-subtitle-small-font-family);
+    letter-spacing: var(--recursica-brand-typography-subtitle-small-font-letter-spacing);
+    line-height: var(--recursica-brand-typography-subtitle-small-line-height);
+}
+
+.compliance-table__th-center {
+    text-align: center !important;
+}
+
+.compliance-table td {
+    padding: 8px 12px;
+    vertical-align: middle;
+}
+
+.compliance-table__td-center {
+    text-align: center;
+}
+
+.compliance-table__row {
+    border-bottom: 1px solid;
+    transition: background-color 0.1s;
+}
+
+.compliance-table__row:last-child {
+    border-bottom: none;
+}
+
+.compliance-table__row:hover {
+    background-color: rgba(128, 128, 128, 0.04);
+}
+
+/* ─── Swatch ─── */
+
+.compliance-table__swatch {
+    width: 42px;
+    height: 28px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+/* ─── Ratios ─── */
+
+.compliance-table__ratios {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ─── Confirm overlay ─── */
+
+.compliance-page__confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.compliance-page__confirm-dialog {
+    border-radius: 12px;
+    padding: var(--recursica-brand-dimensions-general-lg);
+    max-width: 400px;
+    width: 90%;
+    border: 1px solid;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}

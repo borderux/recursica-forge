@@ -41,7 +41,7 @@ import { Sidebar } from "../Sidebar";
 import { ThemeSidebar } from "../ThemeSidebar";
 import { Tabs } from "../../../components/adapters/Tabs";
 import { getComponentCssVar } from "../../../components/utils/cssVarNames";
-import { getVarsStore } from "../../../core/store/varsStore";
+import { useCompliance } from "../../../core/compliance/ComplianceContext";
 import { randomizeAllVariables } from "../../../core/utils/randomizeVariables";
 import { RandomizeOptionsModal } from "../../../core/utils/RandomizeOptionsModal";
 import {
@@ -66,6 +66,7 @@ export default function CarbonShell({
 }) {
   const { resetAll } = useVars();
   const { mode, setMode } = useThemeMode();
+  const { issueCount, runScan } = useCompliance();
   const location = useLocation();
   const navigate = useNavigate();
   const buttonBorderRadius = getComponentCssVar(
@@ -145,6 +146,20 @@ export default function CarbonShell({
     handleCancel: handleDirtyCancel,
     clearSelectedFiles,
   } = useJsonImport();
+
+  // Sync ?mode= query param on navigation — switches theme and cleans URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const urlMode = params.get('mode');
+    if (urlMode && (urlMode === 'light' || urlMode === 'dark') && urlMode !== mode) {
+      setMode(urlMode);
+    }
+    if (urlMode) {
+      params.delete('mode');
+      const cleanSearch = params.toString();
+      navigate(location.pathname + (cleanSearch ? `?${cleanSearch}` : ''), { replace: true });
+    }
+  }, [location.search]);
 
   // Determine current route for navigation highlighting
   const currentRoute = useMemo(() => {
@@ -371,9 +386,9 @@ export default function CarbonShell({
                       currentRoute === "tokens"
                         ? 1
                         : `var(${layer0Base.replace(
-                            "-properties",
-                            "-elements",
-                          )}-text-low-emphasis)`,
+                          "-properties",
+                          "-elements",
+                        )}-text-low-emphasis)`,
                     fontWeight:
                       currentRoute === "tokens"
                         ? 600
@@ -387,41 +402,58 @@ export default function CarbonShell({
                 >
                   Tokens
                 </button>
-                <button
-                  onClick={() => navigate("/theme")}
-                  style={{
-                    height: `var(${buttonHeight})`,
-                    paddingLeft: `var(${buttonPadding})`,
-                    paddingRight: `var(${buttonPadding})`,
-                    border: "none",
-                    background:
-                      currentRoute === "theme"
-                        ? `var(${buttonSolidBg})`
-                        : `var(${buttonTextBg})`,
-                    color:
-                      currentRoute === "theme"
-                        ? `var(${buttonSolidText})`
-                        : `var(${buttonTextText})`,
-                    opacity:
-                      currentRoute === "theme"
-                        ? 1
-                        : `var(${layer0Base.replace(
+                <Tooltip label={issueCount > 0 ? `${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}` : ''}>
+                  <button
+                    onClick={() => navigate("/theme")}
+                    style={{
+                      height: `var(${buttonHeight})`,
+                      paddingLeft: `var(${buttonPadding})`,
+                      paddingRight: `var(${buttonPadding})`,
+                      border: "none",
+                      background:
+                        currentRoute === "theme"
+                          ? `var(${buttonSolidBg})`
+                          : `var(${buttonTextBg})`,
+                      color:
+                        currentRoute === "theme"
+                          ? `var(${buttonSolidText})`
+                          : `var(${buttonTextText})`,
+                      opacity:
+                        currentRoute === "theme"
+                          ? 1
+                          : `var(${layer0Base.replace(
                             "-properties",
                             "-elements",
                           )}-text-low-emphasis)`,
-                    fontWeight:
-                      currentRoute === "theme"
-                        ? 600
-                        : "var(--recursica-brand-typography-body-font-weight)",
-                    fontSize:
-                      "var(--recursica-brand-typography-body-font-size)",
-                    borderRadius: `var(${buttonBorderRadius})`,
-                    cursor: "pointer",
-                    transition: "all 0.2s",
-                  }}
-                >
-                  Theme
-                </button>
+                      fontWeight:
+                        currentRoute === "theme"
+                          ? 600
+                          : "var(--recursica-brand-typography-body-font-weight)",
+                      fontSize:
+                        "var(--recursica-brand-typography-body-font-size)",
+                      borderRadius: `var(${buttonBorderRadius})`,
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    {issueCount > 0 && (() => {
+                      const WarningIcon = iconNameToReactComponent("warning");
+                      return WarningIcon ? (
+                        <WarningIcon
+                          style={{
+                            width: 14,
+                            height: 14,
+                            color: `var(--recursica-brand-themes-${mode}-palettes-core-alert-tone)`,
+                          }}
+                        />
+                      ) : null;
+                    })()}
+                    Theme
+                  </button>
+                </Tooltip>
                 <button
                   onClick={() => navigate("/components")}
                   style={{
@@ -441,9 +473,9 @@ export default function CarbonShell({
                       currentRoute === "components"
                         ? 1
                         : `var(${layer0Base.replace(
-                            "-properties",
-                            "-elements",
-                          )}-text-low-emphasis)`,
+                          "-properties",
+                          "-elements",
+                        )}-text-low-emphasis)`,
                     fontWeight:
                       currentRoute === "components"
                         ? 600
@@ -487,8 +519,10 @@ export default function CarbonShell({
                     ) : null;
                   })()}
                   onClick={() => {
+                    window.dispatchEvent(new CustomEvent('complianceReset'));
                     clearOverrides(tokensJson as any);
                     resetAll();
+                    setTimeout(() => runScan(), 1000);
                   }}
                 />
               </Tooltip>
@@ -534,28 +568,7 @@ export default function CarbonShell({
                   onClick={handleExport}
                 />
               </Tooltip>
-              <Tooltip label='Check AA Compliance'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const CheckIcon = iconNameToReactComponent("check-circle");
-                    return CheckIcon ? (
-                      <CheckIcon
-                        style={{
-                          width:
-                            "var(--recursica-brand-dimensions-icons-default)",
-                          height:
-                            "var(--recursica-brand-dimensions-icons-default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => {
-                    getVarsStore().updateCoreColorOnTonesForAA();
-                  }}
-                />
-              </Tooltip>
+
               <Tooltip label='Report a bug'>
                 <Button
                   variant='outline'

@@ -2,7 +2,7 @@ import { readCssVar } from '../css/readCssVar'
 import { buildTokenIndex, type TokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
-import { hexToHsv, hsvToHex } from '../../modules/tokens/colors/colorUtils'
+// HSV imports removed — suggestions must only use exact token values
 import { tokenToCssVar } from '../css/tokenRefs'
 
 const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
@@ -18,7 +18,7 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
       const h = trimmed.toLowerCase()
       return h.startsWith('#') ? h : `#${h}`
     }
-    
+
     const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
     if (varMatch) {
       const varName = varMatch[1]
@@ -27,7 +27,7 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
         return resolveCssVarToHex(value, tokenIndex, depth + 1)
       }
     }
-    
+
     // Support both old format (--recursica-tokens-color-...) and new format (--recursica-tokens-colors-...)
     const tokenMatch = trimmed.match(/--recursica-tokens-colors?-([a-z0-9-]+)-(\d+|050|000)/)
     if (tokenMatch) {
@@ -43,7 +43,7 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
         return h
       }
     }
-    
+
     // Try palette var reference (both light and dark modes)
     const paletteMatch = trimmed.match(/--recursica-brand-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
     if (paletteMatch) {
@@ -54,7 +54,7 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
         return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)
       }
     }
-  } catch {}
+  } catch { }
   return null
 }
 
@@ -65,13 +65,13 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
 export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family: string; level: string } | null {
   const tokenIndex = buildTokenIndex(tokens)
   const normalizedHex = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-  
+
   // Search through new colors structure (colors.scale-XX.level)
   const jsonColors: any = (tokens as any)?.tokens?.colors || {}
   for (const [scaleKey, scale] of Object.entries(jsonColors)) {
     if (!scaleKey.startsWith('scale-')) continue
     const scaleObj = scale as any
-    
+
     // Skip the alias property
     for (const [level, value] of Object.entries(scaleObj)) {
       if (level === 'alias') continue
@@ -85,7 +85,7 @@ export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family
       }
     }
   }
-  
+
   // Fallback: search through old color structure for backwards compatibility
   // Note: Old structure may not have scale keys, but we still return what we find
   const oldColors: any = (tokens as any)?.tokens?.color || {}
@@ -106,7 +106,9 @@ export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family
 }
 
 /**
- * Gets one step darker or lighter color from the token scale, or adjusts HSV if not found
+ * Gets one step darker or lighter color from the token scale.
+ * Returns null if the color is not found in tokens or there's no adjacent level.
+ * Never falls back to computed/HSV values.
  */
 export function getSteppedColor(
   hex: string,
@@ -114,59 +116,72 @@ export function getSteppedColor(
   tokens: JsonLike
 ): string | null {
   const found = findColorFamilyAndLevel(hex, tokens)
-  if (!found) {
-    // If not found in tokens, adjust HSV directly
-    const hsv = hexToHsv(hex)
-    if (direction === 'darker') {
-      hsv.v = Math.max(0, hsv.v - 0.1)
-    } else {
-      hsv.v = Math.min(1, hsv.v + 0.1)
-    }
-    return hsvToHex(hsv.h, hsv.s, hsv.v)
-  }
-  
+  if (!found) return null
+
   const { family, level } = found
   const normalizedLevel = level === '000' ? '050' : level
   const currentIdx = LEVELS.indexOf(normalizedLevel)
-  
-  if (currentIdx === -1) {
-    // Fallback to HSV adjustment
-    const hsv = hexToHsv(hex)
-    if (direction === 'darker') {
-      hsv.v = Math.max(0, hsv.v - 0.1)
-    } else {
-      hsv.v = Math.min(1, hsv.v + 0.1)
-    }
-    return hsvToHex(hsv.h, hsv.s, hsv.v)
-  }
-  
+  if (currentIdx === -1) return null
+
   let targetIdx: number
   if (direction === 'darker') {
     targetIdx = Math.min(LEVELS.length - 1, currentIdx + 1)
   } else {
     targetIdx = Math.max(0, currentIdx - 1)
   }
-  
+
+  if (targetIdx === currentIdx) return null // already at the edge
+
   const targetLevel = LEVELS[targetIdx]
   const tokenIndex = buildTokenIndex(tokens)
-  // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
   let targetHex = tokenIndex.get(`colors/${family}/${targetLevel}`)
   if (typeof targetHex !== 'string') {
     targetHex = tokenIndex.get(`color/${family}/${targetLevel}`)
   }
-  
+
   if (typeof targetHex === 'string') {
     return targetHex.startsWith('#') ? targetHex.toLowerCase() : `#${targetHex.toLowerCase()}`
   }
-  
-  // Fallback to HSV adjustment
-  const hsv = hexToHsv(hex)
-  if (direction === 'darker') {
-    hsv.v = Math.max(0, hsv.v - 0.1)
-  } else {
-    hsv.v = Math.min(1, hsv.v + 0.1)
+
+  return null
+}
+
+/**
+ * Gets ALL colors in a token family (scale), ordered from lightest to darkest.
+ * Returns array of { hex, family, level } for every level in the scale.
+ */
+export function getAllFamilyColors(
+  hex: string,
+  tokens: JsonLike
+): { hex: string; family: string; level: string }[] {
+  const found = findColorFamilyAndLevel(hex, tokens)
+  if (!found) return []
+
+  return getAllFamilyColorsByKey(found.family, tokens)
+}
+
+/**
+ * Gets all colors in a family by its scale key.
+ */
+export function getAllFamilyColorsByKey(
+  family: string,
+  tokens: JsonLike
+): { hex: string; family: string; level: string }[] {
+  const tokenIndex = buildTokenIndex(tokens)
+  const results: { hex: string; family: string; level: string }[] = []
+
+  for (const level of LEVELS) {
+    let colorHex = tokenIndex.get(`colors/${family}/${level}`)
+    if (typeof colorHex !== 'string') {
+      colorHex = tokenIndex.get(`color/${family}/${level}`)
+    }
+    if (typeof colorHex === 'string') {
+      const h = colorHex.startsWith('#') ? colorHex.toLowerCase() : `#${colorHex.toLowerCase()}`
+      results.push({ hex: h, family, level })
+    }
   }
-  return hsvToHex(hsv.h, hsv.s, hsv.v)
+
+  return results
 }
 
 /**
@@ -184,29 +199,29 @@ export function stepUntilAACompliant(
   const AA = 4.5
   let currentHex = startHex
   let steps = 0
-  
+
   while (steps < maxSteps) {
     const contrast = contrastRatio(surfaceHex, currentHex)
     if (contrast >= AA) {
       return currentHex
     }
-    
+
     const steppedHex = getSteppedColor(currentHex, direction, tokens)
     if (!steppedHex || steppedHex === currentHex) {
       // Can't step further in this direction
       break
     }
-    
+
     currentHex = steppedHex
     steps++
   }
-  
+
   // If we couldn't meet AA by stepping in the preferred direction, try the opposite (only once)
   if (!triedOpposite) {
     const oppositeDirection = direction === 'darker' ? 'lighter' : 'darker'
     return stepUntilAACompliant(startHex, surfaceHex, oppositeDirection, tokens, maxSteps, true)
   }
-  
+
   // If we've tried both directions and still can't meet AA, return the best we found
   return currentHex
 }
@@ -235,13 +250,13 @@ function colorDistance(hex1: string, hex2: string): number {
 function findClosestColorToken(hex: string, tokens: JsonLike): { family: string; level: string } | null {
   const normalizedHex = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
   let closest: { family: string; level: string; distance: number } | null = null
-  
+
   // Search through new colors structure (colors.scale-XX.level)
   const jsonColors: any = (tokens as any)?.tokens?.colors || {}
   for (const [scaleKey, scale] of Object.entries(jsonColors)) {
     if (!scaleKey.startsWith('scale-')) continue
     const scaleObj = scale as any
-    
+
     for (const [level, value] of Object.entries(scaleObj)) {
       if (level === 'alias') continue
       const tokenValue = (value as any)?.$value || value
@@ -255,7 +270,7 @@ function findClosestColorToken(hex: string, tokens: JsonLike): { family: string;
       }
     }
   }
-  
+
   // Fallback: search through old color structure
   const oldColors: any = (tokens as any)?.tokens?.color || {}
   for (const [family, levels] of Object.entries(oldColors)) {
@@ -272,50 +287,34 @@ function findClosestColorToken(hex: string, tokens: JsonLike): { family: string;
       }
     }
   }
-  
+
   return closest ? { family: closest.family, level: closest.level } : null
 }
 
 /**
  * Converts a hex color to a CSS variable reference if possible, otherwise finds the closest match
  */
-export function hexToCssVarRef(hex: string, tokens: JsonLike): string {
-  // First try to find an exact match
-  let found = findColorFamilyAndLevel(hex, tokens)
-  
-  // If no exact match, find the closest matching token
+/**
+ * Converts a hex color to a CSS variable reference.
+ * Only returns exact token matches. Returns null if no exact match found.
+ */
+export function hexToCssVarRef(hex: string, tokens: JsonLike): string | null {
+  const found = findColorFamilyAndLevel(hex, tokens)
   if (!found) {
-    found = findClosestColorToken(hex, tokens)
+    console.warn(`[hexToCssVarRef] No exact token match for hex ${hex}`)
+    return null
   }
-  
-  if (found) {
-    const normalizedLevel = found.level === '000' ? '050' : found.level
-    // found.family is now always a scale key (e.g., "scale-01"), not an alias
-    const tokenName = `colors/${found.family}/${normalizedLevel}`
-    const cssVar = tokenToCssVar(tokenName, tokens)
-    if (cssVar) {
-      return cssVar
-    }
-    // Direct fallback: found.family should already be a scale key
-    if (found.family.startsWith('scale-')) {
-      return `var(--recursica-tokens-colors-${found.family}-${normalizedLevel})`
-    }
+
+  const normalizedLevel = found.level === '000' ? '050' : found.level
+  const tokenName = `colors/${found.family}/${normalizedLevel}`
+  const cssVar = tokenToCssVar(tokenName, tokens)
+  if (cssVar) return cssVar
+
+  // Direct fallback for scale keys
+  if (found.family.startsWith('scale-')) {
+    return `var(--recursica-tokens-colors-${found.family}-${normalizedLevel})`
   }
-  
-  // If we still can't find a match, this shouldn't happen, but return a fallback
-  // Use a default token reference (scale-02-500, which is typically gray) as a last resort
-  console.warn(`[hexToCssVarRef] Could not find token for hex ${hex}, using fallback`)
-  // Try to find scale-02 (gray) 500 level
-  const tokensRoot: any = (tokens as any)?.tokens || tokens || {}
-  const colorsRoot: any = tokensRoot?.colors || {}
-  const grayScale = Object.keys(colorsRoot).find(key => {
-    if (!key.startsWith('scale-')) return false
-    const scale = colorsRoot[key]
-    return scale && typeof scale === 'object' && scale.alias === 'gray'
-  })
-  if (grayScale) {
-    return `var(--recursica-tokens-colors-${grayScale}-500)`
-  }
-  return `var(--recursica-tokens-colors-scale-02-500)` // Hardcoded fallback - scale-02 is typically gray
+
+  return null
 }
 
