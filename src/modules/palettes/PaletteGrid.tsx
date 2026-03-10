@@ -309,25 +309,9 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     levels.forEach((lvl) => {
       const onToneCssVar = `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${lvl}-on-tone`
 
-      // NEVER overwrite on-tone CSS vars - they are set by AA compliance and should persist
-      // Check if the value already exists and is valid - if so, skip entirely
-      const existingValue = readCssVar(onToneCssVar)
-
-      // If value exists and is a valid var() reference to core-white or core-black, NEVER overwrite
-      // This preserves AA-compliant values set by AA compliance checks
-      if (existingValue && existingValue.trim() !== '') {
-        // Check if it's a valid var() reference for this mode
-        // Must reference core-white or core-black for this mode
-        if (existingValue.startsWith('var(') &&
-          existingValue.includes(`themes-${modeLower}-palettes-core-`) &&
-          (existingValue.includes('core-white') || existingValue.includes('core-black'))) {
-          // Already set correctly - NEVER overwrite AA-compliant values
-          return
-        }
-      }
-
-      // Only set if no existing value or invalid value exists
-      // This should only happen on initial load when CSS vars don't exist yet
+      // Set on-tone CSS vars from theme JSON for the current mode.
+      // Since palettes are independent per mode, we always update from the theme JSON
+      // to ensure the correct on-tone values are applied when switching modes.
 
       // Try both 'palettes' and 'palette' path formats
       const onToneNamePlural = `palettes/${paletteKey}/${lvl}/on-tone`

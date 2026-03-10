@@ -1,6 +1,7 @@
 import '../theme/index.css'
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import PaletteGrid from './PaletteGrid'
+import { getTokenLevelForMode } from './PaletteColorSelector'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import ColorTokenPicker from '../pickers/ColorTokenPicker'
@@ -533,70 +534,65 @@ export default function PalettesPage() {
     const colorsRoot: any = tokensRoot?.colors || {}
     const detectedFromTheme = new Set<string>() // Track which palettes we detected from theme
 
-    // First, detect actual families from theme JSON - this is the source of truth
-    // Theme JSON reflects what's actually being used, even if initialFamily is stale
+    // First, detect actual families from theme JSON for the CURRENT MODE ONLY
+    // Palettes are independent per mode - each mode has its own family assignments
     try {
       const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
       const themes = root?.themes || root
+      const currentModeKey = mode === 'dark' ? 'dark' : 'light'
 
       palettes.forEach((p) => {
         const paletteKey = p.key
-        let foundFamily = false
 
-        // Check both light and dark modes (but a palette should use same family in both)
-        for (const modeKey of ['light', 'dark']) {
-          if (foundFamily) break
+        // Only check the current mode
+        // Try both possible paths
+        const palette = themes?.[currentModeKey]?.palettes?.[paletteKey] || root?.[currentModeKey]?.palettes?.[paletteKey]
 
-          // Try both possible paths
-          const palette = themes?.[modeKey]?.palettes?.[paletteKey] || root?.[modeKey]?.palettes?.[paletteKey]
+        if (palette) {
+          // Check a few levels to detect the family
+          const checkLevels = ['200', '500', '400', '300', '100', '600']
+          for (const lvl of checkLevels) {
+            const tone = palette?.[lvl]?.color?.tone?.$value
+            if (typeof tone === 'string') {
+              // Use centralized parser to check for token references
+              const tokenIndex = buildTokenIndex(tokensJson)
+              const context: TokenReferenceContext = { currentMode: currentModeKey as 'light' | 'dark', tokenIndex }
+              const parsed = parseTokenReference(tone, context)
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 2) {
+                let detectedFamily: string | null = null
 
-          if (palette) {
-            // Check a few levels to detect the family
-            const checkLevels = ['200', '500', '400', '300', '100', '600']
-            for (const lvl of checkLevels) {
-              const tone = palette?.[lvl]?.color?.tone?.$value
-              if (typeof tone === 'string') {
-                // Use centralized parser to check for token references
-                const tokenIndex = buildTokenIndex(tokensJson)
-                const context: TokenReferenceContext = { currentMode: modeKey as 'light' | 'dark', tokenIndex }
-                const parsed = parseTokenReference(tone, context)
-                if (parsed && parsed.type === 'token' && parsed.path.length >= 2) {
-                  let detectedFamily: string | null = null
-
-                  // Handle new colors format (colors.scale-XX.level or colors.alias.level)
-                  if (parsed.path[0] === 'colors') {
-                    const scaleOrAlias = parsed.path[1]
-                    // If it's a scale key, use it directly
-                    if (scaleOrAlias.startsWith('scale-')) {
-                      detectedFamily = scaleOrAlias
-                    } else {
-                      // It's an alias - find the scale that has this alias
-                      for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
-                        if (!scaleKey.startsWith('scale-')) continue
-                        const scaleObj = scale as any
-                        if (scaleObj?.alias === scaleOrAlias) {
-                          detectedFamily = scaleKey
-                          break
-                        }
-                      }
-                      // If not found, use the alias itself (fallback for old format)
-                      if (!detectedFamily) {
-                        detectedFamily = scaleOrAlias
+                // Handle new colors format (colors.scale-XX.level or colors.alias.level)
+                if (parsed.path[0] === 'colors') {
+                  const scaleOrAlias = parsed.path[1]
+                  // If it's a scale key, use it directly
+                  if (scaleOrAlias.startsWith('scale-')) {
+                    detectedFamily = scaleOrAlias
+                  } else {
+                    // It's an alias - find the scale that has this alias
+                    for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+                      if (!scaleKey.startsWith('scale-')) continue
+                      const scaleObj = scale as any
+                      if (scaleObj?.alias === scaleOrAlias) {
+                        detectedFamily = scaleKey
+                        break
                       }
                     }
+                    // If not found, use the alias itself (fallback for old format)
+                    if (!detectedFamily) {
+                      detectedFamily = scaleOrAlias
+                    }
                   }
-                  // Handle old color format (color.family.level)
-                  else if (parsed.path[0] === 'color') {
-                    detectedFamily = parsed.path[1]
-                  }
+                }
+                // Handle old color format (color.family.level)
+                else if (parsed.path[0] === 'color') {
+                  detectedFamily = parsed.path[1]
+                }
 
-                  if (detectedFamily) {
-                    set.add(detectedFamily)
-                    detectedFromTheme.add(paletteKey)
-                    foundFamily = true
-                    break // Found a family for this palette, move to next palette
-                  }
+                if (detectedFamily) {
+                  set.add(detectedFamily)
+                  detectedFromTheme.add(paletteKey)
+                  break // Found a family for this palette, move to next palette
                 }
               }
             }
@@ -639,7 +635,7 @@ export default function PalettesPage() {
     })
 
     return set
-  }, [palettes, themeJson, tokensJson, paletteFamilyChangeVersion])
+  }, [palettes, themeJson, tokensJson, paletteFamilyChangeVersion, mode])
 
   const unusedFamilies = useMemo(() =>
     allFamilies.filter((f) => !usedFamilies.has(f)),
@@ -684,51 +680,54 @@ export default function PalettesPage() {
         }
       }
 
-      // Initialize for both light and dark modes
-      for (const modeKey of ['light', 'dark']) {
-        if (!root[modeKey]) root[modeKey] = {}
-        if (!root[modeKey].palettes) root[modeKey].palettes = {}
-        if (!root[modeKey].palettes[paletteKey]) root[modeKey].palettes[paletteKey] = {}
+      // Initialize for the current mode only — palettes are independent per mode
+      // Brand.json already has defaults for both modes; we only update the one being edited
+      const currentModeKey = mode === 'dark' ? 'dark' : 'light'
+      if (!root[currentModeKey]) root[currentModeKey] = {}
+      if (!root[currentModeKey].palettes) root[currentModeKey].palettes = {}
+      if (!root[currentModeKey].palettes[paletteKey]) root[currentModeKey].palettes[paletteKey] = {}
 
-        headerLevels.forEach((lvl) => {
-          if (!root[modeKey].palettes[paletteKey][lvl]) root[modeKey].palettes[paletteKey][lvl] = {}
-          if (!root[modeKey].palettes[paletteKey][lvl].color) root[modeKey].palettes[paletteKey][lvl].color = {}
+      headerLevels.forEach((lvl) => {
+        if (!root[currentModeKey].palettes[paletteKey][lvl]) root[currentModeKey].palettes[paletteKey][lvl] = {}
+        if (!root[currentModeKey].palettes[paletteKey][lvl].color) root[currentModeKey].palettes[paletteKey][lvl].color = {}
 
-          // Determine the correct token reference for this level
-          let levelTokenRef: string
-          if (family.startsWith('scale-')) {
-            levelTokenRef = `{tokens.colors.${family}.${lvl}}`
+        // Determine the correct token reference for this level
+        // In dark mode, palette levels are reversed (1000 = lightest, 000 = darkest)
+        const modeForLevel = mode === 'dark' ? 'Dark' : 'Light'
+        const tokenLevel = getTokenLevelForMode(lvl, modeForLevel)
+        let levelTokenRef: string
+        if (family.startsWith('scale-')) {
+          levelTokenRef = `{tokens.colors.${family}.${tokenLevel}}`
+        } else {
+          // Try to find if this family is an alias for a scale
+          let foundScaleKey: string | undefined
+          for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+            if (!scaleKey.startsWith('scale-')) continue
+            const scaleObj = scale as any
+            if (scaleObj?.alias === family) {
+              foundScaleKey = scaleKey
+              break
+            }
+          }
+          if (foundScaleKey) {
+            levelTokenRef = `{tokens.colors.${foundScaleKey}.${tokenLevel}}`
           } else {
-            // Try to find if this family is an alias for a scale
-            let foundScaleKey: string | undefined
-            for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
-              if (!scaleKey.startsWith('scale-')) continue
-              const scaleObj = scale as any
-              if (scaleObj?.alias === family) {
-                foundScaleKey = scaleKey
-                break
-              }
-            }
-            if (foundScaleKey) {
-              levelTokenRef = `{tokens.colors.${foundScaleKey}.${lvl}}`
-            } else {
-              levelTokenRef = `{tokens.color.${family}.${lvl}}`
-            }
+            levelTokenRef = `{tokens.color.${family}.${tokenLevel}}`
           }
+        }
 
-          // Set tone to reference the family token
-          root[modeKey].palettes[paletteKey][lvl].color.tone = {
-            $type: 'color',
-            $value: levelTokenRef
-          }
+        // Set tone to reference the family token
+        root[currentModeKey].palettes[paletteKey][lvl].color.tone = {
+          $type: 'color',
+          $value: levelTokenRef
+        }
 
-          // Set on-tone to reference white (will be updated by PaletteGrid based on contrast)
-          root[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
-            $type: 'color',
-            $value: `{brand.palettes.white}`
-          }
-        })
-      }
+        // Set on-tone to reference white (will be updated by PaletteGrid based on contrast)
+        root[currentModeKey].palettes[paletteKey][lvl].color['on-tone'] = {
+          $type: 'color',
+          $value: `{brand.palettes.white}`
+        }
+      })
 
       setTheme(themeCopy)
     } catch (err) {
