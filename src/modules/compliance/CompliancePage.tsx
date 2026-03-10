@@ -18,6 +18,7 @@ import { Tooltip } from '../../components/adapters/Tooltip'
 import { findColorFamilyAndLevel } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
 import { updateCssVar } from '../../core/css/updateCssVar'
+import { SuggestTonesModal } from './SuggestTonesModal'
 import './CompliancePage.css'
 
 const typeLabels: Record<string, string> = {
@@ -73,6 +74,7 @@ export default function CompliancePage() {
     const { issues, applySuggestion, applyAllSuggestions, runScan } = useCompliance()
     const { mode } = useThemeMode()
     const [showConfirmAll, setShowConfirmAll] = useState(false)
+    const [suggestIssue, setSuggestIssue] = useState<ComplianceIssue | null>(null)
 
     // Snapshot issues so rows persist after fixing (not removed by auto-rescan)
     const snapshotRef = useRef<ComplianceIssue[] | null>(null)
@@ -164,6 +166,33 @@ export default function CompliancePage() {
         snapshotRef.current = null
         setFixedMap({})
         runScan()
+    }
+
+    // Handle applying a suggested tone replacement
+    const handleSuggestApply = (issue: ComplianceIssue, newHex: string, family: string, level: string) => {
+        const store = getVarsStore()
+        const tokens = store.getState().tokens
+        if (!tokens) return
+
+        // Deep clone tokens and update the scale level value
+        const tokensCopy = JSON.parse(JSON.stringify(tokens))
+        const colorsRoot = tokensCopy?.tokens?.colors || {}
+        const scaleObj = colorsRoot[family]
+        if (scaleObj && scaleObj[level]) {
+            if (typeof scaleObj[level] === 'object' && '$value' in scaleObj[level]) {
+                scaleObj[level].$value = newHex
+            } else {
+                scaleObj[level] = { $type: 'color', $value: newHex }
+            }
+        }
+
+        // Persist token change
+        store.setTokens(tokensCopy)
+
+        // Force CSS vars to rebuild from new tokens
+        setTimeout(() => {
+            handleRescan()
+        }, 500)
     }
 
 
@@ -333,7 +362,7 @@ export default function CompliancePage() {
 
                                             {/* Issue swatch (current) — always show */}
                                             <td>
-                                                <Tooltip label={formatColorLabel(issue.onToneHex)}>
+                                                <Tooltip label={formatColorLabel(issue.toneHex)}>
                                                     <div
                                                         className="compliance-table__swatch"
                                                         style={{ backgroundColor: issue.toneHex }}
@@ -382,12 +411,13 @@ export default function CompliancePage() {
                                                         </Button>
                                                     )
                                                 ) : (
-                                                    <span style={{
-                                                        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                                                        opacity: 0.5,
-                                                    }}>
-                                                        Cannot find a compliant on-tone color for this tone
-                                                    </span>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="small"
+                                                        onClick={() => setSuggestIssue(issue)}
+                                                    >
+                                                        Suggest tones
+                                                    </Button>
                                                 )}
                                             </td>
 
@@ -433,6 +463,16 @@ export default function CompliancePage() {
                     </div>
                 </div>
             ))}
+
+            {/* Suggest Tones Modal */}
+            {suggestIssue && (
+                <SuggestTonesModal
+                    issue={suggestIssue}
+                    isOpen={!!suggestIssue}
+                    onClose={() => setSuggestIssue(null)}
+                    onApply={handleSuggestApply}
+                />
+            )}
         </div>
     )
 }

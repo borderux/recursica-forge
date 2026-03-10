@@ -1,0 +1,125 @@
+/**
+ * SuggestTonesModal Styles
+ */
+
+/* ─── Modal content wrapper ─── */
+
+.suggest-tones {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px 0;
+}
+
+.suggest-tones__subtitle {
+    margin: 0 0 8px 0;
+}
+
+/* ─── Swatch row ─── */
+
+.suggest-tones__row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: default;
+    transition: background-color 0.15s, outline-color 0.15s;
+    position: relative;
+    user-select: none;
+}
+
+/* Selectable rows */
+.suggest-tones__row--selectable {
+    cursor: pointer;
+}
+
+.suggest-tones__row--selectable:hover {
+    background-color: rgba(128, 128, 128, 0.08);
+}
+
+/* Selected row */
+.suggest-tones__row--selected {
+    outline: 2px solid var(--suggest-tones-accent, #5b8def);
+    outline-offset: -2px;
+    background-color: rgba(91, 141, 239, 0.08);
+}
+
+/* ─── Radio button cell ─── */
+
+.suggest-tones__radio-cell {
+    width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* ─── Color swatch ─── */
+
+.suggest-tones__swatch {
+    width: 56px;
+    height: 36px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(128, 128, 128, 0.15);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.suggest-tones__on-tone-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(128, 128, 128, 0.2);
+}
+
+/* ─── Row info ─── */
+
+.suggest-tones__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.suggest-tones__label {
+    font-size: var(--recursica-brand-typography-body-small-font-size, 13px);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.suggest-tones__hex {
+    font-size: 11px;
+    font-family: var(--recursica-brand-typography-code-font-family, monospace);
+    opacity: 0.5;
+}
+
+/* ─── Compliance badge area ─── */
+
+.suggest-tones__compliance {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    min-width: 60px;
+    justify-content: flex-end;
+}
+
+/* ─── Warning icon in swatch ─── */
+
+.suggest-tones__warning-icon {
+    width: var(--recursica-brand-dimensions-icons-default, 20px);
+    height: var(--recursica-brand-dimensions-icons-default, 20px);
+}
+
+/* ─── Divider between sections ─── */
+
+.suggest-tones__divider {
+    height: 1px;
+    margin: 4px 12px;
+    opacity: 0.12;
+}
