@@ -246,7 +246,7 @@ class ComplianceServiceImpl {
                         if (blendedHigh) {
                             const highRatio = contrastRatio(toneHex, blendedHigh)
                             if (highRatio < AA_THRESHOLD) {
-                                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode)
+                                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, highOpacity)
                                 issues.push({
                                     id: `palette-${paletteKey}-${level}-high-${mode}`,
                                     type: 'palette-on-tone',
@@ -266,7 +266,7 @@ class ComplianceServiceImpl {
                         // High emphasis is 1.0, check raw contrast
                         const ratio = contrastRatio(toneHex, onToneHex)
                         if (ratio < AA_THRESHOLD) {
-                            const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode)
+                            const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, 1)
                             issues.push({
                                 id: `palette-${paletteKey}-${level}-high-${mode}`,
                                 type: 'palette-on-tone',
@@ -336,7 +336,7 @@ class ComplianceServiceImpl {
             // Check full-opacity (high emphasis) on-tone
             const ratio = contrastRatio(toneHex, onToneHex)
             if (ratio < AA_THRESHOLD) {
-                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode)
+                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, 1)
                 issues.push({
                     id: `core-${colorKey}-${mode}`,
                     type: 'core-on-tone',
@@ -398,7 +398,7 @@ class ComplianceServiceImpl {
 
             const ratio = contrastRatio(toneHex, onToneHex)
             if (ratio < AA_THRESHOLD) {
-                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode)
+                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, 1)
                 issues.push({
                     id: `core-interactive-${variant}-${mode}`,
                     type: 'core-on-tone',
@@ -599,13 +599,18 @@ class ComplianceServiceImpl {
      *  1. Try every level in the on-tone's own color family against toneHex
      *  2. Try black and white token values
      *  3. If nothing passes, step the tone color and retry with all on-tone candidates
+     *
+     * All contrast checks blend the candidate on-tone with the tone at the
+     * given emphasisOpacity so that suggestions are valid for the actual
+     * rendered presentation.
      */
     private generateOnToneSuggestion(
         toneHex: string,
         onToneCssVar: string,
         tokens: JsonLike,
         _tokenIndex: ReturnType<typeof buildTokenIndex>,
-        _mode: 'light' | 'dark'
+        _mode: 'light' | 'dark',
+        emphasisOpacity: number = 1
     ): SuggestedFix | null {
         try {
             // Get the current on-tone's color, and all levels in its family
@@ -616,22 +621,25 @@ class ComplianceServiceImpl {
 
             // 1. Try all levels in the on-tone's own family
             const familyColors = getAllFamilyColors(onToneHex, tokens)
-            const candidate = this.findBestPassingColor(familyColors, toneHex, onToneHex)
+            const candidate = this.findBestPassingColor(familyColors, toneHex, onToneHex, emphasisOpacity)
             if (candidate) {
                 const cssVarRef = hexToCssVarRef(candidate.hex, tokens)
                 if (cssVarRef) {
+                    const effectiveHex = emphasisOpacity < 1
+                        ? (blendHexWithOpacity(candidate.hex, toneHex, emphasisOpacity) || candidate.hex)
+                        : candidate.hex
                     return {
-                        description: `Change on-tone to ${candidate.family}/${candidate.level} (${contrastRatio(toneHex, candidate.hex).toFixed(2)}:1)`,
+                        description: `Change on-tone to ${candidate.family}/${candidate.level} (${contrastRatio(toneHex, effectiveHex).toFixed(2)}:1)`,
                         targetCssVar: onToneCssVar,
                         suggestedValue: cssVarRef,
                         suggestedHex: candidate.hex,
-                        resultingRatio: contrastRatio(toneHex, candidate.hex),
+                        resultingRatio: contrastRatio(toneHex, effectiveHex),
                     }
                 }
             }
 
             // 2. Try black and white token values
-            const bwResult = this.tryBlackWhiteTokens(toneHex, onToneCssVar, tokens)
+            const bwResult = this.tryBlackWhiteTokens(toneHex, onToneCssVar, tokens, emphasisOpacity)
             if (bwResult) return bwResult
 
             // 3. Step the tone to adjacent levels and retry
@@ -651,22 +659,25 @@ class ComplianceServiceImpl {
                     const altTone = toneFamilyColors[idx]
 
                     // Try on-tone family colors against this alternate tone
-                    const altCandidate = this.findBestPassingColor(familyColors, altTone.hex, onToneHex)
+                    const altCandidate = this.findBestPassingColor(familyColors, altTone.hex, onToneHex, emphasisOpacity)
                     if (altCandidate) {
                         const cssVarRef = hexToCssVarRef(altCandidate.hex, tokens)
                         if (cssVarRef) {
+                            const effectiveHex = emphasisOpacity < 1
+                                ? (blendHexWithOpacity(altCandidate.hex, altTone.hex, emphasisOpacity) || altCandidate.hex)
+                                : altCandidate.hex
                             return {
-                                description: `Change on-tone to ${altCandidate.family}/${altCandidate.level} (${contrastRatio(altTone.hex, altCandidate.hex).toFixed(2)}:1)`,
+                                description: `Change on-tone to ${altCandidate.family}/${altCandidate.level} (${contrastRatio(altTone.hex, effectiveHex).toFixed(2)}:1)`,
                                 targetCssVar: onToneCssVar,
                                 suggestedValue: cssVarRef,
                                 suggestedHex: altCandidate.hex,
-                                resultingRatio: contrastRatio(toneHex, altCandidate.hex),
+                                resultingRatio: contrastRatio(toneHex, effectiveHex),
                             }
                         }
                     }
 
                     // Try black/white against this alternate tone
-                    const bw = this.tryBlackWhiteTokens(altTone.hex, onToneCssVar, tokens)
+                    const bw = this.tryBlackWhiteTokens(altTone.hex, onToneCssVar, tokens, emphasisOpacity)
                     if (bw) return bw
                 }
             }
@@ -724,21 +735,26 @@ class ComplianceServiceImpl {
 
     /**
      * From a list of color candidates, find the one that:
-     *  - passes AA against surfaceHex
-     *  - is closest to the original color (least visual disruption)
+     *  - passes AA against surfaceHex (after blending at emphasisOpacity)
+     *  - is closest to the AA threshold (least visual disruption)
      */
     private findBestPassingColor(
         candidates: { hex: string; family: string; level: string }[],
         surfaceHex: string,
-        originalHex: string
+        originalHex: string,
+        emphasisOpacity: number = 1
     ): { hex: string; family: string; level: string } | null {
         let best: { hex: string; family: string; level: string } | null = null
         let bestDistance = Infinity
 
         for (const c of candidates) {
-            const ratio = contrastRatio(surfaceHex, c.hex)
+            // Blend the candidate on-tone with the surface at emphasis opacity
+            const effectiveHex = emphasisOpacity < 1
+                ? (blendHexWithOpacity(c.hex, surfaceHex, emphasisOpacity) || c.hex)
+                : c.hex
+            const ratio = contrastRatio(surfaceHex, effectiveHex)
             if (ratio >= AA_THRESHOLD) {
-                // Prefer the candidate closest to the original
+                // Prefer the candidate closest to the threshold
                 const dist = Math.abs(ratio - AA_THRESHOLD)
                 if (dist < bestDistance) {
                     bestDistance = dist
@@ -752,15 +768,25 @@ class ComplianceServiceImpl {
 
     /**
      * Try black and white token values as suggestions.
+     * Blends them with surfaceHex at emphasisOpacity before checking contrast.
      * Only returns if the value exists as an exact token.
      */
     private tryBlackWhiteTokens(
         surfaceHex: string,
         targetCssVar: string,
-        tokens: JsonLike
+        tokens: JsonLike,
+        emphasisOpacity: number = 1
     ): SuggestedFix | null {
-        const blackContrast = contrastRatio(surfaceHex, '#000000')
-        const whiteContrast = contrastRatio(surfaceHex, '#ffffff')
+        // Blend black/white at emphasis opacity before checking contrast
+        const effectiveBlack = emphasisOpacity < 1
+            ? (blendHexWithOpacity('#000000', surfaceHex, emphasisOpacity) || '#000000')
+            : '#000000'
+        const effectiveWhite = emphasisOpacity < 1
+            ? (blendHexWithOpacity('#ffffff', surfaceHex, emphasisOpacity) || '#ffffff')
+            : '#ffffff'
+
+        const blackContrast = contrastRatio(surfaceHex, effectiveBlack)
+        const whiteContrast = contrastRatio(surfaceHex, effectiveWhite)
 
         // Try whichever has better contrast first
         const attempts: { hex: string; label: string; ratio: number }[] = blackContrast >= whiteContrast

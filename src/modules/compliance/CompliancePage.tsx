@@ -133,6 +133,9 @@ export default function CompliancePage() {
     // Track which issues have been fixed (id → original CSS var value for undo)
     const [fixedMap, setFixedMap] = useState<Record<string, string>>({})
 
+    // Track suggest-tone fixes (id → { family, level, originalHex } for undo)
+    const [suggestFixedMap, setSuggestFixedMap] = useState<Record<string, { family: string; level: string; originalHex: string }>>({})
+
     // Listen for reset events to clear local state
     useEffect(() => {
         const handleReset = () => {
@@ -219,6 +222,10 @@ export default function CompliancePage() {
         const tokens = store.getState().tokens
         if (!tokens) return
 
+        // Store original hex for undo before modifying
+        const tokensAny = tokens as any
+        const originalHex = tokensAny?.tokens?.colors?.[family]?.[level]?.$value || ''
+
         // Deep clone tokens and update the scale level value
         const tokensCopy = JSON.parse(JSON.stringify(tokens))
         const colorsRoot = tokensCopy?.tokens?.colors || {}
@@ -231,11 +238,64 @@ export default function CompliancePage() {
             }
         }
 
+        // Normalize level for CSS var name
+        const normalizedLevel = level === '000' ? '000' : level === '1000' ? '1000' : String(level).padStart(3, '0')
+
+        // Directly update the token-level CSS var on the DOM as a safety net
+        const tokenCssVar = `--recursica-tokens-colors-${family}-${normalizedLevel}`
+        document.documentElement.style.setProperty(tokenCssVar, newHex)
+
+        // Persist token change (triggers recomputeAndApplyAll)
+        store.setTokens(tokensCopy)
+
+        // Track for undo
+        setSuggestFixedMap(prev => ({ ...prev, [issue.id]: { family, level, originalHex } }))
+
+        // Force CSS vars to rebuild from new tokens, then rescan
+        setTimeout(() => {
+            // Re-assert the CSS var in case recomputeAndApplyAll overwrote it
+            document.documentElement.style.setProperty(tokenCssVar, newHex)
+            handleRescan()
+        }, 500)
+    }
+
+    // Handle undoing a suggest-tone replacement
+    const handleSuggestUndo = (issue: ComplianceIssue) => {
+        const undoInfo = suggestFixedMap[issue.id]
+        if (!undoInfo) return
+
+        const store = getVarsStore()
+        const tokens = store.getState().tokens
+        if (!tokens) return
+
+        // Deep clone tokens and restore the original value
+        const tokensCopy = JSON.parse(JSON.stringify(tokens))
+        const colorsRoot = tokensCopy?.tokens?.colors || {}
+        const scaleObj = colorsRoot[undoInfo.family]
+        if (scaleObj && scaleObj[undoInfo.level]) {
+            if (typeof scaleObj[undoInfo.level] === 'object' && '$value' in scaleObj[undoInfo.level]) {
+                scaleObj[undoInfo.level].$value = undoInfo.originalHex
+            }
+        }
+
+        // Normalize level for CSS var name
+        const normalizedLevel = undoInfo.level === '000' ? '000' : undoInfo.level === '1000' ? '1000' : String(undoInfo.level).padStart(3, '0')
+        const tokenCssVar = `--recursica-tokens-colors-${undoInfo.family}-${normalizedLevel}`
+        document.documentElement.style.setProperty(tokenCssVar, undoInfo.originalHex)
+
         // Persist token change
         store.setTokens(tokensCopy)
 
-        // Force CSS vars to rebuild from new tokens
+        // Remove from undo map
+        setSuggestFixedMap(prev => {
+            const next = { ...prev }
+            delete next[issue.id]
+            return next
+        })
+
+        // Rescan after restoring
         setTimeout(() => {
+            document.documentElement.style.setProperty(tokenCssVar, undoInfo.originalHex)
             handleRescan()
         }, 500)
     }
@@ -506,6 +566,14 @@ export default function CompliancePage() {
                                                             Fix
                                                         </Button>
                                                     )
+                                                ) : suggestFixedMap[issue.id] ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="small"
+                                                        onClick={() => handleSuggestUndo(issue)}
+                                                    >
+                                                        Undo
+                                                    </Button>
                                                 ) : suggestableIssues.has(issue.id) ? (
                                                     <Button
                                                         variant="outline"
