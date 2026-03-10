@@ -210,7 +210,13 @@ class ComplianceServiceImpl {
         try {
             const root: any = (theme as any)?.brand ? (theme as any).brand : theme
             const themes = root?.themes || root
-            const palettes = themes?.[mode]?.palettes || {}
+            // Look for palettes in both possible paths:
+            // 1. brand.themes.light.palettes (correct/new path)
+            // 2. brand.light.palettes (legacy path, for palettes added before fix)
+            const themePalettes = themes?.[mode]?.palettes || {}
+            const rootPalettes = (themes !== root && root?.[mode]?.palettes) ? root[mode].palettes : {}
+            // Merge: theme path takes priority, but include any from root path not already present
+            const palettes = { ...rootPalettes, ...themePalettes }
             const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
 
             // Read emphasis opacity values (use readCssVarNumber to resolve var() references)

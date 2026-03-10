@@ -9,6 +9,7 @@ import { parseTokenReference, type TokenReferenceContext } from '../../core/util
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getVarsStore } from '../../core/store/varsStore'
 import { Dropdown } from '../../components/adapters/Dropdown'
+import { getComplianceService } from '../../core/compliance/ComplianceService'
 
 type PaletteColorSelectorProps = {
   paletteKey: string
@@ -903,6 +904,11 @@ export default function PaletteColorSelector({
 
       // Call optional callback
       onFamilyChange?.(family)
+
+      // Trigger compliance scan after CSS vars have settled
+      setTimeout(() => {
+        getComplianceService().triggerScan()
+      }, 500)
     } catch (err) {
       console.error('Failed to update palette for family:', err)
     }
