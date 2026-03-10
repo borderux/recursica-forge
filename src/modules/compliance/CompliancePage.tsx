@@ -53,6 +53,49 @@ function formatColorLabel(hex: string): string {
 }
 
 /**
+ * Resolve the on-tone tooltip label for a compliance issue.
+ * Try direct lookup first (works for unblended on-tones like warning/alert colors).
+ * Only fall back to core-black/core-white resolution for blended palette on-tones.
+ */
+function formatOnToneLabel(issue: ComplianceIssue): string {
+    try {
+        // 1. Try direct lookup — works for layer-text, layer-interactive, and
+        //    any on-tone whose hex exactly matches a scale color
+        const directLabel = formatColorLabel(issue.onToneHex)
+        if (directLabel) return directLabel
+
+        // 2. For blended on-tones (palette/core issues where emphasis opacity
+        //    is applied), determine if it's black-based or white-based and
+        //    resolve the unblended core color from CSS vars
+        const h = issue.onToneHex.replace('#', '')
+        const r = parseInt(h.slice(0, 2), 16)
+        const g = parseInt(h.slice(2, 4), 16)
+        const b = parseInt(h.slice(4, 6), 16)
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+
+        const th = issue.toneHex.replace('#', '')
+        const tr = parseInt(th.slice(0, 2), 16)
+        const tg = parseInt(th.slice(2, 4), 16)
+        const tb = parseInt(th.slice(4, 6), 16)
+        const toneLuminance = (0.299 * tr + 0.587 * tg + 0.114 * tb) / 255
+
+        const isBlackBased = luminance < toneLuminance
+
+        const coreVar = `--recursica-brand-themes-${issue.mode}-palettes-core-${isBlackBased ? 'black' : 'white'}`
+        const resolved = getComputedStyle(document.documentElement).getPropertyValue(coreVar).trim()
+
+        if (resolved && resolved.startsWith('#')) {
+            const label = formatColorLabel(resolved)
+            if (label) return label
+        }
+
+        return issue.onToneHex
+    } catch {
+        return issue.onToneHex
+    }
+}
+
+/**
  * Build an href for an issue's target page, including ?mode= query param.
  */
 function getIssueHref(issue: ComplianceIssue): string {
@@ -415,7 +458,7 @@ export default function CompliancePage() {
 
                                             {/* Issue swatch (current) — always show */}
                                             <td>
-                                                <Tooltip label={formatColorLabel(issue.toneHex)}>
+                                                <Tooltip label={formatOnToneLabel(issue)}>
                                                     <div
                                                         className="compliance-table__swatch"
                                                         style={{ backgroundColor: issue.toneHex }}
@@ -428,7 +471,7 @@ export default function CompliancePage() {
                                             {/* Fix swatch (suggested) — only show when there's a valid suggestion */}
                                             <td>
                                                 {issue.suggestion && suggestionPasses ? (
-                                                    <Tooltip label={formatColorLabel(issue.suggestion.suggestedHex)}>
+                                                    <Tooltip label={formatColorLabel(issue.suggestion.suggestedHex) || issue.suggestion.suggestedHex}>
                                                         <div
                                                             className="compliance-table__swatch"
                                                             style={{ backgroundColor: issue.toneHex }}
