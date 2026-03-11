@@ -169,9 +169,16 @@ export function PaletteEmphasisCell({
     const blackLowPasses = blackLowContrast >= AA
     const whiteLowPasses = whiteLowContrast >= AA
 
-    // Per-emphasis failure flags
-    const highFailsAA = !blackHighPasses && !whiteHighPasses
-    const lowFailsAA = !blackLowPasses && !whiteLowPasses
+    // Check current on-tone at each emphasis level individually
+    const currentHighBlended = blendHexWithOpacity(onToneHex, toneHex, highOpacity) ?? onToneHex
+    const currentLowBlended = blendHexWithOpacity(onToneHex, toneHex, lowOpacity) ?? onToneHex
+    const currentHighPasses = contrastRatio(toneHex, currentHighBlended) >= AA
+    const currentLowPasses = contrastRatio(toneHex, currentLowBlended) >= AA
+
+    // Per-emphasis failure flags: a cell fails ONLY if black, white, AND the current on-tone all fail
+    // This prevents false-positive warnings when compliance fixes use non-black/non-white tokens
+    const highFailsAA = !currentHighPasses && !blackHighPasses && !whiteHighPasses
+    const lowFailsAA = !currentLowPasses && !blackLowPasses && !whiteLowPasses
 
     // For current emphasis level
     const blackBlended = blendHexWithOpacity(black, toneHex, opacity) ?? black

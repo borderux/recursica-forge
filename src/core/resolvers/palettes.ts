@@ -385,14 +385,29 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
                   }
                 }
               }
-            } else {
-              // Not a brand reference, try to resolve as theme reference
-              const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
-              if (typeof onTone === 'string' && onTone.startsWith('var(')) {
-                onToneVar = onTone
+            } else if (parsed && parsed.type === 'token') {
+              // Handle token references like {tokens.colors.scale-01.000}
+              // These are set by compliance fixes that point directly to token values
+              const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
+              if (cssVar) {
+                onToneVar = cssVar
               } else {
-                // Default to black if unknown
+                // Default to black if token can't be resolved
                 onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+              }
+            } else {
+              // Not a brand or token reference, try to resolve as theme reference
+              const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
+              if (cssVar) {
+                onToneVar = cssVar
+              } else {
+                const onTone = resolveThemeRef({ collection: 'Theme', name: onToneName })
+                if (typeof onTone === 'string' && onTone.startsWith('var(')) {
+                  onToneVar = onTone
+                } else {
+                  // Default to black if unknown
+                  onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+                }
               }
             }
           }
@@ -402,29 +417,12 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
           onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
         }
 
-        // Only set on-tone CSS variable if it doesn't already exist with a valid value
-        // This preserves AA-compliant values set by AA compliance checks
-        // On-tone vars should never be overwritten by recomputeAndApplyAll after initial load
+        // Always set on-tone CSS variable from theme JSON - theme JSON is the source of truth.
+        // Compliance fixes persist token references (e.g. {tokens.colors.scale-01.000}) that differ
+        // from the initial core-white/core-black references. We must always use the theme JSON value
+        // to ensure compliance fixes survive navigation and recomputation.
         const onToneCssVarName = `--recursica-brand-themes-${modeLower}-palettes-${pk}-${cssLevel}-on-tone`
-        let shouldSetOnTone = true
-
-        if (typeof document !== 'undefined') {
-          // Use readCssVar to get the actual CSS variable value (var() reference), not the resolved hex color
-          // This is critical: getComputedStyle returns resolved values like #fcfcfc, but we need the var() reference
-          const existingValue = readCssVar(onToneCssVarName)
-          // If on-tone var already exists and is a valid var() reference to core-white or core-black, preserve it
-          if (existingValue && existingValue.trim() !== '' &&
-            existingValue.startsWith('var(') &&
-            (existingValue.includes('core-white') || existingValue.includes('core-black'))) {
-            // Don't overwrite existing AA-compliant value - skip setting from JSON
-            shouldSetOnTone = false
-          }
-        }
-
-        // Only set from JSON if no existing valid value
-        if (shouldSetOnTone) {
-          vars[`${scope}-on-tone`] = onToneVar
-        }
+        vars[`${scope}-on-tone`] = onToneVar
       }
       // Do not emit per-level palette emphasis vars; consumers should reference brand-level text emphasis tokens directly
     })

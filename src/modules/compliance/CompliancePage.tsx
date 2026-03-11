@@ -182,8 +182,10 @@ export default function CompliancePage() {
         // Store the original value before applying the fix
         const style = getComputedStyle(document.documentElement)
         const originalValue = style.getPropertyValue(issue.suggestion.targetCssVar).trim()
-        applySuggestion(issue.id)
-        setFixedMap(prev => ({ ...prev, [issue.id]: originalValue }))
+        const success = applySuggestion(issue.id)
+        if (success) {
+            setFixedMap(prev => ({ ...prev, [issue.id]: originalValue }))
+        }
     }
 
     const handleUndo = (issue: ComplianceIssue) => {

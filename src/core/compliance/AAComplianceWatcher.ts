@@ -87,6 +87,28 @@ export class AAComplianceWatcher {
     const toneHex = resolveCssVarToHex(toneValue, this.tokenIndex)
     if (!toneHex) return
 
+    // EARLY EXIT: If the current on-tone already passes AA at both emphasis levels, don't overwrite.
+    // This preserves compliance fixes that were applied by ComplianceService and persisted to theme JSON.
+    const currentOnToneValue = readCssVar(onToneVar)
+    if (currentOnToneValue) {
+      const currentOnToneHex = resolveCssVarToHex(currentOnToneValue, this.tokenIndex)
+      if (currentOnToneHex) {
+        const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${mode}-text-emphasis-high`)
+        const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${mode}-text-emphasis-low`)
+        const AA = 4.5
+
+        const highBlended = blendHexWithOpacity(currentOnToneHex, toneHex, highEmphasisOpacity)
+        const lowBlended = blendHexWithOpacity(currentOnToneHex, toneHex, lowEmphasisOpacity)
+
+        const highPasses = contrastRatio(toneHex, highBlended) >= AA
+        const lowPasses = contrastRatio(toneHex, lowBlended) >= AA
+
+        if (highPasses && lowPasses) {
+          return // Current on-tone already passes — don't overwrite
+        }
+      }
+    }
+
     // Read actual core black and white colors from CSS variables (not hardcoded)
     const coreBlackVar = `--recursica-brand-themes-${mode}-palettes-core-black`
     const coreWhiteVar = `--recursica-brand-themes-${mode}-palettes-core-white`

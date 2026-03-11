@@ -531,46 +531,34 @@ class VarsStore {
     }) as EventListener
     window.addEventListener('cssVarsUpdated', onCssVarsUpdated)
 
-    // Ensure AA compliance check runs on initial load once watcher is ready
-    if (!this.hasRunInitialReset) {
-      this.hasRunInitialReset = true
-      // Use setTimeout to allow async operations (like initAAWatcher) to complete
-      setTimeout(() => {
-        if (this.aaWatcher && !this.hasRunInitialAA) {
-          this.aaWatcher.checkAllPaletteOnTones()
-          this.updateCoreColorOnTonesForAA()
-        }
-      }, 300)
-    }
+    // AA compliance is handled solely by initAAWatcher — no additional timeout needed here
   }
 
   private initAAWatcher() {
     // Initialize AA compliance utility (no watchers - trigger-based only)
     this.aaWatcher = new AAComplianceWatcher(this.state.tokens, this.state.theme)
 
-    // After CSS variables are set, check all palette and core color on-tone values for AA compliance
-    // This ensures on-tone values are correct on app load, regardless of which route the user starts on
-
-    const runAACompliance = (trigger: string = 'initial load') => {
+    // Single deferred AA compliance check after CSS vars are set.
+    // Uses a simple delay to ensure recomputeAndApplyAll has completed.
+    // The early-exit check in updatePaletteOnTone prevents overwriting existing compliant values.
+    const runAACompliance = () => {
       if (!this.aaWatcher || this.hasRunInitialAA) return
 
       // Wait for recompute to finish if it's in progress
       if (this.isRecomputing) {
-        // Retry after a short delay
-        setTimeout(() => runAACompliance(trigger), 200)
+        setTimeout(() => runAACompliance(), 200)
         return
       }
 
-      // Mark as run to prevent multiple executions
       this.hasRunInitialAA = true
 
       // Suppress CSS var events during AA compliance check to prevent triggering recomputation
       suppressCssVarEvents(true)
 
-      // Check all palette on-tones - updates CSS vars only, never JSON
+      // Check all palette on-tones — skips values that already pass AA
       this.aaWatcher.checkAllPaletteOnTones()
 
-      // Also check core color on-tones - updates CSS vars only, never JSON
+      // Also check core color on-tones — skips values that already pass AA
       this.updateCoreColorOnTonesForAA()
 
       // Clear pending CSS vars and re-enable events
@@ -580,24 +568,8 @@ class VarsStore {
       }, 100)
     }
 
-    // Listen for cssVarsUpdated event to know when initial recompute is done
-    const onCssVarsUpdated = () => {
-      if (!this.hasRunInitialAA) {
-        // Run AA compliance after CSS vars are updated
-        setTimeout(() => runAACompliance('initial load (after cssVarsUpdated event)'), 100)
-      }
-    }
-
-    // Listen for the event (will fire after recomputeAndApplyAll completes)
-    // Keep listener active so it can handle resetAll() calls
-    window.addEventListener('cssVarsUpdated', onCssVarsUpdated as any)
-
-    // Also set a fallback timeout in case the event doesn't fire (only on initial load)
-    setTimeout(() => {
-      if (!this.hasRunInitialAA) {
-        runAACompliance('initial load (fallback timeout)')
-      }
-    }, 2000)
+    // Run once after CSS vars are settled
+    setTimeout(() => runAACompliance(), 500)
   }
 
   getState(): VarsState { return this.state }
@@ -1199,8 +1171,20 @@ class VarsStore {
     // This prevents duplicate runs - the event from recomputeAndApplyAll will handle it
     if (this.aaWatcher) {
       this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
-      // Reset flag so cssVarsUpdated event can trigger AA compliance check
+      // Reset flag and re-run AA compliance on the fresh state
       this.hasRunInitialAA = false
+      setTimeout(() => {
+        if (this.aaWatcher && !this.hasRunInitialAA) {
+          this.hasRunInitialAA = true
+          suppressCssVarEvents(true)
+          this.aaWatcher.checkAllPaletteOnTones()
+          this.updateCoreColorOnTonesForAA()
+          setTimeout(() => {
+            clearPendingCssVars()
+            suppressCssVarEvents(false)
+          }, 100)
+        }
+      }, 300)
     }
 
     // Notify all listeners that state has been reset

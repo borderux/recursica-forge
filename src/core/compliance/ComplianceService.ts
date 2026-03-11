@@ -145,15 +145,14 @@ class ComplianceServiceImpl {
         const issue = this.issues.find(i => i.id === issueId)
         if (!issue || !issue.suggestion) return false
 
+        const { targetCssVar, suggestedValue } = issue.suggestion
+
         const tokens = this.getTokens()
-        updateCssVar(issue.suggestion.targetCssVar, issue.suggestion.suggestedValue, tokens)
+        updateCssVar(targetCssVar, suggestedValue, tokens)
 
         // Persist: update the theme JSON so the fix survives navigation
         if (this.setTheme && this.getTheme) {
-            this.persistFixToThemeJson(
-                issue.suggestion.targetCssVar,
-                issue.suggestion.suggestedValue
-            )
+            this.persistFixToThemeJson(targetCssVar, suggestedValue)
         }
 
         // Re-scan after applying fix
@@ -839,33 +838,12 @@ class ComplianceServiceImpl {
                 return
             }
 
-            // Parse palette on-tone vars:
-            // --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-on-tone
-            const paletteMatch = cssVar.match(
-                /--recursica-brand-themes-(light|dark)-palettes-(.+)-(\d{3,4}|primary|default)-on-tone$/
-            )
-            if (paletteMatch) {
-                const [, mode, paletteKey, level] = paletteMatch
-                const themes = root?.themes || root
-                if (!themes?.[mode]?.palettes?.[paletteKey]?.[level]) {
-                    console.warn(`[persistFixToThemeJson] Palette path not found: ${mode}.palettes.${paletteKey}.${level}`)
-                    return
-                }
+            // IMPORTANT: Check core color regexes BEFORE the greedy palette regex.
+            // The palette regex uses (.+) which would incorrectly capture
+            // core-interactive vars (e.g. "core-interactive" as paletteKey, "default" as level).
 
-                if (!themes[mode].palettes[paletteKey][level].color) {
-                    themes[mode].palettes[paletteKey][level].color = {}
-                }
-                themes[mode].palettes[paletteKey][level].color['on-tone'] = {
-                    $type: 'color',
-                    $value: jsonValue
-                }
-                this.setTheme!(themeCopy)
-                return
-            }
-
-            // Parse core color on-tone vars:
-            // Simple: --recursica-brand-themes-{mode}-palettes-core-{colorKey}-on-tone
-            // Interactive: --recursica-brand-themes-{mode}-palettes-core-interactive-{variant}-on-tone
+            // Parse core color on-tone vars (interactive):
+            // --recursica-brand-themes-{mode}-palettes-core-interactive-{variant}-on-tone
             const coreInteractiveMatch = cssVar.match(
                 /--recursica-brand-themes-(light|dark)-palettes-core-interactive-(default|hover)-on-tone$/
             )
@@ -885,6 +863,8 @@ class ComplianceServiceImpl {
                 return
             }
 
+            // Parse core color on-tone vars (simple):
+            // --recursica-brand-themes-{mode}-palettes-core-{colorKey}-on-tone
             const coreMatch = cssVar.match(
                 /--recursica-brand-themes-(light|dark)-palettes-core-([a-z]+)-on-tone$/
             )
@@ -909,6 +889,30 @@ class ComplianceServiceImpl {
                     }
                 }
                 colorObj['on-tone'] = {
+                    $type: 'color',
+                    $value: jsonValue
+                }
+                this.setTheme!(themeCopy)
+                return
+            }
+
+            // Parse palette on-tone vars (AFTER core regexes to avoid false matches):
+            // --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-on-tone
+            const paletteMatch = cssVar.match(
+                /--recursica-brand-themes-(light|dark)-palettes-(.+)-(\d{3,4}|primary|default)-on-tone$/
+            )
+            if (paletteMatch) {
+                const [, mode, paletteKey, level] = paletteMatch
+                const themes = root?.themes || root
+                if (!themes?.[mode]?.palettes?.[paletteKey]?.[level]) {
+                    console.warn(`[persistFixToThemeJson] Palette path not found: ${mode}.palettes.${paletteKey}.${level}`)
+                    return
+                }
+
+                if (!themes[mode].palettes[paletteKey][level].color) {
+                    themes[mode].palettes[paletteKey][level].color = {}
+                }
+                themes[mode].palettes[paletteKey][level].color['on-tone'] = {
                     $type: 'color',
                     $value: jsonValue
                 }
