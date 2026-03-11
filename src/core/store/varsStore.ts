@@ -402,87 +402,11 @@ class VarsStore {
     )
 
     // React to type choice changes and palette changes (centralized)
-    // Debounce palette var changes to prevent infinite loops
-    const onTypeChoices = () => {
-      // Always trigger recompute, even if one is in progress
-      // The recompute will read the latest choices from localStorage
-      // Use a small delay to ensure any in-progress recompute completes first
-      if (this.isRecomputing) {
-        // Wait for current recompute to finish, then recompute again with new choices
-        const retry = () => {
-          if (!this.isRecomputing) {
-            this.bumpVersion()
-            this.recomputeAndApplyAll()
-          } else {
-            setTimeout(retry, 50)
-          }
-        }
-        setTimeout(retry, 50)
-        return
-      }
-      this.bumpVersion()
-      this.recomputeAndApplyAll()
-    }
-    let paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
-    const onPaletteVarsChanged = () => {
-      // Skip if already recomputing to prevent infinite loops
-      if (this.isRecomputing) return
-
-      // Debounce to prevent loops - only recompute if no other recompute is pending
-      if (paletteVarsChangedTimeout) {
-        clearTimeout(paletteVarsChangedTimeout)
-      }
-      paletteVarsChangedTimeout = setTimeout(() => {
-        // Double-check we're not recomputing (might have started during timeout)
-        if (this.isRecomputing) {
-          paletteVarsChangedTimeout = null
-          return
-        }
-        // Don't bump version here - recomputeAndApplyAll doesn't change state, only CSS vars
-        // Only bump version if state actually changes (tokens, theme, etc.)
-        this.recomputeAndApplyAll()
-        paletteVarsChangedTimeout = null
-      }, 100) // Small delay to batch multiple rapid changes
-    }
-    const onPaletteFamilyChanged = () => {
-      if (this.isRecomputing) return // Prevent recursive calls
-      this.bumpVersion()
-      this.recomputeAndApplyAll()
-    }
-    // Note: We no longer listen to font-loaded events to avoid loops
-    // CSS variables are set with font names directly, fonts load asynchronously
-    window.addEventListener('typeChoicesChanged', onTypeChoices as any)
-    // Recompute layers and dependent CSS whenever palette CSS vars or families change
-    window.addEventListener('paletteVarsChanged', onPaletteVarsChanged as any)
-    window.addEventListener('paletteFamilyChanged', onPaletteFamilyChanged as any)
-
-    // Listen for token changes to update core color on-tones
-    const onTokenChanged = ((ev: CustomEvent) => {
-      // Skip if already recomputing to prevent infinite loops
-      if (this.isRecomputing) return
-
-      const detail = ev.detail
-      if (!detail) return
-      const tokenName = detail.name
-      if (tokenName && typeof tokenName === 'string' && tokenName.startsWith('color/')) {
-        const parts = tokenName.split('/')
-        if (parts.length >= 3) {
-          const family = parts[1]
-          const level = parts[2]
-          if (this.isCoreColorToken(family, level)) {
-            // Delay to ensure CSS vars are updated first
-            setTimeout(() => {
-              // Double-check we're not recomputing before updating
-              if (!this.isRecomputing) {
-                // AA compliance is now manual - removed automatic call
-                // this.updateCoreColorOnTonesForAA()
-              }
-            }, 100)
-          }
-        }
-      }
-    }) as EventListener
-    window.addEventListener('tokenOverridesChanged', onTokenChanged)
+    // Phase 2 cleanup: removed store-level listeners for typeChoicesChanged, paletteVarsChanged,
+    // paletteFamilyChanged, tokenOverridesChanged, and cssVarsUpdated.
+    // - typeChoicesChanged/paletteFamilyChanged: dispatchers now call store.recomputeAndApplyAll() directly
+    // - paletteVarsChanged: dispatchers use updateCssVar() directly; setTheme() already triggers recompute
+    // - tokenOverridesChanged/cssVarsUpdated: listeners were dead code (actions commented out)
 
     // Listen for opacity changes that require AA compliance recheck
     // Updates CSS vars only, never JSON
@@ -501,37 +425,6 @@ class VarsStore {
       }
     }
     window.addEventListener('recheckAllPaletteOnTones', onOpacityChanged)
-
-    // Listen for CSS variable updates to update core color on-tones when base color tones change
-    const onCssVarsUpdated = ((ev: CustomEvent) => {
-      // Skip if already recomputing to prevent infinite loops
-      if (this.isRecomputing) return
-
-      const detail = ev.detail
-      if (!detail || !detail.cssVars) return
-
-      const cssVars = Array.isArray(detail.cssVars) ? detail.cssVars : [detail.cssVars]
-      const baseColorTonePattern = /--recursica-brand-themes-(light|dark)-palettes-core-(black|white|alert|warning|success)-tone$/
-
-      // Check if any updated CSS var is a base color tone
-      const hasBaseColorToneUpdate = cssVars.some((cssVar: string) => {
-        return typeof cssVar === 'string' && baseColorTonePattern.test(cssVar)
-      })
-
-      if (hasBaseColorToneUpdate) {
-        // Delay to ensure CSS vars are fully updated first
-        setTimeout(() => {
-          // Double-check we're not recomputing before updating
-          if (!this.isRecomputing) {
-            // AA compliance is now manual - removed automatic call
-            // this.updateCoreColorOnTonesForAA()
-          }
-        }, 100)
-      }
-    }) as EventListener
-    window.addEventListener('cssVarsUpdated', onCssVarsUpdated)
-
-    // AA compliance is handled solely by initAAWatcher — no additional timeout needed here
   }
 
   private initAAWatcher() {
@@ -605,7 +498,7 @@ class VarsStore {
     }
   }
 
-  private bumpVersion() { this.state = { ...this.state, version: (this.state.version || 0) + 1 }; this.emit() }
+  public bumpVersion() { this.state = { ...this.state, version: (this.state.version || 0) + 1 }; this.emit() }
 
   setTokens(next: JsonLike) { this.writeState({ tokens: next }) }
   setTheme(next: JsonLike) { this.writeState({ theme: next }) }
