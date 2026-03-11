@@ -13,6 +13,7 @@ import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio, blendHexWithOpacity } from '../../modules/theme/contrastUtil'
 import { findColorFamilyAndLevel, getAllFamilyColors, hexToCssVarRef } from './layerColorStepping'
 import { updateCssVar } from '../css/updateCssVar'
+import { getVarsStore } from '../store/varsStore'
 
 // ─── Types ───
 
@@ -123,7 +124,7 @@ class ComplianceServiceImpl {
         this.scanTimeout = setTimeout(() => {
             this.runFullScan()
             this.scanTimeout = null
-        }, 150)
+        }, 500)
     }
 
     getIssues(): ComplianceIssue[] {
@@ -136,27 +137,27 @@ class ComplianceServiceImpl {
 
     /**
      * Apply a single suggested fix.
-     * Updates both the CSS var (for immediate visual effect) and
-     * the theme JSON (so the change persists across navigation).
+     * Writes the fix directly to CSS vars + theme JSON via writeCssVarsDirect.
+     * No recompute is triggered — writes are terminal.
      */
     applySuggestion(issueId: string): boolean {
-        if (!this.getTokens) return false
-
         const issue = this.issues.find(i => i.id === issueId)
         if (!issue || !issue.suggestion) return false
 
         const { targetCssVar, suggestedValue } = issue.suggestion
 
-        const tokens = this.getTokens()
-        updateCssVar(targetCssVar, suggestedValue, tokens)
+        // Build CSS var update
+        const cssVarUpdates: Record<string, string> = { [targetCssVar]: suggestedValue }
 
-        // Persist: update the theme JSON so the fix survives navigation
+        // Build theme JSON update
+        let themeUpdate: JsonLike | undefined
         if (this.setTheme && this.getTheme) {
-            this.persistFixToThemeJson(targetCssVar, suggestedValue)
+            themeUpdate = this.buildThemeJsonUpdate(targetCssVar, suggestedValue)
         }
 
-        // Re-scan after applying fix
-        this.triggerScan()
+        // Write directly — no recompute trigger
+        getVarsStore().writeCssVarsDirect(cssVarUpdates, themeUpdate)
+
         return true
     }
 
@@ -165,38 +166,63 @@ class ComplianceServiceImpl {
      * Called from CompliancePage when the user undoes a fix.
      */
     persistUndo(cssVar: string, originalValue: string) {
-        this.persistFixToThemeJson(cssVar, originalValue)
-        this.triggerScan()
+        const cssVarUpdates: Record<string, string> = { [cssVar]: originalValue }
+        let themeUpdate: JsonLike | undefined
+        if (this.setTheme && this.getTheme) {
+            themeUpdate = this.buildThemeJsonUpdate(cssVar, originalValue)
+        }
+        getVarsStore().writeCssVarsDirect(cssVarUpdates, themeUpdate)
     }
 
     /**
      * Apply all suggested fixes.
+     * Batches all fixes into a single writeCssVarsDirect call for efficiency.
      */
     applyAllSuggestions(): number {
-        if (!this.getTokens) return 0
-
-        const tokens = this.getTokens()
         let applied = 0
+        const cssVarUpdates: Record<string, string> = {}
 
         for (const issue of this.issues) {
             if (issue.suggestion) {
-                updateCssVar(issue.suggestion.targetCssVar, issue.suggestion.suggestedValue, tokens)
-
-                // Persist: update the theme JSON so the fix survives navigation
-                if (this.setTheme && this.getTheme) {
-                    this.persistFixToThemeJson(
-                        issue.suggestion.targetCssVar,
-                        issue.suggestion.suggestedValue
-                    )
-                }
-
+                cssVarUpdates[issue.suggestion.targetCssVar] = issue.suggestion.suggestedValue
                 applied++
             }
         }
 
-        // Re-scan after applying fixes
-        this.triggerScan()
+        if (applied > 0) {
+            // Build a single theme JSON update with all fixes
+            let themeUpdate: JsonLike | undefined
+            if (this.setTheme && this.getTheme) {
+                themeUpdate = this.buildBatchThemeJsonUpdate(cssVarUpdates)
+            }
+
+            // Write all fixes directly — no recompute trigger
+            getVarsStore().writeCssVarsDirect(cssVarUpdates, themeUpdate)
+        }
+
         return applied
+    }
+
+    /**
+     * Build a theme JSON copy with a single fix applied.
+     */
+    private buildThemeJsonUpdate(cssVar: string, value: string): JsonLike | undefined {
+        if (!this.getTheme) return undefined
+        const themeCopy = JSON.parse(JSON.stringify(this.getTheme()))
+        this.applyFixToThemeCopy(themeCopy, cssVar, value)
+        return themeCopy
+    }
+
+    /**
+     * Build a theme JSON copy with multiple fixes applied.
+     */
+    private buildBatchThemeJsonUpdate(cssVarUpdates: Record<string, string>): JsonLike | undefined {
+        if (!this.getTheme) return undefined
+        const themeCopy = JSON.parse(JSON.stringify(this.getTheme()))
+        for (const [cssVar, value] of Object.entries(cssVarUpdates)) {
+            this.applyFixToThemeCopy(themeCopy, cssVar, value)
+        }
+        return themeCopy
     }
 
     // ─── Private scan methods ───
@@ -817,6 +843,176 @@ class ComplianceServiceImpl {
         }
 
         return null
+    }
+
+    /**
+     * Apply a compliance fix to a theme JSON copy (in-place mutation).
+     * Maps a CSS var name like `--recursica-brand-themes-light-palettes-palette-1-600-on-tone`
+     * to the theme JSON path and updates the value.
+     * Does NOT call setTheme — caller handles persistence via writeCssVarsDirect.
+     */
+    private applyFixToThemeCopy(themeCopy: any, cssVar: string, value: string) {
+        try {
+            const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+
+            // Resolve the value to a theme JSON $value reference
+            const jsonValue = this.cssVarRefToJsonRef(value, cssVar)
+            if (!jsonValue) {
+                return
+            }
+
+            // IMPORTANT: Check core color regexes BEFORE the greedy palette regex.
+            // The palette regex uses (.+) which would incorrectly capture
+            // core-interactive vars (e.g. "core-interactive" as paletteKey, "default" as level).
+
+            // Parse core color on-tone vars (interactive):
+            // --recursica-brand-themes-{mode}-palettes-core-interactive-{variant}-on-tone
+            const coreInteractiveMatch = cssVar.match(
+                /--recursica-brand-themes-(light|dark)-palettes-core-interactive-(default|hover)-on-tone$/
+            )
+            if (coreInteractiveMatch) {
+                const [, mode, variant] = coreInteractiveMatch
+                const themes = root?.themes || root
+                const coreKey = themes?.[mode]?.palettes?.['core-colors'] ? 'core-colors' : 'core'
+                if (!themes?.[mode]?.palettes?.[coreKey]?.interactive?.[variant]) return
+                themes[mode].palettes[coreKey].interactive[variant]['on-tone'] = {
+                    $type: 'color',
+                    $value: jsonValue
+                }
+                return
+            }
+
+            // Parse core color on-tone vars (simple):
+            // --recursica-brand-themes-{mode}-palettes-core-{colorKey}-on-tone
+            const coreMatch = cssVar.match(
+                /--recursica-brand-themes-(light|dark)-palettes-core-([a-z]+)-on-tone$/
+            )
+            if (coreMatch) {
+                const [, mode, colorKey] = coreMatch
+                const themes = root?.themes || root
+                const coreKey = themes?.[mode]?.palettes?.['core-colors'] ? 'core-colors' : 'core'
+                const colorObj = themes?.[mode]?.palettes?.[coreKey]?.[colorKey]
+                if (!colorObj) return
+
+                // Core colors have on-tone at the top level (e.g., success.on-tone),
+                // NOT nested under a 'color' sub-object. The CSS generator reads from
+                // the top-level property, so always write there.
+                // Clean up any spurious 'color' sub-object from previous bad writes
+                if (colorObj.color && colorObj.color['on-tone']) {
+                    delete colorObj.color['on-tone']
+                    if (Object.keys(colorObj.color).length === 0) {
+                        delete colorObj.color
+                    }
+                }
+                colorObj['on-tone'] = {
+                    $type: 'color',
+                    $value: jsonValue
+                }
+                return
+            }
+
+            // Parse palette on-tone vars (AFTER core regexes to avoid false matches):
+            // --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-on-tone
+            const paletteMatch = cssVar.match(
+                /--recursica-brand-themes-(light|dark)-palettes-(.+)-(\d{3,4}|primary|default)-on-tone$/
+            )
+            if (paletteMatch) {
+                const [, mode, paletteKey, level] = paletteMatch
+                const themes = root?.themes || root
+                if (!themes?.[mode]?.palettes?.[paletteKey]?.[level]) return
+
+                if (!themes[mode].palettes[paletteKey][level].color) {
+                    themes[mode].palettes[paletteKey][level].color = {}
+                }
+                themes[mode].palettes[paletteKey][level].color['on-tone'] = {
+                    $type: 'color',
+                    $value: jsonValue
+                }
+                return
+            }
+
+            // Parse layer text/interactive vars:
+            // --recursica-brand-themes-{mode}-layers-layer-{n}-elements-{subpath}
+            // e.g., --recursica-brand-themes-light-layers-layer-0-elements-text-warning
+            //       → brand.themes.light.layers.layer-0.elements.text.warning
+            const layerMatch = cssVar.match(
+                /--recursica-brand-themes-(light|dark)-layers-(layer-\d+)-elements-(.+)$/
+            )
+            if (layerMatch) {
+                const [, mode, layer, subpath] = layerMatch
+                const themes = root?.themes || root
+                if (!themes?.[mode]?.layers?.[layer]?.elements) return
+
+                // Map CSS var subpath to JSON keys
+                // Known mappings (CSS hyphen-separated → JSON nested):
+                //   text-color → ["text", "color"]
+                //   text-warning → ["text", "warning"]
+                //   text-success → ["text", "success"]
+                //   text-alert → ["text", "alert"]
+                //   interactive-tone → ["interactive", "tone"]
+                //   interactive-on-tone → ["interactive", "on-tone"]
+                const jsonKeys = this.cssSubpathToJsonKeys(subpath)
+                if (!jsonKeys) return
+
+                let target: any = themes[mode].layers[layer].elements
+                for (let i = 0; i < jsonKeys.length - 1; i++) {
+                    if (!target[jsonKeys[i]]) target[jsonKeys[i]] = {}
+                    target = target[jsonKeys[i]]
+                }
+                const lastKey = jsonKeys[jsonKeys.length - 1]
+                target[lastKey] = { $type: 'color', $value: jsonValue }
+
+                // When fixing interactive-color (which maps to interactive.tone),
+                // also remove the legacy interactive.color property since buildLayerVars
+                // gives interactive.color priority over interactive.tone
+                if (subpath === 'interactive-color') {
+                    const elements = themes[mode].layers[layer].elements
+                    if (elements?.interactive?.color) {
+                        delete elements.interactive.color
+                    }
+
+                    // Also sync interactive-tone CSS var — the compliance scan reads
+                    // interactive-tone (not interactive-color) for the on-tone check,
+                    // so we must update it immediately to prevent false positives.
+                    try {
+                        if (this.getTokens) {
+                            const tokens = this.getTokens()
+                            const toneVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-interactive-tone`
+                            updateCssVar(toneVar, value, tokens)
+
+                            // Also compute and persist a compliant on-tone for the new tone.
+                            const tokenIndex = buildTokenIndex(tokens)
+                            const newToneHex = resolveCssVarToHex(value, tokenIndex)
+                            if (newToneHex) {
+                                const onToneVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-interactive-on-tone`
+                                const onToneValue = readCssVar(onToneVar)
+                                const onToneHex = onToneValue ? resolveCssVarToHex(onToneValue, tokenIndex) : null
+
+                                const currentRatio = onToneHex ? contrastRatio(newToneHex, onToneHex) : 0
+                                if (currentRatio < AA_THRESHOLD) {
+                                    const onToneSuggestion = this.generateSteppedColorSuggestion(
+                                        onToneHex || '#ffffff', newToneHex, onToneVar, tokens, mode as 'light' | 'dark'
+                                    )
+                                    if (onToneSuggestion) {
+                                        if (!elements.interactive) elements.interactive = {}
+                                        const onToneJsonValue = this.cssVarRefToJsonRef(onToneSuggestion.suggestedValue, onToneVar)
+                                        if (onToneJsonValue) {
+                                            elements.interactive['on-tone'] = { $type: 'color', $value: onToneJsonValue }
+                                        }
+                                        updateCssVar(onToneVar, onToneSuggestion.suggestedValue, tokens)
+                                    }
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('[persistFixToThemeJson] Failed to sync tone/on-tone:', err)
+                    }
+                }
+                return
+            }
+        } catch (err) {
+            // Silently skip — caller will handle the overall operation
+        }
     }
 
     /**

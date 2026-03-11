@@ -207,8 +207,8 @@ class VarsStore {
   private isRecomputing: boolean = false
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
   private hasRunInitialReset: boolean = false
-  private hasRunInitialAA: boolean = false
   private uikitSaveTimeout: ReturnType<typeof setTimeout> | null = null
+  private complianceScanTimeout: ReturnType<typeof setTimeout> | null = null
 
   constructor() {
     const tokensRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
@@ -384,93 +384,38 @@ class VarsStore {
       // If font URL map population fails, fonts will still load with default URLs
     }
 
-    // Initial CSS apply (Light mode palettes + layers + typography)
+    // Initialize AA compliance watcher BEFORE recomputeAndApplyAll,
+    // since the pipeline stage uses it synchronously.
+    this.aaWatcher = new AAComplianceWatcher(this.state.tokens, this.state.theme)
+
+    // Initial CSS apply (includes AA compliance pipeline stage)
     this.recomputeAndApplyAll()
-
-    // AA compliance is now manual via header button - removed automatic call
-    // this.updateCoreColorOnTonesForAA()
-
-    // Initialize AA compliance watcher
-    this.initAAWatcher()
 
     // Connect compliance service to token/theme getters
     const complianceService = getComplianceService()
     complianceService.connect(
       () => this.state.tokens,
       () => this.state.theme,
-      (theme: JsonLike) => this.writeState({ theme }, true) // skipRecompute: persist only, don't re-apply
+      (theme: JsonLike) => this.writeState({ theme }) // persist only — writeState never triggers recompute
     )
 
-    // React to type choice changes and palette changes (centralized)
-    // Phase 2 cleanup: removed store-level listeners for typeChoicesChanged, paletteVarsChanged,
-    // paletteFamilyChanged, tokenOverridesChanged, and cssVarsUpdated.
-    // - typeChoicesChanged/paletteFamilyChanged: dispatchers now call store.recomputeAndApplyAll() directly
-    // - paletteVarsChanged: dispatchers use updateCssVar() directly; setTheme() already triggers recompute
-    // - tokenOverridesChanged/cssVarsUpdated: listeners were dead code (actions commented out)
-
-    // Listen for opacity changes that require AA compliance recheck
-    // Updates CSS vars only, never JSON
-    const onOpacityChanged = () => {
-      if (this.aaWatcher && !this.isRecomputing) {
-        // Suppress CSS var events during AA compliance check
-        suppressCssVarEvents(true)
-
-        this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
-        this.aaWatcher.checkAllPaletteOnTones()
-
-        setTimeout(() => {
-          clearPendingCssVars()
-          suppressCssVarEvents(false)
-        }, 100)
-      }
-    }
-    window.addEventListener('recheckAllPaletteOnTones', onOpacityChanged)
+    // Compliance is read-only — it only flags issues, never modifies CSS vars or JSON.
+    // A debounced compliance scan runs automatically after recomputeAndApplyAll() and writeCssVarsDirect().
   }
 
-  private initAAWatcher() {
-    // Initialize AA compliance utility (no watchers - trigger-based only)
-    this.aaWatcher = new AAComplianceWatcher(this.state.tokens, this.state.theme)
-
-    // Single deferred AA compliance check after CSS vars are set.
-    // Uses a simple delay to ensure recomputeAndApplyAll has completed.
-    // The early-exit check in updatePaletteOnTone prevents overwriting existing compliant values.
-    const runAACompliance = () => {
-      if (!this.aaWatcher || this.hasRunInitialAA) return
-
-      // Wait for recompute to finish if it's in progress
-      if (this.isRecomputing) {
-        setTimeout(() => runAACompliance(), 200)
-        return
-      }
-
-      this.hasRunInitialAA = true
-
-      // Suppress CSS var events during AA compliance check to prevent triggering recomputation
-      suppressCssVarEvents(true)
-
-      // Check all palette on-tones — skips values that already pass AA
-      this.aaWatcher.checkAllPaletteOnTones()
-
-      // Also check core color on-tones — skips values that already pass AA
-      this.updateCoreColorOnTonesForAA()
-
-      // Clear pending CSS vars and re-enable events
-      setTimeout(() => {
-        clearPendingCssVars()
-        suppressCssVarEvents(false)
-      }, 100)
-    }
-
-    // Run once after CSS vars are settled
-    setTimeout(() => runAACompliance(), 500)
-  }
+  // initAAWatcher is no longer needed — aaWatcher is created in constructor
+  // and compliance runs synchronously inside recomputeAndApplyAll().
 
   getState(): VarsState { return this.state }
   subscribe(listener: Listener) { this.listeners.add(listener); return () => { this.listeners.delete(listener) } }
   private emit() { this.listeners.forEach((l) => l()) }
 
 
-  private writeState(next: Partial<VarsState>, skipRecompute = false) {
+  /**
+   * Pure persistence: updates state, writes to localStorage, emits to React subscribers.
+   * NEVER triggers recomputeAndApplyAll — callers that need full regen must call it explicitly.
+   */
+  private writeState(next: Partial<VarsState>) {
     this.state = { ...this.state, ...next }
     if (this.lsAvailable) {
       if (next.tokens) writeLSJson(STORAGE_KEYS.tokens, this.state.tokens)
@@ -492,16 +437,57 @@ class VarsStore {
     }
 
     this.emit()
-    if (!skipRecompute && !this.isRecomputing) {
-      // Skip if already recomputing to prevent infinite loops
-      this.recomputeAndApplyAll()
+  }
+
+  /**
+   * Write CSS vars directly to DOM + update JSON store.
+   * Used by Fix All and targeted compliance fixes.
+   * Does NOT trigger recomputeAndApplyAll — writes are terminal.
+   * Schedules a debounced compliance scan after writes.
+   */
+  public writeCssVarsDirect(cssVarUpdates: Record<string, string>, themeUpdate?: JsonLike) {
+    // Write CSS vars to DOM inline style
+    const root = document.documentElement
+    for (const [key, value] of Object.entries(cssVarUpdates)) {
+      root.style.setProperty(key, value)
     }
+
+    // Persist theme JSON update if provided
+    if (themeUpdate) {
+      this.writeState({ theme: themeUpdate })
+    }
+
+    // Schedule compliance scan
+    this.scheduleComplianceScan()
+  }
+
+  /**
+   * Schedule a debounced compliance scan (500ms).
+   * Called after any change that could affect compliance (color changes, fixes, etc.).
+   * The scan is read-only — it only flags issues, never modifies CSS vars or JSON.
+   */
+  public scheduleComplianceScan() {
+    if (this.complianceScanTimeout) {
+      clearTimeout(this.complianceScanTimeout)
+    }
+    this.complianceScanTimeout = setTimeout(() => {
+      try {
+        getComplianceService().runFullScan()
+      } catch { }
+      this.complianceScanTimeout = null
+    }, 500)
   }
 
   public bumpVersion() { this.state = { ...this.state, version: (this.state.version || 0) + 1 }; this.emit() }
 
-  setTokens(next: JsonLike) { this.writeState({ tokens: next }) }
-  setTheme(next: JsonLike) { this.writeState({ theme: next }) }
+  setTokens(next: JsonLike) {
+    this.writeState({ tokens: next })
+    if (!this.isRecomputing) this.recomputeAndApplyAll()
+  }
+  setTheme(next: JsonLike) {
+    this.writeState({ theme: next })
+    if (!this.isRecomputing) this.recomputeAndApplyAll()
+  }
   public syncFontsToTokens() {
     try {
       const storedFontsRaw = localStorage.getItem('rf:fonts')
@@ -540,7 +526,10 @@ class VarsStore {
     }
   }
 
-  setUiKit(next: JsonLike) { this.writeState({ uikit: next }) }
+  setUiKit(next: JsonLike) {
+    this.writeState({ uikit: next })
+    if (!this.isRecomputing) this.recomputeAndApplyAll()
+  }
 
   /**
    * Fetches UIKit.json from the server (bypassing bundle cache) and reloads.
@@ -573,10 +562,19 @@ class VarsStore {
     }
   }
   /** Update UIKit without triggering recomputeAndApplyAll. Use when CSS var was already set via updateCssVar (e.g. toolbar color picker). */
-  setUiKitSilent(next: JsonLike) { this.writeState({ uikit: next }, true) }
-  setPalettes(next: PaletteStore) { this.writeState({ palettes: next }) }
-  setElevation(next: ElevationState) { this.writeState({ elevation: next }) }
-  updateElevation(mutator: (prev: ElevationState) => ElevationState) { this.writeState({ elevation: mutator(this.state.elevation) }) }
+  setUiKitSilent(next: JsonLike) { this.writeState({ uikit: next }) }
+  setPalettes(next: PaletteStore) {
+    this.writeState({ palettes: next })
+    if (!this.isRecomputing) this.recomputeAndApplyAll()
+  }
+  setElevation(next: ElevationState) {
+    this.writeState({ elevation: next })
+    if (!this.isRecomputing) this.recomputeAndApplyAll()
+  }
+  updateElevation(mutator: (prev: ElevationState) => ElevationState) {
+    this.writeState({ elevation: mutator(this.state.elevation) })
+    if (!this.isRecomputing) this.recomputeAndApplyAll()
+  }
 
   /**
    * Update a single CSS variable for a specific token.
@@ -841,8 +839,7 @@ class VarsStore {
       // Sort font token objects to maintain consistent order
       const sortedTokens = sortFontTokenObjects(nextTokens)
 
-      // Update state without triggering full recompute
-      this.writeState({ tokens: sortedTokens }, true)
+      this.writeState({ tokens: sortedTokens })
 
       // Update only the affected CSS variable(s)
       this.updateSingleTokenCssVar(tokenName)
@@ -874,50 +871,24 @@ class VarsStore {
         // Check if this token is used by any core color
         const isCoreColorToken = this.isCoreColorToken(family, level)
         if (isCoreColorToken) {
-          // Core color changed - trigger AA compliance for all layers
-          setTimeout(() => {
-            if (this.aaWatcher) {
-              this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
-              this.aaWatcher.updateAllLayers()
-            }
-          }, 100)
+          // Core color changed — schedule a read-only compliance scan
+          this.scheduleComplianceScan()
         }
 
         // Check if this color token is used by any palette
         const palettesUsingColor = this.findPalettesUsingColor(scaleKey, family)
         if (palettesUsingColor.length > 0) {
-          // Color token used in palette(s) - trigger AA compliance check for those palettes
-          setTimeout(() => {
-            if (this.aaWatcher) {
-              this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
-              // Update on-tone for all affected palettes - CSS vars only, never JSON
-              for (const { paletteKey, mode } of palettesUsingColor) {
-                const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
-                levels.forEach((lvl) => {
-                  this.aaWatcher?.updatePaletteOnTone(paletteKey, lvl, mode)
-                })
-              }
-            }
-          }, 100)
+          // Color token used in palette(s) — schedule a read-only compliance scan
+          this.scheduleComplianceScan()
         }
       } else if (category === 'opacity' && rest.length >= 1) {
         const [key] = rest
         // Check if this opacity token is used for high/low emphasis in theme JSON
         const isEmphasisOpacity = this.isEmphasisOpacityToken(key)
         if (isEmphasisOpacity) {
-          // Emphasis opacity changed - trigger AA compliance check for all palettes
-          // Updates CSS vars only, never JSON
-          setTimeout(() => {
-            if (this.aaWatcher) {
-              suppressCssVarEvents(true)
-              this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
-              this.aaWatcher.checkAllPaletteOnTones()
-              setTimeout(() => {
-                clearPendingCssVars()
-                suppressCssVarEvents(false)
-              }, 100)
-            }
-          }, 100)
+          // Emphasis opacity changed — schedule a read-only compliance scan
+          // In the new architecture, compliance never modifies vars
+          this.scheduleComplianceScan()
         }
       }
     } catch (error) {
@@ -1059,26 +1030,8 @@ class VarsStore {
     this.isRecomputing = false
     this.recomputeAndApplyAll()
 
-    // Update AA watcher with new state
-    // Reset the hasRunInitialAA flag so the cssVarsUpdated event listener can trigger AA compliance
-    // This prevents duplicate runs - the event from recomputeAndApplyAll will handle it
-    if (this.aaWatcher) {
-      this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
-      // Reset flag and re-run AA compliance on the fresh state
-      this.hasRunInitialAA = false
-      setTimeout(() => {
-        if (this.aaWatcher && !this.hasRunInitialAA) {
-          this.hasRunInitialAA = true
-          suppressCssVarEvents(true)
-          this.aaWatcher.checkAllPaletteOnTones()
-          this.updateCoreColorOnTonesForAA()
-          setTimeout(() => {
-            clearPendingCssVars()
-            suppressCssVarEvents(false)
-          }, 100)
-        }
-      }, 300)
-    }
+    // Compliance scan will run automatically via debounced scheduleComplianceScan
+    // triggered at the end of recomputeAndApplyAll().
 
     // Notify all listeners that state has been reset
     this.emit()
@@ -1549,35 +1502,7 @@ class VarsStore {
     // Skip if already recomputing to prevent infinite loops
     if (!this.isRecomputing) {
       this.recomputeAndApplyAll()
-
-      // After mode switch, check all palette on-tone values for AA compliance
-      // This ensures on-tone values are correct after switching modes
-      if (this.aaWatcher) {
-        // Update AA watcher with current state
-        this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
-
-        // Use setTimeout to ensure CSS variables are fully applied before checking AA compliance
-        setTimeout(() => {
-          if (this.aaWatcher && !this.isRecomputing) {
-            // Suppress CSS var events during AA compliance check to prevent triggering recomputation
-            suppressCssVarEvents(true)
-
-            this.aaWatcher.checkAllPaletteOnTones()
-
-            // After AA compliance check updates CSS vars, update theme JSON to match
-            // Use a delay to ensure CSS vars are updated before reading them
-            setTimeout(() => {
-              this.updateThemeJsonFromOnToneCssVars()
-
-              // Clear pending CSS vars before re-enabling events to prevent batched event from firing
-              clearPendingCssVars()
-
-              // Re-enable events after theme JSON is updated
-              suppressCssVarEvents(false)
-            }, 100)
-          }
-        }, 300) // Wait for CSS variables to be fully applied
-      }
+      // Compliance scan runs automatically via scheduleComplianceScan at end of recomputeAndApplyAll
     }
   }
 
@@ -2143,6 +2068,12 @@ class VarsStore {
       } catch (e) {
         console.error('[VarsStore] Error generating dimension variables:', e)
       }
+
+      // ─── Compliance is read-only ───
+      // Compliance no longer modifies vars in the pipeline.
+      // A debounced compliance scan runs after recomputeAndApplyAll completes
+      // to FLAG issues (badge count) without modifying any values.
+
       // UIKit components - generate for all modes during bootstrap
       // UIKit vars are generated for both light and dark modes based on what modes/themes are in Brand.json
       // After initial bootstrap, UIKit vars are also managed via toolbar
@@ -2570,6 +2501,13 @@ class VarsStore {
         ]
       }
       try {
+        // Compute layer element colors (text, interactive, status) based on layer surfaces.
+        // This is a rendering step, not a compliance auto-fix — it determines the correct
+        // text color for each layer by examining the surface background color.
+        if (this.aaWatcher) {
+          this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
+          this.aaWatcher.fixLayerElementColorsInMap(allVars)
+        }
         applyCssVars(allVars, this.state.tokens)
       } catch (e) {
         // Log error but don't let it break the recompute cycle
@@ -2606,8 +2544,8 @@ class VarsStore {
         })
       }
 
-      // Trigger compliance scan after CSS vars are fully updated
-      getComplianceService().triggerScan()
+      // Schedule debounced compliance scan after CSS vars are fully updated
+      this.scheduleComplianceScan()
     }
   }
 
@@ -2896,7 +2834,7 @@ class VarsStore {
       // Use skipRecompute=true to prevent triggering recomputeAndApplyAll which would overwrite the CSS vars
       // The CSS variables are already correct from checkAllPaletteOnTones(), we just need to sync the JSON
       if (hasChanges) {
-        this.writeState({ theme: themeCopy }, true) // skipRecompute=true to prevent overwriting CSS vars
+        this.writeState({ theme: themeCopy })
       }
     } catch (err) {
       console.error('Failed to update theme JSON from on-tone CSS vars:', err)

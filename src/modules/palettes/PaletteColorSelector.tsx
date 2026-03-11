@@ -9,7 +9,7 @@ import { parseTokenReference, type TokenReferenceContext } from '../../core/util
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getVarsStore } from '../../core/store/varsStore'
 import { Dropdown } from '../../components/adapters/Dropdown'
-import { getComplianceService } from '../../core/compliance/ComplianceService'
+
 
 type PaletteColorSelectorProps = {
   paletteKey: string
@@ -873,29 +873,8 @@ export default function PaletteColorSelector({
       // Other palettes will re-render but CSS vars are already correct
       setTheme(themeCopy)
 
-      // Trigger AA compliance check for this palette after color scale change
-      // The tone colors have changed, so on-tone values need to be recalculated
-      setTimeout(() => {
-        const varsStore = getVarsStore()
-        if (varsStore.aaWatcher) {
-          suppressCssVarEvents(true)
 
-          // Update watcher with latest state
-          varsStore.aaWatcher.updateTokensAndTheme(tokensJson, themeCopy)
-
-          // Check all levels for this palette in the current mode only
-          const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
-          const currentModeForAA = mode.toLowerCase() as 'light' | 'dark'
-          levels.forEach((lvl) => {
-            varsStore.aaWatcher?.updatePaletteOnTone(paletteKey, lvl, currentModeForAA)
-          })
-
-          setTimeout(() => {
-            clearPendingCssVars()
-            suppressCssVarEvents(false)
-          }, 100)
-        }
-      }, 100)
+      // Compliance scan runs via scheduleComplianceScan after setTheme → recomputeAndApplyAll
 
       // Dispatch event to notify that palette vars changed (user-initiated action)
       try {
@@ -905,10 +884,7 @@ export default function PaletteColorSelector({
       // Call optional callback
       onFamilyChange?.(family)
 
-      // Trigger compliance scan after CSS vars have settled
-      setTimeout(() => {
-        getComplianceService().triggerScan()
-      }, 500)
+
     } catch (err) {
       console.error('Failed to update palette for family:', err)
     }
