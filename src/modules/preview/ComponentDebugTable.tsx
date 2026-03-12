@@ -14,11 +14,11 @@ import { buildUIKitVars } from '../../core/resolvers/uikit'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { parseComponentStructure, type ComponentProp } from '../toolbar/utils/componentToolbarUtils'
-import uikitJson from '../../vars/UIKit.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 import { toCssVarName } from '../../components/utils/cssVarNames'
 
 /**
- * Extracts all CSS variables for a component from UIKit.json
+ * Extracts all CSS variables for a component from recursica_ui-kit.json
  */
 function getComponentCssVars(componentName: string, mode: 'light' | 'dark'): Array<{ path: string; cssVar: string; value: any; type: string }> {
   const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
@@ -85,7 +85,7 @@ export default function ComponentDebugTable({
   const { tokens, theme, uikit } = useVars()
   const [updateKey, setUpdateKey] = useState(0)
 
-  // Get all CSS vars for the component from UIKit.json
+  // Get all CSS vars for the component from recursica_ui-kit.json
   const allComponentVars = useMemo(() => {
     return getComponentCssVars(componentName, mode)
   }, [componentName, mode])
@@ -150,7 +150,7 @@ export default function ComponentDebugTable({
     })
   }, [allComponentVars, componentName, selectedVariants, selectedLayer])
 
-  // Get resolved original values from UIKit.json
+  // Get resolved original values from recursica_ui-kit.json
   const originalValues = useMemo(() => {
     try {
       const resolvedVars = buildUIKitVars(tokens, theme, uikit, mode)
@@ -180,7 +180,7 @@ export default function ComponentDebugTable({
         currentValue = varMatch[1]
       }
       
-      // Get original value from resolved UIKit.json
+      // Get original value from resolved recursica_ui-kit.json
       const originalValue = originalValues[v.cssVar] || ''
       
       // A variable is changed if:

@@ -5,9 +5,9 @@
 
 import { describe, it, expect } from 'vitest'
 import { recursicaJsonTransform } from './recursicaJsonTransformScoped'
-import tokensJson from '../../vars/Tokens.json'
-import brandJson from '../../vars/Brand.json'
-import uikitJson from '../../vars/UIKit.json'
+import tokensJson from '../../../recursica_tokens.json'
+import brandJson from '../../../recursica_brand.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 
 describe('recursicaJsonTransform (Scoped)', () => {
   const json = {

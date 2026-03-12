@@ -20,7 +20,7 @@ import "@mantine/core/styles.css";
 import "./MantineShell.css";
 import { iconNameToReactComponent } from "../../components/iconUtils";
 import { clearOverrides } from "../../theme/tokenOverrides";
-import tokensJson from "../../../vars/Tokens.json";
+import tokensJson from "../../../../recursica_tokens.json";
 import { useVars } from "../../vars/VarsContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { UiKit } from "../../uikit/UiKitContext";

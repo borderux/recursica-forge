@@ -41,7 +41,7 @@ export default function Tooltip({
         return `${position}-${suffix}`
     })() as any
 
-    // Get CSS variables from UIKit.json (explicit paths)
+    // Get CSS variables from recursica_ui-kit.json (explicit paths)
     const colorPath = ['properties', 'colors', layer]
     const propPath = ['properties']
     const textPath = ['properties', 'text']

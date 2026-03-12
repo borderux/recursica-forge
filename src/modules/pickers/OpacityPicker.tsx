@@ -169,7 +169,7 @@ export default function OpacityPicker() {
           if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
           
           // Update the opacity reference in theme JSON
-          // Use singular form (opacity) to match Brand.json structure, but support both
+          // Use singular form (opacity) to match recursica_brand.json structure, but support both
           themes[modeKey]['text-emphasis'][emphasisKey] = {
             $type: 'number',
             // Support both singular (opacity) and plural (opacities) for backwards compatibility
@@ -184,7 +184,7 @@ export default function OpacityPicker() {
           // Update the hover opacity reference in theme JSON
           themes[modeKey].states.hover = {
             $type: 'number',
-            // Use singular form (opacity) to match Brand.json structure
+            // Use singular form (opacity) to match recursica_brand.json structure
             $value: `{tokens.opacity.${tokenKey}}`
           }
         } else if (isDisabledOpacity) {
@@ -196,7 +196,7 @@ export default function OpacityPicker() {
           // Update the disabled opacity reference in theme JSON
           themes[modeKey].states.disabled = {
             $type: 'number',
-            // Use singular form (opacity) to match Brand.json structure
+            // Use singular form (opacity) to match recursica_brand.json structure
             $value: `{tokens.opacity.${tokenKey}}`
           }
         } else if (isOverlayOpacity) {
@@ -209,7 +209,7 @@ export default function OpacityPicker() {
           // Update the overlay opacity reference in theme JSON
           themes[modeKey].states.overlay.opacity = {
             $type: 'number',
-            // Use singular form (opacity) to match Brand.json structure
+            // Use singular form (opacity) to match recursica_brand.json structure
             $value: `{tokens.opacity.${tokenKey}}`
           }
         }

@@ -23,9 +23,9 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { Switch } from '../../components/adapters/Switch'
 import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from '../preview/PreviewPage'
-import uikitJson from '../../vars/UIKit.json'
-import tokensJson from '../../vars/Tokens.json'
-import brandJson from '../../vars/Brand.json'
+import uikitJson from '../../../recursica_ui-kit.json'
+import tokensJson from '../../../recursica_tokens.json'
+import brandJson from '../../../recursica_brand.json'
 import { getComponentTextCssVar, buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import type { ComponentName } from '../../components/registry/types'
 import './ComponentToolbar.css'
@@ -581,7 +581,7 @@ export default function ComponentToolbar({
           continue
         }
 
-        // Check if this is a text-group prop that exists in UIKit.json but wasn't parsed
+        // Check if this is a text-group prop that exists in recursica_ui-kit.json but wasn't parsed
         const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
         if (textPropertyGroupNames.includes(propNameLower)) {
           // Try to find it in structure.props - it should have been parsed
@@ -834,7 +834,7 @@ export default function ComponentToolbar({
 
   const handleReset = () => {
     let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
-    // Normalize display names that differ from UIKit.json keys
+    // Normalize display names that differ from recursica_ui-kit.json keys
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
     if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'

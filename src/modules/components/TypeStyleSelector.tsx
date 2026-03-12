@@ -142,7 +142,7 @@ export default function TypeStyleSelector({
     const resolvedValue = currentValue || readCssVarResolved(targetCssVar)
     
     if (!resolvedValue) {
-      // If still no value, try to get default from UIKit.json
+      // If still no value, try to get default from recursica_ui-kit.json
       // Extract prop name from CSS var (e.g., "label-font" from "--recursica-ui-kit-components-label-properties-label-font")
       const propMatch = targetCssVar.match(/components-label-properties-([^-]+)/)
       if (propMatch) {
@@ -167,7 +167,7 @@ export default function TypeStyleSelector({
             }
           }
         } catch (error) {
-          console.warn('Failed to read default from UIKit.json:', error)
+          console.warn('Failed to read default from recursica_ui-kit.json:', error)
         }
       }
       

@@ -242,7 +242,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     }
 
     levelsToProcess.forEach((lvl) => {
-      // Map 'default' to 'primary' for CSS variable names (Brand.json uses 'default', CSS uses 'primary')
+      // Map 'default' to 'primary' for CSS variable names (recursica_brand.json uses 'default', CSS uses 'primary')
       const cssLevel = lvl === 'default' ? 'primary' : lvl
       const toneName = `palette/${pk}/${lvl}/color/tone`
       const onToneName = `palette/${pk}/${lvl}/color/on-tone`

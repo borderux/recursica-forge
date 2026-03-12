@@ -254,7 +254,7 @@ export function Slider({
       }
     }, [thumbElevationVar, trackVar, trackActiveVar, thumbVar, trackHeightVar, thumbSizeVar, trackBorderRadiusVar, thumbBorderRadiusVar, disabledOpacityVar, topBottomMarginVarStacked, topBottomMarginVarSideBySide, layout])
 
-    // Determine thumb elevation from UIKit.json
+    // Determine thumb elevation from recursica_ui-kit.json
     const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -3,7 +3,7 @@
  * 
  * Renders all three loader types (oval, bars, dots) using MUI CircularProgress
  * for oval, and CSS-based animations for bars and dots.
- * Uses CSS variables from UIKit.json for indicator color, track color, size,
+ * Uses CSS variables from recursica_ui-kit.json for indicator color, track color, size,
  * border-radius, and stroke-thickness.
  */
 

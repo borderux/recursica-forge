@@ -10,8 +10,8 @@ import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
-import tokensJson from '../../vars/Tokens.json'
-import brandJson from '../../vars/Brand.json'
+import tokensJson from '../../../recursica_tokens.json'
+import brandJson from '../../../recursica_brand.json'
 
 export interface ComplianceIssue {
   type: 'palette-on-tone' | 'layer-text' | 'layer-interactive'

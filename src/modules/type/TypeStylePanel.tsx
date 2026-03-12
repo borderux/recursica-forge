@@ -22,7 +22,7 @@ function brandKeyFromPrefix(prefix: string): string {
   return map[prefix] || prefix
 }
 
-// Map prefix to CSS variable name (matches Brand.json naming)
+// Map prefix to CSS variable name (matches recursica_brand.json naming)
 function prefixToCssVarName(prefix: string): string {
   return brandKeyFromPrefix(prefix)
 }
@@ -553,7 +553,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }, [selectedPrefixes, tokens, familyOptions])
 
   const revert = useCallback(() => {
-    // Rebuild typography vars from Brand.json defaults (no choices = use defaults)
+    // Rebuild typography vars from recursica_brand.json defaults (no choices = use defaults)
     const { vars: defaultTypeVars } = buildTypographyVars(tokens, theme, undefined, undefined)
 
     const cssVars: string[] = []
@@ -568,7 +568,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         // Remove the override first
         document.documentElement.style.removeProperty(cssVar)
 
-        // Restore default value from Brand.json
+        // Restore default value from recursica_brand.json
         const defaultValue = defaultTypeVars[cssVar]
         if (defaultValue) {
           updateCssVar(cssVar, defaultValue, tokens, true) // silent=true to prevent immediate events

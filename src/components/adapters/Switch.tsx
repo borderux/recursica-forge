@@ -92,7 +92,7 @@ export function Switch({
       }
     }, [trackElevationVar])
     
-    // Determine track elevation to apply - prioritize prop, then UIKit.json
+    // Determine track elevation to apply - prioritize prop, then recursica_ui-kit.json
     const trackElevationBoxShadow = getElevationBoxShadow(mode, elevation ?? trackElevationFromVar)
     
     return (

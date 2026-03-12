@@ -21,7 +21,7 @@ export function TypePage() {
 
   type Sample = { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }
 
-  // Read samples from Brand.json typography
+  // Read samples from recursica_brand.json typography
   const samples: Sample[] = useMemo(() => {
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
     const typography = root?.typography || {}
@@ -43,7 +43,7 @@ export function TypePage() {
       'overline': { label: 'Overline', tag: 'p' },
     }
 
-    // Map Brand.json keys to prefix format used by the component
+    // Map recursica_brand.json keys to prefix format used by the component
     const prefixMap: Record<string, string> = {
       'subtitle': 'subtitle-1',
       'subtitle-small': 'subtitle-2',
@@ -51,7 +51,7 @@ export function TypePage() {
       'body-small': 'body-2',
     }
 
-    // Iterate through typography entries in Brand.json
+    // Iterate through typography entries in recursica_brand.json
     Object.keys(typography).forEach((key) => {
       if (key.startsWith('$')) return
 
@@ -86,7 +86,7 @@ export function TypePage() {
     return result
   }, [theme])
 
-  // Map prefix to CSS variable name (matches Brand.json naming)
+  // Map prefix to CSS variable name (matches recursica_brand.json naming)
   function prefixToCssVarName(prefix: string): string {
     const map: Record<string, string> = { 'subtitle-1': 'subtitle', 'subtitle-2': 'subtitle-small', 'body-1': 'body', 'body-2': 'body-small' }
     return map[prefix] || prefix

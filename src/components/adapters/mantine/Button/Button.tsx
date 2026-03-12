@@ -42,14 +42,14 @@ export default function Button({
 
   const cssVarVariant = variant
 
-  // Use UIKit.json button colors for standard layers
+  // Use recursica_ui-kit.json button colors for standard layers
   const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
   const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
 
   // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
   const hoverColorVar = getComponentLevelCssVar('Button', 'hover-color')
   const hoverOpacityVar = getComponentLevelCssVar('Button', 'hover-opacity')
-  // Build border color CSS var path directly to ensure it matches UIKit.json structure
+  // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
 
   // Get the correct CSS variable reference for button color (used for text and border)

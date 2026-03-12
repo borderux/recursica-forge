@@ -502,7 +502,7 @@ function validateLayerSpecificUIKitRootComplete(
     const pathHint = canonical.replace(PREFIX, '').replace(/_/g, '.')
     errors.push({
       path: pathHint,
-      message: `Layer-specific ui-kit var is defined only in layer(s) ${definedIn}; missing in layer(s) ${missing.join(', ')}. Add explicit values in UIKit.json for every layer.`
+      message: `Layer-specific ui-kit var is defined only in layer(s) ${definedIn}; missing in layer(s) ${missing.join(', ')}. Add explicit values in recursica_ui-kit.json for every layer.`
     })
   }
 }

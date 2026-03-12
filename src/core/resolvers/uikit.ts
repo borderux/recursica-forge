@@ -1,7 +1,7 @@
 /**
  * UIKit CSS Variable Resolver
  * 
- * Generates CSS variables from UIKit.json structure.
+ * Generates CSS variables from recursica_ui-kit.json structure.
  * Handles token references and applies them to the document root.
  */
 
@@ -10,7 +10,7 @@ import { buildTokenIndex } from './tokens'
 import { resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../utils/tokenReferenceParser'
 
 /**
- * Converts a UIKit.json path to a CSS variable name
+ * Converts a recursica_ui-kit.json path to a CSS variable name
  * 
  * @example
  * toCssVarName('components.button.color.layer-0.background-solid')
@@ -89,7 +89,7 @@ function resolveTokenRef(
 }
 
 /**
- * Traverses UIKit.json and generates CSS variables
+ * Traverses recursica_ui-kit.json and generates CSS variables
  */
 function traverseUIKit(
   obj: any,
@@ -323,7 +323,7 @@ function traverseUIKit(
 }
 
 /**
- * Builds CSS variables from UIKit.json
+ * Builds CSS variables from recursica_ui-kit.json
  * 
  * @param tokens - Tokens JSON for resolving token references
  * @param theme - Theme/Brand JSON for resolving theme references
@@ -387,7 +387,7 @@ export function buildUIKitVars(
     return [componentName, ...parts.slice(propertiesIdx + 1)]
   }
 
-  // Helper to look up component-level property in UIKit.json
+  // Helper to look up component-level property in recursica_ui-kit.json
   const lookupComponentProperty = (path: string[]): any => {
     if (path.length === 0) return null
 
@@ -425,12 +425,12 @@ export function buildUIKitVars(
             changed = true
           } else if (!resolved) {
             // Check if this is a UIKit self-reference to a component-level property
-            // that doesn't exist yet - try to generate it from UIKit.json
+            // that doesn't exist yet - try to generate it from recursica_ui-kit.json
             const componentPropPath = extractComponentPropertyPath(trimmed)
             if (componentPropPath) {
               const propValue = lookupComponentProperty(componentPropPath)
               if (propValue && typeof propValue === 'object' && '$value' in propValue && '$type' in propValue) {
-                // Found the component-level property in UIKit.json - generate its CSS variable
+                // Found the component-level property in recursica_ui-kit.json - generate its CSS variable
                 const componentName = componentPropPath[0]
                 const propPath = componentPropPath.slice(1)
                 const componentPropCssVarName = toCssVarName(`components.${componentName}.properties.${propPath.join('.')}`, mode)
@@ -452,7 +452,7 @@ export function buildUIKitVars(
                   }
                 }
               }
-              // Component-level property doesn't exist in UIKit.json - skip it
+              // Component-level property doesn't exist in recursica_ui-kit.json - skip it
               // Unresolved references will be caught by the CSS var audit
             }
 

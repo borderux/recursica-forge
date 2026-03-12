@@ -2,7 +2,7 @@
  * Mantine Popover Implementation
  * 
  * Mantine-specific Popover component that uses CSS variables for theming.
- * Shares UIKit.json styling with HoverCard under 'hover-card-popover'.
+ * Shares recursica_ui-kit.json styling with HoverCard under 'hover-card-popover'.
  */
 
 import { useState, useEffect } from 'react'

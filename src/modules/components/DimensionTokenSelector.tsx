@@ -632,7 +632,7 @@ export default function DimensionTokenSelector({
       }
 
       // For divider-item-gap, padding, item-gap, vertical-padding, horizontal-padding, padding-horizontal, padding-vertical, and icon-text-gap, null means "none"
-      // Find the "none" token from Brand.json (general-none)
+      // Find the "none" token from recursica_brand.json (general-none)
       if (propNameLower === 'divider-item-gap' ||
         propNameLower === 'padding' ||
         propNameLower === 'item-gap' ||
@@ -749,7 +749,7 @@ export default function DimensionTokenSelector({
 
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
 
-    // Find the token (including "none" from Brand.json)
+    // Find the token (including "none" from recursica_brand.json)
     const token = dimensionTokens.find(t => t.name === tokenName)
     if (token) {
       // Check if this is the "none" token (value 0px)

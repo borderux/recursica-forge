@@ -52,5 +52,5 @@ This project uses [Changesets](https://github.com/changesets/changesets) to mana
 
 - Tokens: Nested under `tokens.*` (e.g., `tokens.font.size.md.$value`)
 - Brand Theme: `brand.*` (e.g., `brand.light.palette.neutral.500.text['high-emphasis'].$value`)
-- UIKit: `src/vars/UIKit.json`
+- UIKit: `recursica_ui-kit.json`
 

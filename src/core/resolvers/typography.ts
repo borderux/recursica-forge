@@ -348,7 +348,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const brandKey = mapKey[p] || p
     const spec: any = ttyp?.[brandKey]?.$value
     const ch = readChoices[p] || {}
-    // Use brandKey for CSS variable names to match Brand.json naming
+    // Use brandKey for CSS variable names to match recursica_brand.json naming
     const cssVarPrefix = brandKey
 
     const familyFromChoice = (() => {

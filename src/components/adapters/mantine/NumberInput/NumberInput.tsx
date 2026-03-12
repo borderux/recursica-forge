@@ -102,7 +102,7 @@ export default function NumberInput({
 
     // CRITICAL: Do NOT read CSS variable values here - use var() references directly in CSS.
     // The problem: When CSS variables aren't explicitly set, readCssVar() falls back to
-    // computed styles which resolve through UIKit.json defaults. Since both 'value' and
+    // computed styles which resolve through recursica_ui-kit.json defaults. Since both 'value' and
     // 'placeholder' have the same defaults, they resolve to the same value initially.
     // Solution: Use CSS variable references (var(...)) directly in CSS. This ensures:
     // 1. Each CSS variable is independent

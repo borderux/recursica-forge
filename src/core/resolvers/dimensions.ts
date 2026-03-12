@@ -1,7 +1,7 @@
 /**
  * Dimension CSS Variable Resolver
  * 
- * Generates CSS variables from Brand.json dimension section.
+ * Generates CSS variables from recursica_brand.json dimension section.
  */
 
 import type { JsonLike } from './tokens'
@@ -72,7 +72,7 @@ function traverseDimensions(
 }
 
 /**
- * Builds CSS variables from Brand.json dimension section
+ * Builds CSS variables from recursica_brand.json dimension section
  * 
  * @param tokens - Tokens JSON for resolving token references
  * @param theme - Brand JSON containing dimension definitions

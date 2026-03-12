@@ -46,7 +46,7 @@ export function Switch({
 
   // CSS variables already include the layer in the path
   // e.g., --recursica-ui-kit-components-switch-color-layer-0-variant-default-thumb
-  // These will resolve to the correct layer-specific values from UIKit.json
+  // These will resolve to the correct layer-specific values from recursica_ui-kit.json
   
   return (
     <button

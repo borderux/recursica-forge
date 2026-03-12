@@ -98,7 +98,7 @@ export default function Chip({
   // Map unified size to Mantine size
   const mantineSize = size === 'small' ? 'xs' : 'md'
 
-  // Use UIKit.json chip colors for standard layers
+  // Use recursica_ui-kit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
   const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)

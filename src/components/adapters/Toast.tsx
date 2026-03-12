@@ -121,7 +121,7 @@ export function Toast({
     const buttonVar = coreColorName
       ? `--recursica-brand-themes-${mode}-palettes-core-${coreColorName}-interactive`
       : undefined
-    // Get component-level CSS variables (these are under toast.properties in UIKit.json)
+    // Get component-level CSS variables (these are under toast.properties in recursica_ui-kit.json)
     const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
     const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
     const minWidthVar = getComponentLevelCssVar('Toast', 'min-width')

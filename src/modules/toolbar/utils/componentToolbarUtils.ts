@@ -1,8 +1,8 @@
 /**
- * Utilities for parsing component structure from UIKit.json
+ * Utilities for parsing component structure from recursica_ui-kit.json
  */
 
-import uikitJson from '../../../vars/UIKit.json'
+import uikitJson from '../../../../recursica_ui-kit.json'
 import { toCssVarName } from '../../../components/utils/cssVarNames'
 
 export interface ComponentVariant {
@@ -26,7 +26,7 @@ export interface ComponentProp {
   propertyType?: 'slider' | 'select' | 'color' | 'text' // Custom property type override
   range?: [number, number] // For slider
   step?: number // For slider
-  sourceComponent?: string // Component key in UIKit.json where this prop actually lives (for cross-component references)
+  sourceComponent?: string // Component key in recursica_ui-kit.json where this prop actually lives (for cross-component references)
 }
 
 export interface ComponentStructure {
@@ -87,7 +87,7 @@ export function toSentenceCase(str: string): string {
 }
 
 /**
- * Parses a component's structure from UIKit.json
+ * Parses a component's structure from recursica_ui-kit.json
  */
 export function parseComponentStructure(componentName: string): ComponentStructure {
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
@@ -646,7 +646,7 @@ export function getComponentCssVarsForVariants(
 }
 
 /**
- * Gets the default values from UIKit.json for reset functionality
+ * Gets the default values from recursica_ui-kit.json for reset functionality
  */
 export function getComponentDefaultValues(componentName: string): Record<string, string> {
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
@@ -700,9 +700,9 @@ export function getComponentDefaultValues(componentName: string): Record<string,
 }
 
 /**
- * Checks if a dimension property in UIKit.json uses a token reference or hardcoded px value
+ * Checks if a dimension property in recursica_ui-kit.json uses a token reference or hardcoded px value
  * @param componentName - The component name (e.g., "Button", "TextField")
- * @param propPath - The path to the property in UIKit.json (e.g., ["variants", "sizes", "default", "properties", "horizontal-padding"])
+ * @param propPath - The path to the property in recursica_ui-kit.json (e.g., ["variants", "sizes", "default", "properties", "horizontal-padding"])
  * @param selectedVariants - Currently selected variants to resolve variant-specific paths
  * @returns 'token' if the property uses a token reference, 'px' if it uses hardcoded px, or null if not found
  */

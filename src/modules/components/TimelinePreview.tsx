@@ -8,7 +8,7 @@
  *   3. Icon-alternative (ThemeIcon)
  *   4. Avatar
  *
- * Bullet props now come from the TimelineBullet subcomponent in UIKit.json.
+ * Bullet props now come from the TimelineBullet subcomponent in recursica_ui-kit.json.
  */
 
 import { useState, useEffect } from 'react'

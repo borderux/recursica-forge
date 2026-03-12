@@ -416,9 +416,9 @@ export default function ElementsModalDemo() {
                 layer="layer-1"
                 icon={ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : undefined}
                 onClick={() => {
-                  // Reset all opacities to default values from Brand.json
+                  // Reset all opacities to default values from recursica_brand.json
                   try {
-                    // Default values from Brand.json:
+                    // Default values from recursica_brand.json:
                     // text-emphasis-high: {tokens.opacity.solid}
                     // text-emphasis-low: {tokens.opacity.smoky}
                     // state-disabled: {tokens.opacity.ghost}

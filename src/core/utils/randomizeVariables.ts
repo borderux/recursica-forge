@@ -8,7 +8,7 @@
 import { getVarsStore } from '../store/varsStore'
 import type { JsonLike } from '../resolvers/tokens'
 import type { RandomizeOptions } from './RandomizeOptionsModal'
-import uikitJson from '../../vars/UIKit.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 
 /**
  * Recursively finds all $value properties in an object

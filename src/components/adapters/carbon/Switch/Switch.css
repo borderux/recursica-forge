@@ -76,7 +76,7 @@
 .recursica-carbon-toggle-wrapper .cds--toggle__thumb {
   background: var(--recursica-ui-kit-components-switch-thumb-bg-unselected) !important;
   opacity: 1 !important;
-  /* Use UIKit variables directly (they're on :root from UIKit.json) */
+  /* Use UIKit variables directly (they're on :root from recursica_ui-kit.json) */
   width: var(--recursica-ui-kit-components-switch-properties-thumb-width) !important;
   height: var(--recursica-ui-kit-components-switch-properties-thumb-height) !important;
   border-radius: var(--recursica-ui-kit-components-switch-properties-thumb-border-radius) !important;
@@ -126,7 +126,7 @@
 /* Override track colors - use wrapper class for scoping */
 .recursica-carbon-toggle-wrapper .cds--toggle__track {
   background-color: var(--recursica-ui-kit-components-switch-track-unchecked) !important;
-  /* Use UIKit variables directly (they're on :root from UIKit.json) */
+  /* Use UIKit variables directly (they're on :root from recursica_ui-kit.json) */
   border-radius: var(--recursica-ui-kit-components-switch-properties-track-border-radius) !important;
   opacity: 1 !important;
   cursor: pointer;

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Tokens JSON Schema",
-  "description": "Schema for Tokens.json structure",
+  "description": "Schema for recursica_tokens.json structure",
   "type": "object",
   "required": ["tokens"],
   "properties": {

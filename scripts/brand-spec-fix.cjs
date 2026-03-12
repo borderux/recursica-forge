@@ -1,5 +1,5 @@
 const fs = require('fs');
-const path = '/Users/aaronmartlage/Documents/recursica-forge/recursica-forge/src/vars/Brand.json';
+const path = require('path').resolve(__dirname, '../recursica_brand.json');
 
 const SHADE_KEY_RE = /^(000|050|100|200|300|400|500|600|700|800|900|1000)$/;
 

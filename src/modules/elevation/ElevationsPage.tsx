@@ -345,8 +345,8 @@ export default function ElevationsPage() {
         const defaultOffsetX = toNumeric(node?.x)
         const defaultOffsetY = toNumeric(node?.y)
 
-        // Remove controls for current mode (revert to Brand.json defaults)
-        // This allows recomputeAndApplyAll to use Brand.json defaults and update tokens
+        // Remove controls for current mode (revert to recursica_brand.json defaults)
+        // This allows recomputeAndApplyAll to use recursica_brand.json defaults and update tokens
         const { [key]: _, ...restControls } = next.controls[mode]
         next.controls[mode] = restControls
 

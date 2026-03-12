@@ -1,7 +1,7 @@
 /**
  * Centralized Token Reference Parser
  * 
- * Handles parsing of token references from Brand.json and UIKit.json
+ * Handles parsing of token references from recursica_brand.json and recursica_ui-kit.json
  * Supports multiple formats:
  * - {tokens.color.family.level}
  * - {brand.palettes...} (theme-agnostic, uses current mode from context)

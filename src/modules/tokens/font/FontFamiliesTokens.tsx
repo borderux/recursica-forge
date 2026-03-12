@@ -21,7 +21,7 @@ import { Badge } from '../../../components/adapters/Badge'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../../components/utils/brandCssVars'
 import { readCssVarResolved } from '../../../core/css/readCssVar'
-import tokensImport from '../../../vars/Tokens.json'
+import tokensImport from '../../../../recursica_tokens.json'
 
 type FamilyRow = { name: string; value: string; position: number }
 

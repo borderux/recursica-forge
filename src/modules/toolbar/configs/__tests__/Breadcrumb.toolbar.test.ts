@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import config from '../Breadcrumb.toolbar.json'
-import uikitJson from '../../../../vars/UIKit.json'
+import uikitJson from '../../../../../recursica_ui-kit.json'
 
 describe('Breadcrumb Toolbar Config', () => {
   it('should have valid JSON structure', () => {
@@ -30,16 +30,16 @@ describe('Breadcrumb Toolbar Config', () => {
     }
   })
 
-  it('should have props that match UIKit.json structure', () => {
+  it('should have props that match recursica_ui-kit.json structure', () => {
     const componentKey = 'breadcrumb'
     const component = uikitJson['ui-kit']?.components?.[componentKey]
     
     if (!component) {
-      console.warn(`Component ${componentKey} not found in UIKit.json - skipping prop validation`)
+      console.warn(`Component ${componentKey} not found in recursica_ui-kit.json - skipping prop validation`)
       return
     }
 
-    // Extract root-level props from UIKit.json
+    // Extract root-level props from recursica_ui-kit.json
     const uikitProps = new Set<string>()
     
     // Component-level properties
@@ -74,7 +74,7 @@ describe('Breadcrumb Toolbar Config', () => {
       })
     }
     
-    // Check that config props exist in UIKit.json (or are grouped)
+    // Check that config props exist in recursica_ui-kit.json (or are grouped)
     const configProps = new Set<string>()
     const containerProps = new Set<string>() // Props that are containers (like "color")
     if (config.props) {
@@ -91,7 +91,7 @@ describe('Breadcrumb Toolbar Config', () => {
       })
     }
     
-    // All config props should exist in UIKit.json (or be valid grouped props)
+    // All config props should exist in recursica_ui-kit.json (or be valid grouped props)
     configProps.forEach(prop => {
       // Skip container props (they're organizational)
       if (containerProps.has(prop)) {
@@ -99,7 +99,7 @@ describe('Breadcrumb Toolbar Config', () => {
       }
       // Allow some flexibility for grouped props that combine multiple UIKit props
       if (!uikitProps.has(prop) && !prop.includes('-')) {
-        console.warn(`Config prop ${prop} not found in UIKit.json - may be a grouped prop`)
+        console.warn(`Config prop ${prop} not found in recursica_ui-kit.json - may be a grouped prop`)
       }
     })
   })
@@ -115,12 +115,12 @@ describe('Breadcrumb Toolbar Config', () => {
     }
   })
 
-  it('should have all required props from UIKit.json', () => {
+  it('should have all required props from recursica_ui-kit.json', () => {
     const componentKey = 'breadcrumb'
     const component = uikitJson['ui-kit']?.components?.[componentKey]
     
     if (!component) {
-      console.warn(`Component ${componentKey} not found in UIKit.json - skipping prop validation`)
+      console.warn(`Component ${componentKey} not found in recursica_ui-kit.json - skipping prop validation`)
       return
     }
 

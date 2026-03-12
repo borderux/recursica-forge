@@ -9,9 +9,9 @@ import { readCssVar } from '../css/readCssVar'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
-import tokensJson from '../../vars/Tokens.json'
-import brandJson from '../../vars/Brand.json'
-import uikitJson from '../../vars/UIKit.json'
+import tokensJson from '../../../recursica_tokens.json'
+import brandJson from '../../../recursica_brand.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 import { getVarsStore } from '../store/varsStore'
 import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import {
@@ -1062,7 +1062,7 @@ export function exportBrandJson(): object {
   try {
     validateBrandJson(exportObject as JsonLike)
   } catch (error) {
-    console.warn('[Export] Brand.json validation failed, but continuing export:', error)
+    console.warn('[Export] recursica_brand.json validation failed, but continuing export:', error)
     // Don't throw - let the user see the export even if there are validation issues
   }
 
@@ -1150,7 +1150,7 @@ export function exportUIKitJson(): object {
   try {
     validateUIKitJson(normalized as JsonLike)
   } catch (error) {
-    console.warn('[Export] UIKit.json validation failed, but continuing export:', error)
+    console.warn('[Export] recursica_ui-kit.json validation failed, but continuing export:', error)
     // Don't throw - let the user see the export even if there are validation issues
   }
 
@@ -1823,7 +1823,7 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
     try {
       validateTokensJson(tokens as JsonLike)
     } catch (error) {
-      console.error('[Export] Tokens.json validation failed:', error)
+      console.error('[Export] recursica_tokens.json validation failed:', error)
       throw new Error(`Cannot export tokens.json: ${error instanceof Error ? error.message : String(error)}`)
     }
     selectedFiles.push({ content: tokens, filename: EXPORT_FILENAME_TOKENS, isJson: true })
@@ -1835,7 +1835,7 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
     try {
       validateBrandJson(brand as JsonLike)
     } catch (error) {
-      console.error('[Export] Brand.json validation failed:', error)
+      console.error('[Export] recursica_brand.json validation failed:', error)
       throw new Error(`Cannot export brand.json: ${error instanceof Error ? error.message : String(error)}`)
     }
     selectedFiles.push({ content: brand, filename: EXPORT_FILENAME_BRAND, isJson: true })
@@ -1847,7 +1847,7 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
     try {
       validateUIKitJson(uikit as JsonLike)
     } catch (error) {
-      console.error('[Export] UIKit.json validation failed:', error)
+      console.error('[Export] recursica_ui-kit.json validation failed:', error)
       throw new Error(`Cannot export uikit.json: ${error instanceof Error ? error.message : String(error)}`)
     }
     selectedFiles.push({ content: uikit, filename: EXPORT_FILENAME_UIKIT, isJson: true })

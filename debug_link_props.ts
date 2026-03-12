@@ -4,13 +4,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Mock getPropConfig since it's used by some utils we might inadvertently touch, 
-// though parseComponentStructure mainly relies on UIKit.json
-// parseComponentStructure relies on 'uikitJson' imported from vars/UIKit.json.
+// though parseComponentStructure mainly relies on recursica_ui-kit.json
+// parseComponentStructure relies on 'uikitJson' imported from recursica_ui-kit.json.
 // We need to bypass the import or rely on ts-node to handle it.
 // Since environment is restricted, I will essentially copy parseComponentStructure logic 
 // MINUS the import, injecting the JSON directly.
 
-const uikitPath = path.resolve('./src/vars/UIKit.json');
+const uikitPath = path.resolve('./recursica_ui-kit.json');
 const uikitJson = JSON.parse(fs.readFileSync(uikitPath, 'utf-8'));
 
 function toCssVarName(name: string, mode: string): string {

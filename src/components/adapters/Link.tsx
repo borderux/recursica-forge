@@ -272,7 +272,7 @@ function getLinkStyles(
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
 
-  // Use UIKit.json link colors from state variants
+  // Use recursica_ui-kit.json link colors from state variants
   const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
 
   // Shared text properties (component level)

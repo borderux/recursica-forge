@@ -1153,7 +1153,7 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
       }
 
       instructions.push(`5. NEVER add fallback values - fix the root cause.`)
-      instructions.push(`6. NEVER modify Tokens.json, Brand.json, or UIKit.json - only fix the code using the variable.`)
+      instructions.push(`6. NEVER modify recursica_tokens.json, recursica_brand.json, or recursica_ui-kit.json - only fix the code using the variable.`)
     } else if (issueType === 'malformed') {
       instructions.push(`1. The CSS variable name "${varName}" is malformed.`)
       instructions.push(`2. Fix the variable name in ${sourceFile || 'the file using it'}.`)

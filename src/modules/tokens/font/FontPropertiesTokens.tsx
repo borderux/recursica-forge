@@ -11,7 +11,7 @@ import { Switch } from '../../../components/adapters/Switch'
 import { Tabs as TabsAdapter } from '../../../components/adapters/Tabs'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
 import { clearStoredFonts } from '../../../core/store/fontStore'
-import tokensImport from '../../../vars/Tokens.json'
+import tokensImport from '../../../../recursica_tokens.json'
 
 export default function FontPropertiesTokens() {
   const { mode } = useThemeMode()

@@ -14,7 +14,7 @@ import {
   downloadCurrentCssVars,
 } from "../../theme/varsUtil";
 import { clearOverrides } from "../../theme/tokenOverrides";
-import tokensJson from "../../../vars/Tokens.json";
+import tokensJson from "../../../../recursica_tokens.json";
 import { useVars } from "../../vars/VarsContext";
 import { useThemeMode } from "../../theme/ThemeModeContext";
 import {

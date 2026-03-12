@@ -86,7 +86,7 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
 
 /**
  * Finds the color family and level for a given hex value in tokens
- * Returns scale keys (e.g., "scale-01") instead of aliases, since Brand.json doesn't use aliases
+ * Returns scale keys (e.g., "scale-01") instead of aliases, since recursica_brand.json doesn't use aliases
  */
 export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family: string; level: string } | null {
   const tokenIndex = buildTokenIndex(tokens)
@@ -270,7 +270,7 @@ function colorDistance(hex1: string, hex2: string): number {
 
 /**
  * Finds the closest matching color token for a given hex value
- * Returns scale keys (e.g., "scale-01") instead of aliases, since Brand.json doesn't use aliases
+ * Returns scale keys (e.g., "scale-01") instead of aliases, since recursica_brand.json doesn't use aliases
  */
 function findClosestColorToken(hex: string, tokens: JsonLike): { family: string; level: string } | null {
   const normalizedHex = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`

@@ -6,13 +6,13 @@ import PaletteColorControl from '../forms/PaletteColorControl'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
-import uikitJson from '../../vars/UIKit.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { toCssVarName } from '../../components/utils/cssVarNames'
 
 /**
- * Extracts all CSS variables for a component from UIKit.json
+ * Extracts all CSS variables for a component from recursica_ui-kit.json
  */
 function getComponentCssVars(componentName: string, mode: 'light' | 'dark'): Array<{ path: string; cssVar: string; value: any; type: string }> {
   const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')

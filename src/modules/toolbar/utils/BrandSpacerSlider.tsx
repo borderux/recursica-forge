@@ -119,7 +119,7 @@ export default function BrandSpacerSlider({
     const currentValue = inlineValue || readCssVar(targetCssVar)
     
     if (!currentValue || currentValue === 'null' || currentValue === '') {
-      // Null/empty means "none" - find the actual "none" token from Brand.json
+      // Null/empty means "none" - find the actual "none" token from recursica_brand.json
       const noneToken = tokens.find(t => t.name.includes('spacer-none') || (t.value === 0 && t.name.includes('spacer')))
       setSelectedToken(noneToken?.name || tokens[0]?.name)
       return
@@ -220,12 +220,12 @@ export default function BrandSpacerSlider({
     
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
     
-    // Find the token (including "none" from Brand.json)
+    // Find the token (including "none" from recursica_brand.json)
     const token = tokens.find(t => t.name === tokenName)
     if (token) {
       const tokenValue = `var(${token.name})`
       // Set CSS var to token reference (including "none" token)
-      // This ensures we use the token reference instead of falling back to UIKit.json defaults
+      // This ensures we use the token reference instead of falling back to recursica_ui-kit.json defaults
       cssVars.forEach(cssVar => {
         updateCssVar(cssVar, tokenValue)
         // Track that we just set this value to prevent immediate re-read

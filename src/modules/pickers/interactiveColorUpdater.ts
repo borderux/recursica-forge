@@ -764,7 +764,7 @@ export function updateCoreColorOnTones(
         onToneCore = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
       }
 
-      // Update Brand.json
+      // Update recursica_brand.json
       if (!colorDef['on-tone']) colorDef['on-tone'] = {}
       colorDef['on-tone'].$value = `{brand.themes.${mode}.palettes.core-colors.${onToneCore}}`
 

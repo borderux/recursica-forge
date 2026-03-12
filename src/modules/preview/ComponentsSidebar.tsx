@@ -8,7 +8,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useMemo, useEffect, useState } from 'react'
-import uikitJson from '../../vars/UIKit.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -38,7 +38,7 @@ export function ComponentsSidebar({
   const navigate = useNavigate()
   const { mode } = useThemeMode()
 
-  // Get list of mapped components from UIKit.json
+  // Get list of mapped components from recursica_ui-kit.json
   const mappedComponents = useMemo(() => {
     const components = (uikitJson as any)?.['ui-kit']?.components || {}
     return new Set(Object.keys(components).map(name => {

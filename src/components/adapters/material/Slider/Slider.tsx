@@ -104,7 +104,7 @@ export default function Slider({
     }
   }, [thumbElevationVar])
 
-  // Determine thumb elevation from UIKit.json
+  // Determine thumb elevation from recursica_ui-kit.json
   const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
 
   const isRange = Array.isArray(value)

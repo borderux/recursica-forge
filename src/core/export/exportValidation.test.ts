@@ -11,9 +11,9 @@ import { exportTokensJson, exportBrandJson, exportUIKitJson, exportCssStylesheet
 import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import { validateCssExport } from './validateCss'
 import type { JsonLike } from '../resolvers/tokens'
-import tokensJson from '../../vars/Tokens.json'
-import brandJson from '../../vars/Brand.json'
-import uikitJson from '../../vars/UIKit.json'
+import tokensJson from '../../../recursica_tokens.json'
+import brandJson from '../../../recursica_brand.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 
 // Mock DOM environment
 beforeEach(() => {

@@ -427,7 +427,7 @@ export default function ColorTokenPicker() {
           coreColors[colorName] = {
             tone: { $value: tokenRef },
             'on-tone': { $value: `{brand.themes.${mode}.palettes.core-colors.white}` },
-            interactive: { $value: `{tokens.colors.scale-05.300}` } // Default from Brand.json - will be updated by AA compliance if needed
+            interactive: { $value: `{tokens.colors.scale-05.300}` } // Default from recursica_brand.json - will be updated by AA compliance if needed
           }
         } else {
           if (!coreColors[colorName].tone) coreColors[colorName].tone = {}

@@ -23,7 +23,7 @@ function pascalToKebabCase(str: string): string {
 }
 
 /**
- * Converts a UIKit.json path to a CSS variable name
+ * Converts a recursica_ui-kit.json path to a CSS variable name
  * 
  * @example
  * toCssVarName('components.button.color.layer-0.background-solid')
@@ -63,7 +63,7 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
  * => '--recursica-ui-kit-themes-dark-components-chip-properties-horizontal-padding'
  * 
  * @param component - Component name (e.g., 'Button', 'Chip')
- * @param pathSegments - Path segments from UIKit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background'])
+ * @param pathSegments - Path segments from recursica_ui-kit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background'])
  * @param mode - Optional theme mode ('light' | 'dark'). If not provided, reads from document.documentElement.getAttribute('data-theme-mode')
  * @returns CSS variable name
  */
@@ -110,7 +110,7 @@ export function buildComponentCssVarPath(
 
   // Build path: components.{component}.{path-segments}
   // Convert component name from PascalCase to kebab-case (e.g., 'MenuItem' -> 'menu-item')
-  // Normalize display names that differ from UIKit.json keys
+  // Normalize display names that differ from recursica_ui-kit.json keys
   const componentNameMap: Record<string, string> = {
     'checkbox-group-item': 'checkbox-item',
     'radio-button-group-item': 'radio-button-item',

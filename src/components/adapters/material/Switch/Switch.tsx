@@ -80,7 +80,7 @@ export default function Switch({
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
   
-  // Use CSS variables directly - they already point to the correct layer-specific values from UIKit.json
+  // Use CSS variables directly - they already point to the correct layer-specific values from recursica_ui-kit.json
   const thumbSelectedColor = `var(${thumbSelectedVar})`
   const thumbUnselectedColor = `var(${thumbUnselectedVar})`
   const trackSelectedColor = `var(${trackSelectedVar})`
@@ -146,10 +146,10 @@ export default function Switch({
     }
   }, [thumbElevationVar, trackElevationVar])
   
-  // Determine track elevation to apply - prioritize prop, then UIKit.json
+  // Determine track elevation to apply - prioritize prop, then recursica_ui-kit.json
   const trackElevationBoxShadow = getElevationBoxShadow(mode, elevation ?? trackElevationFromVar)
   
-  // Determine thumb elevation from UIKit.json
+  // Determine thumb elevation from recursica_ui-kit.json
   const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
   
   // Calculate track height: thumb height + 2 * track inner padding

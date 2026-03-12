@@ -78,7 +78,7 @@ export default function Switch({
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
   
-  // Use CSS variables directly - they already point to the correct layer-specific values from UIKit.json
+  // Use CSS variables directly - they already point to the correct layer-specific values from recursica_ui-kit.json
   const thumbSelectedColor = `var(${thumbSelectedVar})`
   const thumbUnselectedColor = `var(${thumbUnselectedVar})`
   const trackSelectedColor = `var(${trackSelectedVar})`
@@ -145,10 +145,10 @@ export default function Switch({
     }
   }, [thumbElevationVar, trackElevationVar])
   
-  // Determine track elevation to apply - prioritize prop, then UIKit.json
+  // Determine track elevation to apply - prioritize prop, then recursica_ui-kit.json
   const trackElevationBoxShadow = getElevationBoxShadow(mode, elevation ?? trackElevationFromVar)
   
-  // Determine thumb elevation from UIKit.json
+  // Determine thumb elevation from recursica_ui-kit.json
   const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
   
   // Calculate track height: thumb height + 2 * track inner padding
@@ -208,7 +208,7 @@ export default function Switch({
         ['--recursica-ui-kit-components-switch-thumb-bg-unselected' as string]: thumbUnselectedColor,
         ['--recursica-ui-kit-components-switch-track-checked' as string]: trackSelectedColor,
         ['--recursica-ui-kit-components-switch-track-unchecked' as string]: trackUnselectedColor,
-        // Component-level properties are already on :root from UIKit.json - don't create circular refs
+        // Component-level properties are already on :root from recursica_ui-kit.json - don't create circular refs
         // Only set computed values that depend on them
         ['--recursica-ui-kit-components-switch-track-height' as string]: trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
         ['--recursica-ui-kit-components-switch-thumb-elevation' as string]: thumbElevationBoxShadow || 'none',

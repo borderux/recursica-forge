@@ -11,7 +11,7 @@ const fontFamilyNameCache = new Map<string, string>()
 
 /**
  * Map of font names to their Google Fonts URLs from token extensions
- * Used to load fonts with the exact URL specified in Tokens.json
+ * Used to load fonts with the exact URL specified in recursica_tokens.json
  */
 const fontUrlMap = new Map<string, string>()
 

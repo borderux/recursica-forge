@@ -16,9 +16,9 @@ import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneFo
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
 
-import tokensImport from '../../vars/Tokens.json'
-import themeImport from '../../vars/Brand.json'
-import uikitImport from '../../vars/UIKit.json'
+import tokensImport from '../../../recursica_tokens.json'
+import themeImport from '../../../recursica_brand.json'
+import uikitImport from '../../../recursica_ui-kit.json'
 // Note: Override system removed - tokens are now the single source of truth
 
 type PaletteStore = {
@@ -540,19 +540,17 @@ class VarsStore {
   }
 
   /**
-   * Fetches UIKit.json from the server (bypassing bundle cache) and reloads.
-   * Use after editing UIKit.json when toolbar colors/defaults aren't updating.
+   * Fetches recursica_ui-kit.json from the server (bypassing bundle cache) and reloads.
+   * Use after editing recursica_ui-kit.json when toolbar colors/defaults aren't updating.
    */
   async reloadFromFile() {
     if (!this.lsAvailable || typeof window === 'undefined') return
     try {
-      // Fetch fresh UIKit.json directly from server (bypasses JS bundle cache)
+      // Fetch fresh recursica_ui-kit.json directly from server (bypasses JS bundle cache)
       const base = ((import.meta as any).env?.BASE_URL as string) ?? '/'
       const basePath = base.endsWith('/') ? base : base + '/'
-      // Dev: Vite serves src; Prod: copy-uikit plugin copies to dist/vars/
-      const uikitPath = (import.meta as any).env?.DEV
-        ? basePath + 'src/vars/UIKit.json'
-        : basePath + 'vars/UIKit.json'
+      // Dev: Vite serves root; Prod: copy-uikit plugin copies to dist/
+      const uikitPath = basePath + 'recursica_ui-kit.json'
       const res = await fetch(uikitPath, { cache: 'no-store' })
       if (res.ok) {
         const uikit = await res.json()
@@ -2083,7 +2081,7 @@ class VarsStore {
       // to FLAG issues (badge count) without modifying any values.
 
       // UIKit components - generate for all modes during bootstrap
-      // UIKit vars are generated for both light and dark modes based on what modes/themes are in Brand.json
+      // UIKit vars are generated for both light and dark modes based on what modes/themes are in recursica_brand.json
       // After initial bootstrap, UIKit vars are also managed via toolbar
       try {
         // Check if any UIKit vars exist in DOM - if they do, skip regenerating (they're managed via toolbar)
@@ -2338,7 +2336,7 @@ class VarsStore {
             const dir = modeDirections[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
             return dir
           }
-          // Helper to read elevation values directly from Brand.json for the current mode
+          // Helper to read elevation values directly from recursica_brand.json for the current mode
           const toNumeric = (ref?: any): number => {
             // Handle new structure: { $value: { value: number, unit: "px" }, $type: "number" }
             if (ref && typeof ref === 'object' && '$value' in ref) {
@@ -2361,21 +2359,21 @@ class VarsStore {
             }
             return 0
           }
-          // Read elevation values from Brand.json for the current mode
+          // Read elevation values from recursica_brand.json for the current mode
           const brand: any = (this.state.theme as any)?.brand || (this.state.theme as any)
           const themes = brand?.themes || brand
           const modeElevations: any = themes?.[mode]?.elevations || {}
           const baseElevationNode: any = modeElevations?.['elevation-0']?.['$value'] || {}
 
           const vars: Record<string, string> = {}
-          // Update tokens with mode-specific elevation values from Brand.json before generating CSS variables
+          // Update tokens with mode-specific elevation values from recursica_brand.json before generating CSS variables
           // This ensures token references resolve to the correct mode-specific values
           const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
           if (!tokensRoot.sizes) tokensRoot.sizes = {}
           const sizeTokens = tokensRoot.sizes
 
           // Generate elevation variables for levels 0-4
-          // Read values directly from Brand.json for the current mode, update tokens, then reference them
+          // Read values directly from recursica_brand.json for the current mode, update tokens, then reference them
           for (let i = 0; i <= 4; i += 1) {
             const k = `elevation-${i}`
             const elevNode: any = modeElevations?.[k]?.['$value'] || baseElevationNode
@@ -2383,7 +2381,7 @@ class VarsStore {
               continue
             }
 
-            // Check if user has customized this elevation - if so, use control values instead of Brand.json
+            // Check if user has customized this elevation - if so, use control values instead of recursica_brand.json
             // Read controls for the current mode being processed
             const control = this.state.elevation.controls[mode]?.[k]
             let blurValue: number
@@ -2400,7 +2398,7 @@ class VarsStore {
               yValue = control.offsetY
               hasCustomControls = true
             } else {
-              // Read values directly from Brand.json for this mode
+              // Read values directly from recursica_brand.json for this mode
               const blurRaw = elevNode?.blur
               const spreadRaw = elevNode?.spread
               const xRaw = elevNode?.x
@@ -2482,7 +2480,7 @@ class VarsStore {
 
             // Always set CSS variables directly with pixel values to avoid token conflicts between modes
             // Tokens are shared, so we can't rely on them for mode-specific values
-            // Set CSS variables directly from controls (if they exist) or Brand.json defaults
+            // Set CSS variables directly from controls (if they exist) or recursica_brand.json defaults
             vars[`${prefixedScope}-blur`] = `${blurValue}px`
             vars[`${prefixedScope}-spread`] = `${spreadValue}px`
 

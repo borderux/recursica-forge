@@ -12,7 +12,7 @@ import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
-import brandDefault from '../../vars/Brand.json'
+import brandDefault from '../../../recursica_brand.json'
 import { getVarsStore } from '../../core/store/varsStore'
 
 type DimensionEntry = {
@@ -239,19 +239,19 @@ export default function DimensionsPage() {
   }, [groupedDimensions])
 
   const handleReset = (category: string) => {
-    // Reset all dimensions in this category to their default token references from Brand.json
+    // Reset all dimensions in this category to their default token references from recursica_brand.json
     const themeCopy = getVarsStore().getLatestThemeCopy()
     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
     const dims = root?.dimensions
     if (!dims) return
 
-    // Get default dimensions from Brand.json
+    // Get default dimensions from recursica_brand.json
     const defaultRoot: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
     const defaultDims = defaultRoot?.dimensions
     if (!defaultDims) return
 
     groupedDimensions[category].forEach((entry) => {
-      // Navigate to the dimension in the default Brand.json
+      // Navigate to the dimension in the default recursica_brand.json
       let defaultNode = defaultDims
       for (let i = 0; i < entry.path.length; i++) {
         if (!defaultNode[entry.path[i]]) {

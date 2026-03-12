@@ -7,7 +7,7 @@ import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getVarsStore } from '../../core/store/varsStore'
 import { iconNameToReactComponent } from '../components/iconUtils'
-import brandDefault from '../../vars/Brand.json'
+import brandDefault from '../../../recursica_brand.json'
 import { Button } from '../../components/adapters/Button'
 import { Tooltip } from '../../components/adapters/Tooltip'
 
@@ -296,7 +296,7 @@ export default function BaseColorsGrid() {
   const handleResetAll = () => {
     if (!themeJson || !setTheme) return
 
-    // Get default values from Brand.json
+    // Get default values from recursica_brand.json
     const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
     const themes = root?.themes || root
     // core-colors are direct children (not under $value)

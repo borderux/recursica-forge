@@ -131,7 +131,7 @@ export function Chip({
     // NEW STRUCTURE: properties.icon-size
     const iconSizeVar = getComponentLevelCssVar('Chip', 'icon-size')
     const closeIconSizeVar = getComponentLevelCssVar('Chip', 'close-icon-size')
-    // icon-text-gap is at component level (not under size) in UIKit.json
+    // icon-text-gap is at component level (not under size) in recursica_ui-kit.json
     // NEW STRUCTURE: properties.icon-text-gap
     const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
 
@@ -268,7 +268,7 @@ function getChipStyles(
   const styles: React.CSSProperties = {}
 
   // Get color CSS variables
-  // Use UIKit.json chip colors for standard layers
+  // Use recursica_ui-kit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
   const bgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const borderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)

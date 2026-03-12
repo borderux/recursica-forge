@@ -34,7 +34,7 @@ export default function Link({
 }: AdapterLinkProps) {
     const { mode } = useThemeMode()
 
-    // Use UIKit.json link colors - state-variant colors
+    // Use recursica_ui-kit.json link colors - state-variant colors
     const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
     const textHoverVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', layer, 'text')
 

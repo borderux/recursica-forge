@@ -66,9 +66,9 @@ describe("detectDirtyData", () => {
 
   it("should return false when data matches original", () => {
     // Import the actual JSON files to get their structure
-    const tokensJson = require("../../vars/Tokens.json");
-    const brandJson = require("../../vars/Brand.json");
-    const uikitJson = require("../../vars/UIKit.json");
+    const tokensJson = require("../../../recursica_tokens.json");
+    const brandJson = require("../../../recursica_brand.json");
+    const uikitJson = require("../../../recursica_ui-kit.json");
 
     // Normalize to match what detectDirtyData expects
     const originalTokens = tokensJson;

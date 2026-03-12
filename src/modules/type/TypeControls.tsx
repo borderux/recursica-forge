@@ -110,14 +110,14 @@ export default function TypeControls({
   const familyOptions = useMemo(() => {
     const out: Array<{ short: string; label: string; value: string }> = []
     const seen = new Set<string>()
-    // from Tokens.json (font.family)
+    // from recursica_tokens.json (font.family)
     try {
       Object.entries((tokens as any)?.tokens?.font?.family || {}).forEach(([short, rec]: [string, any]) => {
         const val = String((rec as any)?.$value || '')
         if (val && !seen.has(val)) { seen.add(val); out.push({ short, label: toTitleCase(short), value: val }) }
       })
     } catch {}
-    // from Tokens.json (font.typeface)
+    // from recursica_tokens.json (font.typeface)
     try {
       Object.entries((tokens as any)?.tokens?.font?.['typeface'] || {}).forEach(([short, rec]: [string, any]) => {
         const val = String((rec as any)?.$value || '')

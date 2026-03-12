@@ -1,7 +1,7 @@
 /**
  * Typography Utilities
  * 
- * Utilities for working with typography type styles from UIKit.json
+ * Utilities for working with typography type styles from recursica_ui-kit.json
  */
 
 import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'

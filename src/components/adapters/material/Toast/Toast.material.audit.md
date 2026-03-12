@@ -22,24 +22,24 @@ This document audits the Toast component implementation for Material UI, identif
 
 | Variable Name | Source | Used For |
 |--------------|--------|----------|
-| `--recursica-ui-kit-components-toast-color-layer-{n}-variant-{variant}-background` | UIKit.json | Toast background color |
-| `--recursica-ui-kit-components-toast-color-layer-{n}-variant-{variant}-text` | UIKit.json | Toast text color |
-| `--recursica-ui-kit-components-toast-color-layer-{n}-variant-{variant}-button` | UIKit.json | Toast button color (success/error variants) |
-| `--recursica-ui-kit-components-toast-size-vertical-padding` | UIKit.json | Toast vertical padding |
-| `--recursica-ui-kit-components-toast-size-horizontal-padding` | UIKit.json | Toast horizontal padding |
-| `--recursica-ui-kit-components-toast-size-min-width` | UIKit.json | Toast minimum width |
-| `--recursica-ui-kit-components-toast-size-max-width` | UIKit.json | Toast maximum width |
-| `--recursica-ui-kit-components-toast-size-icon` | UIKit.json | Icon size |
-| `--recursica-ui-kit-components-toast-size-spacing` | UIKit.json | Gap between elements |
-| `--recursica-ui-kit-components-toast-elevation` | UIKit.json | Toast elevation (component-level) |
-| `--recursica-brand-{mode}-layer-layer-alternative-{key}-property-surface` | Brand.json | Alternative layer surface |
-| `--recursica-brand-{mode}-layer-layer-alternative-{key}-property-element-text-color` | Brand.json | Alternative layer text color |
-| `--recursica-brand-{mode}-layer-layer-alternative-{key}-property-element-interactive-tone` | Brand.json | Alternative layer button color |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-x-axis` | Brand.json | Elevation shadow x-axis offset |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-y-axis` | Brand.json | Elevation shadow y-axis offset |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-blur` | Brand.json | Elevation shadow blur radius |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-spread` | Brand.json | Elevation shadow spread radius |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-shadow-color` | Brand.json | Elevation shadow color |
+| `--recursica-ui-kit-components-toast-color-layer-{n}-variant-{variant}-background` | recursica_ui-kit.json | Toast background color |
+| `--recursica-ui-kit-components-toast-color-layer-{n}-variant-{variant}-text` | recursica_ui-kit.json | Toast text color |
+| `--recursica-ui-kit-components-toast-color-layer-{n}-variant-{variant}-button` | recursica_ui-kit.json | Toast button color (success/error variants) |
+| `--recursica-ui-kit-components-toast-size-vertical-padding` | recursica_ui-kit.json | Toast vertical padding |
+| `--recursica-ui-kit-components-toast-size-horizontal-padding` | recursica_ui-kit.json | Toast horizontal padding |
+| `--recursica-ui-kit-components-toast-size-min-width` | recursica_ui-kit.json | Toast minimum width |
+| `--recursica-ui-kit-components-toast-size-max-width` | recursica_ui-kit.json | Toast maximum width |
+| `--recursica-ui-kit-components-toast-size-icon` | recursica_ui-kit.json | Icon size |
+| `--recursica-ui-kit-components-toast-size-spacing` | recursica_ui-kit.json | Gap between elements |
+| `--recursica-ui-kit-components-toast-elevation` | recursica_ui-kit.json | Toast elevation (component-level) |
+| `--recursica-brand-{mode}-layer-layer-alternative-{key}-property-surface` | recursica_brand.json | Alternative layer surface |
+| `--recursica-brand-{mode}-layer-layer-alternative-{key}-property-element-text-color` | recursica_brand.json | Alternative layer text color |
+| `--recursica-brand-{mode}-layer-layer-alternative-{key}-property-element-interactive-tone` | recursica_brand.json | Alternative layer button color |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-x-axis` | recursica_brand.json | Elevation shadow x-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-y-axis` | recursica_brand.json | Elevation shadow y-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-blur` | recursica_brand.json | Elevation shadow blur radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-spread` | recursica_brand.json | Elevation shadow spread radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-shadow-color` | recursica_brand.json | Elevation shadow color |
 
 ### Variables Used (with Library Fallbacks)
 
@@ -77,10 +77,10 @@ boxShadow: (when elevation is set)
 | `--toast-bg` | Toast background color | From Recursica CSS var |
 | `--toast-text` | Toast text color | From Recursica CSS var |
 | `--toast-button` | Toast button color (for close button) | From Recursica CSS var (success/error variants) |
-| `--toast-vertical-padding` | Toast vertical padding | From UIKit.json |
-| `--toast-horizontal-padding` | Toast horizontal padding | From UIKit.json |
-| `--toast-min-width` | Toast minimum width | From UIKit.json |
-| `--toast-max-width` | Toast maximum width | From UIKit.json |
+| `--toast-vertical-padding` | Toast vertical padding | From recursica_ui-kit.json |
+| `--toast-horizontal-padding` | Toast horizontal padding | From recursica_ui-kit.json |
+| `--toast-min-width` | Toast minimum width | From recursica_ui-kit.json |
+| `--toast-max-width` | Toast maximum width | From recursica_ui-kit.json |
 | `--toast-icon-size` | Icon width/height | `0px` (when no icon) |
 | `--toast-spacing` | Gap between elements | `0px` (when no icon/action) |
 | `boxShadow` (inline style) | Elevation shadow (when elevation prop is set) | Built from brand elevation CSS vars |

@@ -397,7 +397,7 @@ export default function PaletteColorSelector({
     return () => window.removeEventListener('themeReset', handleThemeReset)
   }, [familiesUsedByPalettes, paletteKey, tokensJson, families])
 
-  // Build theme index to read token levels from Brand.json (needed for recheckAACompliance)
+  // Build theme index to read token levels from recursica_brand.json (needed for recheckAACompliance)
   const themeIndex = useMemo(() => {
     const out: Record<string, { value: any }> = {}
     const visit = (node: any, prefix: string, modeLabel: 'Light' | 'Dark') => {
@@ -415,7 +415,7 @@ export default function PaletteColorSelector({
     return out
   }, [themeJson])
 
-  // Helper to get token level from Brand.json for a given palette level
+  // Helper to get token level from recursica_brand.json for a given palette level
   const getTokenLevelForPaletteLevel = useCallback((paletteLevel: string): string | null => {
     const toneName = `palette/${paletteKey}/${paletteLevel}/color/tone`
     const toneRaw = themeIndex[`${mode}::${toneName}`]?.value
@@ -451,7 +451,7 @@ export default function PaletteColorSelector({
 
     // Calculate on-tone values for all levels first
     headerLevels.forEach((lvl) => {
-      // Get the actual token level from Brand.json (not the palette level)
+      // Get the actual token level from recursica_brand.json (not the palette level)
       const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
       const tokenName = `color/${familyToUse}/${tokenLevel}`
       const hex = getTokenValueByName(tokenName)
@@ -526,7 +526,7 @@ export default function PaletteColorSelector({
         const currentModeKey = modeLower
         if (root[currentModeKey]?.palettes?.[paletteKey]) {
           headerLevels.forEach((lvl) => {
-            // Get the actual token level from Brand.json (not the palette level)
+            // Get the actual token level from recursica_brand.json (not the palette level)
             const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
             const tokenName = `color/${familyToUse}/${tokenLevel}`
             const hex = getTokenValueByName(tokenName)

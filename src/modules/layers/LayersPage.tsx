@@ -6,7 +6,7 @@ import React from 'react'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { Button } from '../../components/adapters/Button'
-import brandDefault from '../../vars/Brand.json'
+import brandDefault from '../../../recursica_brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getVarsStore } from '../../core/store/varsStore'
 

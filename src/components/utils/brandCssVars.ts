@@ -92,12 +92,12 @@ export function getElevationBoxShadow(
 }
 
 /**
- * Parses elevation value from UIKit.json or prop value
+ * Parses elevation value from recursica_ui-kit.json or prop value
  * 
  * Handles both direct elevation values (e.g., "elevation-1") and
  * brand references (e.g., "{brand.themes.light.elevations.elevation-4}")
  * 
- * @param elevationValue - Elevation value from UIKit.json or prop
+ * @param elevationValue - Elevation value from recursica_ui-kit.json or prop
  * @returns Parsed elevation level (e.g., "elevation-1") or undefined
  */
 export function parseElevationValue(elevationValue: string | undefined): string | undefined {
@@ -154,12 +154,12 @@ export function extractElevationMode(elevationValue: string | undefined, cssVarN
 /**
  * Gets elevation box-shadow for a given layer
  * 
- * The layer elevation in Brand.json is a composite boxShadow type that references
+ * The layer elevation in recursica_brand.json is a composite boxShadow type that references
  * a top-level elevation (e.g., elevation-2). The token compiler does NOT produce
  * a single CSS variable for the layer's elevation — instead, the elevation is
  * stored as sub-properties at the top-level elevations path. 
  * 
- * This function resolves the layer → elevation mapping by reading the Brand.json
+ * This function resolves the layer → elevation mapping by reading the recursica_brand.json
  * token structure. Falls back to reading the layer's sub-property CSS variables
  * if they exist.
  * 
@@ -185,8 +185,8 @@ export function getLayerElevationBoxShadow(
     return `var(${layerElevBase}-x-axis, 0px) var(${layerElevBase}-y-axis, 0px) var(${layerElevBase}-blur, 0px) var(${layerElevBase}-spread, 0px) var(${layerElevBase}-shadow-color, rgba(0, 0, 0, 0))`
   }
 
-  // Sub-properties don't exist at layer level. Resolve by reading Brand.json's
-  // layer → elevation reference. The elevation property value in Brand.json is
+  // Sub-properties don't exist at layer level. Resolve by reading recursica_brand.json's
+  // layer → elevation reference. The elevation property value in recursica_brand.json is
   // a reference like {brand.themes.light.elevations.elevation-2}.
   // We try to read the CSS variable for that reference to find the elevation level.
 
@@ -199,8 +199,8 @@ export function getLayerElevationBoxShadow(
     }
   }
 
-  // Last resort: use known Brand.json layer → elevation mapping
-  // This mapping is from Brand.json: each layer's elevation.$value references
+  // Last resort: use known recursica_brand.json layer → elevation mapping
+  // This mapping is from recursica_brand.json: each layer's elevation.$value references
   // a specific top-level elevation level
   const layerElevationMap: Record<string, string> = {
     'layer-0': 'elevation-0',
