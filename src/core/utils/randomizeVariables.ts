@@ -495,7 +495,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
 
   // Get initial state - deep clone to avoid mutating the original
   const initialTokens = JSON.parse(JSON.stringify(state.tokens)) as JsonLike
-  const initialTheme = JSON.parse(JSON.stringify(state.theme)) as JsonLike
+  const initialTheme = getVarsStore().getLatestThemeCopy() as JsonLike
   const initialUiKit = JSON.parse(JSON.stringify(state.uikit)) as JsonLike
 
   // Find all modifiable values

@@ -4,6 +4,7 @@ import { useVars } from '../vars/VarsContext'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { getVarsStore } from '../../core/store/varsStore'
 
 export default function OpacityPicker() {
   const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
@@ -150,7 +151,7 @@ export default function OpacityPicker() {
     
     if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && setTheme && themeJson) {
       try {
-        const themeCopy = JSON.parse(JSON.stringify(themeJson))
+        const themeCopy = getVarsStore().getLatestThemeCopy()
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
         const themes = root?.themes || root
         

@@ -15,6 +15,7 @@ import { generateSuggestedTones, type SuggestedTone } from './toneInterpolation'
 import {
     findColorFamilyAndLevel,
     getAllFamilyColorsByKey,
+    traceToTokenRef,
 } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
 import { readCssVarNumber } from '../../core/css/readCssVar'
@@ -46,8 +47,9 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
         const tokens = store.getState().tokens
         if (!tokens) return { tones: [] as SuggestedTone[], family: '', level: '', emphasisOpacity: 1 }
 
-        // Find what scale family & level the failing tone belongs to
-        const info = findColorFamilyAndLevel(issue.toneHex, tokens)
+        // Trace the CSS var chain to find the exact token, falling back to hex matching
+        const traced = issue.toneCssVar ? traceToTokenRef(issue.toneCssVar) : null
+        const info = traced || findColorFamilyAndLevel(issue.toneHex, tokens)
         if (!info) return { tones: [] as SuggestedTone[], family: '', level: '', emphasisOpacity: 1 }
 
         const { family, level } = info

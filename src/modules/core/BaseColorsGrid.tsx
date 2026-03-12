@@ -5,6 +5,7 @@ import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css
 import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { getVarsStore } from '../../core/store/varsStore'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import brandDefault from '../../vars/Brand.json'
 import { Button } from '../../components/adapters/Button'
@@ -304,7 +305,7 @@ export default function BaseColorsGrid() {
     if (!defaultCoreColors) return
 
     // Create a copy of the current theme
-    const themeCopy = JSON.parse(JSON.stringify(themeJson))
+    const themeCopy = getVarsStore().getLatestThemeCopy()
     const themeRoot: any = themeCopy?.brand ? themeCopy.brand : themeCopy
     const currentThemes = themeRoot?.themes || themeRoot
 

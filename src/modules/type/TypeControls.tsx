@@ -5,6 +5,7 @@
  * Provides live preview via onPreview callback and persists choices via localStorage.
  */
 import { useMemo, useState } from 'react'
+import { getVarsStore } from '../../core/store/varsStore'
 
 const CHOICES_KEY = 'type-token-choices'
 
@@ -16,6 +17,10 @@ export function readChoices(): Record<string, { family?: string; size?: string; 
 export function writeChoices(next: Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>) {
   try { localStorage.setItem(CHOICES_KEY, JSON.stringify(next)) } catch {}
   try { window.dispatchEvent(new CustomEvent('typeChoicesChanged', { detail: next })) } catch {}
+  // Directly trigger recompute since store no longer listens to typeChoicesChanged
+  const store = getVarsStore()
+  store.bumpVersion()
+  store.recomputeAndApplyAll()
 }
 
 function toTitleCase(label: string): string {

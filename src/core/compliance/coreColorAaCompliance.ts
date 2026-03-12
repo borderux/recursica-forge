@@ -5,6 +5,7 @@ import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../../modules/theme/contrastUtil'
 import { resolveCssVarToHex, findColorFamilyAndLevel } from './layerColorStepping'
 import { parseTokenReference, type TokenReferenceContext } from '../utils/tokenReferenceParser'
+import { getVarsStore } from '../store/varsStore'
 
 const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
 const AA = 4.5
@@ -259,7 +260,7 @@ export function updateCoreColorInteractiveOnToneForCompliance(
         // Only user-initiated changes should update JSON
         if (setTheme && theme && setTheme.toString() !== '() => {}') {
           try {
-            const themeCopy = JSON.parse(JSON.stringify(theme))
+            const themeCopy = getVarsStore().getLatestThemeCopy()
             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
             const themes = root?.themes || root
             const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']

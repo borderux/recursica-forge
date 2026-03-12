@@ -14,7 +14,8 @@ import { hexToRgb, contrastRatio, blendHexWithOpacity } from '../theme/contrastU
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
-import { getComplianceService } from '../../core/compliance/ComplianceService'
+import { getVarsStore } from '../../core/store/varsStore'
+
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 
 
@@ -483,7 +484,7 @@ export default function PalettesPage() {
       if (!root?.themes) return // No themes structure, nothing to migrate
 
       let migrated = false
-      const themeCopy = JSON.parse(JSON.stringify(themeJson))
+      const themeCopy = getVarsStore().getLatestThemeCopy()
       const rootCopy: any = themeCopy?.brand ? themeCopy.brand : themeCopy
 
       for (const modeKey of ['light', 'dark'] as const) {
@@ -524,10 +525,6 @@ export default function PalettesPage() {
 
       if (migrated) {
         setTheme(themeCopy)
-        // Trigger compliance scan after migration
-        setTimeout(() => {
-          getComplianceService().triggerScan()
-        }, 300)
       }
     } catch (err) {
       console.error('Failed to migrate legacy palette data:', err)
@@ -711,7 +708,7 @@ export default function PalettesPage() {
     if (!setTheme || !themeJson) return
 
     try {
-      const themeCopy = JSON.parse(JSON.stringify(themeJson))
+      const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const headerLevels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200']
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
@@ -891,10 +888,7 @@ export default function PalettesPage() {
       // Show toast with scroll action
       showToast(`Palette ${i} added`, nextKey)
 
-      // Trigger compliance scan after palette is fully mounted and CSS vars are set
-      setTimeout(() => {
-        getComplianceService().triggerScan()
-      }, 500)
+
     } catch (err) {
       console.error('Failed to add palette:', err)
     }
@@ -907,10 +901,7 @@ export default function PalettesPage() {
     try {
       window.dispatchEvent(new CustomEvent('paletteDeleted', { detail: { key } }))
     } catch { }
-    // Re-scan compliance after palette removal
-    setTimeout(() => {
-      getComplianceService().triggerScan()
-    }, 300)
+
   }
 
   const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`

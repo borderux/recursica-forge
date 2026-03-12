@@ -8,6 +8,7 @@ import { Dropdown } from '../../components/adapters/Dropdown'
 import { Modal } from '../../components/adapters/Modal'
 import { Label } from '../../components/adapters/Label'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { getVarsStore } from '../../core/store/varsStore'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
   const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
@@ -295,7 +296,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
               if (setTheme && themeJson) {
                 try {
-                  const themeCopy = JSON.parse(JSON.stringify(themeJson))
+                  const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
                   const themes = root?.themes || root
                   const isDark = targetOpacityCssVar.includes('-dark-')
@@ -414,7 +415,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
                         if (isOverlay && setTheme && themeJson) {
                           try {
-                            const themeCopy = JSON.parse(JSON.stringify(themeJson))
+                            const themeCopy = getVarsStore().getLatestThemeCopy()
                             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
                             const themes = root?.themes || root
                             const isDark = cssVarsToUpdate.some(v => v.includes('-dark-'))

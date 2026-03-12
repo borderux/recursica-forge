@@ -15,7 +15,7 @@ import { Badge } from '../../components/adapters/Badge'
 import { Button } from '../../components/adapters/Button'
 import { Link } from '../../components/adapters/Link'
 import { Tooltip } from '../../components/adapters/Tooltip'
-import { findColorFamilyAndLevel, getAllFamilyColorsByKey } from '../../core/compliance/layerColorStepping'
+import { findColorFamilyAndLevel, getAllFamilyColorsByKey, traceToTokenRef } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVarNumber } from '../../core/css/readCssVar'
@@ -182,8 +182,10 @@ export default function CompliancePage() {
         // Store the original value before applying the fix
         const style = getComputedStyle(document.documentElement)
         const originalValue = style.getPropertyValue(issue.suggestion.targetCssVar).trim()
-        applySuggestion(issue.id)
-        setFixedMap(prev => ({ ...prev, [issue.id]: originalValue }))
+        const success = applySuggestion(issue.id)
+        if (success) {
+            setFixedMap(prev => ({ ...prev, [issue.id]: originalValue }))
+        }
     }
 
     const handleUndo = (issue: ComplianceIssue) => {
@@ -225,34 +227,41 @@ export default function CompliancePage() {
         const tokens = store.getState().tokens
         if (!tokens) return
 
+        // Trace the CSS var chain from the issue's tone var to find the CORRECT token.
+        // findColorFamilyAndLevel does blind hex matching which fails when multiple
+        // scales share the same hex (e.g. #fafafa in both scale-01/050 and scale-02/000).
+        const traced = issue.toneCssVar ? traceToTokenRef(issue.toneCssVar) : null
+        const resolvedFamily = traced?.family || family
+        const resolvedLevel = traced?.level || level
+
         // Store original hex for undo before modifying
         const tokensAny = tokens as any
-        const originalHex = tokensAny?.tokens?.colors?.[family]?.[level]?.$value || ''
+        const originalHex = tokensAny?.tokens?.colors?.[resolvedFamily]?.[resolvedLevel]?.$value || ''
 
         // Deep clone tokens and update the scale level value
         const tokensCopy = JSON.parse(JSON.stringify(tokens))
         const colorsRoot = tokensCopy?.tokens?.colors || {}
-        const scaleObj = colorsRoot[family]
-        if (scaleObj && scaleObj[level]) {
-            if (typeof scaleObj[level] === 'object' && '$value' in scaleObj[level]) {
-                scaleObj[level].$value = newHex
+        const scaleObj = colorsRoot[resolvedFamily]
+        if (scaleObj && scaleObj[resolvedLevel]) {
+            if (typeof scaleObj[resolvedLevel] === 'object' && '$value' in scaleObj[resolvedLevel]) {
+                scaleObj[resolvedLevel].$value = newHex
             } else {
-                scaleObj[level] = { $type: 'color', $value: newHex }
+                scaleObj[resolvedLevel] = { $type: 'color', $value: newHex }
             }
         }
 
         // Normalize level for CSS var name
-        const normalizedLevel = level === '000' ? '000' : level === '1000' ? '1000' : String(level).padStart(3, '0')
+        const normalizedLevel = resolvedLevel === '000' ? '000' : resolvedLevel === '1000' ? '1000' : String(resolvedLevel).padStart(3, '0')
 
         // Directly update the token-level CSS var on the DOM as a safety net
-        const tokenCssVar = `--recursica-tokens-colors-${family}-${normalizedLevel}`
+        const tokenCssVar = `--recursica-tokens-colors-${resolvedFamily}-${normalizedLevel}`
         document.documentElement.style.setProperty(tokenCssVar, newHex)
 
         // Persist token change (triggers recomputeAndApplyAll)
         store.setTokens(tokensCopy)
 
         // Track for undo
-        setSuggestFixedMap(prev => ({ ...prev, [issue.id]: { family, level, originalHex } }))
+        setSuggestFixedMap(prev => ({ ...prev, [issue.id]: { family: resolvedFamily, level: resolvedLevel, originalHex } }))
 
         // Re-scan after CSS vars rebuild (don't use handleRescan — it clears undo maps)
         setTimeout(() => {
@@ -319,7 +328,9 @@ export default function CompliancePage() {
             !i.suggestion || (i.suggestion.resultingRatio < i.requiredRatio)
         )
         for (const issue of unfixable) {
-            const info = findColorFamilyAndLevel(issue.toneHex, tokens)
+            // Use traceToTokenRef for exact token resolution instead of blind hex matching
+            const traced = issue.toneCssVar ? traceToTokenRef(issue.toneCssVar) : null
+            const info = traced || findColorFamilyAndLevel(issue.toneHex, tokens)
             if (!info) continue
 
             const { family, level } = info

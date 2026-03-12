@@ -4,6 +4,7 @@ import { readOverrides, setOverride } from '../theme/tokenOverrides'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { getVarsStore } from '../../core/store/varsStore'
 
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
@@ -187,7 +188,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
 
         if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && setTheme && themeJson) {
           try {
-            const themeCopy = JSON.parse(JSON.stringify(themeJson))
+            const themeCopy = getVarsStore().getLatestThemeCopy()
             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
             const themes = root?.themes || root
 
