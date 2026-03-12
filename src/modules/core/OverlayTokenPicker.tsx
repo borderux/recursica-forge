@@ -7,6 +7,7 @@ import FloatingPalette from '../toolbar/menu/floating-palette/FloatingPalette'
 import Dropdown from '../toolbar/menu/dropdown/Dropdown'
 import { Label } from '../../components/adapters/Label'
 import './OverlayTokenPicker.css'
+import { getVarsStore } from '../../core/store/varsStore'
 
 interface OverlayTokenPickerProps {
   anchorElement: HTMLElement | null
@@ -150,7 +151,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
       // Update theme JSON
       if (setTheme && themeJson) {
         try {
-          const themeCopy = JSON.parse(JSON.stringify(themeJson))
+          const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
           const themes = root?.themes || root
           
@@ -290,7 +291,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
       // Update theme JSON
       if (setTheme && themeJson) {
         try {
-          const themeCopy = JSON.parse(JSON.stringify(themeJson))
+          const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
           const themes = root?.themes || root
           const modeKey = modeLower
@@ -348,7 +349,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
       // Update theme JSON
       if (setTheme && themeJson) {
         try {
-          const themeCopy = JSON.parse(JSON.stringify(themeJson))
+          const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
           const themes = root?.themes || root
           const modeKey = modeLower
@@ -483,7 +484,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                 removeCssVar(overlayColorVar)
                 
                 if (setTheme && themeJson) {
-                  const themeCopy = JSON.parse(JSON.stringify(themeJson))
+                  const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
                   const themes = root?.themes || root
                   const modeKey = modeLower

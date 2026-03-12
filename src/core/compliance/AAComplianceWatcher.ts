@@ -87,6 +87,28 @@ export class AAComplianceWatcher {
     const toneHex = resolveCssVarToHex(toneValue, this.tokenIndex)
     if (!toneHex) return
 
+    // EARLY EXIT: If the current on-tone already passes AA at both emphasis levels, don't overwrite.
+    // This preserves compliance fixes that were applied by ComplianceService and persisted to theme JSON.
+    const currentOnToneValue = readCssVar(onToneVar)
+    if (currentOnToneValue) {
+      const currentOnToneHex = resolveCssVarToHex(currentOnToneValue, this.tokenIndex)
+      if (currentOnToneHex) {
+        const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${mode}-text-emphasis-high`)
+        const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${mode}-text-emphasis-low`)
+        const AA = 4.5
+
+        const highBlended = blendHexWithOpacity(currentOnToneHex, toneHex, highEmphasisOpacity)
+        const lowBlended = blendHexWithOpacity(currentOnToneHex, toneHex, lowEmphasisOpacity)
+
+        const highPasses = contrastRatio(toneHex, highBlended) >= AA
+        const lowPasses = contrastRatio(toneHex, lowBlended) >= AA
+
+        if (highPasses && lowPasses) {
+          return // Current on-tone already passes — don't overwrite
+        }
+      }
+    }
+
     // Read actual core black and white colors from CSS variables (not hardcoded)
     const coreBlackVar = `--recursica-brand-themes-${mode}-palettes-core-black`
     const coreWhiteVar = `--recursica-brand-themes-${mode}-palettes-core-white`
@@ -766,5 +788,384 @@ export class AAComplianceWatcher {
     }
   }
 
+  // ─── allVars-based methods (synchronous pipeline stage) ───
+  // These methods read/write from an in-memory map instead of DOM.
+  // They are called inside recomputeAndApplyAll() BEFORE applyCssVars().
+
+  /**
+   * Resolve a CSS value to hex using the allVars map instead of DOM.
+   * Follows var() chains in the map and resolves token references via tokenIndex.
+   */
+  public resolveValueToHex(value: string, allVars: Record<string, string>, depth = 0): string | null {
+    if (depth > 10) return null
+    try {
+      const trimmed = value.trim()
+      // Direct hex
+      if (/^#?[0-9a-f]{6}$/i.test(trimmed)) {
+        const h = trimmed.toLowerCase()
+        return h.startsWith('#') ? h : `#${h}`
+      }
+
+      // var() reference — look up in allVars
+      const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
+      if (varMatch) {
+        const varName = varMatch[1]
+        const resolved = allVars[varName]
+        if (resolved) {
+          return this.resolveValueToHex(resolved, allVars, depth + 1)
+        }
+      }
+
+      // Token CSS var name (the key itself, not wrapped in var())
+      const tokenMatch = trimmed.match(/--recursica-tokens-colors?-([a-z0-9-]+)-(\d+|050|000)/)
+      if (tokenMatch) {
+        const [, family, level] = tokenMatch
+        let hex = this.tokenIndex.get(`colors/${family}/${level}`)
+        if (typeof hex !== 'string') {
+          hex = this.tokenIndex.get(`color/${family}/${level}`)
+        }
+        if (typeof hex === 'string') {
+          return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+        }
+      }
+    } catch { }
+    return null
+  }
+
+  /**
+   * Read a numeric value from allVars (e.g. opacity).
+   * Follows var() chains and resolves token references.
+   */
+  private readNumberFromMap(varName: string, allVars: Record<string, string>, fallback: number): number {
+    const raw = allVars[varName]
+    if (!raw) return fallback
+    const trimmed = raw.trim()
+    const num = parseFloat(trimmed)
+    if (Number.isFinite(num)) return num
+    // Follow var() reference
+    const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
+    if (varMatch) {
+      return this.readNumberFromMap(varMatch[1], allVars, fallback)
+    }
+    return fallback
+  }
+
+  /**
+   * Fix all palette on-tone vars in allVars map for AA compliance.
+   * Port of checkAllPaletteOnTones() but operates on allVars instead of DOM.
+   */
+  public fixPaletteOnTonesInMap(allVars: Record<string, string>) {
+    try {
+      const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
+      const themes = root?.themes || root
+      const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
+
+      for (const mode of ['light', 'dark'] as const) {
+        const pal: any = themes?.[mode]?.palettes || {}
+
+        // Read core black/white from allVars
+        const coreBlackVar = `--recursica-brand-themes-${mode}-palettes-core-black`
+        const coreWhiteVar = `--recursica-brand-themes-${mode}-palettes-core-white`
+        const blackHex = this.resolveValueToHex(allVars[coreBlackVar] || '', allVars) || '#000000'
+        const whiteHex = this.resolveValueToHex(allVars[coreWhiteVar] || '', allVars) || '#ffffff'
+        const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
+        const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
+
+        // Read emphasis opacities from allVars
+        const highEmphasisOpacity = this.readNumberFromMap(`--recursica-brand-themes-${mode}-text-emphasis-high`, allVars, 1)
+        const lowEmphasisOpacity = this.readNumberFromMap(`--recursica-brand-themes-${mode}-text-emphasis-low`, allVars, 0.6)
+
+        Object.keys(pal).forEach((paletteKey) => {
+          if (paletteKey === 'core' || paletteKey === 'core-colors') return
+          levels.forEach((level) => {
+            const toneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
+            const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
+
+            const toneValue = allVars[toneVar]
+            if (!toneValue) return
+
+            const toneHex = this.resolveValueToHex(toneValue, allVars)
+            if (!toneHex) return
+
+            // Check if current on-tone already passes AA
+            const currentOnToneValue = allVars[onToneVar]
+            if (currentOnToneValue) {
+              const currentOnToneHex = this.resolveValueToHex(currentOnToneValue, allVars)
+              if (currentOnToneHex) {
+                const highBlended = blendHexWithOpacity(currentOnToneHex, toneHex, highEmphasisOpacity)
+                const lowBlended = blendHexWithOpacity(currentOnToneHex, toneHex, lowEmphasisOpacity)
+                const highPasses = contrastRatio(toneHex, highBlended) >= 4.5
+                const lowPasses = contrastRatio(toneHex, lowBlended) >= 4.5
+                if (highPasses && lowPasses) return // Already compliant
+              }
+            }
+
+            // Determine best on-tone (black or white)
+            const whiteHighBlended = blendHexWithOpacity(white, toneHex, highEmphasisOpacity)
+            const whiteLowBlended = blendHexWithOpacity(white, toneHex, lowEmphasisOpacity)
+            const blackHighBlended = blendHexWithOpacity(black, toneHex, highEmphasisOpacity)
+            const blackLowBlended = blendHexWithOpacity(black, toneHex, lowEmphasisOpacity)
+
+            const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
+            const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
+            const blackHighContrast = contrastRatio(toneHex, blackHighBlended)
+            const blackLowContrast = contrastRatio(toneHex, blackLowBlended)
+
+            const AA = 4.5
+            const whiteMeetsBothAA = whiteHighContrast >= AA && whiteLowContrast >= AA
+            const blackMeetsBothAA = blackHighContrast >= AA && blackLowContrast >= AA
+
+            // If one of core-black or core-white passes at both emphasis levels, use it
+            if (whiteMeetsBothAA || blackMeetsBothAA) {
+              let chosen: 'black' | 'white'
+              const whiteBaseContrast = contrastRatio(toneHex, white)
+              const blackBaseContrast = contrastRatio(toneHex, black)
+
+              if (whiteMeetsBothAA && blackMeetsBothAA) {
+                chosen = Math.abs(whiteBaseContrast - blackBaseContrast) > 1.0
+                  ? (whiteBaseContrast >= blackBaseContrast ? 'white' : 'black')
+                  : (whiteLowContrast >= blackLowContrast ? 'white' : 'black')
+              } else {
+                chosen = whiteMeetsBothAA ? 'white' : 'black'
+              }
+
+              allVars[onToneVar] = chosen === 'white'
+                ? `var(--recursica-brand-themes-${mode}-palettes-core-white)`
+                : `var(--recursica-brand-themes-${mode}-palettes-core-black)`
+            } else {
+              // Neither core-black nor core-white passes at both emphasis levels.
+              // Use findAaCompliantInMap to step through the black/white tone scales.
+              const blackToneRef = this.getCoreToneRefFromTheme('black', mode)
+              const whiteToneRef = this.getCoreToneRefFromTheme('white', mode)
+
+              let bestVar: string | null = null
+              if (blackToneRef) {
+                bestVar = this.findAaCompliantInMap(toneHex, blackToneRef, lowEmphasisOpacity)
+              }
+              if (!bestVar && whiteToneRef) {
+                bestVar = this.findAaCompliantInMap(toneHex, whiteToneRef, lowEmphasisOpacity)
+              }
+
+              // Only overwrite if we found a compliant value; otherwise leave unchanged
+              if (bestVar) {
+                allVars[onToneVar] = bestVar
+              }
+            }
+          })
+        })
+      }
+    } catch { }
+  }
+
+  /**
+   * Fix core color on-tones in allVars map for AA compliance.
+   * Port of updateCoreColorOnTonesForAA() logic operating on allVars.
+   */
+  public fixCoreColorOnTonesInMap(allVars: Record<string, string>) {
+    try {
+      const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
+      const themes = root?.themes || root
+      const coreColors = ['black', 'white', 'alert', 'warning', 'success']
+
+      for (const mode of ['light', 'dark'] as const) {
+        const coreColorsObj = themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core || {}
+        const core = coreColorsObj?.$value || coreColorsObj || {}
+
+        for (const colorName of coreColors) {
+          const onToneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-on-tone`
+          const toneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`
+
+          const toneValue = allVars[toneVar]
+          if (!toneValue) continue
+
+          const toneHex = this.resolveValueToHex(toneValue, allVars)
+          if (!toneHex || toneHex === '#000000') continue
+
+          const highEmphasisOpacity = this.readNumberFromMap(
+            `--recursica-brand-themes-${mode}-text-emphasis-high`, allVars, 1
+          )
+
+          // Check if current on-tone passes
+          const currentOnTone = allVars[onToneVar]
+          if (currentOnTone) {
+            const currentHex = this.resolveValueToHex(currentOnTone, allVars)
+            if (currentHex) {
+              const blended = blendHexWithOpacity(currentHex, toneHex, highEmphasisOpacity)
+              if (contrastRatio(toneHex, blended) >= 4.5) continue // Already passes
+            }
+          }
+
+          // Find AA-compliant on-tone using black and white tone scales
+          const blackToneRef = this.getCoreToneRefFromTheme('black', mode)
+          const whiteToneRef = this.getCoreToneRefFromTheme('white', mode)
+
+          let bestVar: string | null = null
+
+          // Try black scale first
+          if (blackToneRef) {
+            bestVar = this.findAaCompliantInMap(toneHex, blackToneRef, highEmphasisOpacity)
+          }
+          // Try white scale if black failed
+          if (!bestVar && whiteToneRef) {
+            bestVar = this.findAaCompliantInMap(toneHex, whiteToneRef, highEmphasisOpacity)
+          }
+
+          if (bestVar) {
+            allVars[onToneVar] = bestVar
+          }
+        }
+
+        // Fix interactive on-tones for each core color
+        for (const colorName of coreColors) {
+          const interactiveVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`
+          const toneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`
+
+          const toneValue = allVars[toneVar]
+          if (!toneValue) continue
+          const toneHex = this.resolveValueToHex(toneValue, allVars)
+          if (!toneHex || toneHex === '#000000') continue
+
+          // Get interactive tone reference
+          const interactiveToneVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`
+          const interactiveToneValue = allVars[interactiveToneVar]
+          if (!interactiveToneValue) continue
+          const interactiveToneHex = this.resolveValueToHex(interactiveToneValue, allVars)
+          if (!interactiveToneHex) continue
+
+          const interactiveToneRef = findColorFamilyAndLevel(interactiveToneHex, this.tokens)
+          if (!interactiveToneRef) continue
+
+          // Check if current passes
+          const currentInteractive = allVars[interactiveVar]
+          if (currentInteractive) {
+            const currentHex = this.resolveValueToHex(currentInteractive, allVars)
+            if (currentHex && contrastRatio(toneHex, currentHex) >= 4.5) continue
+          }
+
+          // Find compliant level via alternating pattern
+          const compliant = this.findAaCompliantInMap(toneHex, interactiveToneRef, 1)
+          if (compliant) {
+            allVars[interactiveVar] = compliant
+          }
+        }
+      }
+    } catch { }
+  }
+
+  /**
+   * Fix layer element colors in allVars map for AA compliance.
+   * Port of updateAllLayers() + updateLayerElementColors() operating on allVars.
+   */
+  public fixLayerElementColorsInMap(allVars: Record<string, string>) {
+    // NO-OP: Layer element colors come from theme JSON via buildLayerVars.
+    // Compliance fixes write corrected values to theme JSON via writeCssVarsDirect().
+    // We must NOT re-derive here — doing so overwrites compliance fixes.
+    // ComplianceService.runFullScan() handles flagging non-compliant values.
+    return
+  }
+
+  // ─── Private helpers for allVars methods ───
+
+  /**
+   * Gets core tone ref (family/level) from theme JSON.
+   */
+  private getCoreToneRefFromTheme(coreColor: 'black' | 'white', mode: 'light' | 'dark'): { family: string; level: string } | null {
+    try {
+      const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
+      const themes = root?.themes || root
+      const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors'] || {}
+      const colorDef = coreColors[coreColor]
+      if (!colorDef) return null
+
+      const toneRef = colorDef.tone?.$value || colorDef.tone
+      if (!toneRef || typeof toneRef !== 'string') return null
+
+      const parsed = parseTokenReference(toneRef, {
+        currentMode: mode,
+        tokenIndex: this.tokenIndex,
+        theme: this.theme
+      })
+      if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'colors') {
+        return { family: parsed.path[1], level: parsed.path[2] }
+      }
+    } catch { }
+    return null
+  }
+
+  /**
+   * Find AA-compliant color from a scale using alternating pattern.
+   * Returns CSS var reference or null. Operates on tokenIndex (no DOM).
+   */
+  private findAaCompliantInMap(
+    toneHex: string,
+    ref: { family: string; level: string },
+    opacity: number
+  ): string | null {
+    const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
+    const normalizedStart = ref.level === '000' ? '050' : ref.level
+    const startIdx = LEVELS.indexOf(normalizedStart)
+    if (startIdx === -1) return null
+
+    // Build alternating pattern
+    const pattern: string[] = [normalizedStart]
+    let offset = 1
+    while (pattern.length < LEVELS.length) {
+      const upIdx = startIdx + offset
+      const downIdx = startIdx - offset
+      if (upIdx < LEVELS.length) pattern.push(LEVELS[upIdx])
+      if (downIdx >= 0) pattern.push(LEVELS[downIdx])
+      offset++
+      if (offset > LEVELS.length) break
+    }
+
+    for (const level of pattern) {
+      const normalizedLevel = level === '000' ? '050' : level
+      let hex = this.tokenIndex.get(`colors/${ref.family}/${normalizedLevel}`)
+      if (typeof hex !== 'string') {
+        hex = this.tokenIndex.get(`color/${ref.family}/${normalizedLevel}`)
+      }
+      if (typeof hex === 'string') {
+        const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
+        const blended = blendHexWithOpacity(h, toneHex, opacity)
+        if (contrastRatio(toneHex, blended) >= 4.5) {
+          return `var(--recursica-tokens-colors-${ref.family}-${normalizedLevel})`
+        }
+      }
+    }
+    return null
+  }
+
+  /**
+   * Fix a single layer element color in allVars by stepping against surface.
+   */
+  private fixLayerElementInMap(
+    allVars: Record<string, string>,
+    cssVar: string,
+    surfaceHex: string,
+    mode: 'light' | 'dark',
+    elementType: string
+  ) {
+    // Get the core color reference for this element type
+    let coreVarName: string
+    if (elementType === 'interactive' || elementType === 'interactive-hover') {
+      const variant = elementType === 'interactive-hover' ? 'hover' : 'default'
+      coreVarName = `--recursica-brand-themes-${mode}-palettes-core-interactive-${variant}-tone`
+    } else {
+      coreVarName = `--recursica-brand-themes-${mode}-palettes-core-${elementType}`
+    }
+
+    const coreValue = allVars[coreVarName]
+    if (!coreValue) return
+
+    const coreHex = this.resolveValueToHex(coreValue, allVars)
+    if (!coreHex) return
+
+    // Step until AA compliant
+    const steppedHex = stepUntilAACompliant(coreHex, surfaceHex, 'darker', this.tokens)
+    const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+    if (cssVarRef) {
+      allVars[cssVar] = cssVarRef
+    }
+  }
 }
 

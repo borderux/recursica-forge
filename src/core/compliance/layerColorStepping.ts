@@ -8,6 +8,33 @@ import { tokenToCssVar } from '../css/tokenRefs'
 const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
 
 /**
+ * Traces a CSS var to find the terminal --recursica-tokens-colors-* token reference.
+ * Follows var() chain: brand → palette → token. Returns the token family/level
+ * that the CSS var actually references, avoiding the blind hex-match ambiguity
+ * of findColorFamilyAndLevel (which fails when multiple scales share the same hex).
+ */
+export function traceToTokenRef(cssVarName: string): { family: string; level: string } | null {
+  let current = readCssVar(cssVarName)
+  let depth = 0
+  while (current && depth < 10) {
+    // Check if current value is a token var reference
+    const tokenMatch = current.match(/var\s*\(\s*(--recursica-tokens-colors?-([a-z0-9-]+)-(\d{3,4}|050|000))\s*/)
+    if (tokenMatch) {
+      return { family: tokenMatch[2], level: tokenMatch[3] }
+    }
+    // Follow nested var() references
+    const varMatch = current.match(/var\s*\(\s*(--[^),]+)/)
+    if (varMatch) {
+      current = readCssVar(varMatch[1])
+      depth++
+    } else {
+      break
+    }
+  }
+  return null
+}
+
+/**
  * Resolves a CSS variable to its hex value, following var() references recursively
  */
 export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<string, any>, depth = 0): string | null {
@@ -32,11 +59,10 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
     const tokenMatch = trimmed.match(/--recursica-tokens-colors?-([a-z0-9-]+)-(\d+|050|000)/)
     if (tokenMatch) {
       const [, family, level] = tokenMatch
-      const normalizedLevel = level === '000' ? '050' : level
       // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
-      let hex = tokenIndex.get(`colors/${family}/${normalizedLevel}`)
+      let hex = tokenIndex.get(`colors/${family}/${level}`)
       if (typeof hex !== 'string') {
-        hex = tokenIndex.get(`color/${family}/${normalizedLevel}`)
+        hex = tokenIndex.get(`color/${family}/${level}`)
       }
       if (typeof hex === 'string') {
         const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
@@ -119,8 +145,7 @@ export function getSteppedColor(
   if (!found) return null
 
   const { family, level } = found
-  const normalizedLevel = level === '000' ? '050' : level
-  const currentIdx = LEVELS.indexOf(normalizedLevel)
+  const currentIdx = LEVELS.indexOf(level)
   if (currentIdx === -1) return null
 
   let targetIdx: number
@@ -305,14 +330,13 @@ export function hexToCssVarRef(hex: string, tokens: JsonLike): string | null {
     return null
   }
 
-  const normalizedLevel = found.level === '000' ? '050' : found.level
-  const tokenName = `colors/${found.family}/${normalizedLevel}`
+  const tokenName = `colors/${found.family}/${found.level}`
   const cssVar = tokenToCssVar(tokenName, tokens)
   if (cssVar) return cssVar
 
   // Direct fallback for scale keys
   if (found.family.startsWith('scale-')) {
-    return `var(--recursica-tokens-colors-${found.family}-${normalizedLevel})`
+    return `var(--recursica-tokens-colors-${found.family}-${found.level})`
   }
 
   return null

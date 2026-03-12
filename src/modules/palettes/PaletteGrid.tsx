@@ -14,7 +14,7 @@ import PaletteColorSelector from './PaletteColorSelector'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
 import { readOverrides } from '../theme/tokenOverrides'
-import { parseTokenReference, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
+import { parseTokenReference, resolveTokenReferenceToCssVar, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { useThemeMode } from '../theme/ThemeModeContext'
 
@@ -353,23 +353,38 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
             }
           }
 
+          // Handle token references like {tokens.colors.scale-01.000}
+          // These are set by compliance fixes that point directly to token values
+          if (!coreRef && parsed && parsed.type === 'token') {
+            const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
+            if (cssVar) {
+              coreRef = cssVar
+            }
+          }
+
           // If we still don't have a coreRef, try to resolve as theme reference (handles var() references)
           if (!coreRef) {
-            // Try both path formats
-            const resolved = resolveThemeRef({ collection: 'Theme', name: onToneNamePlural }, modeLabel)
-              || resolveThemeRef({ collection: 'Theme', name: onToneNameSingular }, modeLabel)
-            if (typeof resolved === 'string') {
-              // If it's already a var() reference, use it directly
-              if (resolved.startsWith('var(')) {
-                coreRef = resolved
-              }
-              // If it resolved to a hex or color name, map it
-              else {
-                const resolvedLower = resolved.trim().toLowerCase()
-                if (resolvedLower === '#ffffff' || resolvedLower === 'white') {
-                  coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
-                } else if (resolvedLower === '#000000' || resolvedLower === 'black') {
-                  coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+            // Also try resolveTokenReferenceToCssVar as a general fallback
+            const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
+            if (cssVar) {
+              coreRef = cssVar
+            } else {
+              // Try both path formats
+              const resolved = resolveThemeRef({ collection: 'Theme', name: onToneNamePlural }, modeLabel)
+                || resolveThemeRef({ collection: 'Theme', name: onToneNameSingular }, modeLabel)
+              if (typeof resolved === 'string') {
+                // If it's already a var() reference, use it directly
+                if (resolved.startsWith('var(')) {
+                  coreRef = resolved
+                }
+                // If it resolved to a hex or color name, map it
+                else {
+                  const resolvedLower = resolved.trim().toLowerCase()
+                  if (resolvedLower === '#ffffff' || resolvedLower === 'white') {
+                    coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
+                  } else if (resolvedLower === '#000000' || resolvedLower === 'black') {
+                    coreRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+                  }
                 }
               }
             }

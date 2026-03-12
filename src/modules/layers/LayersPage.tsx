@@ -8,6 +8,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { Button } from '../../components/adapters/Button'
 import brandDefault from '../../vars/Brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { getVarsStore } from '../../core/store/varsStore'
 
 export default function LayersPage() {
   const { theme, setTheme } = useVars()
@@ -59,7 +60,7 @@ export default function LayersPage() {
     // Update theme JSON with defaults for all layers
     const t: any = theme
     const themeRoot: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
-    const nextTheme = JSON.parse(JSON.stringify(themeRoot))
+    const nextTheme = getVarsStore().getLatestThemeCopy()
     const target = nextTheme.brand || nextTheme
     const container = target?.themes?.[mode]?.layers || target?.themes?.[mode]?.layer || target?.[mode]?.layers || target?.[mode]?.layer
 
@@ -173,7 +174,7 @@ export default function LayersPage() {
             onUpdate={(updater) => {
               const t: any = theme
               const root: any = (t as any)?.brand ? (t as any) : ({ brand: t } as any)
-              const nextTheme = JSON.parse(JSON.stringify(root))
+              const nextTheme = getVarsStore().getLatestThemeCopy()
               const target = nextTheme.brand || nextTheme
               // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
               const themes = target?.themes || target

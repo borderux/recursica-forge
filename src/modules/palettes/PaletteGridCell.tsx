@@ -3,6 +3,7 @@ import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css
 import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
+import { getVarsStore } from '../../core/store/varsStore'
 import type { JsonLike } from '../../core/resolvers/tokens'
 import { ColorPickerOverlay } from '../pickers/ColorPickerOverlay'
 import { useVars } from '../vars/VarsContext'
@@ -169,9 +170,16 @@ export function PaletteEmphasisCell({
     const blackLowPasses = blackLowContrast >= AA
     const whiteLowPasses = whiteLowContrast >= AA
 
-    // Per-emphasis failure flags
-    const highFailsAA = !blackHighPasses && !whiteHighPasses
-    const lowFailsAA = !blackLowPasses && !whiteLowPasses
+    // Check current on-tone at each emphasis level individually
+    const currentHighBlended = blendHexWithOpacity(onToneHex, toneHex, highOpacity) ?? onToneHex
+    const currentLowBlended = blendHexWithOpacity(onToneHex, toneHex, lowOpacity) ?? onToneHex
+    const currentHighPasses = contrastRatio(toneHex, currentHighBlended) >= AA
+    const currentLowPasses = contrastRatio(toneHex, currentLowBlended) >= AA
+
+    // Per-emphasis failure flags: a cell fails ONLY if black, white, AND the current on-tone all fail
+    // This prevents false-positive warnings when compliance fixes use non-black/non-white tokens
+    const highFailsAA = !currentHighPasses && !blackHighPasses && !whiteHighPasses
+    const lowFailsAA = !currentLowPasses && !blackLowPasses && !whiteLowPasses
 
     // For current emphasis level
     const blackBlended = blendHexWithOpacity(black, toneHex, opacity) ?? black
@@ -510,16 +518,17 @@ export function PaletteEmphasisCell({
               // Update on-tone value in theme JSON for AA compliance
               if (paletteKey && level && theme && setTheme) {
                 try {
-                  const themeCopy = JSON.parse(JSON.stringify(theme))
+                  const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
                   const themes = root?.themes || root
                   const modeKey = mode.toLowerCase()
-                  const modeLabel = mode === 'light' ? 'Light' : 'Dark'
 
                   if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
-                    // Calculate the correct on-tone value using the same logic as updatePaletteOnTone
-                    const black = '#000000'
-                    const white = '#ffffff'
+                    // Read actual core colors from CSS vars
+                    const coreBlackVar = `--recursica-brand-themes-${modeKey}-palettes-core-black`
+                    const coreWhiteVar = `--recursica-brand-themes-${modeKey}-palettes-core-white`
+                    const black = (readCssVarResolved(coreBlackVar) || '#000000').toLowerCase()
+                    const white = (readCssVarResolved(coreWhiteVar) || '#ffffff').toLowerCase()
                     const cBlack = contrastRatio(hex, black)
                     const cWhite = contrastRatio(hex, white)
                     const AA = 4.5
