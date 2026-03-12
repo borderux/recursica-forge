@@ -39,6 +39,8 @@ export interface ComplianceIssue {
     requiredRatio: number
     message: string
     suggestion: SuggestedFix | null
+    /** CSS var name of the tone (background) for this issue, used to trace the reference chain */
+    toneCssVar?: string
 }
 
 // ─── Service ───
@@ -208,7 +210,7 @@ class ComplianceServiceImpl {
      */
     private buildThemeJsonUpdate(cssVar: string, value: string): JsonLike | undefined {
         if (!this.getTheme) return undefined
-        const themeCopy = JSON.parse(JSON.stringify(this.getTheme()))
+        const themeCopy = getVarsStore().getLatestThemeCopy()
         this.applyFixToThemeCopy(themeCopy, cssVar, value)
         return themeCopy
     }
@@ -218,7 +220,7 @@ class ComplianceServiceImpl {
      */
     private buildBatchThemeJsonUpdate(cssVarUpdates: Record<string, string>): JsonLike | undefined {
         if (!this.getTheme) return undefined
-        const themeCopy = JSON.parse(JSON.stringify(this.getTheme()))
+        const themeCopy = getVarsStore().getLatestThemeCopy()
         for (const [cssVar, value] of Object.entries(cssVarUpdates)) {
             this.applyFixToThemeCopy(themeCopy, cssVar, value)
         }
@@ -286,7 +288,8 @@ class ComplianceServiceImpl {
                                     contrastRatio: highRatio,
                                     requiredRatio: AA_THRESHOLD,
                                     message: `High emphasis on-tone contrast ${highRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                                    suggestion
+                                    suggestion,
+                                    toneCssVar: toneVar
                                 })
                             }
                         }
@@ -307,7 +310,8 @@ class ComplianceServiceImpl {
                                 contrastRatio: ratio,
                                 requiredRatio: AA_THRESHOLD,
                                 message: `High emphasis on-tone contrast ${ratio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                                suggestion
+                                suggestion,
+                                toneCssVar: toneVar
                             })
                         }
                     }
@@ -331,7 +335,8 @@ class ComplianceServiceImpl {
                                     contrastRatio: lowRatio,
                                     requiredRatio: AA_THRESHOLD,
                                     message: `Low emphasis on-tone contrast ${lowRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                                    suggestion
+                                    suggestion,
+                                    toneCssVar: toneVar
                                 })
                             }
                         }
@@ -380,7 +385,8 @@ class ComplianceServiceImpl {
                     contrastRatio: ratio,
                     requiredRatio: AA_THRESHOLD,
                     message: `High emphasis on-tone contrast ${ratio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                    suggestion
+                    suggestion,
+                    toneCssVar: toneVar
                 })
             }
 
@@ -405,7 +411,8 @@ class ComplianceServiceImpl {
                             contrastRatio: lowRatio,
                             requiredRatio: AA_THRESHOLD,
                             message: `Low emphasis on-tone contrast ${lowRatio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                            suggestion
+                            suggestion,
+                            toneCssVar: toneVar
                         })
                     }
                 }
@@ -443,7 +450,8 @@ class ComplianceServiceImpl {
                     contrastRatio: ratio,
                     requiredRatio: AA_THRESHOLD,
                     message: `On-tone contrast ${ratio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                    suggestion
+                    suggestion,
+                    toneCssVar: toneVar
                 })
             }
         })
@@ -490,10 +498,12 @@ class ComplianceServiceImpl {
                         location: `Layer ${layer} / ${label}`,
                         toneHex: surfaceHex,
                         onToneHex: textHex,
+                        rawOnToneHex: textHex,
                         contrastRatio: ratio,
                         requiredRatio: AA_THRESHOLD,
                         message: `${label} contrast ${ratio.toFixed(2)}:1 vs surface is below ${AA_THRESHOLD}:1`,
-                        suggestion
+                        suggestion,
+                        toneCssVar: surfaceVar
                     })
                 }
             })
@@ -541,12 +551,15 @@ class ComplianceServiceImpl {
                     type: 'layer-text',
                     mode,
                     location: `Layer ${layer} / Low emphasis text`,
+                    emphasis: 'low' as const,
                     toneHex: surfaceHex,
                     onToneHex: blendedHex,
+                    rawOnToneHex: textHex,
                     contrastRatio: ratio,
                     requiredRatio: AA_THRESHOLD,
                     message: `Low emphasis text contrast ${ratio.toFixed(2)}:1 vs surface is below ${AA_THRESHOLD}:1`,
-                    suggestion: null // Emphasis is an opacity, not a color — no auto-fix
+                    suggestion: null, // Emphasis is an opacity, not a color — no auto-fix
+                    toneCssVar: surfaceVar
                 })
             }
         }
@@ -584,10 +597,12 @@ class ComplianceServiceImpl {
                             location: `Layer ${layer} / Interactive color`,
                             toneHex: surfaceHex,
                             onToneHex: interactiveHex,
+                            rawOnToneHex: interactiveHex,
                             contrastRatio: ratio,
                             requiredRatio: AA_THRESHOLD,
                             message: `Interactive color contrast ${ratio.toFixed(2)}:1 vs surface is below ${AA_THRESHOLD}:1`,
-                            suggestion
+                            suggestion,
+                            toneCssVar: surfaceVar
                         })
                     }
                 }
@@ -614,10 +629,12 @@ class ComplianceServiceImpl {
                             location: `Layer ${layer} / Interactive on-tone`,
                             toneHex: iToneHex,
                             onToneHex: iOnToneHex,
+                            rawOnToneHex: iOnToneHex,
                             contrastRatio: ratio,
                             requiredRatio: AA_THRESHOLD,
                             message: `Interactive on-tone contrast ${ratio.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
-                            suggestion
+                            suggestion,
+                            toneCssVar: iToneVar
                         })
                     }
                 }
@@ -1024,7 +1041,7 @@ class ComplianceServiceImpl {
         if (!this.getTheme || !this.setTheme) return
 
         try {
-            const themeCopy = JSON.parse(JSON.stringify(this.getTheme()))
+            const themeCopy = getVarsStore().getLatestThemeCopy()
             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
 
             // Resolve the value to a theme JSON $value reference

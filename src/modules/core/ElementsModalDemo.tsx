@@ -7,6 +7,7 @@ import { Dropdown } from '../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
+import { getVarsStore } from '../../core/store/varsStore'
 
 export default function ElementsModalDemo() {
   const { mode } = useThemeMode()
@@ -17,7 +18,7 @@ export default function ElementsModalDemo() {
   const persistToThemeJson = (path: 'text-emphasis-high' | 'text-emphasis-low' | 'state-disabled', tokenKey: string) => {
     if (!theme || !setTheme) return
     try {
-      const themeCopy = JSON.parse(JSON.stringify(theme))
+      const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const themes = root?.themes || root
       const newValue = `{tokens.opacity.${tokenKey}}`

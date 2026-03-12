@@ -8,6 +8,33 @@ import { tokenToCssVar } from '../css/tokenRefs'
 const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
 
 /**
+ * Traces a CSS var to find the terminal --recursica-tokens-colors-* token reference.
+ * Follows var() chain: brand → palette → token. Returns the token family/level
+ * that the CSS var actually references, avoiding the blind hex-match ambiguity
+ * of findColorFamilyAndLevel (which fails when multiple scales share the same hex).
+ */
+export function traceToTokenRef(cssVarName: string): { family: string; level: string } | null {
+  let current = readCssVar(cssVarName)
+  let depth = 0
+  while (current && depth < 10) {
+    // Check if current value is a token var reference
+    const tokenMatch = current.match(/var\s*\(\s*(--recursica-tokens-colors?-([a-z0-9-]+)-(\d{3,4}|050|000))\s*/)
+    if (tokenMatch) {
+      return { family: tokenMatch[2], level: tokenMatch[3] }
+    }
+    // Follow nested var() references
+    const varMatch = current.match(/var\s*\(\s*(--[^),]+)/)
+    if (varMatch) {
+      current = readCssVar(varMatch[1])
+      depth++
+    } else {
+      break
+    }
+  }
+  return null
+}
+
+/**
  * Resolves a CSS variable to its hex value, following var() references recursively
  */
 export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<string, any>, depth = 0): string | null {

@@ -1057,44 +1057,11 @@ export class AAComplianceWatcher {
    * Port of updateAllLayers() + updateLayerElementColors() operating on allVars.
    */
   public fixLayerElementColorsInMap(allVars: Record<string, string>) {
-    try {
-      for (const mode of ['light', 'dark'] as const) {
-        for (let layer = 0; layer <= 3; layer++) {
-          const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-properties-surface`
-          const surfaceValue = allVars[surfaceVar]
-          if (!surfaceValue) continue
-
-          const surfaceHex = this.resolveValueToHex(surfaceValue, allVars)
-          if (!surfaceHex) continue
-
-          const brandBase = `--recursica-brand-themes-${mode}-layers-layer-${layer}-`
-
-          // Fix interactive tone (step against surface)
-          this.fixLayerElementInMap(allVars, `${brandBase}elements-interactive-tone`, surfaceHex, mode, 'interactive')
-          this.fixLayerElementInMap(allVars, `${brandBase}elements-interactive-tone-hover`, surfaceHex, mode, 'interactive-hover')
-          this.fixLayerElementInMap(allVars, `${brandBase}elements-interactive-color`, surfaceHex, mode, 'interactive')
-
-          // Fix status color elements (step against surface)
-          for (const status of ['alert', 'warning', 'success'] as const) {
-            this.fixLayerElementInMap(allVars, `${brandBase}elements-text-${status}`, surfaceHex, mode, status)
-          }
-
-          // Fix text color — use on-tone from the surface's palette if available
-          const textColorVar = `${brandBase}elements-text-color`
-          if (surfaceValue.includes('palettes-')) {
-            const paletteMatch = surfaceValue.match(/palettes-([a-z0-9-]+)-(\d+|primary)-tone/)
-            if (paletteMatch) {
-              const [, paletteKey, lvl] = paletteMatch
-              const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${lvl}-on-tone`
-              const onToneValue = allVars[onToneVar]
-              if (onToneValue) {
-                allVars[textColorVar] = onToneValue
-              }
-            }
-          }
-        }
-      }
-    } catch { }
+    // NO-OP: Layer element colors come from theme JSON via buildLayerVars.
+    // Compliance fixes write corrected values to theme JSON via writeCssVarsDirect().
+    // We must NOT re-derive here — doing so overwrites compliance fixes.
+    // ComplianceService.runFullScan() handles flagging non-compliant values.
+    return
   }
 
   // ─── Private helpers for allVars methods ───

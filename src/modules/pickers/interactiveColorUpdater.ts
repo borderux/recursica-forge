@@ -3,6 +3,7 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { pickAAOnTone, contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import type { JsonLike } from '../../core/resolvers/tokens'
+import { getVarsStore } from '../../core/store/varsStore'
 import { resolveTokenReferenceToValue, resolveTokenReferenceToCssVar, extractBraceContent, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import {
   resolveCssVarToHex,
@@ -230,7 +231,7 @@ function updateOnToneColors(
   // Update theme JSON if provided
   if (theme && setTheme) {
     try {
-      const themeCopy = JSON.parse(JSON.stringify(theme))
+      const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const themes = root?.themes || root
 
@@ -371,7 +372,7 @@ export function updateCoreColorInteractiveOnTones(
   const coreColors = ['black', 'white', 'alert', 'warning', 'success']
 
   try {
-    const themeCopy = JSON.parse(JSON.stringify(theme))
+    const themeCopy = getVarsStore().getLatestThemeCopy()
     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
     const themes = root?.themes || root
     const coreColorsPath = themes?.[mode]?.palettes?.['core-colors']
@@ -669,7 +670,7 @@ export function updateCoreColorOnTones(
   const coreColors = ['black', 'white', 'alert', 'warning', 'success']
 
   try {
-    const themeCopy = JSON.parse(JSON.stringify(theme))
+    const themeCopy = getVarsStore().getLatestThemeCopy()
     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
     const themes = root?.themes || root
     const coreColorsPath = themes?.[mode]?.palettes?.['core-colors']

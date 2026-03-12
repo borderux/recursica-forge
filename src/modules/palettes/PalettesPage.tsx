@@ -14,6 +14,7 @@ import { hexToRgb, contrastRatio, blendHexWithOpacity } from '../theme/contrastU
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
+import { getVarsStore } from '../../core/store/varsStore'
 
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 
@@ -483,7 +484,7 @@ export default function PalettesPage() {
       if (!root?.themes) return // No themes structure, nothing to migrate
 
       let migrated = false
-      const themeCopy = JSON.parse(JSON.stringify(themeJson))
+      const themeCopy = getVarsStore().getLatestThemeCopy()
       const rootCopy: any = themeCopy?.brand ? themeCopy.brand : themeCopy
 
       for (const modeKey of ['light', 'dark'] as const) {
@@ -707,7 +708,7 @@ export default function PalettesPage() {
     if (!setTheme || !themeJson) return
 
     try {
-      const themeCopy = JSON.parse(JSON.stringify(themeJson))
+      const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const headerLevels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200']
       const tokensRoot: any = (tokensJson as any)?.tokens || {}

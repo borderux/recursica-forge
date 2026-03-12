@@ -3,6 +3,7 @@ import type { JsonLike } from '../../core/resolvers/tokens'
 import { readCssVar } from '../../core/css/readCssVar'
 import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
+import { getVarsStore } from '../../core/store/varsStore'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
 import { useState, useRef, useEffect } from 'react'
@@ -241,21 +242,17 @@ export function PaletteScaleHeader({
               // Update on-tone value in theme JSON for AA compliance
               if (paletteKey && level && theme && setTheme) {
                 try {
-                  const themeCopy = JSON.parse(JSON.stringify(theme))
+                  const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
                   const themes = root?.themes || root
-
-                  // Detect mode by checking which CSS variable exists
-                  const lightToneCssVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
-                  const darkToneCssVar = `--recursica-brand-themes-dark-palettes-${paletteKey}-${level}-tone`
-                  const lightToneValue = readCssVar(lightToneCssVar)
-                  const darkToneValue = readCssVar(darkToneCssVar)
-                  const modeKey = lightToneValue ? 'light' : (darkToneValue ? 'dark' : 'light')
+                  const modeKey = mode.toLowerCase()
 
                   if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
-                    // Calculate the correct on-tone value using the same logic as updatePaletteOnTone
-                    const black = '#000000'
-                    const white = '#ffffff'
+                    // Read actual core colors from CSS vars
+                    const coreBlackVar = `--recursica-brand-themes-${modeKey}-palettes-core-black`
+                    const coreWhiteVar = `--recursica-brand-themes-${modeKey}-palettes-core-white`
+                    const black = (readCssVarResolved(coreBlackVar) || '#000000').toLowerCase()
+                    const white = (readCssVarResolved(coreWhiteVar) || '#ffffff').toLowerCase()
                     const cBlack = contrastRatio(hex, black)
                     const cWhite = contrastRatio(hex, white)
                     const AA = 4.5

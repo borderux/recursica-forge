@@ -333,7 +333,7 @@ export default function ColorTokenPicker() {
     if (!mapping) return // Not a recognized core color
 
     try {
-      const themeCopy = JSON.parse(JSON.stringify(themeJson))
+      const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const themes = root?.themes || root
 
@@ -735,7 +735,7 @@ export default function ColorTokenPicker() {
           const hoverToken = extractTokenFromCssVarRef(hoverToneRef)
 
           // Update theme JSON FIRST (before updating CSS vars) to prevent flicker
-          const themeCopy = JSON.parse(JSON.stringify(themeJson))
+          const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
           const themes = root?.themes || root
 

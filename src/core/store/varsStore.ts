@@ -488,6 +488,14 @@ class VarsStore {
     this.writeState({ theme: next })
     if (!this.isRecomputing) this.recomputeAndApplyAll()
   }
+  /**
+   * Get a deep clone of the current theme JSON from the store.
+   * Always use this instead of cloning React state (themeJson) to ensure
+   * compliance fixes from writeCssVarsDirect() are included.
+   */
+  public getLatestThemeCopy(): any {
+    return JSON.parse(JSON.stringify(this.state.theme))
+  }
   public syncFontsToTokens() {
     try {
       const storedFontsRaw = localStorage.getItem('rf:fonts')
@@ -1920,7 +1928,7 @@ class VarsStore {
           // Helper function to resolve a token reference using centralized parser
           const resolveTokenRef = (value: any): string | null => {
             const context: TokenReferenceContext = {
-              currentMode: (currentMode as string) === 'Dark' ? 'dark' : 'light',
+              currentMode: mode,
               tokenIndex: buildTokenIndex(this.state.tokens),
               theme: this.state.theme
             }
@@ -2758,87 +2766,6 @@ class VarsStore {
     // NO-OP: JSON should never be updated after initial load
     // All AA compliance updates are CSS vars only
     return
-    try {
-      const themeCopy = JSON.parse(JSON.stringify(this.state.theme))
-      const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-      const themes = root?.themes || root
-      const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
-      let hasChanges = false
-
-      // Check both light and dark modes
-      for (const mode of ['light', 'dark'] as const) {
-        const pal: any = themes?.[mode]?.palettes || {}
-        Object.keys(pal).forEach((paletteKey) => {
-          if (paletteKey === 'core' || paletteKey === 'core-colors') return
-
-          levels.forEach((level) => {
-            const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
-            // Use readCssVarResolved to get the actual value, not just the var() reference
-            let onToneValue = readCssVar(onToneVar)
-
-            // If it's a var() reference, try to resolve it
-            if (onToneValue && onToneValue.startsWith('var(')) {
-              // Extract the inner CSS var name
-              const match = onToneValue.match(/var\(([^)]+)\)/)
-              if (match) {
-                const innerVar = match[1].trim()
-                // Check if it references core-white or core-black
-                if (innerVar.includes('core-white')) {
-                  onToneValue = 'core-white'
-                } else if (innerVar.includes('core-black')) {
-                  onToneValue = 'core-black'
-                }
-              }
-            }
-
-            if (onToneValue) {
-              // Extract which core color (black or white) is being used
-              const isWhite = onToneValue.includes('core-white') || onToneValue.includes('white')
-              const isBlack = onToneValue.includes('core-black') || onToneValue.includes('black')
-
-              if (isWhite || isBlack) {
-                const chosen = isWhite ? 'white' : 'black'
-
-                // Ensure the palette structure exists
-                if (!themes[mode]) themes[mode] = {}
-                if (!themes[mode].palettes) themes[mode].palettes = {}
-                if (!themes[mode].palettes[paletteKey]) themes[mode].palettes[paletteKey] = {}
-                if (!themes[mode].palettes[paletteKey][level]) themes[mode].palettes[paletteKey][level] = {}
-                if (!themes[mode].palettes[paletteKey][level].color) {
-                  themes[mode].palettes[paletteKey][level].color = {}
-                }
-
-                // Update the on-tone reference in theme JSON - use short alias format (no theme path)
-                const newOnToneValue = `{brand.palettes.${chosen}}`
-
-                const currentOnTone = themes[mode].palettes[paletteKey][level].color?.['on-tone']
-                const currentValue = typeof currentOnTone === 'object' && currentOnTone?.$value
-                  ? currentOnTone.$value
-                  : currentOnTone
-
-                // Only update if the value has changed
-                if (currentValue !== newOnToneValue) {
-                  themes[mode].palettes[paletteKey][level].color['on-tone'] = {
-                    $type: 'color',
-                    $value: newOnToneValue
-                  }
-                  hasChanges = true
-                }
-              }
-            }
-          })
-        })
-      }
-
-      // Only update theme if there were changes
-      // Use skipRecompute=true to prevent triggering recomputeAndApplyAll which would overwrite the CSS vars
-      // The CSS variables are already correct from checkAllPaletteOnTones(), we just need to sync the JSON
-      if (hasChanges) {
-        this.writeState({ theme: themeCopy })
-      }
-    } catch (err) {
-      console.error('Failed to update theme JSON from on-tone CSS vars:', err)
-    }
   }
 }
 

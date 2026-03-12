@@ -3,6 +3,8 @@ import { buildTokenIndex, resolveBraceRef } from './tokens'
 import { resolveTokenReferenceToCssVar, resolveTokenReferenceToValue, extractBraceContent, parseTokenReference, type TokenReferenceContext } from '../utils/tokenReferenceParser'
 import { readCssVar } from '../css/readCssVar'
 
+
+
 export type ModeLabel = 'Light' | 'Dark'
 
 function buildThemeIndex(theme: JsonLike) {
@@ -417,6 +419,12 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
           onToneVar = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
         }
 
+        // On-tone is emitted as-is from theme JSON. Theme JSON is the single source of truth.
+        // Compliance fixes write corrected on-tones to theme JSON via writeCssVarsDirect().
+        // We must NOT recalculate here — doing so would overwrite compliance fixes with
+        // a naive core-white/core-black pick that may itself fail contrast.
+        // Compliance checking is ComplianceService's responsibility (read-only scan).
+
         // Always set on-tone CSS variable from theme JSON - theme JSON is the source of truth.
         // Compliance fixes persist token references (e.g. {tokens.colors.scale-01.000}) that differ
         // from the initial core-white/core-black references. We must always use the theme JSON value
@@ -517,32 +525,47 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       vars[`--recursica-brand-themes-${modeLower}-palettes-core-interactive-hover-on-tone`] = onToneValue
     }
 
-    // Process other core-colors (alert, warning, success, black, white)
-    const coreColorKeys = ['alert', 'warning', 'success', 'black', 'white']
+    // ─── Core color on-tone computation ───
+    // Black/White: hardcoded opposites. Alert/Warning/Success: stepping algorithm.
+    const coreWhiteRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-white)`
+    const coreBlackRef = `var(--recursica-brand-themes-${modeLower}-palettes-core-black)`
+
+    // Read emphasis opacities for stepping contrast checks
+    // The vars may contain var() references like "var(--recursica-tokens-opacities-solid, 1)"
+    // or plain numeric strings like "0.87". Extract the number.
+
+    const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success']
     coreColorKeys.forEach((colorKey) => {
       const colorDef: any = coreColors?.[colorKey]
       if (colorDef?.tone) {
         const toneValue = getColorVar(colorDef.tone)
-        // Generate both -tone and base (for backward compatibility)
         vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-tone`] = toneValue
         vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}`] = toneValue
       }
+
+      // ─── On-tone computation ───
+      // All core colors: read on-tone from theme JSON as-is.
+      // Theme JSON is the single source of truth. Compliance fixes write corrected
+      // on-tones via writeCssVarsDirect(). We do NOT re-derive here.
+      // Fallback: black→white, white→black for default cases.
       if (colorDef?.['on-tone']) {
         const onToneValue = getColorVar(colorDef['on-tone'])
         vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-on-tone`] = onToneValue
+      } else if (colorKey === 'black') {
+        vars[`--recursica-brand-themes-${modeLower}-palettes-core-black-on-tone`] = coreWhiteRef
+      } else if (colorKey === 'white') {
+        vars[`--recursica-brand-themes-${modeLower}-palettes-core-white-on-tone`] = coreBlackRef
       }
+
+      // Interactive
       if (colorDef?.interactive) {
-        // Handle both old format (interactive as single value) and new format (interactive.on-tone)
         if (typeof colorDef.interactive === 'object' && !colorDef.interactive.$value && colorDef.interactive['on-tone']) {
-          // New format: interactive.on-tone
           const interactiveOnToneValue = getColorVar(colorDef.interactive['on-tone'])
           vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive-on-tone`] = interactiveOnToneValue
         } else if (typeof colorDef.interactive === 'object' && colorDef.interactive.$value) {
-          // Old format: interactive as single value object { $value: ... }
           const interactiveValue = getColorVar(colorDef.interactive)
           vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive`] = interactiveValue
         } else {
-          // Old format: interactive as direct value
           const interactiveValue = getColorVar(colorDef.interactive)
           vars[`--recursica-brand-themes-${modeLower}-palettes-core-${colorKey}-interactive`] = interactiveValue
         }
@@ -553,5 +576,4 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
 
   return vars
 }
-
 

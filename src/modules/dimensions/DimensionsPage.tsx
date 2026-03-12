@@ -13,6 +13,7 @@ import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import brandDefault from '../../vars/Brand.json'
+import { getVarsStore } from '../../core/store/varsStore'
 
 type DimensionEntry = {
   path: string[]
@@ -161,7 +162,7 @@ export default function DimensionsPage() {
     const token = availableSizeTokens[tokenIndex]
     if (!token) return
 
-    const themeCopy = JSON.parse(JSON.stringify(themeJson))
+    const themeCopy = getVarsStore().getLatestThemeCopy()
     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
     let node = root.dimensions
     if (!node) {
@@ -239,7 +240,7 @@ export default function DimensionsPage() {
 
   const handleReset = (category: string) => {
     // Reset all dimensions in this category to their default token references from Brand.json
-    const themeCopy = JSON.parse(JSON.stringify(themeJson))
+    const themeCopy = getVarsStore().getLatestThemeCopy()
     const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
     const dims = root?.dimensions
     if (!dims) return
