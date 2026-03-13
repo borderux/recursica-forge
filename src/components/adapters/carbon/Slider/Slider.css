@@ -6,25 +6,25 @@
 
 .recursica-carbon-slider-wrapper {
   /* CSS variables are set via inline styles in component - use those */
-  --cds-slider-track-background: var(--recursica-ui-kit-components-slider-track-color) !important;
-  --cds-slider-fill-background: var(--recursica-ui-kit-components-slider-track-active-color) !important;
-  --cds-slider-thumb-background: var(--recursica-ui-kit-components-slider-thumb-color) !important;
+  --cds-slider-track-background: var(--recursica_ui-kit_components_slider_track_color) !important;
+  --cds-slider-fill-background: var(--recursica_ui-kit_components_slider_track_active_color) !important;
+  --cds-slider-thumb-background: var(--recursica_ui-kit_components_slider_thumb_color) !important;
 }
 
 .recursica-carbon-slider-wrapper .cds--slider__track {
-  height: var(--recursica-ui-kit-components-slider-track-height, 4px) !important;
-  border-radius: var(--recursica-ui-kit-components-slider-track-border-radius) !important;
+  height: var(--recursica_ui-kit_components_slider_track_height, 4px) !important;
+  border-radius: var(--recursica_ui-kit_components_slider_track_border-radius) !important;
 }
 
 .recursica-carbon-slider-wrapper .cds--slider__filled-track {
-  height: var(--recursica-ui-kit-components-slider-track-height, 4px) !important;
-  border-radius: var(--recursica-ui-kit-components-slider-track-border-radius) !important;
+  height: var(--recursica_ui-kit_components_slider_track_height, 4px) !important;
+  border-radius: var(--recursica_ui-kit_components_slider_track_border-radius) !important;
 }
 
 .recursica-carbon-slider-wrapper .cds--slider__thumb {
-  width: var(--recursica-ui-kit-components-slider-thumb-size, 20px) !important;
-  height: var(--recursica-ui-kit-components-slider-thumb-size, 20px) !important;
-  border-radius: var(--recursica-ui-kit-components-slider-thumb-border-radius) !important;
+  width: var(--recursica_ui-kit_components_slider_thumb_size, 20px) !important;
+  height: var(--recursica_ui-kit_components_slider_thumb_size, 20px) !important;
+  border-radius: var(--recursica_ui-kit_components_slider_thumb_border-radius) !important;
   border: none !important;
-  box-shadow: var(--recursica-ui-kit-components-slider-thumb-elevation, 0 1px 2px rgba(0, 0, 0, 0.15)) !important;
+  box-shadow: var(--recursica_ui-kit_components_slider_thumb_elevation, 0 1px 2px rgba(0, 0, 0, 0.15)) !important;
 }

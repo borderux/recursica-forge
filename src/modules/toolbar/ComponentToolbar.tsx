@@ -986,20 +986,20 @@ export default function ComponentToolbar({
   return (
     <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
-      <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)` }}>
+      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(--recursica_brand_layer_0_properties_border-color)` }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
             {LayerIcon && <LayerIcon style={{
               width: '16px',
               height: '16px',
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
-              opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis)`
+              color: `var(--recursica_brand_layer_0_elements_text-color)`,
+              opacity: `var(--recursica_brand_layer_0_elements_text-low-emphasis)`
             }} />}
             <span style={{
               fontFamily: `var(${accordionHeaderFontFamilyVar})`,
               fontSize: `var(${accordionHeaderFontSizeVar})`,
               fontWeight: `var(${accordionHeaderFontWeightVar})`,
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`
+              color: `var(--recursica_brand_layer_0_elements_text-color)`
             }}>Layer</span>
           </div>
           <SegmentedControl
@@ -1023,15 +1023,15 @@ export default function ComponentToolbar({
 
       {/* Variants Dropdowns */}
       {visibleVariants.length > 0 && (
-        <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)` }}>
+        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(--recursica_brand_layer_0_properties_border-color)` }}>
           {visibleVariants.map((variant, index) => {
             const isBoolean = isBooleanVariant(variant.variants)
             return (
               <div
                 key={variant.propName}
                 style={{
-                  marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
-                  paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
+                  marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica_brand_dimensions_general_sm)' : 0,
+                  paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica_brand_dimensions_general_sm)' : 0,
                 }}
               >
                 {isBoolean ? (
@@ -1125,7 +1125,7 @@ export default function ComponentToolbar({
       />
 
       {/* Reset Button */}
-      <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderTop: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)` }}>
+      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(--recursica_brand_layer_0_properties_border-color)` }}>
         <Button
           onClick={handleReset}
           variant="outline"
@@ -1144,17 +1144,17 @@ export default function ComponentToolbar({
 
       {/* Switches Section */}
       <div style={{
-        padding: 'var(--recursica-brand-dimensions-general-md)',
-        borderTop: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)`,
+        padding: 'var(--recursica_brand_dimensions_general_md)',
+        borderTop: `1px solid var(--recursica_brand_layer_0_properties_border-color)`,
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--recursica-brand-dimensions-general-sm)',
+        gap: 'var(--recursica_brand_dimensions_general_sm)',
       }}>
 
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 'var(--recursica-brand-dimensions-general-default)',
+          gap: 'var(--recursica_brand_dimensions_general_default)',
         }}>
           <Switch
             checked={debugMode}
@@ -1164,9 +1164,9 @@ export default function ComponentToolbar({
           <label
             onClick={() => setDebugMode(!debugMode)}
             style={{
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
-              opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis)`,
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              color: `var(--recursica_brand_layer_0_elements_text-color)`,
+              opacity: `var(--recursica_brand_layer_0_elements_text-low-emphasis)`,
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
               cursor: 'pointer',
               flex: 1,
             }}>

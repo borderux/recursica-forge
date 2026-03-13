@@ -87,14 +87,14 @@
 }
 
 .suggest-tones__label {
-    font-size: var(--recursica-brand-typography-body-small-font-size, 13px);
+    font-size: var(--recursica_brand_typography_body-small-font-size, 13px);
     font-weight: 600;
     white-space: nowrap;
 }
 
 .suggest-tones__hex {
     font-size: 11px;
-    font-family: var(--recursica-brand-typography-code-font-family, monospace);
+    font-family: var(--recursica_brand_typography_code_font_family, monospace);
     opacity: 0.5;
 }
 
@@ -112,8 +112,8 @@
 /* ─── Warning icon in swatch ─── */
 
 .suggest-tones__warning-icon {
-    width: var(--recursica-brand-dimensions-icons-default, 20px);
-    height: var(--recursica-brand-dimensions-icons-default, 20px);
+    width: var(--recursica_brand_dimensions_icons_default, 20px);
+    height: var(--recursica_brand_dimensions_icons_default, 20px);
 }
 
 /* ─── Divider between sections ─── */

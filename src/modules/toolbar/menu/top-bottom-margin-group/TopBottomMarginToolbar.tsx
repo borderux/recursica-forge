@@ -66,7 +66,7 @@ export default function TopBottomMarginToolbar({
         )
       })}
       {topBottomMarginProps.length === 0 && (
-        <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', color: 'var(--recursica-brand-themes-light-layers-layer-0-properties-text-color)' }}>
+        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', color: 'var(--recursica_brand_layer_0_properties_text-color)' }}>
           No top-bottom-margin properties found for this component.
         </div>
       )}

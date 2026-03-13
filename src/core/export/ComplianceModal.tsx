@@ -24,7 +24,7 @@ export function ComplianceModal({ onAcknowledge, onCancel }: ComplianceModalProp
   const navigate = useNavigate()
   const { issueCount } = useCompliance()
   const { mode } = useThemeMode()
-  const layer3Elements = `--recursica-brand-themes-${mode}-layers-layer-3-elements`
+  const layer3Elements = `--recursica_brand_themes_${mode}_layers_layer-3-elements`
 
   return (
     <Modal
@@ -49,22 +49,22 @@ export function ComplianceModal({ onAcknowledge, onCancel }: ComplianceModalProp
         }}>
           <h4 style={{
             margin: 0,
-            fontSize: 'var(--recursica-brand-typography-h4-font-size)',
-            fontWeight: 'var(--recursica-brand-typography-h4-font-weight)',
-            fontFamily: 'var(--recursica-brand-typography-h4-font-family)',
-            letterSpacing: 'var(--recursica-brand-typography-h4-font-letter-spacing)',
-            lineHeight: 'var(--recursica-brand-typography-h4-line-height)',
+            fontSize: 'var(--recursica_brand_typography_h4-font-size)',
+            fontWeight: 'var(--recursica_brand_typography_h4-font-weight)',
+            fontFamily: 'var(--recursica_brand_typography_h4-font-family)',
+            letterSpacing: 'var(--recursica_brand_typography_h4-font-letter-spacing)',
+            lineHeight: 'var(--recursica_brand_typography_h4-line-height)',
           }}>
             {issueCount} {issueCount === 1 ? 'issue' : 'issues'} found
           </h4>
 
           <p style={{
             margin: 0,
-            fontSize: 'var(--recursica-brand-typography-body-font-size)',
-            fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-            fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-            letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-            lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+            fontSize: 'var(--recursica_brand_typography_body-font-size)',
+            fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
+            fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+            letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+            lineHeight: 'var(--recursica_brand_typography_body-line-height)',
           }}>
             Your theme has color combinations that don't meet WCAG AA contrast requirements (4.5:1 ratio).
             You can review and fix them on the Compliance page.

@@ -173,7 +173,7 @@ function BrandDimensionSliderInline_DEPRECATED({
       Object.keys(dimensionCategoryData).forEach(dimensionKey => {
         const dimensionValue = dimensionCategoryData[dimensionKey]
         if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
-          const cssVar = `--recursica-brand-dimensions-${dimensionCategory}-${dimensionKey}`
+          const cssVar = `--recursica_brand_dimensions_${dimensionCategory}-${dimensionKey}`
           const cssValue = readCssVar(cssVar)
 
           if (cssValue) {
@@ -240,9 +240,9 @@ function BrandDimensionSliderInline_DEPRECATED({
       return
     }
 
-    if (currentValue.trim().startsWith('var(--recursica-')) {
+    if (currentValue.trim().startsWith('var(--recursica_')) {
       const matchingIndex = tokens.findIndex(t => {
-        const dimensionName = t.name.replace(`--recursica-brand-dimensions-${dimensionCategory}-`, '')
+        const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}-`, '')
         return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
       })
 
@@ -419,7 +419,7 @@ function TypographySliderInline({
 
         const sizeValue = textSizes[sizeKey]
         if (sizeValue && typeof sizeValue === 'object' && '$type' in sizeValue) {
-          const cssVar = `--recursica-brand-dimensions-text-size-${sizeKey}`
+          const cssVar = `--recursica_brand_dimensions_text-size_${sizeKey}`
           const cssValue = readCssVar(cssVar)
 
           if (cssValue) {
@@ -484,8 +484,8 @@ function TypographySliderInline({
       return braceMatch[1].toLowerCase()
     }
 
-    // Check for CSS variable: --recursica-brand-dimensions-text-size-2xs
-    const textSizeMatch = cssVarValue.match(/--recursica-brand-dimensions-text-size-([a-z0-9-]+)/)
+    // Check for CSS variable: --recursica_brand_dimensions_text-size_2xs
+    const textSizeMatch = cssVarValue.match(/--recursica_brand_dimensions_text-size_([a-z0-9-]+)/)
     if (textSizeMatch) {
       return textSizeMatch[1].toLowerCase()
     }
@@ -497,7 +497,7 @@ function TypographySliderInline({
       if (resolvedBraceMatch) {
         return resolvedBraceMatch[1].toLowerCase()
       }
-      const resolvedTextSizeMatch = resolved.match(/--recursica-brand-dimensions-text-size-([a-z0-9-]+)/)
+      const resolvedTextSizeMatch = resolved.match(/--recursica_brand_dimensions_text-size_([a-z0-9-]+)/)
       if (resolvedTextSizeMatch) {
         return resolvedTextSizeMatch[1].toLowerCase()
       }
@@ -962,7 +962,7 @@ export default function PropControlContent({
     componentName === 'MenuItem'
 
   if (prop.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
-    const minHeightVar = `--recursica-ui-kit-components-badge-size-variants-${sizeVariant}-min-height`
+    const minHeightVar = `--recursica_ui-kit_components_badge_size_variants_${sizeVariant}-min-height`
     primaryCssVar = minHeightVar
     cssVarsForControl = [minHeightVar]
   }

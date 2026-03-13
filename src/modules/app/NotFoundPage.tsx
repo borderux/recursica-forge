@@ -7,11 +7,11 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../components/adapters/Button'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { genericLayerText } from '../../core/css/cssVarBuilder'
 
 export function NotFoundPage() {
   const navigate = useNavigate()
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
 
   return (
     <div
@@ -21,18 +21,18 @@ export function NotFoundPage() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100%',
-        padding: 'var(--recursica-brand-dimensions-general-xl)',
+        padding: 'var(--recursica_brand_dimensions_general_xl)',
         textAlign: 'center',
       }}
     >
       <h1
         style={{
           margin: 0,
-          marginBottom: 'var(--recursica-brand-dimensions-general-md)',
-          fontSize: 'var(--recursica-brand-typography-heading-1-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-heading-1-font-weight)',
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+          marginBottom: 'var(--recursica_brand_dimensions_general_md)',
+          fontSize: 'var(--recursica_brand_typography_heading_1_font_size)',
+          fontWeight: 'var(--recursica_brand_typography_heading_1_font_weight)',
+          color: `var(${genericLayerText(0, 'color')})`,
+          opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
         }}
       >
         404
@@ -40,10 +40,10 @@ export function NotFoundPage() {
       <p
         style={{
           margin: 0,
-          marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
-          fontSize: 'var(--recursica-brand-typography-body-font-size)',
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-medium-emphasis)`,
+          marginBottom: 'var(--recursica_brand_dimensions_general_lg)',
+          fontSize: 'var(--recursica_brand_typography_body-font-size)',
+          color: `var(${genericLayerText(0, 'color')})`,
+          opacity: `var(${genericLayerText(0, 'medium-emphasis')})`,
         }}
       >
         Page not found

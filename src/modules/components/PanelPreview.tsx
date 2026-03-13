@@ -82,14 +82,14 @@ export default function PanelPreview({
 
     const headerStyle = {
         color: `var(${titleColorVar})`,
-        fontFamily: `var(--recursica-brand-typography-${headerStyleValue}-font-family)`,
-        fontSize: `var(--recursica-brand-typography-${headerStyleValue}-font-size)`,
-        fontWeight: `var(--recursica-brand-typography-${headerStyleValue}-font-weight)`,
-        letterSpacing: `var(--recursica-brand-typography-${headerStyleValue}-font-letter-spacing)`,
-        lineHeight: `var(--recursica-brand-typography-${headerStyleValue}-line-height)`,
-        fontStyle: `var(--recursica-brand-typography-${headerStyleValue}-font-style)`,
+        fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
+        fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
+        fontWeight: `var(--recursica_brand_typography_${headerStyleValue}-font-weight)`,
+        letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-font-letter-spacing)`,
+        lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
+        fontStyle: `var(--recursica_brand_typography_${headerStyleValue}-font-style)`,
         textDecoration: 'none',
-        textTransform: `var(--recursica-brand-typography-${headerStyleValue}-text-transform)`,
+        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)`,
         flex: 1,
         minWidth: 0,
         overflow: 'clip',
@@ -100,11 +100,11 @@ export default function PanelPreview({
 
     const bodyStyle = {
         color: `var(${contentColorVar})`,
-        fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-        fontSize: 'var(--recursica-brand-typography-body-font-size)',
-        fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-        lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-        letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
+        fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+        fontSize: 'var(--recursica_brand_typography_body-font-size)',
+        fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
+        lineHeight: 'var(--recursica_brand_typography_body-line-height)',
+        letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
     } as React.CSSProperties
 
     // The panel footer content
@@ -123,7 +123,7 @@ export default function PanelPreview({
 
     // The panel body content
     const panelBody = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)', ...bodyStyle }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_md)', ...bodyStyle }}>
             <p style={{ margin: 0 }}>{goblinChapter}</p>
             <p style={{ margin: 0 }}>{goblinParagraph2}</p>
             <p style={{ margin: 0 }}>{goblinParagraph3}</p>
@@ -136,7 +136,7 @@ export default function PanelPreview({
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            height: 'calc(100% + var(--recursica-brand-dimensions-general-md) * 2)',
+            height: 'calc(100% + var(--recursica_brand_dimensions_general_md) * 2)',
             alignSelf: 'stretch',
         } as any}>
             {/* Static Preview — Right panel filling full height */}
@@ -197,12 +197,12 @@ export default function PanelPreview({
                         overflowY: 'auto',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 'var(--recursica-brand-dimensions-general-md)',
+                        gap: 'var(--recursica_brand_dimensions_general_md)',
                     }}>
                         {panelBody}
 
                         {/* Launch Buttons */}
-                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: 'var(--recursica-brand-dimensions-general-md)' }}>
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: 'var(--recursica_brand_dimensions_general_md)' }}>
                             <Button
                                 variant="outline"
                                 onClick={() => setActivePanel('left')}

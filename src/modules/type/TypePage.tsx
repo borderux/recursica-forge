@@ -9,6 +9,7 @@ import TypeStylePanel from './TypeStylePanel'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { Checkbox } from '../../components/adapters/Checkbox'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 // local helpers retained for legacy but no longer used directly in this file
 
@@ -17,7 +18,6 @@ import { Checkbox } from '../../components/adapters/Checkbox'
 export function TypePage() {
   const { mode } = useThemeMode()
   const { theme } = useVars()
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
 
   type Sample = { label: string; tag: keyof JSX.IntrinsicElements; text: string; prefix: string }
 
@@ -98,42 +98,41 @@ export function TypePage() {
     const cssVarName = prefixToCssVarName(prefix)
 
     // Build layer-1 base CSS variable prefix
-    const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
     // CSS variables update automatically, but React needs to re-render to pick up changes
     const style: React.CSSProperties = useMemo(() => ({
-      fontFamily: `var(--recursica-brand-typography-${cssVarName}-font-family)`,
-      fontSize: `var(--recursica-brand-typography-${cssVarName}-font-size, 16px)`,
-      fontWeight: `var(--recursica-brand-typography-${cssVarName}-font-weight, 400)` as any,
-      fontStyle: `var(--recursica-brand-typography-${cssVarName}-font-style, normal)` as any,
-      letterSpacing: `var(--recursica-brand-typography-${cssVarName}-font-letter-spacing, 0)`,
-      lineHeight: `var(--recursica-brand-typography-${cssVarName}-line-height, normal)` as any,
-      textDecoration: `var(--recursica-brand-typography-${cssVarName}-text-decoration, none)` as any,
-      textTransform: `var(--recursica-brand-typography-${cssVarName}-text-transform, none)` as any,
-      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+      fontFamily: `var(--recursica_brand_typography_${cssVarName}-font-family)`,
+      fontSize: `var(--recursica_brand_typography_${cssVarName}-font-size, 16px)`,
+      fontWeight: `var(--recursica_brand_typography_${cssVarName}-font-weight, 400)` as any,
+      fontStyle: `var(--recursica_brand_typography_${cssVarName}-font-style, normal)` as any,
+      letterSpacing: `var(--recursica_brand_typography_${cssVarName}-font-letter-spacing, 0)`,
+      lineHeight: `var(--recursica_brand_typography_${cssVarName}-line-height, normal)` as any,
+      textDecoration: `var(--recursica_brand_typography_${cssVarName}-text-decoration, none)` as any,
+      textTransform: `var(--recursica_brand_typography_${cssVarName}-text-transform, none)` as any,
+      color: `var(${genericLayerText(0, 'color')})`,
       margin: '0',
-    }), [cssVarName, mode, layer1Base, updateKey])
+    }), [cssVarName, mode, updateKey])
 
     // Container style using layer-1 properties
     // When selected, use core alert color for border instead of dropshadow
     const containerStyle = useMemo(() => {
       const borderColor = isSelected
-        ? `var(--recursica-brand-themes-${mode}-palettes-core-alert)`
-        : `var(${layer1Base}-border-color)`
+        ? `var(--recursica_brand_palettes_core_alert)`
+        : `var(${genericLayerProperty(1, 'border-color')})`
 
       return {
-        backgroundColor: `var(${layer1Base}-surface)`,
-        color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-        border: `var(${layer1Base}-border-size) solid ${borderColor}`,
-        borderRadius: `var(${layer1Base}-border-radius)`,
-        padding: `var(${layer1Base}-padding)`,
+        backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+        color: `var(${genericLayerText(0, 'color')})`,
+        border: `var(${genericLayerProperty(1, 'border-size')}) solid ${borderColor}`,
+        borderRadius: `var(${genericLayerProperty(1, 'border-radius')})`,
+        padding: `var(${genericLayerProperty(1, 'padding')})`,
         display: 'flex' as const,
         alignItems: 'center' as const,
         gap: 12,
         cursor: 'pointer' as const,
         boxShadow: 'none', // Layer 1 uses elevation-0 (no elevation)
       }
-    }, [layer1Base, mode, isSelected, updateKey])
+    }, [mode, isSelected, updateKey])
 
     return (
       <div
@@ -171,16 +170,16 @@ export function TypePage() {
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
   }, [])
   return (
-    <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto', padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
+    <div style={{ display: 'grid', gap: 16, maxWidth: 1400, margin: '0 auto', padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
       <h1 style={{
         marginTop: 0,
         marginBottom: 0,
-        fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
-        fontSize: 'var(--recursica-brand-typography-h1-font-size)',
-        fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
-        letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
-        lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-        color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+        fontFamily: 'var(--recursica_brand_typography_h1-font-family)',
+        fontSize: 'var(--recursica_brand_typography_h1-font-size)',
+        fontWeight: 'var(--recursica_brand_typography_h1-font-weight)',
+        letterSpacing: 'var(--recursica_brand_typography_h1-font-letter-spacing)',
+        lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
+        color: `var(${genericLayerText(0, 'color')})`,
       }}>Type</h1>
       {samples.map((s) => (
         <SimpleTypeSample

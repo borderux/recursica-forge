@@ -35,7 +35,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
   // Get all CSS variables from root
   for (let i = 0; i < computedStyle.length; i++) {
     const prop = computedStyle[i]
-    if (prop.startsWith('--recursica-')) {
+    if (prop.startsWith('--recursica_')) {
       allVars.add(prop)
     }
   }
@@ -49,7 +49,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
     // Check computed styles
     for (let i = 0; i < elComputed.length; i++) {
       const prop = elComputed[i]
-      if (prop.startsWith('--recursica-')) {
+      if (prop.startsWith('--recursica_')) {
         allVars.add(prop)
       }
     }
@@ -58,7 +58,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
     if (elInline && elInline.length > 0) {
       for (let i = 0; i < elInline.length; i++) {
         const prop = elInline[i]
-        if (prop.startsWith('--recursica-')) {
+        if (prop.startsWith('--recursica_')) {
           allVars.add(prop)
         }
       }
@@ -76,7 +76,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
             const style = rule.style
             for (let i = 0; i < style.length; i++) {
               const prop = style[i]
-              if (prop.startsWith('--recursica-')) {
+              if (prop.startsWith('--recursica_')) {
                 allVars.add(prop)
               }
             }
@@ -214,7 +214,7 @@ function getAllCssVars(): string[] {
   // Get all CSS variables from root
   for (let i = 0; i < computedStyle.length; i++) {
     const prop = computedStyle[i]
-    if (prop.startsWith('--recursica-')) {
+    if (prop.startsWith('--recursica_')) {
       allVars.add(prop)
     }
   }
@@ -228,7 +228,7 @@ function getAllCssVars(): string[] {
     // Check computed styles
     for (let i = 0; i < elComputed.length; i++) {
       const prop = elComputed[i]
-      if (prop.startsWith('--recursica-')) {
+      if (prop.startsWith('--recursica_')) {
         allVars.add(prop)
       }
     }
@@ -237,7 +237,7 @@ function getAllCssVars(): string[] {
     if (elInline && elInline.length > 0) {
       for (let i = 0; i < elInline.length; i++) {
         const prop = elInline[i]
-        if (prop.startsWith('--recursica-')) {
+        if (prop.startsWith('--recursica_')) {
           allVars.add(prop)
         }
       }
@@ -255,7 +255,7 @@ function getAllCssVars(): string[] {
             const style = rule.style
             for (let i = 0; i < style.length; i++) {
               const prop = style[i]
-              if (prop.startsWith('--recursica-')) {
+              if (prop.startsWith('--recursica_')) {
                 allVars.add(prop)
               }
             }

@@ -18,9 +18,9 @@ import {
 
 /**
  * Clears CSS variables based on what's being imported
- * - If recursica_tokens.json is imported, clears only --recursica-tokens-* vars
- * - If recursica_brand.json is imported, clears only --recursica-brand-* vars
- * - If recursica_ui-kit.json is imported, clears only --recursica-ui-kit-* vars
+ * - If recursica_tokens.json is imported, clears only --recursica_tokens_* vars
+ * - If recursica_brand.json is imported, clears only --recursica_brand_* vars
+ * - If recursica_ui-kit.json is imported, clears only --recursica_ui-kit_* vars
  */
 function clearCssVarsForImport(files: {
   tokens?: object;
@@ -31,17 +31,17 @@ function clearCssVarsForImport(files: {
   const style = root.style;
   const varsToRemove: string[] = [];
 
-  // Collect all --recursica-* CSS custom properties from inline styles
+  // Collect all --recursica_* CSS custom properties from inline styles
   for (let i = 0; i < style.length; i++) {
     const prop = style[i];
-    if (!prop || !prop.startsWith("--recursica-")) continue;
+    if (!prop || !prop.startsWith("--recursica_")) continue;
 
     // Determine which vars to remove based on what's being imported
-    if (files.tokens && prop.startsWith("--recursica-tokens-")) {
+    if (files.tokens && prop.startsWith("--recursica_tokens_")) {
       varsToRemove.push(prop);
-    } else if (files.brand && prop.startsWith("--recursica-brand-")) {
+    } else if (files.brand && prop.startsWith("--recursica_brand_")) {
       varsToRemove.push(prop);
-    } else if (files.uikit && prop.startsWith("--recursica-ui-kit-")) {
+    } else if (files.uikit && prop.startsWith("--recursica_ui-kit_")) {
       varsToRemove.push(prop);
     }
   }

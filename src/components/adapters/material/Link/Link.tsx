@@ -129,8 +129,8 @@ export default function Link({
         textVar, textHoverVar, iconGapVar])
 
     // Get CSS variables for text emphasis opacity
-    const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
-    const lowEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+    const highEmphasisOpacityVar = `--recursica_brand_text-emphasis_high`
+    const lowEmphasisOpacityVar = `--recursica_brand_text-emphasis_low`
 
     // Determine underline behavior for Material UI
     const materialUnderline = (underline === 'always' ? 'always' : underline === 'hover' ? 'hover' : 'none') as 'always' | 'hover' | 'none'

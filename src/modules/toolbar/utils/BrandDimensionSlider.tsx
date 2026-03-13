@@ -88,7 +88,7 @@ export default function BrandDimensionSlider({
         if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
           // Generate CSS var name based on category
           // Note: CSS vars use the category name as-is (e.g., border-radii, spacers)
-          const cssVar = `--recursica-brand-dimensions-${dimensionCategory}-${dimensionKey}`
+          const cssVar = `--recursica_brand_dimensions_${dimensionCategory}-${dimensionKey}`
           const cssValue = readCssVar(cssVar)
           
           // Only add if the CSS var exists (has been generated)
@@ -170,11 +170,11 @@ export default function BrandDimensionSlider({
     }
     
     // Check if it's a CSS var reference
-    if (currentValue.trim().startsWith('var(--recursica-')) {
+    if (currentValue.trim().startsWith('var(--recursica_')) {
       // Try to find matching token by CSS var name
       const matchingIndex = tokens.findIndex(t => {
-        // Extract dimension name from CSS var (e.g., "--recursica-brand-dimensions-general-sm" -> "sm")
-        const dimensionName = t.name.replace(`--recursica-brand-dimensions-${dimensionCategory}-`, '')
+        // Extract dimension name from CSS var (e.g., "--recursica_brand_dimensions_general_sm" -> "sm")
+        const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}-`, '')
         return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
       })
       

@@ -45,14 +45,14 @@ export default function SliderPreview({
   const h2Style = {
     margin: 0,
     marginBottom: 16,
-    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
   } as React.CSSProperties
 
-  const verticalGutter = 'var(--recursica-brand-dimensions-gutters-vertical)'
+  const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGutter, width: '100%', maxWidth: 600 }}>

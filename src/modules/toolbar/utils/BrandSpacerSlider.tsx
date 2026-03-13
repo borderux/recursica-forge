@@ -40,7 +40,7 @@ export default function BrandSpacerSlider({
       Object.keys(spacers).forEach(spacerKey => {
         const spacerValue = spacers[spacerKey]
         if (spacerValue && typeof spacerValue === 'object' && '$value' in spacerValue) {
-          const cssVar = `--recursica-brand-dimensions-general-${spacerKey}`
+          const cssVar = `--recursica_brand_dimensions_general_${spacerKey}`
           const cssValue = readCssVar(cssVar)
           
           // Only add if the CSS var exists (has been generated)
@@ -126,11 +126,11 @@ export default function BrandSpacerSlider({
     }
     
     // Check if it's a CSS var reference
-    if (currentValue.trim().startsWith('var(--recursica-')) {
+    if (currentValue.trim().startsWith('var(--recursica_')) {
       // Try to find matching token by CSS var name
       const matchingToken = tokens.find(t => {
-        // Extract spacer name from CSS var (e.g., "--recursica-brand-dimensions-general-sm" -> "sm")
-        const spacerName = t.name.replace('--recursica-brand-dimensions-general-', '')
+        // Extract spacer name from CSS var (e.g., "--recursica_brand_dimensions_general_sm" -> "sm")
+        const spacerName = t.name.replace('--recursica_brand_dimensions_general_', '')
         return currentValue.includes(`general-${spacerName}`) || currentValue.includes(`dimensions-general-${spacerName}`)
       })
       

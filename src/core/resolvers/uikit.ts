@@ -14,15 +14,15 @@ import { resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../ut
  * 
  * @example
  * toCssVarName('components.button.color.layer-0.background-solid')
- * => '--recursica-ui-kit-components-button-color-layer-0-background-solid'
+ * => '--recursica_ui-kit_components_button_color_layer-0_background_solid'
  * 
  * @example
  * toCssVarName('globals.icon.style', 'light')
- * => '--recursica-ui-kit-themes-light-globals-icon-style'
+ * => '--recursica_ui-kit_themes_light_globals_icon_style'
  * 
  * @example
  * toCssVarName('globals.icon.style')
- * => '--recursica-ui-kit-globals-icon-style'
+ * => '--recursica_ui-kit_globals_icon_style'
  */
 function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   const parts = path
@@ -34,12 +34,15 @@ function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // Remove "ui-kit" from parts if it appears (to avoid double prefix)
   const filteredParts = parts.filter(part => part !== 'ui-kit')
 
-  // Include mode in the name if provided (like palette vars: --recursica-brand-themes-light-...)
+  // Escape underscores in segment names and join with _
+  const escaped = filteredParts.map(seg => seg.replace(/_/g, '__'))
+
+  // Include mode in the name if provided (like palette vars: --recursica_brand_themes_light_...)
   if (mode) {
-    return `--recursica-ui-kit-themes-${mode}-${filteredParts.join('-')}`
+    return `--recursica_ui-kit_themes_${mode}_${escaped.join('_')}`
   }
 
-  return `--recursica-ui-kit-${filteredParts.join('-')}`
+  return `--recursica_ui-kit_${escaped.join('_')}`
 }
 
 /**
@@ -74,7 +77,7 @@ function resolveTokenRef(
   if (cssVar) {
     // For UIKit self-references, check if the variable exists in vars map
     // If it doesn't exist yet, return null to defer resolution
-    if (vars && cssVar.startsWith('var(--recursica-ui-kit-')) {
+    if (vars && cssVar.startsWith('var(--recursica_ui-kit_')) {
       const varName = cssVar.replace(/^var\(|\)$/g, '')
       if (!vars.hasOwnProperty(varName)) {
         // Variable doesn't exist yet - return null to defer resolution
@@ -196,7 +199,7 @@ function traverseUIKit(
         }
       } else if (type === 'typography' && typeof val === 'string') {
         // Handle typography type: resolve typography reference to CSS var
-        // e.g., {brand.typography.body.font-size} -> var(--recursica-brand-typography-body-font-size)
+        // e.g., {brand.typography.body.font-size} -> var(--recursica_brand_typography_body-font-size)
         const trimmed = val.trim()
         if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
           // Try to resolve as a token reference (will resolve to typography CSS var)
@@ -419,7 +422,7 @@ export function buildUIKitVars(
         if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
           const resolved = resolveTokenRef(value, tokenIndex, theme, uikit, 0, vars, mode)
           // Update if we got a resolution and it's different from the original
-          // (resolved will be a CSS var reference like "var(--recursica-...)" or null)
+          // (resolved will be a CSS var reference like "var(--recursica_...)" or null)
           if (resolved && typeof resolved === 'string' && !resolved.startsWith('{')) {
             vars[key] = resolved
             changed = true
@@ -463,7 +466,7 @@ export function buildUIKitVars(
 
         // Check for var() references to UIKit vars that might not exist
         // (This is just for validation - broken references will be caught by the audit)
-        const varMatches = value.match(/var\s*\(\s*(--recursica-ui-kit-[^)]+)\s*\)/g)
+        const varMatches = value.match(/var\s*\(\s*(--recursica_ui-kit_[^)]+)\s*\)/g)
         if (varMatches) {
           // If the referenced variable doesn't exist in vars, it's broken
           // But we can't fix it here - it means the variable wasn't generated

@@ -42,8 +42,8 @@ export default function LayerSegmentedControl({ selected, onSelect, className = 
       <div 
         className="layer-segmented-control-buttons"
         style={{
-          border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)`,
-          borderRadius: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-radius)`,
+          border: `1px solid var(--recursica_brand_layer_0_properties_border-color)`,
+          borderRadius: `var(--recursica_brand_layer_0_properties_border-radius)`,
         }}
       >
         {layers.map((layer, index) => {
@@ -56,16 +56,16 @@ export default function LayerSegmentedControl({ selected, onSelect, className = 
               onClick={() => onSelect(layer)}
               style={{
                 background: isSelected 
-                  ? `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`
+                  ? `var(--recursica_brand_layer_1_properties_surface)`
                   : 'transparent',
                 color: isSelected
-                  ? `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)`
-                  : `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
+                  ? `var(--recursica_brand_layer_1_elements_text-color)`
+                  : `var(--recursica_brand_layer_0_elements_text-color)`,
                 fontWeight: isSelected ? 600 : 400,
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface-hover)`
+                  e.currentTarget.style.background = `var(--recursica_brand_layer_0_properties_surface-hover)`
                 }
               }}
               onMouseLeave={(e) => {

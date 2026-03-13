@@ -125,11 +125,11 @@ export default function Card({
                         title={
                             <span style={{
                                 color: 'var(--card-title-color)',
-                                fontFamily: `var(--recursica-brand-typography-${headerStyleValue}-font-family)`,
-                                fontSize: `var(--recursica-brand-typography-${headerStyleValue}-font-size)`,
-                                fontWeight: `var(--recursica-brand-typography-${headerStyleValue}-font-weight)`,
-                                letterSpacing: `var(--recursica-brand-typography-${headerStyleValue}-letter-spacing)`,
-                                lineHeight: `var(--recursica-brand-typography-${headerStyleValue}-line-height)`,
+                                fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
+                                fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
+                                fontWeight: `var(--recursica_brand_typography_${headerStyleValue}-font-weight)`,
+                                letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-letter-spacing)`,
+                                lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
                             }}>
                                 {title}
                             </span>

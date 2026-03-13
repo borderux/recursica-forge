@@ -44,7 +44,7 @@ export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0
     if (typeof level === 'number' && level >= 0) {
       const k = String(level)
       // Use centrally computed CSS variables so preview matches layers exactly
-      return `var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-${k}-shadow-color)`
+      return `var(--recursica_brand_elevations_elevation-${k}-x-axis) var(--recursica_brand_elevations_elevation-${k}-y-axis) var(--recursica_brand_elevations_elevation-${k}-blur) var(--recursica_brand_elevations_elevation-${k}-spread) var(--recursica_brand_elevations_elevation-${k}-shadow-color)`
     }
     const shadowColor = toRgba(colorHex, alpha)
     return `${offsetXPx}px ${offsetYPx}px ${blurPx}px ${spreadPx}px ${shadowColor}`
@@ -52,7 +52,7 @@ export default function ElevationModule({ label, level, blurPx = 0, spreadPx = 0
 
   // Add border for elevation 0 (neutral/100, 1px)
   const borderStyle = level === 0 ? {
-    border: `1px solid var(--recursica-brand-themes-${mode}-palettes-neutral-100-tone)`,
+    border: `1px solid var(--recursica_brand_palettes_neutral_100_color_tone)`,
   } : {}
 
   return (

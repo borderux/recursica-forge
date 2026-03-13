@@ -42,7 +42,7 @@ vi.mock('./src/core/store/varsStore', () => ({
 }));
 
 test('updateUIKitValue', () => {
-    const res = updateUIKitValue('--recursica-ui-kit-components-chip-variants-styles-unselected-properties-colors-layer-0-background', 'var(--recursica-tokens-colors-scale-06-400)');
+    const res = updateUIKitValue('--recursica_ui-kit_components_chip_variants_styles_unselected_properties_colors_layer-0_background', 'var(--recursica_tokens_colors_scale-06_400)');
     console.log("Result:", res);
     console.log("Passed uikit branch:", JSON.stringify(passedUIKit?.['ui-kit']?.components?.chip?.variants?.styles?.unselected?.properties?.colors?.['layer-0']?.background, null, 2));
     expect(res).toBe(true);

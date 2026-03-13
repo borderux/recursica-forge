@@ -6,6 +6,7 @@ import { toTitleCase } from './colorUtils'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import type { JsonLike } from '../../../core/resolvers/tokens'
 import { TextField } from '../../../components/adapters/TextField'
+import { paletteCore } from '../../../core/css/cssVarBuilder'
 import { Button } from '../../../components/adapters/Button'
 import { Trash } from '@phosphor-icons/react'
 
@@ -114,11 +115,9 @@ export function ColorScale({
     }
   }, [])
 
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <div style={{ marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
+      <div style={{ marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
         <TextField
           value={localName}
           onChange={(e) => {
@@ -136,14 +135,14 @@ export function ColorScale({
           layer="layer-1"
           minWidth={0}
           style={{
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
             width: '100%',
           }}
         />
       </div>
       <div style={{
         border: `1px solid ${borderColor}`,
-        borderRadius: 'var(--recursica-brand-dimensions-border-radii-lg)',
+        borderRadius: 'var(--recursica_brand_dimensions_border-radii_lg)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -192,7 +191,7 @@ export function ColorScale({
         })}
       </div>
       <div style={{
-        marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
+        marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
         display: 'flex',
         justifyContent: 'center',
       }}>
@@ -218,20 +217,20 @@ export function ColorScale({
       </div>
       {isUsedInPalettes && (
         <div style={{
-          marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
+          marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: 2,
         }}>
           <span style={{
-            fontFamily: 'var(--recursica-brand-typography-subtitle-font-family)',
-            fontSize: 'var(--recursica-brand-typography-subtitle-font-size)',
-            fontWeight: 'var(--recursica-brand-typography-subtitle-font-weight)',
-            letterSpacing: 'var(--recursica-brand-typography-subtitle-font-letter-spacing)',
-            lineHeight: 'var(--recursica-brand-typography-subtitle-line-height)',
-            color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
-            opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis, 0.6)`,
+            fontFamily: 'var(--recursica_brand_typography_subtitle-font-family)',
+            fontSize: 'var(--recursica_brand_typography_subtitle-font-size)',
+            fontWeight: 'var(--recursica_brand_typography_subtitle-font-weight)',
+            letterSpacing: 'var(--recursica_brand_typography_subtitle-font-letter-spacing)',
+            lineHeight: 'var(--recursica_brand_typography_subtitle-line-height)',
+            color: `var(--recursica_brand_layer_0_elements_text-color)`,
+            opacity: `var(--recursica_brand_layer_0_elements_text-low-emphasis)`,
           }}>Used in:</span>
           {usageLocations.map((loc, i) => {
             const targetMode = loc.targetMode?.toLowerCase() as 'light' | 'dark' | undefined
@@ -243,7 +242,7 @@ export function ColorScale({
                 key={i}
                 to={href}
                 style={{
-                  color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone, #0066cc)`,
+                  color: `var(--recursica_brand_themes_${mode}_palettes_core_interactive-default-tone)`,
                   textDecoration: 'none',
                   textAlign: 'center',
                 }}

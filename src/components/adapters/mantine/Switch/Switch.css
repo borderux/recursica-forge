@@ -32,16 +32,16 @@
 /* Position thumb relative to track's content area (respecting padding) */
 .mantine-Switch-thumb {
   /* Use wrapper variables that are set in component's style prop - these reference UIKit vars directly */
-  background: var(--recursica-ui-kit-components-switch-thumb-bg-unselected) !important;
+  background: var(--recursica_ui-kit_components_switch_thumb_bg_unselected) !important;
   /* Use wrapper variables set by component (these reference mode-aware UIKit vars) */
-  width: var(--recursica-ui-kit-components-switch-thumb-width) !important;
-  height: var(--recursica-ui-kit-components-switch-thumb-height) !important;
-  border-radius: var(--recursica-ui-kit-components-switch-thumb-border-radius) !important;
-  box-shadow: var(--recursica-ui-kit-components-switch-thumb-elevation) !important;
+  width: var(--recursica_ui-kit_components_switch_thumb_width) !important;
+  height: var(--recursica_ui-kit_components_switch_thumb_height) !important;
+  border-radius: var(--recursica_ui-kit_components_switch_thumb_border-radius) !important;
+  box-shadow: var(--recursica_ui-kit_components_switch_thumb_elevation) !important;
   position: absolute !important;
   cursor: pointer !important;
   /* Always position at left edge, use transform to move when checked */
-  left: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
+  left: var(--recursica_ui-kit_components_switch_track_inner_padding) !important;
   top: 50% !important;
   transform: translateY(-50%) translateX(0) !important;
   transition: transform 0.1s ease, background 0.1s ease !important;
@@ -51,9 +51,9 @@
 .mantine-Switch-input:checked ~ .mantine-Switch-thumb,
 .mantine-Switch-root:has(.mantine-Switch-input:checked) .mantine-Switch-thumb {
   /* Use wrapper variable that references UIKit var - will update automatically when UIKit var changes */
-  background: var(--recursica-ui-kit-components-switch-thumb-bg-selected) !important;
+  background: var(--recursica_ui-kit_components_switch_thumb_bg_selected) !important;
   /* Checked: move thumb to right edge using transform */
-  transform: translateY(-50%) translateX(calc(var(--switch-width) - var(--recursica-ui-kit-components-switch-thumb-width) - 2 * var(--recursica-ui-kit-components-switch-track-inner-padding))) !important;
+  transform: translateY(-50%) translateX(calc(var(--switch-width) - var(--recursica_ui-kit_components_switch_thumb_width) - 2 * var(--recursica_ui-kit_components_switch_track_inner_padding))) !important;
 }
 
 /* Remove the blue dot in the center of the thumb */
@@ -70,13 +70,13 @@
 /* Override track colors */
 .mantine-Switch-track {
   /* Use wrapper variable that references UIKit var - will update automatically when UIKit var changes */
-  background-color: var(--recursica-ui-kit-components-switch-track-unchecked) !important;
+  background-color: var(--recursica_ui-kit_components_switch_track_unchecked) !important;
   /* Use wrapper variables set by component (these reference mode-aware UIKit vars) */
-  border-radius: var(--recursica-ui-kit-components-switch-track-border-radius) !important;
-  box-shadow: var(--recursica-ui-kit-components-switch-track-elevation) !important;
+  border-radius: var(--recursica_ui-kit_components_switch_track_border-radius) !important;
+  box-shadow: var(--recursica_ui-kit_components_switch_track_elevation) !important;
   width: var(--switch-width) !important;
-  height: var(--recursica-ui-kit-components-switch-track-height) !important;
-  padding: var(--recursica-ui-kit-components-switch-track-inner-padding) !important;
+  height: var(--recursica_ui-kit_components_switch_track_height) !important;
+  padding: var(--recursica_ui-kit_components_switch_track_inner_padding) !important;
   box-sizing: border-box !important;
   position: relative !important;
   cursor: pointer !important;
@@ -84,7 +84,7 @@
 
 .mantine-Switch-input:checked + .mantine-Switch-track {
   /* Use wrapper variable that references UIKit var - will update automatically when UIKit var changes */
-  background-color: var(--recursica-ui-kit-components-switch-track-checked) !important;
+  background-color: var(--recursica_ui-kit_components_switch_track_checked) !important;
 }
 
 /* Override disabled state */

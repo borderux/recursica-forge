@@ -124,31 +124,31 @@ describe('round-trip pathToExportedName and exportedNameToPath', () => {
 
 describe('internalNameToPath', () => {
   it('maps tokens internal names to path', () => {
-    expect(internalNameToPath('--recursica-tokens-colors-scale-02-500')).toEqual([
+    expect(internalNameToPath('--recursica_tokens_colors_scale-02_500')).toEqual([
       'tokens',
       'colors',
       'scale-02',
       '500',
     ])
-    expect(internalNameToPath('--recursica-tokens-sizes-4x')).toEqual(['tokens', 'sizes', '4x'])
-    expect(internalNameToPath('--recursica-tokens-opacities-veiled')).toEqual([
+    expect(internalNameToPath('--recursica_tokens_sizes_4x')).toEqual(['tokens', 'sizes', '4x'])
+    expect(internalNameToPath('--recursica_tokens_opacities_veiled')).toEqual([
       'tokens',
       'opacities',
       'veiled',
     ])
-    expect(internalNameToPath('--recursica-tokens-font-sizes-md')).toEqual([
+    expect(internalNameToPath('--recursica_tokens_font_sizes_md')).toEqual([
       'tokens',
       'font',
       'sizes',
       'md',
     ])
-    expect(internalNameToPath('--recursica-tokens-font-line-heights-tall')).toEqual([
+    expect(internalNameToPath('--recursica_tokens_font_line-heights_tall')).toEqual([
       'tokens',
       'font',
       'line-heights',
       'tall',
     ])
-    expect(internalNameToPath('--recursica-tokens-font-letter-spacings-wide')).toEqual([
+    expect(internalNameToPath('--recursica_tokens_font_letter-spacings_wide')).toEqual([
       'tokens',
       'font',
       'letter-spacings',
@@ -158,10 +158,10 @@ describe('internalNameToPath', () => {
 
   it('maps brand internal names to path', () => {
     expect(
-      internalNameToPath('--recursica-brand-palettes-neutral-500-color-tone')
+      internalNameToPath('--recursica_brand_palettes_neutral_500_color_tone')
     ).toEqual(['brand', 'palettes', 'neutral', '500', 'color', 'tone'])
     expect(
-      internalNameToPath('--recursica-brand-themes-light-palettes-neutral-500-color-tone')
+      internalNameToPath('--recursica_brand_themes_light_palettes_neutral_500_color_tone')
     ).toEqual([
       'brand',
       'themes',
@@ -176,7 +176,7 @@ describe('internalNameToPath', () => {
 
   it('maps ui-kit internal names to path', () => {
     expect(
-      internalNameToPath('--recursica-ui-kit-globals-form-properties-label-field-gap-horizontal')
+      internalNameToPath('--recursica_ui-kit_globals_form_properties_label-field-gap-horizontal')
     ).toEqual([
       'ui-kit',
       'globals',
@@ -193,12 +193,11 @@ describe('internalNameToPath', () => {
 })
 
 describe('export CSS variable naming in output', () => {
-  it('pathToExportedName(internalNameToPath(internal)) yields --recursica_ style (no internal hyphens in name)', () => {
-    const internal = '--recursica-tokens-colors-scale-02-500'
+  it('pathToExportedName(internalNameToPath(internal)) yields --recursica_ style', () => {
+    const internal = '--recursica_tokens_colors_scale-02_500'
     const path = internalNameToPath(internal)
     const exported = pathToExportedName(path)
     expect(exported).toMatch(/^--recursica_[a-z0-9_-]+$/)
-    expect(exported).not.toContain('--recursica-tokens-')
     expect(exported).toBe('--recursica_tokens_colors_scale-02_500')
   })
 })

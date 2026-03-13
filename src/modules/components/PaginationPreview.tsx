@@ -10,11 +10,11 @@ import { Pagination } from '../../components/adapters/Pagination'
 
 const h2Style: React.CSSProperties = {
     margin: 0,
-    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
 }
 
 interface PaginationPreviewProps {
@@ -29,9 +29,9 @@ export default function PaginationPreview({
     componentElevation,
 }: PaginationPreviewProps) {
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-gutters-vertical)', alignItems: 'center', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', alignItems: 'center', width: '100%' }}>
             {/* Small number of pages — no truncation */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-gutters-vertical)', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', alignItems: 'center' }}>
                 <h2 style={h2Style}>Simple</h2>
                 <Pagination
                     total={5}
@@ -44,7 +44,7 @@ export default function PaginationPreview({
             </div>
 
             {/* Larger number of pages — shows truncation with ellipsis */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-gutters-vertical)', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', alignItems: 'center' }}>
                 <h2 style={h2Style}>Many pages</h2>
                 <Pagination
                     total={20}

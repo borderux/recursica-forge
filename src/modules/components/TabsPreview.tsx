@@ -14,14 +14,14 @@ interface TabsPreviewProps {
 }
 
 const contentPanelStyle = (mode: string) => ({
-    backgroundColor: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-tone)`,
-    color: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-on-tone)`,
-    padding: 'var(--recursica-brand-dimensions-general-default)',
-    fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-    fontSize: 'var(--recursica-brand-typography-body-font-size)',
-    fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-    letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-    lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+    backgroundColor: `var(--recursica_brand_palettes_neutral_100_color_tone)`,
+    color: `var(--recursica_brand_palettes_neutral_100_color_on-tone)`,
+    padding: 'var(--recursica_brand_dimensions_general_default)',
+    fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+    fontSize: 'var(--recursica_brand_typography_body-font-size)',
+    fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
+    letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+    lineHeight: 'var(--recursica_brand_typography_body-line-height)',
 } as React.CSSProperties)
 
 function TabSet({
@@ -83,20 +83,20 @@ function TabSet({
 
 const h2Style = {
     margin: 0,
-    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
 } as React.CSSProperties
 
 const h3Style = {
     margin: 0,
-    fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
-    fontSize: 'var(--recursica-brand-typography-h3-font-size)',
-    fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
-    letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
-    lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
+    fontFamily: 'var(--recursica_brand_typography_h3-font-family)',
+    fontSize: 'var(--recursica_brand_typography_h3-font-size)',
+    fontWeight: 'var(--recursica_brand_typography_h3-font-weight)',
+    letterSpacing: 'var(--recursica_brand_typography_h3-font-letter-spacing)',
+    lineHeight: 'var(--recursica_brand_typography_h3-line-height)',
     textAlign: 'left' as const,
 } as React.CSSProperties
 
@@ -107,8 +107,8 @@ export default function TabsPreview({
 }: TabsPreviewProps) {
     const { mode } = useThemeMode()
     const modeLower = mode.toLowerCase()
-    const textColorVar = `--recursica-brand-themes-${modeLower}-layers-${selectedLayer}-elements-text-color`
-    const textEmphasisVar = `--recursica-brand-themes-${modeLower}-layers-${selectedLayer}-elements-text-high-emphasis`
+    const textColorVar = `--recursica_brand_themes_${modeLower}_layers_${selectedLayer}-elements-text-color`
+    const textEmphasisVar = `--recursica_brand_themes_${modeLower}_layers_${selectedLayer}-elements-text-high-emphasis`
 
     const [value1, setValue1] = useState<string | null>('gallery')
     const [value2, setValue2] = useState<string | null>('gallery')
@@ -131,9 +131,9 @@ export default function TabsPreview({
     const DiamondIcon = iconNameToReactComponent('diamond')
     const ShieldIcon = iconNameToReactComponent('shield')
 
-    const headerToPreviewGap = 'var(--recursica-brand-dimensions-general-default)'
-    const previewToHeaderGap = 'var(--recursica-brand-dimensions-gutters-vertical)'
-    const vertGutter = 'var(--recursica-brand-dimensions-gutters-vertical)'
+    const headerToPreviewGap = 'var(--recursica_brand_dimensions_general_default)'
+    const previewToHeaderGap = 'var(--recursica_brand_dimensions_gutters_vertical)'
+    const vertGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
     const headerMargin = { marginBottom: headerToPreviewGap }
     const previewMargin = { marginBottom: previewToHeaderGap }
 

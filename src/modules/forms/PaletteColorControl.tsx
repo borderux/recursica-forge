@@ -3,6 +3,7 @@ import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { tokenColor } from '../../core/css/cssVarBuilder'
 import { contrastRatio } from '../theme/contrastUtil'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
@@ -95,12 +96,12 @@ export default function PaletteColorControl({
 
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
     const modeLower = mode.toLowerCase()
-    return `--recursica-brand-themes-${modeLower}-palettes-${paletteKey}-${level}-tone`
+    return `--recursica_brand_themes_${modeLower}_palettes_${paletteKey}-${level}-tone`
   }
 
   // Helper to find palette swatch that matches a token hex
   const findPaletteForToken = (tokenFamily: string, tokenLevel: string): { paletteKey: string; level: string } | null => {
-    const tokenCssVar = `--recursica-tokens-color-${tokenFamily}-${tokenLevel}`
+    const tokenCssVar = tokenColor(tokenFamily, tokenLevel)
     const tokenHex = readCssVarResolved(tokenCssVar)
     if (!tokenHex || !/^#[0-9a-f]{6}$/i.test(tokenHex)) return null
 
@@ -143,33 +144,33 @@ export default function PaletteColorControl({
     const trimmed = value.trim()
 
     // PRIORITY 1: Check for core colors FIRST (before regular palettes)
-    // Match: var(--recursica-brand-themes-{mode}-palettes-core-{colorKey})
-    const coreMatch = trimmed.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone)?)\s*\)/i)
+    // Match: var(--recursica_brand_themes_{mode}-palettes-core-{colorKey})
+    const coreMatch = trimmed.match(/var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_core-([a-z0-9-]+(?:-tone)?)\s*\)/i)
     if (coreMatch) {
       return trimmed
     }
 
     // PRIORITY 2: Check for regular palette references
     // Match levels: numeric (000, 050, 100-1000), primary, or default
-    const paletteMatch = trimmed.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
+    const paletteMatch = trimmed.match(/var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
     if (paletteMatch) {
       return trimmed
     }
 
     // Check if this value directly contains a token reference
-    const tokenMatch = trimmed.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
+    const tokenMatch = trimmed.match(/var\s*\(\s*--recursica_tokens_color_([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
     if (tokenMatch) {
       return trimmed
     }
 
     // Check for color-mix() functions that contain palette references
-    const colorMixPaletteMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
+    const colorMixPaletteMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
     if (colorMixPaletteMatch) {
       return trimmed
     }
 
     // Check for color-mix() functions that contain token references
-    const colorMixTokenMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
+    const colorMixTokenMatch = trimmed.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica_tokens_color_([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
     if (colorMixTokenMatch) {
       return trimmed
     }
@@ -264,9 +265,9 @@ export default function PaletteColorControl({
 
       // First check for core colors
       // Core colors can be: core-black, core-white, core-alert-tone, core-warning-tone, core-success-tone, core-interactive-default-tone, etc.
-      let coreMatch = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\\s*\\)`, 'i'))
+      let coreMatch = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica_brand_themes_${modeLower}_palettes_core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\\s*\\)`, 'i'))
       if (!coreMatch) {
-        coreMatch = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\s*\)/i)
+        coreMatch = paletteValue.match(/var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\s*\)/i)
       }
 
       if (coreMatch) {
@@ -288,10 +289,10 @@ export default function PaletteColorControl({
         return `Core / ${formattedCore}`
       }
 
-      let match = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
+      let match = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica_brand_themes_${modeLower}_palettes_([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
 
       if (!match) {
-        match = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
+        match = paletteValue.match(/var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
       }
 
       if (match) {
@@ -341,7 +342,7 @@ export default function PaletteColorControl({
             'success-tone', 'success'
           ]
           for (const coreKey of coreColorKeys) {
-            const coreCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-${coreKey}`
+            const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-${coreKey}`
             const coreHex = readCssVarResolved(coreCssVar, 10)
             if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a core color match! Format and return
@@ -396,36 +397,36 @@ export default function PaletteColorControl({
     }
 
     // Extract palette name and level from var() reference
-    // Match: var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone)
+    // Match: var(--recursica_brand_themes_{light|dark}-palettes-{paletteKey}-{level}-tone)
     // Try with current mode first, then fallback to any mode
     const modeLower = mode.toLowerCase()
 
 
-    let match = cssValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
+    let match = cssValue.match(new RegExp(`var\\s*\\(\\s*--recursica_brand_themes_${modeLower}_palettes_([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
 
     // If no match with current mode, try any mode
     if (!match) {
-      match = cssValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
+      match = cssValue.match(/var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
     }
 
     // Also check for color-mix() functions that contain palette references
-    // Match: color-mix(in srgb, var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
+    // Match: color-mix(in srgb, var(--recursica_brand_themes_{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
     // The palette var can appear anywhere in the color-mix function
     if (!match) {
-      match = cssValue.match(new RegExp(`color-mix\\s*\\([^)]*var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)[^)]*\\)`, 'i'))
+      match = cssValue.match(new RegExp(`color-mix\\s*\\([^)]*var\\s*\\(\\s*--recursica_brand_themes_${modeLower}_palettes_([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)[^)]*\\)`, 'i'))
     }
 
     if (!match) {
-      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
+      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
     }
 
-    // Also check for token references: var(--recursica-tokens-color-{family}-{level})
-    // Match: var(--recursica-tokens-color-{family}-{level})
-    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
+    // Also check for token references: var(--recursica_tokens_color_{family}-{level})
+    // Match: var(--recursica_tokens_color_{family}-{level})
+    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica_tokens_color_([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
 
     // Also check for color-mix() functions that contain token references
     if (!tokenMatch) {
-      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
+      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica_tokens_color_([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
     }
 
     if (match) {
@@ -529,7 +530,7 @@ export default function PaletteColorControl({
           'success-tone', 'success'
         ]
         for (const coreKey of coreColorKeys) {
-          const coreCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-${coreKey}`
+          const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-${coreKey}`
           const coreHex = readCssVarResolved(coreCssVar, 10)
           if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
             // Found a core color match! Return the core color reference
@@ -566,9 +567,9 @@ export default function PaletteColorControl({
       const modeLower = mode.toLowerCase()
 
       // PRIORITY 1: Check for core colors FIRST
-      let coreMatch = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-core-([a-z0-9-]+(?:-tone)?)\\s*\\)`, 'i'))
+      let coreMatch = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica_brand_themes_${modeLower}_palettes_core-([a-z0-9-]+(?:-tone)?)\\s*\\)`, 'i'))
       if (!coreMatch) {
-        coreMatch = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-core-([a-z0-9-]+(?:-tone)?)\s*\)/i)
+        coreMatch = paletteValue.match(/var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_core-([a-z0-9-]+(?:-tone)?)\s*\)/i)
       }
 
       if (coreMatch) {
@@ -593,10 +594,10 @@ export default function PaletteColorControl({
       }
 
       // PRIORITY 2: Check for regular palettes
-      let match = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
+      let match = paletteValue.match(new RegExp(`var\\s*\\(\\s*--recursica_brand_themes_${modeLower}_palettes_([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
 
       if (!match) {
-        match = paletteValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
+        match = paletteValue.match(/var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
       }
 
       if (match) {
@@ -651,7 +652,7 @@ export default function PaletteColorControl({
             'success-tone', 'success'
           ]
           for (const coreKey of coreColorKeys) {
-            const coreCssVar = `--recursica-brand-themes-${modeLower}-palettes-core-${coreKey}`
+            const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-${coreKey}`
             const coreHex = readCssVarResolved(coreCssVar, 10)
             if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a core color match! Format and display
@@ -713,35 +714,35 @@ export default function PaletteColorControl({
     }
 
     // Extract palette name and level from var() reference
-    // Match: var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone)
+    // Match: var(--recursica_brand_themes_{light|dark}-palettes-{paletteKey}-{level}-tone)
     // Updated regex to handle 000 and 1000 levels
     // Try with current mode first, then fallback to any mode
     const modeLower = mode.toLowerCase()
-    let match = cssValue.match(new RegExp(`var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
+    let match = cssValue.match(new RegExp(`var\\s*\\(\\s*--recursica_brand_themes_${modeLower}_palettes_([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)`, 'i'))
 
     // If no match with current mode, try any mode
     if (!match) {
-      match = cssValue.match(/var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
+      match = cssValue.match(/var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)/i)
     }
 
     // Also check for color-mix() functions that contain palette references
-    // Match: color-mix(in srgb, var(--recursica-brand-themes-{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
+    // Match: color-mix(in srgb, var(--recursica_brand_themes_{light|dark}-palettes-{paletteKey}-{level}-tone) ...)
     // The palette var can appear anywhere in the color-mix function
     if (!match) {
-      match = cssValue.match(new RegExp(`color-mix\\s*\\([^)]*var\\s*\\(\\s*--recursica-brand-themes-${modeLower}-palettes-([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)[^)]*\\)`, 'i'))
+      match = cssValue.match(new RegExp(`color-mix\\s*\\([^)]*var\\s*\\(\\s*--recursica_brand_themes_${modeLower}_palettes_([a-z0-9-]+)-(\\d+|000|1000|primary|default|hover)-tone\\s*\\)[^)]*\\)`, 'i'))
     }
 
     if (!match) {
-      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
+      match = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-(\d+|000|1000|primary|default|hover)-tone\s*\)[^)]*\)/i)
     }
 
-    // Also check for token references: var(--recursica-tokens-color-{family}-{level})
-    // Match: var(--recursica-tokens-color-{family}-{level})
-    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
+    // Also check for token references: var(--recursica_tokens_color_{family}-{level})
+    // Match: var(--recursica_tokens_color_{family}-{level})
+    let tokenMatch = cssValue.match(/var\s*\(\s*--recursica_tokens_color_([a-z0-9-]+)-(\d+|000|1000|050)\s*\)/i)
 
     // Also check for color-mix() functions that contain token references
     if (!tokenMatch) {
-      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica-tokens-color-([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
+      tokenMatch = cssValue.match(/color-mix\s*\([^)]*var\s*\(\s*--recursica_tokens_color_([a-z0-9-]+)-(\d+|000|1000|050)\s*\)[^)]*\)/i)
     }
 
     if (match) {
@@ -927,7 +928,7 @@ export default function PaletteColorControl({
   // Use the same border style as the overlay swatches
   // Match PaletteSwatchPicker's border style exactly
   // Use CSS variable reference directly (same as overlay) - template literal interpolation
-  const swatchBorderColorVar = `--recursica-brand-themes-${modeLower}-palettes-neutral-500-tone`
+  const swatchBorderColorVar = `--recursica_brand_themes_${modeLower}_palettes_neutral-500-tone`
   const swatchBorderColor = `var(${swatchBorderColorVar})`
 
   // Get highest layer number for background (same as PaletteSwatchPicker)
@@ -973,7 +974,7 @@ export default function PaletteColorControl({
           width: '100%',
           height: '100%',
           display: 'block',
-          background: `var(--recursica-brand-themes-${modeLower}-layers-layer-${highestLayerNum}-properties-surface)`,
+          background: `var(--recursica_brand_themes_${modeLower}_layers_layer-${highestLayerNum}-properties-surface)`,
           position: 'relative',
         }}
       >
@@ -995,7 +996,7 @@ export default function PaletteColorControl({
             y1="2"
             x2={swatchSize - 2}
             y2={swatchSize - 2}
-            stroke={`var(--recursica-brand-themes-${modeLower}-palettes-neutral-500-tone)`}
+            stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral-500-tone)`}
             strokeWidth="1.5"
             strokeLinecap="round"
           />

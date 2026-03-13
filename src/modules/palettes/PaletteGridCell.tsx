@@ -12,14 +12,15 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Chip } from '../../components/adapters/Chip'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 
 
 // Helper to extract token name from CSS variable value
-// e.g., "var(--recursica-tokens-color-gray-100)" -> "color/gray/100"
+// e.g., "var(--recursica_tokens_color_gray_100)" -> "color/gray/100"
 function extractTokenNameFromCssVar(cssVarValue: string | undefined): string | null {
   if (!cssVarValue) return null
-  const match = cssVarValue.match(/--recursica-tokens-color-([a-z0-9-]+)-(\d+|050|000)/)
+  const match = cssVarValue.match(/--recursica_tokens_color_([a-z0-9-]+)-(\d+|050|000)/)
   if (match) {
     const [, family, level] = match
     return `color/${family}/${level}`
@@ -136,8 +137,8 @@ export function PaletteEmphasisCell({
     const opacity = readCssVarNumber(emphasisCssVar, 1)
 
     // Also get high and low emphasis opacities to check both
-    const highEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
-    const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+    const highEmphasisCssVar = `--recursica_brand_text-emphasis_high`
+    const lowEmphasisCssVar = `--recursica_brand_text-emphasis_low`
     const highOpacity = readCssVarNumber(highEmphasisCssVar, 1)
     const lowOpacity = readCssVarNumber(lowEmphasisCssVar, 1)
 
@@ -147,8 +148,8 @@ export function PaletteEmphasisCell({
     const passesAA = currentRatio >= AA
 
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    const coreBlackVar = `--recursica-brand-themes-${mode}-palettes-core-black`
-    const coreWhiteVar = `--recursica-brand-themes-${mode}-palettes-core-white`
+    const coreBlackVar = `--recursica_brand_palettes_core_black`
+    const coreWhiteVar = `--recursica_brand_palettes_core_white`
     const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
     const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
     const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
@@ -226,37 +227,37 @@ export function PaletteEmphasisCell({
         cursor: 'pointer',
         position: 'relative',
         boxSizing: 'border-box',
-        padding: isPrimary ? 'var(--recursica-brand-dimensions-general-md)' : `0 var(--recursica-brand-dimensions-general-md)`,
+        padding: isPrimary ? 'var(--recursica_brand_dimensions_general_md)' : `0 var(--recursica_brand_dimensions_general_md)`,
         width: isPrimary ? '20%' : undefined,
         flex: isPrimary ? '0 0 20%' : 1,
         minHeight: isPrimary ? '80px' : undefined,
         borderRadius: isPrimary
           ? (emphasisType === 'high'
-            ? 'var(--recursica-brand-dimensions-border-radii-default) var(--recursica-brand-dimensions-border-radii-default) 0 0'
-            : '0 0 var(--recursica-brand-dimensions-border-radii-default) var(--recursica-brand-dimensions-border-radii-default)')
+            ? 'var(--recursica_brand_dimensions_border-radii_default) var(--recursica_brand_dimensions_border-radii_default) 0 0'
+            : '0 0 var(--recursica_brand_dimensions_border-radii_default) var(--recursica_brand_dimensions_border-radii_default)')
           : (() => {
             if (emphasisType === 'high' && isFirst) {
-              return 'var(--recursica-brand-dimensions-border-radii-default) 0 0 0'
+              return 'var(--recursica_brand_dimensions_border-radii_default) 0 0 0'
             }
             if (emphasisType === 'high' && isLast) {
-              return '0 var(--recursica-brand-dimensions-border-radii-default) 0 0'
+              return '0 var(--recursica_brand_dimensions_border-radii_default) 0 0'
             }
             if (emphasisType === 'low' && isLast) {
-              return '0 0 var(--recursica-brand-dimensions-border-radii-default) 0'
+              return '0 0 var(--recursica_brand_dimensions_border-radii_default) 0'
             }
             if (emphasisType === 'low' && isFirst) {
-              return '0 0 0 var(--recursica-brand-dimensions-border-radii-default)'
+              return '0 0 0 var(--recursica_brand_dimensions_border-radii_default)'
             }
             return undefined
           })(),
-        marginLeft: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
-        marginRight: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
+        marginLeft: isPrimary ? `var(--recursica_brand_dimensions_general_sm)` : undefined,
+        marginRight: isPrimary ? `var(--recursica_brand_dimensions_general_sm)` : undefined,
         display: isPrimary ? 'flex' : 'flex',
         flexDirection: isPrimary ? 'column' : 'column',
         alignItems: isPrimary ? 'center' : 'center',
         justifyContent: isPrimary ? (emphasisType === 'high' ? 'flex-start' : 'flex-end') : 'center',
         alignContent: isPrimary ? undefined : 'space-around',
-        gap: isPrimary ? 'var(--recursica-brand-dimensions-general-md)' : undefined,
+        gap: isPrimary ? 'var(--recursica_brand_dimensions_general_md)' : undefined,
       }}
       title={shouldOpenColorPicker ? 'On-tone color fails contrast' : (isPrimary ? undefined : `Set ${level} as default`)}
       onMouseEnter={(e) => {
@@ -307,10 +308,10 @@ export function PaletteEmphasisCell({
       {isPrimary ? (
         // For primary tone, show both high and low emphasis dots vertically stacked
         (() => {
-          const highEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
-          const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
-          const highOnToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
-          const lowOnToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
+          const highEmphasisCssVar = `--recursica_brand_text-emphasis_high`
+          const lowEmphasisCssVar = `--recursica_brand_text-emphasis_low`
+          const highOnToneCssVar = `--recursica_brand_palettes_${paletteKey}_${level}_color_on-tone`
+          const lowOnToneCssVar = `--recursica_brand_palettes_${paletteKey}_${level}_color_on-tone`
 
           if (shouldOpenColorPicker) {
             const WarningIcon = iconNameToReactComponent('warning')
@@ -323,7 +324,7 @@ export function PaletteEmphasisCell({
                   justifyContent: 'center',
                   opacity: `var(${highEmphasisCssVar})`
                 }}>
-                  {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
+                  {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
                 </div>
                 <div style={{
                   color: `var(${lowOnToneCssVar})`,
@@ -332,7 +333,7 @@ export function PaletteEmphasisCell({
                   justifyContent: 'center',
                   opacity: `var(${lowEmphasisCssVar})`
                 }}>
-                  {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
+                  {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
                 </div>
               </>
             )
@@ -345,11 +346,11 @@ export function PaletteEmphasisCell({
                   <div style={{
                     color: `var(${highOnToneCssVar})`,
                     opacity: `var(${highEmphasisCssVar})`,
-                    fontFamily: 'var(--recursica-brand-typography-body-small-font-family)',
-                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                    fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
-                    letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
-                    lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
+                    fontFamily: 'var(--recursica_brand_typography_body-small-font-family)',
+                    fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                    fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',
+                    letterSpacing: 'var(--recursica_brand_typography_body-small-font-letter-spacing)',
+                    lineHeight: 'var(--recursica_brand_typography_body-small-line-height)',
                   }}>
                     {level}
                   </div>
@@ -397,7 +398,7 @@ export function PaletteEmphasisCell({
                 opacity: `var(${emphasisCssVar})`
               }}
             >
-              {WarningIcon && <WarningIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} />}
+              {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
             </div>
           )
         })()
@@ -418,11 +419,11 @@ export function PaletteEmphasisCell({
             top: '100%',
             left: '50%',
             transform: 'translateX(-50%)',
-            marginTop: 'var(--recursica-brand-dimensions-general-sm)',
-            padding: `var(--recursica-brand-dimensions-general-md) var(--recursica-brand-dimensions-general-lg)`,
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
-            borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
+            marginTop: 'var(--recursica_brand_dimensions_general_sm)',
+            padding: `var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_lg)`,
+            backgroundColor: `var(--recursica_brand_layer_1_properties_surface)`,
+            border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+            borderRadius: `var(--recursica_brand_dimensions_border-radii_default)`,
             boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
             minWidth: '200px',
@@ -432,7 +433,7 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)` }}>
+          <div style={{ color: `var(--recursica_brand_layer_1_elements_text-color)` }}>
             On-tone color fails contrast
           </div>
         </div>
@@ -445,11 +446,11 @@ export function PaletteEmphasisCell({
             top: '100%',
             left: '50%',
             transform: 'translateX(-50%)',
-            marginTop: 'var(--recursica-brand-dimensions-general-sm)',
-            padding: `var(--recursica-brand-dimensions-general-md) var(--recursica-brand-dimensions-general-lg)`,
-            backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
-            borderRadius: `var(--recursica-brand-dimensions-border-radii-default)`,
+            marginTop: 'var(--recursica_brand_dimensions_general_sm)',
+            padding: `var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_lg)`,
+            backgroundColor: `var(--recursica_brand_layer_1_properties_surface)`,
+            border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+            borderRadius: `var(--recursica_brand_dimensions_border-radii_default)`,
             boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
             fontSize: '12px',
@@ -458,7 +459,7 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)` }}>
+          <div style={{ color: `var(--recursica_brand_layer_1_elements_text-color)` }}>
             Set {level} as default
           </div>
         </div>
@@ -525,8 +526,8 @@ export function PaletteEmphasisCell({
 
                   if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
                     // Read actual core colors from CSS vars
-                    const coreBlackVar = `--recursica-brand-themes-${modeKey}-palettes-core-black`
-                    const coreWhiteVar = `--recursica-brand-themes-${modeKey}-palettes-core-white`
+                    const coreBlackVar = `--recursica_brand_themes_${modeKey}-palettes-core-black`
+                    const coreWhiteVar = `--recursica_brand_themes_${modeKey}-palettes-core-white`
                     const black = (readCssVarResolved(coreBlackVar) || '#000000').toLowerCase()
                     const white = (readCssVarResolved(coreWhiteVar) || '#ffffff').toLowerCase()
                     const cBlack = contrastRatio(hex, black)
@@ -587,8 +588,6 @@ export function PalettePrimaryIndicatorCell({
   onSetPrimary,
 }: PalettePrimaryIndicatorCellProps) {
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
 
   return (
@@ -600,11 +599,11 @@ export function PalettePrimaryIndicatorCell({
             fontSize: 11,
             lineHeight: '14px',
             padding: '2px 8px',
-            border: `1px solid var(${layer1Base}-border-color)`,
+            border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
             borderRadius: 999,
             background: 'transparent',
             textTransform: 'capitalize',
-            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+            color: `var(${genericLayerText(0, 'color')})`,
           }}
         >Default</span>
       ) : isHovered ? (
@@ -615,12 +614,12 @@ export function PalettePrimaryIndicatorCell({
             fontSize: 11,
             lineHeight: '14px',
             padding: '2px 8px',
-            border: `1px dashed var(${layer1Base}-border-color)`,
+            border: `1px dashed var(${genericLayerProperty(1, 'border-color')})`,
             borderRadius: 999,
             background: 'transparent',
             textTransform: 'capitalize',
             cursor: 'pointer',
-            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+            color: `var(${genericLayerText(0, 'color')})`,
           }}
           title="Set as default"
         >Set as default</button>

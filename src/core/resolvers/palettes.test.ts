@@ -130,10 +130,10 @@ describe('buildPaletteVars', () => {
     // They are referenced when needed but not generated as standalone vars
     
     // Check neutral palette (using themes segment in path)
-    expect(vars['--recursica-brand-themes-light-palettes-neutral-500-tone']).toBeDefined()
-    expect(vars['--recursica-brand-themes-light-palettes-neutral-500-on-tone']).toBeDefined()
-    expect(vars['--recursica-brand-themes-light-palettes-neutral-900-tone']).toBeDefined()
-    expect(vars['--recursica-brand-themes-light-palettes-neutral-900-on-tone']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_palettes_neutral_500_color_tone']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_palettes_neutral_500_color_on-tone']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_palettes_neutral_900_color_tone']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_palettes_neutral_900_color_on-tone']).toBeDefined()
   })
 
   it('should generate palette CSS variables for dark mode', () => {
@@ -142,23 +142,23 @@ describe('buildPaletteVars', () => {
     // Note: core-colors are not directly converted to CSS vars in buildPaletteVars
     
     // Check neutral palette (using themes segment in path)
-    expect(vars['--recursica-brand-themes-dark-palettes-neutral-500-tone']).toBeDefined()
-    expect(vars['--recursica-brand-themes-dark-palettes-neutral-500-on-tone']).toBeDefined()
+    expect(vars['--recursica_brand_themes_dark_palettes_neutral_500_color_tone']).toBeDefined()
+    expect(vars['--recursica_brand_themes_dark_palettes_neutral_500_color_on-tone']).toBeDefined()
   })
 
   it('should generate text emphasis variables', () => {
     const vars = buildPaletteVars(mockTokens, mockTheme, 'Light')
     
-    expect(vars['--recursica-brand-themes-light-text-emphasis-high']).toBeDefined()
-    expect(vars['--recursica-brand-themes-light-text-emphasis-low']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_text-emphasis_high']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_text-emphasis_low']).toBeDefined()
   })
 
   it('should generate state variables', () => {
     const vars = buildPaletteVars(mockTokens, mockTheme, 'Light')
     
-    expect(vars['--recursica-brand-themes-light-state-disabled']).toBeDefined()
-    expect(vars['--recursica-brand-themes-light-state-overlay-opacity']).toBeDefined()
-    expect(vars['--recursica-brand-themes-light-state-overlay-color']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_states_disabled']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_states_overlay_opacity']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_states_overlay_color']).toBeDefined()
   })
 
   it('should handle interactive core colors structure', () => {
@@ -195,8 +195,8 @@ describe('buildPaletteVars', () => {
     const vars = buildPaletteVars(mockTokens, themeWithDefault, 'Light')
     
     // Should create primary-tone from default
-    expect(vars['--recursica-brand-themes-light-palettes-neutral-primary-tone']).toBeDefined()
-    expect(vars['--recursica-brand-themes-light-palettes-neutral-primary-on-tone']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_palettes_neutral_primary_color_tone']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_palettes_neutral_primary_color_on-tone']).toBeDefined()
   })
 
   it('should handle empty palettes gracefully', () => {
@@ -234,7 +234,7 @@ describe('buildPaletteVars', () => {
     }
     
     const vars = buildPaletteVars(mockTokens, themeWithoutBrand, 'Light')
-    expect(vars['--recursica-brand-themes-light-palettes-neutral-500-tone']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_palettes_neutral_500_color_tone']).toBeDefined()
   })
 
   it('should handle missing text-emphasis gracefully', () => {
@@ -266,11 +266,11 @@ describe('buildPaletteVars', () => {
     const vars = buildPaletteVars(mockTokens, mockTheme, 'Light')
     
     // Variables should reference tokens via CSS vars
-    const toneVar = vars['--recursica-brand-themes-light-palettes-neutral-500-tone']
+    const toneVar = vars['--recursica_brand_themes_light_palettes_neutral_500_color_tone']
     expect(toneVar).toBeDefined()
     // The variable should either be a CSS var reference or contain a token reference
     if (typeof toneVar === 'string') {
-      expect(toneVar).toMatch(/var\(--recursica-tokens-(color|colors)-gray-500\)/)
+      expect(toneVar).toMatch(/var\(--recursica_(tokens_color_gray_|brand_light_palettes_core_)/)
     }
   })
 })

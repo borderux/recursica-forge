@@ -119,7 +119,7 @@ export function Toast({
     // Map variant to core color: success -> success, error -> alert, default -> no override (use Button default)
     const coreColorName = variant === 'success' ? 'success' : variant === 'error' ? 'alert' : null
     const buttonVar = coreColorName
-      ? `--recursica-brand-themes-${mode}-palettes-core-${coreColorName}-interactive`
+      ? `--recursica_brand_palettes_core_${coreColorName}_interactive`
       : undefined
     // Get component-level CSS variables (these are under toast.properties in recursica_ui-kit.json)
     const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')

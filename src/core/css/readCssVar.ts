@@ -12,7 +12,7 @@
  * 
  * Checks inline styles first (what we set), then falls back to computed styles.
  * 
- * @param cssVarName - The CSS variable name (e.g., '--recursica-brand-light-palettes-core-black')
+ * @param cssVarName - The CSS variable name (e.g., '--recursica_brand_light_palettes_core_black')
  * @param fallback - Optional fallback value if variable is not found
  * @returns The CSS variable value, or fallback if not found
  */

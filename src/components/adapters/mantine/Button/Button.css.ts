@@ -257,10 +257,10 @@ globalStyle(
 
 /* Handle disabled state - use opacity from brand state */
 globalStyle('.mantine-Button-root[data-disabled="true"], .mantine-Button-root:disabled', {
-  opacity: 'var(--recursica-brand-themes-light-state-disabled, var(--recursica-brand-themes-dark-state-disabled, 0.5))',
+  opacity: 'var(--recursica_brand_states_disabled, var(--recursica_brand_states_disabled, 0.5))',
 })
 
 /* Handle elevation via box-shadow - elevation is set on wrapper */
 globalStyle('.mantine-Button-root', {
-  boxShadow: 'var(--recursica-ui-kit-components-button-elevation, none)',
+  boxShadow: 'var(--recursica_ui-kit_components_button_elevation, none)',
 })

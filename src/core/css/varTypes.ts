@@ -4,15 +4,17 @@
  * Ensures that brand CSS variables always reference tokens, never hardcoded values.
  */
 
+import { TOKEN_PREFIX } from './cssVarBuilder'
+
 /**
  * Validates that a CSS variable name matches expected patterns
  */
 export function isTokenVar(name: string): boolean {
-  return name.startsWith('--recursica-tokens-') || name.startsWith('--tokens-')
+  return name.startsWith(TOKEN_PREFIX) || name.startsWith('--tokens-')
 }
 
 export function isBrandVar(name: string): boolean {
-  return name.startsWith('--recursica-brand-') || name.startsWith('--brand-')
+  return name.startsWith('--recursica_brand_') || name.startsWith('--brand-')
 }
 
 /**
@@ -52,7 +54,7 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
   }
 
   // If it's a raw value (px, number, etc), this is also an error for brand vars
-  throw new Error(`Brand CSS variable ${cssVarName} must reference a token (var(--recursica-tokens-...)), got: ${value}`)
+  throw new Error(`Brand CSS variable ${cssVarName} must reference a token (var(--recursica_tokens_...)), got: ${value}`)
 }
 
 /**
@@ -67,8 +69,8 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
       return { valid: true }
     }
     // Allow color-mix() and other CSS functions that contain token references
-    // Check if the value contains var(--recursica-tokens-...) anywhere in it
-    if (trimmed.includes('var(--recursica-tokens-') || trimmed.includes('var(--tokens-')) {
+    // Check if the value contains var(--recursica_tokens_...) anywhere in it
+    if (trimmed.includes('var(--recursica_tokens_') || trimmed.includes('var(--tokens-')) {
       return { valid: true }
     }
     // Special case: elevation can use token reference strings (e.g., {brand.themes.light.elevations.elevation-0})
@@ -114,7 +116,7 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
     // Reject hardcoded values
     return {
       valid: false,
-      error: `Brand CSS variable ${cssVarName} must use a token reference (var(--recursica-tokens-...)), got: ${value}`
+      error: `Brand CSS variable ${cssVarName} must use a token reference (var(--recursica_tokens_...)), got: ${value}`
     }
   }
   return { valid: true }

@@ -187,7 +187,7 @@ export default function Chip({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              opacity: showCheckmark ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : 1,
+              opacity: showCheckmark ? `var(--recursica_brand_${mode}-state-disabled, 0.5)` : 1,
             }}
           >
             {icon}
@@ -270,7 +270,7 @@ export default function Chip({
         return elevationBoxShadow ? { boxShadow: elevationBoxShadow } : {}
       })(),
       ...(disabled && {
-        opacity: `var(--recursica-brand-${mode}-state-disabled)`,
+        opacity: `var(--recursica_brand_${mode}-state-disabled)`,
       }),
       ...material?.sx,
     },

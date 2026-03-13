@@ -1,9 +1,9 @@
 .accordion-section {
-  border-bottom: 1px solid var(--recursica-brand-themes-light-layers-layer-0-properties-border-color);
+  border-bottom: 1px solid var(--recursica_brand_themes_light_layers_layer-0_properties_border-color);
 }
 
 html[data-theme-mode="dark"] .accordion-section {
-  border-bottom-color: var(--recursica-brand-themes-dark-layers-layer-0-properties-border-color);
+  border-bottom-color: var(--recursica_brand_themes_dark_layers_layer-0_properties_border-color);
 }
 
 .accordion-header {
@@ -11,7 +11,7 @@ html[data-theme-mode="dark"] .accordion-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--recursica-brand-dimensions-general-md);
+  padding: var(--recursica_brand_dimensions_general_md);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -20,90 +20,90 @@ html[data-theme-mode="dark"] .accordion-section {
 }
 
 .accordion-header:hover {
-  background: var(--recursica-brand-themes-light-layers-layer-0-properties-surface-hover, var(--recursica-brand-themes-light-layers-layer-0-properties-surface));
+  background: var(--recursica_brand_themes_light_layers_layer-0_properties_surface-hover, var(--recursica_brand_themes_light_layers_layer-0_properties_surface));
 }
 
 html[data-theme-mode="dark"] .accordion-header:hover {
-  background: var(--recursica-brand-themes-dark-layers-layer-0-properties-surface-hover, var(--recursica-brand-themes-dark-layers-layer-0-properties-surface));
+  background: var(--recursica_brand_themes_dark_layers_layer-0_properties_surface-hover, var(--recursica_brand_themes_dark_layers_layer-0_properties_surface));
 }
 
 .accordion-header-content {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-general-sm);
+  gap: var(--recursica_brand_dimensions_general_sm);
   flex: 1;
 }
 
 .accordion-header-right {
   display: flex;
   align-items: center;
-  gap: var(--recursica-brand-dimensions-general-sm);
+  gap: var(--recursica_brand_dimensions_general_sm);
 }
 
 .accordion-selected-value {
   font-size: 12px;
-  color: var(--recursica-brand-themes-light-layers-layer-0-elements-text-color);
-  opacity: var(--recursica-brand-themes-light-layers-layer-0-elements-text-low-emphasis);
+  color: var(--recursica_brand_themes_light_layers_layer-0_elements_text-color);
+  opacity: var(--recursica_brand_themes_light_layers_layer-0_elements_text_low-emphasis);
 }
 
 html[data-theme-mode="dark"] .accordion-selected-value {
-  color: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-color);
-  opacity: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-low-emphasis);
+  color: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-color);
+  opacity: var(--recursica_brand_themes_dark_layers_layer-0_elements_text_low-emphasis);
 }
 
 .accordion-icon {
   width: 16px;
   height: 16px;
-  color: var(--recursica-brand-themes-light-layers-layer-0-elements-text-color);
-  opacity: var(--recursica-brand-themes-light-layers-layer-0-elements-text-low-emphasis);
+  color: var(--recursica_brand_themes_light_layers_layer-0_elements_text-color);
+  opacity: var(--recursica_brand_themes_light_layers_layer-0_elements_text_low-emphasis);
 }
 
 html[data-theme-mode="dark"] .accordion-icon {
-  color: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-color);
-  opacity: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-low-emphasis);
+  color: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-color);
+  opacity: var(--recursica_brand_themes_dark_layers_layer-0_elements_text_low-emphasis);
 }
 
 .accordion-title {
   font-weight: 600;
   font-size: 13px;
-  color: var(--recursica-brand-themes-light-layers-layer-0-elements-text-color);
+  color: var(--recursica_brand_themes_light_layers_layer-0_elements_text-color);
 }
 
 html[data-theme-mode="dark"] .accordion-title {
-  color: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-color);
+  color: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-color);
 }
 
 .accordion-toggle-icon {
   width: 16px;
   height: 16px;
-  color: var(--recursica-brand-themes-light-layers-layer-0-elements-text-color);
-  opacity: var(--recursica-brand-themes-light-layers-layer-0-elements-text-low-emphasis);
+  color: var(--recursica_brand_themes_light_layers_layer-0_elements_text-color);
+  opacity: var(--recursica_brand_themes_light_layers_layer-0_elements_text_low-emphasis);
   flex-shrink: 0;
 }
 
 html[data-theme-mode="dark"] .accordion-toggle-icon {
-  color: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-color);
-  opacity: var(--recursica-brand-themes-dark-layers-layer-0-elements-text-low-emphasis);
+  color: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-color);
+  opacity: var(--recursica_brand_themes_dark_layers_layer-0_elements_text_low-emphasis);
 }
 
 .accordion-content {
-  margin: var(--recursica-brand-dimensions-general-md);
+  margin: var(--recursica_brand_dimensions_general_md);
   margin-top: 0;
-  padding: var(--recursica-brand-themes-light-layers-layer-1-properties-padding);
-  background: var(--recursica-brand-themes-light-layers-layer-1-properties-surface);
-  border: var(--recursica-brand-themes-light-layers-layer-1-properties-border-size) solid var(--recursica-brand-themes-light-layers-layer-1-properties-border-color);
-  border-radius: var(--recursica-brand-themes-light-layers-layer-1-properties-border-radius);
+  padding: var(--recursica_brand_themes_light_layers_layer-1_properties_padding);
+  background: var(--recursica_brand_themes_light_layers_layer-1_properties_surface);
+  border: var(--recursica_brand_themes_light_layers_layer-1_properties_border-size) solid var(--recursica_brand_themes_light_layers_layer-1_properties_border-color);
+  border-radius: var(--recursica_brand_themes_light_layers_layer-1_properties_border-radius);
   display: flex;
   flex-direction: column;
-  gap: var(--recursica-ui-kit-globals-form-properties-vertical-item-gap);
+  gap: var(--recursica_ui-kit_globals_form_properties_vertical_item_gap);
   /* Layer1 does not have elevation - removed box-shadow */
 }
 
 html[data-theme-mode="dark"] .accordion-content {
-  padding: var(--recursica-brand-themes-dark-layers-layer-1-properties-padding);
-  background: var(--recursica-brand-themes-dark-layers-layer-1-properties-surface);
-  border-color: var(--recursica-brand-themes-dark-layers-layer-1-properties-border-color);
-  border-radius: var(--recursica-brand-themes-dark-layers-layer-1-properties-border-radius);
+  padding: var(--recursica_brand_themes_dark_layers_layer-1_properties_padding);
+  background: var(--recursica_brand_themes_dark_layers_layer-1_properties_surface);
+  border-color: var(--recursica_brand_themes_dark_layers_layer-1_properties_border-color);
+  border-radius: var(--recursica_brand_themes_dark_layers_layer-1_properties_border-radius);
   /* Layer1 does not have elevation - removed box-shadow */
 }
 

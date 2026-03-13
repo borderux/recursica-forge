@@ -8,6 +8,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { readCssVar } from '../../core/css/readCssVar'
+import { token, tokenOpacity } from '../../core/css/cssVarBuilder'
 import { tokenToCssVar } from '../../core/css/tokenRefs'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
@@ -72,7 +73,7 @@ export default function ElevationStylePanel({
 
   // Helper to get CSS variable name for elevation property
   const getElevationCssVar = React.useCallback((level: number, property: 'blur' | 'spread' | 'x-axis' | 'y-axis'): string => {
-    return `--recursica-brand-themes-${mode}-elevations-elevation-${level}-${property}`
+    return `--recursica_brand_elevations_elevation-${level}-${property}`
   }, [mode])
 
   // Helper to get token name for elevation property
@@ -103,7 +104,7 @@ export default function ElevationStylePanel({
       updateToken(tokenName, value)
 
       // Update CSS var directly (for immediate visual feedback)
-      const tokenCssVar = `--recursica-tokens-size-elevation-${lvl}-blur`
+      const tokenCssVar = token('size', `elevation_${lvl}-blur`)
       document.documentElement.style.setProperty(cssVar, `var(${tokenCssVar})`)
       document.documentElement.style.setProperty(tokenCssVar, `${value}px`)
     })
@@ -127,7 +128,7 @@ export default function ElevationStylePanel({
       const tokenName = getElevationTokenName(lvl, 'spread')
       const cssVar = getElevationCssVar(lvl, 'spread')
       updateToken(tokenName, value)
-      const tokenCssVar = `--recursica-tokens-size-elevation-${lvl}-spread`
+      const tokenCssVar = token('size', `elevation_${lvl}-spread`)
       document.documentElement.style.setProperty(cssVar, `var(${tokenCssVar})`)
       document.documentElement.style.setProperty(tokenCssVar, `${value}px`)
     })
@@ -157,7 +158,7 @@ export default function ElevationStylePanel({
       updateToken(tokenName, absValue)
 
       // Update CSS vars directly - use current direction, don't change it during drag
-      const tokenCssVar = `--recursica-tokens-size-elevation-${lvl}-offset-x`
+      const tokenCssVar = token('size', `elevation_${lvl}-offset-x`)
       const cssValue = dir === 'right' ? `${value}px` : `calc(-1 * ${absValue}px)`
       document.documentElement.style.setProperty(cssVar, cssValue)
       document.documentElement.style.setProperty(tokenCssVar, `${absValue}px`)
@@ -188,7 +189,7 @@ export default function ElevationStylePanel({
       updateToken(tokenName, absValue)
 
       // Update CSS vars directly - use current direction, don't change it during drag
-      const tokenCssVar = `--recursica-tokens-size-elevation-${lvl}-offset-y`
+      const tokenCssVar = token('size', `elevation_${lvl}-offset-y`)
       const cssValue = dir === 'down' ? `${value}px` : `calc(-1 * ${absValue}px)`
       document.documentElement.style.setProperty(cssVar, cssValue)
       document.documentElement.style.setProperty(tokenCssVar, `${absValue}px`)
@@ -206,7 +207,7 @@ export default function ElevationStylePanel({
   }, [levelsArr, updateElevationControl, updateElevationControlsBatch])
 
   const getShadowColorCssVar = React.useCallback((level: number): string => {
-    return `--recursica-brand-themes-${mode}-elevations-elevation-${level}-shadow-color`
+    return `--recursica_brand_elevations_elevation-${level}-shadow-color`
   }, [mode])
 
   const getTokenLabel = React.useCallback((tokenName: string, tokens: Array<{ name: string; label: string }>): string => {
@@ -351,7 +352,7 @@ export default function ElevationStylePanel({
 
       // Update opacity token CSS var directly (shadow-color CSS var uses color-mix() which references this)
       const tokenKey = alphaTokenName.replace('opacity/', '').replace('opacities/', '')
-      const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
+      const opacityCssVar = tokenOpacity(tokenKey)
       // Normalize to 0-1 range
       const normalized = normalizedValue <= 1 ? normalizedValue : normalizedValue / 100
       const normalizedStr = String(Math.max(0, Math.min(1, normalized)))
@@ -377,13 +378,13 @@ export default function ElevationStylePanel({
         let paletteVarRef: string | null = null
 
         // If it's a direct var() reference to a palette
-        const varMatch = existingShadowColor.match(/var\s*\(\s*(--recursica-brand-themes-(?:light|dark)-palettes-[^)]+)\s*\)/)
+        const varMatch = existingShadowColor.match(/var\s*\(\s*(--recursica_brand_themes_(?:light|dark)_palettes_[^)]+)\s*\)/)
         if (varMatch) {
           paletteVarRef = `var(${varMatch[1]})`
         } else {
           // If it's a color-mix, extract the palette var from it
-          // Match: color-mix(in srgb, var(--recursica-brand-themes-...-palettes-...) ...)
-          const colorMixMatch = existingShadowColor.match(/color-mix\s*\([^,]+,\s*(var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-[^)]+\s*\))/)
+          // Match: color-mix(in srgb, var(--recursica_brand_themes_...-palettes-...) ...)
+          const colorMixMatch = existingShadowColor.match(/color-mix\s*\([^,]+,\s*(var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_[^)]+\s*\))/)
           if (colorMixMatch) {
             paletteVarRef = colorMixMatch[1]
           }
@@ -399,7 +400,7 @@ export default function ElevationStylePanel({
       } else {
         // No palette reference - use color token from state
         const colorToken = elevation?.colorTokens?.[elevationKey] || elevation?.shadowColorControl?.colorToken || 'color/gray/900'
-        const colorVarRef = tokenToCssVar(colorToken, tokensJson) || `var(--recursica-tokens-${colorToken.replace(/\//g, '-')})`
+        const colorVarRef = tokenToCssVar(colorToken, tokensJson) || `var(--recursica_tokens_${colorToken.replace(/\//g, '-')})`
 
         // Rebuild color-mix with new opacity
         newShadowColor = `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
@@ -500,7 +501,7 @@ export default function ElevationStylePanel({
       onClick={() => revertSelected(new Set(selectedLevels))}
       icon={(() => {
         const ResetIcon = iconNameToReactComponent('arrow-path')
-        return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+        return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
       })()}
       layer="layer-0"
     >

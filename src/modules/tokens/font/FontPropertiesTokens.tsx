@@ -12,6 +12,7 @@ import { Tabs as TabsAdapter } from '../../../components/adapters/Tabs'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
 import { clearStoredFonts } from '../../../core/store/fontStore'
 import tokensImport from '../../../../recursica_tokens.json'
+import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
 
 export default function FontPropertiesTokens() {
   const { mode } = useThemeMode()
@@ -43,9 +44,6 @@ export default function FontPropertiesTokens() {
     // If explicitly set to 'false', respect that
     return false
   })
-
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   const handleReset = () => {
     // Reset font token values based on active tab
@@ -111,9 +109,9 @@ export default function FontPropertiesTokens() {
 
   return (
     <div style={{
-      background: `var(${layer0Base}-surface)`,
-      border: `1px solid var(${layer1Base}-border-color)`,
-      borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
+      background: `var(${genericLayerProperty(0, 'surface')})`,
+      border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+      borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
       padding: 0,
       overflow: 'hidden',
     }}>
@@ -128,11 +126,11 @@ export default function FontPropertiesTokens() {
           gridTemplateColumns: '1fr 350px',
           alignItems: 'center',
           gap: 0,
-          paddingTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
-          paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-          paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-          paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-          borderBottom: `1px solid var(${layer1Base}-border-color)`,
+          paddingTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
+          paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+          paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
+          paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
+          borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
         }}>
           <MantineTabs.List>
             <MantineTabs.Tab value="size">Font size</MantineTabs.Tab>
@@ -143,24 +141,24 @@ export default function FontPropertiesTokens() {
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            gap: 'var(--recursica-brand-dimensions-general-default)',
+            gap: 'var(--recursica_brand_dimensions_general_default)',
           }}>
             <Button
               variant="outline"
               size="small"
               icon={(() => {
                 const RefreshIcon = iconNameToReactComponent('arrow-path')
-                return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
               })()}
               onClick={handleReset}
             >
               Reset all
             </Button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_default)' }}>
               <span style={{
-                fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                color: `var(${genericLayerText(0, 'color')})`,
+                opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
               }}>
                 Auto scale
               </span>

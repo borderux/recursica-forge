@@ -5,6 +5,7 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getVarsStore } from '../../core/store/varsStore'
+import { tokenOpacity } from '../../core/css/cssVarBuilder'
 
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
@@ -92,16 +93,16 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   // Extract token name from CSS variable value
   const extractTokenFromCssVar = (cssVar: string): string | null => {
     try {
-      // Ensure CSS var has --recursica- prefix if it doesn't already
-      const prefixedTarget = cssVar.startsWith('--recursica-')
+      // Ensure CSS var has --recursica_ prefix if it doesn't already
+      const prefixedTarget = cssVar.startsWith('--recursica_')
         ? cssVar
         : cssVar.startsWith('--')
-          ? `--recursica-${cssVar.slice(2)}`
-          : `--recursica-${cssVar}`
+          ? `--recursica_${cssVar.slice(2)}`
+          : `--recursica_${cssVar}`
 
       const value = readCssVar(prefixedTarget)
       if (!value) return null
-      // Match patterns like: var(--recursica-tokens-opacities-solid) or var(--recursica-tokens-opacity-solid) or var(--tokens-opacities-solid)
+      // Match patterns like: var(--recursica_tokens_opacities_solid) or var(--recursica_tokens_opacity_solid) or var(--tokens-opacities-solid)
       // Support both plural (opacities) and singular (opacity) for backwards compatibility
       const match = value.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
       if (match) return `opacity/${match[1]}`
@@ -164,17 +165,17 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
   const handleTokenSelect = (tokenName: string, value: number) => {
     // Build the CSS variable name for the opacity token - use plural form (opacities)
     const tokenKey = tokenName.replace('opacity/', '')
-    const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
+    const opacityCssVar = tokenOpacity(tokenKey)
 
     // If we have a target CSS variable, set it to reference the opacity token
     if (targetCssVar) {
       try {
-        // Ensure target CSS var has --recursica- prefix if it doesn't already
-        const prefixedTarget = targetCssVar.startsWith('--recursica-')
+        // Ensure target CSS var has --recursica_ prefix if it doesn't already
+        const prefixedTarget = targetCssVar.startsWith('--recursica_')
           ? targetCssVar
           : targetCssVar.startsWith('--')
-            ? `--recursica-${targetCssVar.slice(2)}`
-            : `--recursica-${targetCssVar}`
+            ? `--recursica_${targetCssVar.slice(2)}`
+            : `--recursica_${targetCssVar}`
 
         // Set the target CSS variable to reference the opacity token CSS variable
         updateCssVar(prefixedTarget, `var(${opacityCssVar})`, tokensJson)
@@ -307,7 +308,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
           const current = toPctNumber(currentRaw)
           const tokenKey = it.name.replace('opacity/', '')
           // Use plural form (opacities) for CSS variable
-          const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
+          const opacityCssVar = tokenOpacity(tokenKey)
           const isClickable = targetCssVar !== null || onSelect !== undefined
           // Use resolvedCurrentToken if available, otherwise fall back to currentToken
           const effectiveCurrentToken = resolvedCurrentToken !== null ? resolvedCurrentToken : currentToken
@@ -337,7 +338,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
                 label={
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {isSelected && (
-                      <span style={{ fontSize: 14, color: `var(--recursica-brand-${mode}-palettes-core-interactive-default-tone)` }}>✓</span>
+                      <span style={{ fontSize: 14, color: `var(--recursica_brand_${mode}-palettes-core-interactive-default-tone)` }}>✓</span>
                     )}
                     {isClickable ? (
                       <button

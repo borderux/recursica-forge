@@ -28,17 +28,17 @@ if (typeof window !== 'undefined') {
   const trackSelectedVar = getComponentCssVar('Switch', 'colors', 'default-track-selected', 'layer-0')
   const trackUnselectedVar = getComponentCssVar('Switch', 'colors', 'default-track-unselected', 'layer-0')
   
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-thumb-elevation')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-thumb-elevation', 'none')
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_thumb_elevation')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_thumb_elevation', 'none')
   }
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-track-elevation')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-track-elevation', 'none')
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_elevation')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_track_elevation', 'none')
   }
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-track-checked')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-track-checked', `var(${trackSelectedVar})`)
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_checked')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_track_checked', `var(${trackSelectedVar})`)
   }
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-track-unchecked')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-track-unchecked', `var(${trackUnselectedVar})`)
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_unchecked')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_track_unchecked', `var(${trackUnselectedVar})`)
   }
 }
 

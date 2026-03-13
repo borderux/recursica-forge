@@ -51,6 +51,7 @@ import ComponentDebugTable from './ComponentDebugTable'
 import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
 import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import type { ComponentName } from '../../components/registry/types'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
@@ -148,12 +149,9 @@ export default function ComponentDetailPage() {
     return parts.join(' / ')
   }, [selectedVariants, selectedLayer, componentStructure])
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
-
   // Get the layer number for building CSS variable paths
   const layerNum = selectedLayer.replace('layer-', '')
-  const baseLayerBase = `--recursica-brand-themes-${mode}-layers-layer-${layerNum}-properties`
+  const baseLayerBase = `--recursica_brand_layer_${layerNum}_properties`
 
   // Get elevation level from layer property (if it exists)
   // Elevation is stored as a reference like {brand.themes.light.elevations.elevation-1}
@@ -196,7 +194,7 @@ export default function ComponentDetailPage() {
 
     // Build elevation box-shadow from elevation CSS variables
     // Format: x-axis y-axis blur spread shadow-color
-    return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+    return `var(--recursica_brand_elevations_elevation-${elevationLevel}-x-axis, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}-y-axis, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}-blur, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}-spread, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
   }, [mode, layerNum, theme, component])
 
   if (!component) {
@@ -216,24 +214,24 @@ export default function ComponentDetailPage() {
       flexDirection: 'column',
       height: debugMode ? 'auto' : '100%',
       minHeight: debugMode ? undefined : 0,
-      padding: 'var(--recursica-brand-dimensions-general-xl)',
+      padding: 'var(--recursica_brand_dimensions_general_xl)',
     }}>
       {/* Header Section */}
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 'var(--recursica-brand-dimensions-general-lg)',
+        marginBottom: 'var(--recursica_brand_dimensions_general_lg)',
         flexShrink: 0,
       }}>
         <h1 style={{
           margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h1-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          fontFamily: 'var(--recursica_brand_typography_h1-font-family)',
+          fontSize: 'var(--recursica_brand_typography_h1-font-size)',
+          fontWeight: 'var(--recursica_brand_typography_h1-font-weight)',
+          letterSpacing: 'var(--recursica_brand_typography_h1-font-letter-spacing)',
+          lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
+          color: `var(${genericLayerText(0, 'color')})`,
         }}>
           {component.name}
         </h1>
@@ -252,9 +250,9 @@ export default function ComponentDetailPage() {
 
       {/* Main Content Container - Wrapped in styled container like tokens sections */}
       <div style={{
-        background: `var(${layer0Base}-surface)`,
-        border: `1px solid var(${layer1Base}-border-color)`,
-        borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
+        background: `var(${genericLayerProperty(0, 'surface')})`,
+        border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+        borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         display: 'flex',
         flex: debugMode ? undefined : 1,
         minHeight: debugMode ? undefined : 0,
@@ -266,7 +264,7 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          padding: 'var(--recursica-brand-dimensions-general-xl)',
+          padding: 'var(--recursica_brand_dimensions_general_xl)',
           position: 'sticky',
           top: 0,
           alignSelf: 'flex-start',
@@ -278,7 +276,7 @@ export default function ComponentDetailPage() {
             flexDirection: 'column',
             alignItems: 'stretch',
             justifyContent: 'space-between',
-            gap: 'var(--recursica-brand-dimensions-general-md)',
+            gap: 'var(--recursica_brand_dimensions_general_md)',
             background: `var(${baseLayerBase}-surface)`,
             padding: `var(${baseLayerBase}-padding)`,
             border: layerNum !== '0'
@@ -553,7 +551,7 @@ export default function ComponentDetailPage() {
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',
-          borderLeft: `1px solid var(${layer1Base}-border-color)`,
+          borderLeft: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
           minHeight: debugMode ? undefined : 0,
           height: debugMode ? undefined : '100%',
         }}>
@@ -572,7 +570,7 @@ export default function ComponentDetailPage() {
       {/* Debug Table - Show when debug mode is enabled, below preview and toolbar */}
       {debugMode && component && openPropControl && (
         <div style={{
-          padding: 'var(--recursica-brand-dimensions-general-xl)',
+          padding: 'var(--recursica_brand_dimensions_general_xl)',
         }}>
           <ComponentDebugTable
             componentName={component.name}

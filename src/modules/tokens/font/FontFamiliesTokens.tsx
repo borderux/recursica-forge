@@ -8,6 +8,7 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 import { useVars } from '../../vars/VarsContext'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
 import { getStoredFonts, saveStoredFonts, FontEntry } from '../../../core/store/fontStore'
+import { genericLayerProperty, genericLayerText, tokenFont } from '../../../core/css/cssVarBuilder'
 import { removeCssVar } from '../../../core/css/updateCssVar'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { CustomFontModal } from '../../type/CustomFontModal'
@@ -75,7 +76,7 @@ export function AddButton({ onOpenModal }: { onOpenModal: () => void }) {
       onClick={onOpenModal}
       icon={(() => {
         const PlusIcon = iconNameToReactComponent('plus')
-        return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+        return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
       })()}
     >
       Add font family
@@ -745,8 +746,8 @@ export default function FontFamiliesTokens() {
       const sequentialName = ORDER[newIndex] || `custom-${newIndex + 1}`
       if (f.id !== sequentialName) {
         removeCssVar(`--tokens-font-typeface-${f.id}`)
-        removeCssVar(`--recursica-tokens-font-typefaces-${f.id}`)
-        removeCssVar(`--recursica-tokens-font-families-${f.id}`)
+        removeCssVar(tokenFont('typefaces', f.id))
+        removeCssVar(tokenFont('families', f.id))
       }
       return { ...f, id: sequentialName }
     })
@@ -778,7 +779,7 @@ export default function FontFamiliesTokens() {
         // This ensures typography updates when token sequence changes
         const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
         typographyPrefixes.forEach((prefix) => {
-          const cssVar = `--recursica-brand-typography-${prefix}-font-family`
+          const cssVar = `--recursica_brand_typography_${prefix}-font-family`
           if (typeof document !== 'undefined') {
             document.documentElement.style.removeProperty(cssVar)
           }
@@ -809,8 +810,8 @@ export default function FontFamiliesTokens() {
       const sequentialName = ORDER[newIndex] || `custom-${newIndex + 1}`
       if (f.id !== sequentialName) {
         removeCssVar(`--tokens-font-typeface-${f.id}`)
-        removeCssVar(`--recursica-tokens-font-typefaces-${f.id}`)
-        removeCssVar(`--recursica-tokens-font-families-${f.id}`)
+        removeCssVar(tokenFont('typefaces', f.id))
+        removeCssVar(tokenFont('families', f.id))
       }
       return { ...f, id: sequentialName }
     })
@@ -818,8 +819,8 @@ export default function FontFamiliesTokens() {
     if (index < fonts.length) {
       const deletedKey = fonts[index].id
       removeCssVar(`--tokens-font-typeface-${deletedKey}`)
-      removeCssVar(`--recursica-tokens-font-typefaces-${deletedKey}`)
-      removeCssVar(`--recursica-tokens-font-families-${deletedKey}`)
+      removeCssVar(tokenFont('typefaces', deletedKey))
+      removeCssVar(tokenFont('families', deletedKey))
     }
 
     saveStoredFonts(updatedFonts)
@@ -843,7 +844,7 @@ export default function FontFamiliesTokens() {
           if (!keptKeys.has(k)) {
             // Clean up CSS vars for removed key
             removeCssVar(`--tokens-font-typeface-${k}`)
-            removeCssVar(`--recursica-tokens-font-typefaces-${k}`)
+            removeCssVar(tokenFont('typefaces', k))
             delete typefaces[k]
           }
         })
@@ -871,7 +872,7 @@ export default function FontFamiliesTokens() {
         // Clear typography font-family CSS variables so they get regenerated
         const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
         typographyPrefixes.forEach((prefix) => {
-          const cssVar = `--recursica-brand-typography-${prefix}-font-family`
+          const cssVar = `--recursica_brand_typography_${prefix}-font-family`
           if (typeof document !== 'undefined') {
             document.documentElement.style.removeProperty(cssVar)
           }
@@ -888,11 +889,8 @@ export default function FontFamiliesTokens() {
       } catch { }
     }, 0)
   }
-
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
-  const interactiveColor = `--recursica-brand-${mode}-palettes-core-interactive`
+  const interactiveColor = `--recursica_brand_${mode}-palettes-core-interactive`
   const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
   const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
   const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
@@ -902,13 +900,13 @@ export default function FontFamiliesTokens() {
   const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
 
   return (
-    <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-lg)' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--recursica-brand-dimensions-general-lg)' }}>
+    <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
         {rows.map((r, index) => {
           // Extract the key from the name (e.g., "font/typeface/primary" -> "primary")
           const key = r.name.replace('font/typeface/', '')
           const label = toTitle(key)
-          const fontFamilyVar = `--recursica-tokens-font-typefaces-${key}`
+          const fontFamilyVar = tokenFont('typefaces', key)
           const selectedWeight = selectedWeights[r.name] || 'regular'
 
           return (
@@ -927,18 +925,18 @@ export default function FontFamiliesTokens() {
               }}
               onDragEnd={handleDragEnd}
               style={{
-                background: `var(${layer1Base}-surface)`,
+                background: `var(${genericLayerProperty(1, 'surface')})`,
                 border: `1px solid ${draggedIndex === index
-                  ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
+                  ? `var(--recursica_brand_palettes_core_interactive)`
                   : dragOverIndex === index
-                    ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
-                    : `var(${layer1Base}-border-color)`
+                    ? `var(--recursica_brand_palettes_core_interactive)`
+                    : `var(${genericLayerProperty(1, 'border-color')})`
                   }`,
-                borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
-                padding: `var(${layer1Base}-padding)`,
+                borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+                padding: `var(${genericLayerProperty(1, 'padding')})`,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 'var(--recursica-brand-dimensions-general-md)',
+                gap: 'var(--recursica_brand_dimensions_general_md)',
                 position: 'relative',
                 cursor: draggedIndex === index ? 'grabbing' : 'grab',
                 opacity: draggedIndex === index ? 0.5 : 1,
@@ -952,10 +950,10 @@ export default function FontFamiliesTokens() {
             >
               <div style={{
                 position: 'absolute',
-                top: 'var(--recursica-brand-dimensions-general-md)',
-                right: 'var(--recursica-brand-dimensions-general-md)',
+                top: 'var(--recursica_brand_dimensions_general_md)',
+                right: 'var(--recursica_brand_dimensions_general_md)',
                 display: 'flex',
-                gap: 'var(--recursica-brand-dimensions-general-sm)',
+                gap: 'var(--recursica_brand_dimensions_general_sm)',
                 zIndex: 1,
               }}>
                 {(() => {
@@ -987,7 +985,7 @@ export default function FontFamiliesTokens() {
                   ) : null
                 })()}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-default)', flexShrink: 0 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_default)', flexShrink: 0 }}>
                 <Badge
                   variant="primary-color"
                   size="small"
@@ -998,21 +996,21 @@ export default function FontFamiliesTokens() {
                 <h2 style={{
                   margin: 0,
                   fontFamily: `var(${fontFamilyVar})`,
-                  fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-                  fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-                  letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-                  lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                  fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+                  fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+                  letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+                  lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+                  color: `var(${genericLayerText(0, 'color')})`,
+                  opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                 }}>
                   {r.value || 'Select font'}
                 </h2>
               </div>
               <div style={{
                 fontFamily: `var(${fontFamilyVar})`,
-                fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                fontSize: 'var(--recursica_brand_typography_body-font-size)',
+                color: `var(${genericLayerText(0, 'color')})`,
+                opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                 lineHeight: 1.5,
                 flexShrink: 0,
                 alignSelf: 'stretch',
@@ -1024,7 +1022,7 @@ export default function FontFamiliesTokens() {
               <div style={{
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: 'var(--recursica-brand-dimensions-general-default)',
+                gap: 'var(--recursica_brand_dimensions_general_default)',
                 flexShrink: 0,
                 alignSelf: 'stretch',
               }}>
@@ -1098,9 +1096,9 @@ export default function FontFamiliesTokens() {
           return showInspiration && (
             <div
               style={{
-                background: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-tone)`,
-                borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
-                padding: `var(${layer1Base}-padding)`,
+                background: `var(--recursica_brand_palettes_neutral_100_color_tone)`,
+                borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+                padding: `var(${genericLayerProperty(1, 'padding')})`,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
@@ -1119,8 +1117,8 @@ export default function FontFamiliesTokens() {
                     onClick={() => setShowInspiration(false)}
                     style={{
                       position: 'absolute',
-                      top: 'var(--recursica-brand-dimensions-general-md)',
-                      right: 'var(--recursica-brand-dimensions-general-md)',
+                      top: 'var(--recursica_brand_dimensions_general_md)',
+                      right: 'var(--recursica_brand_dimensions_general_md)',
                     }}
                   />
                 ) : null
@@ -1128,25 +1126,25 @@ export default function FontFamiliesTokens() {
               <div>
                 <h3 style={{
                   margin: 0,
-                  fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
-                  fontSize: 'var(--recursica-brand-typography-h3-font-size)',
-                  fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
-                  letterSpacing: 'var(--recursica-brand-typography-h3-font-letter-spacing)',
-                  lineHeight: 'var(--recursica-brand-typography-h3-line-height)',
-                  color: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-on-tone)`,
+                  fontFamily: 'var(--recursica_brand_typography_h3-font-family)',
+                  fontSize: 'var(--recursica_brand_typography_h3-font-size)',
+                  fontWeight: 'var(--recursica_brand_typography_h3-font-weight)',
+                  letterSpacing: 'var(--recursica_brand_typography_h3-font-letter-spacing)',
+                  lineHeight: 'var(--recursica_brand_typography_h3-line-height)',
+                  color: `var(--recursica_brand_palettes_neutral_100_color_on-tone)`,
                 }}>
                   Need inspiration?
                 </h3>
                 <p style={{
                   margin: 0,
-                  marginTop: 'var(--recursica-brand-dimensions-general-md)',
-                  fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-                  fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                  fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-                  letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-                  lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-                  color: `var(--recursica-brand-themes-${mode}-palettes-neutral-100-on-tone)`,
-                  opacity: `var(--recursica-brand-themes-${mode}-text-emphasis-high)`,
+                  marginTop: 'var(--recursica_brand_dimensions_general_md)',
+                  fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+                  fontSize: 'var(--recursica_brand_typography_body-font-size)',
+                  fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
+                  letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+                  lineHeight: 'var(--recursica_brand_typography_body-line-height)',
+                  color: `var(--recursica_brand_palettes_neutral_100_color_on-tone)`,
+                  opacity: `var(--recursica_brand_text-emphasis_high)`,
                 }}>
                   Browse the Google Fonts library to find the perfect typeface.
                 </p>
@@ -1158,10 +1156,10 @@ export default function FontFamiliesTokens() {
                 onClick={() => window.open('https://fonts.google.com', '_blank')}
                 icon={(() => {
                   const GoogleIcon = iconNameToReactComponent('google-logo')
-                  return GoogleIcon ? <GoogleIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                  return GoogleIcon ? <GoogleIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
                 })()}
                 style={{
-                  marginTop: 'var(--recursica-brand-dimensions-general-md)',
+                  marginTop: 'var(--recursica_brand_dimensions_general_md)',
                   alignSelf: 'flex-start',
                 }}
               >
@@ -1246,9 +1244,9 @@ export default function FontFamiliesTokens() {
 
                 // Remove old CSS variables
                 removeCssVar(`--tokens-font-typeface-${oldKey}`)
-                removeCssVar(`--recursica-tokens-font-typefaces-${oldKey}`)
+                removeCssVar(tokenFont('typefaces', oldKey))
                 removeCssVar(`--tokens-font-typeface-${newKey}`)
-                removeCssVar(`--recursica-tokens-font-typefaces-${newKey}`)
+                removeCssVar(tokenFont('typefaces', newKey))
 
                 writeOverrides(all)
               } else {
@@ -1266,7 +1264,7 @@ export default function FontFamiliesTokens() {
 
                   // Remove old CSS variables
                   removeCssVar(`--tokens-font-typeface-${oldKey}`)
-                  removeCssVar(`--recursica-tokens-font-typefaces-${oldKey}`)
+                  removeCssVar(tokenFont('typefaces', oldKey))
                 }
               }
 

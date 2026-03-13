@@ -173,8 +173,8 @@ export default function Slider({
   const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
 
   // Use layer text color directly for labels and values
-  const layerTextColorVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-color`
-  const layerTextEmphasisVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-high-emphasis`
+  const layerTextColorVar = `--recursica_brand_layer_${layer}_elements_text-color`
+  const layerTextEmphasisVar = `--recursica_brand_layer_${layer}_elements_text-high-emphasis`
 
   // State to force re-render when text CSS variables change
   const [textVarsUpdate, setTextVarsUpdate] = useState(0)
@@ -369,7 +369,7 @@ export default function Slider({
             disableTopBottomMargin={true}
             className="recursica-slider-number-input"
             style={{
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
             }}
           />
         </>

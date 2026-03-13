@@ -36,7 +36,7 @@ export default function TypeStyleSelector({
         const styleValue = typography[styleName]
         if (styleValue && typeof styleValue === 'object' && '$type' in styleValue && styleValue.$type === 'typography') {
           // Create CSS var reference for this style's font-size
-          const cssVar = `--recursica-brand-typography-${styleName}-font-size`
+          const cssVar = `--recursica_brand_typography_${styleName}-font-size`
           const cssValue = readCssVar(cssVar)
           
           // Only add if the CSS var exists (has been generated)
@@ -100,15 +100,15 @@ export default function TypeStyleSelector({
     }
     
     // Check if it's a typography CSS var reference
-    // Pattern: var(--recursica-brand-typography-{style-name}-font-size)
+    // Pattern: var(--recursica_brand_typography_{style-name}-font-size)
     // Use greedy match to capture full hyphenated names like "body-small"
-    const typoMatch = cssVarValue.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
+    const typoMatch = cssVarValue.match(/--recursica_brand_typography_([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
     if (typoMatch) {
       return typoMatch[1].toLowerCase() // Returns 'body-small', 'button', etc.
     }
     
     // Fallback: match any characters up to a hyphen (for unknown property names)
-    const typoMatchFallback = cssVarValue.match(/--recursica-brand-typography-([a-z0-9-]+)-/)
+    const typoMatchFallback = cssVarValue.match(/--recursica_brand_typography_([a-z0-9-]+)-/)
     if (typoMatchFallback) {
       return typoMatchFallback[1].toLowerCase()
     }
@@ -120,11 +120,11 @@ export default function TypeStyleSelector({
       if (resolvedBraceMatch) {
         return resolvedBraceMatch[1].toLowerCase()
       }
-      const resolvedTypoMatch = resolved.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
+      const resolvedTypoMatch = resolved.match(/--recursica_brand_typography_([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
       if (resolvedTypoMatch) {
         return resolvedTypoMatch[1].toLowerCase()
       }
-      const resolvedTypoMatchFallback = resolved.match(/--recursica-brand-typography-([a-z0-9-]+)-/)
+      const resolvedTypoMatchFallback = resolved.match(/--recursica_brand_typography_([a-z0-9-]+)-/)
       if (resolvedTypoMatchFallback) {
         return resolvedTypoMatchFallback[1].toLowerCase()
       }
@@ -143,7 +143,7 @@ export default function TypeStyleSelector({
     
     if (!resolvedValue) {
       // If still no value, try to get default from recursica_ui-kit.json
-      // Extract prop name from CSS var (e.g., "label-font" from "--recursica-ui-kit-components-label-properties-label-font")
+      // Extract prop name from CSS var (e.g., "label-font" from "--recursica_ui-kit_components_label_properties_label_font")
       const propMatch = targetCssVar.match(/components-label-properties-([^-]+)/)
       if (propMatch) {
         const propName = propMatch[1]
@@ -157,7 +157,7 @@ export default function TypeStyleSelector({
             const defaultStyleName = extractTypeStyleName(propValue.$value)
             if (defaultStyleName) {
               const matchingToken = typeStyleTokens.find(t => {
-                const tokenStyleName = t.name.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)?.[1]
+                const tokenStyleName = t.name.match(/--recursica_brand_typography_([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)?.[1]
                 return tokenStyleName === defaultStyleName
               })
               if (matchingToken) {
@@ -182,7 +182,7 @@ export default function TypeStyleSelector({
     if (styleName) {
       const matchingToken = typeStyleTokens.find(t => {
         // Use greedy match to capture full hyphenated names like "body-small"
-        const tokenStyleName = t.name.match(/--recursica-brand-typography-([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)?.[1]
+        const tokenStyleName = t.name.match(/--recursica_brand_typography_([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)?.[1]
         return tokenStyleName === styleName
       })
       setSelectedToken(matchingToken?.name)
@@ -223,7 +223,7 @@ export default function TypeStyleSelector({
     setSelectedToken(tokenName)
     
     // Update all CSS vars with the typography font-size CSS variable reference
-    // tokenName is already a CSS variable name like --recursica-brand-typography-body-font-size
+    // tokenName is already a CSS variable name like --recursica_brand_typography_body-font-size
     // We set the target CSS vars to reference this typography font-size CSS var
     const allCssVars = [targetCssVar, ...targetCssVars]
     allCssVars.forEach(cssVar => {

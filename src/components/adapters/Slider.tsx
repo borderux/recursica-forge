@@ -10,6 +10,7 @@ import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
+import { genericLayerText } from '../../core/css/cssVarBuilder'
 import { Label } from './Label'
 import { TextField } from './TextField'
 import { NumberInput } from './NumberInput'
@@ -325,8 +326,8 @@ export function Slider({
         {finalShowMinMaxLabels && (
           <span style={{
             fontSize: 12,
-            color: `var(--recursica-brand-themes-${mode}-layers-${layer}-elements-text-color)`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : `var(--recursica-brand-themes-${mode}-layers-${layer}-elements-text-high-emphasis, 0.7)`,
+            color: `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'color')})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
             flexShrink: 0,
           }}>
             {minLabel ?? min}
@@ -484,8 +485,8 @@ export function Slider({
         {finalShowMinMaxLabels && (
           <span style={{
             fontSize: 12,
-            color: `var(--recursica-brand-themes-${mode}-layers-${layer}-elements-text-color)`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : `var(--recursica-brand-themes-${mode}-layers-${layer}-elements-text-high-emphasis, 0.7)`,
+            color: `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'color')})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
             flexShrink: 0,
           }}>
             {maxLabel ?? max}
@@ -496,8 +497,8 @@ export function Slider({
         {finalShowValueLabel && !finalShowInput && (
           <span style={{
             fontSize: 12,
-            color: `var(--recursica-brand-themes-${mode}-layers-${layer}-elements-text-color)`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : `var(--recursica-brand-themes-${mode}-layers-${layer}-elements-text-high-emphasis, 0.7)`,
+            color: `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'color')})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
             flexShrink: 0,
             whiteSpace: 'nowrap',
           }}>
@@ -538,7 +539,7 @@ export function Slider({
               disableTopBottomMargin={true}
               className="recursica-slider-number-input"
               style={{
-                fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
                 margin: 0,
               }}
             />
@@ -714,8 +715,9 @@ export function Slider({
     : (singleValue !== undefined && singleValue !== null ? String(singleValue) : '0')
 
   // Use layer text color directly for value labels
-  const layerTextColorVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-color`
-  const layerTextEmphasisVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-high-emphasis`
+  const layerNum = parseInt(layer.replace('layer-', ''))
+  const layerTextColorVar = genericLayerText(layerNum, 'color')
+  const layerTextEmphasisVar = genericLayerText(layerNum, 'high-emphasis')
 
   const valueLabelElement = finalShowValueLabel ? (
     <span

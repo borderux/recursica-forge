@@ -346,8 +346,8 @@ export default function DatePicker({
     // Year dropdown items (memoized based on current view year)
     const yearDropdownItems = useMemo(() => getYearDropdownItems(new Date().getFullYear()), [])
 
-    const accentColorVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`
-    const textLowEmphasisVar = `--recursica-brand-themes-${mode}-layers-layer-1-elements-text-low-emphasis`
+    const accentColorVar = `--recursica_brand_palettes_core_interactive_default_color_tone`
+    const textLowEmphasisVar = `--recursica_brand_layer_1_elements_text-low-emphasis`
 
     // Calendar popover content
     const calendarContent = (
@@ -409,7 +409,7 @@ export default function DatePicker({
             </div>
 
             {/* Calendar grid */}
-            <table className="recursica-date-picker-calendar-grid" style={{ marginTop: 'var(--recursica-brand-dimensions-general-default)' }}>
+            <table className="recursica-date-picker-calendar-grid" style={{ marginTop: 'var(--recursica_brand_dimensions_general_default)' }}>
                 <thead>
                     <tr>
                         {DAYS_OF_WEEK.map((day, i) => (

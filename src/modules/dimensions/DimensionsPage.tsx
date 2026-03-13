@@ -14,6 +14,7 @@ import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import brandDefault from '../../../recursica_brand.json'
 import { getVarsStore } from '../../core/store/varsStore'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 type DimensionEntry = {
   path: string[]
@@ -63,9 +64,6 @@ export default function DimensionsPage() {
   const { tokens: tokensJson, theme: themeJson, setTheme, updateToken } = useVars()
   const { mode } = useThemeMode()
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
-
   // Get available size tokens (exclude elevation tokens - those are only in brand, not tokens)
   const availableSizeTokens = useMemo(() => {
     const tokens: Array<{ name: string; value: number; label: string }> = []
@@ -112,7 +110,7 @@ export default function DimensionsPage() {
                 tokenName = parsed.path.slice(1).join('.')
               }
             }
-            const cssVarName = `--recursica-brand-dimensions-${currentPath.join('-')}`
+            const cssVarName = `--recursica_brand_dimensions_${currentPath.join('-')}`
 
             // Read current pixel value from CSS variable
             let currentValue = 0
@@ -297,17 +295,17 @@ export default function DimensionsPage() {
   }
 
   return (
-    <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
+    <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
       <h1 style={{
         margin: 0,
-        marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-        fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
-        fontSize: 'var(--recursica-brand-typography-h1-font-size)',
-        fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
-        letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
-        lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-        color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-        opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+        marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+        fontFamily: 'var(--recursica_brand_typography_h1-font-family)',
+        fontSize: 'var(--recursica_brand_typography_h1-font-size)',
+        fontWeight: 'var(--recursica_brand_typography_h1-font-weight)',
+        letterSpacing: 'var(--recursica_brand_typography_h1-font-letter-spacing)',
+        lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
+        color: `var(${genericLayerText(0, 'color')})`,
+        opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
       }}>
         Dimensions
       </h1>
@@ -316,7 +314,7 @@ export default function DimensionsPage() {
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gap: 'var(--recursica-brand-dimensions-general-lg)',
+        gap: 'var(--recursica_brand_dimensions_general_lg)',
         alignItems: 'start',
       }}>
         {categoryKeys.map((category) => {
@@ -327,10 +325,10 @@ export default function DimensionsPage() {
             <section
               key={category}
               style={{
-                background: `var(${layer0Base}-surface)`,
-                border: `1px solid var(${layer1Base}-border-color)`,
-                borderRadius: 'var(--recursica-brand-dimensions-border-radii-xl)',
-                padding: 'var(--recursica-brand-dimensions-general-xl)',
+                background: `var(${genericLayerProperty(0, 'surface')})`,
+                border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+                padding: 'var(--recursica_brand_dimensions_general_xl)',
               }}
             >
               {/* Header */}
@@ -338,17 +336,17 @@ export default function DimensionsPage() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+                marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
               }}>
                 <h2 style={{
                   margin: 0,
-                  fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-                  fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-                  fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-                  letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-                  lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                  fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+                  fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+                  fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+                  letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+                  lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+                  color: `var(${genericLayerText(0, 'color')})`,
+                  opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                 }}>
                   {category.toLowerCase() === 'border-radii' ? 'Border Radius' : toTitleCase(category)}
                 </h2>
@@ -358,7 +356,7 @@ export default function DimensionsPage() {
                   onClick={() => handleReset(category)}
                   icon={(() => {
                     const RefreshIcon = iconNameToReactComponent('arrow-path')
-                    return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                    return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
                   })()}
                 >
                   Reset all
@@ -366,7 +364,7 @@ export default function DimensionsPage() {
               </div>
 
               {/* Rows */}
-              <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
+              <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
                 {categoryEntries.map((entry, index) => {
                   const isNone = entry.label.toLowerCase() === 'none'
 

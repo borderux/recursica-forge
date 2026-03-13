@@ -37,7 +37,7 @@ export default function NumberInputPreview({
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
+            gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
             width: '100%',
             alignItems: 'center'
         }}>

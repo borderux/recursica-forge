@@ -129,8 +129,8 @@ export default function Link({
         textVar, textHoverVar, iconGapVar])
 
     // Get CSS variables for text emphasis opacity
-    const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
-    const lowEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+    const highEmphasisOpacityVar = `--recursica_brand_text-emphasis_high`
+    const lowEmphasisOpacityVar = `--recursica_brand_text-emphasis_low`
 
     // Determine size prop for Carbon (sm, md, lg)
     const carbonSize = (size === 'small' ? 'sm' : 'md') as 'sm' | 'md' | 'lg'

@@ -23,17 +23,17 @@ if (typeof window !== 'undefined') {
   const trackSelectedVar = getComponentCssVar('Switch', 'colors', 'default-track-selected', 'layer-0')
   const trackUnselectedVar = getComponentCssVar('Switch', 'colors', 'default-track-unselected', 'layer-0')
   
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-thumb-elevation')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-thumb-elevation', 'none')
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_thumb_elevation')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_thumb_elevation', 'none')
   }
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-track-elevation')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-track-elevation', 'none')
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_elevation')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_track_elevation', 'none')
   }
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-track-checked')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-track-checked', `var(${trackSelectedVar})`)
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_checked')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_track_checked', `var(${trackSelectedVar})`)
   }
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-track-unchecked')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-track-unchecked', `var(${trackUnselectedVar})`)
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_unchecked')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_track_unchecked', `var(${trackUnselectedVar})`)
   }
 }
 
@@ -164,19 +164,19 @@ export default function Switch({
         '--switch-track-label-padding': `var(${trackInnerPaddingVar})`,
         '--switch-radius': thumbBorderRadiusValue,
         // Set wrapper variables that CSS will use - these reference UIKit vars directly
-        '--recursica-ui-kit-components-switch-thumb-bg-selected': `var(${thumbSelectedVar})`,
-        '--recursica-ui-kit-components-switch-thumb-bg-unselected': `var(${thumbUnselectedVar})`,
-        '--recursica-ui-kit-components-switch-track-checked': `var(${trackSelectedVar})`,
-        '--recursica-ui-kit-components-switch-track-unchecked': `var(${trackUnselectedVar})`,
-        '--recursica-ui-kit-components-switch-track-height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
-        '--recursica-ui-kit-components-switch-thumb-elevation': thumbElevationBoxShadow || 'none',
-        '--recursica-ui-kit-components-switch-track-elevation': trackElevationBoxShadow || 'none',
+        '--recursica_ui-kit_components_switch_thumb_bg_selected': `var(${thumbSelectedVar})`,
+        '--recursica_ui-kit_components_switch_thumb_bg_unselected': `var(${thumbUnselectedVar})`,
+        '--recursica_ui-kit_components_switch_track_checked': `var(${trackSelectedVar})`,
+        '--recursica_ui-kit_components_switch_track_unchecked': `var(${trackUnselectedVar})`,
+        '--recursica_ui-kit_components_switch_track_height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
+        '--recursica_ui-kit_components_switch_thumb_elevation': thumbElevationBoxShadow || 'none',
+        '--recursica_ui-kit_components_switch_track_elevation': trackElevationBoxShadow || 'none',
         // Set wrapper variables for properties that CSS references directly
-        '--recursica-ui-kit-components-switch-thumb-width': `var(${thumbWidthVar})`,
-        '--recursica-ui-kit-components-switch-thumb-height': `var(${thumbHeightVar})`,
-        '--recursica-ui-kit-components-switch-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
-        '--recursica-ui-kit-components-switch-track-border-radius': `var(${trackBorderRadiusVar})`,
-        '--recursica-ui-kit-components-switch-track-inner-padding': `var(${trackInnerPaddingVar})`,
+        '--recursica_ui-kit_components_switch_thumb_width': `var(${thumbWidthVar})`,
+        '--recursica_ui-kit_components_switch_thumb_height': `var(${thumbHeightVar})`,
+        '--recursica_ui-kit_components_switch_thumb_border-radius': `var(${thumbBorderRadiusVar})`,
+        '--recursica_ui-kit_components_switch_track_border-radius': `var(${trackBorderRadiusVar})`,
+        '--recursica_ui-kit_components_switch_track_inner_padding': `var(${trackInnerPaddingVar})`,
         width: `var(${trackWidthVar})`,
         ...style,
       }}

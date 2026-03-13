@@ -14,6 +14,7 @@ import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssV
 import { getElevationBoxShadow, parseElevationValue } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
+import { genericLayerText } from '../../core/css/cssVarBuilder'
 
 interface HoverCardPopoverPreviewProps {
     selectedVariants: Record<string, string>
@@ -85,10 +86,10 @@ export default function HoverCardPopoverPreview({
         const match = activeElevation.match(/elevation-(\d+)/)
         if (!match) return '0 0 0 rgba(0,0,0,0)'
         const level = match[1]
-        const xAxis = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-x-axis, 0px)`
-        const yAxis = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-y-axis, 0px)`
-        const blur = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-blur, 0px)`
-        const color = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+        const xAxis = `var(--recursica_brand_elevations_elevation-${level}-x-axis, 0px)`
+        const yAxis = `var(--recursica_brand_elevations_elevation-${level}-y-axis, 0px)`
+        const blur = `var(--recursica_brand_elevations_elevation-${level}-blur, 0px)`
+        const color = `var(--recursica_brand_elevations_elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
         return `${xAxis} ${yAxis} ${blur} ${color}`
     })()
 
@@ -135,27 +136,25 @@ export default function HoverCardPopoverPreview({
         boxSizing: 'border-box',
     }
 
-    const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-
     return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--recursica-brand-dimensions-general-xl)',
+            gap: 'var(--recursica_brand_dimensions_general_xl)',
             width: '100%',
             alignItems: 'center',
         }}>
             {/* Static preview — Without beak */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', alignItems: 'center' }}>
                 <h2 style={{
                     margin: 0,
-                    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-                    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-                    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-                    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-                    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+                    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+                    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+                    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+                    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+                    color: `var(${genericLayerText(0, 'color')})`,
+                    opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                 }}>
                     Without beak
                 </h2>
@@ -167,16 +166,16 @@ export default function HoverCardPopoverPreview({
             </div>
 
             {/* Static preview — With beak */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', alignItems: 'center' }}>
                 <h2 style={{
                     margin: 0,
-                    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-                    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-                    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-                    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-                    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+                    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+                    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+                    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+                    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+                    color: `var(${genericLayerText(0, 'color')})`,
+                    opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                 }}>
                     With beak
                 </h2>
@@ -193,10 +192,10 @@ export default function HoverCardPopoverPreview({
             {/* Interactive: HoverCard */}
             <div style={{
                 display: 'flex',
-                gap: 'var(--recursica-brand-dimensions-general-lg)',
+                gap: 'var(--recursica_brand_dimensions_general_lg)',
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingTop: 'var(--recursica-brand-dimensions-general-lg)',
+                paddingTop: 'var(--recursica_brand_dimensions_general_lg)',
             }}>
                 <HoverCard
                     content={<p style={{ margin: 0 }}>A curious goblin peeks from the shadows, eyes gleaming with mischief and pockets full of stolen trinkets.</p>}

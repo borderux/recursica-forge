@@ -14,50 +14,50 @@ describe('CSS Variable Propagation', () => {
 
   it('should propagate token changes to brand vars', () => {
     // Set up token
-    updateCssVar('--recursica-tokens-color-gray-500', '#808080')
+    updateCssVar('--recursica_tokens_color_gray_500', '#808080')
     
     // Set brand var to reference token
-    updateCssVar('--recursica-brand-light-palettes-core-black', 'var(--recursica-tokens-color-gray-500)')
+    updateCssVar('--recursica_brand_light_palettes_core_black', 'var(--recursica_tokens_color_gray_500)')
     
     // Change token
-    updateCssVar('--recursica-tokens-color-gray-500', '#404040')
+    updateCssVar('--recursica_tokens_color_gray_500', '#404040')
     
     // Brand var should still reference token (propagation happens via CSS cascade)
-    const brandVar = readCssVar('--recursica-brand-light-palettes-core-black')
-    expect(brandVar).toBe('var(--recursica-tokens-color-gray-500)')
+    const brandVar = readCssVar('--recursica_brand_light_palettes_core_black')
+    expect(brandVar).toBe('var(--recursica_tokens_color_gray_500)')
     
     // Resolved value should reflect new token value
-    const resolved = readCssVarResolved('--recursica-brand-light-palettes-core-black')
+    const resolved = readCssVarResolved('--recursica_brand_light_palettes_core_black')
     expect(resolved).toBe('#404040')
   })
 
   it('should handle nested var() references', () => {
-    updateCssVar('--recursica-tokens-color-gray-500', '#808080')
-    updateCssVar('--recursica-brand-light-palettes-core-black', 'var(--recursica-tokens-color-gray-500)')
-    updateCssVar('--recursica-brand-light-layers-layer-0-properties-surface', 'var(--recursica-brand-light-palettes-core-black)')
+    updateCssVar('--recursica_tokens_color_gray_500', '#808080')
+    updateCssVar('--recursica_brand_light_palettes_core_black', 'var(--recursica_tokens_color_gray_500)')
+    updateCssVar('--recursica_brand_light_layers_layer-0_properties_surface', 'var(--recursica_brand_light_palettes_core_black)')
     
-    const resolved = readCssVarResolved('--recursica-brand-light-layers-layer-0-properties-surface')
+    const resolved = readCssVarResolved('--recursica_brand_light_layers_layer-0_properties_surface')
     expect(resolved).toBe('#808080')
   })
 
   it('should maintain references when applying multiple vars', () => {
     const vars = {
-      '--recursica-tokens-color-gray-500': '#808080',
-      '--recursica-brand-light-palettes-core-black': 'var(--recursica-tokens-color-gray-500)',
-      '--recursica-brand-light-layers-layer-0-properties-surface': 'var(--recursica-brand-light-palettes-core-black)'
+      '--recursica_tokens_color_gray_500': '#808080',
+      '--recursica_brand_light_palettes_core_black': 'var(--recursica_tokens_color_gray_500)',
+      '--recursica_brand_light_layers_layer-0_properties_surface': 'var(--recursica_brand_light_palettes_core_black)'
     }
     
     applyCssVars(vars)
     
-    expect(readCssVar('--recursica-tokens-color-gray-500')).toBe('#808080')
-    expect(readCssVar('--recursica-brand-light-palettes-core-black')).toBe('var(--recursica-tokens-color-gray-500)')
-    expect(readCssVar('--recursica-brand-light-layers-layer-0-properties-surface')).toBe('var(--recursica-brand-light-palettes-core-black)')
+    expect(readCssVar('--recursica_tokens_color_gray_500')).toBe('#808080')
+    expect(readCssVar('--recursica_brand_light_palettes_core_black')).toBe('var(--recursica_tokens_color_gray_500)')
+    expect(readCssVar('--recursica_brand_light_layers_layer-0_properties_surface')).toBe('var(--recursica_brand_light_palettes_core_black)')
     
     // Change token
-    updateCssVar('--recursica-tokens-color-gray-500', '#404040')
+    updateCssVar('--recursica_tokens_color_gray_500', '#404040')
     
     // Resolved chain should reflect new value
-    const resolved = readCssVarResolved('--recursica-brand-light-layers-layer-0-properties-surface')
+    const resolved = readCssVarResolved('--recursica_brand_light_layers_layer-0_properties_surface')
     expect(resolved).toBe('#404040')
   })
 })

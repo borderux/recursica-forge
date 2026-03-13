@@ -1,4 +1,5 @@
 import { readCssVar } from '../css/readCssVar'
+import { tokenColors } from '../css/cssVarBuilder'
 import { buildTokenIndex, type TokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
@@ -8,7 +9,7 @@ import { tokenToCssVar } from '../css/tokenRefs'
 const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
 
 /**
- * Traces a CSS var to find the terminal --recursica-tokens-colors-* token reference.
+ * Traces a CSS var to find the terminal --recursica_tokens_colors_* token reference.
  * Follows var() chain: brand → palette → token. Returns the token family/level
  * that the CSS var actually references, avoiding the blind hex-match ambiguity
  * of findColorFamilyAndLevel (which fails when multiple scales share the same hex).
@@ -18,7 +19,7 @@ export function traceToTokenRef(cssVarName: string): { family: string; level: st
   let depth = 0
   while (current && depth < 10) {
     // Check if current value is a token var reference
-    const tokenMatch = current.match(/var\s*\(\s*(--recursica-tokens-colors?-([a-z0-9-]+)-(\d{3,4}|050|000))\s*/)
+    const tokenMatch = current.match(/var\s*\(\s*(--recursica_tokens_colors?[_-]([a-z0-9_-]+)[_-](\d{3,4}|050|000))\s*/)
     if (tokenMatch) {
       return { family: tokenMatch[2], level: tokenMatch[3] }
     }
@@ -55,8 +56,8 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
       }
     }
 
-    // Support both old format (--recursica-tokens-color-...) and new format (--recursica-tokens-colors-...)
-    const tokenMatch = trimmed.match(/--recursica-tokens-colors?-([a-z0-9-]+)-(\d+|050|000)/)
+    // Support both old format (--recursica_tokens_color_...) and new format (--recursica_tokens_colors_...)
+    const tokenMatch = trimmed.match(/--recursica_tokens_colors?[_-]([a-z0-9_-]+)[_-](\d+|050|000)/)
     if (tokenMatch) {
       const [, family, level] = tokenMatch
       // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
@@ -71,10 +72,10 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
     }
 
     // Try palette var reference (both light and dark modes)
-    const paletteMatch = trimmed.match(/--recursica-brand-(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
+    const paletteMatch = trimmed.match(/--recursica_brand_(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
     if (paletteMatch) {
       const [, paletteMode, paletteKey, level, type] = paletteMatch
-      const paletteVarName = `--recursica-brand-${paletteMode}-palettes-${paletteKey}-${level}-${type}`
+      const paletteVarName = `--recursica_brand_${paletteMode}-palettes-${paletteKey}-${level}-${type}`
       const paletteValue = readCssVar(paletteVarName)
       if (paletteValue) {
         return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)
@@ -336,7 +337,7 @@ export function hexToCssVarRef(hex: string, tokens: JsonLike): string | null {
 
   // Direct fallback for scale keys
   if (found.family.startsWith('scale-')) {
-    return `var(--recursica-tokens-colors-${found.family}-${found.level})`
+    return `var(${tokenColors(found.family, found.level)})`
   }
 
   return null

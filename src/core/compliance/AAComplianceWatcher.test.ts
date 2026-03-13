@@ -49,13 +49,13 @@ describe('AAComplianceWatcher', () => {
     document.documentElement.style.cssText = ''
     
     // Set up token CSS variables that the tests need
-    document.documentElement.style.setProperty('--recursica-tokens-color-gray-000', '#ffffff')
-    document.documentElement.style.setProperty('--recursica-tokens-color-gray-500', '#808080')
-    document.documentElement.style.setProperty('--recursica-tokens-color-gray-1000', '#000000')
+    document.documentElement.style.setProperty('--recursica_tokens_color_gray_000', '#ffffff')
+    document.documentElement.style.setProperty('--recursica_tokens_color_gray_500', '#808080')
+    document.documentElement.style.setProperty('--recursica_tokens_color_gray_1000', '#000000')
     
     // Set up core palette CSS variables
-    document.documentElement.style.setProperty('--recursica-brand-themes-light-palettes-core-black', 'var(--recursica-tokens-color-gray-1000)')
-    document.documentElement.style.setProperty('--recursica-brand-themes-light-palettes-core-white', 'var(--recursica-tokens-color-gray-000)')
+    document.documentElement.style.setProperty('--recursica_brand_themes_light_palettes_core_black', 'var(--recursica_tokens_color_gray_1000)')
+    document.documentElement.style.setProperty('--recursica_brand_themes_light_palettes_core_white', 'var(--recursica_tokens_color_gray_000)')
   })
 
   it('should initialize and watch CSS variables', () => {
@@ -69,8 +69,8 @@ describe('AAComplianceWatcher', () => {
     // The watcher's event-driven updates are flaky in test environment
     const watcher = new AAComplianceWatcher(mockTokens as any, mockTheme as any)
     
-    const toneVar = '--recursica-brand-themes-light-palettes-test-500-tone'
-    const onToneVar = '--recursica-brand-themes-light-palettes-test-500-on-tone'
+    const toneVar = '--recursica_brand_themes_light_palettes_test_500_tone'
+    const onToneVar = '--recursica_brand_themes_light_palettes_test_500_on-tone'
     
     // Set an initial value first
     // Use a direct hex value instead of a token reference to ensure it resolves
@@ -92,7 +92,7 @@ describe('AAComplianceWatcher', () => {
     expect(onTone).toBeDefined()
     // Should be either black or white based on contrast
     // Gray (#808080) has better contrast with white (#ffffff) than black (#000000)
-    expect(['var(--recursica-brand-themes-light-palettes-core-black)', 'var(--recursica-brand-themes-light-palettes-core-white)']).toContain(onTone)
+    expect(['var(--recursica_brand_themes_light_palettes_core_black)', 'var(--recursica_brand_themes_light_palettes_core_white)']).toContain(onTone)
   })
 
   it('should update layer element colors when surface changes', async () => {
@@ -100,8 +100,8 @@ describe('AAComplianceWatcher', () => {
     
     // Set up layer surface first - use direct DOM manipulation for test setup to bypass validation
     // In real usage, this would be set via updateCssVar with proper token references
-    const surfaceVar = '--recursica-brand-themes-light-layers-layer-0-properties-surface'
-    document.documentElement.style.setProperty(surfaceVar, 'var(--recursica-tokens-color-gray-000)')
+    const surfaceVar = '--recursica_brand_themes_light_layers_layer-0_properties_surface'
+    document.documentElement.style.setProperty(surfaceVar, 'var(--recursica_tokens_color_gray_000)')
     
     // Explicitly call updateLayerElementColors (no watcher - must be called explicitly)
     watcher.updateLayerElementColors(0, 'light')
@@ -109,7 +109,7 @@ describe('AAComplianceWatcher', () => {
     // Wait for update to complete
     await new Promise(resolve => setTimeout(resolve, 100))
     
-    const textColor = readCssVar('--recursica-brand-themes-light-layers-layer-0-elements-text-color')
+    const textColor = readCssVar('--recursica_brand_themes_light_layers_layer-0_elements_text-color')
     expect(textColor).toBeDefined()
   })
 
@@ -137,12 +137,12 @@ describe('AAComplianceWatcher', () => {
     const watcher = new AAComplianceWatcher(mockTokens as any, mockTheme as any)
     
     // Set up layer surface first - required for updateLayerElementColors to work
-    const surfaceVar = '--recursica-brand-themes-light-layers-layer-0-properties-surface'
-    document.documentElement.style.setProperty(surfaceVar, 'var(--recursica-tokens-color-gray-000)')
+    const surfaceVar = '--recursica_brand_themes_light_layers_layer-0_properties_surface'
+    document.documentElement.style.setProperty(surfaceVar, 'var(--recursica_tokens_color_gray_000)')
     
     // Change core interactive color - use direct DOM manipulation for test setup to bypass validation
     // In real usage, this would be set via updateCssVar with proper token references
-    document.documentElement.style.setProperty('--recursica-brand-themes-light-palettes-core-interactive', 'var(--recursica-tokens-color-gray-500)')
+    document.documentElement.style.setProperty('--recursica_brand_themes_light_palettes_core_interactive', 'var(--recursica_tokens_color_gray_500)')
     
     // Explicitly call updateAllLayers (replaces watchCoreColors - no watcher, must be called explicitly)
     watcher.updateAllLayers('light')
@@ -151,7 +151,7 @@ describe('AAComplianceWatcher', () => {
     await new Promise(resolve => setTimeout(resolve, 200))
     
     // Should trigger updates - verify by checking if layer colors were updated
-    const textColor = readCssVar('--recursica-brand-themes-light-layers-layer-0-elements-text-color')
+    const textColor = readCssVar('--recursica_brand_themes_light_layers_layer-0_elements_text-color')
     expect(textColor).toBeDefined()
   })
 })

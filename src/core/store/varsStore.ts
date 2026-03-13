@@ -1,4 +1,5 @@
 import type { JsonLike } from '../resolvers/tokens'
+import { tokenColors, tokenColor, tokenOpacity, tokenFont, tokenSize, token } from '../css/cssVarBuilder'
 import { buildTokenIndex } from '../resolvers/tokens'
 import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
@@ -6,6 +7,7 @@ import { buildTypographyVars, type TypographyChoices } from '../resolvers/typogr
 import { buildUIKitVars } from '../resolvers/uikit'
 import { buildDimensionVars } from '../resolvers/dimensions'
 import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
+import { updateScopedCss, setThemeAttribute } from '../css/scopedCssEngine'
 import { findTokenByHex, tokenToCssVar } from '../css/tokenRefs'
 import { suppressCssVarEvents, clearPendingCssVars } from '../css/updateCssVar'
 import { computeBundleVersion } from './versioning'
@@ -637,7 +639,7 @@ class VarsStore {
         const formattedValue = formatFontValue(tokenValue, kind)
         if (formattedValue) {
           // Use plural form for CSS var name
-          varsToUpdate[`--recursica-tokens-font-${pluralKind}-${key}`] = formattedValue
+          varsToUpdate[tokenFont(pluralKind, key)] = formattedValue
         }
         // Note: Typography vars that reference this token will update automatically
         // via CSS var() references, so we don't need to rebuild them here
@@ -661,7 +663,7 @@ class VarsStore {
           return undefined
         }
         const px = toPxString(tokenValue)
-        if (px) varsToUpdate[`--recursica-tokens-size-${key}`] = px
+        if (px) varsToUpdate[tokenSize(key)] = px
       } else if (category === 'opacity' && rest.length >= 1) {
         const [key] = rest
         const tokenValue = tokensRoot?.opacities?.[key]?.$value
@@ -677,8 +679,8 @@ class VarsStore {
         }
         const norm = normalize(tokenValue)
         if (norm) {
-          varsToUpdate[`--recursica-tokens-opacities-${key}`] = norm
-          varsToUpdate[`--recursica-tokens-opacity-${key}`] = norm
+          varsToUpdate[tokenOpacity(key)] = norm
+          varsToUpdate[token('opacity', key)] = norm
         }
       } else if ((category === 'color' || category === 'colors') && rest.length >= 2) {
         const [scaleOrFamily, level] = rest
@@ -712,14 +714,14 @@ class VarsStore {
 
           if (tokenValue != null && scaleKey) {
             // Generate CSS vars for scale name only (no alias-based vars)
-            const scaleCssVarKey = `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`
+            const scaleCssVarKey = tokenColors(scaleKey, normalizedLevel)
             varsToUpdate[scaleCssVarKey] = String(tokenValue)
           }
         } else {
           // Old format: color/family/level (backwards compatibility)
           const tokenValue = tokensRoot?.color?.[scaleOrFamily]?.[level]?.$value
           if (tokenValue != null) {
-            const cssVarKey = `--recursica-tokens-color-${scaleOrFamily}-${normalizedLevel}`
+            const cssVarKey = tokenColor(scaleOrFamily, normalizedLevel)
             varsToUpdate[cssVarKey] = String(tokenValue)
           }
         }
@@ -1463,7 +1465,7 @@ class VarsStore {
       if (!offsetYTokens[k]) offsetYTokens[k] = offsetYTokenName
 
       // Create elevation tokens in the tokens structure if they don't exist
-      // These tokens are needed for CSS variable generation (referenced as --recursica-tokens-size-elevation-X-blur, etc.)
+      // These tokens are needed for CSS variable generation (referenced as --recursica_tokens_size_elevation_X-blur, etc.)
       if (ctrl) {
         const blurKey = `elevation-${i}-blur`
         const spreadKey = `elevation-${i}-spread`
@@ -1524,10 +1526,10 @@ class VarsStore {
     // Clear overlay CSS variables from DOM before recomputing to ensure new values from theme JSON are used
     if (typeof document !== 'undefined') {
       const overlayVars = [
-        '--recursica-brand-themes-light-state-overlay-color',
-        '--recursica-brand-themes-light-state-overlay-opacity',
-        '--recursica-brand-themes-dark-state-overlay-color',
-        '--recursica-brand-themes-dark-state-overlay-opacity'
+        '--recursica_brand_themes_light_states_overlay_color',
+        '--recursica_brand_themes_light_states_overlay_opacity',
+        '--recursica_brand_themes_dark_states_overlay_color',
+        '--recursica_brand_themes_dark_states_overlay_opacity'
       ]
       overlayVars.forEach((cssVar) => {
         document.documentElement.style.removeProperty(cssVar)
@@ -1548,7 +1550,7 @@ class VarsStore {
 
     try {
 
-      // Tokens: expose size tokens as CSS vars under --recursica-tokens-sizes-<key>
+      // Tokens: expose size tokens as CSS vars under --recursica_tokens_sizes_<key>
       try {
         const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
 
@@ -1584,10 +1586,10 @@ class VarsStore {
             const val = sizeObj.$value
             const px = toPxString(val)
             if (typeof px === 'string' && px) {
-              vars[`--recursica-tokens-sizes-${short}`] = px
+              vars[tokenSize(short)] = px
               // Backwards compatibility: also create singular form
-              if (!vars[`--recursica-tokens-size-${short}`]) {
-                vars[`--recursica-tokens-size-${short}`] = px
+              if (!vars[token('size', short)]) {
+                vars[token('size', short)] = px
               }
               if (short.includes('elevation')) {
                 elevationTokensFound.push(short)
@@ -1599,7 +1601,7 @@ class VarsStore {
       } catch (e) {
         console.error('[VarsStore] Error generating size token CSS variables:', e)
       }
-      // Tokens: expose opacity tokens as CSS vars under --recursica-tokens-opacities-<key> (normalized 0..1)
+      // Tokens: expose opacity tokens as CSS vars under --recursica_tokens_opacities_<key> (normalized 0..1)
       try {
         const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
 
@@ -1628,10 +1630,10 @@ class VarsStore {
             const v = opacityObj.$value
             const norm = normalize(v)
             if (typeof norm === 'string') {
-              vars[`--recursica-tokens-opacities-${short}`] = norm
+              vars[tokenOpacity(short)] = norm
               // Backwards compatibility: also create singular form
-              if (!vars[`--recursica-tokens-opacity-${short}`]) {
-                vars[`--recursica-tokens-opacity-${short}`] = norm
+              if (!vars[token('opacity', short)]) {
+                vars[token('opacity', short)] = norm
               }
             }
           })
@@ -1640,7 +1642,7 @@ class VarsStore {
       } catch (e) {
         console.error('[VarsStore] Error generating opacity token CSS variables:', e)
       }
-      // Tokens: expose color tokens as CSS vars under --recursica-tokens-colors-<scale>-<level>
+      // Tokens: expose color tokens as CSS vars under --recursica_tokens_colors_<scale>_<level>
       // New structure: tokens.colors.scale-XX.XXX with alias property
       try {
         const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
@@ -1670,7 +1672,7 @@ class VarsStore {
               const normalizedLevel = lvl === '000' ? '000' : lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
 
               // Generate CSS vars for scale name only (no alias-based vars)
-              const scaleCssVarKey = `--recursica-tokens-colors-${scaleKey}-${normalizedLevel}`
+              const scaleCssVarKey = tokenColors(scaleKey, normalizedLevel)
 
               // Read directly from token value
               const val = levelObj.$value
@@ -1693,7 +1695,7 @@ class VarsStore {
             Object.keys(levels).forEach((lvl) => {
               if (!/^(\d{2,4}|000|050)$/.test(lvl)) return
               const normalizedLevel = lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
-              const cssVarKey = `--recursica-tokens-color-${family}-${normalizedLevel}`
+              const cssVarKey = tokenColor(family, normalizedLevel)
               if (!processedKeys.has(cssVarKey)) {
                 const levelObj = levels[lvl]
                 if (levelObj && typeof levelObj === 'object') {
@@ -1712,7 +1714,7 @@ class VarsStore {
       } catch (e) {
         console.error('[VarsStore] Error generating color token CSS variables:', e)
       }
-      // Tokens: expose font cases and decorations as CSS vars under --recursica-tokens-font-cases-<key> and --recursica-tokens-font-decorations-<key>
+      // Tokens: expose font cases and decorations as CSS vars under --recursica_tokens_font_cases_<key> and --recursica_tokens_font_decorations_<key>
       try {
         const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
         const fontRoot: any = tokensRoot?.font || {}
@@ -1728,9 +1730,9 @@ class VarsStore {
             const val = caseObj.$value
             // Font cases can be null (for "original") or a string value
             if (val === null || val === undefined) {
-              vars[`--recursica-tokens-font-cases-${caseKey}`] = 'none'
+              vars[tokenFont('cases', caseKey)] = 'none'
             } else if (typeof val === 'string') {
-              vars[`--recursica-tokens-font-cases-${caseKey}`] = val
+              vars[tokenFont('cases', caseKey)] = val
             }
           })
           Object.assign(allVars, vars)
@@ -1747,9 +1749,9 @@ class VarsStore {
             const val = decorationObj.$value
             // Font decorations can be null (for "none") or a string value
             if (val === null || val === undefined) {
-              vars[`--recursica-tokens-font-decorations-${decorationKey}`] = 'none'
+              vars[tokenFont('decorations', decorationKey)] = 'none'
             } else if (typeof val === 'string') {
-              vars[`--recursica-tokens-font-decorations-${decorationKey}`] = val
+              vars[tokenFont('decorations', decorationKey)] = val
             }
           })
           Object.assign(allVars, vars)
@@ -1773,14 +1775,14 @@ class VarsStore {
           }
         } catch { }
 
-        // Font typefaces (e.g., --recursica-tokens-font-typefaces-primary)
+        // Font typefaces (e.g., --recursica_tokens_font_typefaces_primary)
         // First, CLEAR all existing font typeface CSS vars from the DOM to remove stale deleted ones
         if (typeof document !== 'undefined') {
           const docStyle = document.documentElement.style
           const propsToRemove: string[] = []
           for (let i = 0; i < docStyle.length; i++) {
             const prop = docStyle[i]
-            if (prop && (prop.startsWith('--recursica-tokens-font-typefaces-') || prop.startsWith('--recursica-tokens-font-families-'))) {
+            if (prop && (prop.startsWith(tokenFont('typefaces', '')) || prop.startsWith(tokenFont('families', '')))) {
               propsToRemove.push(prop)
             }
           }
@@ -1791,13 +1793,13 @@ class VarsStore {
           storedFonts.forEach(font => {
             if (font.id && font.family) {
               const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
-              vars[`--recursica-tokens-font-typefaces-${font.id}`] = cleanFamily
-              vars[`--recursica-tokens-font-families-${font.id}`] = cleanFamily
+              vars[tokenFont('typefaces', font.id)] = cleanFamily
+              vars[tokenFont('families', font.id)] = cleanFamily
             }
           })
         }
 
-        // Font weights (e.g., --recursica-tokens-font-weights-regular)
+        // Font weights (e.g., --recursica_tokens_font_weights_regular)
         const weights: any = fontRoot?.weights || fontRoot?.weight || {}
         if (weights && typeof weights === 'object') {
           Object.keys(weights).forEach(key => {
@@ -1805,12 +1807,12 @@ class VarsStore {
             const rec = weights[key]
             const val = rec?.$value !== undefined ? rec.$value : rec
             if (val !== undefined && val !== null) {
-              vars[`--recursica-tokens-font-weights-${key}`] = String(val)
+              vars[tokenFont('weights', key)] = String(val)
             }
           })
         }
 
-        // Font sizes (e.g., --recursica-tokens-font-sizes-md)
+        // Font sizes (e.g., --recursica_tokens_font_sizes_md)
         const sizes: any = fontRoot?.sizes || fontRoot?.size || {}
         if (sizes && typeof sizes === 'object') {
           Object.keys(sizes).forEach(key => {
@@ -1820,15 +1822,15 @@ class VarsStore {
             if (val !== undefined && val !== null) {
               const num = typeof val === 'number' ? val : Number(val)
               if (Number.isFinite(num)) {
-                vars[`--recursica-tokens-font-sizes-${key}`] = `${num}px`
+                vars[tokenFont('sizes', key)] = `${num}px`
               } else if (typeof val === 'string') {
-                vars[`--recursica-tokens-font-sizes-${key}`] = val
+                vars[tokenFont('sizes', key)] = val
               }
             }
           })
         }
 
-        // Font letter-spacings (e.g., --recursica-tokens-font-letter-spacings-default)
+        // Font letter-spacings (e.g., --recursica_tokens_font_letter-spacings_default)
         const letterSpacings: any = fontRoot?.['letter-spacings'] || fontRoot?.['letter-spacing'] || {}
         if (letterSpacings && typeof letterSpacings === 'object') {
           Object.keys(letterSpacings).forEach(key => {
@@ -1838,15 +1840,15 @@ class VarsStore {
             if (val !== undefined && val !== null) {
               const num = typeof val === 'number' ? val : Number(val)
               if (Number.isFinite(num)) {
-                vars[`--recursica-tokens-font-letter-spacings-${key}`] = `${num}em`
+                vars[tokenFont('letter-spacings', key)] = `${num}em`
               } else if (typeof val === 'string') {
-                vars[`--recursica-tokens-font-letter-spacings-${key}`] = val
+                vars[tokenFont('letter-spacings', key)] = val
               }
             }
           })
         }
 
-        // Font line-heights (e.g., --recursica-tokens-font-line-heights-normal)
+        // Font line-heights (e.g., --recursica_tokens_font_line-heights_normal)
         const lineHeights: any = fontRoot?.['line-heights'] || fontRoot?.['line-height'] || {}
         if (lineHeights && typeof lineHeights === 'object') {
           Object.keys(lineHeights).forEach(key => {
@@ -1854,12 +1856,12 @@ class VarsStore {
             const rec = lineHeights[key]
             const val = rec?.$value
             if (val !== undefined && val !== null) {
-              vars[`--recursica-tokens-font-line-heights-${key}`] = String(val)
+              vars[tokenFont('line-heights', key)] = String(val)
             }
           })
         }
 
-        // Font styles (e.g., --recursica-tokens-font-styles-normal)
+        // Font styles (e.g., --recursica_tokens_font_styles_normal)
         const styles: any = fontRoot?.styles || fontRoot?.style || {}
         if (styles && typeof styles === 'object') {
           Object.keys(styles).forEach(key => {
@@ -1867,7 +1869,7 @@ class VarsStore {
             const rec = styles[key]
             const val = rec?.$value
             if (typeof val === 'string' && val.trim()) {
-              vars[`--recursica-tokens-font-styles-${key}`] = val.trim()
+              vars[tokenFont('styles', key)] = val.trim()
             }
           })
         }
@@ -1901,14 +1903,14 @@ class VarsStore {
           const core: any = coreColorsObj?.$value || coreColorsObj || {}
 
           // Map core color names to CSS variable names
-          // Use --recursica-brand-themes- format to match palettes.ts resolver
+          // Use --recursica_brand_themes_ format to match palettes.ts resolver
           const coreColorMap: Record<string, string> = {
-            black: `--recursica-brand-themes-${mode}-palettes-core-black`,
-            white: `--recursica-brand-themes-${mode}-palettes-core-white`,
-            alert: `--recursica-brand-themes-${mode}-palettes-core-alert`,
-            warning: `--recursica-brand-themes-${mode}-palettes-core-warning`,
-            success: `--recursica-brand-themes-${mode}-palettes-core-success`,
-            interactive: `--recursica-brand-themes-${mode}-palettes-core-interactive`,
+            black: `--recursica_brand_themes_${mode}_palettes_core_black`,
+            white: `--recursica_brand_themes_${mode}_palettes_core_white`,
+            alert: `--recursica_brand_themes_${mode}_palettes_core_alert`,
+            warning: `--recursica_brand_themes_${mode}_palettes_core_warning`,
+            success: `--recursica_brand_themes_${mode}_palettes_core_success`,
+            interactive: `--recursica_brand_themes_${mode}_palettes_core_interactive`,
           }
 
           // Default fallbacks if theme JSON doesn't have the value
@@ -1956,25 +1958,25 @@ class VarsStore {
               if (defaultTone) {
                 const defaultToneRef = resolveTokenRef(defaultTone)
                 if (defaultToneRef) {
-                  colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone`] = defaultToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core_interactive-default-tone`] = defaultToneRef
                 }
               }
               if (defaultOnTone) {
                 const defaultOnToneRef = resolveTokenRef(defaultOnTone)
                 if (defaultOnToneRef) {
-                  colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-default-on-tone`] = defaultOnToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core_interactive-default-on-tone`] = defaultOnToneRef
                 }
               }
               if (hoverTone) {
                 const hoverToneRef = resolveTokenRef(hoverTone)
                 if (hoverToneRef) {
-                  colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-hover-tone`] = hoverToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core_interactive-hover-tone`] = hoverToneRef
                 }
               }
               if (hoverOnTone) {
                 const hoverOnToneRef = resolveTokenRef(hoverOnTone)
                 if (hoverOnToneRef) {
-                  colors[`--recursica-brand-themes-${mode}-palettes-core-interactive-hover-on-tone`] = hoverOnToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core_interactive-hover-on-tone`] = hoverOnToneRef
                 }
               }
             } else if (coreValue && typeof coreValue === 'object' && !coreValue.$value) {
@@ -1989,23 +1991,23 @@ class VarsStore {
               }
 
               // Generate additional CSS vars for new structure
-              // Use --recursica-brand-themes- format to match palettes.ts resolver
+              // Use --recursica_brand_themes_ format to match palettes.ts resolver
               if (tone) {
                 const toneRef = resolveTokenRef(tone)
                 if (toneRef) {
-                  colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`] = toneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core_${colorName}-tone`] = toneRef
                 }
               }
               if (onTone) {
                 const onToneRef = resolveTokenRef(onTone)
                 if (onToneRef) {
-                  colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-on-tone`] = onToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core_${colorName}-on-tone`] = onToneRef
                 }
               }
               if (interactive) {
                 const interactiveRef = resolveTokenRef(interactive)
                 if (interactiveRef) {
-                  colors[`--recursica-brand-themes-${mode}-palettes-core-${colorName}-interactive`] = interactiveRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core_${colorName}-interactive`] = interactiveRef
                 }
               }
             } else {
@@ -2022,7 +2024,7 @@ class VarsStore {
                   const family = parts[1]
                   const level = normalizeLevel(parts[2])
                   if (family && level) {
-                    tokenRef = `var(--recursica-tokens-color-${family}-${level})`
+                    tokenRef = `var(--recursica_tokens_color_${family}-${level})`
                   }
                 }
               }
@@ -2030,7 +2032,7 @@ class VarsStore {
 
             // Last resort fallback
             if (!tokenRef) {
-              tokenRef = 'var(--recursica-tokens-color-gray-500)'
+              tokenRef = 'var(--recursica_tokens_color_gray_500)'
             }
 
             colors[cssVar] = tokenRef
@@ -2104,17 +2106,15 @@ class VarsStore {
             // Helper to check if a CSS variable is mode-independent (not a color property)
             const isModeIndependent = (cssVar: string): boolean => {
               // Mode-independent properties are those NOT under colors
-              // Format: --recursica-ui-kit-themes-{mode}-components-{component}-properties-{prop}
-              // Colors are under: ...properties-colors-layer-X-{color-prop}
-              return !cssVar.includes('-properties-colors-')
+              return !cssVar.includes('_properties_colors_')
             }
 
             // Helper to get the opposite mode's CSS variable name
             const getOppositeModeVar = (cssVar: string): string => {
-              if (cssVar.includes('-themes-light-')) {
-                return cssVar.replace('-themes-light-', '-themes-dark-')
-              } else if (cssVar.includes('-themes-dark-')) {
-                return cssVar.replace('-themes-dark-', '-themes-light-')
+              if (cssVar.includes('_themes_light_')) {
+                return cssVar.replace('_themes_light_', '_themes_dark_')
+              } else if (cssVar.includes('_themes_dark_')) {
+                return cssVar.replace('_themes_dark_', '_themes_light_')
               }
               return cssVar
             }
@@ -2311,23 +2311,23 @@ class VarsStore {
             const sel = this.state.elevation.paletteSelections[key]
             if (sel) {
               // Use palette CSS variable instead of token CSS variable
-              const paletteVarName = `--recursica-brand-themes-${mode}-palettes-${sel.paletteKey}-${sel.level}-tone`
+              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}-${sel.level}-tone`
               // Check if palette var exists in paletteVars (during initialization) or use var() reference
               const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
               const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
               const alphaTok = modeAlphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
               // Use tokenToCssVar to properly convert opacity token names to CSS vars
-              const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+              const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
               return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
             }
             const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
             const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
             const alphaTok = modeAlphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
             // Use tokenToCssVar to properly convert opacity token names to CSS vars
-            const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+            const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
             // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
             // Pass tokens to resolve aliases to scale keys
-            const colorVarRef = tokenToCssVar(tok, this.state.tokens) || `var(--recursica-tokens-${tok.replace(/\//g, '-')})`
+            const colorVarRef = tokenToCssVar(tok, this.state.tokens) || `var(--recursica_tokens_${tok.replace(/\//g, '-')})`
             return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
           }
           const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
@@ -2414,7 +2414,7 @@ class VarsStore {
             const sxValue = dir.x === 'right' ? xValue : -xValue
             const syValue = dir.y === 'down' ? yValue : -yValue
             const brandScope = `--brand-themes-${mode}-elevations-elevation-${i}`
-            const prefixedScope = `--recursica-${brandScope.slice(2)}`
+            const prefixedScope = `--recursica_${brandScope.slice(2)}`
 
             // Token names for reference (used as fallback only)
             const blurTokenName = `size/elevation-${i}-blur`
@@ -2440,7 +2440,7 @@ class VarsStore {
             const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
             const alphaTok = modeAlphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
             // Use tokenToCssVar to properly convert opacity token names to CSS vars (use original state tokens for non-elevation tokens)
-            const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica-tokens-opacities-${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+            const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
 
             // Check if existing color contains a palette reference (could be var() or color-mix())
             const hasPaletteRef = existingColor && (
@@ -2453,13 +2453,13 @@ class VarsStore {
               let paletteVarRef: string | null = null
 
               // If it's a direct var() reference to a palette
-              const varMatch = existingColor.match(/var\s*\(\s*(--recursica-brand-themes-(?:light|dark)-palettes-[^)]+)\s*\)/)
+              const varMatch = existingColor.match(/var\s*\(\s*(--recursica_brand_themes_(?:light|dark)_palettes_[^)]+)\s*\)/)
               if (varMatch) {
                 paletteVarRef = `var(${varMatch[1]})`
               } else {
                 // If it's a color-mix, extract the palette var from it
-                // Match: color-mix(in srgb, var(--recursica-brand-themes-...-palettes-...) ...)
-                const colorMixMatch = existingColor.match(/color-mix\s*\([^,]+,\s*(var\s*\(\s*--recursica-brand-themes-(?:light|dark)-palettes-[^)]+\s*\))/)
+                // Match: color-mix(in srgb, var(--recursica_brand_themes_...-palettes-...) ...)
+                const colorMixMatch = existingColor.match(/color-mix\s*\([^,]+,\s*(var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_[^)]+\s*\))/)
                 if (colorMixMatch) {
                   paletteVarRef = colorMixMatch[1]
                 }
@@ -2500,10 +2500,10 @@ class VarsStore {
       // Debug: log if critical variables are missing
       if (process.env.NODE_ENV === 'development') {
         const criticalVars = [
-          '--recursica-brand-themes-light-layers-layer-0-properties-surface',
-          '--recursica-brand-themes-light-elevations-elevation-4-x-axis',
-          '--recursica-brand-typography-caption-font-family',
-          '--recursica-brand-dimensions-general-sm'
+          '--recursica_brand_themes_light_layers_layer-0_properties_surface',
+          '--recursica_brand_themes_light_elevations_elevation-4_x-axis',
+          '--recursica_brand_typography_caption-font-family',
+          '--recursica_brand_dimensions_general_sm'
         ]
       }
       try {
@@ -2515,6 +2515,12 @@ class VarsStore {
           this.aaWatcher.fixLayerElementColorsInMap(allVars)
         }
         applyCssVars(allVars, this.state.tokens)
+
+        // Generate scoped CSS aliases and set theme attribute
+        if (typeof document !== 'undefined') {
+          updateScopedCss(allVars)
+          setThemeAttribute(currentMode === 'dark' ? 'dark' : 'light')
+        }
       } catch (e) {
         // Log error but don't let it break the recompute cycle
         console.error('[VarsStore] Error applying CSS variables:', e)
@@ -2532,8 +2538,8 @@ class VarsStore {
       // Only dispatch vars that actually changed (not preserved) to prevent unnecessary re-renders
       // CRITICAL: Filter out UIKit vars - they're silent and don't need component re-renders
       const nonUIKitChangedVars = Array.from(changedUikitVars).filter(v =>
-        !v.startsWith('--recursica-ui-kit-components-') &&
-        !v.startsWith('--recursica-ui-kit-globals-')
+        !v.startsWith('--recursica_ui-kit_components_') &&
+        !v.startsWith('--recursica_ui-kit_globals_')
       )
       if (nonUIKitChangedVars.length > 0) {
         requestAnimationFrame(() => {
@@ -2718,7 +2724,7 @@ class VarsStore {
 
       for (const colorName of coreColors) {
         // Get the tone hex for this core color
-        const toneCssVar = `--recursica-brand-themes-${mode}-palettes-core-${colorName}-tone`
+        const toneCssVar = `--recursica_brand_themes_${mode}_palettes_core_${colorName}-tone`
         const tokenIndex = buildTokenIndex(this.state.tokens)
         const toneValue = readCssVarResolved(toneCssVar) || readCssVar(toneCssVar)
         const toneHex = toneValue

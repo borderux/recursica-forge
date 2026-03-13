@@ -105,10 +105,10 @@ export default function Popover({
         const match = activeElevation.match(/elevation-(\d+)/)
         if (!match) return '0 0 0 rgba(0,0,0,0)'
         const level = match[1]
-        const xAxis = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-x-axis, 0px)`
-        const yAxis = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-y-axis, 0px)`
-        const blur = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-blur, 0px)`
-        const color = `var(--recursica-brand-themes-${mode}-elevations-elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+        const xAxis = `var(--recursica_brand_elevations_elevation-${level}-x-axis, 0px)`
+        const yAxis = `var(--recursica_brand_elevations_elevation-${level}-y-axis, 0px)`
+        const blur = `var(--recursica_brand_elevations_elevation-${level}-blur, 0px)`
+        const color = `var(--recursica_brand_elevations_elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
         return `${xAxis} ${yAxis} ${blur} ${color}`
     })()
 

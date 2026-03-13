@@ -38,8 +38,8 @@ export default function Label({
     : undefined
   
   // Get CSS variables for text emphasis opacity
-  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
-  const lowEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+  const highEmphasisOpacityVar = `--recursica_brand_text-emphasis_high`
+  const lowEmphasisOpacityVar = `--recursica_brand_text-emphasis_low`
   
   // Get text properties from component text property groups
   const labelFontSizeVar = getComponentTextCssVar('Label', 'label-text', 'font-size')

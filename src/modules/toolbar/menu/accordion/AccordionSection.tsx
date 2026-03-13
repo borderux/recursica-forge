@@ -2,6 +2,7 @@ import { useState, ReactNode, useEffect } from 'react'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import './AccordionSection.css'
+import { genericLayerProperty } from '../../../../core/css/cssVarBuilder'
 
 export interface AccordionSectionProps {
   title: string
@@ -30,7 +31,6 @@ export default function AccordionSection({
   const isOpen = isControlled ? controlledOpen : internalOpen
   
   // Layer1 base for expanded content
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   
   useEffect(() => {
     if (!isControlled && defaultOpen) {
@@ -72,8 +72,8 @@ export default function AccordionSection({
         <div 
           className="accordion-content"
           style={{
-            background: `var(${layer1Base}-surface)`,
-            borderTop: `1px solid var(${layer1Base}-border-color)`,
+            background: `var(${genericLayerProperty(1, 'surface')})`,
+            borderTop: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
           }}
         >
           {children}

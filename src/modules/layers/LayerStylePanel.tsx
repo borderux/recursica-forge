@@ -59,7 +59,7 @@ function BrandDimensionSliderInline({
       Object.keys(dimensionCategoryData).forEach(dimensionKey => {
         const dimensionValue = dimensionCategoryData[dimensionKey]
         if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
-          const cssVar = `--recursica-brand-dimensions-${dimensionCategory}-${dimensionKey}`
+          const cssVar = `--recursica_brand_dimensions_${dimensionCategory}-${dimensionKey}`
           const cssValue = readCssVar(cssVar)
 
           if (cssValue) {
@@ -124,9 +124,9 @@ function BrandDimensionSliderInline({
       return
     }
 
-    if (currentValue.trim().startsWith('var(--recursica-')) {
+    if (currentValue.trim().startsWith('var(--recursica_')) {
       const matchingIndex = tokens.findIndex(t => {
-        const dimensionName = t.name.replace(`--recursica-brand-dimensions-${dimensionCategory}-`, '')
+        const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}-`, '')
         return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
       })
 
@@ -594,22 +594,22 @@ export default function LayerStylePanel({
   // Compute CSS vars at top level for useEffect hooks
   const paddingCssVar = useMemo(() => {
     return selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-padding`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-padding`
+      ? `--recursica_brand_layer_${selectedLevels[0]}_properties_padding`
+      : `--recursica_brand_layer_${layerKey}_properties_padding`
   }, [selectedLevels, mode, layerKey])
 
   const borderRadiusCssVar = useMemo(() => {
     if (isOnlyLayer0) return ''
     return selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-border-radius`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-border-radius`
+      ? `--recursica_brand_layer_${selectedLevels[0]}_properties_border-radius`
+      : `--recursica_brand_layer_${layerKey}_properties_border-radius`
   }, [selectedLevels, mode, layerKey, isOnlyLayer0])
 
   const borderSizeCssVar = useMemo(() => {
     if (isOnlyLayer0) return ''
     return selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-border-size`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-border-size`
+      ? `--recursica_brand_layer_${selectedLevels[0]}_properties_border-size`
+      : `--recursica_brand_layer_${layerKey}_properties_border-size`
   }, [selectedLevels, mode, layerKey, isOnlyLayer0])
 
   // Consolidated listener for CSS variable updates with debouncing
@@ -644,7 +644,7 @@ export default function LayerStylePanel({
           if (cssVar === paddingCssVar) {
             const cssValue = readCssVar(paddingCssVar)
             if (cssValue && cssValue.trim().startsWith('var(')) {
-              const match = cssValue.match(/--recursica-brand-dimensions-general-([^)]+)/)
+              const match = cssValue.match(/--recursica_brand_dimensions_general_([^)]+)/)
               if (match) {
                 const generalName = match[1]
                 const tokenRef = `{brand.dimensions.general.${generalName}}`
@@ -659,7 +659,7 @@ export default function LayerStylePanel({
           } else if (cssVar === borderRadiusCssVar) {
             const cssValue = readCssVar(borderRadiusCssVar)
             if (cssValue && cssValue.trim().startsWith('var(')) {
-              const match = cssValue.match(/--recursica-brand-dimensions-border-radii-([^)]+)/)
+              const match = cssValue.match(/--recursica_brand_dimensions_border-radii_([^)]+)/)
               if (match) {
                 const radiusName = match[1]
                 const tokenRef = `{brand.dimensions.border-radii.${radiusName}}`
@@ -735,8 +735,8 @@ export default function LayerStylePanel({
 
     // Build CSS variable name for this field
     const fieldCssVar = selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-${pathKey.replace(/\./g, '-')}`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-${pathKey.replace(/\./g, '-')}`
+      ? `--recursica_brand_layer_${selectedLevels[0]}_properties_${pathKey.replace(/\./g, '-')}`
+      : `--recursica_brand_layer_${layerKey}_properties_${pathKey.replace(/\./g, '-')}`
 
     // For element-text-color, check contrast against surface
     // For surface, check contrast against element-text-color
@@ -745,13 +745,13 @@ export default function LayerStylePanel({
     const isElementTextColor = pathKey.includes('element-text-color') || pathKey.includes('element.text.color')
     if (isColor && isElementTextColor) {
       const surfaceVar = selectedLevels.length > 0
-        ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-surface`
-        : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-surface`
+        ? `--recursica_brand_layer_${selectedLevels[0]}_properties_surface`
+        : `--recursica_brand_layer_${layerKey}_properties_surface`
       contrastColorCssVar = surfaceVar
     } else if (isColor && (pathKey === 'surface' || pathKey.includes('surface'))) {
       const textColorVar = selectedLevels.length > 0
-        ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-elements-text-color`
-        : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-elements-text-color`
+        ? `--recursica_brand_layer_${selectedLevels[0]}_elements_text-color`
+        : `--recursica_brand_layer_${layerKey}_elements_text-color`
       contrastColorCssVar = textColorVar
     }
 
@@ -791,10 +791,10 @@ export default function LayerStylePanel({
               onChange={(e) => updateValue(path, e.currentTarget.value)}
               style={{
                 padding: '6px 8px',
-                border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
+                border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
                 borderRadius: 6,
-                backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
-                color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)`,
+                backgroundColor: `var(--recursica_brand_layer_1_properties_surface)`,
+                color: `var(--recursica_brand_layer_1_elements_text-color)`,
                 fontSize: 14,
               }}
             />
@@ -806,10 +806,10 @@ export default function LayerStylePanel({
   const renderPaletteButton = (target: 'surface' | 'border-color', title: string) => {
     // Build CSS variables for all selected layers
     const targetCssVar = selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-${target}`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-${target}`
+      ? `--recursica_brand_layer_${selectedLevels[0]}_properties_${target}`
+      : `--recursica_brand_layer_${layerKey}_properties_${target}`
     const targetCssVars = selectedLevels.map(level =>
-      `--recursica-brand-themes-${mode}-layers-layer-${level}-properties-${target}`
+      `--recursica_brand_layer_${level}_properties_${target}`
     )
 
     // For surface color, check contrast against element-text-color (the label text color)
@@ -817,8 +817,8 @@ export default function LayerStylePanel({
     let contrastColorCssVar: string | undefined
     if (target === 'surface') {
       const textColorVar = selectedLevels.length > 0
-        ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-elements-text-color`
-        : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-elements-text-color`
+        ? `--recursica_brand_layer_${selectedLevels[0]}_elements_text-color`
+        : `--recursica_brand_layer_${layerKey}_elements_text-color`
       contrastColorCssVar = textColorVar
     }
 
@@ -867,9 +867,9 @@ export default function LayerStylePanel({
         // Clear CSS variables for surface, border-color, and text-color so they regenerate from theme defaults
         const rootEl = document.documentElement
         levels.forEach((lvl) => {
-          const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-surface`
-          const borderVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-color`
-          const textColorVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-elements-text-color`
+          const surfaceVar = `--recursica_brand_layer_${lvl}_properties_surface`
+          const borderVar = `--recursica_brand_layer_${lvl}_properties_border-color`
+          const textColorVar = `--recursica_brand_layer_${lvl}_elements_text-color`
           rootEl.style.removeProperty(surfaceVar)
           rootEl.style.removeProperty(textColorVar)
           if (lvl > 0) {
@@ -888,7 +888,7 @@ export default function LayerStylePanel({
       }}
       icon={(() => {
         const ResetIcon = iconNameToReactComponent('arrow-path')
-        return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+        return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
       })()}
       layer="layer-0"
     >
@@ -917,8 +917,8 @@ export default function LayerStylePanel({
         {!isOnlyLayer0 && renderPaletteButton('border-color', 'Border Color')}
         {!isOnlyLayer0 && (() => {
           const elevationCssVar = selectedLevels.length > 0
-            ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-elevation`
-            : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-elevation`
+            ? `--recursica_brand_layer_${selectedLevels[0]}_properties_elevation`
+            : `--recursica_brand_layer_${layerKey}_properties_elevation`
 
           return (
             <ElevationSliderInline
@@ -940,7 +940,7 @@ export default function LayerStylePanel({
               // Sync to theme JSON when CSS var updates
               const cssValue = readCssVar(cssVar)
               if (cssValue && cssValue.trim().startsWith('var(')) {
-                const match = cssValue.match(/--recursica-brand-dimensions-general-([^)]+)/)
+                const match = cssValue.match(/--recursica_brand_dimensions_general_([^)]+)/)
                 if (match) {
                   const generalName = match[1]
                   const tokenRef = `{brand.dimensions.general.${generalName}}`
@@ -965,7 +965,7 @@ export default function LayerStylePanel({
               // Sync to theme JSON when CSS var updates
               const cssValue = readCssVar(cssVar)
               if (cssValue && cssValue.trim().startsWith('var(')) {
-                const match = cssValue.match(/--recursica-brand-dimensions-border-radii-([^)]+)/)
+                const match = cssValue.match(/--recursica_brand_dimensions_border-radii_([^)]+)/)
                 if (match) {
                   const radiusName = match[1]
                   const tokenRef = `{brand.dimensions.border-radii.${radiusName}}`

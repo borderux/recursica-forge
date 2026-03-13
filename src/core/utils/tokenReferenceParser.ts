@@ -17,6 +17,7 @@
 
 import type { JsonLike } from '../resolvers/tokens'
 import type { TokenIndex } from '../resolvers/tokens'
+import { brandTypography, brandDimensions, layerProperty, layerText, layerInteractive, layerElement, paletteCore, palette as paletteVar, textEmphasis as textEmphasisVar, state as stateVar, elevation as elevationVar } from '../css/cssVarBuilder'
 
 export type ParsedTokenReference = {
   type: 'token' | 'brand' | 'ui-kit' | 'unknown'
@@ -153,7 +154,16 @@ export function resolveTokenReferenceToCssVar(
   // Token references → CSS token variables
   if (parsed.type === 'token') {
     const path = parsed.resolvedPath || parsed.path.join('/')
-    return `var(--recursica-tokens-${path.replace(/\//g, '-')})`
+    // Normalize singular category names to plural to match JSON structure
+    const singularToPlural: Record<string, string> = {
+      'size': 'sizes',
+      'opacity': 'opacities',
+    }
+    const segments = path.split('/')
+    if (segments.length >= 1 && singularToPlural[segments[0]]) {
+      segments[0] = singularToPlural[segments[0]]
+    }
+    return `var(--recursica_tokens_${segments.join('_')})`
   }
 
   // UIKit references → CSS UIKit variables
@@ -190,24 +200,25 @@ export function resolveTokenReferenceToCssVar(
 
     // Check if this is a globals reference (needs mode prefix)
     // Both globals and component references need mode prefix to match toCssVarName behavior
-    // Globals references like {ui-kit.globals.form.*} → --recursica-ui-kit-themes-light-globals-form-...
-    // Component references like {ui-kit.components.chip.*} → --recursica-ui-kit-themes-light-components-chip-...
+    // Globals references like {ui-kit.globals.form.*} → --recursica_ui-kit_themes_light_globals_form_...
+    // Component references like {ui-kit.components.chip.*} → --recursica_ui-kit_themes_light_components_chip_...
     const isGlobalsRef = uikitPath.startsWith('globals.')
     const isComponentRef = uikitPath.startsWith('components.')
 
-    // Generate CSS var name by joining with hyphens
+    // Generate CSS var name by joining with underscores (escape underscores in segments)
     const pathParts = uikitPath.split('.').filter(Boolean)
+    const escapedParts = pathParts.map(seg => seg.replace(/_/g, '__'))
 
     // For both globals and component references, include mode prefix to match toCssVarName behavior
     // This ensures references like {ui-kit.globals.form.field.colors.disabled}
-    // resolve to --recursica-ui-kit-themes-light-globals-form-field-colors-disabled
+    // resolve to --recursica_ui-kit_themes_light_globals_form_field_colors_disabled
     // And {ui-kit.components.chip.properties.colors.error.text-color}
-    // resolves to --recursica-ui-kit-themes-light-components-chip-properties-colors-error-text-color
+    // resolves to --recursica_ui-kit_themes_light_components_chip_properties_colors_error_text-color
     let cssVarName: string
     if ((isGlobalsRef || isComponentRef) && mode) {
-      cssVarName = `--recursica-ui-kit-themes-${mode}-${pathParts.join('-')}`
+      cssVarName = `--recursica_ui-kit_themes_${mode}_${escapedParts.join('_')}`
     } else {
-      cssVarName = `--recursica-ui-kit-${pathParts.join('-')}`
+      cssVarName = `--recursica_ui-kit_${escapedParts.join('_')}`
     }
 
     return `var(${cssVarName})`
@@ -222,29 +233,29 @@ export function resolveTokenReferenceToCssVar(
       const firstPart = pathParts[0].toLowerCase()
 
       if (firstPart === 'dimensions' || firstPart === 'dimension') {
-        const dimPath = pathParts.slice(1).join('-')
-        return `var(--recursica-brand-dimensions-${dimPath})`
+        const dimSegments = pathParts.slice(1)
+        return `var(${brandDimensions(...dimSegments)})`
       }
 
       if (firstPart === 'states' || firstPart === 'state') {
         // States are theme-specific but referenced without theme in JSON
-        const statePath = pathParts.slice(1).join('-')
-        return `var(--recursica-brand-themes-${mode}-state-${statePath})`
+        const stateParts = pathParts.slice(1)
+        return `var(${stateVar(mode, ...stateParts)})`
       }
 
       if (firstPart === 'text-emphasis' || firstPart === 'textemphasis') {
         // Text-emphasis is theme-specific but referenced without theme in JSON
-        const emphasisPath = pathParts.slice(1).join('-')
-        return `var(--recursica-brand-themes-${mode}-text-emphasis-${emphasisPath})`
+        const level = pathParts[1] || ''
+        return `var(${textEmphasisVar(mode, level)})`
       }
 
       if (firstPart === 'typography') {
         // Typography CSS variables naming pattern (from typography.ts):
-        // - font-size -> --recursica-brand-typography-{style}-font-size
-        // - font-family -> --recursica-brand-typography-{style}-font-family
-        // - font-weight -> --recursica-brand-typography-{style}-font-weight
-        // - line-height -> --recursica-brand-typography-{style}-line-height (NO "font-" prefix!)
-        // - letter-spacing -> --recursica-brand-typography-{style}-font-letter-spacing
+        // - font-size -> --recursica_brand_typography_{style}-font-size
+        // - font-family -> --recursica_brand_typography_{style}-font-family
+        // - font-weight -> --recursica_brand_typography_{style}-font-weight
+        // - line-height -> --recursica_brand_typography_{style}-line-height (NO "font-" prefix!)
+        // - letter-spacing -> --recursica_brand_typography_{style}-font-letter-spacing
         const remainingParts = pathParts.slice(1)
         if (remainingParts.length >= 2) {
           const styleName = remainingParts[0] // e.g., "body-small"
@@ -263,25 +274,25 @@ export function resolveTokenReferenceToCssVar(
           // Special case: line-height, text-transform, text-decoration do NOT get "font-" prefix
           const noPrefixProperties = ['line-height', 'text-transform', 'text-decoration']
           if (noPrefixProperties.includes(property)) {
-            return `var(--recursica-brand-typography-${styleName}-${property})`
+            return `var(${brandTypography(styleName, property)})`
           }
 
           // Properties that already start with "font-" use as-is
           if (property.startsWith('font-')) {
-            return `var(--recursica-brand-typography-${styleName}-${property})`
+            return `var(${brandTypography(styleName, property)})`
           }
 
           // Other properties (like letter-spacing) get "font-" prefix
-          return `var(--recursica-brand-typography-${styleName}-font-${property})`
+          return `var(${brandTypography(styleName, `font-${property}`)})`
         } else if (remainingParts.length === 1) {
           // Only style name provided (e.g., {brand.typography.body-small})
           // Resolve to font-size CSS variable so style name can be extracted
           const styleName = remainingParts[0]
-          return `var(--recursica-brand-typography-${styleName}-font-size)`
+          return `var(${brandTypography(styleName, 'font-size')})`
         } else {
           // Fallback: join all parts
           const typoPath = remainingParts.join('-')
-          return `var(--recursica-brand-typography-${typoPath})`
+          return `var(--recursica_brand_typography_${typoPath})`
         }
       }
     }
@@ -292,7 +303,7 @@ export function resolveTokenReferenceToCssVar(
     if (layerMatch) {
       const layerNum = layerMatch[1]
       const prop = layerMatch[2].replace(/\./g, '-')
-      return `var(--recursica-brand-themes-${mode}-layers-layer-${layerNum}-properties-${prop})`
+      return `var(${layerProperty(mode, layerNum, prop)})`
     }
 
     // Layer element references: layers.layer-0.elements.text.color
@@ -301,7 +312,7 @@ export function resolveTokenReferenceToCssVar(
     if (layerElementEmphasisMatch) {
       const [, , emphasis] = layerElementEmphasisMatch
       // Text emphasis is stored at brand level, not layer-specific
-      return `var(--recursica-brand-themes-${mode}-text-emphasis-${emphasis.toLowerCase()})`
+      return `var(${textEmphasisVar(mode, emphasis.toLowerCase())})`
     }
 
     const layerElementMatch = /^layers?\.(?:layer-)?(\d+)\.elements?\.(.+)$/i.exec(pathParts.join('.'))
@@ -314,35 +325,28 @@ export function resolveTokenReferenceToCssVar(
         elementPath = 'interactive-color'
       }
 
-      return `var(--recursica-brand-themes-${mode}-layers-layer-${layerNum}-elements-${elementPath})`
+      return `var(${layerElement(mode, layerNum, elementPath)})`
     }
 
     // Palette core-colors references with state: palettes.core-colors.interactive.default.tone
     const paletteCoreColorsStateMatch = /^palettes?\.core-colors?\.([a-z0-9-]+)\.([a-z0-9-]+)\.(tone|on-tone)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsStateMatch) {
-      const [, coreColor, state, type] = paletteCoreColorsStateMatch
-      return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-${state}-${type})`
+      const [, coreColor, coreState, type] = paletteCoreColorsStateMatch
+      return `var(${paletteCore(mode, coreColor, coreState, type)})`
     }
 
     // Palette core-colors references with property: palettes.core-colors.success.tone, palettes.core-colors.success.interactive, palettes.core-colors.success.on-tone
     const paletteCoreColorsPropertyMatch = /^palettes?\.core-colors?\.([a-z0-9-]+)\.(tone|on-tone|interactive)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsPropertyMatch) {
       const [, coreColor, property] = paletteCoreColorsPropertyMatch
-      // Map property names to CSS variable suffixes
-      if (property === 'tone') {
-        return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-tone)`
-      } else if (property === 'on-tone') {
-        return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-on-tone)`
-      } else if (property === 'interactive') {
-        return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-interactive)`
-      }
+      return `var(${paletteCore(mode, coreColor, property)})`
     }
 
     // Palette core-colors references: palettes.core-colors.alert
     const paletteCoreColorsMatch = /^palettes?\.core-colors?\.(alert|warning|success|interactive|black|white)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsMatch) {
       const [, coreColor] = paletteCoreColorsMatch
-      return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor})`
+      return `var(${paletteCore(mode, coreColor)})`
     }
 
     // Palette references with full path: palettes.neutral.100.color.tone or palettes.neutral.default.color.tone
@@ -350,7 +354,7 @@ export function resolveTokenReferenceToCssVar(
     if (paletteFlexMatch) {
       const [, paletteKey, level, type] = paletteFlexMatch
       const cssLevel = level === 'default' ? 'primary' : level
-      return `var(--recursica-brand-themes-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
+      return `var(--recursica_brand_themes_${mode}_palettes_${paletteKey}_${cssLevel}_color_${type})`
     }
 
     // Palette references: palettes.neutral.100.tone (legacy format without .color.)
@@ -358,56 +362,59 @@ export function resolveTokenReferenceToCssVar(
     if (paletteMatch) {
       const [, paletteKey, level, type] = paletteMatch
       const cssLevel = level === 'default' ? 'primary' : level
-      return `var(--recursica-brand-themes-${mode}-palettes-${paletteKey}-${cssLevel}-${type})`
+      return `var(${paletteVar(mode, paletteKey, cssLevel, 'color_' + type)})`
     }
 
     // Palette default/primary references: palettes.neutral.default or palettes.neutral.primary
     const paletteDefaultMatch = /^palettes?\.([a-z0-9-]+)\.(default|primary)$/i.exec(pathParts.join('.'))
     if (paletteDefaultMatch) {
       const [, paletteKey] = paletteDefaultMatch
-      return `var(--recursica-brand-themes-${mode}-palettes-${paletteKey}-primary-tone)`
+      return `var(${paletteVar(mode, paletteKey, 'primary', 'color_tone')})`
     }
 
     // Palette alert/warning/success: palettes.alert (legacy format)
     const paletteCoreMatch = /^palettes?\.(alert|warning|success)$/i.exec(pathParts.join('.'))
     if (paletteCoreMatch) {
       const [, coreColor] = paletteCoreMatch
-      return `var(--recursica-brand-themes-${mode}-palettes-core-${coreColor})`
+      return `var(${paletteCore(mode, coreColor)})`
     }
 
     // Palette black/white shortcuts: palettes.black or palettes.white
     const paletteBWMatch = /^palettes?\.(black|white)$/i.exec(pathParts.join('.'))
     if (paletteBWMatch) {
       const [, color] = paletteBWMatch
-      return `var(--recursica-brand-themes-${mode}-palettes-core-${color})`
+      return `var(${paletteCore(mode, color)})`
     }
 
     // Elevation references: elevations.elevation-0 or elevations.elevation-1
     const elevationKeyMatch = /^elevations?\.(elevation-\d+)$/i.exec(pathParts.join('.'))
     if (elevationKeyMatch) {
-      const [, elevationKey] = elevationKeyMatch
-      return `var(--recursica-brand-themes-${mode}-elevations-${elevationKey})`
+      const eMatch = /elevation-(\d+)/.exec(elevationKeyMatch[1])
+      if (eMatch) {
+        // Return elevation base without specific property
+        return `var(--recursica_brand_themes_${mode}_elevations_elevation-${eMatch[1]})`
+      }
     }
 
     // Elevation references: elevations.elevation-0.x-axis
     const elevationMatch = /^elevations?\.elevation-(\d+)\.(.+)$/i.exec(pathParts.join('.'))
     if (elevationMatch) {
       const [, elevationNum, prop] = elevationMatch
-      return `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationNum}-${prop.replace(/\./g, '-')})`
+      return `var(${elevationVar(mode, elevationNum, prop.replace(/\./g, '_'))})`
     }
 
     // State references: state.disabled or states.disabled
     const stateMatch = /^states?\.(.+)$/i.exec(pathParts.join('.'))
     if (stateMatch) {
       const statePath = stateMatch[1].replace(/\./g, '-')
-      return `var(--recursica-brand-themes-${mode}-state-${statePath})`
+      return `var(--recursica_brand_themes_${mode}_states_${statePath})`
     }
 
     // Text-emphasis references: text-emphasis.low or text-emphasis.high
     const textEmphasisMatch = /^text-emphasis\.(low|high)$/i.exec(pathParts.join('.'))
     if (textEmphasisMatch) {
       const [, emphasis] = textEmphasisMatch
-      return `var(--recursica-brand-themes-${mode}-text-emphasis-${emphasis})`
+      return `var(--recursica_brand_themes_${mode}_text-emphasis_${emphasis})`
     }
   }
 

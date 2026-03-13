@@ -9,6 +9,7 @@ import { Button } from '../../components/adapters/Button'
 import brandDefault from '../../../recursica_brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getVarsStore } from '../../core/store/varsStore'
+import { genericLayerText } from '../../core/css/cssVarBuilder'
 
 export default function LayersPage() {
   const { theme, setTheme } = useVars()
@@ -38,13 +39,13 @@ export default function LayersPage() {
     // Clear CSS variables for all layers so they regenerate from theme defaults
     const rootEl = document.documentElement
     allLayers.forEach((lvl) => {
-      const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-surface`
-      const borderVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-color`
-      const textColorVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-elements-text-color`
-      const paddingVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-padding`
-      const borderRadiusVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-radius`
-      const borderThicknessVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-size`
-      const elevationVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-elevation`
+      const surfaceVar = `--recursica_brand_layer_${lvl}_properties_surface`
+      const borderVar = `--recursica_brand_layer_${lvl}_properties_border-color`
+      const textColorVar = `--recursica_brand_layer_${lvl}_elements_text-color`
+      const paddingVar = `--recursica_brand_layer_${lvl}_properties_padding`
+      const borderRadiusVar = `--recursica_brand_layer_${lvl}_properties_border-radius`
+      const borderThicknessVar = `--recursica_brand_layer_${lvl}_properties_border-size`
+      const elevationVar = `--recursica_brand_layer_${lvl}_properties_elevation`
 
       rootEl.style.removeProperty(surfaceVar)
       rootEl.style.removeProperty(textColorVar)
@@ -88,8 +89,6 @@ export default function LayersPage() {
 
     setTheme(nextTheme)
   }
-
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
 
   // Dynamically get all available layers from theme
   const layerModules = useMemo(() => {
@@ -135,18 +134,18 @@ export default function LayersPage() {
   }, [theme, mode, selectedLayerLevels])
 
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`, color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
-      <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica_brand_layer_0_properties_surface)`, color: `var(--recursica_brand_layer_0_elements_text-color)` }}>
+      <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
         <div className="section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h1 style={{
               margin: 0,
-              fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
-              fontSize: 'var(--recursica-brand-typography-h1-font-size)',
-              fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
-              letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
-              lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+              fontFamily: 'var(--recursica_brand_typography_h1-font-family)',
+              fontSize: 'var(--recursica_brand_typography_h1-font-size)',
+              fontWeight: 'var(--recursica_brand_typography_h1-font-weight)',
+              letterSpacing: 'var(--recursica_brand_typography_h1-font-letter-spacing)',
+              lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
+              color: `var(${genericLayerText(0, 'color')})`,
             }}>Layers</h1>
             <Button
               variant="outline"
@@ -154,7 +153,7 @@ export default function LayersPage() {
               onClick={handleResetAll}
               icon={(() => {
                 const ResetIcon = iconNameToReactComponent('arrow-path')
-                return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
               })()}
               layer="layer-1"
             >

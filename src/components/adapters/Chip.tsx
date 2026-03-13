@@ -175,7 +175,7 @@ export function Chip({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: showCheckmark ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : 1,
+                    opacity: showCheckmark ? `var(--recursica_brand_${mode}-state-disabled, 0.5)` : 1,
                   }}
                 >
                   {icon}
@@ -216,7 +216,7 @@ export function Chip({
                 cursor: disabled ? 'not-allowed' : 'pointer',
                 padding: 0,
                 marginLeft: '4px',
-                opacity: disabled ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : undefined,
+                opacity: disabled ? `var(--recursica_brand_${mode}-state-disabled, 0.5)` : undefined,
                 width: `var(${closeIconSizeVar}, 16px)`,
                 height: `var(${closeIconSizeVar}, 16px)`,
                 display: 'inline-flex',
@@ -327,7 +327,7 @@ function getChipStyles(
 
   // Apply disabled styles
   if (disabled) {
-    styles.opacity = `var(--recursica-brand-${mode}-state-disabled)`
+    styles.opacity = `var(--recursica_brand_${mode}-state-disabled)`
     styles.cursor = 'not-allowed'
   }
 

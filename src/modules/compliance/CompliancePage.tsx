@@ -17,6 +17,7 @@ import { Link } from '../../components/adapters/Link'
 import { Tooltip } from '../../components/adapters/Tooltip'
 import { findColorFamilyAndLevel, getAllFamilyColorsByKey, traceToTokenRef } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
+import { tokenColors, genericLayerText, genericLayerProperty } from '../../core/css/cssVarBuilder'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVarNumber } from '../../core/css/readCssVar'
 import { generateSuggestedTones } from './toneInterpolation'
@@ -82,7 +83,7 @@ function formatOnToneLabel(issue: ComplianceIssue): string {
 
         const isBlackBased = luminance < toneLuminance
 
-        const coreVar = `--recursica-brand-themes-${issue.mode}-palettes-core-${isBlackBased ? 'black' : 'white'}`
+        const coreVar = `--recursica_brand_themes_${issue.mode}-palettes-core-${isBlackBased ? 'black' : 'white'}`
         const resolved = getComputedStyle(document.documentElement).getPropertyValue(coreVar).trim()
 
         if (resolved && resolved.startsWith('#')) {
@@ -159,9 +160,6 @@ export default function CompliancePage() {
 
     const displayIssues = snapshotRef.current ?? issues
 
-    const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-    const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
-    const layer0Elements = layer0Base.replace('-properties', '-elements')
 
     const groupedIssues = useMemo(() => {
         const groups: Record<string, ComplianceIssue[]> = {}
@@ -254,7 +252,7 @@ export default function CompliancePage() {
         const normalizedLevel = resolvedLevel === '000' ? '000' : resolvedLevel === '1000' ? '1000' : String(resolvedLevel).padStart(3, '0')
 
         // Directly update the token-level CSS var on the DOM as a safety net
-        const tokenCssVar = `--recursica-tokens-colors-${resolvedFamily}-${normalizedLevel}`
+        const tokenCssVar = tokenColors(resolvedFamily, normalizedLevel)
         document.documentElement.style.setProperty(tokenCssVar, newHex)
 
         // Persist token change (triggers recomputeAndApplyAll)
@@ -292,7 +290,7 @@ export default function CompliancePage() {
 
         // Normalize level for CSS var name
         const normalizedLevel = undoInfo.level === '000' ? '000' : undoInfo.level === '1000' ? '1000' : String(undoInfo.level).padStart(3, '0')
-        const tokenCssVar = `--recursica-tokens-colors-${undoInfo.family}-${normalizedLevel}`
+        const tokenCssVar = tokenColors(undoInfo.family, normalizedLevel)
         document.documentElement.style.setProperty(tokenCssVar, undoInfo.originalHex)
 
         // Persist token change
@@ -353,8 +351,8 @@ export default function CompliancePage() {
 
             const emphasis = issue.emphasis || 'high'
             const emphasisVar = emphasis === 'high'
-                ? `--recursica-brand-themes-${issue.mode}-text-emphasis-high`
-                : `--recursica-brand-themes-${issue.mode}-text-emphasis-low`
+                ? `--recursica_brand_themes_${issue.mode}-text-emphasis-high`
+                : `--recursica_brand_themes_${issue.mode}-text-emphasis-low`
             const emphasisOpacity = readCssVarNumber(emphasisVar, emphasis === 'high' ? 1 : 0.6)
 
             const tones = generateSuggestedTones(
@@ -383,9 +381,9 @@ export default function CompliancePage() {
         <div
             className="compliance-page"
             style={{
-                padding: 'var(--recursica-brand-dimensions-general-xl)',
-                backgroundColor: `var(${layer0Base}-surface)`,
-                color: `var(${layer0Elements}-text-color)`,
+                padding: 'var(--recursica_brand_dimensions_general_xl)',
+                backgroundColor: `var(${genericLayerProperty(0, 'surface')})`,
+                color: `var(${genericLayerText(0, 'color')})`,
                 minHeight: '100%',
                 overflowY: 'auto',
             }}
@@ -394,13 +392,13 @@ export default function CompliancePage() {
             <div className="compliance-page__header">
                 <h1
                     style={{
-                        fontSize: 'var(--recursica-brand-typography-h1-font-size)',
-                        fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
-                        fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
-                        letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
-                        lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-                        color: `var(${layer0Elements}-text-color)`,
-                        opacity: `var(${layer0Elements}-text-high-emphasis)`,
+                        fontSize: 'var(--recursica_brand_typography_h1-font-size)',
+                        fontWeight: 'var(--recursica_brand_typography_h1-font-weight)',
+                        fontFamily: 'var(--recursica_brand_typography_h1-font-family)',
+                        letterSpacing: 'var(--recursica_brand_typography_h1-font-letter-spacing)',
+                        lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
+                        color: `var(${genericLayerText(0, 'color')})`,
+                        opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                         margin: 0,
                     }}
                 >
@@ -440,16 +438,16 @@ export default function CompliancePage() {
             {/* Empty state */}
             {issues.length === 0 && (
                 <div className="compliance-page__empty" style={{
-                    color: `var(${layer0Elements}-text-color)`,
-                    opacity: `var(${layer0Elements}-text-low-emphasis)`,
+                    color: `var(${genericLayerText(0, 'color')})`,
+                    opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
                 }}>
                     <div className="compliance-page__empty-icon">
                         {CheckIcon && <CheckIcon style={{ width: 48, height: 48 }} />}
                     </div>
-                    <p style={{ fontSize: 'var(--recursica-brand-typography-h3-font-size, 18px)' }}>
+                    <p style={{ fontSize: 'var(--recursica_brand_typography_h3-font-size, 18px)' }}>
                         All clear — no compliance issues!
                     </p>
-                    <p style={{ fontSize: 'var(--recursica-brand-typography-body-small-font-size)' }}>
+                    <p style={{ fontSize: 'var(--recursica_brand_typography_body-small-font-size)' }}>
                         Your theme meets WCAG AA contrast requirements.
                     </p>
                 </div>
@@ -462,13 +460,13 @@ export default function CompliancePage() {
                     <h2
                         className="compliance-page__group-title"
                         style={{
-                            fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-                            fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-                            fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-                            letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-                            lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-                            color: `var(${layer0Elements}-text-color)`,
-                            opacity: `var(${layer0Elements}-text-high-emphasis)`,
+                            fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+                            fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+                            fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+                            letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+                            lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+                            color: `var(${genericLayerText(0, 'color')})`,
+                            opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                         }}
                     >
                         {typeLabels[type] || type}
@@ -480,13 +478,13 @@ export default function CompliancePage() {
                     <div
                         className="compliance-table__wrapper"
                         style={{
-                            borderColor: `var(${layer0Base}-border-color)`,
-                            backgroundColor: `var(${layer1Base}-surface)`,
+                            borderColor: `var(${genericLayerProperty(0, 'border-color')})`,
+                            backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
                         }}
                     >
                         <table className="compliance-table">
                             <thead>
-                                <tr style={{ borderColor: `var(${layer0Base}-border-color)` }}>
+                                <tr style={{ borderColor: `var(${genericLayerProperty(0, 'border-color')})` }}>
                                     <th style={{ width: 48 }} className="compliance-table__th-center">Mode</th>
                                     <th style={{ width: 72, textAlign: 'center' }}>Issue</th>
                                     <th style={{ width: 72, textAlign: 'center' }}>Fix</th>
@@ -505,7 +503,7 @@ export default function CompliancePage() {
                                             key={issue.id}
                                             className="compliance-table__row"
                                             style={{
-                                                borderColor: `var(${layer0Base}-border-color)`,
+                                                borderColor: `var(${genericLayerProperty(0, 'border-color')})`,
                                                 opacity: (fixedMap[issue.id] || suggestFixedMap[issue.id]) ? 0.45 : 1,
                                             }}
                                         >

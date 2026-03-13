@@ -20,11 +20,11 @@ function normalizeColorLevel(level: string): string | null {
  * Always uses scale-n format (e.g., scale-02) instead of alias format (e.g., gray)
  * 
  * Examples:
- * - "color/gray/100" -> "var(--recursica-tokens-colors-scale-02-100)" (if gray is scale-02)
- * - "colors/scale-01/100" -> "var(--recursica-tokens-colors-scale-01-100)"
- * - "size/4x" -> "var(--recursica-tokens-size-4x)"
- * - "font/size/md" -> "var(--recursica-tokens-font-sizes-md)"
- * - "opacity/veiled" -> "var(--recursica-tokens-opacity-veiled)"
+ * - "color/gray/100" -> "var(--recursica_tokens_colors_scale-02_100)" (if gray is scale-02)
+ * - "colors/scale-01/100" -> "var(--recursica_tokens_colors_scale-01_100)"
+ * - "size/4x" -> "var(--recursica_tokens_sizes_4x)"
+ * - "font/size/md" -> "var(--recursica_tokens_font_sizes_md)"
+ * - "opacity/veiled" -> "var(--recursica_tokens_opacities_veiled)"
  * 
  * @param tokenName - Token name (e.g., "color/gray/900", "colors/scale-01/100")
  * @param tokens - Optional tokens JSON to resolve aliases to scale keys
@@ -54,7 +54,7 @@ export function tokenToCssVar(tokenName: string, tokens?: any): string | null {
         if (scaleOrFamily && normalizedLevel) {
           // If it's already a scale key, use it directly
           if (scaleOrFamily.startsWith('scale-')) {
-            return `var(--recursica-tokens-colors-${scaleOrFamily}-${normalizedLevel})`
+            return `var(--recursica_tokens_colors_${scaleOrFamily}_${normalizedLevel})`
           }
           
           // Otherwise, it's an alias - find the scale key from tokens
@@ -80,13 +80,13 @@ export function tokenToCssVar(tokenName: string, tokens?: any): string | null {
           }
           
           // Always use scale key, never alias
-          return `var(--recursica-tokens-colors-${scaleKey}-${normalizedLevel})`
+          return `var(--recursica_tokens_colors_${scaleKey}_${normalizedLevel})`
         }
       }
     } else if (category === 'size' || category === 'sizes') {
-      return `var(--recursica-tokens-sizes-${rest[0]})`
+      return `var(--recursica_tokens_sizes_${rest[0]})`
     } else if (category === 'opacity' || category === 'opacities') {
-      return `var(--recursica-tokens-opacities-${rest[0]})`
+      return `var(--recursica_tokens_opacities_${rest[0]})`
     } else if (category === 'font' && rest.length >= 2) {
       const [kind, key] = rest
       // Map singular to plural for font categories
@@ -105,12 +105,12 @@ export function tokenToCssVar(tokenName: string, tokens?: any): string | null {
         'decorations': 'decorations'
       }
       const pluralKind = pluralMap[kind] || kind
-      return `var(--recursica-tokens-font-${pluralKind}-${key})`
+      return `var(--recursica_tokens_font_${pluralKind}_${key})`
     } else if (category === 'colors' && rest.length >= 2) {
       // New format: colors/scale-XX/level
       const [scale, level] = rest
       const normalizedLevel = level === '1000' ? '1000' : String(level).padStart(3, '0')
-      return `var(--recursica-tokens-colors-${scale}-${normalizedLevel})`
+      return `var(--recursica_tokens_colors_${scale}_${normalizedLevel})`
     }
   } catch {
     return null

@@ -9,6 +9,7 @@ import { readCssVar } from '../css/readCssVar'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
+import { TOKEN_PREFIX } from '../css/cssVarBuilder'
 import tokensJson from '../../../recursica_tokens.json'
 import brandJson from '../../../recursica_brand.json'
 import uikitJson from '../../../recursica_ui-kit.json'
@@ -39,7 +40,7 @@ function getAllCssVars(): Record<string, string> {
   // Get from inline styles
   for (let i = 0; i < root.style.length; i++) {
     const prop = root.style[i]
-    if (prop && prop.startsWith('--recursica-')) {
+    if (prop && prop.startsWith('--recursica_')) {
       allVarNames.add(prop)
     }
   }
@@ -58,7 +59,7 @@ function getAllCssVars(): Record<string, string> {
     .flatMap(rule => {
       const styleRule = rule as CSSStyleRule
       return Array.from(styleRule.style)
-        .filter(prop => prop.startsWith('--recursica-'))
+        .filter(prop => prop.startsWith('--recursica_'))
         .map(prop => prop)
     })
 
@@ -76,212 +77,31 @@ function getAllCssVars(): Record<string, string> {
 }
 
 /**
- * Converts a CSS variable reference to a token reference string
+ * Converts a CSS variable reference to a token reference string.
+ * With underscore-delimited names, splitting on '_' gives correct path segments directly.
  */
 function cssVarToTokenRef(cssVar: string): string | null {
-  const varMatch = cssVar.match(/var\s*\(\s*(--recursica-tokens-([^)]+))\s*\)/)
+  const varMatch = cssVar.match(/var\s*\(\s*(--recursica_tokens_([^)]+))\s*\)/)
   if (!varMatch) return null
 
-  const path = varMatch[2]
-  // Convert --recursica-tokens-color-gray-500 to tokens.color.gray.500
-  const parts = path.split('-')
-
-  if (parts[0] === 'tokens') {
-    parts.shift() // Remove 'tokens'
-  }
-
-  // Handle color tokens: colors-scale-01-100 -> colors.scale-01.100
-  // Also support old format: color-gray-500 -> color.gray.500
-  if (parts[0] === 'colors' && parts.length >= 3) {
-    // Find where the level starts (it's a number like 000, 050, 100, etc. or 1000)
-    // Look for a pattern like scale-XX-YYY where XX is the scale number and YYY is the level
-    let scaleEndIndex = -1
-    for (let i = 1; i < parts.length - 1; i++) {
-      // Check if parts[i+1] looks like a level (3-4 digits)
-      const nextPart = parts[i + 1]
-      if (/^\d{3,4}$/.test(nextPart)) {
-        scaleEndIndex = i
-        break
-      }
-    }
-
-    if (scaleEndIndex > 0) {
-      // Scale is parts[1] through parts[scaleEndIndex] (e.g., ['scale', '01'] -> 'scale-01')
-      const scaleParts = parts.slice(1, scaleEndIndex + 1)
-      const scale = scaleParts.join('-')
-      const level = parts.slice(scaleEndIndex + 1).join('-') // Handle levels like '0-5x'
-      return `{tokens.colors.${scale}.${level}}`
-    }
-
-    // Fallback: assume scale is just parts[1] (old format)
-    const scale = parts[1]
-    const level = parts.slice(2).join('-')
-    return `{tokens.colors.${scale}.${level}}`
-  }
-
-  // Fix malformed token references that may have been created incorrectly
-  // {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
-  if (parts[0] === 'tokens' && parts.length >= 2) {
-    const rest = parts.slice(1).join('-')
-    const malformedMatch = rest.match(/^colors\.scale\.(\d+)-(\d{3,4})$/)
-    if (malformedMatch) {
-      return `{tokens.colors.scale-${malformedMatch[1]}.${malformedMatch[2]}}`
-    }
-  }
-  if (parts[0] === 'color' && parts.length >= 3) {
-    const family = parts[1]
-    const level = parts.slice(2).join('-') // Handle levels like '0-5x'
-    return `{tokens.color.${family}.${level}}`
-  }
-
-  // Handle size tokens: sizes-default -> sizes.default
-  // Also support old format: size-default -> size.default
-  if (parts[0] === 'sizes' && parts.length >= 2) {
-    const name = parts.slice(1).join('-')
-    return `{tokens.sizes.${name}}`
-  }
-  if (parts[0] === 'size' && parts.length >= 2) {
-    const name = parts.slice(1).join('-')
-    return `{tokens.size.${name}}`
-  }
-
-  // Handle opacity tokens: opacities-solid -> opacities.solid
-  // Also support old format: opacity-solid -> opacity.solid
-  if (parts[0] === 'opacities' && parts.length >= 2) {
-    const name = parts.slice(1).join('-')
-    return `{tokens.opacities.${name}}`
-  }
-  if (parts[0] === 'opacity' && parts.length >= 2) {
-    const name = parts.slice(1).join('-')
-    return `{tokens.opacity.${name}}`
-  }
-
-  // Handle font tokens: font-sizes-md -> font.sizes.md
-  // Also support old format: font-size-md -> font.size.md
-  if (parts[0] === 'font' && parts.length >= 3) {
-    const category = parts[1]
-    const key = parts.slice(2).join('-')
-    // Map plural to singular for backwards compatibility in references
-    const singularMap: Record<string, string> = {
-      'sizes': 'sizes',
-      'weights': 'weights',
-      'letter-spacings': 'letter-spacings',
-      'line-heights': 'line-heights',
-      'typefaces': 'typefaces',
-      'cases': 'cases',
-      'decorations': 'decorations'
-    }
-    // Keep plural form in reference
-    return `{tokens.font.${category}.${key}}`
-  }
-
-  return null
+  // Split on '_' to get path segments (compound keys like 'scale-02' stay intact)
+  const parts = varMatch[2].split('_')
+  return `{tokens.${parts.join('.')}}`
 }
 
 /**
- * Converts a CSS variable reference to a brand reference string
+ * Converts a CSS variable reference to a brand reference string.
+ * With underscore-delimited names, splitting on '_' gives correct path segments directly.
  */
 function cssVarToBrandRef(cssVar: string): string | null {
-  const varMatch = cssVar.match(/var\s*\(\s*(--recursica-brand-([^)]+))\s*\)/)
+  const varMatch = cssVar.match(/var\s*\(\s*(--recursica_brand_([^)]+))\s*\)/)
   if (!varMatch) return null
 
-  const path = varMatch[2]
-  const parts = path.split('-')
-
-  if (parts[0] !== 'brand') {
-    parts.unshift('brand')
-  }
-
-  // Handle brand paths: light-palettes-neutral-100-tone -> brand.themes.light.palettes.neutral.100.color.tone
-  if (parts.length >= 2 && (parts[1] === 'light' || parts[1] === 'dark')) {
-    const mode = parts[1]
-    parts.shift() // Remove 'brand'
-    parts.shift() // Remove mode
-
-    // Reconstruct path
-    let jsonPath = `brand.themes.${mode}`
-
-    // Handle palettes
-    // Pattern: palettes-{paletteKey}-{level}-{type}
-    // paletteKey can be: neutral, palette-1, palette-2, core-white, core-black, etc.
-    if (parts[0] === 'palettes' && parts.length >= 4) {
-      parts.shift() // Remove 'palettes'
-
-      // Find the level (it's a number: 000, 050, 100, 200, etc. or 1000)
-      let levelIndex = -1
-      for (let i = 0; i < parts.length; i++) {
-        if (/^\d{3,4}$/.test(parts[i])) {
-          levelIndex = i
-          break
-        }
-      }
-
-      if (levelIndex > 0 && levelIndex < parts.length - 1) {
-        // Everything before the level is the paletteKey (may contain hyphens)
-        const paletteKeyParts = parts.slice(0, levelIndex)
-        const paletteKey = paletteKeyParts.join('-')
-        const level = parts[levelIndex]
-        // Everything after the level is the type (may contain hyphens like "on-tone")
-        const type = parts.slice(levelIndex + 1).join('-')
-
-        if (type === 'tone' || type === 'on-tone') {
-          return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.color.${type}}`
-        }
-
-        return `{brand.themes.${mode}.palettes.${paletteKey}.${level}.${type}}`
-      }
-    }
-
-    // Handle layers
-    // Pattern: --recursica-brand-themes-{theme}-layers-layer-{N}-...
-    if (parts[0] === 'layers' && parts.length >= 4) {
-      const layerMatch = parts[1].match(/^layer-(\d+)$/)
-      if (layerMatch) {
-        const layerId = parts[1] // e.g., 'layer-0'
-        const pathType = parts[2] // 'properties' or 'elements'
-
-        if (pathType === 'properties') {
-          const propPath = parts.slice(3).join('.')
-          return `{brand.themes.${mode}.layers.${layerId}.properties.${propPath}}`
-        } else if (pathType === 'elements') {
-          const elementPath = parts.slice(3).join('.')
-          return `{brand.themes.${mode}.layers.${layerId}.elements.${elementPath}}`
-        }
-      }
-    }
-
-    // Legacy support: Handle old layer-layer-X format
-    if (parts[0] === 'layer' && parts.length >= 3) {
-      parts.shift() // Remove 'layer'
-      parts.shift() // Remove 'layer' (layer-layer-X)
-      const layerId = parts[0]
-      parts.shift() // Remove layer ID
-
-      if ((parts[0] as string) === 'property') {
-        parts.shift() // Remove 'property'
-        if ((parts[0] as string) === 'element') {
-          parts.shift() // Remove 'element'
-          const elementPath = parts.join('.')
-          return `{brand.themes.${mode}.layers.${layerId}.elements.${elementPath}}`
-        } else {
-          const propPath = parts.join('.')
-          return `{brand.themes.${mode}.layers.${layerId}.properties.${propPath}}`
-        }
-      }
-    }
-
-    // Handle other brand paths
-    return `{brand.themes.${mode}.${parts.join('.')}}`
-  }
-
-  // Handle brand-level paths (no mode): dimensions, typography, etc.
-  if (parts[0] === 'brand' && parts.length >= 2) {
-    parts.shift() // Remove 'brand'
-    return `{brand.${parts.join('.')}}`
-  }
-
-  return null
+  // Split on '_' to get path segments (compound keys like 'palette-1', 'on-tone' stay intact)
+  const parts = varMatch[2].split('_')
+  return `{brand.${parts.join('.')}}`
 }
+
 
 /**
  * Converts a CSS value to JSON value format
@@ -919,16 +739,15 @@ function ensurePaletteDefaults(result: any): void {
 }
 
 /**
- * Exports brand.json from CSS variables
- * Reads CSS variables and converts them back to JSON structure
- * This ensures AA-compliant on-tone values and other CSS var updates are included in the export
+ * Exports brand.json from the store.
+ * Now a direct store dump — brand CSS var changes are synced to the store
+ * in real-time via updateBrandValue, so the store is always up-to-date.
  */
 export function exportBrandJson(): object {
   const store = getVarsStore()
   const storeState = store.getState()
   const theme = storeState.theme as any
 
-  // Start with the structure from store (preserves JSON structure)
   if (!theme?.brand) {
     return {
       brand: {},
@@ -942,114 +761,12 @@ export function exportBrandJson(): object {
   // Deep clone the brand structure from store
   const result = JSON.parse(JSON.stringify(theme.brand))
 
-  // Read all CSS variables
-  const cssVars = getAllCssVars()
-  const tokenIndex = buildTokenIndex(storeState.tokens as JsonLike)
-
-  // Helper to set a value in the nested JSON structure
-  const setValueInResult = (mode: string, pathParts: string[], value: any, type: string = 'color') => {
-    // Ensure themes structure exists
-    if (!result.themes) result.themes = {}
-    if (!result.themes[mode]) result.themes[mode] = {}
-
-    let current: any = result.themes[mode]
-
-    // Navigate/create the path structure
-    for (let i = 0; i < pathParts.length - 1; i++) {
-      const part = pathParts[i]
-      if (!current[part]) {
-        current[part] = {}
-      }
-      current = current[part]
-    }
-
-    // Set the value (last part of path)
-    const lastPart = pathParts[pathParts.length - 1]
-    if (!current[lastPart]) {
-      current[lastPart] = {}
-    }
-
-    // Ensure it has $type and $value structure
-    if (typeof current[lastPart] === 'object' && !Array.isArray(current[lastPart])) {
-      current[lastPart].$type = current[lastPart].$type || type
-      current[lastPart].$value = value
-    }
-  }
-
-  // Update values from CSS variables
-  // Process all brand CSS variables and update the JSON structure
-  Object.entries(cssVars).forEach(([varName, varValue]) => {
-    if (!varName.startsWith('--recursica-brand-themes-')) return
-
-    // Extract mode and path from CSS variable name
-    // Pattern: --recursica-brand-themes-{mode}-{path}
-    const varMatch = varName.match(/^--recursica-brand-themes-(light|dark)-(.+)$/)
-    if (!varMatch) return
-
-    const mode = varMatch[1]
-    const cssPath = varMatch[2]
-
-    // Parse the CSS path to determine where this value should go in JSON
-    // Pattern: palettes-{paletteKey}-{level}-{type}
-    // paletteKey can be: neutral, palette-1, palette-2, core-white, core-black, etc.
-    // We need to handle hyphens in paletteKey correctly
-    if (!cssPath.startsWith('palettes-')) return
-
-    const afterPalettes = cssPath.substring('palettes-'.length)
-
-    // Find the level (it's a number: 000, 050, 100, 200, etc. or 1000)
-    // Levels are always numeric, so we can find them by looking for patterns like -100-, -200-, etc.
-    const levelMatch = afterPalettes.match(/-(\d{3,4})(?:-|$)/)
-    if (!levelMatch) return
-
-    const level = levelMatch[1]
-    const levelIndex = afterPalettes.indexOf(`-${level}-`)
-    if (levelIndex === -1) return
-
-    // Everything before the level is the paletteKey (may contain hyphens)
-    const paletteKey = afterPalettes.substring(0, levelIndex)
-    // Everything after the level is the type (may contain hyphens like "on-tone")
-    const type = afterPalettes.substring(levelIndex + level.length + 2) // +2 for the hyphens
-
-    if (type === 'tone' || type === 'on-tone') {
-      const pathParts = ['palettes', paletteKey, level, 'color', type]
-
-      // Convert CSS variable value to JSON reference or value
-      const brandRef = cssVarToBrandRef(varValue)
-      if (brandRef) {
-        // It's a reference - normalize to short format
-        let jsonValue = brandRef
-
-        // Core-black/core-white: write token path, not shorthand
-        const coreMatch = brandRef.match(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/)
-        if (coreMatch) {
-          jsonValue = coreMatch[2] === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'
-        } else {
-          // Remove theme from reference: {brand.themes.light.palettes.X} -> {brand.palettes.X}
-          jsonValue = brandRef.replace(/{brand\.themes\.(light|dark)\./, '{brand.')
-        }
-
-        // Set the value in the result structure
-        setValueInResult(mode, pathParts, jsonValue, 'color')
-      } else {
-        // It's a direct value (hex color, etc.)
-        const jsonValue = cssValueToJsonValue(varValue, 'color', tokenIndex)
-        if (jsonValue !== undefined) {
-          setValueInResult(mode, pathParts, jsonValue, 'color')
-        }
-      }
-    }
-  })
-
-  // Ensure each palette (neutral, palette-1, palette-2) has default with both tone and on-tone
-  // so theme-agnostic refs like {brand.palettes.palette-1.default.color.on-tone} resolve in export
+  // Ensure each palette has default entries with both tone and on-tone
   ensurePaletteDefaults(result)
 
   // Normalize all references to use short alias format (no theme paths)
-  // This also fixes any malformed references that may have been created
   const normalized = normalizeBrandReferences(result)
 
-  // Build the final export object
   const exportObject = {
     brand: normalized,
     $metadata: {
@@ -1063,7 +780,6 @@ export function exportBrandJson(): object {
     validateBrandJson(exportObject as JsonLike)
   } catch (error) {
     console.warn('[Export] recursica_brand.json validation failed, but continuing export:', error)
-    // Don't throw - let the user see the export even if there are validation issues
   }
 
   return exportObject
@@ -1192,8 +908,8 @@ function downloadCssFile(css: string, filename: string): void {
  * Returns the level as a number for sorting (000 -> 0, 050 -> 50, 100 -> 100, etc.)
  */
 function extractColorLevel(varName: string): number {
-  // Pattern: --recursica-tokens-color-{family}-{level}
-  const match = varName.match(/--recursica-tokens-color-[^-]+-(\d+)$/)
+  // Pattern: --recursica_tokens_color_{family}-{level}
+  const match = varName.match(/--recursica_tokens_color_[^-]+-(\d+)$/)
   if (match) {
     return parseInt(match[1], 10)
   }
@@ -1205,8 +921,8 @@ function extractColorLevel(varName: string): number {
  * Returns a key that groups by path structure, then sorts by level, then light before dark
  */
 function getBrandSortKey(varName: string): string {
-  // Pattern: --recursica-brand-themes-{mode}-{rest}
-  const match = varName.match(/--recursica-brand-themes-(light|dark)-(.*)$/)
+  // Pattern: --recursica_brand_themes_{mode}-{rest}
+  const match = varName.match(/--recursica_brand_themes_(light|dark)-(.*)$/)
   if (match) {
     const mode = match[1]
     const rest = match[2]
@@ -1239,20 +955,20 @@ function parseCssVarName(varName: string): {
   hasTheme: boolean
   hasLayer: boolean
 } {
-  // Brand vars: --recursica-brand-themes-{light|dark}-...
-  const brandThemeMatch = varName.match(/^--recursica-brand-themes-(light|dark)-(.*)$/)
+  // Brand vars: --recursica_brand_themes_{light|dark}-...
+  const brandThemeMatch = varName.match(/^--recursica_brand_themes_(light|dark)-(.*)$/)
   if (brandThemeMatch) {
     const theme = brandThemeMatch[1] as 'light' | 'dark'
     const rest = brandThemeMatch[2]
 
     // Check for layer in brand vars: ...-layer-layer-{N}-...
-    // Pattern: --recursica-brand-themes-{theme}-layer-layer-{N}-...
+    // Pattern: --recursica_brand_themes_{theme}-layer-layer-{N}-...
     const layerMatch = rest.match(/^layer-layer-(\d+)-(.*)$/)
     if (layerMatch) {
       const layer = layerMatch[1]
       const afterLayer = layerMatch[2]
-      // Base name: --recursica-brand-layer-{rest}
-      const baseName = `--recursica-brand-layer-${afterLayer}`
+      // Base name: --recursica_brand_layer_{rest}
+      const baseName = `--recursica_brand_layer_${afterLayer}`
       return {
         theme,
         layer,
@@ -1264,7 +980,7 @@ function parseCssVarName(varName: string): {
 
     // No layer, just theme
     // Base name: remove themes-{mode}- prefix
-    const baseName = varName.replace(/^--recursica-brand-themes-(light|dark)-/, '--recursica-brand-')
+    const baseName = varName.replace(/^--recursica_brand_themes_(light|dark)-/, '--recursica_brand_')
     return {
       theme,
       layer: null,
@@ -1274,9 +990,9 @@ function parseCssVarName(varName: string): {
     }
   }
 
-  // UIKit vars: --recursica-ui-kit-components-{component}-...-layer-{N}-...
+  // UIKit vars: --recursica_ui-kit_components_{component}-...-layer-{N}-...
   // Need to find the layer-{N} pattern and remove it
-  const uikitMatch = varName.match(/^(--recursica-ui-kit-components-.*?)-layer-(\d+)(.*)$/)
+  const uikitMatch = varName.match(/^(--recursica_ui-kit_components_.*?)-layer-(\d+)(.*)$/)
   if (uikitMatch) {
     const beforeLayer = uikitMatch[1]
     const layer = uikitMatch[2]
@@ -1307,34 +1023,34 @@ function parseCssVarName(varName: string): {
  * Only converts hyphens in the actual key names, not in path segments (which were originally dots)
  *
  * @example
- * convertKeyHyphensToUnderscores('--recursica-ui-kit-globals-form-properties-label-field-gap-horizontal')
- * => '--recursica-ui-kit-globals-form-properties-label_field_gap_horizontal'
+ * convertKeyHyphensToUnderscores('--recursica_ui-kit_globals_form_properties_label_field_gap_horizontal')
+ * => '--recursica_ui-kit_globals_form_properties_label_field_gap_horizontal'
  *
  * @example
- * convertKeyHyphensToUnderscores('--recursica-tokens-color-gray-500')
- * => '--recursica-tokens-color-gray_500'
+ * convertKeyHyphensToUnderscores('--recursica_tokens_color_gray_500')
+ * => '--recursica_tokens_color_gray_500'
  */
 function convertKeyHyphensToUnderscores(varName: string): string {
-  // Pattern: --recursica-{category}-{path-segments}-{key-name}
+  // Pattern: --recursica_{category}-{path-segments}-{key-name}
   // We need to identify where the path ends and the key begins
 
-  // For tokens: --recursica-tokens-{type}-{family}-{level}
+  // For tokens: --recursica_tokens_{type}-{family}-{level}
   // The last segment (level) is the key
-  const tokensMatch = varName.match(/^(--recursica-tokens-[^-]+-[^-]+)-(.+)$/)
+  const tokensMatch = varName.match(/^(--recursica_tokens_[^-]+-[^-]+)-(.+)$/)
   if (tokensMatch) {
     const prefix = tokensMatch[1]
     const key = tokensMatch[2]
     return `${prefix}-${key.replace(/-/g, '_')}`
   }
 
-  // For brand: --recursica-brand-{path}-{key}
+  // For brand: --recursica_brand_{path}-{key}
   // The structure is complex, but typically the last segment(s) are the key
   // Common patterns:
-  // - --recursica-brand-dimensions-{path}-{key}
-  // - --recursica-brand-palettes-{palette}-{level}-{property}
-  // - --recursica-brand-layer-layer-{N}-{path}-{key}
+  // - --recursica_brand_dimensions_{path}-{key}
+  // - --recursica_brand_palettes_{palette}-{level}-{property}
+  // - --recursica_brand_layer_layer_{N}-{path}-{key}
   // For now, convert hyphens to underscores in the last segment
-  const brandMatch = varName.match(/^(--recursica-brand-[^-]+(?:-[^-]+)*)-(.+)$/)
+  const brandMatch = varName.match(/^(--recursica_brand_[^-]+(?:-[^-]+)*)-(.+)$/)
   if (brandMatch) {
     const prefix = brandMatch[1]
     const key = brandMatch[2]
@@ -1353,14 +1069,14 @@ function convertKeyHyphensToUnderscores(varName: string): string {
     }
   }
 
-  // For UIKit: --recursica-ui-kit-{path}-{key}
+  // For UIKit: --recursica_ui-kit_{path}-{key}
   // The path structure is: globals|components-{component}-{category}-{path}-{key}
   // We need to identify the key part (everything after known path segments)
   // Common path patterns end with: properties-, colors-, size-, variants-styles-, variants-sizes-
   // Strategy: Find the last occurrence of known path keywords followed by hyphen, then convert the rest
-  if (varName.startsWith('--recursica-ui-kit-')) {
+  if (varName.startsWith('--recursica_ui-kit_')) {
     // Try to match known path patterns that end before the key
-    // Pattern: --recursica-ui-kit-{path}-{key} where path ends with known keywords
+    // Pattern: --recursica_ui-kit_{path}-{key} where path ends with known keywords
     const knownPathEndings = [
       'properties-',
       'colors-',
@@ -1372,7 +1088,7 @@ function convertKeyHyphensToUnderscores(varName: string): string {
     ]
 
     for (const ending of knownPathEndings) {
-      const pattern = new RegExp(`^(--recursica-ui-kit-.+?-${ending.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})(.+)$`)
+      const pattern = new RegExp(`^(--recursica_ui-kit_.+?-${ending.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})(.+)$`)
       const match = varName.match(pattern)
       if (match) {
         const prefix = match[1]
@@ -1384,7 +1100,7 @@ function convertKeyHyphensToUnderscores(varName: string): string {
 
     // Fallback: if no known path pattern matches, find the last hyphen-separated segment
     // and convert hyphens to underscores in it
-    // This handles cases like: --recursica-ui-kit-globals-icon-style
+    // This handles cases like: --recursica_ui-kit_globals_icon_style
     const parts = varName.split('-')
     if (parts.length > 4) { // At least: --, recursica, ui, kit, ...
       // Keep prefix up to and including the second-to-last segment
@@ -1396,7 +1112,7 @@ function convertKeyHyphensToUnderscores(varName: string): string {
   }
 
   // Fallback: if no pattern matches, convert all hyphens after the prefix
-  const prefixMatch = varName.match(/^(--recursica-[^-]+-[^-]+)-(.+)$/)
+  const prefixMatch = varName.match(/^(--recursica_[^-]+-[^-]+)-(.+)$/)
   if (prefixMatch) {
     const prefix = prefixMatch[1]
     const rest = prefixMatch[2]
@@ -1466,9 +1182,9 @@ function groupVarsByThemeAndLayer(
 export function exportCssStylesheet(options: { specific?: boolean; scoped?: boolean } = { specific: true, scoped: true }): { specific?: string; scoped?: string } {
   const vars = getAllCssVars()
 
-  // Filter to only --recursica- variables
+  // Filter to only --recursica_ variables
   const allRecursicaVars = Object.entries(vars)
-    .filter(([name]) => name.startsWith('--recursica-'))
+    .filter(([name]) => name.startsWith('--recursica_'))
 
   // Group by category: tokens, brand, ui-kit
   const tokensVars: Array<[string, string]> = []
@@ -1476,11 +1192,11 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
   const uikitVars: Array<[string, string]> = []
 
   allRecursicaVars.forEach(([name, value]) => {
-    if (name.startsWith('--recursica-tokens-')) {
+    if (name.startsWith(TOKEN_PREFIX)) {
       tokensVars.push([name, value])
-    } else if (name.startsWith('--recursica-brand-')) {
+    } else if (name.startsWith('--recursica_brand_')) {
       brandVars.push([name, value])
-    } else if (name.startsWith('--recursica-ui-kit-')) {
+    } else if (name.startsWith('--recursica_ui-kit_')) {
       uikitVars.push([name, value])
     }
   })
@@ -1488,8 +1204,8 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
   // Sort tokens: group by type (color, size, opacity, font), then by family, then by level (000-1000)
   tokensVars.sort(([a], [b]) => {
     // Extract prefix (color, size, opacity, font)
-    const aPrefix = a.match(/--recursica-tokens-([^-]+)/)?.[1] || ''
-    const bPrefix = b.match(/--recursica-tokens-([^-]+)/)?.[1] || ''
+    const aPrefix = a.match(/--recursica_tokens_([^-]+)/)?.[1] || ''
+    const bPrefix = b.match(/--recursica_tokens_([^-]+)/)?.[1] || ''
 
     // First sort by prefix
     if (aPrefix !== bPrefix) {
@@ -1499,8 +1215,8 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
     // For color tokens, sort by family first, then by numeric level (000-1000)
     if (aPrefix === 'color') {
       // Extract family name
-      const aFamilyMatch = a.match(/--recursica-tokens-color-([^-]+)-/)
-      const bFamilyMatch = b.match(/--recursica-tokens-color-([^-]+)-/)
+      const aFamilyMatch = a.match(/--recursica_tokens_color_([^-]+)-/)
+      const bFamilyMatch = b.match(/--recursica_tokens_color_([^-]+)-/)
       const aFamily = aFamilyMatch ? aFamilyMatch[1] : ''
       const bFamily = bFamilyMatch ? bFamilyMatch[1] : ''
 
@@ -1542,9 +1258,9 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
 
   recursicaVars.forEach(([name]) => {
     // Extract component names from UIKit variables
-    // Pattern: --recursica-ui-kit-components-{component}-...
+    // Pattern: --recursica_ui-kit_components_{component}-...
     // Only capture the component name (first part after components-)
-    const uikitMatch = name.match(/--recursica-ui-kit-components-([a-z]+(?:-[a-z]+)*?)(?:-|$)/)
+    const uikitMatch = name.match(/--recursica_ui-kit_components_([a-z]+(?:-[a-z]+)*?)(?:-|$)/)
     if (uikitMatch) {
       const componentName = uikitMatch[1]
       // Convert kebab-case to Title Case for display
@@ -1556,8 +1272,8 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
     }
 
     // Extract color families from token variables
-    // Pattern: --recursica-tokens-color-{family}-{level}
-    const tokenColorMatch = name.match(/--recursica-tokens-color-([a-z]+(?:-[a-z]+)*)-/)
+    // Pattern: --recursica_tokens_color_{family}-{level}
+    const tokenColorMatch = name.match(/--recursica_tokens_color_([a-z]+(?:-[a-z]+)*)-/)
     if (tokenColorMatch) {
       const family = tokenColorMatch[1]
       // Convert kebab-case to Title Case

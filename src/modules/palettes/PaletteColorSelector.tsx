@@ -59,8 +59,8 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const modeLower = modeLabel.toLowerCase()
 
   // Read actual core black and white colors from CSS variables (not hardcoded)
-  const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
-  const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
+  const coreBlackVar = `--recursica_brand_themes_${modeLower}_palettes_core-black`
+  const coreWhiteVar = `--recursica_brand_themes_${modeLower}_palettes_core-white`
   const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
   const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
 
@@ -73,8 +73,8 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const blackBaseContrast = contrastRatio(toneHex, black)
 
   // Get emphasis opacity values from CSS variables
-  const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
-  const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
+  const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_high`)
+  const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`)
 
   // Blend white and black with tone using both opacity values
   const whiteHighBlended = blendHexWithOpacity(white, toneHex, highEmphasisOpacity)
@@ -457,16 +457,16 @@ export default function PaletteColorSelector({
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
         // Get actual core color values (read from CSS variables to get current values)
-        const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
-        const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
+        const coreBlackVar = `--recursica_brand_themes_${modeLower}_palettes_core-black`
+        const coreWhiteVar = `--recursica_brand_themes_${modeLower}_palettes_core-white`
         const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
         const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
         const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
         const normalizedWhite = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
 
         // Get emphasis opacity values
-        const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
-        const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
+        const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_high`)
+        const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`)
         const AA = 4.5
 
         // Check both core colors with opacity blending
@@ -1001,7 +1001,7 @@ function FamilyDropdown({
                   width: 14,
                   height: 14,
                   borderRadius: 3,
-                  border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layers-layer-1-properties-border-color)`,
+                  border: `1px solid var(--recursica_brand_${mode.toLowerCase()}-layers-layer-1-properties-border-color)`,
                   background: primaryHex || 'transparent',
                   display: 'inline-block'
                 }}

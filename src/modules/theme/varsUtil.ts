@@ -25,9 +25,9 @@ export function applyCssVars(theme: ThemeVars) {
   const root = document.documentElement
   const toPrefixed = (name: string): string => {
     if (!name || !name.startsWith('--')) return name
-    // If it already has --recursica- prefix, return as-is
-    if (name.startsWith('--recursica-')) return name
-    return `--recursica-${name.slice(2)}`
+    // If it already has --recursica_ prefix, return as-is
+    if (name.startsWith('--recursica_')) return name
+    return `--recursica_${name.slice(2)}`
   }
   for (const [key, value] of Object.entries(theme)) {
     const pref = toPrefixed(key)

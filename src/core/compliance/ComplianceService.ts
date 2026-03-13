@@ -249,8 +249,8 @@ class ComplianceServiceImpl {
             const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
 
             // Read emphasis opacity values (use readCssVarNumber to resolve var() references)
-            const highEmphasisVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
-            const lowEmphasisVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+            const highEmphasisVar = `--recursica_brand_themes_${mode}_text-emphasis_high`
+            const lowEmphasisVar = `--recursica_brand_themes_${mode}_text-emphasis_low`
             const highOpacity = readCssVarNumber(highEmphasisVar, 1)
             const lowOpacity = readCssVarNumber(lowEmphasisVar, 0.6)
 
@@ -258,8 +258,8 @@ class ComplianceServiceImpl {
                 if (paletteKey === 'core' || paletteKey === 'core-colors') return
 
                 levels.forEach((level) => {
-                    const toneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
-                    const onToneVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
+                    const toneVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_tone`
+                    const onToneVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
 
                     const toneValue = readCssVar(toneVar)
                     const onToneValue = readCssVar(onToneVar)
@@ -358,8 +358,8 @@ class ComplianceServiceImpl {
         const simpleCoreColors = ['alert', 'warning', 'success', 'black', 'white']
 
         simpleCoreColors.forEach((colorKey) => {
-            const toneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorKey}-tone`
-            const onToneVar = `--recursica-brand-themes-${mode}-palettes-core-${colorKey}-on-tone`
+            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_color_tone`
+            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_color_on-tone`
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -391,7 +391,7 @@ class ComplianceServiceImpl {
             }
 
             // Check low-emphasis on-tone (on-tone blended at low emphasis opacity)
-            const lowEmphasisVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+            const lowEmphasisVar = `--recursica_brand_themes_${mode}_text-emphasis_low`
             const opacity = readCssVarNumber(lowEmphasisVar, 1)
             if (opacity < 1) {
                 const blendedHex = blendHexWithOpacity(onToneHex, toneHex, opacity)
@@ -426,8 +426,8 @@ class ComplianceServiceImpl {
         ]
 
         interactiveVariants.forEach(({ variant, label }) => {
-            const toneVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-${variant}-tone`
-            const onToneVar = `--recursica-brand-themes-${mode}-palettes-core-interactive-${variant}-on-tone`
+            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_color_tone`
+            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_color_on-tone`
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -464,7 +464,7 @@ class ComplianceServiceImpl {
         mode: 'light' | 'dark'
     ) {
         for (let layer = 0; layer <= 3; layer++) {
-            const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-properties-surface`
+            const surfaceVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_properties_surface`
             const surfaceValue = readCssVar(surfaceVar)
             if (!surfaceValue) continue
 
@@ -479,7 +479,7 @@ class ComplianceServiceImpl {
             ]
 
             textProps.forEach(({ key, label }) => {
-                const textVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-${key}`
+                const textVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_${key}`
                 const textValue = readCssVar(textVar)
                 if (!textValue) return
 
@@ -521,14 +521,14 @@ class ComplianceServiceImpl {
         mode: 'light' | 'dark'
     ) {
         for (let layer = 0; layer <= 3; layer++) {
-            const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-properties-surface`
+            const surfaceVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_properties_surface`
             const surfaceValue = readCssVar(surfaceVar)
             if (!surfaceValue) continue
 
             const surfaceHex = resolveCssVarToHex(surfaceValue, tokenIndex as any)
             if (!surfaceHex) continue
 
-            const textVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-text-color`
+            const textVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_text-color`
             const textValue = readCssVar(textVar)
             if (!textValue) continue
 
@@ -536,7 +536,7 @@ class ComplianceServiceImpl {
             if (!textHex) continue
 
             // Check low-emphasis text
-            const lowEmphasisVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-text-low-emphasis`
+            const lowEmphasisVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_text-low-emphasis`
             const opacity = readCssVarNumber(lowEmphasisVar, 1)
             if (opacity >= 1) continue
 
@@ -572,7 +572,7 @@ class ComplianceServiceImpl {
         mode: 'light' | 'dark'
     ) {
         for (let layer = 0; layer <= 3; layer++) {
-            const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-properties-surface`
+            const surfaceVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_properties_surface`
             const surfaceValue = readCssVar(surfaceVar)
             if (!surfaceValue) continue
 
@@ -580,7 +580,7 @@ class ComplianceServiceImpl {
             if (!surfaceHex) continue
 
             // Check interactive-color vs surface
-            const interactiveVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-interactive-color`
+            const interactiveVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_interactive-color`
             const interactiveValue = readCssVar(interactiveVar)
             if (interactiveValue) {
                 const interactiveHex = resolveCssVarToHex(interactiveValue, tokenIndex as any)
@@ -609,8 +609,8 @@ class ComplianceServiceImpl {
             }
 
             // Check interactive tone vs on-tone
-            const iToneVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-interactive-tone`
-            const iOnToneVar = `--recursica-brand-themes-${mode}-layers-layer-${layer}-elements-interactive-on-tone`
+            const iToneVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_interactive-tone`
+            const iOnToneVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_interactive-on-tone`
             const iToneValue = readCssVar(iToneVar)
             const iOnToneValue = readCssVar(iOnToneVar)
             if (iToneValue && iOnToneValue) {
@@ -864,7 +864,7 @@ class ComplianceServiceImpl {
 
     /**
      * Apply a compliance fix to a theme JSON copy (in-place mutation).
-     * Maps a CSS var name like `--recursica-brand-themes-light-palettes-palette-1-600-on-tone`
+     * Maps a CSS var name like `--recursica_brand_themes_light_palettes_palette_1_600_color_on-tone`
      * to the theme JSON path and updates the value.
      * Does NOT call setTheme — caller handles persistence via writeCssVarsDirect.
      */
@@ -883,9 +883,9 @@ class ComplianceServiceImpl {
             // core-interactive vars (e.g. "core-interactive" as paletteKey, "default" as level).
 
             // Parse core color on-tone vars (interactive):
-            // --recursica-brand-themes-{mode}-palettes-core-interactive-{variant}-on-tone
+            // --recursica_brand_themes_{mode}-palettes-core-interactive-{variant}-on-tone
             const coreInteractiveMatch = cssVar.match(
-                /--recursica-brand-themes-(light|dark)-palettes-core-interactive-(default|hover)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_core_interactive-(default|hover)-on-tone$/
             )
             if (coreInteractiveMatch) {
                 const [, mode, variant] = coreInteractiveMatch
@@ -900,9 +900,9 @@ class ComplianceServiceImpl {
             }
 
             // Parse core color on-tone vars (simple):
-            // --recursica-brand-themes-{mode}-palettes-core-{colorKey}-on-tone
+            // --recursica_brand_themes_{mode}-palettes-core-{colorKey}-on-tone
             const coreMatch = cssVar.match(
-                /--recursica-brand-themes-(light|dark)-palettes-core-([a-z]+)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_core_([a-z]+)-on-tone$/
             )
             if (coreMatch) {
                 const [, mode, colorKey] = coreMatch
@@ -929,9 +929,9 @@ class ComplianceServiceImpl {
             }
 
             // Parse palette on-tone vars (AFTER core regexes to avoid false matches):
-            // --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-on-tone
+            // --recursica_brand_themes_{mode}-palettes-{paletteKey}-{level}-on-tone
             const paletteMatch = cssVar.match(
-                /--recursica-brand-themes-(light|dark)-palettes-(.+)-(\d{3,4}|primary|default)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_(.+)-(\d{3,4}|primary|default)-on-tone$/
             )
             if (paletteMatch) {
                 const [, mode, paletteKey, level] = paletteMatch
@@ -949,11 +949,11 @@ class ComplianceServiceImpl {
             }
 
             // Parse layer text/interactive vars:
-            // --recursica-brand-themes-{mode}-layers-layer-{n}-elements-{subpath}
-            // e.g., --recursica-brand-themes-light-layers-layer-0-elements-text-warning
+            // --recursica_brand_themes_{mode}-layers-layer-{n}-elements-{subpath}
+            // e.g., --recursica_brand_themes_light_layers_layer-0_elements_text_warning
             //       → brand.themes.light.layers.layer-0.elements.text.warning
             const layerMatch = cssVar.match(
-                /--recursica-brand-themes-(light|dark)-layers-(layer-\d+)-elements-(.+)$/
+                /--recursica_brand_themes_(light|dark)_layers_(layer-\d+)-elements-(.+)$/
             )
             if (layerMatch) {
                 const [, mode, layer, subpath] = layerMatch
@@ -994,14 +994,14 @@ class ComplianceServiceImpl {
                     try {
                         if (this.getTokens) {
                             const tokens = this.getTokens()
-                            const toneVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-interactive-tone`
+                            const toneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-tone`
                             updateCssVar(toneVar, value, tokens)
 
                             // Also compute and persist a compliant on-tone for the new tone.
                             const tokenIndex = buildTokenIndex(tokens)
                             const newToneHex = resolveCssVarToHex(value, tokenIndex)
                             if (newToneHex) {
-                                const onToneVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-interactive-on-tone`
+                                const onToneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-on-tone`
                                 const onToneValue = readCssVar(onToneVar)
                                 const onToneHex = onToneValue ? resolveCssVarToHex(onToneValue, tokenIndex) : null
 
@@ -1034,7 +1034,7 @@ class ComplianceServiceImpl {
 
     /**
      * Persist a compliance fix to the theme JSON so it survives navigation.
-     * Maps a CSS var name like `--recursica-brand-themes-light-palettes-palette-1-600-on-tone`
+     * Maps a CSS var name like `--recursica_brand_themes_light_palettes_palette_1_600_color_on-tone`
      * to the theme JSON path and updates the value.
      */
     private persistFixToThemeJson(cssVar: string, value: string) {
@@ -1056,9 +1056,9 @@ class ComplianceServiceImpl {
             // core-interactive vars (e.g. "core-interactive" as paletteKey, "default" as level).
 
             // Parse core color on-tone vars (interactive):
-            // --recursica-brand-themes-{mode}-palettes-core-interactive-{variant}-on-tone
+            // --recursica_brand_themes_{mode}-palettes-core-interactive-{variant}-on-tone
             const coreInteractiveMatch = cssVar.match(
-                /--recursica-brand-themes-(light|dark)-palettes-core-interactive-(default|hover)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_core_interactive-(default|hover)-on-tone$/
             )
             if (coreInteractiveMatch) {
                 const [, mode, variant] = coreInteractiveMatch
@@ -1077,9 +1077,9 @@ class ComplianceServiceImpl {
             }
 
             // Parse core color on-tone vars (simple):
-            // --recursica-brand-themes-{mode}-palettes-core-{colorKey}-on-tone
+            // --recursica_brand_themes_{mode}-palettes-core-{colorKey}-on-tone
             const coreMatch = cssVar.match(
-                /--recursica-brand-themes-(light|dark)-palettes-core-([a-z]+)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_core_([a-z]+)-on-tone$/
             )
             if (coreMatch) {
                 const [, mode, colorKey] = coreMatch
@@ -1110,9 +1110,9 @@ class ComplianceServiceImpl {
             }
 
             // Parse palette on-tone vars (AFTER core regexes to avoid false matches):
-            // --recursica-brand-themes-{mode}-palettes-{paletteKey}-{level}-on-tone
+            // --recursica_brand_themes_{mode}-palettes-{paletteKey}-{level}-on-tone
             const paletteMatch = cssVar.match(
-                /--recursica-brand-themes-(light|dark)-palettes-(.+)-(\d{3,4}|primary|default)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_(.+)-(\d{3,4}|primary|default)-on-tone$/
             )
             if (paletteMatch) {
                 const [, mode, paletteKey, level] = paletteMatch
@@ -1134,11 +1134,11 @@ class ComplianceServiceImpl {
             }
 
             // Parse layer text/interactive vars:
-            // --recursica-brand-themes-{mode}-layers-layer-{n}-elements-{subpath}
-            // e.g., --recursica-brand-themes-light-layers-layer-0-elements-text-warning
+            // --recursica_brand_themes_{mode}-layers-layer-{n}-elements-{subpath}
+            // e.g., --recursica_brand_themes_light_layers_layer-0_elements_text_warning
             //       → brand.themes.light.layers.layer-0.elements.text.warning
             const layerMatch = cssVar.match(
-                /--recursica-brand-themes-(light|dark)-layers-(layer-\d+)-elements-(.+)$/
+                /--recursica_brand_themes_(light|dark)_layers_(layer-\d+)-elements-(.+)$/
             )
             if (layerMatch) {
                 const [, mode, layer, subpath] = layerMatch
@@ -1185,14 +1185,14 @@ class ComplianceServiceImpl {
                     try {
                         if (this.getTokens) {
                             const tokens = this.getTokens()
-                            const toneVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-interactive-tone`
+                            const toneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-tone`
                             updateCssVar(toneVar, value, tokens)
 
                             // Also compute and persist a compliant on-tone for the new tone.
                             const tokenIndex = buildTokenIndex(tokens)
                             const newToneHex = resolveCssVarToHex(value, tokenIndex)
                             if (newToneHex) {
-                                const onToneVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-interactive-on-tone`
+                                const onToneVar = `--recursica_brand_themes_${mode}_layers_${layer}_elements_interactive-on-tone`
                                 const onToneValue = readCssVar(onToneVar)
                                 const onToneHex = onToneValue ? resolveCssVarToHex(onToneValue, tokenIndex) : null
 
@@ -1237,7 +1237,7 @@ class ComplianceServiceImpl {
      */
     private cssVarRefToJsonRef(cssVarRef: string, targetCssVar: string): string | null {
         // Extract the mode from the target CSS var
-        const modeMatch = targetCssVar.match(/--recursica-brand-themes-(light|dark)-/)
+        const modeMatch = targetCssVar.match(/--recursica_brand_themes_(light|dark)-/)
         const mode = modeMatch ? modeMatch[1] : 'light'
 
         if (this.getTokens) {
@@ -1255,7 +1255,7 @@ class ComplianceServiceImpl {
                     // Check against all core colors (black, white, alert, warning, success)
                     const coreColors = ['black', 'white', 'alert', 'warning', 'success']
                     for (const coreColor of coreColors) {
-                        const coreCssVar = `--recursica-brand-themes-${mode}-palettes-core-${coreColor}`
+                        const coreCssVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${coreColor}`
                         const coreVal = readCssVar(coreCssVar)
                         const coreHex = coreVal ? resolveCssVarToHex(coreVal, tokenIndex) : null
                         if (coreHex && coreHex.toLowerCase() === normalizedHex) {

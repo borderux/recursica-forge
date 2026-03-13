@@ -122,7 +122,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
 
     // Build layer text color CSS variables
     const layerTextColorVars = React.useMemo(() => {
-      const layerBase = `--recursica-brand-themes-${mode}-layers-${layer}-properties`
+      const layerBase = `--recursica_brand_layer_${layer}_properties`
 
       return {
         textColor: `${layerBase.replace('-properties', '-elements')}-text-color`,
@@ -308,7 +308,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
-        <h2 style={{ margin: 0, fontFamily: 'var(--recursica-brand-typography-h2-font-family)', fontSize: 'var(--recursica-brand-typography-h2-font-size)', fontWeight: 'var(--recursica-brand-typography-h2-font-weight)', letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)', lineHeight: 'var(--recursica-brand-typography-h2-line-height)' }}>Stacked</h2>
+        <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)' }}>Stacked</h2>
         <RadioButtonGroup
           label="Forge Weapon"
           layout="stacked"
@@ -337,7 +337,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             layer={layer as any}
           />
         </RadioButtonGroup>
-        <h2 style={{ margin: 0, fontFamily: 'var(--recursica-brand-typography-h2-font-family)', fontSize: 'var(--recursica-brand-typography-h2-font-size)', fontWeight: 'var(--recursica-brand-typography-h2-font-weight)', letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)', lineHeight: 'var(--recursica-brand-typography-h2-line-height)' }}>Side-by-side</h2>
+        <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)' }}>Side-by-side</h2>
         <RadioButtonGroup
           label="Forge Weapon"
           layout="side-by-side"
@@ -478,9 +478,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/badge`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'flex', gap: 8 }}>
-          <span style={{ background: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
-          <span style={{ background: `var(--recursica-brand-themes-${mode}-palettes-core-warning)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
-          <span style={{ background: `var(--recursica-brand-themes-${mode}-palettes-core-success)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
+          <span style={{ background: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
+          <span style={{ background: `var(--recursica_brand_palettes_core_warning)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
+          <span style={{ background: `var(--recursica_brand_palettes_core_success)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
         </div>
       ),
     },
@@ -517,7 +517,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <div style={{ display: 'grid', gap: 16 }}>
             {layers.map((layer) => {
               // Build CSS variable names for this layer's text color with high emphasis
-              const layerBase = `--recursica-brand-${mode}-layers-${layer}-properties`
+              const layerBase = `--recursica_brand_${mode}-layers-${layer}-properties`
               const textColorVar = `${layerBase.replace('-properties', '-elements')}-text-color`
               const highEmphasisVar = `${layerBase.replace('-properties', '-elements')}-text-high-emphasis`
 
@@ -528,11 +528,11 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
                       <div key={variant} style={{ display: 'grid', gap: 8 }}>
                         <h5 style={{
                           margin: 0,
-                          fontFamily: 'var(--recursica-brand-typography-h5-font-family)',
-                          fontSize: 'var(--recursica-brand-typography-h5-font-size)',
-                          fontWeight: 'var(--recursica-brand-typography-h5-font-weight)',
-                          letterSpacing: 'var(--recursica-brand-typography-h5-font-letter-spacing)',
-                          lineHeight: 'var(--recursica-brand-typography-h5-line-height)',
+                          fontFamily: 'var(--recursica_brand_typography_h5-font-family)',
+                          fontSize: 'var(--recursica_brand_typography_h5-font-size)',
+                          fontWeight: 'var(--recursica_brand_typography_h5-font-weight)',
+                          letterSpacing: 'var(--recursica_brand_typography_h5-font-letter-spacing)',
+                          lineHeight: 'var(--recursica_brand_typography_h5-line-height)',
                           color: `var(${textColorVar})`,
                           opacity: `var(${highEmphasisVar})`,
                           textTransform: 'capitalize'
@@ -682,10 +682,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
         return (
           <div style={{
-            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
+            border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
             padding: 12,
             borderRadius: 8,
-            background: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`,
+            background: `var(--recursica_brand_layer_0_properties_surface)`,
             boxShadow: layer1Elevation || undefined
           }}>
             <strong>Hover card / Popover</strong>
@@ -743,10 +743,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Menu',
       url: `${base}/menu`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 8 }}>
+        <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 8 }}>
           <li style={{ padding: 8 }}>Profile</li>
           <li style={{ padding: 8 }}>Settings</li>
-          <li style={{ padding: 8, opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }}>Disabled</li>
+          <li style={{ padding: 8, opacity: `var(--recursica_brand_states_disabled, 0.5)` }}>Disabled</li>
         </ul>
       ),
     },
@@ -849,10 +849,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
         return (
           <div style={{
-            border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
+            border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
             padding: 12,
             borderRadius: 8,
-            background: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`,
+            background: `var(--recursica_brand_layer_0_properties_surface)`,
             boxShadow: layer1Elevation || undefined
           }}>
             <strong>Modal</strong>
@@ -923,11 +923,11 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/chip`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
-          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
-          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
-          <span style={{ background: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-white)`, borderRadius: 999, padding: '2px 10px' }}>Primary</span>
-          <span style={{ border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
+          <span style={{ border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
+          <span style={{ border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
+          <span style={{ border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
+          <span style={{ background: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 10px' }}>Primary</span>
+          <span style={{ border: `1px solid var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
         </div>
       ),
     },
@@ -955,7 +955,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             <div>List item 2</div>
             <div style={{ fontSize: 12, opacity: 0.75 }}>Secondary text</div>
           </li>
-          <li style={{ padding: 10, border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }}>
+          <li style={{ padding: 10, border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, opacity: `var(--recursica_brand_states_disabled, 0.5)` }}>
             Disabled item
           </li >
         </ul >
@@ -1004,9 +1004,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Panel',
       url: `${base}/panel`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', height: 80, border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 8, overflow: 'hidden' }}>
-          <div style={{ flex: 1, background: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`, padding: 8, fontSize: 10, opacity: 0.5 }}>Main</div>
-          <div style={{ width: 80, borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, background: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`, padding: 6, fontSize: 10 }}>
+        <div style={{ display: 'flex', height: 80, border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ flex: 1, background: `var(--recursica_brand_layer_0_properties_surface)`, padding: 8, fontSize: 10, opacity: 0.5 }}>Main</div>
+          <div style={{ width: 80, borderLeft: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, background: `var(--recursica_brand_layer_1_properties_surface)`, padding: 6, fontSize: 10 }}>
             <strong style={{ fontSize: 9 }}>Panel</strong>
             <div style={{ marginTop: 4, opacity: 0.6, fontSize: 8 }}>Content</div>
           </div>
@@ -1021,7 +1021,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <label><input type="radio" name="r1" defaultChecked /> First</label>
           <label><input type="radio" name="r1" /> Second</label>
-          <label style={{ opacity: `var(--recursica-brand-themes-${mode}-state-disabled, 0.5)` }}><input type="radio" name="r1" disabled /> Disabled</label>
+          <label style={{ opacity: `var(--recursica_brand_states_disabled, 0.5)` }}><input type="radio" name="r1" disabled /> Disabled</label>
         </div>
       ),
     },
@@ -1061,7 +1061,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/segmented-control`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'inline-flex', border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 999, overflow: 'hidden' }}>
-          <button style={{ padding: '6px 10px', background: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-white)`, border: 0 }}>First</button>
+          <button style={{ padding: '6px 10px', background: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, border: 0 }}>First</button>
           <button style={{ padding: '6px 10px', border: 0 }}>Second</button>
           <button style={{ padding: '6px 10px', border: 0 }}>Third</button>
         </div>
@@ -1124,7 +1124,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <ol style={{ display: 'flex', gap: 12, listStyle: 'none', padding: 0 }}>
           {['One', 'Two', 'Three'].map((s, i) => (
             <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)` : `var(--recursica-brand-themes-${mode}-palettes-neutral-300-tone)`, color: `var(--recursica-brand-themes-${mode}-palettes-core-white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? `var(--recursica_brand_palettes_core_interactive_default_color_tone)` : `var(--recursica_brand_palettes_neutral_300_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
               <span>{s}</span>
             </li>
           ))}

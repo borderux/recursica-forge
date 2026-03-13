@@ -3,6 +3,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { tokenFont, token } from '../../core/css/cssVarBuilder'
 import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
@@ -32,8 +33,8 @@ export default function DimensionTokenSelector({
     if (!cssVarValue) return null
 
     // Check if it's a brand dimension reference
-    // Pattern: var(--recursica-brand-dimensions-{category}-{size})
-    const brandMatch = cssVarValue.match(/--recursica-brand-dimensions-([^-]+)/)
+    // Pattern: var(--recursica_brand_dimensions_{category}-{size})
+    const brandMatch = cssVarValue.match(/--recursica_brand_dimensions_([^-]+)/)
     if (brandMatch) {
       return brandMatch[1] // Returns 'icon', 'general', etc.
     }
@@ -41,7 +42,7 @@ export default function DimensionTokenSelector({
     // Check if it resolves to a brand dimension reference
     const resolved = readCssVarResolved(targetCssVar)
     if (resolved) {
-      const resolvedBrandMatch = resolved.match(/--recursica-brand-dimensions-([^-]+)/)
+      const resolvedBrandMatch = resolved.match(/--recursica_brand_dimensions_([^-]+)/)
       if (resolvedBrandMatch) {
         return resolvedBrandMatch[1]
       }
@@ -70,7 +71,7 @@ export default function DimensionTokenSelector({
         Object.keys(fontSizes).forEach(sizeKey => {
           const sizeValue = fontSizes[sizeKey]
           if (sizeValue && typeof sizeValue === 'object' && '$value' in sizeValue) {
-            const cssVar = `--recursica-tokens-font-sizes-${sizeKey}`
+            const cssVar = tokenFont('sizes', sizeKey)
             const cssValue = readCssVar(cssVar)
 
             // Only add if the CSS var exists (has been generated)
@@ -127,7 +128,7 @@ export default function DimensionTokenSelector({
         Object.keys(general).forEach(generalKey => {
           const generalValue = general[generalKey]
           if (generalValue && typeof generalValue === 'object' && '$value' in generalValue) {
-            const cssVar = `--recursica-brand-dimensions-general-${generalKey}`
+            const cssVar = `--recursica_brand_dimensions_general_${generalKey}`
             const cssValue = readCssVar(cssVar)
 
             // Only add if the CSS var exists (has been generated)
@@ -182,7 +183,7 @@ export default function DimensionTokenSelector({
         Object.keys(icons).forEach(iconKey => {
           const iconValue = icons[iconKey]
           if (iconValue && typeof iconValue === 'object' && '$value' in iconValue) {
-            const cssVar = `--recursica-brand-dimensions-icons-${iconKey}`
+            const cssVar = `--recursica_brand_dimensions_icons_${iconKey}`
             const cssValue = readCssVar(cssVar)
 
             // Only add if the CSS var exists (has been generated)
@@ -237,7 +238,7 @@ export default function DimensionTokenSelector({
         if (dimensions.general && typeof dimensions.general === 'object') {
           generalDims.forEach(dim => {
             if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
-              const cssVar = `--recursica-brand-dimensions-general-${dim}`
+              const cssVar = `--recursica_brand_dimensions_general_${dim}`
               const cssValue = readCssVar(cssVar)
               if (cssValue) {
                 options.push({
@@ -290,7 +291,7 @@ export default function DimensionTokenSelector({
         Object.keys(borderRadius).forEach(radiusKey => {
           const radiusValue = borderRadius[radiusKey]
           if (radiusValue && typeof radiusValue === 'object' && '$value' in radiusValue) {
-            const cssVar = `--recursica-brand-dimensions-border-radius-${radiusKey}`
+            const cssVar = `--recursica_brand_dimensions_border-radius_${radiusKey}`
             const cssValue = readCssVar(cssVar)
 
             // Only add if the CSS var exists (has been generated)
@@ -355,7 +356,7 @@ export default function DimensionTokenSelector({
 
           // If this is a dimension value object
           if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
-            const cssVar = `--recursica-brand-dimensions-${currentPath.join('-')}`
+            const cssVar = `--recursica_brand_dimensions_${currentPath.join('-')}`
             const cssValue = readCssVar(cssVar)
 
             // Only add if the CSS var exists (has been generated)
@@ -393,7 +394,7 @@ export default function DimensionTokenSelector({
           if (dimensions.general && typeof dimensions.general === 'object') {
             generalDims.forEach(dim => {
               if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
-                const cssVar = `--recursica-brand-dimensions-general-${dim}`
+                const cssVar = `--recursica_brand_dimensions_general_${dim}`
                 const cssValue = readCssVar(cssVar)
                 if (cssValue) {
                   options.push({
@@ -411,7 +412,7 @@ export default function DimensionTokenSelector({
           if (dimensions.general && typeof dimensions.general === 'object') {
             generalDims.forEach(dim => {
               if (dimensions.general[dim] && typeof dimensions.general[dim] === 'object' && '$value' in dimensions.general[dim]) {
-                const cssVar = `--recursica-brand-dimensions-general-${dim}`
+                const cssVar = `--recursica_brand_dimensions_general_${dim}`
                 const cssValue = readCssVar(cssVar)
                 if (cssValue) {
                   options.push({
@@ -439,7 +440,7 @@ export default function DimensionTokenSelector({
       // Remove dimensions like "gutter.horizontal", "gutter.vertical" which are layout-specific
       // and not relevant for general spacing/sizing props
       const filteredOptions = options.filter(opt => {
-        const cssVarName = opt.cssVar.replace('--recursica-brand-dimensions-', '')
+        const cssVarName = opt.cssVar.replace('--recursica_brand_dimensions_', '')
         const cssVarParts = cssVarName.split('-')
         const firstPart = cssVarParts[0]
 
@@ -473,7 +474,7 @@ export default function DimensionTokenSelector({
         }
 
         // Always keep general dimensions (default, sm, md, lg, xl)
-        // These are now under dimensions.general, so CSS vars are --recursica-brand-dimensions-general-*
+        // These are now under dimensions.general, so CSS vars are --recursica_brand_dimensions_general_*
         const generalDims = ['default', 'sm', 'md', 'lg', 'xl']
         // Check if it's a general dimension (either "general-{dim}" or just "{dim}" for backwards compatibility)
         if (firstPart === 'general' && generalDims.includes(cssVarParts[1])) {
@@ -562,7 +563,7 @@ export default function DimensionTokenSelector({
 
   // Helper to check if a value is a theme CSS var reference
   const isThemeVar = (value: string): boolean => {
-    return value.trim().startsWith('var(--recursica-')
+    return value.trim().startsWith('var(--recursica_')
   }
 
   // Helper to extract pixel value from CSS value
@@ -692,7 +693,7 @@ export default function DimensionTokenSelector({
         if (resolvedValue && (resolvedValue === `var(${token.name})` || resolvedValue === token.name)) return true
 
         // Check if current value contains the CSS var reference
-        const varName = token.name.replace('--recursica-brand-dimensions-', '').replace('--recursica-tokens-size-', '').replace('--recursica-tokens-font-sizes-', '')
+        const varName = token.name.replace('--recursica_brand_dimensions_', '').replace(tokenFont('sizes', ''), '')
         if (currentValue.includes(varName) || currentValue.includes(token.name)) return true
 
         // Check if resolved value contains the token name

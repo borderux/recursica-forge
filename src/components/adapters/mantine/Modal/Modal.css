@@ -3,14 +3,14 @@
 /* Modal overlay - uses brand-level overlay settings */
 .recursica-modal.mantine-Modal-root .mantine-Modal-overlay,
 .mantine-Modal-root.recursica-modal~.mantine-Modal-overlay {
-    background-color: var(--recursica-brand-themes-light-state-overlay-color, rgba(0, 0, 0, 1)) !important;
-    opacity: var(--recursica-brand-themes-light-state-overlay-opacity, 0.5) !important;
+    background-color: var(--recursica_brand_themes_light_states_overlay_color) !important;
+    opacity: var(--recursica_brand_themes_light_states_overlay_opacity) !important;
 }
 
 html[data-theme-mode="dark"] .recursica-modal.mantine-Modal-root .mantine-Modal-overlay,
 html[data-theme-mode="dark"] .mantine-Modal-root.recursica-modal~.mantine-Modal-overlay {
-    background-color: var(--recursica-brand-themes-dark-state-overlay-color, rgba(0, 0, 0, 1)) !important;
-    opacity: var(--recursica-brand-themes-dark-state-overlay-opacity, 0.5) !important;
+    background-color: var(--recursica_brand_themes_dark_states_overlay_color) !important;
+    opacity: var(--recursica_brand_themes_dark_states_overlay_opacity) !important;
 }
 
 .recursica-modal .mantine-Modal-content {

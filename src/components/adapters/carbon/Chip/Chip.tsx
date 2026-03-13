@@ -199,7 +199,7 @@ export default function Chip({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              opacity: showCheckmark ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : 1,
+              opacity: showCheckmark ? `var(--recursica_brand_${mode}-state-disabled, 0.5)` : 1,
             }}
           >
             {icon}
@@ -299,7 +299,7 @@ export default function Chip({
       '--chip-max-width': `var(${maxWidthVar})`,
       // Set disabled opacity dynamically based on mode
       ...(disabled && {
-        opacity: `var(--recursica-brand-${mode}-state-disabled, 0.5)`,
+        opacity: `var(--recursica_brand_${mode}-state-disabled, 0.5)`,
       }),
       ...(() => {
         const elevationBoxShadow = getElevationBoxShadow(mode, elevation)

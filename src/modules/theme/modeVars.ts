@@ -11,14 +11,14 @@ import type { ThemeMode } from './ThemeModeContext'
  * @returns Full CSS variable name with mode prefix
  */
 export function getModeVar(baseName: string, mode: ThemeMode): string {
-  return `--recursica-brand-${mode}-${baseName}`
+  return `--recursica_brand_${mode}-${baseName}`
 }
 
 /**
  * Gets a mode-aware CSS variable reference
  * @param baseName - Base variable name without mode prefix
  * @param mode - Current theme mode
- * @returns CSS variable reference string (e.g., 'var(--recursica-brand-light-palettes-core-black)')
+ * @returns CSS variable reference string (e.g., 'var(--recursica_brand_light_palettes_core_black)')
  */
 export function getModeVarRef(baseName: string, mode: ThemeMode): string {
   return `var(${getModeVar(baseName, mode)})`

@@ -10,6 +10,7 @@ import { Dropdown } from '../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Panel } from '../../components/adapters/Panel'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { tokenFont } from '../../core/css/cssVarBuilder'
 import { buildTypographyVars } from '../../core/resolvers/typography'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
@@ -30,9 +31,9 @@ function prefixToCssVarName(prefix: string): string {
 // Helper to extract token name from CSS variable value
 function extractTokenFromCssVar(cssValue: string): string | null {
   if (!cssValue) return null
-  // Match patterns like: var(--recursica-tokens-font-sizes-md)
+  // Match patterns like: var(--recursica_tokens_font_sizes_md)
   // Uses plural form
-  const match = cssValue.match(/var\(--recursica-tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)-([^)]+)\)/)
+  const match = cssValue.match(/var\(--recursica_tokens_font_(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)-([^)]+)\)/)
   if (match) return match[1]
   // Also match: var(--tokens-font-size-md) (without recursica prefix)
   const match2 = cssValue.match(/var\(--tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)-([^)]+)\)/)
@@ -112,7 +113,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         let isFirstFont = true
 
         selectedPrefixes.forEach((prefix) => {
-          const cssVar = `--recursica-brand-typography-${prefixToCssVarName(prefix)}-font-family`
+          const cssVar = `--recursica_brand_typography_${prefixToCssVarName(prefix)}-font-family`
           let cssValue = readCssVarResolved(cssVar) || readCssVar(cssVar) || ''
 
           // Resolve var() chains
@@ -440,7 +441,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         seen.add(cssValue)
 
         // Extract token reference - match both singular and plural forms
-        const tokenMatch = cssValue.match(/var\(--recursica-tokens-font-(?:family|families|typeface|typefaces)-([^)]+)\)/)
+        const tokenMatch = cssValue.match(/var\(--recursica_tokens_font_(?:family|families|typeface|typefaces)-([^)]+)\)/)
         if (tokenMatch) {
           const tokenName = tokenMatch[1]
           const option = familyOptions.find((o) => o.short === tokenName)
@@ -479,45 +480,45 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
       // Map property to CSS variable name and token reference
       if (property === 'font-family') {
-        cssVar = `--recursica-brand-typography-${cssVarName}-font-family`
+        cssVar = `--recursica_brand_typography_${cssVarName}-font-family`
         // Check if this token exists in typefaces or families
         const typefaces = (tokens as any)?.tokens?.font?.typefaces || (tokens as any)?.tokens?.font?.typeface || {}
         const families = (tokens as any)?.tokens?.font?.families || (tokens as any)?.tokens?.font?.family || {}
         // Determine which token CSS variable to use
         let tokenCssVar = ''
         if (typefaces[tokenShort]) {
-          tokenCssVar = `--recursica-tokens-font-typefaces-${tokenShort}`
+          tokenCssVar = tokenFont('typefaces', tokenShort)
         } else if (families[tokenShort]) {
-          tokenCssVar = `--recursica-tokens-font-families-${tokenShort}`
+          tokenCssVar = tokenFont('families', tokenShort)
         } else {
           // Fallback to typefaces (most common)
-          tokenCssVar = `--recursica-tokens-font-typefaces-${tokenShort}`
+          tokenCssVar = tokenFont('typefaces', tokenShort)
         }
         // Resolve the token CSS variable to get the actual font value (with fallbacks)
         const resolvedValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
         // Use the resolved value (font name with fallbacks) if available, otherwise fall back to token reference
         tokenValue = resolvedValue || `var(${tokenCssVar})`
       } else if (property === 'font-size') {
-        cssVar = `--recursica-brand-typography-${cssVarName}-font-size`
-        tokenValue = `var(--recursica-tokens-font-sizes-${tokenShort})`
+        cssVar = `--recursica_brand_typography_${cssVarName}-font-size`
+        tokenValue = `var(--recursica_tokens_font_sizes_${tokenShort})`
       } else if (property === 'font-weight') {
-        cssVar = `--recursica-brand-typography-${cssVarName}-font-weight`
-        tokenValue = `var(--recursica-tokens-font-weights-${tokenShort})`
+        cssVar = `--recursica_brand_typography_${cssVarName}-font-weight`
+        tokenValue = `var(--recursica_tokens_font_weights_${tokenShort})`
       } else if (property === 'font-letter-spacing') {
-        cssVar = `--recursica-brand-typography-${cssVarName}-font-letter-spacing`
-        tokenValue = `var(--recursica-tokens-font-letter-spacings-${tokenShort})`
+        cssVar = `--recursica_brand_typography_${cssVarName}-font-letter-spacing`
+        tokenValue = `var(--recursica_tokens_font_letter-spacings_${tokenShort})`
       } else if (property === 'line-height') {
-        cssVar = `--recursica-brand-typography-${cssVarName}-line-height`
-        tokenValue = `var(--recursica-tokens-font-line-heights-${tokenShort})`
+        cssVar = `--recursica_brand_typography_${cssVarName}-line-height`
+        tokenValue = `var(--recursica_tokens_font_line-heights_${tokenShort})`
       } else if (property === 'font-style') {
-        cssVar = `--recursica-brand-typography-${cssVarName}-font-style`
-        tokenValue = `var(--recursica-tokens-font-styles-${tokenShort})`
+        cssVar = `--recursica_brand_typography_${cssVarName}-font-style`
+        tokenValue = `var(--recursica_tokens_font_styles_${tokenShort})`
       } else if (property === 'text-decoration') {
-        cssVar = `--recursica-brand-typography-${cssVarName}-text-decoration`
-        tokenValue = `var(--recursica-tokens-font-decorations-${tokenShort})`
+        cssVar = `--recursica_brand_typography_${cssVarName}-text-decoration`
+        tokenValue = `var(--recursica_tokens_font_decorations_${tokenShort})`
       } else if (property === 'text-transform') {
-        cssVar = `--recursica-brand-typography-${cssVarName}-text-transform`
-        tokenValue = `var(--recursica-tokens-font-cases-${tokenShort})`
+        cssVar = `--recursica_brand_typography_${cssVarName}-text-transform`
+        tokenValue = `var(--recursica_tokens_font_cases_${tokenShort})`
       }
 
       if (cssVar && tokenValue) {
@@ -563,7 +564,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       const properties = ['font-family', 'font-size', 'font-weight', 'font-letter-spacing', 'line-height', 'font-style', 'text-decoration', 'text-transform']
 
       properties.forEach((prop) => {
-        const cssVar = `--recursica-brand-typography-${cssVarName}-${prop}`
+        const cssVar = `--recursica_brand_typography_${cssVarName}-${prop}`
 
         // Remove the override first
         document.documentElement.style.removeProperty(cssVar)
@@ -593,14 +594,14 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const prefix = selectedPrefixes.length > 0 ? selectedPrefixes[0] : null
   const cssVarName = prefix ? prefixToCssVarName(prefix) : ''
 
-  const sizeCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-size` : ''
-  const weightCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-weight` : ''
-  const spacingCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-letter-spacing` : ''
-  const lineHeightCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-line-height` : ''
-  const familyCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-family` : ''
-  const styleCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-font-style` : ''
-  const decorationCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-text-decoration` : ''
-  const transformCssVar = prefix ? `--recursica-brand-typography-${cssVarName}-text-transform` : ''
+  const sizeCssVar = prefix ? `--recursica_brand_typography_${cssVarName}-font-size` : ''
+  const weightCssVar = prefix ? `--recursica_brand_typography_${cssVarName}-font-weight` : ''
+  const spacingCssVar = prefix ? `--recursica_brand_typography_${cssVarName}-font-letter-spacing` : ''
+  const lineHeightCssVar = prefix ? `--recursica_brand_typography_${cssVarName}-line-height` : ''
+  const familyCssVar = prefix ? `--recursica_brand_typography_${cssVarName}-font-family` : ''
+  const styleCssVar = prefix ? `--recursica_brand_typography_${cssVarName}-font-style` : ''
+  const decorationCssVar = prefix ? `--recursica_brand_typography_${cssVarName}-text-decoration` : ''
+  const transformCssVar = prefix ? `--recursica_brand_typography_${cssVarName}-text-transform` : ''
 
   // Read current values directly from CSS variables (simplified like component toolbar)
   const sizeCurrentToken = useMemo(() => {
@@ -691,7 +692,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         if (!cssValue) return ''
 
         // First, try to extract token reference (for backwards compatibility)
-        const tokenMatch = cssValue.match(/var\(--recursica-tokens-font-(?:family|families|typeface|typefaces)-([^)]+)\)/)
+        const tokenMatch = cssValue.match(/var\(--recursica_tokens_font_(?:family|families|typeface|typefaces)-([^)]+)\)/)
         if (tokenMatch) {
           return tokenMatch[1]
         }
@@ -703,7 +704,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
             const innerVar = varMatch[1].trim()
             const innerValue = readCssVar(innerVar) || readCssVarResolved(innerVar)
             if (innerValue) {
-              const innerTokenMatch = innerValue.match(/var\(--recursica-tokens-font-(?:family|families|typeface|typefaces)-([^)]+)\)/)
+              const innerTokenMatch = innerValue.match(/var\(--recursica_tokens_font_(?:family|families|typeface|typefaces)-([^)]+)\)/)
               if (innerTokenMatch) {
                 return innerTokenMatch[1]
               }
@@ -718,7 +719,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
           const matchingOption = familyOptions.find((o) => {
             if (o.value && o.value.trim() === fontName) return true
             if (o.label && o.label.includes(`(${fontName})`)) return true
-            const tokenCssVar = `--recursica-tokens-font-typefaces-${o.short}`
+            const tokenCssVar = tokenFont('typefaces', o.short)
             const tokenValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
             if (tokenValue && tokenValue.includes(fontName)) return true
             return false
@@ -734,13 +735,13 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     }
 
     // Get the first item's token
-    const firstCssVar = `--recursica-brand-typography-${prefixToCssVarName(selectedPrefixes[0])}-font-family`
+    const firstCssVar = `--recursica_brand_typography_${prefixToCssVarName(selectedPrefixes[0])}-font-family`
     const firstToken = getTokenForCssVar(firstCssVar)
 
     // If there are multiple, verify they all match the first one
     if (selectedPrefixes.length > 1) {
       for (let i = 1; i < selectedPrefixes.length; i++) {
-        const nextCssVar = `--recursica-brand-typography-${prefixToCssVarName(selectedPrefixes[i])}-font-family`
+        const nextCssVar = `--recursica_brand_typography_${prefixToCssVarName(selectedPrefixes[i])}-font-family`
         const nextToken = getTokenForCssVar(nextCssVar)
         if (nextToken !== firstToken) {
           return '' // Multiple different font families selected
