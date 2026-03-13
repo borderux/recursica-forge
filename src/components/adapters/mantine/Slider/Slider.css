@@ -42,21 +42,21 @@
 /* Style Mantine's slider tooltip to match our unified Tooltip component */
 .mantine-Slider-label {
   /* Use Tooltip component's CSS variables for consistent styling */
-  background-color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_background, #000) !important;
-  color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_text, #fff) !important;
-  border: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size, 1px) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color, transparent) !important;
-  border-radius: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-radius, 4px) !important;
-  padding: var(--recursica_ui-kit_themes_light_components_tooltip_properties_vertical_padding, 4px) var(--recursica_ui-kit_themes_light_components_tooltip_properties_horizontal_padding, 8px) !important;
-  min-width: var(--recursica_ui-kit_themes_light_components_tooltip_properties_min_width, auto) !important;
-  max-width: var(--recursica_ui-kit_themes_light_components_tooltip_properties_max_width, 300px) !important;
-  min-height: var(--recursica_ui-kit_themes_light_components_tooltip_properties_min_height, auto) !important;
+  background-color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_background) !important;
+  color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_text) !important;
+  border: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color) !important;
+  border-radius: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-radius) !important;
+  padding: var(--recursica_ui-kit_themes_light_components_tooltip_properties_vertical-padding) var(--recursica_ui-kit_themes_light_components_tooltip_properties_horizontal-padding) !important;
+  min-width: var(--recursica_ui-kit_themes_light_components_tooltip_properties_min-width) !important;
+  max-width: var(--recursica_ui-kit_themes_light_components_tooltip_properties_max-width) !important;
+  min-height: var(--recursica_ui-kit_themes_light_components_tooltip_properties_min-height) !important;
 
   /* Typography */
-  font-family: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_font_family, inherit) !important;
-  font-size: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_font_size, 12px) !important;
-  font-weight: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_font_weight, 400) !important;
-  letter-spacing: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_letter-spacing, normal) !important;
-  line-height: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_line-height, 1.5) !important;
+  font-family: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_font-family) !important;
+  font-size: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_font-size) !important;
+  font-weight: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_font-weight) !important;
+  letter-spacing: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_letter-spacing) !important;
+  line-height: var(--recursica_ui-kit_themes_light_components_tooltip_properties_text_line-height) !important;
 
   /* Centering */
   display: flex !important;
@@ -77,7 +77,7 @@
   transform: translateX(-50%) rotate(45deg) !important;
   width: 8px !important;
   height: 8px !important;
-  background-color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_background, #000) !important;
-  border-right: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size, 1px) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color, transparent) !important;
-  border-bottom: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size, 1px) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color, transparent) !important;
+  background-color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_background) !important;
+  border-right: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color) !important;
+  border-bottom: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color) !important;
 }

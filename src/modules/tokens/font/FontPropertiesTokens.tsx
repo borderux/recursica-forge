@@ -108,9 +108,9 @@ export default function FontPropertiesTokens() {
   }
 
   return (
-    <div style={{
+    <div data-recursica-layer="0" style={{
       background: `var(${genericLayerProperty(0, 'surface')})`,
-      border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+      border: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
       borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
       padding: 0,
       overflow: 'hidden',
@@ -130,7 +130,7 @@ export default function FontPropertiesTokens() {
           paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
           paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
           paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
-          borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+          borderBottom: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
         }}>
           <MantineTabs.List>
             <MantineTabs.Tab value="size">Font size</MantineTabs.Tab>

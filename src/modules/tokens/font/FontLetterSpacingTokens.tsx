@@ -148,7 +148,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               alignItems: 'center',
               justifyContent: 'center',
               gap: 'var(--recursica_brand_dimensions_general_default)',
-              borderLeft: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+              borderLeft: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
               paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
               paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',

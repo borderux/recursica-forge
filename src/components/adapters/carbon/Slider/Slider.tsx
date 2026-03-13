@@ -12,6 +12,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { genericLayerText } from '../../../../core/css/cssVarBuilder'
 import { NumberInput } from '../../NumberInput'
 import './Slider.css'
 
@@ -185,8 +186,9 @@ export default function Slider({
   const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
 
   // Use layer text color directly for labels and values
-  const layerTextColorVar = `--recursica_brand_layer_${layer}_elements_text-color`
-  const layerTextEmphasisVar = `--recursica_brand_layer_${layer}_elements_text-high-emphasis`
+  const layerNum = parseInt(layer.replace('layer-', ''), 10) || 0
+  const layerTextColorVar = genericLayerText(layerNum, 'color')
+  const layerTextEmphasisVar = genericLayerText(layerNum, 'high-emphasis')
 
   // State to force re-render when text CSS variables change
   const [textVarsUpdate, setTextVarsUpdate] = useState(0)
@@ -248,7 +250,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: `var(${layerTextEmphasisVar}, 0.7)`,
+          opacity: `var(${layerTextEmphasisVar})`,
           flexShrink: 0,
           marginRight: '8px',
         } as React.CSSProperties}>
@@ -298,7 +300,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: `var(${layerTextEmphasisVar}, 0.7)`,
+          opacity: `var(${layerTextEmphasisVar})`,
           flexShrink: 0,
           marginLeft: '8px',
         } as React.CSSProperties}>

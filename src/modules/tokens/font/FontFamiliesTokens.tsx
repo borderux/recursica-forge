@@ -913,6 +913,7 @@ export default function FontFamiliesTokens() {
             <div
               key={r.name}
               draggable
+              data-recursica-layer="1"
               onDragStart={(e) => {
                 handleDragStart(index)
                 e.dataTransfer.effectAllowed = 'move'
@@ -1000,8 +1001,8 @@ export default function FontFamiliesTokens() {
                   fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
                   letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
                   lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-                  color: `var(${genericLayerText(0, 'color')})`,
-                  opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                  color: `var(${genericLayerText(1, 'color')})`,
+                  opacity: `var(${genericLayerText(1, 'high-emphasis')})`,
                 }}>
                   {r.value || 'Select font'}
                 </h2>
@@ -1009,8 +1010,8 @@ export default function FontFamiliesTokens() {
               <div style={{
                 fontFamily: `var(${fontFamilyVar})`,
                 fontSize: 'var(--recursica_brand_typography_body-font-size)',
-                color: `var(${genericLayerText(0, 'color')})`,
-                opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                color: `var(${genericLayerText(1, 'color')})`,
+                opacity: `var(${genericLayerText(1, 'high-emphasis')})`,
                 lineHeight: 1.5,
                 flexShrink: 0,
                 alignSelf: 'stretch',
@@ -1095,6 +1096,7 @@ export default function FontFamiliesTokens() {
         {(() => {
           return showInspiration && (
             <div
+              data-recursica-layer="1"
               style={{
                 background: `var(--recursica_brand_palettes_neutral_100_color_tone)`,
                 borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
