@@ -37,8 +37,9 @@ export default function LayerModule({ level, title, className, children, onSelec
     }
   }, [])
   const layerId = level != null ? String(level) : '0'
-  const legacyBase = `--layers-layer-${layerId}-properties-`
-  const brandBase = `--recursica_brand_layer_${layerId}_properties_`
+  const brandPropBase = `--recursica_brand_layer_${layerId}_properties_`
+  const brandTextBase = `--recursica_brand_layer_${layerId}_elements_text-`
+  const brandInterBase = `--recursica_brand_layer_${layerId}_elements_interactive-`
   const includeBorder = !(layerId === '0')
   const paletteBackground = null
 
@@ -238,20 +239,21 @@ export default function LayerModule({ level, title, className, children, onSelec
 
   // Force style object recreation on each render to ensure CSS variables update
   const containerStyle = useMemo(() => ({
-    backgroundColor: paletteBackground ?? `var(${brandBase}surface)`,
-    color: `var(${brandBase.replace("properties-", "elements-")}text-color)`,
-    padding: `var(${brandBase}padding)`,
-    border: includeBorder ? `var(${brandBase}border-size) solid var(${brandBase}border-color)` : undefined,
-    borderRadius: includeBorder ? `var(${brandBase}border-radius)` : undefined,
+    backgroundColor: paletteBackground ?? `var(${brandPropBase}surface)`,
+    color: `var(${brandTextBase}color)`,
+    padding: `var(${brandPropBase}padding)`,
+    border: includeBorder ? `var(${brandPropBase}border-size) solid var(${brandPropBase}border-color)` : undefined,
+    borderRadius: includeBorder ? `var(${brandPropBase}border-radius)` : undefined,
     cursor: onSelect ? 'pointer' as const : undefined,
     boxShadow: cssVarBoxShadow,
-  }), [paletteBackground, brandBase, includeBorder, onSelect, cssVarBoxShadow, version, mode, elevationFromCssVar])
+  }), [paletteBackground, brandPropBase, brandTextBase, includeBorder, onSelect, cssVarBoxShadow, version, mode, elevationFromCssVar])
 
   return (
     <div
       className={className ? `layer-container ${className}` : 'layer-container'}
       style={containerStyle}
       onClick={(e) => { if (onSelect) { e.stopPropagation(); onSelect() } }}
+      {...(layerId !== '0' ? { 'data-recursica-layer': layerId } : {})}
     >
       <div className="layer-content">
         <div className="layer-text-samples">
@@ -271,27 +273,27 @@ export default function LayerModule({ level, title, className, children, onSelec
             <>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase.replace("properties-", "elements-")}text-color)` as any),
-                opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any)
+                color: (`var(${brandTextBase}color)` as any),
+                opacity: (`var(${brandTextBase}high-emphasis)` as any)
               }}>High Emphasis Text / Icon</p>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase.replace("properties-", "elements-")}text-color)` as any),
-                opacity: (`var(${brandBase.replace("properties-", "elements-")}text-low-emphasis)` as any)
+                color: (`var(${brandTextBase}color)` as any),
+                opacity: (`var(${brandTextBase}low-emphasis)` as any)
               }}>Low Emphasis Text / Icon</p>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase.replace("properties-", "elements-")}interactive-color)` as any),
-                opacity: `var(${brandBase.replace("properties-", "elements-")}interactive-high-emphasis)` as any
+                color: (`var(${brandInterBase}color)` as any),
+                opacity: `var(${brandInterBase}high-emphasis)` as any
               }}>Interactive (Link / Button)</p>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase.replace("properties-", "elements-")}interactive-color)` as any),
+                color: (`var(${brandInterBase}color)` as any),
                 opacity: (`var(--recursica_brand_states_disabled)` as any)
               }}>Disabled Interactive</p>
-              <p style={{ color: (`var(${brandBase.replace("properties-", "elements-")}text-alert)` as any), opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any) }}>Alert</p>
-              <p style={{ color: (`var(${brandBase.replace("properties-", "elements-")}text-warning)` as any), opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any) }}>Warning</p>
-              <p style={{ color: (`var(${brandBase.replace("properties-", "elements-")}text-success)` as any), opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any) }}>Success</p>
+              <p style={{ color: (`var(${brandTextBase}alert)` as any), opacity: (`var(${brandTextBase}high-emphasis)` as any) }}>Alert</p>
+              <p style={{ color: (`var(${brandTextBase}warning)` as any), opacity: (`var(${brandTextBase}high-emphasis)` as any) }}>Warning</p>
+              <p style={{ color: (`var(${brandTextBase}success)` as any), opacity: (`var(${brandTextBase}high-emphasis)` as any) }}>Success</p>
             </>
           }
         </div>

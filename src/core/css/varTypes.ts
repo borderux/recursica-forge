@@ -95,6 +95,12 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
           return { valid: true }
         }
       }
+      // Allow shadow-color values that use color-mix() with palette or brand references
+      if (cssVarName.includes('_shadow-color')) {
+        if (trimmed.includes('color-mix') && trimmed.includes('var(--recursica_brand_')) {
+          return { valid: true }
+        }
+      }
     }
     // Special case: border-size can use direct pixel values (0-20px)
     // This allows users to set border thickness directly without requiring tokens
