@@ -152,12 +152,16 @@ export default function Panel({
         ...style,
     } as React.CSSProperties
 
+    // Extract layer number for scoped CSS (e.g., 'layer-3' → '3')
+    const layerNum = layer.replace('layer-', '')
+
     const panelContent = (
         <Paper
             className={`recursica-panel recursica-panel--${position} ${className || ''}`}
             shadow={undefined}
             radius={0}
             p={0}
+            data-recursica-layer={layerNum}
             style={{
                 ...panelStyles,
                 ...borderStyle,
@@ -191,7 +195,7 @@ export default function Panel({
                         fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
                         fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
                         fontWeight: `var(--recursica_brand_typography_${headerStyleValue}-font-weight)`,
-                        letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-letter-spacing)`,
+                        letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-font-letter-spacing)`,
                         lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
                         fontStyle: `var(--recursica_brand_typography_${headerStyleValue}-font-style)`,
                         textDecoration: 'none',
@@ -250,6 +254,7 @@ export default function Panel({
             <div
                 className={`panel-overlay-container panel-overlay-container--${position}${closingClass}`}
                 style={{ width: width || '400px', zIndex: zIndex || 10000 }}
+                data-recursica-layer={layerNum}
             >
                 {panelContent}
             </div>,

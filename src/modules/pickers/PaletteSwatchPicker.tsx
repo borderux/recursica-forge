@@ -148,14 +148,14 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     for (let depth = 0; depth < 10 && currentValue; depth++) {
       const trimmed = currentValue.trim()
 
-      // Match palette pattern: palettes-{name}-{level}-tone
-      const paletteMatch = trimmed.match(/var\(--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-(\d+|primary|000|1000)-tone\)/)
+      // Match palette pattern: palettes_{name}_{level}_color_tone
+      const paletteMatch = trimmed.match(/var\(--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)_(\d+|primary|000|1000)_color_tone\)/)
       if (paletteMatch) return `${paletteMatch[1]}-${paletteMatch[2]}`
 
       // Match core color pattern
-      const coreMatch = trimmed.match(/var\(--recursica_brand_themes_(?:light|dark)_palettes_core-([a-z0-9-]+(?:-tone|-default-tone|-hover-tone)?)\)/i)
+      const coreMatch = trimmed.match(/var\(--recursica_brand_themes_(?:light|dark)_palettes_core_([a-z0-9_-]+)\)/i)
       if (coreMatch) {
-        let key = coreMatch[1].replace(/-tone$/, '').replace(/-default$/, '-default').replace(/-hover$/, '-hover')
+        let key = coreMatch[1]
         return `core-${key}`
       }
 
@@ -185,19 +185,23 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
     // Tracking match
     if (selectedPaletteSwatch) {
-      const paletteMatch = paletteCssVar.match(/--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)-([a-z0-9]+)-tone/)
+      const paletteMatch = paletteCssVar.match(/--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)_([a-z0-9]+)_color_tone/)
       if (paletteMatch && selectedPaletteSwatch === `${paletteMatch[1]}-${paletteMatch[2]}`) return true
     }
 
-    // Hex match fallback
+    // Hex match fallback — but skip if value is color-mix (blended colors don't correspond to a single swatch)
     if (targetResolvedValue?.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
-      const paletteHex = readCssVarResolved(paletteCssVar)
-      if (paletteHex && paletteHex.toLowerCase() === targetResolvedValue.resolved.toLowerCase()) {
-        if (firstHexMatchRef.current === null) {
-          firstHexMatchRef.current = paletteCssVar
-          return true
+      const directVal = targetResolvedValue.direct?.trim() || ''
+      const isColorMix = directVal.includes('color-mix')
+      if (!isColorMix) {
+        const paletteHex = readCssVarResolved(paletteCssVar)
+        if (paletteHex && paletteHex.toLowerCase() === targetResolvedValue.resolved.toLowerCase()) {
+          if (firstHexMatchRef.current === null) {
+            firstHexMatchRef.current = paletteCssVar
+            return true
+          }
+          return firstHexMatchRef.current === paletteCssVar
         }
-        return firstHexMatchRef.current === paletteCssVar
       }
     }
     return false
@@ -341,7 +345,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               height: swatch,
               cursor: 'pointer',
               background: 'transparent',
-              border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3-properties-border-color)`}`,
+              border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
               position: 'relative',
               padding: isNoneSelected ? '1px' : '0',
               borderRadius: isNoneSelected ? '5px' : '0',
@@ -353,14 +357,14 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               height: '100%',
               borderRadius: isNoneSelected ? '4px' : '0',
               position: 'relative',
-              background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3-properties-surface)`
+              background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_surface)`
             }}>
               <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
-                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral-500-tone)`} strokeWidth="1.5" />
+                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone)`} strokeWidth="1.5" />
               </svg>
               {isNoneSelected && (
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` }} /> : '✓'}
+                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` }} /> : '✓'}
                 </div>
               )}
             </div>
@@ -400,8 +404,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               <div style={{ display: 'flex', flexWrap: 'nowrap', gap }}>
                 {swatches.map((s) => {
                   const isSelected = isSwatchSelected(s.cssVar)
-                  const baseVarName = s.cssVar.replace('-tone', '')
-                  const onToneCssVar = `${baseVarName}-on-tone`
+                  const baseVarName = s.cssVar.replace(/_tone$/, '')
+                  const onToneCssVar = `${baseVarName}_on-tone`
 
                   return (
                     <div
@@ -443,7 +447,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         height: swatch,
                         cursor: 'pointer',
                         background: `var(${s.cssVar})`,
-                        border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3-properties-border-color)`}`,
+                        border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                         padding: isSelected ? '1px' : '0',
                         borderRadius: isSelected ? '5px' : '0',
                         boxSizing: 'border-box',

@@ -121,11 +121,11 @@ html[data-theme-mode="dark"] .dimension-token-option.selected {
   padding: var(--recursica_brand_dimensions_general_md);
   text-align: center;
   color: var(--recursica_brand_themes_light_layers_layer-3_elements_text-color, var(--recursica_brand_themes_light_layers_layer-3_elements_text-color));
-  opacity: var(--recursica_brand_themes_light_layers_layer-3_elements_text_low-emphasis, var(--recursica_brand_themes_light_layers_layer-3_elements_text_low-emphasis));
+  opacity: var(--recursica_brand_themes_light_layers_layer-3_elements_text-low-emphasis, var(--recursica_brand_themes_light_layers_layer-3_elements_text-low-emphasis));
   font-size: 13px;
 }
 
 html[data-theme-mode="dark"] .dimension-token-empty {
   color: var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color, var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color));
-  opacity: var(--recursica_brand_themes_dark_layers_layer-3_elements_text_low-emphasis, var(--recursica_brand_themes_dark_layers_layer-3_elements_text_low-emphasis));
+  opacity: var(--recursica_brand_themes_dark_layers_layer-3_elements_text-low-emphasis, var(--recursica_brand_themes_dark_layers_layer-3_elements_text-low-emphasis));
 }

@@ -9,13 +9,13 @@
   width: 16px;
   height: 16px;
   color: var(--recursica_brand_themes_light_layers_layer-0_elements_text-color);
-  opacity: var(--recursica_brand_themes_light_layers_layer-0_elements_text_low-emphasis);
+  opacity: var(--recursica_brand_themes_light_layers_layer-0_elements_text-low-emphasis);
   flex-shrink: 0;
 }
 
 html[data-theme-mode="dark"] .layer-segmented-control-icon {
   color: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-color);
-  opacity: var(--recursica_brand_themes_dark_layers_layer-0_elements_text_low-emphasis);
+  opacity: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-low-emphasis);
 }
 
 .layer-segmented-control-label {

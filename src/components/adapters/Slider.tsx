@@ -10,7 +10,7 @@ import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
-import { genericLayerText } from '../../core/css/cssVarBuilder'
+import { layerText } from '../../core/css/cssVarBuilder'
 import { Label } from './Label'
 import { TextField } from './TextField'
 import { NumberInput } from './NumberInput'
@@ -326,8 +326,9 @@ export function Slider({
         {finalShowMinMaxLabels && (
           <span style={{
             fontSize: 12,
-            color: `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'color')})`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+            color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+
             flexShrink: 0,
           }}>
             {minLabel ?? min}
@@ -485,8 +486,9 @@ export function Slider({
         {finalShowMinMaxLabels && (
           <span style={{
             fontSize: 12,
-            color: `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'color')})`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+            color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+
             flexShrink: 0,
           }}>
             {maxLabel ?? max}
@@ -497,8 +499,9 @@ export function Slider({
         {finalShowValueLabel && !finalShowInput && (
           <span style={{
             fontSize: 12,
-            color: `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'color')})`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${genericLayerText(parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+            color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+
             flexShrink: 0,
             whiteSpace: 'nowrap',
           }}>
@@ -716,8 +719,8 @@ export function Slider({
 
   // Use layer text color directly for value labels
   const layerNum = parseInt(layer.replace('layer-', ''))
-  const layerTextColorVar = genericLayerText(layerNum, 'color')
-  const layerTextEmphasisVar = genericLayerText(layerNum, 'high-emphasis')
+  const layerTextColorVar = layerText(mode, layerNum, 'color')
+  const layerTextEmphasisVar = layerText(mode, layerNum, 'high-emphasis')
 
   const valueLabelElement = finalShowValueLabel ? (
     <span

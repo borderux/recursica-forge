@@ -9,7 +9,7 @@
   font-size: var(--recursica_brand_typography_body-small-font-size);
   font-weight: var(--recursica_brand_typography_body-small-font-weight);
   color: var(--recursica_brand_themes_light_layers_layer-2_elements_text-color);
-  opacity: var(--recursica_brand_themes_light_layers_layer-2_elements_text_high-emphasis);
+  opacity: var(--recursica_brand_themes_light_layers_layer-2_elements_text-high-emphasis);
 }
 
 .icon-input-label-link {
@@ -36,7 +36,7 @@
   border-radius: var(--recursica_brand_dimensions_border-radius_default);
   font-size: var(--recursica_brand_typography_body-small-font-size);
   color: var(--recursica_brand_themes_light_layers_layer-2_elements_text-color);
-  opacity: var(--recursica_brand_themes_light_layers_layer-2_elements_text_high-emphasis);
+  opacity: var(--recursica_brand_themes_light_layers_layer-2_elements_text-high-emphasis);
   background: var(--recursica_brand_themes_light_layers_layer-1_properties_surface);
 }
 
@@ -60,7 +60,7 @@
 .icon-input-preview-name {
   font-size: var(--recursica_brand_typography_body-small-font-size);
   color: var(--recursica_brand_themes_light_layers_layer-2_elements_text-color);
-  opacity: var(--recursica_brand_themes_light_layers_layer-2_elements_text_high-emphasis);
+  opacity: var(--recursica_brand_themes_light_layers_layer-2_elements_text-high-emphasis);
 }
 
 

@@ -45,8 +45,8 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
   // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
   // This allows mode-specific elevation values without token conflicts
   if (cssVarName.includes('elevation') &&
-    (cssVarName.includes('-blur') || cssVarName.includes('-spread') ||
-      cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis'))) {
+    (cssVarName.includes('_blur') || cssVarName.includes('_spread') ||
+      cssVarName.includes('_x-axis') || cssVarName.includes('_y-axis'))) {
     // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
     if (/^-?\d+px$/.test(trimmed)) {
       return value
@@ -88,8 +88,8 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
       // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
       // This allows mode-specific elevation values without token conflicts
       // Tokens are shared between modes, so we bypass them for mode-specific elevation properties
-      if (cssVarName.includes('-blur') || cssVarName.includes('-spread') ||
-        cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis')) {
+      if (cssVarName.includes('_blur') || cssVarName.includes('_spread') ||
+        cssVarName.includes('_x-axis') || cssVarName.includes('_y-axis')) {
         // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
         if (/^-?\d+px$/.test(trimmed)) {
           return { valid: true }
