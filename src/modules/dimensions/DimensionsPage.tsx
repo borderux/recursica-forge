@@ -110,7 +110,7 @@ export default function DimensionsPage() {
                 tokenName = parsed.path.slice(1).join('.')
               }
             }
-            const cssVarName = `--recursica_brand_dimensions_${currentPath.join('-')}`
+            const cssVarName = `--recursica_brand_dimensions_${currentPath.join('_')}`
 
             // Read current pixel value from CSS variable
             let currentValue = 0
@@ -429,8 +429,7 @@ export default function DimensionsPage() {
                       showInput={false}
                       showValueLabel={true}
                       valueLabel={getValueLabel}
-                      minLabel={minToken?.label || 'None'}
-                      maxLabel={maxToken?.label || 'Xl'}
+                      showMinMaxLabels={false}
                       disabled={isNone}
                     />
                   )
