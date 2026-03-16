@@ -9,6 +9,7 @@ import { TextField } from '../../../components/adapters/TextField'
 import { paletteCore } from '../../../core/css/cssVarBuilder'
 import { Button } from '../../../components/adapters/Button'
 import { Trash } from '@phosphor-icons/react'
+import { genericLayerText } from '../../../core/css/cssVarBuilder'
 
 export type ColorScaleProps = {
   family: string
@@ -229,8 +230,8 @@ export function ColorScale({
             fontWeight: 'var(--recursica_brand_typography_subtitle-font-weight)',
             letterSpacing: 'var(--recursica_brand_typography_subtitle-font-letter-spacing)',
             lineHeight: 'var(--recursica_brand_typography_subtitle-line-height)',
-            color: `var(--recursica_brand_layer_0_elements_text-color)`,
-            opacity: `var(--recursica_brand_layer_0_elements_text-low-emphasis)`,
+            color: `var(${genericLayerText(0, 'color')})`,
+            opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
           }}>Used in:</span>
           {usageLocations.map((loc, i) => {
             const targetMode = loc.targetMode?.toLowerCase() as 'light' | 'dark' | undefined

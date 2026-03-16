@@ -10,7 +10,7 @@ import uikitJson from '../../../recursica_ui-kit.json'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { toCssVarName } from '../../components/utils/cssVarNames'
-import { genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 /**
  * Extracts all CSS variables for a component from recursica_ui-kit.json
@@ -175,15 +175,16 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
   
   return (
     <div 
-      aria-hidden={!open} 
+      aria-hidden={!open}
+      data-recursica-layer="2"
       style={{ 
         position: 'fixed', 
         top: 0, 
         right: 0, 
         height: '100vh', 
         width: '320px', 
-        background: `var(--recursica_brand_layer_2_properties_surface)`, 
-        borderLeft: `1px solid var(--recursica_brand_layer_2_properties_border-color)`, 
+        background: `var(${genericLayerProperty(2, 'surface')})`, 
+        borderLeft: `1px solid var(${genericLayerProperty(2, 'border-color')})`, 
         boxShadow: `var(--recursica_brand_elevations_elevation-3-shadow-color)`, 
         transform: open ? 'translateX(0)' : 'translateX(100%)', 
         transition: 'transform 200ms ease', 
@@ -212,7 +213,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
       </div>
       
       {componentVars.length === 0 ? (
-        <div style={{ padding: 24, textAlign: 'center', color: `var(--recursica_brand_layer_0_elements_text-low-emphasis)` }}>
+        <div style={{ padding: 24, textAlign: 'center', color: `var(${genericLayerText(0, 'low-emphasis')})` }}>
           No CSS variables found for {componentName}
         </div>
       ) : (
@@ -245,7 +246,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                           toggleAccordion(accordionKey)
                         }
                       }}
-                      style={{ border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 6, overflow: 'hidden' }}
+                      style={{ border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 6, overflow: 'hidden' }}
                     >
                       <summary
                         style={{
@@ -336,7 +337,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                                 placeholder={`Enter value (type: ${type})`}
                                 style={{ 
                                   padding: '6px 8px', 
-                                  border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, 
+                                  border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, 
                                   borderRadius: 6 
                                 }}
                               />
@@ -424,7 +425,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                       placeholder={`Enter value (type: ${type})`}
                       style={{ 
                         padding: '6px 8px', 
-                        border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, 
+                        border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, 
                         borderRadius: 6 
                       }}
                     />
@@ -440,7 +441,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
               onClick={handleRevertAll}
               style={{ 
                 padding: '8px 10px', 
-                border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, 
+                border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, 
                 background: 'transparent', 
                 borderRadius: 6, 
                 cursor: 'pointer' 

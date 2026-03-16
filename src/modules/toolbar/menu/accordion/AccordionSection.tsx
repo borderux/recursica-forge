@@ -71,6 +71,7 @@ export default function AccordionSection({
       {isOpen && (
         <div 
           className="accordion-content"
+          data-recursica-layer="1"
           style={{
             background: `var(${genericLayerProperty(1, 'surface')})`,
             borderTop: `1px solid var(${genericLayerProperty(1, 'border-color')})`,

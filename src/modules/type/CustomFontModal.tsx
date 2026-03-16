@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { TextField } from '../../components/adapters/TextField'
 import { Dropdown } from '../../components/adapters/Dropdown'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 export type CustomFontModalProps = {
   open: boolean
@@ -108,9 +109,9 @@ export function CustomFontModal({
     >
       <div
         style={{
-          background: `var(--recursica_brand_layer_3_properties_surface, #ffffff)`,
-          color: `var(--recursica_brand_layer_3_elements_text-color, #111111)`,
-          border: `1px solid var(--recursica_brand_layer_3_properties_border-color, rgba(0,0,0,0.1))`,
+          background: `var(${genericLayerProperty(3, 'surface')})`,
+          color: `var(${genericLayerText(3, 'color')})`,
+          border: `1px solid var(${genericLayerProperty(3, 'border-color')})`,
           borderRadius: 12,
           boxShadow: `var(--recursica_brand_elevations_elevation-4-x-axis) var(--recursica_brand_elevations_elevation-4-y-axis) var(--recursica_brand_elevations_elevation-4-blur) var(--recursica_brand_elevations_elevation-4-spread) var(--recursica_brand_elevations_elevation-4-shadow-color)`,
           padding: 20,
@@ -239,9 +240,9 @@ export function CustomFontModal({
                   style={{
                     padding: '8px 12px',
                     borderRadius: 6,
-                    border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
-                    background: `var(--recursica_brand_layer_1_properties_surface)`,
-                    color: `var(--recursica_brand_layer_1_elements_text-color)`,
+                    border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                    background: `var(${genericLayerProperty(1, 'surface')})`,
+                    color: `var(${genericLayerText(1, 'color')})`,
                     fontSize: 14,
                   }}
                 />
@@ -264,7 +265,7 @@ export function CustomFontModal({
             style={{
               padding: '8px 16px',
               borderRadius: 6,
-              border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+              border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
               background: 'transparent',
               cursor: 'pointer',
               fontSize: 14,
@@ -280,10 +281,10 @@ export function CustomFontModal({
               borderRadius: 6,
               border: 'none',
               background: (fontName.trim() && ((fontSourceType === 'npm' && npmPackage.trim()) || (fontSourceType === 'git' && gitRepo.trim())))
-                ? `var(--recursica_brand_layer_1_elements_text-color)`
+                ? `var(${genericLayerText(1, 'color')})`
                 : 'rgba(0,0,0,0.2)',
               color: (fontName.trim() && ((fontSourceType === 'npm' && npmPackage.trim()) || (fontSourceType === 'git' && gitRepo.trim())))
-                ? `var(--recursica_brand_layer_1_properties_surface)`
+                ? `var(${genericLayerProperty(1, 'surface')})`
                 : 'rgba(0,0,0,0.4)',
               cursor: (fontName.trim() && ((fontSourceType === 'npm' && npmPackage.trim()) || (fontSourceType === 'git' && gitRepo.trim()))) ? 'pointer' : 'not-allowed',
               fontSize: 14,

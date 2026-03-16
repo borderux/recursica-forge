@@ -22,6 +22,7 @@ import { readCssVarNumber } from '../../core/css/readCssVar'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import './SuggestTonesModal.css'
+import { genericLayerText } from '../../core/css/cssVarBuilder'
 
 // Standard scale levels in order from lightest to darkest (light mode)
 const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
@@ -146,7 +147,7 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                 <p
                     className="suggest-tones__subtitle"
                     style={{
-                        color: `var(--recursica_brand_layer_1_elements_text-color)`,
+                        color: `var(${genericLayerText(1, 'color')})`,
                         fontFamily: 'var(--recursica_brand_typography_body-small-font-family)',
                         fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
                         fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',

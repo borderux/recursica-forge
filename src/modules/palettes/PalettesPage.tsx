@@ -12,13 +12,12 @@ import { Toast } from '../../components/adapters/Toast'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { hexToRgb, contrastRatio, blendHexWithOpacity } from '../theme/contrastUtil'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
 
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
-import { genericLayerText } from '../../core/css/cssVarBuilder'
-
 
 
 type PaletteEntry = { key: string; title: string; defaultLevel: number; initialFamily?: string }
@@ -146,10 +145,9 @@ function CoreOnToneCell({
               opacity: `var(${emphasisCssVar})`
             }}
           />
-        )}
-
-        {showAAWarning && isHovered && (
+        )}         {showAAWarning && isHovered && (
           <div
+            data-recursica-layer="1"
             style={{
               position: 'absolute',
               top: '100%',
@@ -157,8 +155,8 @@ function CoreOnToneCell({
               transform: 'translateX(-50%)',
               marginTop: '4px',
               padding: '8px 12px',
-              backgroundColor: `var(--recursica_brand_layer_1_properties_surface)`,
-              border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+              backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+              border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
               borderRadius: '6px',
               boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 1000,
@@ -172,10 +170,10 @@ function CoreOnToneCell({
             <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
               AA Compliance Issue
             </div>
-            <div style={{ marginBottom: '8px', color: `var(--recursica_brand_layer_1_elements_text-color)` }}>
+            <div style={{ marginBottom: '8px', color: `var(${genericLayerText(1, 'color')})` }}>
               Both black and white don't pass contrast (≥4.5:1)
             </div>
-            <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica_brand_layer_1_elements_text-color)`, opacity: 0.8 }}>
+            <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(${genericLayerText(1, 'color')})`, opacity: 0.8 }}>
               Current: {aaStatus?.currentRatio.toFixed(2)}:1
             </div>
           </div>
@@ -285,6 +283,7 @@ function CoreInteractiveCell({
 
         {showAAWarning && isHovered && (
           <div
+            data-recursica-layer="1"
             style={{
               position: 'absolute',
               top: '100%',
@@ -292,8 +291,8 @@ function CoreInteractiveCell({
               transform: 'translateX(-50%)',
               marginTop: '4px',
               padding: '8px 12px',
-              backgroundColor: `var(--recursica_brand_layer_1_properties_surface)`,
-              border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+              backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+              border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
               borderRadius: '6px',
               boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
               zIndex: 1000,
@@ -307,7 +306,7 @@ function CoreInteractiveCell({
             <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
               AA Compliance Issue
             </div>
-            <div style={{ marginBottom: '8px', color: `var(--recursica_brand_layer_1_elements_text-color)` }}>
+            <div style={{ marginBottom: '8px', color: `var(${genericLayerText(1, 'color')})` }}>
               Interactive color contrast ratio {aaStatus?.currentRatio.toFixed(2)}:1 {'<'} 4.5:1
             </div>
           </div>
@@ -436,6 +435,7 @@ function CoreInteractiveSwatch({
 
       {showAAWarning && isHovered && (
         <div
+          data-recursica-layer="1"
           style={{
             position: 'absolute',
             top: '100%',
@@ -443,8 +443,8 @@ function CoreInteractiveSwatch({
             transform: 'translateX(-50%)',
             marginTop: '4px',
             padding: '8px 12px',
-            backgroundColor: `var(--recursica_brand_layer_1_properties_surface)`,
-            border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+            backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+            border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
             borderRadius: '6px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -458,10 +458,10 @@ function CoreInteractiveSwatch({
           <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>
             AA Compliance Issue
           </div>
-          <div style={{ marginBottom: '8px', color: `var(--recursica_brand_layer_1_elements_text-color)` }}>
+          <div style={{ marginBottom: '8px', color: `var(${genericLayerText(1, 'color')})` }}>
             Both black and white don't pass contrast (≥4.5:1)
           </div>
-          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(--recursica_brand_layer_1_elements_text-color)`, opacity: 0.8 }}>
+          <div style={{ marginBottom: '8px', fontSize: '11px', color: `var(${genericLayerText(1, 'color')})`, opacity: 0.8 }}>
             Current: {aaStatus?.currentRatio.toFixed(2)}:1
           </div>
         </div>
@@ -959,7 +959,7 @@ export default function PalettesPage() {
   }, [])
 
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica_brand_layer_0_properties_surface)`, color: `var(--recursica_brand_layer_0_elements_text-color)` }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: `var(${genericLayerProperty(0, 'surface')})`, color: `var(${genericLayerText(0, 'color')})` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
         <div className="header-group" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_gutters_horizontal)' }}>
           <h1 id="theme-mode-label" style={{

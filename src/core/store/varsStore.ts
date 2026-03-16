@@ -2311,7 +2311,7 @@ class VarsStore {
             const sel = this.state.elevation.paletteSelections[key]
             if (sel) {
               // Use palette CSS variable instead of token CSS variable
-              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}-${sel.level}-tone`
+              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}_color_tone`
               // Check if palette var exists in paletteVars (during initialization) or use var() reference
               const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
               const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
@@ -2413,7 +2413,7 @@ class VarsStore {
             const dir = dirForLevel(i)
             const sxValue = dir.x === 'right' ? xValue : -xValue
             const syValue = dir.y === 'down' ? yValue : -yValue
-            const brandScope = `--brand-themes-${mode}-elevations-elevation-${i}`
+            const brandScope = `--brand_themes_${mode}_elevations_elevation-${i}`
             const prefixedScope = `--recursica_${brandScope.slice(2)}`
 
             // Token names for reference (used as fallback only)
@@ -2436,7 +2436,7 @@ class VarsStore {
             }
 
             // Check if there's already a palette CSS variable set (preserve user selections)
-            const existingColor = readCssVar(`${prefixedScope}-shadow-color`)
+            const existingColor = readCssVar(`${prefixedScope}_shadow-color`)
             const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
             const alphaTok = modeAlphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
             // Use tokenToCssVar to properly convert opacity token names to CSS vars (use original state tokens for non-elevation tokens)
@@ -2467,28 +2467,28 @@ class VarsStore {
 
               if (paletteVarRef) {
                 // Preserve palette CSS variable and apply current opacity
-                vars[`${prefixedScope}-shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+                vars[`${prefixedScope}_shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
               } else {
                 // Fallback: use existing color as-is (shouldn't happen, but just in case)
-                vars[`${prefixedScope}-shadow-color`] = existingColor
+                vars[`${prefixedScope}_shadow-color`] = existingColor
               }
             } else {
               // Calculate color from state
               const color = shadowColorForLevel(i, allPaletteVars)
-              vars[`${prefixedScope}-shadow-color`] = String(color)
+              vars[`${prefixedScope}_shadow-color`] = String(color)
             }
 
             // Always set CSS variables directly with pixel values to avoid token conflicts between modes
             // Tokens are shared, so we can't rely on them for mode-specific values
             // Set CSS variables directly from controls (if they exist) or recursica_brand.json defaults
-            vars[`${prefixedScope}-blur`] = `${blurValue}px`
-            vars[`${prefixedScope}-spread`] = `${spreadValue}px`
+            vars[`${prefixedScope}_blur`] = `${blurValue}px`
+            vars[`${prefixedScope}_spread`] = `${spreadValue}px`
 
             // Apply direction for offsets
             const finalXValue = dir.x === 'right' ? xValue : -xValue
             const finalYValue = dir.y === 'down' ? yValue : -yValue
-            vars[`${prefixedScope}-x-axis`] = `${finalXValue}px`
-            vars[`${prefixedScope}-y-axis`] = `${finalYValue}px`
+            vars[`${prefixedScope}_x-axis`] = `${finalXValue}px`
+            vars[`${prefixedScope}_y-axis`] = `${finalYValue}px`
           }
           Object.assign(allVars, vars)
         } catch (e) {

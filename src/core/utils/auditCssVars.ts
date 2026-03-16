@@ -917,22 +917,25 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
 
   // Helper to check if CSS variable is defined (including scoped variables)
   const isCssVarDefined = (varName: string, element?: HTMLElement): boolean => {
+    // Layer-scoped variables (e.g., --recursica_brand_layer_1_properties_surface)
+    // must resolve on the specific element, not just globally.
+    // These are only defined within [data-recursica-layer="N"] selectors,
+    // so an element missing the correct ancestor won't have them.
+    // This check MUST come before allDefinedVars to avoid false positives:
+    // allDefinedVars may contain this var from other elements that DO have the
+    // correct data-recursica-layer ancestor, but this element may not.
+    const layerMatch = varName.match(/^--recursica_brand_layer_(\d+)_/)
+    if (layerMatch && element) {
+      const computedOnElement = getComputedStyle(element).getPropertyValue(varName)
+      return computedOnElement !== ''
+    }
+
     // First check if we already collected this variable in the first pass
     if (allDefinedVars.has(varName)) return true
     
     // Check root first
     const rootValue = getComputedStyle(root).getPropertyValue(varName)
     if (rootValue !== '') return true
-
-    // Layer-scoped variables (e.g., --recursica_brand_layer_1_properties_surface)
-    // must resolve on the specific element, not just globally.
-    // These are only defined within [data-recursica-layer="N"] selectors,
-    // so an element missing the correct ancestor won't have them.
-    const layerMatch = varName.match(/^--recursica_brand_layer_(\d+)_/)
-    if (layerMatch && element) {
-      const computedOnElement = getComputedStyle(element).getPropertyValue(varName)
-      return computedOnElement !== ''
-    }
 
     // Check if it's a scoped variable (theme/layer scoped)
     // Note: Scoped variables like --recursica_brand_themes_light_palettes_... are NOT on :root

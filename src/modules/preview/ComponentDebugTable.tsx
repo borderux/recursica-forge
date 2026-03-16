@@ -418,7 +418,7 @@ export default function ComponentDebugTable({
                       padding: 0,
                       opacity: v.isChanged ? 1 : 0.5,
                       color: v.isChanged 
-                        ? `var(--recursica_brand_layer_2_elements_interactive-tone)`
+                        ? `var(${genericLayerProperty(2, 'interactive-tone')})`
                         : `var(${genericLayerText(0, 'low-emphasis')})`,
                     }}
                   />

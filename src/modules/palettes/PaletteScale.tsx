@@ -11,7 +11,7 @@ import { ColorPickerOverlay } from '../pickers/ColorPickerOverlay'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerText, paletteCore } from '../../core/css/cssVarBuilder'
 
 
 
@@ -54,8 +54,7 @@ export function PaletteScaleHeader({
   // No fixed width - cells will size naturally with padding
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
   const { mode: themeMode } = useThemeMode()
-  const layer0Base = `--recursica_brand_themes_${themeMode}-layers-layer-0-properties`
-  const layer1Base = `--recursica_brand_themes_${themeMode}-layers-layer-1-properties`
+  // layer bases removed — use builder functions directly
 
   // Close picker when mode changes
   useEffect(() => {
@@ -250,8 +249,8 @@ export function PaletteScaleHeader({
 
                   if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
                     // Read actual core colors from CSS vars
-                    const coreBlackVar = `--recursica_brand_themes_${modeKey}-palettes-core-black`
-                    const coreWhiteVar = `--recursica_brand_themes_${modeKey}-palettes-core-white`
+                    const coreBlackVar = paletteCore(modeKey, 'black')
+                    const coreWhiteVar = paletteCore(modeKey, 'white')
                     const black = (readCssVarResolved(coreBlackVar) || '#000000').toLowerCase()
                     const white = (readCssVarResolved(coreWhiteVar) || '#ffffff').toLowerCase()
                     const cBlack = contrastRatio(hex, black)

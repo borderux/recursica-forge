@@ -9,7 +9,7 @@ import { Button } from '../../components/adapters/Button'
 import brandDefault from '../../../recursica_brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getVarsStore } from '../../core/store/varsStore'
-import { genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 export default function LayersPage() {
   const { theme, setTheme } = useVars()
@@ -134,7 +134,7 @@ export default function LayersPage() {
   }, [theme, mode, selectedLayerLevels])
 
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica_brand_layer_0_properties_surface)`, color: `var(--recursica_brand_layer_0_elements_text-color)` }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: `var(${genericLayerProperty(0, 'surface')})`, color: `var(${genericLayerText(0, 'color')})` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
         <div className="section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

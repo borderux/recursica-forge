@@ -949,11 +949,11 @@ class ComplianceServiceImpl {
             }
 
             // Parse layer text/interactive vars:
-            // --recursica_brand_themes_{mode}-layers-layer-{n}-elements-{subpath}
+            // --recursica_brand_themes_{mode}_layers_layer-{n}_elements_{subpath}
             // e.g., --recursica_brand_themes_light_layers_layer-0_elements_text_warning
             //       → brand.themes.light.layers.layer-0.elements.text.warning
             const layerMatch = cssVar.match(
-                /--recursica_brand_themes_(light|dark)_layers_(layer-\d+)-elements-(.+)$/
+                /--recursica_brand_themes_(light|dark)_layers_(layer-\d+)_elements_(.+)$/
             )
             if (layerMatch) {
                 const [, mode, layer, subpath] = layerMatch
@@ -1134,11 +1134,11 @@ class ComplianceServiceImpl {
             }
 
             // Parse layer text/interactive vars:
-            // --recursica_brand_themes_{mode}-layers-layer-{n}-elements-{subpath}
+            // --recursica_brand_themes_{mode}_layers_layer-{n}_elements_{subpath}
             // e.g., --recursica_brand_themes_light_layers_layer-0_elements_text_warning
             //       → brand.themes.light.layers.layer-0.elements.text.warning
             const layerMatch = cssVar.match(
-                /--recursica_brand_themes_(light|dark)_layers_(layer-\d+)-elements-(.+)$/
+                /--recursica_brand_themes_(light|dark)_layers_(layer-\d+)_elements_(.+)$/
             )
             if (layerMatch) {
                 const [, mode, layer, subpath] = layerMatch
@@ -1237,7 +1237,7 @@ class ComplianceServiceImpl {
      */
     private cssVarRefToJsonRef(cssVarRef: string, targetCssVar: string): string | null {
         // Extract the mode from the target CSS var
-        const modeMatch = targetCssVar.match(/--recursica_brand_themes_(light|dark)-/)
+        const modeMatch = targetCssVar.match(/--recursica_brand_themes_(light|dark)_/)
         const mode = modeMatch ? modeMatch[1] : 'light'
 
         if (this.getTokens) {

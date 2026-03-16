@@ -32,7 +32,7 @@ export default function TokensPage() {
   const layer0Surface = genericLayerProperty(0, 'surface')
   const layer0TextColor = genericLayerText(0, 'color')
   const layer0TextHigh = genericLayerText(0, 'high-emphasis')
-  const layer1BorderColor = genericLayerProperty(1, 'border-color')
+  const layer0BorderColor = genericLayerProperty(0, 'border-color')
 
   return (
     <div style={{ 
@@ -80,17 +80,17 @@ export default function TokensPage() {
             gap: 'var(--recursica_brand_dimensions_general_lg)',
             alignItems: 'start',
           }}>
-            <section style={{ 
+            <section data-recursica-layer="0" style={{ 
               background: `var(${layer0Surface})`, 
-              border: `1px solid var(${layer1BorderColor})`,
+              border: `1px solid var(${layer0BorderColor})`,
               borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)', 
               padding: 'var(--recursica_brand_dimensions_general_xl)',
             }}>
               <OpacityTokens />
             </section>
-            <section style={{ 
+            <section data-recursica-layer="0" style={{ 
               background: `var(${layer0Surface})`, 
-              border: `1px solid var(${layer1BorderColor})`,
+              border: `1px solid var(${layer0BorderColor})`,
               borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)', 
               padding: 'var(--recursica_brand_dimensions_general_xl)',
             }}>

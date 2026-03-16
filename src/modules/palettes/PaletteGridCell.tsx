@@ -12,7 +12,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Chip } from '../../components/adapters/Chip'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, paletteCore } from '../../core/css/cssVarBuilder'
 
 
 
@@ -414,6 +414,7 @@ export function PaletteEmphasisCell({
 
       {shouldOpenColorPicker && isHovered && (
         <div
+          data-recursica-layer="1"
           style={{
             position: 'absolute',
             top: '100%',
@@ -421,8 +422,8 @@ export function PaletteEmphasisCell({
             transform: 'translateX(-50%)',
             marginTop: 'var(--recursica_brand_dimensions_general_sm)',
             padding: `var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_lg)`,
-            backgroundColor: `var(--recursica_brand_layer_1_properties_surface)`,
-            border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+            backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+            border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
             borderRadius: `var(--recursica_brand_dimensions_border-radii_default)`,
             boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -433,7 +434,7 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica_brand_layer_1_elements_text-color)` }}>
+          <div style={{ color: `var(${genericLayerText(1, 'color')})` }}>
             On-tone color fails contrast
           </div>
         </div>
@@ -441,6 +442,7 @@ export function PaletteEmphasisCell({
 
       {!shouldOpenColorPicker && !isPrimary && isHovered && (
         <div
+          data-recursica-layer="1"
           style={{
             position: 'absolute',
             top: '100%',
@@ -448,8 +450,8 @@ export function PaletteEmphasisCell({
             transform: 'translateX(-50%)',
             marginTop: 'var(--recursica_brand_dimensions_general_sm)',
             padding: `var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_lg)`,
-            backgroundColor: `var(--recursica_brand_layer_1_properties_surface)`,
-            border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+            backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+            border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
             borderRadius: `var(--recursica_brand_dimensions_border-radii_default)`,
             boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
             zIndex: 1000,
@@ -459,7 +461,7 @@ export function PaletteEmphasisCell({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
-          <div style={{ color: `var(--recursica_brand_layer_1_elements_text-color)` }}>
+          <div style={{ color: `var(${genericLayerText(1, 'color')})` }}>
             Set {level} as default
           </div>
         </div>
@@ -526,8 +528,8 @@ export function PaletteEmphasisCell({
 
                   if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
                     // Read actual core colors from CSS vars
-                    const coreBlackVar = `--recursica_brand_themes_${modeKey}-palettes-core-black`
-                    const coreWhiteVar = `--recursica_brand_themes_${modeKey}-palettes-core-white`
+                    const coreBlackVar = paletteCore(modeKey, 'black')
+                    const coreWhiteVar = paletteCore(modeKey, 'white')
                     const black = (readCssVarResolved(coreBlackVar) || '#000000').toLowerCase()
                     const white = (readCssVarResolved(coreWhiteVar) || '#ffffff').toLowerCase()
                     const cBlack = contrastRatio(hex, black)

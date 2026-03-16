@@ -17,7 +17,7 @@ import { Link } from '../../components/adapters/Link'
 import { Tooltip } from '../../components/adapters/Tooltip'
 import { findColorFamilyAndLevel, getAllFamilyColorsByKey, traceToTokenRef } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
-import { tokenColors, genericLayerText, genericLayerProperty } from '../../core/css/cssVarBuilder'
+import { tokenColors, genericLayerText, genericLayerProperty, paletteCore, textEmphasis } from '../../core/css/cssVarBuilder'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVarNumber } from '../../core/css/readCssVar'
 import { generateSuggestedTones } from './toneInterpolation'
@@ -83,7 +83,7 @@ function formatOnToneLabel(issue: ComplianceIssue): string {
 
         const isBlackBased = luminance < toneLuminance
 
-        const coreVar = `--recursica_brand_themes_${issue.mode}-palettes-core-${isBlackBased ? 'black' : 'white'}`
+        const coreVar = paletteCore(issue.mode, isBlackBased ? 'black' : 'white')
         const resolved = getComputedStyle(document.documentElement).getPropertyValue(coreVar).trim()
 
         if (resolved && resolved.startsWith('#')) {
@@ -351,8 +351,8 @@ export default function CompliancePage() {
 
             const emphasis = issue.emphasis || 'high'
             const emphasisVar = emphasis === 'high'
-                ? `--recursica_brand_themes_${issue.mode}-text-emphasis-high`
-                : `--recursica_brand_themes_${issue.mode}-text-emphasis-low`
+                ? textEmphasis(issue.mode, 'high')
+                : textEmphasis(issue.mode, 'low')
             const emphasisOpacity = readCssVarNumber(emphasisVar, emphasis === 'high' ? 1 : 0.6)
 
             const tones = generateSuggestedTones(
@@ -477,6 +477,7 @@ export default function CompliancePage() {
 
                     <div
                         className="compliance-table__wrapper"
+                        data-recursica-layer="1"
                         style={{
                             borderColor: `var(${genericLayerProperty(0, 'border-color')})`,
                             backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,

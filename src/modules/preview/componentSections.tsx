@@ -35,6 +35,7 @@ import { getComponentCssVar, getComponentTextCssVar } from '../../components/uti
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
+import { genericLayerProperty } from '../../core/css/cssVarBuilder'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 
@@ -682,10 +683,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
         return (
           <div style={{
-            border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+            border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
             padding: 12,
             borderRadius: 8,
-            background: `var(--recursica_brand_layer_0_properties_surface)`,
+            background: `var(${genericLayerProperty(0, 'surface')})`,
             boxShadow: layer1Elevation || undefined
           }}>
             <strong>Hover card / Popover</strong>
@@ -743,7 +744,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Menu',
       url: `${base}/menu`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 8 }}>
+        <ul style={{ listStyle: 'none', padding: 8, margin: 0, width: 200, border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 8 }}>
           <li style={{ padding: 8 }}>Profile</li>
           <li style={{ padding: 8 }}>Settings</li>
           <li style={{ padding: 8, opacity: `var(--recursica_brand_states_disabled, 0.5)` }}>Disabled</li>
@@ -849,10 +850,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
         return (
           <div style={{
-            border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+            border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
             padding: 12,
             borderRadius: 8,
-            background: `var(--recursica_brand_layer_0_properties_surface)`,
+            background: `var(${genericLayerProperty(0, 'surface')})`,
             boxShadow: layer1Elevation || undefined
           }}>
             <strong>Modal</strong>
@@ -923,9 +924,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/chip`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
-          <span style={{ border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
-          <span style={{ border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
+          <span style={{ border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
+          <span style={{ border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
+          <span style={{ border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
           <span style={{ background: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 10px' }}>Primary</span>
           <span style={{ border: `1px solid var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
         </div>
@@ -1004,9 +1005,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       name: 'Panel',
       url: `${base}/panel`,
       render: (_selectedLayers: Set<LayerOption>) => (
-        <div style={{ display: 'flex', height: 80, border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, borderRadius: 8, overflow: 'hidden' }}>
-          <div style={{ flex: 1, background: `var(--recursica_brand_layer_0_properties_surface)`, padding: 8, fontSize: 10, opacity: 0.5 }}>Main</div>
-          <div style={{ width: 80, borderLeft: `1px solid var(--recursica_brand_layer_1_properties_border-color)`, background: `var(--recursica_brand_layer_1_properties_surface)`, padding: 6, fontSize: 10 }}>
+        <div style={{ display: 'flex', height: 80, border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ flex: 1, background: `var(${genericLayerProperty(0, 'surface')})`, padding: 8, fontSize: 10, opacity: 0.5 }}>Main</div>
+          <div style={{ width: 80, borderLeft: `1px solid var(${genericLayerProperty(1, 'border-color')})`, background: `var(${genericLayerProperty(1, 'surface')})`, padding: 6, fontSize: 10 }}>
             <strong style={{ fontSize: 9 }}>Panel</strong>
             <div style={{ marginTop: 4, opacity: 0.6, fontSize: 8 }}>Content</div>
           </div>

@@ -3,6 +3,7 @@ import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { useVars } from '../../../vars/VarsContext'
 import { useMemo } from 'react'
 import './LayerSegmentedControl.css'
+import { genericLayerProperty, genericLayerText } from '../../../../core/css/cssVarBuilder'
 
 interface LayerSegmentedControlProps {
   selected: string
@@ -42,8 +43,8 @@ export default function LayerSegmentedControl({ selected, onSelect, className = 
       <div 
         className="layer-segmented-control-buttons"
         style={{
-          border: `1px solid var(--recursica_brand_layer_0_properties_border-color)`,
-          borderRadius: `var(--recursica_brand_layer_0_properties_border-radius)`,
+          border: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
+          borderRadius: `var(${genericLayerProperty(0, 'border-radius')})`,
         }}
       >
         {layers.map((layer, index) => {
@@ -56,16 +57,16 @@ export default function LayerSegmentedControl({ selected, onSelect, className = 
               onClick={() => onSelect(layer)}
               style={{
                 background: isSelected 
-                  ? `var(--recursica_brand_layer_1_properties_surface)`
+                  ? `var(${genericLayerProperty(1, 'surface')})`
                   : 'transparent',
                 color: isSelected
-                  ? `var(--recursica_brand_layer_1_elements_text-color)`
-                  : `var(--recursica_brand_layer_0_elements_text-color)`,
+                  ? `var(${genericLayerText(1, 'color')})`
+                  : `var(${genericLayerText(0, 'color')})`,
                 fontWeight: isSelected ? 600 : 400,
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.background = `var(--recursica_brand_layer_0_properties_surface-hover)`
+                  e.currentTarget.style.background = `var(${genericLayerProperty(0, 'surface-hover')})`
                 }
               }}
               onMouseLeave={(e) => {

@@ -136,6 +136,7 @@ export function TypePage() {
 
     return (
       <div
+        data-recursica-layer="1"
         onClick={() => onToggle(!isSelected)}
         style={containerStyle}
       >

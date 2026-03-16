@@ -14,6 +14,7 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 // Helper to format dimension label from key
 const formatDimensionLabel = (key: string): string => {
@@ -791,10 +792,10 @@ export default function LayerStylePanel({
               onChange={(e) => updateValue(path, e.currentTarget.value)}
               style={{
                 padding: '6px 8px',
-                border: `1px solid var(--recursica_brand_layer_1_properties_border-color)`,
+                border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                 borderRadius: 6,
-                backgroundColor: `var(--recursica_brand_layer_1_properties_surface)`,
-                color: `var(--recursica_brand_layer_1_elements_text-color)`,
+                backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+                color: `var(${genericLayerText(1, 'color')})`,
                 fontSize: 14,
               }}
             />

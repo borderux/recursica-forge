@@ -324,9 +324,10 @@ export default function DimensionsPage() {
           return (
             <section
               key={category}
+              data-recursica-layer="0"
               style={{
                 background: `var(${genericLayerProperty(0, 'surface')})`,
-                border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                border: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
                 borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
                 padding: 'var(--recursica_brand_dimensions_general_xl)',
               }}

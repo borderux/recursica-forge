@@ -6,7 +6,7 @@
  */
 
 import { readCssVar } from '../../core/css/readCssVar'
-import { brandTypography, genericState } from '../../core/css/cssVarBuilder'
+import { brandTypography, genericState, elevation as elevationVar } from '../../core/css/cssVarBuilder'
 
 /**
  * Generates CSS variable name for brand typography properties
@@ -62,10 +62,8 @@ export function getElevationBoxShadow(
   }
 
   const elevationLevel = elevationMatch[1]
-  // Elevation sub-properties are emitted by the brand JSON walker using
-  // a fully-hyphenated format after the 'brand' prefix.
-  const base = `--recursica_brand-themes-${mode}-elevations-elevation-${elevationLevel}`
-  const boxShadow = `var(${base}-x-axis) var(${base}-y-axis) var(${base}-blur) var(${base}-spread) var(${base}-shadow-color)`
+  // Use the elevation builder for correct underscore-delimited format
+  const boxShadow = `var(${elevationVar(mode, elevationLevel, 'x-axis')}) var(${elevationVar(mode, elevationLevel, 'y-axis')}) var(${elevationVar(mode, elevationLevel, 'blur')}) var(${elevationVar(mode, elevationLevel, 'spread')}) var(${elevationVar(mode, elevationLevel, 'shadow-color')})`
 
   return boxShadow
 }
