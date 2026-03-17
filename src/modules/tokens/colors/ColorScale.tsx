@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../../../components/adapters/Link'
 
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import type { JsonLike } from '../../../core/resolvers/tokens'
 import { TextField } from '../../../components/adapters/TextField'
-import { paletteCore } from '../../../core/css/cssVarBuilder'
+
 import { Button } from '../../../components/adapters/Button'
 import { Trash } from '@phosphor-icons/react'
 import { genericLayerText } from '../../../core/css/cssVarBuilder'
@@ -241,14 +241,8 @@ export function ColorScale({
             return (
               <Link
                 key={i}
-                to={href}
-                style={{
-                  color: `var(--recursica_brand_themes_${mode}_palettes_core_interactive-default-tone)`,
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'underline'}
-                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'none'}
+                href={href}
+                layer="layer-1"
               >
                 {loc.label}
               </Link>
