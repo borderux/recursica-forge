@@ -841,19 +841,16 @@ export default function ComponentToolbar({
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
 
     // Helper: check if a CSS var belongs to exactly this component (not a sub-component).
-    // e.g. for componentKey "timeline", match "-components-timeline-variants-..."
-    // but NOT "-components-timeline-bullet-..." which is a different component.
+    // CSS vars can have two formats:
+    //   Themed:     --recursica_ui-kit_themes_light_components_button_variants_...
+    //   Non-themed: --recursica_ui-kit_components_button_variants_...
+    // Both use underscores as segment separators.
     const isExactComponentVar = (cssVar: string) => {
-      const marker = `-components-${componentKey}-`
+      const marker = `_components_${componentKey}_`
       const idx = cssVar.indexOf(marker)
       if (idx === -1) return false
       // Check what follows the component key to ensure it's not a sub-component
       const afterKey = cssVar.substring(idx + marker.length)
-      // Sub-components continue with another word segment (e.g., "bullet-...")
-      // Real property paths start with known segments like "variants-", "properties-", "text-"
-      // A simple heuristic: if componentKey is a prefix of a longer component name,
-      // the next segment would be the sub-component suffix. We check against known
-      // sub-component keys that share this prefix.
       const subComponentSuffixes = getSubComponentSuffixes(componentKey)
       for (const suffix of subComponentSuffixes) {
         if (afterKey.startsWith(suffix)) return false
