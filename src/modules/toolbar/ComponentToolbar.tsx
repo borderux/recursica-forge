@@ -23,12 +23,13 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { Switch } from '../../components/adapters/Switch'
 import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from '../preview/PreviewPage'
-import uikitJson from '../../vars/UIKit.json'
-import tokensJson from '../../vars/Tokens.json'
-import brandJson from '../../vars/Brand.json'
+import uikitJson from '../../../recursica_ui-kit.json'
+import tokensJson from '../../../recursica_tokens.json'
+import brandJson from '../../../recursica_brand.json'
 import { getComponentTextCssVar, buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import type { ComponentName } from '../../components/registry/types'
 import './ComponentToolbar.css'
+import { layerProperty, layerText } from '../../core/css/cssVarBuilder'
 
 export interface ComponentToolbarProps {
   componentName: ComponentName
@@ -581,7 +582,7 @@ export default function ComponentToolbar({
           continue
         }
 
-        // Check if this is a text-group prop that exists in UIKit.json but wasn't parsed
+        // Check if this is a text-group prop that exists in recursica_ui-kit.json but wasn't parsed
         const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
         if (textPropertyGroupNames.includes(propNameLower)) {
           // Try to find it in structure.props - it should have been parsed
@@ -834,25 +835,22 @@ export default function ComponentToolbar({
 
   const handleReset = () => {
     let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
-    // Normalize display names that differ from UIKit.json keys
+    // Normalize display names that differ from recursica_ui-kit.json keys
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
     if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
 
     // Helper: check if a CSS var belongs to exactly this component (not a sub-component).
-    // e.g. for componentKey "timeline", match "-components-timeline-variants-..."
-    // but NOT "-components-timeline-bullet-..." which is a different component.
+    // CSS vars can have two formats:
+    //   Themed:     --recursica_ui-kit_themes_light_components_button_variants_...
+    //   Non-themed: --recursica_ui-kit_components_button_variants_...
+    // Both use underscores as segment separators.
     const isExactComponentVar = (cssVar: string) => {
-      const marker = `-components-${componentKey}-`
+      const marker = `_components_${componentKey}_`
       const idx = cssVar.indexOf(marker)
       if (idx === -1) return false
       // Check what follows the component key to ensure it's not a sub-component
       const afterKey = cssVar.substring(idx + marker.length)
-      // Sub-components continue with another word segment (e.g., "bullet-...")
-      // Real property paths start with known segments like "variants-", "properties-", "text-"
-      // A simple heuristic: if componentKey is a prefix of a longer component name,
-      // the next segment would be the sub-component suffix. We check against known
-      // sub-component keys that share this prefix.
       const subComponentSuffixes = getSubComponentSuffixes(componentKey)
       for (const suffix of subComponentSuffixes) {
         if (afterKey.startsWith(suffix)) return false
@@ -986,20 +984,20 @@ export default function ComponentToolbar({
   return (
     <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
-      <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)` }}>
+      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
             {LayerIcon && <LayerIcon style={{
               width: '16px',
               height: '16px',
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
-              opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis)`
+              color: `var(${layerText(mode, 0, 'color')})`,
+              opacity: `var(${layerText(mode, 0, 'low-emphasis')})`
             }} />}
             <span style={{
               fontFamily: `var(${accordionHeaderFontFamilyVar})`,
               fontSize: `var(${accordionHeaderFontSizeVar})`,
               fontWeight: `var(${accordionHeaderFontWeightVar})`,
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`
+              color: `var(${layerText(mode, 0, 'color')})`
             }}>Layer</span>
           </div>
           <SegmentedControl
@@ -1023,15 +1021,15 @@ export default function ComponentToolbar({
 
       {/* Variants Dropdowns */}
       {visibleVariants.length > 0 && (
-        <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderBottom: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)` }}>
+        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
           {visibleVariants.map((variant, index) => {
             const isBoolean = isBooleanVariant(variant.variants)
             return (
               <div
                 key={variant.propName}
                 style={{
-                  marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
-                  paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica-brand-dimensions-general-sm)' : 0,
+                  marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica_brand_dimensions_general_sm)' : 0,
+                  paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica_brand_dimensions_general_sm)' : 0,
                 }}
               >
                 {isBoolean ? (
@@ -1122,10 +1120,34 @@ export default function ComponentToolbar({
           }
         }}
         layer="layer-0"
+        style={(componentName === 'Accordion' || componentName === 'AccordionItem'
+          ? {}
+          : {
+            /* Override the component-specific CSS vars that the Accordion adapter sets.
+               These prevent the preview accordion's colors from leaking into the toolbar.
+               The adapter spreads ...style last, so these override the adapter's computed values.
+               Skipped for Accordion/AccordionItem so the toolbar acts as a live preview. */
+            ['--accordion-bg' as string]: 'transparent',
+            ['--accordion-border' as string]: 'transparent',
+            ['--accordion-border-size' as string]: '0',
+            ['--accordion-border-radius' as string]: '0',
+            ['--accordion-padding' as string]: '0',
+            ['--accordion-item-gap' as string]: '0',
+            ['--accordion-item-header-bg-collapsed' as string]: 'transparent',
+            ['--accordion-item-header-bg-expanded' as string]: 'transparent',
+            ['--accordion-item-border-radius' as string]: '0',
+            ['--accordion-item-content-bg' as string]: 'transparent',
+            ['--accordion-item-divider-color' as string]: `var(${layerProperty(mode, 0, 'border-color')})`,
+            ['--accordion-item-header-text' as string]: `var(${layerText(mode, 0, 'color')})`,
+            ['--accordion-item-icon-color' as string]: `var(${layerText(mode, 0, 'color')})`,
+            ['--accordion-item-content-text' as string]: `var(${layerText(mode, 0, 'color')})`,
+            boxShadow: 'none',
+          }
+        ) as React.CSSProperties}
       />
 
       {/* Reset Button */}
-      <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', borderTop: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)` }}>
+      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
         <Button
           onClick={handleReset}
           variant="outline"
@@ -1144,17 +1166,17 @@ export default function ComponentToolbar({
 
       {/* Switches Section */}
       <div style={{
-        padding: 'var(--recursica-brand-dimensions-general-md)',
-        borderTop: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)`,
+        padding: 'var(--recursica_brand_dimensions_general_md)',
+        borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})`,
         display: 'flex',
         flexDirection: 'column',
-        gap: 'var(--recursica-brand-dimensions-general-sm)',
+        gap: 'var(--recursica_brand_dimensions_general_sm)',
       }}>
 
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 'var(--recursica-brand-dimensions-general-default)',
+          gap: 'var(--recursica_brand_dimensions_general_default)',
         }}>
           <Switch
             checked={debugMode}
@@ -1164,9 +1186,9 @@ export default function ComponentToolbar({
           <label
             onClick={() => setDebugMode(!debugMode)}
             style={{
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
-              opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis)`,
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              color: `var(${layerText(mode, 0, 'color')})`,
+              opacity: `var(${layerText(mode, 0, 'low-emphasis')})`,
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
               cursor: 'pointer',
               flex: 1,
             }}>

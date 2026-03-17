@@ -35,9 +35,9 @@ export function getComponentColorVars({
   src,
   imageError,
 }: GetComponentColorVarsOptions): ComponentColorVars {
-  // Use UIKit.json component colors for standard layers
+  // Use recursica_ui-kit.json component colors for standard layers
   // For nested variants: text-solid-background, text-ghost-background, icon-solid-background, icon-ghost-background, image-background
-  // UIKit.json structure: variants.text.variants.solid.colors.background
+  // recursica_ui-kit.json structure: variants.text.variants.solid.colors.background
   // If variant is just "text" or "icon" (without secondary), default to "solid"
   let variantPath = colorVariant
   if (colorVariant === 'text' || colorVariant === 'icon') {

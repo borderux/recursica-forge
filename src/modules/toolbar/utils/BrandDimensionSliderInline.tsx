@@ -67,7 +67,7 @@ export default function BrandDimensionSliderInline({
       Object.keys(dimensionCategoryData).forEach(dimensionKey => {
         const dimensionValue = dimensionCategoryData[dimensionKey]
         if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
-          const cssVar = `--recursica-brand-dimensions-${dimensionCategory}-${dimensionKey}`
+          const cssVar = `--recursica_brand_dimensions_${dimensionCategory}_${dimensionKey}`
           const cssValue = readCssVar(cssVar)
 
           if (cssValue) {
@@ -134,9 +134,9 @@ export default function BrandDimensionSliderInline({
       return
     }
 
-    if (currentValue.trim().startsWith('var(--recursica-')) {
+    if (currentValue.trim().startsWith('var(--recursica_')) {
       const matchingIndex = tokens.findIndex(t => {
-        const dimensionName = t.name.replace(`--recursica-brand-dimensions-${dimensionCategory}-`, '')
+        const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}_`, '')
         return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
       })
 

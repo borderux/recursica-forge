@@ -459,7 +459,7 @@ export function GitHubExportModal({
                         styles: {
                           dropdown: {
                             maxHeight:
-                              "calc(var(--recursica-component-menu-item-min-height, 36px) * 5.5)",
+                              "calc(var(--recursica_component_menu_item_min_height, 36px) * 5.5)",
                             overflowY: "auto",
                           },
                         },

@@ -3,6 +3,7 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { removeCssVar } from '../../../core/css/updateCssVar'
+import { tokenColor, tokenColors, layerProperty, layerText } from '../../../core/css/cssVarBuilder'
 import { ColorScale } from './ColorScale'
 import { clamp, hsvToHex, hexToHsv, toTitleCase, toKebabCase } from './colorUtils'
 import { cascadeColor, computeLevel500Hex, parseLevel, IDX_MAP, LEVELS_ASC } from './colorCascade'
@@ -26,7 +27,7 @@ type ModeName = 'Mode 1' | 'Mode 2' | string
 export function AddColorScaleButton() {
   const { mode: themeMode } = useThemeMode()
   const [showAddColorModal, setShowAddColorModal] = useState(false)
-  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-themes-light-palettes-core-black)')
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core_black)')
   const { setTokens } = useVars()
 
   const handleAddColor = () => {
@@ -145,7 +146,7 @@ export function AddColorScaleButton() {
         onClick={handleAddColor}
         icon={(() => {
           const PlusIcon = iconNameToReactComponent('plus')
-          return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+          return PlusIcon ? <PlusIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
         })()}
       >
         Add color scale
@@ -190,7 +191,7 @@ export default function ColorTokens() {
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
   const [showAddColorModal, setShowAddColorModal] = useState(false)
-  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica-brand-themes-light-palettes-core-black)')
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core_black)')
 
   // Persist deletedFamilies to localStorage when it changes
   useEffect(() => {
@@ -830,16 +831,16 @@ export default function ColorTokens() {
       for (let i = style.length - 1; i >= 0; i--) {
         const prop = style[i]
         if (!prop) continue
-        // Match old format: --recursica-tokens-color-{family}-*
-        if (prop.startsWith(`--recursica-tokens-color-${family}-`)) {
+        // Match old format: --recursica_tokens_color_{family}-*
+        if (prop.startsWith(`${tokenColor(family, '')}`)) {
           cssVarsToRemove.push(prop)
         }
-        // Match new format by alias: --recursica-tokens-colors-{family}-*
-        if (prop.startsWith(`--recursica-tokens-colors-${family}-`)) {
+        // Match new format by alias: --recursica_tokens_colors_{family}-*
+        if (prop.startsWith(`${tokenColors(family, '')}`)) {
           cssVarsToRemove.push(prop)
         }
-        // Match new format by scale key: --recursica-tokens-colors-{scale-XX}-*
-        if (deletedScaleKey && prop.startsWith(`--recursica-tokens-colors-${deletedScaleKey}-`)) {
+        // Match new format by scale key: --recursica_tokens_colors_{scale-XX}-*
+        if (deletedScaleKey && prop.startsWith(`${tokenColors(deletedScaleKey, '')}`)) {
           cssVarsToRemove.push(prop)
         }
       }
@@ -1030,20 +1031,20 @@ export default function ColorTokens() {
     return Number(b) - Number(a)
   })
 
-  const layer0Base = `--recursica-brand-themes-${themeMode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${themeMode}-layers-layer-1-properties`
-  const interactiveColor = `--recursica-brand-themes-${themeMode}-palettes-core-interactive`
+  const layer0Surface = layerProperty(themeMode, 0, 'surface')
+  const layer0TextColor = layerText(themeMode, 0, 'color')
+  const layer0TextLow = layerText(themeMode, 0, 'low-emphasis')
 
   return (
     <section style={{
-      background: `var(${layer0Base}-surface)`,
-      padding: 'var(--recursica-brand-dimensions-general-md)',
+      background: `var(${layer0Surface})`,
+      padding: 'var(--recursica_brand_dimensions_general_md)',
     }}>
       {/* Color scales grid */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: `100px repeat(${families.length}, minmax(80px, 200px))`,
-        columnGap: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+        columnGap: 'var(--recursica_brand_dimensions_gutters_horizontal)',
         rowGap: 0,
         alignItems: 'start',
         justifyContent: 'start'
@@ -1051,7 +1052,7 @@ export default function ColorTokens() {
         {/* Numerical scale column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {/* Use a hidden TextField as spacer to ensure exact height match with scale headers */}
-          <div style={{ marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)', visibility: 'hidden', pointerEvents: 'none' }}>
+          <div style={{ marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)', visibility: 'hidden', pointerEvents: 'none' }}>
             <TextField value="" onChange={() => { }} layer="layer-1" style={{ width: '100%' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginTop: 1 }}> {/* 1px offset to match scale container border */}
@@ -1060,9 +1061,9 @@ export default function ColorTokens() {
                 key={'label-' + level}
                 style={{
                   textAlign: 'center',
-                  fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                  fontSize: 'var(--recursica_brand_typography_caption-font-size)',
+                  color: `var(${layer0TextColor})`,
+                  opacity: `var(${layer0TextLow})`,
                   height: 40,
                   display: 'flex',
                   alignItems: 'center',

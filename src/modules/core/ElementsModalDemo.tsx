@@ -8,6 +8,7 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { getVarsStore } from '../../core/store/varsStore'
+import { tokenOpacity, layerProperty, layerText, elevation, state, textEmphasis, paletteCore } from '../../core/css/cssVarBuilder'
 
 export default function ElementsModalDemo() {
   const { mode } = useThemeMode()
@@ -96,7 +97,7 @@ export default function ElementsModalDemo() {
       const rawValue = readCssVar(cssVar)
       if (!rawValue) return null
 
-      // Match patterns like: var(--recursica-tokens-opacities-solid) or var(--tokens-opacities-solid)
+      // Match patterns like: var(--recursica_tokens_opacities_solid) or var(--tokens-opacities-solid)
       let match = rawValue.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
       if (match) return match[1]
 
@@ -133,21 +134,21 @@ export default function ElementsModalDemo() {
   }
 
   const [selectedHigh, setSelectedHigh] = useState(() =>
-    getCurrentSelection(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
+    getCurrentSelection(textEmphasis(modeLower, 'high'))
   )
   const [selectedLow, setSelectedLow] = useState(() =>
-    getCurrentSelection(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
+    getCurrentSelection(textEmphasis(modeLower, 'low'))
   )
   const [selectedDisabled, setSelectedDisabled] = useState(() =>
-    getCurrentSelection(`--recursica-brand-themes-${modeLower}-state-disabled`)
+    getCurrentSelection(state(modeLower, 'disabled'))
   )
 
   // Listen for opacity changes and update dropdown values
   useEffect(() => {
     const handleUpdate = () => {
-      setSelectedHigh(getCurrentSelection(`--recursica-brand-themes-${modeLower}-text-emphasis-high`))
-      setSelectedLow(getCurrentSelection(`--recursica-brand-themes-${modeLower}-text-emphasis-low`))
-      setSelectedDisabled(getCurrentSelection(`--recursica-brand-themes-${modeLower}-state-disabled`))
+      setSelectedHigh(getCurrentSelection(textEmphasis(modeLower, 'high')))
+      setSelectedLow(getCurrentSelection(textEmphasis(modeLower, 'low')))
+      setSelectedDisabled(getCurrentSelection(state(modeLower, 'disabled')))
     }
 
     window.addEventListener('tokenOverridesChanged', handleUpdate as any)
@@ -187,27 +188,26 @@ export default function ElementsModalDemo() {
 
   return (
     <div style={{
-      backgroundColor: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-surface)`,
-      border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-border-color)`,
-      borderRadius: 'var(--recursica-brand-dimensions-border-radii-lg)',
-      padding: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-padding)`,
-      boxShadow: `var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-x-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-y-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-blur) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-spread) var(--recursica-brand-themes-${modeLower}-elevations-elevation-0-shadow-color)`,
+      backgroundColor: `var(${layerProperty(modeLower, 1, 'surface')})`,
+      border: `1px solid var(${layerProperty(modeLower, 1, 'border-color')})`,
+      borderRadius: 'var(--recursica_brand_dimensions_border-radii_lg)',
+      padding: `var(${layerProperty(modeLower, 1, 'padding')})`,
       position: 'relative',
     }}>
       <div style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+        marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
       }}>
         <h2 style={{
           margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-          color: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-elements-text-color)`,
+          fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+          fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+          fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+          letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+          lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+          color: `var(${layerText(modeLower, 1, 'color')})`,
         }}>Elements</h2>
         <div ref={editOverlayButtonRef}>
           <Button
@@ -216,8 +216,8 @@ export default function ElementsModalDemo() {
             icon={PencilIcon ? <PencilIcon /> : undefined}
             onClick={() => {
               if (editOverlayButtonRef.current && (window as any).openPalettePicker) {
-                const overlayColorVar = `--recursica-brand-themes-${modeLower}-state-overlay-color`
-                const overlayOpacityVar = `--recursica-brand-themes-${modeLower}-state-overlay-opacity`
+                const overlayColorVar = state(modeLower, 'overlay', 'color')
+                const overlayOpacityVar = state(modeLower, 'overlay', 'opacity')
                   ; (window as any).openPalettePicker(editOverlayButtonRef.current, overlayColorVar, undefined, overlayOpacityVar)
               }
             }}
@@ -232,10 +232,10 @@ export default function ElementsModalDemo() {
         position: 'relative',
         width: '100%',
         minHeight: '400px',
-        backgroundColor: `var(--recursica-brand-themes-${modeLower}-layers-layer-0-properties-surface)`,
-        border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-0-properties-border-color)`,
-        borderRadius: `var(--recursica-brand-themes-${modeLower}-layers-layer-0-properties-border-radius)`,
-        padding: `var(--recursica-brand-themes-${modeLower}-layers-layer-0-properties-padding)`,
+        backgroundColor: `var(${layerProperty(modeLower, 0, 'surface')})`,
+        border: `1px solid var(${layerProperty(modeLower, 0, 'border-color')})`,
+        borderRadius: `var(${layerProperty(modeLower, 0, 'border-radius')})`,
+        padding: `var(${layerProperty(modeLower, 0, 'padding')})`,
         overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
@@ -248,8 +248,8 @@ export default function ElementsModalDemo() {
         <div style={{
           position: 'absolute',
           inset: 0,
-          backgroundColor: `var(--recursica-brand-themes-${modeLower}-state-overlay-color)`,
-          opacity: `var(--recursica-brand-themes-${modeLower}-state-overlay-opacity)`,
+          backgroundColor: `var(${state(modeLower, 'overlay', 'color')})`,
+          opacity: `var(${state(modeLower, 'overlay', 'opacity')})`,
           zIndex: 1,
         }} />
 
@@ -259,15 +259,15 @@ export default function ElementsModalDemo() {
           width: '550px',
           maxWidth: '90%',
           minHeight: '400px',
-          backgroundColor: `var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-surface)`,
-          border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-border-color)`,
-          borderRadius: `var(--recursica-brand-themes-${modeLower}-layers-layer-3-properties-border-radius)`,
-          padding: 'var(--recursica-brand-dimensions-general-xl)',
-          boxShadow: `var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-blur) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-spread) var(--recursica-brand-themes-${modeLower}-elevations-elevation-4-shadow-color)`,
+          backgroundColor: `var(${layerProperty(modeLower, 3, 'surface')})`,
+          border: `1px solid var(${layerProperty(modeLower, 3, 'border-color')})`,
+          borderRadius: `var(${layerProperty(modeLower, 3, 'border-radius')})`,
+          padding: 'var(--recursica_brand_dimensions_general_xl)',
+          boxShadow: `var(${elevation(modeLower, 4, 'x-axis')}) var(${elevation(modeLower, 4, 'y-axis')}) var(${elevation(modeLower, 4, 'blur')}) var(${elevation(modeLower, 4, 'spread')}) var(${elevation(modeLower, 4, 'shadow-color')})`,
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
+          gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
         }}>
           {/* Modal header */}
           <div style={{
@@ -277,10 +277,10 @@ export default function ElementsModalDemo() {
           }}>
             <h3 style={{
               margin: 0,
-              fontFamily: 'var(--recursica-brand-typography-h3-font-family)',
-              fontSize: 'var(--recursica-brand-typography-h3-font-size)',
-              fontWeight: 'var(--recursica-brand-typography-h3-font-weight)',
-              color: `var(--recursica-brand-themes-${modeLower}-layers-layer-3-elements-text-color)`,
+              fontFamily: 'var(--recursica_brand_typography_h3-font-family)',
+              fontSize: 'var(--recursica_brand_typography_h3-font-size)',
+              fontWeight: 'var(--recursica_brand_typography_h3-font-weight)',
+              color: `var(${layerText(modeLower, 3, 'color')})`,
             }}>
               Modal title
             </h3>
@@ -291,7 +291,7 @@ export default function ElementsModalDemo() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: `var(--recursica-brand-themes-${modeLower}-palettes-core-interactive-default-tone)`,
+                color: `var(${paletteCore(modeLower, 'interactive', 'default', 'tone')})`,
                 cursor: 'default', // Can't be closed
               }}>
                 <XIcon style={{ width: '16px', height: '16px' }} />
@@ -302,30 +302,30 @@ export default function ElementsModalDemo() {
           {/* Emphasis tabs */}
           <div style={{
             display: 'flex',
-            gap: 'var(--recursica-brand-dimensions-general-sm)',
+            gap: 'var(--recursica_brand_dimensions_general_sm)',
           }}>
             {[
-              { label: 'High emphasis', opacityVar: `--recursica-brand-themes-${modeLower}-text-emphasis-high` },
-              { label: 'Low emphasis', opacityVar: `--recursica-brand-themes-${modeLower}-text-emphasis-low` },
-              { label: 'Disabled', opacityVar: `--recursica-brand-themes-${modeLower}-state-disabled` },
+              { label: 'High emphasis', opacityVar: textEmphasis(modeLower, 'high') },
+              { label: 'Low emphasis', opacityVar: textEmphasis(modeLower, 'low') },
+              { label: 'Disabled', opacityVar: state(modeLower, 'disabled') },
             ].map((item, index) => (
               <div
                 key={item.label}
                 style={{
                   flex: 1,
-                  padding: `var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)`,
-                  border: `1px solid var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-border-color)`,
+                  padding: `var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)`,
+                  border: `1px solid var(${layerProperty(modeLower, 1, 'border-color')})`,
                   borderRadius: '999px', // Fully rounded pill shape
                   backgroundColor: index === 0
-                    ? `var(--recursica-brand-themes-${modeLower}-layers-layer-1-properties-surface)`
+                    ? `var(${layerProperty(modeLower, 1, 'surface')})`
                     : 'transparent',
-                  color: `var(--recursica-brand-themes-${modeLower}-layers-layer-1-elements-text-color)`,
+                  color: `var(${layerText(modeLower, 1, 'color')})`,
                   opacity: `var(${item.opacityVar})`,
-                  fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-                  fontSize: 'var(--recursica-brand-typography-body-font-size)',
+                  fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+                  fontSize: 'var(--recursica_brand_typography_body-font-size)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 'var(--recursica-brand-dimensions-general-sm)',
+                  gap: 'var(--recursica_brand_dimensions_general_sm)',
                   justifyContent: 'center',
                 }}
               >
@@ -339,7 +339,7 @@ export default function ElementsModalDemo() {
           <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
+            gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
           }}>
             <Dropdown
               label="High emphasis text / icons"
@@ -349,9 +349,9 @@ export default function ElementsModalDemo() {
                 const option = opacityOptions.find(o => o.key === val)
                 if (option) {
                   const tokenKey = option.key
-                  const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
-                  updateCssVar(`--recursica-brand-themes-${modeLower}-text-emphasis-high`, `var(${opacityCssVar})`)
-                  updateCssVar(`--recursica-brand-themes-${otherMode}-text-emphasis-high`, `var(${opacityCssVar})`)
+                  const opacityCssVar = tokenOpacity(tokenKey)
+                  updateCssVar(textEmphasis(modeLower, 'high'), `var(${opacityCssVar})`)
+                  updateCssVar(`--recursica_brand_themes_${otherMode}_text-emphasis_high`, `var(${opacityCssVar})`)
                   persistToThemeJson('text-emphasis-high', tokenKey)
                   setSelectedHigh(val)
                 }
@@ -370,9 +370,9 @@ export default function ElementsModalDemo() {
                 const option = opacityOptions.find(o => o.key === val)
                 if (option) {
                   const tokenKey = option.key
-                  const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
-                  updateCssVar(`--recursica-brand-themes-${modeLower}-text-emphasis-low`, `var(${opacityCssVar})`)
-                  updateCssVar(`--recursica-brand-themes-${otherMode}-text-emphasis-low`, `var(${opacityCssVar})`)
+                  const opacityCssVar = tokenOpacity(tokenKey)
+                  updateCssVar(textEmphasis(modeLower, 'low'), `var(${opacityCssVar})`)
+                  updateCssVar(`--recursica_brand_themes_${otherMode}_text-emphasis_low`, `var(${opacityCssVar})`)
                   persistToThemeJson('text-emphasis-low', tokenKey)
                   setSelectedLow(val)
                 }
@@ -391,9 +391,9 @@ export default function ElementsModalDemo() {
                 const option = opacityOptions.find(o => o.key === val)
                 if (option) {
                   const tokenKey = option.key
-                  const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
-                  updateCssVar(`--recursica-brand-themes-${modeLower}-state-disabled`, `var(${opacityCssVar})`)
-                  updateCssVar(`--recursica-brand-themes-${otherMode}-state-disabled`, `var(${opacityCssVar})`)
+                  const opacityCssVar = tokenOpacity(tokenKey)
+                  updateCssVar(state(modeLower, 'disabled'), `var(${opacityCssVar})`)
+                  updateCssVar(state(otherMode, 'disabled'), `var(${opacityCssVar})`)
                   persistToThemeJson('state-disabled', tokenKey)
                   setSelectedDisabled(val)
                 }
@@ -408,17 +408,17 @@ export default function ElementsModalDemo() {
             <div style={{
               display: 'flex',
               justifyContent: 'flex-end',
-              marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
+              marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
             }}>
               <Button
                 variant="outline"
                 size="small"
                 layer="layer-1"
-                icon={ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : undefined}
+                icon={ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : undefined}
                 onClick={() => {
-                  // Reset all opacities to default values from Brand.json
+                  // Reset all opacities to default values from recursica_brand.json
                   try {
-                    // Default values from Brand.json:
+                    // Default values from recursica_brand.json:
                     // text-emphasis-high: {tokens.opacity.solid}
                     // text-emphasis-low: {tokens.opacity.smoky}
                     // state-disabled: {tokens.opacity.ghost}
@@ -427,12 +427,12 @@ export default function ElementsModalDemo() {
                     const defaultDisabledToken = 'ghost'
 
                     // Reset CSS variables to default token references (both modes)
-                    updateCssVar(`--recursica-brand-themes-${modeLower}-text-emphasis-high`, `var(--recursica-tokens-opacities-${defaultHighToken})`)
-                    updateCssVar(`--recursica-brand-themes-${modeLower}-text-emphasis-low`, `var(--recursica-tokens-opacities-${defaultLowToken})`)
-                    updateCssVar(`--recursica-brand-themes-${modeLower}-state-disabled`, `var(--recursica-tokens-opacities-${defaultDisabledToken})`)
-                    updateCssVar(`--recursica-brand-themes-${otherMode}-text-emphasis-high`, `var(--recursica-tokens-opacities-${defaultHighToken})`)
-                    updateCssVar(`--recursica-brand-themes-${otherMode}-text-emphasis-low`, `var(--recursica-tokens-opacities-${defaultLowToken})`)
-                    updateCssVar(`--recursica-brand-themes-${otherMode}-state-disabled`, `var(--recursica-tokens-opacities-${defaultDisabledToken})`)
+                    updateCssVar(textEmphasis(modeLower, 'high'), `var(--recursica_tokens_opacities_${defaultHighToken})`)
+                    updateCssVar(textEmphasis(modeLower, 'low'), `var(--recursica_tokens_opacities_${defaultLowToken})`)
+                    updateCssVar(state(modeLower, 'disabled'), `var(--recursica_tokens_opacities_${defaultDisabledToken})`)
+                    updateCssVar(textEmphasis(otherMode, 'high'), `var(--recursica_tokens_opacities_${defaultHighToken})`)
+                    updateCssVar(textEmphasis(otherMode, 'low'), `var(--recursica_tokens_opacities_${defaultLowToken})`)
+                    updateCssVar(state(otherMode, 'disabled'), `var(--recursica_tokens_opacities_${defaultDisabledToken})`)
 
                     // Persist resets to theme JSON
                     persistToThemeJson('text-emphasis-high', defaultHighToken)

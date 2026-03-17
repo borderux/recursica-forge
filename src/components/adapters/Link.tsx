@@ -66,9 +66,9 @@ export function Link({
 
   // Get theme-agnostic CSS variables for logical icon settings
   const componentKebab = 'link'
-  const showIconVar = `--recursica-ui-kit-components-${componentKebab}-properties-show-icon`
-  const iconNameVar = `--recursica-ui-kit-components-${componentKebab}-properties-icon-name`
-  const iconPositionVar = `--recursica-ui-kit-components-${componentKebab}-properties-icon-position`
+  const showIconVar = `--recursica_ui-kit_components_${componentKebab}-properties-show-icon`
+  const iconNameVar = `--recursica_ui-kit_components_${componentKebab}-properties-icon-name`
+  const iconPositionVar = `--recursica_ui-kit_components_${componentKebab}-properties-icon-position`
 
   // Read current values from CSS variables
   // We use direct readCssVar for immediate updates after events, 
@@ -272,7 +272,7 @@ function getLinkStyles(
 ): React.CSSProperties {
   const styles: React.CSSProperties = {}
 
-  // Use UIKit.json link colors from state variants
+  // Use recursica_ui-kit.json link colors from state variants
   const textVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'text')
 
   // Shared text properties (component level)

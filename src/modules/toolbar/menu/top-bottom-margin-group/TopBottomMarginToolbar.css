@@ -1,7 +1,7 @@
 .top-bottom-margin-toolbar {
   display: flex;
   flex-direction: column;
-  gap: var(--recursica-ui-kit-globals-form-properties-vertical-item-gap, 8px);
+  gap: var(--recursica_ui-kit_globals_form_properties_vertical_item_gap, 8px);
 }
 
 .top-bottom-margin-control {

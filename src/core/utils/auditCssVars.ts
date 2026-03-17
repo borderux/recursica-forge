@@ -16,7 +16,7 @@ export interface BrokenReference {
  * These are valid even if not found on :root during audit
  */
 const COMPONENT_INSTANCE_VARS = new Set([
-  '--recursica-ui-kit-components-switch-track-height', // Calculated: thumb-height + 2 * track-inner-padding
+  '--recursica_ui-kit_components_switch_track_height', // Calculated: thumb-height + 2 * track-inner-padding
 ])
 
 /**
@@ -24,7 +24,7 @@ const COMPONENT_INSTANCE_VARS = new Set([
  * These are valid even if not found on :root during audit
  */
 const COMPONENT_INSTANCE_VAR_PATTERNS = [
-  /^--recursica-ui-kit-components-menu-item-variants-styles-(hover|selected|focused)-properties-colors-layer-\d+-background$/,
+  /^--recursica_ui-kit_components_menu_item_variants_styles_(hover|selected|focused)-properties-colors-layer-\d+-background$/,
 ]
 
 /**
@@ -55,6 +55,9 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     return trimmed.startsWith('{') && trimmed.endsWith('}')
   }
 
+  // Track brace-notation vars already reported to avoid duplicates
+  const braceNotationReported = new Set<string>()
+
   // Helper to add variable with location tracking
   const addVar = (varName: string, value: string, location: string) => {
     allVars.add(varName)
@@ -67,8 +70,9 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     }
     varLocations.get(varName)!.add(location)
     
-    // Check for brace notation in CSS variable values
-    if (isBraceNotation(value)) {
+    // Check for brace notation in CSS variable values (only report once per var)
+    if (isBraceNotation(value) && !braceNotationReported.has(varName)) {
+      braceNotationReported.add(varName)
       const locations = varLocations.get(varName) || new Set()
       const locationStr = Array.from(locations).join(', ')
       const isRoot = locationStr.includes('root')
@@ -100,7 +104,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   if (root.style) {
     for (let i = 0; i < root.style.length; i++) {
       const prop = root.style[i]
-      if (prop.startsWith('--recursica-')) {
+      if (prop.startsWith('--recursica_')) {
         const value = root.style.getPropertyValue(prop).trim()
         addVar(prop, value, 'root-inline')
       }
@@ -111,7 +115,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   // But prioritize inline styles (they're the source of truth)
   for (let i = 0; i < computedStyle.length; i++) {
     const prop = computedStyle[i]
-    if (prop.startsWith('--recursica-')) {
+    if (prop.startsWith('--recursica_')) {
       // Only add if not already added from inline styles
       if (!allVars.has(prop)) {
         const value = computedStyle.getPropertyValue(prop).trim()
@@ -130,23 +134,23 @@ export function auditRecursicaCssVars(): BrokenReference[] {
           if (rule instanceof CSSStyleRule) {
             const selector = rule.selectorText || 'unknown'
             const style = rule.style
-            // Check for CSS variable definitions (--recursica-* properties)
+            // Check for CSS variable definitions (--recursica_* properties)
             for (let i = 0; i < style.length; i++) {
               const prop = style[i]
-              if (prop.startsWith('--recursica-')) {
+              if (prop.startsWith('--recursica_')) {
                 const value = style.getPropertyValue(prop).trim()
                 addVar(prop, value, `stylesheet:${selector}`)
               }
             }
-            // Also check all CSS property VALUES for var() references to --recursica- variables
+            // Also check all CSS property VALUES for var() references to --recursica_ variables
             for (let i = 0; i < style.length; i++) {
               const cssProp = style[i]
               const cssValue = style.getPropertyValue(cssProp).trim()
-              if (cssValue && cssValue.includes('--recursica-')) {
-                // Extract all --recursica- variable references from the CSS value
-                // This regex matches --recursica-* variable names anywhere in the value
+              if (cssValue && cssValue.includes('--recursica_')) {
+                // Extract all --recursica_ variable references from the CSS value
+                // This regex matches --recursica_* variable names anywhere in the value
                 // It handles both direct references and nested var() calls
-                const varNamePattern = /--recursica-[a-z0-9-]+/g
+                const varNamePattern = /--recursica_[a-z0-9_-]+/g
                 let match
                 while ((match = varNamePattern.exec(cssValue)) !== null) {
                   const referencedVar = match[0]
@@ -178,7 +182,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     // Check computed styles for CSS variable definitions
     for (let i = 0; i < elComputed.length; i++) {
       const prop = elComputed[i]
-      if (prop.startsWith('--recursica-')) {
+      if (prop.startsWith('--recursica_')) {
         const value = elComputed.getPropertyValue(prop).trim()
         if (value) {
           addVar(prop, value, `element-computed:${elDesc}`)
@@ -190,21 +194,21 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     if (elInline && elInline.length > 0) {
       for (let i = 0; i < elInline.length; i++) {
         const prop = elInline[i]
-        if (prop.startsWith('--recursica-')) {
+        if (prop.startsWith('--recursica_')) {
           const value = elInline.getPropertyValue(prop).trim()
           addVar(prop, value, `element-inline:${elDesc}`)
         }
       }
     }
 
-    // Check all CSS properties for var() references to --recursica- variables
+    // Check all CSS properties for var() references to --recursica_ variables
     for (let i = 0; i < elComputed.length; i++) {
       const prop = elComputed[i]
       const value = elComputed.getPropertyValue(prop).trim()
-      if (value && value.includes('--recursica-')) {
-        // Extract all --recursica- variable references from the CSS value
-        // This regex matches --recursica-* variable names anywhere in the value
-        const varNamePattern = /--recursica-[a-z0-9-]+/g
+      if (value && value.includes('--recursica_')) {
+        // Extract all --recursica_ variable references from the CSS value
+        // This regex matches --recursica_* variable names anywhere in the value
+        const varNamePattern = /--recursica_[a-z0-9_-]+/g
         let match
         while ((match = varNamePattern.exec(value)) !== null) {
           const referencedVar = match[0]
@@ -230,7 +234,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   for (const [usageKey, usageLocations] of varLocations.entries()) {
     if (usageKey.startsWith('usage:')) {
       const referencedVar = usageKey.replace('usage:', '')
-      if (referencedVar.startsWith('--recursica-')) {
+      if (referencedVar.startsWith('--recursica_')) {
         // Skip component-instance variables (calculated values set on component instances)
         if (COMPONENT_INSTANCE_VARS.has(referencedVar)) {
           continue
@@ -240,7 +244,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
         let isUsedAsComponentFallback = false
         const checkValueForFallback = (value: string): boolean => {
           if (!value) return false
-          // Pattern: var(--component-var, var(--recursica-...))
+          // Pattern: var(--component-var, var(--recursica_...))
           const fallbackPattern = new RegExp(`var\\s*\\(\\s*(--[a-z-]+)\\s*,\\s*var\\s*\\(\\s*${referencedVar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\)\\s*\\)`, 'i')
           const match = value.match(fallbackPattern)
           if (match) {
@@ -419,7 +423,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
       const referencedVarName = innerMatch[1].trim()
 
       // Check if it's a --recursica variable
-      if (referencedVarName.startsWith('--recursica-')) {
+      if (referencedVarName.startsWith('--recursica_')) {
         // Skip component-instance variables (calculated values set on component instances)
         if (COMPONENT_INSTANCE_VARS.has(referencedVarName)) {
           continue
@@ -491,7 +495,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
         if (value) {
           // Escape special regex characters in the referencedVarName
           const escapedVar = referencedVarName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-          // Pattern: var(--component-var, var(--recursica-...))
+          // Pattern: var(--component-var, var(--recursica_...))
           const fallbackPattern = new RegExp(
             `var\\s*\\(\\s*(--[a-z0-9-]+)\\s*,\\s*var\\s*\\(\\s*${escapedVar}\\s*\\)\\s*\\)`,
             'i'
@@ -538,7 +542,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
               const innerMatch = ref.match(/var\s*\(\s*([^,)]+)/)
               if (innerMatch) {
                 const refVar = innerMatch[1].trim()
-                if (refVar.startsWith('--recursica-') && checkCircular(refVar, new Set(visited), depth + 1)) {
+                if (refVar.startsWith('--recursica_') && checkCircular(refVar, new Set(visited), depth + 1)) {
                   return true
                 }
               }
@@ -565,12 +569,12 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   }
   
   // Third pass: Check for variables referenced in CSS property values that don't exist
-  // This catches cases like background-color: var(--recursica-brand-dark-layers-layer-0-properties-surface)
+  // This catches cases like background-color: var(--recursica_brand_dark_layers_layer-0_properties_surface)
   // where the variable is used in a CSS property but never defined
   for (const [usageKey, usageLocations] of varLocations.entries()) {
     if (usageKey.startsWith('usage:')) {
       const referencedVar = usageKey.replace('usage:', '')
-      if (referencedVar.startsWith('--recursica-')) {
+      if (referencedVar.startsWith('--recursica_')) {
         // Skip component-instance variables (calculated values set on component instances)
         if (COMPONENT_INSTANCE_VARS.has(referencedVar)) {
           continue
@@ -581,7 +585,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
         let existsInDom = false
         
         // Check if this variable is used as a fallback (second argument in var())
-        // Pattern: var(--component-var, var(--recursica-...))
+        // Pattern: var(--component-var, var(--recursica_...))
         // Component-level variables like --toast-text-size, --button-bg are set by components
         // and use UIKit variables as fallbacks, so fallbacks are valid even if not directly defined
         let isUsedAsComponentFallback = false
@@ -589,10 +593,10 @@ export function auditRecursicaCssVars(): BrokenReference[] {
         // Helper to check if a CSS value uses the referencedVar as a fallback
         const checkValueForFallback = (value: string): boolean => {
           if (!value) return false
-          // Pattern: var(--component-var, var(--recursica-...))
+          // Pattern: var(--component-var, var(--recursica_...))
           // Escape special regex characters in the referencedVar
           const escapedVar = referencedVar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-          // Match: var(--component-var, var(--recursica-...))
+          // Match: var(--component-var, var(--recursica_...))
           // Allow flexible whitespace
           const fallbackPattern = new RegExp(
             `var\\s*\\(\\s*(--[a-z0-9-]+)\\s*,\\s*var\\s*\\(\\s*${escapedVar}\\s*\\)\\s*\\)`,
@@ -917,6 +921,19 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
 
   // Helper to check if CSS variable is defined (including scoped variables)
   const isCssVarDefined = (varName: string, element?: HTMLElement): boolean => {
+    // Layer-scoped variables (e.g., --recursica_brand_layer_1_properties_surface)
+    // must resolve on the specific element, not just globally.
+    // These are only defined within [data-recursica-layer="N"] selectors,
+    // so an element missing the correct ancestor won't have them.
+    // This check MUST come before allDefinedVars to avoid false positives:
+    // allDefinedVars may contain this var from other elements that DO have the
+    // correct data-recursica-layer ancestor, but this element may not.
+    const layerMatch = varName.match(/^--recursica_brand_layer_(\d+)_/)
+    if (layerMatch && element) {
+      const computedOnElement = getComputedStyle(element).getPropertyValue(varName)
+      return computedOnElement !== ''
+    }
+
     // First check if we already collected this variable in the first pass
     if (allDefinedVars.has(varName)) return true
     
@@ -925,11 +942,11 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
     if (rootValue !== '') return true
 
     // Check if it's a scoped variable (theme/layer scoped)
-    // Note: Scoped variables like --recursica-brand-themes-light-palettes-... are NOT on :root
+    // Note: Scoped variables like --recursica_brand_themes_light_palettes_... are NOT on :root
     // They're defined in scoped stylesheets that only apply with theme classes
-    if (varName.includes('-themes-') && varName.startsWith('--recursica-brand-')) {
+    if (varName.includes('-themes-') && varName.startsWith('--recursica_brand_')) {
       // Try to get theme from variable name
-      const themeMatch = varName.match(/--recursica-brand-themes-([a-z]+)-/)
+      const themeMatch = varName.match(/--recursica_brand_themes_([a-z]+)-/)
       if (themeMatch) {
         const theme = themeMatch[1]
         
@@ -986,7 +1003,7 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
     let match
     while ((match = varPattern.exec(value)) !== null) {
       const varName = match[1].trim()
-      if (varName.startsWith('--recursica-')) {
+      if (varName.startsWith('--recursica_')) {
         refs.push(varName)
       }
     }
@@ -1034,8 +1051,8 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
       if (rootComputed !== '') return rootComputed.trim()
 
       // Check if it's a scoped variable
-      if (varName.includes('-themes-') && varName.startsWith('--recursica-brand-')) {
-        const themeMatch = varName.match(/--recursica-brand-themes-([a-z]+)-/)
+      if (varName.includes('-themes-') && varName.startsWith('--recursica_brand_')) {
+        const themeMatch = varName.match(/--recursica_brand_themes_([a-z]+)-/)
         if (themeMatch) {
           const theme = themeMatch[1]
           const testEl = document.createElement('div')
@@ -1083,8 +1100,8 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
       }
     }
 
-    // Check for invalid characters
-    if (!/^--[a-z0-9-]+$/i.test(varName)) {
+    // Check for invalid characters (underscores are valid and used as standard delimiter)
+    if (!/^--[a-z0-9_-]+$/i.test(varName)) {
       issues.push('invalid-characters')
     }
 
@@ -1153,7 +1170,7 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
       }
 
       instructions.push(`5. NEVER add fallback values - fix the root cause.`)
-      instructions.push(`6. NEVER modify Tokens.json, Brand.json, or UIKit.json - only fix the code using the variable.`)
+      instructions.push(`6. NEVER modify recursica_tokens.json, recursica_brand.json, or recursica_ui-kit.json - only fix the code using the variable.`)
     } else if (issueType === 'malformed') {
       instructions.push(`1. The CSS variable name "${varName}" is malformed.`)
       instructions.push(`2. Fix the variable name in ${sourceFile || 'the file using it'}.`)
@@ -1183,7 +1200,7 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
   // Check root
   for (let i = 0; i < root.style.length; i++) {
     const prop = root.style[i]
-    if (prop.startsWith('--recursica-')) {
+    if (prop.startsWith('--recursica_')) {
       allDefinedVars.add(prop)
       varValues.set(prop, root.style.getPropertyValue(prop).trim())
     }
@@ -1197,7 +1214,7 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
     // Check computed styles
     for (let i = 0; i < computed.length; i++) {
       const prop = computed[i]
-      if (prop.startsWith('--recursica-')) {
+      if (prop.startsWith('--recursica_')) {
         allDefinedVars.add(prop)
         if (!varValues.has(prop)) {
           varValues.set(prop, computed.getPropertyValue(prop).trim())
@@ -1209,7 +1226,7 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
     if (inline) {
       for (let i = 0; i < inline.length; i++) {
         const prop = inline[i]
-        if (prop.startsWith('--recursica-')) {
+        if (prop.startsWith('--recursica_')) {
           allDefinedVars.add(prop)
           varValues.set(prop, inline.getPropertyValue(prop).trim())
         }
@@ -1228,7 +1245,7 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
             const style = rule.style
             for (let i = 0; i < style.length; i++) {
               const prop = style[i]
-              if (prop.startsWith('--recursica-')) {
+              if (prop.startsWith('--recursica_')) {
                 allDefinedVars.add(prop)
                 if (!varValues.has(prop)) {
                   varValues.set(prop, style.getPropertyValue(prop).trim())
@@ -1257,12 +1274,12 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
       const cssProp = computed[i]
       const value = computed.getPropertyValue(cssProp).trim()
       
-      if (value && value.includes('--recursica-')) {
+      if (value && value.includes('--recursica_')) {
         const varRefs = extractVarRefs(value)
         
         for (const varRef of varRefs) {
-          if (checkedVars.has(`${elPath}:${cssProp}:${varRef}`)) continue
-          checkedVars.add(`${elPath}:${cssProp}:${varRef}`)
+          if (checkedVars.has(`${cssProp}:${varRef}`)) continue
+          checkedVars.add(`${cssProp}:${varRef}`)
 
           // Check if variable is defined
           const isDefined = isCssVarDefined(varRef, el as HTMLElement)
@@ -1338,8 +1355,8 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
               // Find which nested variable failed
               const failedVar = trace.chain[trace.chain.length - 1]
               if (!isCssVarDefined(failedVar, el as HTMLElement)) {
-                if (!checkedVars.has(`${elPath}:${cssProp}:${failedVar}`)) {
-                  checkedVars.add(`${elPath}:${cssProp}:${failedVar}`)
+                if (!checkedVars.has(`${cssProp}:${failedVar}`)) {
+                  checkedVars.add(`${cssProp}:${failedVar}`)
                   
                   const similar = findSimilarVars(failedVar, allDefinedVars)
                   let issueType: DeepAuditIssue['issueType'] = 'undefined'
@@ -1390,12 +1407,12 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
         const cssProp = inline[i]
         const value = inline.getPropertyValue(cssProp).trim()
         
-        if (value && value.includes('--recursica-')) {
+        if (value && value.includes('--recursica_')) {
           const varRefs = extractVarRefs(value)
           
           for (const varRef of varRefs) {
-            if (checkedVars.has(`${elPath}:inline:${cssProp}:${varRef}`)) continue
-            checkedVars.add(`${elPath}:inline:${cssProp}:${varRef}`)
+            if (checkedVars.has(`inline:${cssProp}:${varRef}`)) continue
+            checkedVars.add(`inline:${cssProp}:${varRef}`)
 
             const isDefined = isCssVarDefined(varRef, el as HTMLElement)
             

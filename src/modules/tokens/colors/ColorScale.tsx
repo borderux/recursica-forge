@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link } from '../../../components/adapters/Link'
 
 import { ColorCell } from './ColorCell'
 import { toTitleCase } from './colorUtils'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import type { JsonLike } from '../../../core/resolvers/tokens'
 import { TextField } from '../../../components/adapters/TextField'
+
 import { Button } from '../../../components/adapters/Button'
 import { Trash } from '@phosphor-icons/react'
+import { genericLayerText } from '../../../core/css/cssVarBuilder'
 
 export type ColorScaleProps = {
   family: string
@@ -114,11 +116,9 @@ export function ColorScale({
     }
   }, [])
 
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-      <div style={{ marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
+      <div style={{ marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
         <TextField
           value={localName}
           onChange={(e) => {
@@ -136,14 +136,14 @@ export function ColorScale({
           layer="layer-1"
           minWidth={0}
           style={{
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
             width: '100%',
           }}
         />
       </div>
       <div style={{
         border: `1px solid ${borderColor}`,
-        borderRadius: 'var(--recursica-brand-dimensions-border-radii-lg)',
+        borderRadius: 'var(--recursica_brand_dimensions_border-radii_lg)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -192,7 +192,7 @@ export function ColorScale({
         })}
       </div>
       <div style={{
-        marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
+        marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
         display: 'flex',
         justifyContent: 'center',
       }}>
@@ -218,20 +218,20 @@ export function ColorScale({
       </div>
       {isUsedInPalettes && (
         <div style={{
-          marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
+          marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: 2,
         }}>
           <span style={{
-            fontFamily: 'var(--recursica-brand-typography-subtitle-font-family)',
-            fontSize: 'var(--recursica-brand-typography-subtitle-font-size)',
-            fontWeight: 'var(--recursica-brand-typography-subtitle-font-weight)',
-            letterSpacing: 'var(--recursica-brand-typography-subtitle-font-letter-spacing)',
-            lineHeight: 'var(--recursica-brand-typography-subtitle-line-height)',
-            color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
-            opacity: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis, 0.6)`,
+            fontFamily: 'var(--recursica_brand_typography_subtitle-font-family)',
+            fontSize: 'var(--recursica_brand_typography_subtitle-font-size)',
+            fontWeight: 'var(--recursica_brand_typography_subtitle-font-weight)',
+            letterSpacing: 'var(--recursica_brand_typography_subtitle-font-letter-spacing)',
+            lineHeight: 'var(--recursica_brand_typography_subtitle-line-height)',
+            color: `var(${genericLayerText(0, 'color')})`,
+            opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
           }}>Used in:</span>
           {usageLocations.map((loc, i) => {
             const targetMode = loc.targetMode?.toLowerCase() as 'light' | 'dark' | undefined
@@ -241,14 +241,8 @@ export function ColorScale({
             return (
               <Link
                 key={i}
-                to={href}
-                style={{
-                  color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone, #0066cc)`,
-                  textDecoration: 'none',
-                  textAlign: 'center',
-                }}
-                onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'underline'}
-                onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => e.currentTarget.style.textDecoration = 'none'}
+                href={href}
+                layer="layer-1"
               >
                 {loc.label}
               </Link>

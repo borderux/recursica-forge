@@ -141,8 +141,8 @@ export function Label({
     : undefined
 
   // Get CSS variables for text emphasis opacity
-  const highEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
-  const lowEmphasisOpacityVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+  const highEmphasisOpacityVar = `--recursica_brand_text-emphasis_high`
+  const lowEmphasisOpacityVar = `--recursica_brand_text-emphasis_low`
 
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "UIKit JSON Schema",
-  "description": "Schema for UIKit.json structure",
+  "description": "Schema for recursica_ui-kit.json structure",
   "type": "object",
   "required": ["ui-kit"],
   "properties": {

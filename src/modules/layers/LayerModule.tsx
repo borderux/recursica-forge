@@ -37,8 +37,9 @@ export default function LayerModule({ level, title, className, children, onSelec
     }
   }, [])
   const layerId = level != null ? String(level) : '0'
-  const legacyBase = `--layers-layer-${layerId}-properties-`
-  const brandBase = `--recursica-brand-themes-${mode}-layers-layer-${layerId}-properties-`
+  const brandPropBase = `--recursica_brand_layer_${layerId}_properties_`
+  const brandTextBase = `--recursica_brand_layer_${layerId}_elements_text-`
+  const brandInterBase = `--recursica_brand_layer_${layerId}_elements_interactive-`
   const includeBorder = !(layerId === '0')
   const paletteBackground = null
 
@@ -79,7 +80,7 @@ export default function LayerModule({ level, title, className, children, onSelec
     return s
   }
   // Read elevation from CSS variable first (for real-time updates), then fallback to theme JSON
-  const elevationCssVar = `--recursica-brand-themes-${mode}-layers-layer-${layerId}-properties-elevation`
+  const elevationCssVar = `--recursica_brand_layer_${layerId}_properties_elevation`
   const [elevationFromCssVar, setElevationFromCssVar] = useState<string | null>(() => {
     const value = readCssVar(elevationCssVar)
     if (value && /^elevation-\d+$/.test(value.trim())) {
@@ -153,7 +154,7 @@ export default function LayerModule({ level, title, className, children, onSelec
     } catch { }
     return String(layerId)
   }, [theme, layerId, mode, elevationFromCssVar])
-  const cssVarBoxShadow = `var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, var(--recursica-tokens-colors-scale-02-1000))`
+  const cssVarBoxShadow = `var(--recursica_brand_elevations_elevation-${elevationLevel}_x-axis, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}_y-axis, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}_blur, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}_spread, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}_shadow-color, var(--recursica_tokens_colors_scale-02_1000))`
 
   type Style = React.CSSProperties
   const pxOrUndefined = (value?: string) => {
@@ -199,11 +200,11 @@ export default function LayerModule({ level, title, className, children, onSelec
     const spacingRec = getThemeEntry(prefix, 'letter-spacing')
     const weightRec = getThemeEntry(prefix, 'weight') || getThemeEntry(prefix, 'weight-normal')
     const base: any = {
-      fontFamily: (() => { const v = resolveThemeValue(familyRec?.value, overrides); return typeof v === 'string' && v ? v : (readCssVar(`--recursica-brand-typography-${prefix}-font-family`) || undefined) })(),
-      fontSize: (() => { const v = resolveThemeValue(sizeRec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? pxOrUndefined(String(v)) : pxOrUndefined(readCssVar(`--recursica-brand-typography-${prefix}-font-size`)) })(),
-      fontWeight: (() => { const v = resolveThemeValue(weightRec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? (v as any) : (readCssVar(`--recursica-brand-typography-${prefix}-font-weight`) || 400) as any })(),
-      letterSpacing: (() => { const v = resolveThemeValue(spacingRec?.value, overrides); if (typeof v === 'number') return `${v}em`; if (typeof v === 'string') return v; return readCssVar(`--recursica-brand-typography-${prefix}-font-letter-spacing`) })(),
-      lineHeight: (() => { const rec = getThemeEntry(prefix, 'line-height'); const v = resolveThemeValue(rec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? (v as any) : (readCssVar(`--recursica-brand-typography-${prefix}-line-height`) as any) })(),
+      fontFamily: (() => { const v = resolveThemeValue(familyRec?.value, overrides); return typeof v === 'string' && v ? v : (readCssVar(`--recursica_brand_typography_${prefix}-font-family`) || undefined) })(),
+      fontSize: (() => { const v = resolveThemeValue(sizeRec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? pxOrUndefined(String(v)) : pxOrUndefined(readCssVar(`--recursica_brand_typography_${prefix}-font-size`)) })(),
+      fontWeight: (() => { const v = resolveThemeValue(weightRec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? (v as any) : (readCssVar(`--recursica_brand_typography_${prefix}-font-weight`) || 400) as any })(),
+      letterSpacing: (() => { const v = resolveThemeValue(spacingRec?.value, overrides); if (typeof v === 'number') return `${v}em`; if (typeof v === 'string') return v; return readCssVar(`--recursica_brand_typography_${prefix}-font-letter-spacing`) })(),
+      lineHeight: (() => { const rec = getThemeEntry(prefix, 'line-height'); const v = resolveThemeValue(rec?.value, overrides); return (typeof v === 'number' || typeof v === 'string') ? (v as any) : (readCssVar(`--recursica_brand_typography_${prefix}-line-height`) as any) })(),
       margin: '0 0 12px 0',
     }
     try {
@@ -238,25 +239,26 @@ export default function LayerModule({ level, title, className, children, onSelec
 
   // Force style object recreation on each render to ensure CSS variables update
   const containerStyle = useMemo(() => ({
-    backgroundColor: paletteBackground ?? `var(${brandBase}surface)`,
-    color: `var(${brandBase.replace("properties-", "elements-")}text-color)`,
-    padding: `var(${brandBase}padding)`,
-    border: includeBorder ? `var(${brandBase}border-size) solid var(${brandBase}border-color)` : undefined,
-    borderRadius: includeBorder ? `var(${brandBase}border-radius)` : undefined,
+    backgroundColor: paletteBackground ?? `var(${brandPropBase}surface)`,
+    color: `var(${brandTextBase}color)`,
+    padding: `var(${brandPropBase}padding)`,
+    border: includeBorder ? `var(${brandPropBase}border-size) solid var(${brandPropBase}border-color)` : undefined,
+    borderRadius: includeBorder ? `var(${brandPropBase}border-radius)` : undefined,
     cursor: onSelect ? 'pointer' as const : undefined,
     boxShadow: cssVarBoxShadow,
-  }), [paletteBackground, brandBase, includeBorder, onSelect, cssVarBoxShadow, version, mode, elevationFromCssVar])
+  }), [paletteBackground, brandPropBase, brandTextBase, includeBorder, onSelect, cssVarBoxShadow, version, mode, elevationFromCssVar])
 
   return (
     <div
       className={className ? `layer-container ${className}` : 'layer-container'}
       style={containerStyle}
       onClick={(e) => { if (onSelect) { e.stopPropagation(); onSelect() } }}
+      {...(layerId !== '0' ? { 'data-recursica-layer': layerId } : {})}
     >
       <div className="layer-content">
         <div className="layer-text-samples">
           {onSelect ? (
-            <div style={{ marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)' }} onClick={(e) => e.stopPropagation()}>
               <RadioButtonItem
                 selected={!!isSelected}
                 onChange={() => onSelect?.()}
@@ -271,27 +273,27 @@ export default function LayerModule({ level, title, className, children, onSelec
             <>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase.replace("properties-", "elements-")}text-color)` as any),
-                opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any)
+                color: (`var(${brandTextBase}color)` as any),
+                opacity: (`var(${brandTextBase}high-emphasis)` as any)
               }}>High Emphasis Text / Icon</p>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase.replace("properties-", "elements-")}text-color)` as any),
-                opacity: (`var(${brandBase.replace("properties-", "elements-")}text-low-emphasis)` as any)
+                color: (`var(${brandTextBase}color)` as any),
+                opacity: (`var(${brandTextBase}low-emphasis)` as any)
               }}>Low Emphasis Text / Icon</p>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase.replace("properties-", "elements-")}interactive-color)` as any),
-                opacity: `var(${brandBase.replace("properties-", "elements-")}interactive-high-emphasis)` as any
+                color: (`var(${brandInterBase}color)` as any),
+                opacity: `var(${brandInterBase}high-emphasis)` as any
               }}>Interactive (Link / Button)</p>
               <p style={{
                 ...(bodyStyle as any),
-                color: (`var(${brandBase.replace("properties-", "elements-")}interactive-color)` as any),
-                opacity: (`var(--recursica-brand-themes-${mode}-state-disabled)` as any)
+                color: (`var(${brandInterBase}color)` as any),
+                opacity: (`var(--recursica_brand_states_disabled)` as any)
               }}>Disabled Interactive</p>
-              <p style={{ color: (`var(${brandBase.replace("properties-", "elements-")}text-alert)` as any), opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any) }}>Alert</p>
-              <p style={{ color: (`var(${brandBase.replace("properties-", "elements-")}text-warning)` as any), opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any) }}>Warning</p>
-              <p style={{ color: (`var(${brandBase.replace("properties-", "elements-")}text-success)` as any), opacity: (`var(${brandBase.replace("properties-", "elements-")}text-high-emphasis)` as any) }}>Success</p>
+              <p style={{ color: (`var(${brandTextBase}alert)` as any), opacity: (`var(${brandTextBase}high-emphasis)` as any) }}>Alert</p>
+              <p style={{ color: (`var(${brandTextBase}warning)` as any), opacity: (`var(${brandTextBase}high-emphasis)` as any) }}>Warning</p>
+              <p style={{ color: (`var(${brandTextBase}success)` as any), opacity: (`var(${brandTextBase}high-emphasis)` as any) }}>Success</p>
             </>
           }
         </div>

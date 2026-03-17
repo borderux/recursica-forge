@@ -131,7 +131,7 @@ export function Chip({
     // NEW STRUCTURE: properties.icon-size
     const iconSizeVar = getComponentLevelCssVar('Chip', 'icon-size')
     const closeIconSizeVar = getComponentLevelCssVar('Chip', 'close-icon-size')
-    // icon-text-gap is at component level (not under size) in UIKit.json
+    // icon-text-gap is at component level (not under size) in recursica_ui-kit.json
     // NEW STRUCTURE: properties.icon-text-gap
     const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
 
@@ -175,7 +175,7 @@ export function Chip({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: showCheckmark ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : 1,
+                    opacity: showCheckmark ? `var(--recursica_brand_${mode}-state-disabled, 0.5)` : 1,
                   }}
                 >
                   {icon}
@@ -216,7 +216,7 @@ export function Chip({
                 cursor: disabled ? 'not-allowed' : 'pointer',
                 padding: 0,
                 marginLeft: '4px',
-                opacity: disabled ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : undefined,
+                opacity: disabled ? `var(--recursica_brand_${mode}-state-disabled, 0.5)` : undefined,
                 width: `var(${closeIconSizeVar}, 16px)`,
                 height: `var(${closeIconSizeVar}, 16px)`,
                 display: 'inline-flex',
@@ -268,7 +268,7 @@ function getChipStyles(
   const styles: React.CSSProperties = {}
 
   // Get color CSS variables
-  // Use UIKit.json chip colors for standard layers
+  // Use recursica_ui-kit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
   const bgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const borderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
@@ -327,7 +327,7 @@ function getChipStyles(
 
   // Apply disabled styles
   if (disabled) {
-    styles.opacity = `var(--recursica-brand-${mode}-state-disabled)`
+    styles.opacity = `var(--recursica_brand_${mode}-state-disabled)`
     styles.cursor = 'not-allowed'
   }
 

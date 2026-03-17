@@ -1,6 +1,7 @@
 import type { JsonLike } from './tokens'
 import { buildTokenIndex, resolveBraceRef } from './tokens'
 import { extractBraceContent, parseTokenReference, resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../utils/tokenReferenceParser'
+import { brandTypography, tokenFont } from '../css/cssVarBuilder'
 
 // Dynamically import fontUtils to avoid circular dependencies
 let getCachedFontFamilyName: ((name: string) => string) | null = null
@@ -82,7 +83,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     'family': 'family' // Keep family as-is
   }
 
-  // Emit CSS variables for font tokens so Brand can reference them via var(--recursica-tokens-font-*)
+  // Emit CSS variables for font tokens so Brand can reference them via var(--recursica_tokens_font_*)
   // Check for deleted font families to skip creating CSS variables for them
   const readDeletedFontFamilies = (): Record<string, true> => {
     try {
@@ -161,7 +162,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
             valueStr = safeGetCachedFontFamilyName(cleanValue)
           }
           // Use plural form for CSS var name
-          vars[`--recursica-tokens-font-${pluralCategory}-${short}`] = valueStr
+          vars[tokenFont(pluralCategory, short)] = valueStr
         }
       })
     }
@@ -208,13 +209,13 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
             const cleanValue = value.trim().replace(/^["']|["']$/g, '')
             const finalValue = safeGetCachedFontFamilyName(cleanValue)
             const pluralCategory = category === 'typeface' ? 'typefaces' : category
-            vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = finalValue
+            vars[tokenFont(pluralCategory, key)] = finalValue
           } else {
             const pluralCategory = category === 'typeface' ? 'typefaces' : category
-            vars[`--recursica-tokens-font-${pluralCategory}-${key}`] = value
+            vars[tokenFont(pluralCategory, key)] = value
             // Backwards compatibility
             if (pluralCategory !== category) {
-              vars[`--recursica-tokens-font-${category}-${key}`] = value
+              vars[tokenFont(category, key)] = value
             }
           }
         }
@@ -336,7 +337,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         const tokenVal = (token as any)?.['$value']
         if (tokenVal == null) continue
         if (String(tokenVal).trim() === valStr) {
-          return `var(--recursica-tokens-font-${pluralCategory}-${key})`
+          return `var(--recursica_tokens_font_${pluralCategory}_${key})`
         }
       }
     } catch { }
@@ -348,7 +349,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     const brandKey = mapKey[p] || p
     const spec: any = ttyp?.[brandKey]?.$value
     const ch = readChoices[p] || {}
-    // Use brandKey for CSS variable names to match Brand.json naming
+    // Use brandKey for CSS variable names to match recursica_brand.json naming
     const cssVarPrefix = brandKey
 
     const familyFromChoice = (() => {
@@ -439,15 +440,15 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
           }
           if (tokenValStr && tokenValStr.trim() === valStr) {
             // Use plural form for CSS var name
-            return `var(--recursica-tokens-font-${pluralCategory}-${key})`
+            return `var(--recursica_tokens_font_${pluralCategory}_${key})`
           }
         }
       } catch { }
       return null
     }
 
-    const brandPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
-    const shortPrefix = `--recursica-brand-typography-${cssVarPrefix}-`
+    const brandPrefix = brandTypography(cssVarPrefix, '')
+    const shortPrefix = brandPrefix
     // Map singular category to plural form for CSS var names
     const categoryToPlural: Record<string, string> = {
       'family': 'families',
@@ -480,7 +481,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     let brandVal: string | null = null
     if (familyToken) {
       const pluralCategory = categoryToPlural[familyToken.category] || familyToken.category
-      brandVal = `var(--recursica-tokens-font-${pluralCategory}-${familyToken.suffix})`
+      brandVal = `var(--recursica_tokens_font_${pluralCategory}_${familyToken.suffix})`
     } else if (family != null) {
       brandVal = findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family')
     }
@@ -522,7 +523,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     else if (brandVal && typeof brandVal === 'string' && !brandVal.startsWith('var(')) usedFamilies.add(String(brandVal))
     if (size != null) {
       const brandVal = sizeToken
-        ? `var(--recursica-tokens-font-${categoryToPlural[sizeToken.category] || sizeToken.category}-${sizeToken.suffix})`
+        ? `var(--recursica_tokens_font_${categoryToPlural[sizeToken.category] || sizeToken.category}_${sizeToken.suffix})`
         : findTokenByValue(size, 'size')
 
       // For brand vars, always use token reference
@@ -538,15 +539,15 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
             vars[`${brandPrefix}font-size`] = defaultToken
             vars[`${shortPrefix}font-size`] = defaultToken
           } else {
-            vars[`${brandPrefix}font-size`] = 'var(--recursica-tokens-font-sizes-md)'
-            vars[`${shortPrefix}font-size`] = 'var(--recursica-tokens-font-sizes-md)'
+            vars[`${brandPrefix}font-size`] = 'var(--recursica_tokens_font_sizes_md)'
+            vars[`${shortPrefix}font-size`] = 'var(--recursica_tokens_font_sizes_md)'
           }
         }
       }
     }
     if (weight != null) {
       const brandVal = weightToken
-        ? `var(--recursica-tokens-font-${categoryToPlural[weightToken.category] || weightToken.category}-${weightToken.suffix})`
+        ? `var(--recursica_tokens_font_${categoryToPlural[weightToken.category] || weightToken.category}_${weightToken.suffix})`
         : findTokenByValue(weight, 'weight')
 
       // For brand vars, always use token reference
@@ -555,13 +556,13 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${shortPrefix}font-weight`] = brandVal
       } else {
         // Fallback to default token reference
-        vars[`${brandPrefix}font-weight`] = 'var(--recursica-tokens-font-weights-regular)'
-        vars[`${shortPrefix}font-weight`] = 'var(--recursica-tokens-font-weights-regular)'
+        vars[`${brandPrefix}font-weight`] = 'var(--recursica_tokens_font_weights_regular)'
+        vars[`${shortPrefix}font-weight`] = 'var(--recursica_tokens_font_weights_regular)'
       }
     }
     if (spacing != null) {
       const brandVal = spacingToken
-        ? `var(--recursica-tokens-font-${categoryToPlural[spacingToken.category] || spacingToken.category}-${spacingToken.suffix})`
+        ? `var(--recursica_tokens_font_${categoryToPlural[spacingToken.category] || spacingToken.category}_${spacingToken.suffix})`
         : findTokenByValue(spacing, 'letter-spacing')
 
       // For brand vars, always use token reference
@@ -570,13 +571,13 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${shortPrefix}font-letter-spacing`] = brandVal
       } else {
         // Fallback to default token reference
-        vars[`${brandPrefix}font-letter-spacing`] = 'var(--recursica-tokens-font-letter-spacings-default)'
-        vars[`${shortPrefix}font-letter-spacing`] = 'var(--recursica-tokens-font-letter-spacings-default)'
+        vars[`${brandPrefix}font-letter-spacing`] = 'var(--recursica_tokens_font_letter_spacings_default)'
+        vars[`${shortPrefix}font-letter-spacing`] = 'var(--recursica_tokens_font_letter_spacings_default)'
       }
     }
     if (lineHeight != null) {
       const brandVal = lineHeightToken
-        ? `var(--recursica-tokens-font-${categoryToPlural[lineHeightToken.category] || lineHeightToken.category}-${lineHeightToken.suffix})`
+        ? `var(--recursica_tokens_font_${categoryToPlural[lineHeightToken.category] || lineHeightToken.category}_${lineHeightToken.suffix})`
         : findTokenByValue(lineHeight, 'line-height')
 
       // For brand vars, always use token reference
@@ -585,15 +586,15 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${shortPrefix}line-height`] = brandVal
       } else {
         // Fallback to default token reference
-        vars[`${brandPrefix}line-height`] = 'var(--recursica-tokens-font-line-heights-default)'
-        vars[`${shortPrefix}line-height`] = 'var(--recursica-tokens-font-line-heights-default)'
+        vars[`${brandPrefix}line-height`] = 'var(--recursica_tokens_font_line_heights_default)'
+        vars[`${shortPrefix}line-height`] = 'var(--recursica_tokens_font_line_heights_default)'
       }
     }
 
     // Add font-style, text-transform, text-decoration to brand vars
     if (style != null) {
       const brandVal = styleToken
-        ? `var(--recursica-tokens-font-styles-${styleToken.suffix})`
+        ? `var(--recursica_tokens_font_styles_${styleToken.suffix})`
         : findTokenByCategoryAndValue(style, 'styles')
       if (brandVal) {
         vars[`${brandPrefix}font-style`] = brandVal
@@ -605,7 +606,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     if (transform != null) {
       let brandVal: string | null = null
       if (transformToken) {
-        brandVal = `var(--recursica-tokens-font-cases-${transformToken.suffix})`
+        brandVal = `var(--recursica_tokens_font_cases_${transformToken.suffix})`
       } else {
         brandVal = findTokenByCategoryAndValue(transform, 'cases')
         // If still not found and transform is a token reference string, try to resolve it directly
@@ -623,14 +624,14 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${brandPrefix}text-transform`] = brandVal
       } else {
         // Last resort: try to use default token reference
-        vars[`${brandPrefix}text-transform`] = 'var(--recursica-tokens-font-cases-original)'
+        vars[`${brandPrefix}text-transform`] = 'var(--recursica_tokens_font_cases_original)'
       }
     }
 
     if (decoration != null) {
       let brandVal: string | null = null
       if (decorationToken) {
-        brandVal = `var(--recursica-tokens-font-decorations-${decorationToken.suffix})`
+        brandVal = `var(--recursica_tokens_font_decorations_${decorationToken.suffix})`
       } else {
         brandVal = findTokenByCategoryAndValue(decoration, 'decorations')
         // If still not found and decoration is a token reference string, try to resolve it directly
@@ -648,7 +649,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${brandPrefix}text-decoration`] = brandVal
       } else {
         // Last resort: try to use default token reference (none exists in decorations)
-        vars[`${brandPrefix}text-decoration`] = 'var(--recursica-tokens-font-decorations-none)'
+        vars[`${brandPrefix}text-decoration`] = 'var(--recursica_tokens_font_decorations_none)'
       }
     }
 

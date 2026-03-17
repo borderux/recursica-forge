@@ -7,6 +7,7 @@ import { Checkbox } from '../../../components/adapters/Checkbox'
 import { Dropdown } from '../../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { Modal } from '../../../components/adapters/Modal'
+import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
 
 export type EditFontVariantsModalProps = {
   open: boolean
@@ -205,10 +206,7 @@ export function EditFontVariantsModal({
     if (selectedCount === totalCount) return { checked: true, indeterminate: false }
     return { checked: false, indeterminate: true }
   }, [selectedCombos.size, allWeightStyleCombos.length])
-
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
-  const layer2Base = `--recursica-brand-themes-${mode}-layers-layer-2-properties`
+  const layer2Base = `--recursica_brand_layer_2_properties`
 
   // Helper function to get variants for the current font by font name (not sequence)
   const getVariantsForFont = (): Array<{ weight: string; style: string }> | null => {
@@ -489,7 +487,7 @@ export function EditFontVariantsModal({
       primaryActionDisabled={Boolean(loading || (currentUrl && currentUrl.includes('fonts.googleapis.com') && selectedCombos.size === 0))}
       secondaryActionDisabled={loading}
     >
-      <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+      <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_md)' }}>
         {/* Sequence selector */}
         <Dropdown
           items={availableSequences.map(seq => ({
@@ -508,11 +506,11 @@ export function EditFontVariantsModal({
           zIndex={20001}
         />
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_default)' }}>
           <span style={{
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-            opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            color: `var(${genericLayerText(0, 'color')})`,
+            opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
           }}>
             Select weight+style combinations:
           </span>
@@ -533,34 +531,34 @@ export function EditFontVariantsModal({
         {/* Table with weights as rows and styles as columns */}
         <div style={{
           overflowX: 'auto',
-          border: `1px solid var(${layer1Base}-border-color)`,
-          borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+          border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+          borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
         }}>
           <table style={{
             width: '100%',
             borderCollapse: 'collapse',
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
           }}>
             <thead>
               <tr>
                 <th style={{
-                  padding: 'var(--recursica-brand-dimensions-general-default)',
+                  padding: 'var(--recursica_brand_dimensions_general_default)',
                   textAlign: 'left',
-                  borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-                  fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                  borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                  color: `var(${genericLayerText(0, 'color')})`,
+                  opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                  fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
                 }}>
                   Weight
                 </th>
                 {styles.map(style => (
                   <th key={style} style={{
-                    padding: 'var(--recursica-brand-dimensions-general-default)',
+                    padding: 'var(--recursica_brand_dimensions_general_default)',
                     textAlign: 'center',
-                    borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-                    fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                    borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                    color: `var(${genericLayerText(0, 'color')})`,
+                    opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                    fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
                     textTransform: 'capitalize',
                     width: '50%',
                   }}>
@@ -572,13 +570,13 @@ export function EditFontVariantsModal({
             <tbody>
               {weights.map(weight => (
                 <tr key={weight} style={{
-                  borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                  borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                 }}>
                   <td style={{
-                    padding: 'var(--recursica-brand-dimensions-general-default)',
-                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-                    fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                    padding: 'var(--recursica_brand_dimensions_general_default)',
+                    color: `var(${genericLayerText(0, 'color')})`,
+                    opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                    fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
                   }}>
                     {weight}
                   </td>
@@ -587,7 +585,7 @@ export function EditFontVariantsModal({
                     const isSelected = selectedCombos.has(comboId)
                     return (
                       <td key={style} style={{
-                        padding: 'var(--recursica-brand-dimensions-general-default)',
+                        padding: 'var(--recursica_brand_dimensions_general_default)',
                         textAlign: 'center',
                         verticalAlign: 'middle',
                       }}>
@@ -620,12 +618,12 @@ export function EditFontVariantsModal({
 
         {error && (
           <div style={{
-            padding: 'var(--recursica-brand-dimensions-general-default)',
-            borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-            background: `var(--recursica-brand-themes-${mode}-palettes-core-error-50-tone)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            color: `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
+            padding: 'var(--recursica_brand_dimensions_general_default)',
+            borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
+            background: `var(--recursica_brand_palettes_core_error-50_color_tone)`,
+            border: `1px solid var(--recursica_brand_palettes_core_error-200_color_tone)`,
+            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            color: `var(--recursica_brand_palettes_core_error-200_color_tone)`,
           }}>
             {error}
           </div>

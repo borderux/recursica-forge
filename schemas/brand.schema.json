@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Brand JSON Schema",
-  "description": "Schema for Brand.json structure",
+  "description": "Schema for recursica_brand.json structure",
   "type": "object",
   "required": ["brand"],
   "properties": {

@@ -3,7 +3,7 @@
  * 
  * Unified HoverCard component that renders the appropriate library implementation
  * based on the current UI kit selection. Shares styling with Popover via
- * the 'hover-card-popover' UIKit.json entry.
+ * the 'hover-card-popover' recursica_ui-kit.json entry.
  */
 
 import { Suspense, useState, useEffect } from 'react'

@@ -9,6 +9,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Tabs as MantineTabs } from '@mantine/core'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { Tabs } from '../../components/adapters/Tabs'
+import { genericLayerProperty } from '../../core/css/cssVarBuilder'
 import { SidebarFooter } from './SidebarFooter'
 
 type SidebarNavItem = 'color' | 'font' | 'opacity' | 'size'
@@ -31,7 +32,9 @@ export function Sidebar() {
 
   const currentNavItem = getCurrentNavItem()
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+  const layer0Surface = genericLayerProperty(0, 'surface')
+  const layer0BorderSize = genericLayerProperty(0, 'border-size')
+  const layer0BorderColor = genericLayerProperty(0, 'border-color')
 
   const handleNavClick = (value: string | null) => {
     const item = (value || 'color') as SidebarNavItem
@@ -58,17 +61,17 @@ export function Sidebar() {
       style={{
         width: '252px',
         alignSelf: 'stretch',
-        backgroundColor: `var(${layer0Base}-surface)`,
-        borderRightWidth: `var(${layer0Base}-border-size, 1px)`,
+        backgroundColor: `var(${layer0Surface})`,
+        borderRightWidth: `var(${layer0BorderSize})`,
         borderRightStyle: 'solid',
-        borderRightColor: `var(${layer0Base}-border-color)`,
+        borderRightColor: `var(${layer0BorderColor})`,
         display: 'flex',
         flexDirection: 'column',
         // 48px left and right margins - using spacer-xl which should be 48px (tokens.size.3x)
-        paddingLeft: 'var(--recursica-brand-dimensions-general-xl)',
-        paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
-        paddingTop: 'var(--recursica-brand-dimensions-general-xl)',
-        paddingBottom: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingLeft: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingRight: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingTop: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingBottom: 'var(--recursica_brand_dimensions_general_xl)',
         flexShrink: 0,
         position: 'relative',
       }}

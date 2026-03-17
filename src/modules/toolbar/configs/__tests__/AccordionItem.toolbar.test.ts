@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import config from '../AccordionItem.toolbar.json'
-import uikitJson from '../../../../vars/UIKit.json'
+import uikitJson from '../../../../../recursica_ui-kit.json'
 
 describe('AccordionItem Toolbar Config', () => {
   it('should have valid JSON structure', () => {
@@ -28,13 +28,13 @@ describe('AccordionItem Toolbar Config', () => {
     }
   })
 
-  it('should have props that match UIKit.json structure', () => {
+  it('should have props that match recursica_ui-kit.json structure', () => {
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
     const componentKey = 'accordion-item'
     const component = uikitJson['ui-kit']?.components?.[componentKey]
 
     if (!component) {
-      console.warn(`Component ${componentKey} not found in UIKit.json - skipping prop validation`)
+      console.warn(`Component ${componentKey} not found in recursica_ui-kit.json - skipping prop validation`)
       consoleSpy.mockRestore()
       return
     }
@@ -68,18 +68,18 @@ describe('AccordionItem Toolbar Config', () => {
 
     configProps.forEach(prop => {
       if (!uikitProps.has(prop) && !prop.includes('-')) {
-        console.warn(`Config prop ${prop} not found in UIKit.json - may be a grouped prop`)
+        console.warn(`Config prop ${prop} not found in recursica_ui-kit.json - may be a grouped prop`)
       }
     })
     consoleSpy.mockRestore()
   })
 
-  it('should have all required props from UIKit.json', () => {
+  it('should have all required props from recursica_ui-kit.json', () => {
     const componentKey = 'accordion-item'
     const component = uikitJson['ui-kit']?.components?.[componentKey]
 
     if (!component) {
-      console.warn(`Component ${componentKey} not found in UIKit.json - skipping prop validation`)
+      console.warn(`Component ${componentKey} not found in recursica_ui-kit.json - skipping prop validation`)
       return
     }
 

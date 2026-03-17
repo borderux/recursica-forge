@@ -1,5 +1,5 @@
 /**
- * Vite plugin to copy UIKit.json to dist/vars/ during build
+ * Vite plugin to copy recursica_ui-kit.json to dist/ during build
  *
  * Enables "Reload UIKit from file" to fetch fresh UIKit in production.
  */
@@ -12,17 +12,17 @@ export function copyUIKit(): Plugin {
   return {
     name: 'copy-uikit',
     writeBundle() {
-      const srcPath = join(process.cwd(), 'src', 'vars', 'UIKit.json')
-      const distDir = join(process.cwd(), 'dist', 'vars')
-      const distPath = join(distDir, 'UIKit.json')
+      const srcPath = join(process.cwd(), 'recursica_ui-kit.json')
+      const distDir = join(process.cwd(), 'dist')
+      const distPath = join(distDir, 'recursica_ui-kit.json')
 
       try {
         if (!existsSync(srcPath)) return
         mkdirSync(distDir, { recursive: true })
         copyFileSync(srcPath, distPath)
-        console.log('✓ Copied UIKit.json to dist/vars/ for reload-from-file')
+        console.log('✓ Copied recursica_ui-kit.json to dist/ for reload-from-file')
       } catch (error) {
-        console.error('Failed to copy UIKit.json:', error)
+        console.error('Failed to copy recursica_ui-kit.json:', error)
       }
     },
   }

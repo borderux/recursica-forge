@@ -4,15 +4,17 @@
  * Ensures that brand CSS variables always reference tokens, never hardcoded values.
  */
 
+import { TOKEN_PREFIX } from './cssVarBuilder'
+
 /**
  * Validates that a CSS variable name matches expected patterns
  */
 export function isTokenVar(name: string): boolean {
-  return name.startsWith('--recursica-tokens-') || name.startsWith('--tokens-')
+  return name.startsWith(TOKEN_PREFIX) || name.startsWith('--tokens-')
 }
 
 export function isBrandVar(name: string): boolean {
-  return name.startsWith('--recursica-brand-') || name.startsWith('--brand-')
+  return name.startsWith('--recursica_brand_') || name.startsWith('--brand-')
 }
 
 /**
@@ -43,8 +45,8 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
   // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
   // This allows mode-specific elevation values without token conflicts
   if (cssVarName.includes('elevation') &&
-    (cssVarName.includes('-blur') || cssVarName.includes('-spread') ||
-      cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis'))) {
+    (cssVarName.includes('_blur') || cssVarName.includes('_spread') ||
+      cssVarName.includes('_x-axis') || cssVarName.includes('_y-axis'))) {
     // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
     if (/^-?\d+px$/.test(trimmed)) {
       return value
@@ -52,7 +54,7 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
   }
 
   // If it's a raw value (px, number, etc), this is also an error for brand vars
-  throw new Error(`Brand CSS variable ${cssVarName} must reference a token (var(--recursica-tokens-...)), got: ${value}`)
+  throw new Error(`Brand CSS variable ${cssVarName} must reference a token (var(--recursica_tokens_...)), got: ${value}`)
 }
 
 /**
@@ -67,8 +69,8 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
       return { valid: true }
     }
     // Allow color-mix() and other CSS functions that contain token references
-    // Check if the value contains var(--recursica-tokens-...) anywhere in it
-    if (trimmed.includes('var(--recursica-tokens-') || trimmed.includes('var(--tokens-')) {
+    // Check if the value contains var(--recursica_tokens_...) anywhere in it
+    if (trimmed.includes('var(--recursica_tokens_') || trimmed.includes('var(--tokens-')) {
       return { valid: true }
     }
     // Special case: elevation can use token reference strings (e.g., {brand.themes.light.elevations.elevation-0})
@@ -86,10 +88,16 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
       // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
       // This allows mode-specific elevation values without token conflicts
       // Tokens are shared between modes, so we bypass them for mode-specific elevation properties
-      if (cssVarName.includes('-blur') || cssVarName.includes('-spread') ||
-        cssVarName.includes('-x-axis') || cssVarName.includes('-y-axis')) {
+      if (cssVarName.includes('_blur') || cssVarName.includes('_spread') ||
+        cssVarName.includes('_x-axis') || cssVarName.includes('_y-axis')) {
         // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
         if (/^-?\d+px$/.test(trimmed)) {
+          return { valid: true }
+        }
+      }
+      // Allow shadow-color values that use color-mix() with palette or brand references
+      if (cssVarName.includes('_shadow-color')) {
+        if (trimmed.includes('color-mix') && trimmed.includes('var(--recursica_brand_')) {
           return { valid: true }
         }
       }
@@ -114,7 +122,7 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
     // Reject hardcoded values
     return {
       valid: false,
-      error: `Brand CSS variable ${cssVarName} must use a token reference (var(--recursica-tokens-...)), got: ${value}`
+      error: `Brand CSS variable ${cssVarName} must use a token reference (var(--recursica_tokens_...)), got: ${value}`
     }
   }
   return { valid: true }

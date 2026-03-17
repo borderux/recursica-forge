@@ -9,6 +9,7 @@ import { parseTokenReference, type TokenReferenceContext } from '../../core/util
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getVarsStore } from '../../core/store/varsStore'
 import { Dropdown } from '../../components/adapters/Dropdown'
+import { paletteCore } from '../../core/css/cssVarBuilder'
 
 
 type PaletteColorSelectorProps = {
@@ -59,8 +60,8 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const modeLower = modeLabel.toLowerCase()
 
   // Read actual core black and white colors from CSS variables (not hardcoded)
-  const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
-  const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
+  const coreBlackVar = paletteCore(modeLower, 'black')
+  const coreWhiteVar = paletteCore(modeLower, 'white')
   const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
   const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
 
@@ -73,8 +74,8 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const blackBaseContrast = contrastRatio(toneHex, black)
 
   // Get emphasis opacity values from CSS variables
-  const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
-  const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
+  const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_high`)
+  const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`)
 
   // Blend white and black with tone using both opacity values
   const whiteHighBlended = blendHexWithOpacity(white, toneHex, highEmphasisOpacity)
@@ -397,7 +398,7 @@ export default function PaletteColorSelector({
     return () => window.removeEventListener('themeReset', handleThemeReset)
   }, [familiesUsedByPalettes, paletteKey, tokensJson, families])
 
-  // Build theme index to read token levels from Brand.json (needed for recheckAACompliance)
+  // Build theme index to read token levels from recursica_brand.json (needed for recheckAACompliance)
   const themeIndex = useMemo(() => {
     const out: Record<string, { value: any }> = {}
     const visit = (node: any, prefix: string, modeLabel: 'Light' | 'Dark') => {
@@ -415,7 +416,7 @@ export default function PaletteColorSelector({
     return out
   }, [themeJson])
 
-  // Helper to get token level from Brand.json for a given palette level
+  // Helper to get token level from recursica_brand.json for a given palette level
   const getTokenLevelForPaletteLevel = useCallback((paletteLevel: string): string | null => {
     const toneName = `palette/${paletteKey}/${paletteLevel}/color/tone`
     const toneRaw = themeIndex[`${mode}::${toneName}`]?.value
@@ -451,22 +452,22 @@ export default function PaletteColorSelector({
 
     // Calculate on-tone values for all levels first
     headerLevels.forEach((lvl) => {
-      // Get the actual token level from Brand.json (not the palette level)
+      // Get the actual token level from recursica_brand.json (not the palette level)
       const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
       const tokenName = `color/${familyToUse}/${tokenLevel}`
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
         // Get actual core color values (read from CSS variables to get current values)
-        const coreBlackVar = `--recursica-brand-themes-${modeLower}-palettes-core-black`
-        const coreWhiteVar = `--recursica-brand-themes-${modeLower}-palettes-core-white`
+        const coreBlackVar = paletteCore(modeLower, 'black')
+        const coreWhiteVar = paletteCore(modeLower, 'white')
         const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
         const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
         const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
         const normalizedWhite = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
 
         // Get emphasis opacity values
-        const highEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-high`)
-        const lowEmphasisOpacity = readCssVarNumber(`--recursica-brand-themes-${modeLower}-text-emphasis-low`)
+        const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_high`)
+        const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`)
         const AA = 4.5
 
         // Check both core colors with opacity blending
@@ -526,7 +527,7 @@ export default function PaletteColorSelector({
         const currentModeKey = modeLower
         if (root[currentModeKey]?.palettes?.[paletteKey]) {
           headerLevels.forEach((lvl) => {
-            // Get the actual token level from Brand.json (not the palette level)
+            // Get the actual token level from recursica_brand.json (not the palette level)
             const tokenLevel = getTokenLevelForPaletteLevel(lvl) || lvl
             const tokenName = `color/${familyToUse}/${tokenLevel}`
             const hex = getTokenValueByName(tokenName)
@@ -1001,7 +1002,7 @@ function FamilyDropdown({
                   width: 14,
                   height: 14,
                   borderRadius: 3,
-                  border: `1px solid var(--recursica-brand-${mode.toLowerCase()}-layers-layer-1-properties-border-color)`,
+                  border: `1px solid var(--recursica_brand_themes_${mode.toLowerCase()}_layers_layer-1_properties_border-color)`,
                   background: primaryHex || 'transparent',
                   display: 'inline-block'
                 }}

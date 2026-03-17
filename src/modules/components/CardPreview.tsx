@@ -92,14 +92,14 @@ export default function CardPreview({
 
     const headerStyle = {
         color: `var(${titleColorVar})`,
-        fontFamily: `var(--recursica-brand-typography-${headerStyleValue}-font-family)`,
-        fontSize: `var(--recursica-brand-typography-${headerStyleValue}-font-size)`,
-        fontWeight: `var(--recursica-brand-typography-${headerStyleValue}-font-weight)`,
-        letterSpacing: `var(--recursica-brand-typography-${headerStyleValue}-font-letter-spacing)`,
-        lineHeight: `var(--recursica-brand-typography-${headerStyleValue}-line-height)`,
-        fontStyle: `var(--recursica-brand-typography-${headerStyleValue}-font-style)`,
+        fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
+        fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
+        fontWeight: `var(--recursica_brand_typography_${headerStyleValue}-font-weight)`,
+        letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-font-letter-spacing)`,
+        lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
+        fontStyle: `var(--recursica_brand_typography_${headerStyleValue}-font-style)`,
         textDecoration: 'none',
-        textTransform: `var(--recursica-brand-typography-${headerStyleValue}-text-transform)`,
+        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)`,
         display: 'block',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
@@ -111,11 +111,11 @@ export default function CardPreview({
 
     const bodyStyle = {
         color: `var(${contentColorVar})`,
-        fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-        fontSize: 'var(--recursica-brand-typography-body-font-size)',
-        fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
-        lineHeight: 'var(--recursica-brand-typography-body-line-height)',
-        letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
+        fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+        fontSize: 'var(--recursica_brand_typography_body-font-size)',
+        fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
+        lineHeight: 'var(--recursica_brand_typography_body-line-height)',
+        letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
     } as React.CSSProperties
 
     // Card container base style — uses UIKit per-layer CSS vars
@@ -169,7 +169,7 @@ export default function CardPreview({
                 flexDirection: 'column',
                 gap: `var(${sectionGapVar})`,
             }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-md)', ...bodyStyle }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_md)', ...bodyStyle }}>
                     <p style={{ margin: 0 }}>{goblinChapter}</p>
                     <p style={{ margin: 0 }}>{goblinParagraph2}</p>
                 </div>
@@ -181,7 +181,7 @@ export default function CardPreview({
                 background: `var(${footerBgVar})`,
                 borderTop: dividerStyle,
             }}>
-                <Group justify="flex-end" gap="var(--recursica-brand-dimensions-general-md)">
+                <Group justify="flex-end" gap="var(--recursica_brand_dimensions_general_md)">
                     <Button variant="text" layer={cardLayer}>Previous</Button>
                     <Button variant="solid" layer={cardLayer}>Continue Reading</Button>
                 </Group>
@@ -210,7 +210,7 @@ export default function CardPreview({
                 gap: `var(${verticalGutterVar})`,
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: `var(${verticalGutterVar})`, minWidth: 0 }}>
-                    <span style={{ ...headerStyle, fontSize: 'var(--recursica-brand-typography-h4-font-size)' }}>
+                    <span style={{ ...headerStyle, fontSize: 'var(--recursica_brand_typography_h4-font-size)' }}>
                         Elixir of Deepwell Sight
                     </span>
                     <Badge layer={cardLayer}>Rare</Badge>
@@ -235,7 +235,7 @@ export default function CardPreview({
                 flexDirection: 'column',
                 gap: `var(${verticalGutterVar})`,
             }}>
-                <span style={{ ...headerStyle, fontSize: 'var(--recursica-brand-typography-h4-font-size)' }}>
+                <span style={{ ...headerStyle, fontSize: 'var(--recursica_brand_typography_h4-font-size)' }}>
                     Grindlefax's Emporium
                 </span>
                 <div style={bodyStyle}>
@@ -260,9 +260,9 @@ export default function CardPreview({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 'var(--recursica-brand-dimensions-general-xl)',
+            gap: 'var(--recursica_brand_dimensions_general_xl)',
             width: '100%',
-            padding: 'var(--recursica-brand-dimensions-general-xl)',
+            padding: 'var(--recursica_brand_dimensions_general_xl)',
         }}>
             {articleCard}
             {simpleCard}

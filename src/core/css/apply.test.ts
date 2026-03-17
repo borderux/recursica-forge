@@ -23,8 +23,8 @@ describe('applyCssVars', () => {
 
   it('should apply valid CSS variables', () => {
     const vars = {
-      '--recursica-tokens-color-gray-500': '#808080',
-      '--recursica-brand-light-palettes-core-black': 'var(--recursica-tokens-color-gray-1000)'
+      '--recursica_tokens_color_gray_500': '#808080',
+      '--recursica_brand_light_palettes_core_black': 'var(--recursica_tokens_color_gray_1000)'
     }
     
     const result = applyCssVars(vars)
@@ -32,13 +32,13 @@ describe('applyCssVars', () => {
     expect(result.applied).toBe(2)
     expect(result.errors).toBe(0)
     expect(result.warnings).toBe(0)
-    expect(document.documentElement.style.getPropertyValue('--recursica-tokens-color-gray-500')).toBe('#808080')
-    expect(document.documentElement.style.getPropertyValue('--recursica-brand-light-palettes-core-black')).toBe('var(--recursica-tokens-color-gray-1000)')
+    expect(document.documentElement.style.getPropertyValue('--recursica_tokens_color_gray_500')).toBe('#808080')
+    expect(document.documentElement.style.getPropertyValue('--recursica_brand_light_palettes_core_black')).toBe('var(--recursica_tokens_color_gray_1000)')
   })
 
   it('should reject brand vars with hardcoded hex values', () => {
     const vars = {
-      '--recursica-brand-light-palettes-core-black': '#000000'
+      '--recursica_brand_light_palettes_core_black': '#000000'
     }
     
     // Function collects errors instead of throwing
@@ -62,7 +62,7 @@ describe('applyCssVars', () => {
     }
     
     const vars = {
-      '--recursica-brand-light-palettes-core-black': '#000000'
+      '--recursica_brand_light_palettes_core_black': '#000000'
     }
     
     const result = applyCssVars(vars, tokens)
@@ -74,7 +74,7 @@ describe('applyCssVars', () => {
 
   it('should validate token vars format', () => {
     const vars = {
-      '--recursica-tokens-color-gray-500': 'var(--some-other-var)'
+      '--recursica_tokens_color_gray_500': 'var(--some-other-var)'
     }
     
     const result = applyCssVars(vars)
@@ -128,28 +128,28 @@ describe('applyCssVarsDelta', () => {
 
   it('should apply delta changes', () => {
     const prev = {
-      '--recursica-test-var-1': 'value1',
-      '--recursica-test-var-2': 'value2'
+      '--recursica_test_var_1': 'value1',
+      '--recursica_test_var_2': 'value2'
     }
     
     const next = {
-      '--recursica-test-var-1': 'value1-updated',
-      '--recursica-test-var-3': 'value3'
+      '--recursica_test_var_1': 'value1-updated',
+      '--recursica_test_var_3': 'value3'
     }
     
     const result = applyCssVarsDelta(prev, next)
     
     expect(result.applied).toBe(2)
-    expect(document.documentElement.style.getPropertyValue('--recursica-test-var-1')).toBe('value1-updated')
-    expect(document.documentElement.style.getPropertyValue('--recursica-test-var-3')).toBe('value3')
+    expect(document.documentElement.style.getPropertyValue('--recursica_test_var_1')).toBe('value1-updated')
+    expect(document.documentElement.style.getPropertyValue('--recursica_test_var_3')).toBe('value3')
     // var-2 should be removed
-    expect(document.documentElement.style.getPropertyValue('--recursica-test-var-2')).toBe('')
+    expect(document.documentElement.style.getPropertyValue('--recursica_test_var_2')).toBe('')
   })
 
   it('should validate delta changes', () => {
     const prev = {}
     const next = {
-      '--recursica-brand-light-palettes-core-black': '#000000'
+      '--recursica_brand_light_palettes_core_black': '#000000'
     }
     
     // Function collects errors instead of throwing
@@ -168,14 +168,14 @@ describe('clearAllCssVars', () => {
   })
 
   it('should remove all recursica CSS variables', () => {
-    document.documentElement.style.setProperty('--recursica-test-var-1', 'value1')
-    document.documentElement.style.setProperty('--recursica-test-var-2', 'value2')
+    document.documentElement.style.setProperty('--recursica_test_var_1', 'value1')
+    document.documentElement.style.setProperty('--recursica_test_var_2', 'value2')
     document.documentElement.style.setProperty('--other-var', 'value3')
     
     clearAllCssVars()
     
-    expect(document.documentElement.style.getPropertyValue('--recursica-test-var-1')).toBe('')
-    expect(document.documentElement.style.getPropertyValue('--recursica-test-var-2')).toBe('')
+    expect(document.documentElement.style.getPropertyValue('--recursica_test_var_1')).toBe('')
+    expect(document.documentElement.style.getPropertyValue('--recursica_test_var_2')).toBe('')
     expect(document.documentElement.style.getPropertyValue('--other-var')).toBe('value3') // Should keep non-recursica vars
   })
 })

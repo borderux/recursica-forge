@@ -286,10 +286,10 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
       return map[prefix] || prefix
     })()
     const base: any = {
-      fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--recursica-brand-typography-${cssVarName}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
-      fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--recursica-brand-typography-${cssVarName}-font-size`)),
-      fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--recursica-brand-typography-${cssVarName}-font-weight`) || 400) as any,
-      letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--recursica-brand-typography-${cssVarName}-font-letter-spacing`))),
+      fontFamily: typeof fam === 'string' && fam ? fam : readCssVar(`--recursica_brand_typography_${cssVarName}-font-family`) || 'system-ui, -apple-system, Segoe UI, Roboto, Arial',
+      fontSize: typeof size === 'number' || typeof size === 'string' ? pxOrUndefined(String(size)) : pxOrUndefined(readCssVar(`--recursica_brand_typography_${cssVarName}-font-size`)),
+      fontWeight: (typeof weight === 'number' || typeof weight === 'string') ? (weight as any) : (readCssVar(`--recursica_brand_typography_${cssVarName}-font-weight`) || 400) as any,
+      letterSpacing: typeof spacing === 'number' ? `${spacing}em` : (typeof spacing === 'string' ? spacing : pxOrUndefined(readCssVar(`--recursica_brand_typography_${cssVarName}-font-letter-spacing`))),
       lineHeight: ((): any => {
         const fromSpec = spec?.lineHeight
         if (typeof fromSpec === 'number') return fromSpec as any
@@ -300,7 +300,7 @@ export default function TypeSample({ tag, text, prefix }: { label: string; tag: 
         }
         const rec = getThemeEntry(prefix, 'line-height', (theme as any)?.brand ? (theme as any).brand : (theme as any))
         const v = resolveThemeValue(rec?.value, overrides, tokens as any, themeIndex)
-        return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--recursica-brand-typography-${cssVarName}-line-height`) as any)
+        return (typeof v === 'number' || typeof v === 'string') ? v : (readCssVar(`--recursica_brand_typography_${cssVarName}-line-height`) as any)
       })(),
       margin: '0',
     }

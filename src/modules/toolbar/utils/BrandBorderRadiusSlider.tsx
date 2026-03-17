@@ -43,7 +43,7 @@ export default function BrandBorderRadiusSlider({
       Object.keys(borderRadius).forEach(radiusKey => {
         const radiusValue = borderRadius[radiusKey]
         if (radiusValue && typeof radiusValue === 'object' && '$value' in radiusValue) {
-          const cssVar = `--recursica-brand-dimensions-border-radii-${radiusKey}`
+          const cssVar = `--recursica_brand_dimensions_border-radii_${radiusKey}`
           const cssValue = readCssVar(cssVar)
           
           // Only add if the CSS var exists (has been generated)
@@ -130,11 +130,11 @@ export default function BrandBorderRadiusSlider({
     }
     
     // Check if it's a CSS var reference
-    if (currentValue.trim().startsWith('var(--recursica-')) {
+    if (currentValue.trim().startsWith('var(--recursica_')) {
       // Try to find matching token by CSS var name
       const matchingIndex = tokens.findIndex(t => {
-        // Extract radius name from CSS var (e.g., "--recursica-brand-dimensions-border-radii-sm" -> "sm")
-        const radiusName = t.name.replace('--recursica-brand-dimensions-border-radii-', '')
+        // Extract radius name from CSS var (e.g., "--recursica_brand_dimensions_border-radii_sm" -> "sm")
+        const radiusName = t.name.replace('--recursica_brand_dimensions_border-radii_', '')
         return currentValue.includes(`border-radii-${radiusName}`) || currentValue.includes(`dimensions-border-radii-${radiusName}`)
       })
       

@@ -20,7 +20,7 @@ import "@mantine/core/styles.css";
 import "./MantineShell.css";
 import { iconNameToReactComponent } from "../../components/iconUtils";
 import { clearOverrides } from "../../theme/tokenOverrides";
-import tokensJson from "../../../vars/Tokens.json";
+import tokensJson from "../../../../recursica_tokens.json";
 import { useVars } from "../../vars/VarsContext";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { UiKit } from "../../uikit/UiKitContext";
@@ -47,6 +47,7 @@ import { Sidebar } from "../Sidebar";
 import { ThemeSidebar } from "../ThemeSidebar";
 import { ComponentsSidebar } from "../../preview/ComponentsSidebar";
 import { getComponentCssVar } from "../../../components/utils/cssVarNames";
+import { genericLayerProperty, genericLayerText, paletteCore } from "../../../core/css/cssVarBuilder";
 import { createBugReport } from "../utils/bugReport";
 import { useCompliance } from "../../../core/compliance/ComplianceContext";
 import { randomizeAllVariables } from "../../../core/utils/randomizeVariables";
@@ -143,7 +144,7 @@ export default function MantineShell({
         fillRule='evenodd'
         clipRule='evenodd'
         d='M2.73689 0C1.22535 0 0 1.23486 0 2.75813V40.2687C0 41.792 1.22535 43.0269 2.73689 43.0269H61.3063C62.8178 43.0269 64.0431 41.792 64.0431 40.2687V2.75813C64.0431 1.23486 62.8178 0 61.3063 0H2.73689ZM4.10533 38.8628C4.10533 20.1314 18.8106 4.86124 37.2217 4.1372V38.8628H4.10533ZM45.4323 38.8628C42.4092 38.8628 39.9585 36.3931 39.9585 33.3465H45.4323V38.8628ZM59.8947 24.2447H39.9585V4.15383C50.6584 4.836 59.2177 13.4618 59.8947 24.2447ZM59.8674 27.0028C59.2296 33.2132 54.3317 38.1491 48.1692 38.7918V27.0028H59.8674ZM43.5165 27.0297C41.5515 27.0297 39.9585 28.635 39.9585 30.6153H43.5165V27.0297Z'
-        fill={`var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-tone)`}
+        fill={`var(--recursica_brand_palettes_palette-1_primary_color_tone)`}
       />
     </svg>
   );
@@ -197,7 +198,10 @@ export default function MantineShell({
     });
   };
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`;
+  const layer0Surface = genericLayerProperty(0, 'surface');
+  const layer0TextColor = genericLayerText(0, 'color');
+  const layer0TextHigh = genericLayerText(0, 'high-emphasis');
+  const layer0TextLow = genericLayerText(0, 'low-emphasis');
   const showSidebar = location.pathname.startsWith("/tokens");
   const showThemeSidebar = location.pathname.startsWith("/theme");
   const headerRef = useRef<HTMLElement>(null);
@@ -230,17 +234,17 @@ export default function MantineShell({
         <header
           ref={headerRef}
           style={{
-            backgroundColor: `var(${layer0Base}-surface)`,
-            paddingTop: "var(--recursica-brand-dimensions-general-lg)",
-            paddingBottom: "var(--recursica-brand-dimensions-general-lg)",
-            paddingLeft: "var(--recursica-brand-dimensions-general-xl)",
-            paddingRight: "var(--recursica-brand-dimensions-general-xl)",
+            backgroundColor: `var(${layer0Surface})`,
+            paddingTop: "var(--recursica_brand_dimensions_general_lg)",
+            paddingBottom: "var(--recursica_brand_dimensions_general_lg)",
+            paddingLeft: "var(--recursica_brand_dimensions_general_xl)",
+            paddingRight: "var(--recursica_brand_dimensions_general_xl)",
             height: "auto",
             flexShrink: 0,
           }}
         >
           <Group
-            gap='var(--recursica-brand-dimensions-general-xl)'
+            gap='var(--recursica_brand_dimensions_general_xl)'
             wrap='nowrap'
             style={{ width: "100%" }}
           >
@@ -257,7 +261,7 @@ export default function MantineShell({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "var(--recursica-brand-dimensions-general-default)",
+                  gap: "var(--recursica_brand_dimensions_general_default)",
                   textDecoration: "none",
                 }}
               >
@@ -271,17 +275,11 @@ export default function MantineShell({
                 >
                   <span
                     style={{
-                      color: `var(${layer0Base.replace(
-                        "-properties",
-                        "-elements",
-                      )}-text-color)`,
-                      opacity: `var(${layer0Base.replace(
-                        "-properties",
-                        "-elements",
-                      )}-text-high-emphasis)`,
+                      color: `var(${layer0TextColor})`,
+                      opacity: `var(${layer0TextHigh})`,
                       fontWeight: 600,
                       fontSize:
-                        "var(--recursica-brand-typography-body-font-size)",
+                        "var(--recursica_brand_typography_body-font-size)",
                     }}
                   >
                     Recursica
@@ -289,15 +287,9 @@ export default function MantineShell({
                   <span
                     style={{
                       fontSize:
-                        "var(--recursica-brand-typography-body-small-font-size)",
-                      color: `var(${layer0Base.replace(
-                        "-properties",
-                        "-elements",
-                      )}-text-color)`,
-                      opacity: `var(${layer0Base.replace(
-                        "-properties",
-                        "-elements",
-                      )}-text-low-emphasis)`,
+                        "var(--recursica_brand_typography_body-small-font-size)",
+                      color: `var(${layer0TextColor})`,
+                      opacity: `var(${layer0TextLow})`,
                     }}
                   >
                     Theme Forge
@@ -330,7 +322,7 @@ export default function MantineShell({
                             style={{
                               width: 14,
                               height: 14,
-                              color: `var(--recursica-brand-themes-${mode}-palettes-core-alert-tone)`,
+                              color: `var(--recursica_brand_themes_${mode}_palettes_core_alert-tone)`,
                             }}
                           />
                         ) : null;
@@ -347,7 +339,7 @@ export default function MantineShell({
             <div
               style={{
                 display: "flex",
-                gap: "var(--recursica-brand-dimensions-general-default)",
+                gap: "var(--recursica_brand_dimensions_general_default)",
                 alignItems: "center",
                 marginLeft: "auto",
               }}
@@ -362,9 +354,9 @@ export default function MantineShell({
                       <RefreshIcon
                         style={{
                           width:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                           height:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                         }}
                       />
                     ) : null;
@@ -383,9 +375,9 @@ export default function MantineShell({
                       <UploadIcon
                         style={{
                           width:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                           height:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                         }}
                       />
                     ) : null;
@@ -404,9 +396,9 @@ export default function MantineShell({
                       <DownloadIcon
                         style={{
                           width:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                           height:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                         }}
                       />
                     ) : null;
@@ -425,9 +417,9 @@ export default function MantineShell({
                       <BugIcon
                         style={{
                           width:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                           height:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                         }}
                       />
                     ) : null;
@@ -447,9 +439,9 @@ export default function MantineShell({
                           <ShuffleIcon
                             style={{
                               width:
-                                "var(--recursica-brand-dimensions-icons-default)",
+                                "var(--recursica_brand_dimensions_icons_default)",
                               height:
-                                "var(--recursica-brand-dimensions-icons-default)",
+                                "var(--recursica_brand_dimensions_icons_default)",
                             }}
                           />
                         ) : null;
@@ -462,7 +454,7 @@ export default function MantineShell({
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "var(--recursica-brand-dimensions-general-sm)",
+                        gap: "var(--recursica_brand_dimensions_general_sm)",
                       }}
                     >
                       <Switch
@@ -608,11 +600,8 @@ export default function MantineShell({
             style={{
               flex: 1,
               minHeight: 0,
-              backgroundColor: `var(${layer0Base}-surface)`,
-              color: `var(${layer0Base.replace(
-                "-properties",
-                "-elements",
-              )}-text-color)`,
+              backgroundColor: `var(${layer0Surface})`,
+              color: `var(${layer0TextColor})`,
             }}
           >
             {children}

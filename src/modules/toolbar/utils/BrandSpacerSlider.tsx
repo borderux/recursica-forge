@@ -40,7 +40,7 @@ export default function BrandSpacerSlider({
       Object.keys(spacers).forEach(spacerKey => {
         const spacerValue = spacers[spacerKey]
         if (spacerValue && typeof spacerValue === 'object' && '$value' in spacerValue) {
-          const cssVar = `--recursica-brand-dimensions-general-${spacerKey}`
+          const cssVar = `--recursica_brand_dimensions_general_${spacerKey}`
           const cssValue = readCssVar(cssVar)
           
           // Only add if the CSS var exists (has been generated)
@@ -119,18 +119,18 @@ export default function BrandSpacerSlider({
     const currentValue = inlineValue || readCssVar(targetCssVar)
     
     if (!currentValue || currentValue === 'null' || currentValue === '') {
-      // Null/empty means "none" - find the actual "none" token from Brand.json
+      // Null/empty means "none" - find the actual "none" token from recursica_brand.json
       const noneToken = tokens.find(t => t.name.includes('spacer-none') || (t.value === 0 && t.name.includes('spacer')))
       setSelectedToken(noneToken?.name || tokens[0]?.name)
       return
     }
     
     // Check if it's a CSS var reference
-    if (currentValue.trim().startsWith('var(--recursica-')) {
+    if (currentValue.trim().startsWith('var(--recursica_')) {
       // Try to find matching token by CSS var name
       const matchingToken = tokens.find(t => {
-        // Extract spacer name from CSS var (e.g., "--recursica-brand-dimensions-general-sm" -> "sm")
-        const spacerName = t.name.replace('--recursica-brand-dimensions-general-', '')
+        // Extract spacer name from CSS var (e.g., "--recursica_brand_dimensions_general_sm" -> "sm")
+        const spacerName = t.name.replace('--recursica_brand_dimensions_general_', '')
         return currentValue.includes(`general-${spacerName}`) || currentValue.includes(`dimensions-general-${spacerName}`)
       })
       
@@ -220,12 +220,12 @@ export default function BrandSpacerSlider({
     
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
     
-    // Find the token (including "none" from Brand.json)
+    // Find the token (including "none" from recursica_brand.json)
     const token = tokens.find(t => t.name === tokenName)
     if (token) {
       const tokenValue = `var(${token.name})`
       // Set CSS var to token reference (including "none" token)
-      // This ensures we use the token reference instead of falling back to UIKit.json defaults
+      // This ensures we use the token reference instead of falling back to recursica_ui-kit.json defaults
       cssVars.forEach(cssVar => {
         updateCssVar(cssVar, tokenValue)
         // Track that we just set this value to prevent immediate re-read

@@ -11,13 +11,14 @@ import { ColorPickerOverlay } from '../pickers/ColorPickerOverlay'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { genericLayerText, paletteCore } from '../../core/css/cssVarBuilder'
 
 
 
 // Helper to extract token name from CSS variable value
 function extractTokenNameFromCssVar(cssVarValue: string | undefined): string | null {
   if (!cssVarValue) return null
-  const match = cssVarValue.match(/--recursica-tokens-color-([a-z0-9-]+)-(\d+|050|000)/)
+  const match = cssVarValue.match(/--recursica_tokens_color_([a-z0-9-]+)-(\d+|050|000)/)
   if (match) {
     const [, family, level] = match
     return `color/${family}/${level}`
@@ -53,8 +54,7 @@ export function PaletteScaleHeader({
   // No fixed width - cells will size naturally with padding
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
   const { mode: themeMode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${themeMode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${themeMode}-layers-layer-1-properties`
+  // layer bases removed — use builder functions directly
 
   // Close picker when mode changes
   useEffect(() => {
@@ -96,16 +96,16 @@ export function PaletteScaleHeader({
   // Detect mode by checking which CSS variable exists
   let mode: 'light' | 'dark' = 'light'
   if (tokens && paletteKey) {
-    const lightToneCssVar = `--recursica-brand-themes-light-palettes-${paletteKey}-${level}-tone`
-    const darkToneCssVar = `--recursica-brand-themes-dark-palettes-${paletteKey}-${level}-tone`
+    const lightToneCssVar = `--recursica_brand_palettes_${paletteKey}_${level}_color_tone`
+    const darkToneCssVar = `--recursica_brand_palettes_${paletteKey}_${level}_color_tone`
     const lightToneValue = readCssVar(lightToneCssVar)
     const darkToneValue = readCssVar(darkToneCssVar)
     mode = lightToneValue ? 'light' : (darkToneValue ? 'dark' : 'light')
 
-    const toneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
-    const onToneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-on-tone`
-    const highEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-high`
-    const lowEmphasisCssVar = `--recursica-brand-themes-${mode}-text-emphasis-low`
+    const toneCssVar = `--recursica_brand_palettes_${paletteKey}_${level}_color_tone`
+    const onToneCssVar = `--recursica_brand_palettes_${paletteKey}_${level}_color_on-tone`
+    const highEmphasisCssVar = `--recursica_brand_text-emphasis_high`
+    const lowEmphasisCssVar = `--recursica_brand_text-emphasis_low`
 
     const toneValue = readCssVar(toneCssVar)
     const onToneValue = readCssVar(onToneCssVar)
@@ -157,7 +157,7 @@ export function PaletteScaleHeader({
             e.preventDefault()
             e.stopPropagation()
             // Extract token name from the tone CSS variable
-            const toneCssVar = `--recursica-brand-themes-${mode}-palettes-${paletteKey}-${level}-tone`
+            const toneCssVar = `--recursica_brand_palettes_${paletteKey}_${level}_color_tone`
             const toneValue = readCssVar(toneCssVar)
             const tokenName = extractTokenNameFromCssVar(toneValue)
 
@@ -174,18 +174,18 @@ export function PaletteScaleHeader({
         title={isNonCompliant ? 'On-tone color fails contrast' : (isPrimary ? undefined : `Set ${level} as default`)}
         style={{
           cursor: 'pointer',
-          padding: `0 var(--recursica-brand-dimensions-general-md)`,
+          padding: `0 var(--recursica_brand_dimensions_general_md)`,
           boxSizing: 'border-box',
-          fontFamily: 'var(--recursica-brand-typography-body-small-font-family)',
-          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          fontFamily: 'var(--recursica_brand_typography_body-small-font-family)',
+          fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+          fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',
+          letterSpacing: 'var(--recursica_brand_typography_body-small-font-letter-spacing)',
+          lineHeight: 'var(--recursica_brand_typography_body-small-line-height)',
+          color: `var(${genericLayerText(0, 'color')})`,
           width: isPrimary ? '20%' : undefined,
           flex: isPrimary ? '0 0 20%' : 1,
-          marginLeft: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
-          marginRight: isPrimary ? `var(--recursica-brand-dimensions-general-sm)` : undefined,
+          marginLeft: isPrimary ? `var(--recursica_brand_dimensions_general_sm)` : undefined,
+          marginRight: isPrimary ? `var(--recursica_brand_dimensions_general_sm)` : undefined,
           transform: 'translateY(20px)',
         }}
       >
@@ -249,8 +249,8 @@ export function PaletteScaleHeader({
 
                   if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
                     // Read actual core colors from CSS vars
-                    const coreBlackVar = `--recursica-brand-themes-${modeKey}-palettes-core-black`
-                    const coreWhiteVar = `--recursica-brand-themes-${modeKey}-palettes-core-white`
+                    const coreBlackVar = paletteCore(modeKey, 'black')
+                    const coreWhiteVar = paletteCore(modeKey, 'white')
                     const black = (readCssVarResolved(coreBlackVar) || '#000000').toLowerCase()
                     const white = (readCssVarResolved(coreWhiteVar) || '#ffffff').toLowerCase()
                     const cBlack = contrastRatio(hex, black)

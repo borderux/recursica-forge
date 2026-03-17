@@ -1,0 +1,82 @@
+/**
+ * Utility to update Brand JSON in the store when CSS variables are changed.
+ * Mirrors the updateUIKitValue pattern for brand variables.
+ *
+ * With unified underscore-delimited naming, the CSS var name directly maps
+ * to the JSON path by splitting on '_'.
+ */
+
+import { getVarsStore } from '../store/varsStore'
+import { exportedNameToPath } from '../export/exportedCssVarNames'
+
+/**
+ * Converts a brand CSS variable name to a JSON navigation path.
+ * Uses exportedNameToPath which handles the underscore-delimited format.
+ *
+ * @example
+ * '--recursica_brand_themes_light_palettes_neutral_500_color_tone'
+ * → ['brand', 'themes', 'light', 'palettes', 'neutral', '500', 'color', 'tone']
+ */
+function cssVarToBrandPath(cssVar: string): string[] | null {
+  const path = exportedNameToPath(cssVar)
+  if (path.length === 0) return null
+  // Path should start with 'brand'
+  if (path[0] !== 'brand') return null
+  return path
+}
+
+/**
+ * Updates a value in the Brand JSON at the specified path.
+ * Called from updateCssVar when a brand CSS variable is modified.
+ *
+ * @param cssVar - The CSS variable name (e.g., '--recursica_brand_themes_light_palettes_neutral_500_color_tone')
+ * @param value - The new value (e.g., 'var(--recursica_tokens_colors_scale-02_500)' or '#ff0000')
+ */
+export function updateBrandValue(cssVar: string, value: string): boolean {
+  const store = getVarsStore()
+  const storeState = store.getState()
+  const theme = storeState.theme
+  if (!theme || typeof theme !== 'object') return false
+
+  const path = cssVarToBrandPath(cssVar)
+  if (!path) return false
+
+  // Convert CSS var() references to JSON token references
+  let jsonValue = value
+  if (value.startsWith('var(--recursica_')) {
+    // Extract the var name from var() wrapper
+    const varMatch = value.match(/var\(--recursica_(.+)\)/)
+    if (varMatch) {
+      // Convert underscore-delimited segments to dot-separated JSON path
+      const refParts = varMatch[1].split('_')
+      jsonValue = `{${refParts.join('.')}}`
+    }
+  }
+
+  // Navigate to the target location in the theme JSON
+  // The path includes 'brand' as the first segment
+  let current: any = theme
+  for (let i = 0; i < path.length - 1; i++) {
+    const segment = path[i]
+    if (!current[segment] || typeof current[segment] !== 'object') {
+      return false
+    }
+    current = current[segment]
+  }
+
+  const finalKey = path[path.length - 1]
+
+  // Update the value, preserving $type if it exists
+  if (current[finalKey] && typeof current[finalKey] === 'object' && '$value' in current[finalKey]) {
+    current[finalKey].$value = jsonValue
+  } else {
+    // If the key doesn't exist or isn't a token object, don't create it
+    // Brand values should always be pre-existing in the schema
+    return false
+  }
+
+  // Persist via the public setTheme API
+  store.setTheme(theme)
+
+  return true
+}

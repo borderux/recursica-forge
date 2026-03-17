@@ -3,7 +3,7 @@
 This file provides dedicated context and instructions for AI coding agents working on this project.
 
 ## Project Context
-Recursica Forge is a design system and UI component builder. It uses a token-based architecture where components read styles from CSS variables defined in `src/vars/UIKit.json`.
+Recursica Forge is a design system and UI component builder. It uses a token-based architecture where components read styles from CSS variables defined in `recursica_ui-kit.json`.
 
 ## Core Instructions
 
@@ -13,8 +13,8 @@ Recursica Forge is a design system and UI component builder. It uses a token-bas
   - Path: `src/components/adapters/*.tsx`
 - **Slider Component:** Always use the `Slider` adapter from `src/components/adapters/Slider.tsx` for all slider controls in toolbars and forms.
 
-### Design System (tokens.json, brand.json, UIKit.json)
-- **DTCG Specification Compliance:** Any modifications to `tokens.json`, `brand.json`, or `UIKit.json` MUST follow the latest stable **Design Tokens Community Group (DTCG)** technical report (e.g., v2025.10).
+### Design System (recursica_tokens.json, recursica_brand.json, recursica_ui-kit.json)
+- **DTCG Specification Compliance:** Any modifications to `recursica_tokens.json`, `recursica_brand.json`, or `recursica_ui-kit.json` MUST follow the latest stable **Design Tokens Community Group (DTCG)** technical report (e.g., v2025.10).
   - **Structure:**
     - Objects with a **`$value`** property are design tokens.
     - Objects without a `$value` property are groups.
@@ -25,7 +25,7 @@ Recursica Forge is a design system and UI component builder. It uses a token-bas
     - Names MUST NOT contain `{`, `}`, or `.` characters.
   - **Referencing (Aliases):**
     - Use curly brace syntax for references: `{path.to.token}`.
-- **Always index properties:** Always refer to `src/vars/UIKit.json` to understand the structure of component properties, layers, and tokens.
+- **Always index properties:** Always refer to `recursica_ui-kit.json` to understand the structure of component properties, layers, and tokens.
 - **Token Resolution:** Use provided utilities (like `readCssVar`, `readCssVarResolved`) to handle CSS variables and tokens correctly.
 
 ### Toolbar Implementation

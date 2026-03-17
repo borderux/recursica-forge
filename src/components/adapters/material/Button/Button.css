@@ -78,7 +78,7 @@
 /* Apply truncation to the button's content area */
 .MuiButton-root {
   /* The button itself handles truncation when max-width is set on the root */
-  max-width: calc(var(--button-max-width, var(--recursica-ui-kit-components-button-properties-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  max-width: calc(var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max_width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
   /* Always have relative positioning for hover overlay */
   position: relative;
 }
@@ -90,7 +90,7 @@
 
 /* For text-only buttons (no icon), use full content max width and center */
 .MuiButton-root:not(:has(.MuiButton-startIcon)) {
-  max-width: var(--button-max-width, var(--recursica-ui-kit-components-button-properties-max-width)) !important;
+  max-width: var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max_width)) !important;
   justify-content: center !important;
 }
 
@@ -102,7 +102,7 @@
 .recursica-accordion .MuiButton-outlined,
 .recursica-accordion .MuiAccordionDetails-root .MuiButton-contained,
 .recursica-accordion .MuiAccordionDetails-root .MuiButton-outlined {
-  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color) !important;
+  border: var(--recursica_ui-kit_components_button_properties_border-size, 1px) solid var(--button-border-color) !important;
 }
 
 /* Ensure text variant has no border */

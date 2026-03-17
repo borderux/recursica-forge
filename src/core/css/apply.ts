@@ -1,6 +1,7 @@
 import { applyCssVars as applyDirect } from '../../modules/theme/varsUtil'
 import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
+import { TOKEN_PREFIX } from './cssVarBuilder'
 
 export type CssVarMap = Record<string, string>
 
@@ -15,7 +16,7 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
     if (tokens) {
       const tokenMatch = findTokenByHex(trimmed, tokens)
       if (tokenMatch) {
-        return `var(--recursica-tokens-color-${tokenMatch.family}-${tokenMatch.level})`
+        return `var(--recursica_tokens_color_${tokenMatch.family}_${tokenMatch.level})`
       }
     }
   }
@@ -77,14 +78,14 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
             var: key,
             value: trimmedValue,
             error: validation.error || 'Invalid value for brand CSS variable',
-            context: `Brand CSS variable ${key} must reference a token (e.g., var(--recursica-tokens-...)) but got: ${trimmedValue}`
+            context: `Brand CSS variable ${key} must reference a token (e.g., var(--recursica_tokens_...)) but got: ${trimmedValue}`
           })
           // Keep original value but mark as error
           fixedVars[key] = trimmedValue
         }
       } else {
         // Valid brand var - check if token reference exists
-        const tokenMatch = trimmedValue.match(/var\(--recursica-tokens-([^)]+)\)/)
+        const tokenMatch = trimmedValue.match(/var\(--recursica_tokens_([^)]+)\)/)
         if (tokenMatch && tokens) {
           const tokenPath = tokenMatch[1]
           // Basic check: ensure token path looks valid
@@ -101,9 +102,9 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
     }
 
     // Validate token vars have valid format
-    if (key.startsWith('--recursica-tokens-')) {
+    if (key.startsWith(TOKEN_PREFIX)) {
       // Token vars should be simple values (hex colors, numbers, etc.) or var() references
-      if (trimmedValue.startsWith('var(') && !trimmedValue.match(/^var\(--recursica-/)) {
+      if (trimmedValue.startsWith('var(') && !trimmedValue.match(/^var\(--recursica_/)) {
         warnings.push({
           var: key,
           value: trimmedValue,
@@ -114,7 +115,7 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
     }
 
     // Validate value format
-    if (trimmedValue.length === 0 && key.startsWith('--recursica-')) {
+    if (trimmedValue.length === 0 && key.startsWith('--recursica_')) {
       warnings.push({
         var: key,
         value: trimmedValue,
@@ -168,10 +169,10 @@ export function clearAllCssVars() {
   const style = root.style
   const varsToRemove: string[] = []
 
-  // Collect all --recursica-* CSS custom properties from inline styles
+  // Collect all --recursica_* CSS custom properties from inline styles
   for (let i = 0; i < style.length; i++) {
     const prop = style[i]
-    if (prop && prop.startsWith('--recursica-')) {
+    if (prop && prop.startsWith('--recursica_')) {
       varsToRemove.push(prop)
     }
   }
@@ -189,9 +190,9 @@ export function applyCssVarsDelta(prev: CssVarMap | null, next: CssVarMap, token
   const prevMap = prev || {}
   const toPrefixed = (name: string): string => {
     if (!name || !name.startsWith('--')) return name
-    // If it already has --recursica- prefix, return as-is
-    if (name.startsWith('--recursica-')) return name
-    return `--recursica-${name.slice(2)}`
+    // If it already has --recursica_ prefix, return as-is
+    if (name.startsWith('--recursica_')) return name
+    return `--recursica_${name.slice(2)}`
   }
 
   // Apply changed or added vars (already validated by applyCssVars)

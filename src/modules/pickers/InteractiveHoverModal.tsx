@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { genericLayerProperty, genericLayerText, genericElevation } from '../../core/css/cssVarBuilder'
 
 export type InteractiveHoverModalProps = {
   open: boolean
@@ -32,7 +33,7 @@ export function InteractiveHoverModal({
       style={{
         position: 'fixed',
         inset: 0,
-        background: `color-mix(in srgb, var(--recursica-brand-${mode}-palettes-core-black) 50%, transparent)`,
+        background: `color-mix(in srgb, var(--recursica_brand_${mode}-palettes-core-black) 50%, transparent)`,
         display: 'grid',
         placeItems: 'center',
         zIndex: 20000,
@@ -40,12 +41,13 @@ export function InteractiveHoverModal({
       onClick={onClose}
     >
       <div
+        data-recursica-layer="3"
         style={{
-          background: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface))`,
-          color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color, var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color))`,
-          border: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-size, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-size)) solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color))`,
-          borderRadius: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-radius, var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-radius))`,
-          boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`,
+          background: `var(${genericLayerProperty(3, 'surface')})`,
+          color: `var(${genericLayerText(3, 'color')})`,
+          border: `var(${genericLayerProperty(3, 'border-size')}) solid var(${genericLayerProperty(3, 'border-color')})`,
+          borderRadius: `var(${genericLayerProperty(3, 'border-radius')})`,
+          boxShadow: `var(${genericElevation(4, 'x-axis')}) var(${genericElevation(4, 'y-axis')}) var(${genericElevation(4, 'blur')}) var(${genericElevation(4, 'spread')}) var(${genericElevation(4, 'shadow-color')})`,
           padding: 24,
           display: 'grid',
           gap: 16,
@@ -87,9 +89,9 @@ export function InteractiveHoverModal({
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color)`,
-              background: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface)`,
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)`,
+              border: `1px solid var(${genericLayerProperty(3, 'border-color')})`,
+              background: `var(${genericLayerProperty(3, 'surface')})`,
+              color: `var(${genericLayerText(3, 'color')})`,
               cursor: 'pointer',
               fontSize: 14,
               textAlign: 'left',
@@ -107,9 +109,9 @@ export function InteractiveHoverModal({
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color)`,
-              background: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface)`,
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)`,
+              border: `1px solid var(${genericLayerProperty(3, 'border-color')})`,
+              background: `var(${genericLayerProperty(3, 'surface')})`,
+              color: `var(${genericLayerText(3, 'color')})`,
               cursor: 'pointer',
               fontSize: 14,
               textAlign: 'left',
@@ -127,9 +129,9 @@ export function InteractiveHoverModal({
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color)`,
-              background: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface)`,
-              color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)`,
+              border: `1px solid var(${genericLayerProperty(3, 'border-color')})`,
+              background: `var(${genericLayerProperty(3, 'surface')})`,
+              color: `var(${genericLayerText(3, 'color')})`,
               cursor: 'pointer',
               fontSize: 14,
               textAlign: 'left',

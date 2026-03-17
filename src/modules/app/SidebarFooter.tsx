@@ -7,13 +7,15 @@
 
 import { Link } from '../../components/adapters/Link'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { genericLayerText } from '../../core/css/cssVarBuilder'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import packageJson from '../../../package.json'
 
 export function SidebarFooter() {
     const { mode } = useThemeMode()
-    const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
+    const layer0TextColor = genericLayerText(0, 'color')
+    const layer0TextLow = genericLayerText(0, 'low-emphasis')
 
     const ExternalLinkIcon = iconNameToReactComponent('arrow-top-right-on-square')
     const DocumentIcon = iconNameToReactComponent('document-text')
@@ -58,9 +60,9 @@ export function SidebarFooter() {
                 style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 'var(--recursica-brand-dimensions-general-default)',
+                    gap: 'var(--recursica_brand_dimensions_general_default)',
                     marginTop: 'auto',
-                    paddingTop: 'var(--recursica-brand-dimensions-general-lg)',
+                    paddingTop: 'var(--recursica_brand_dimensions_general_lg)',
                     flexShrink: 0,
                 }}
             >
@@ -96,17 +98,17 @@ export function SidebarFooter() {
             {/* Copyright */}
             <div
                 style={{
-                    marginTop: 'var(--recursica-brand-dimensions-gutters-vertical)',
-                    fontFamily: 'var(--recursica-brand-typography-caption-font-family)',
-                    fontSize: 'var(--recursica-brand-typography-caption-font-size)',
-                    fontWeight: 'var(--recursica-brand-typography-caption-font-weight)' as any,
-                    letterSpacing: 'var(--recursica-brand-typography-caption-font-letter-spacing)',
-                    lineHeight: 'var(--recursica-brand-typography-caption-line-height)',
-                    textDecoration: 'var(--recursica-brand-typography-caption-text-decoration)',
-                    textTransform: 'var(--recursica-brand-typography-caption-text-transform)' as any,
-                    fontStyle: 'var(--recursica-brand-typography-caption-font-style)',
-                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                    opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                    marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
+                    fontFamily: 'var(--recursica_brand_typography_caption-font-family)',
+                    fontSize: 'var(--recursica_brand_typography_caption-font-size)',
+                    fontWeight: 'var(--recursica_brand_typography_caption-font-weight)' as any,
+                    letterSpacing: 'var(--recursica_brand_typography_caption-font-letter-spacing)',
+                    lineHeight: 'var(--recursica_brand_typography_caption-line-height)',
+                    textDecoration: 'var(--recursica_brand_typography_caption-text-decoration)',
+                    textTransform: 'var(--recursica_brand_typography_caption-text-transform)' as any,
+                    fontStyle: 'var(--recursica_brand_typography_caption-font-style)',
+                    color: `var(${layer0TextColor})`,
+                    opacity: `var(${layer0TextLow})`,
                 } as React.CSSProperties}
             >
                 © 2025–{new Date().getFullYear()}{' '}

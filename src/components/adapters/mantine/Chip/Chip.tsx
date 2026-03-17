@@ -98,7 +98,7 @@ export default function Chip({
   // Map unified size to Mantine size
   const mantineSize = size === 'small' ? 'xs' : 'md'
 
-  // Use UIKit.json chip colors for standard layers
+  // Use recursica_ui-kit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
   const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
@@ -212,7 +212,7 @@ export default function Chip({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: showCheckmark ? `var(--recursica-brand-${mode}-state-disabled, 0.5)` : 1,
+            opacity: showCheckmark ? `var(--recursica_brand_${mode}-state-disabled, 0.5)` : 1,
           }}
         >
           {icon}
@@ -297,7 +297,7 @@ export default function Chip({
     '--chip-max-width': `var(${maxWidthVar})`,
 
     ...(disabled && {
-      opacity: `var(--recursica-brand-${mode}-state-disabled, 0.5)`,
+      opacity: `var(--recursica_brand_${mode}-state-disabled, 0.5)`,
     }),
     ...(() => {
       const elevationBoxShadow = getElevationBoxShadow(mode, elevation)

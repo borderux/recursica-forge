@@ -57,7 +57,7 @@ All toolbar configurations have been validated:
 
 ### Toolbar Configs
 - ✅ All configs follow correct schema
-- ✅ All root props from UIKit.json represented
+- ✅ All root props from recursica_ui-kit.json represented
 - ✅ Grouped props correctly structured
 - ✅ Icons validated and imported
 
@@ -71,5 +71,5 @@ All toolbar configurations have been validated:
 ## Next Steps
 
 - Continue monitoring CSS variable usage as components evolve
-- Update audits when new props are added to UIKit.json
+- Update audits when new props are added to recursica_ui-kit.json
 - Validate toolbar configs when new components are added

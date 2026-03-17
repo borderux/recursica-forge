@@ -95,9 +95,9 @@ src/components/adapters/
         └── Button.carbon.audit.md
 ```
 
-## UIKit.json Structure
+## recursica_ui-kit.json Structure
 
-The UIKit.json file uses a consistent structure for all components:
+The recursica_ui-kit.json file uses a consistent structure for all components:
 
 ### Component Structure
 
@@ -164,7 +164,7 @@ The UIKit.json file uses a consistent structure for all components:
 
 ### Property Value Guidelines for Randomization & Export
 
-To ensure components export properly and achieve 100% randomization coverage, follow these guidelines when defining property values in UIKit.json:
+To ensure components export properly and achieve 100% randomization coverage, follow these guidelines when defining property values in recursica_ui-kit.json:
 
 #### 1. **Use Token References (Not Literal Values)**
 
@@ -343,7 +343,7 @@ Following these guidelines ensures:
 
 #### 8. **Testing Your Component's Randomization**
 
-After adding a component to UIKit.json:
+After adding a component to recursica_ui-kit.json:
 
 1. **Run randomization** from the toolbar
 2. **Export the UIKit** (JSON + CSS)
@@ -352,7 +352,7 @@ After adding a component to UIKit.json:
    - Static properties (should be 0)
    - CSS coverage (should be 100%)
 
-If you see static properties in the report, review your UIKit.json values and ensure you're following these guidelines.
+If you see static properties in the report, review your recursica_ui-kit.json values and ensure you're following these guidelines.
 
 
 ## Development Process
@@ -439,7 +439,7 @@ Create implementations for each library simultaneously. Each library implementat
 
 2. **Build CSS Variable Names**
    
-   Use utility functions to build CSS variable names that match UIKit.json structure. See [CSS Variable Guidelines](#css-variable-guidelines) for comprehensive documentation.
+   Use utility functions to build CSS variable names that match recursica_ui-kit.json structure. See [CSS Variable Guidelines](#css-variable-guidelines) for comprehensive documentation.
    
    **Quick Reference:**
    ```typescript
@@ -774,8 +774,8 @@ The `BorderGroupToolbar` module will automatically be used for this prop group -
 
 2. **Use Slider Components**: **ALWAYS** use slider components for all dimension properties. Toolbar modules already use sliders internally, so using modules ensures compliance.
 
-3. **Variants**: Define variant selectors (style, size, layout, etc.) that match your UIKit.json structure
-4. **Props**: Map to UIKit.json property paths (e.g., `required-indicator-gap` maps to `properties.required-indicator-gap`)
+3. **Variants**: Define variant selectors (style, size, layout, etc.) that match your recursica_ui-kit.json structure
+4. **Props**: Map to recursica_ui-kit.json property paths (e.g., `required-indicator-gap` maps to `properties.required-indicator-gap`)
 5. **Groups**: Use groups for related properties (e.g., border properties grouped together)
 6. **Icons**: Use Phosphor icon names (see `src/modules/components/iconUtils.ts` for available icons)
 7. **Visible**: Set `visible: true` for properties that should appear in the toolbar
@@ -810,7 +810,7 @@ The component name should be in kebab-case (e.g., `label`, `button`, `chip`).
 
 **MANDATORY**: All new components must be added to the left navigation sidebar so they appear in the Components page navigation.
 
-The sidebar automatically detects mapped components from UIKit.json (components that exist in `ui-kit.components`). However, you **must** add the component to the `baseComponents` array if it doesn't already exist.
+The sidebar automatically detects mapped components from recursica_ui-kit.json (components that exist in `ui-kit.components`). However, you **must** add the component to the `baseComponents` array if it doesn't already exist.
 
 1. **Check if component exists**: Look for your component name in the `baseComponents` array (around line 63-105).
 
@@ -835,11 +835,11 @@ const baseComponents = useMemo(() => {
 }, [mappedComponents])
 ```
 
-3. **If component already exists**, no changes needed - it will automatically be marked as "mapped" once it's added to UIKit.json.
+3. **If component already exists**, no changes needed - it will automatically be marked as "mapped" once it's added to recursica_ui-kit.json.
 
 **Important Notes**:
 - The component name in the array should match the Title Case version (e.g., "Assistive element", "Label", "Button", "Text field")
-- The sidebar automatically converts UIKit.json kebab-case names (e.g., "assistive-element", "label", "button", "text-field") to Title Case for comparison
+- The sidebar automatically converts recursica_ui-kit.json kebab-case names (e.g., "assistive-element", "label", "button", "text-field") to Title Case for comparison
 - The URL slug should be in kebab-case (e.g., "assistive-element", "text-field")
 - The array is automatically sorted alphabetically, so component order doesn't matter
 
@@ -1203,7 +1203,7 @@ See [Testing Requirements](#testing-requirements) section below.
    - Test that text colors update when toolbar changes variant colors
    - Test that border colors update when toolbar changes variant colors
    - Test that hover colors update when toolbar changes variant colors (if applicable)
-   - Test ALL style variants (solid, outline, text, etc. - every variant in UIKit.json)
+   - Test ALL style variants (solid, outline, text, etc. - every variant in recursica_ui-kit.json)
    - Test ALL layers (layer-0, layer-1, layer-2, layer-3)
    - Test ALL color properties for each variant/layer combination
 
@@ -1212,7 +1212,7 @@ See [Testing Requirements](#testing-requirements) section below.
    - Test that icon size updates when toolbar changes size icon
    - Test that padding updates when toolbar changes size padding
    - Test that icon-text-gap updates when toolbar changes size gap
-   - Test ALL size variants (default, small, large, etc. - every variant in UIKit.json)
+   - Test ALL size variants (default, small, large, etc. - every variant in recursica_ui-kit.json)
    - Test ALL size properties for each size variant
 
 3. **Component-Level Props Updates** (Test ALL properties):
@@ -1220,7 +1220,7 @@ See [Testing Requirements](#testing-requirements) section below.
    - Test that border-radius updates when toolbar changes border-radius
    - Test that max-width updates when toolbar changes max-width
    - Test that font-size updates when toolbar changes font-size
-   - Test ALL component-level properties defined in `UIKit.json`
+   - Test ALL component-level properties defined in `recursica_ui-kit.json`
    - Test that each property updates correctly when changed via toolbar
 
 4. **Multiple Props Updates**:
@@ -1394,9 +1394,9 @@ See `src/components/adapters/__tests__/Button.toolbar.test.tsx` for a complete r
 - [ ] Preview CSS variables are tested and update correctly
 - [ ] All tests pass and components update correctly
 
-### Step 6: Validate UIKit.json Schema
+### Step 6: Validate recursica_ui-kit.json Schema
 
-**CRITICAL**: Before proceeding, validate that your component structure in `UIKit.json` follows the schema.
+**CRITICAL**: Before proceeding, validate that your component structure in `recursica_ui-kit.json` follows the schema.
 
 **During Development**:
 1. **Run schema validation**:
@@ -1405,7 +1405,7 @@ See `src/components/adapters/__tests__/Button.toolbar.test.tsx` for a complete r
    npm test validateSchemas.test.ts
    ```
 
-2. **Validate UIKit.json structure**:
+2. **Validate recursica_ui-kit.json structure**:
    - Ensure component follows the structure: `variants.styles.{variant}.properties.colors.{layer}.{property}`
    - Ensure component-level properties are under `properties.{property}`
    - Ensure all `$type` and `$value` fields are correct
@@ -1461,7 +1461,7 @@ Each component needs a toolbar configuration file that defines:
 **Important Notes:**
 - Use `variants.style` (not `variants.color`) for style variants
 - Use `variants.size` for size variants (if component has sizes)
-- Variant names in the config should match the variant keys in `UIKit.json` (e.g., `styles`, `sizes`)
+- Variant names in the config should match the variant keys in `recursica_ui-kit.json` (e.g., `styles`, `sizes`)
 
 #### Key Fields
 
@@ -1481,11 +1481,11 @@ Each component needs a toolbar configuration file that defines:
    - Used for props like "border" that combine multiple properties
    - Example: `"border"` prop with `groupedProps: ["border-size", "border-radius", "border-color"]`
 
-#### Mapping UIKit.json Keys to Props
+#### Mapping recursica_ui-kit.json Keys to Props
 
-The prop names in the config file should match the keys in `UIKit.json`:
+The prop names in the config file should match the keys in `recursica_ui-kit.json`:
 
-**UIKit.json Structure (NEW):**
+**recursica_ui-kit.json Structure (NEW):**
 ```json
 {
   "ui-kit": {
@@ -1582,7 +1582,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import config from '../{ComponentName}.toolbar.json'
-import uikitJson from '../../../../vars/UIKit.json'
+import uikitJson from '../../../../../recursica_ui-kit.json'
 
 describe('{ComponentName} Toolbar Config', () => {
   it('should have valid JSON structure', () => {
@@ -1610,16 +1610,16 @@ describe('{ComponentName} Toolbar Config', () => {
     }
   })
 
-  it('should have props that match UIKit.json structure', () => {
+  it('should have props that match recursica_ui-kit.json structure', () => {
     const componentKey = '{component-name}' // e.g., 'button', 'chip'
     const component = uikitJson['ui-kit']?.components?.[componentKey]
     
     if (!component) {
-      console.warn(`Component ${componentKey} not found in UIKit.json - skipping prop validation`)
+      console.warn(`Component ${componentKey} not found in recursica_ui-kit.json - skipping prop validation`)
       return
     }
 
-    // Extract root-level props from UIKit.json
+    // Extract root-level props from recursica_ui-kit.json
     const uikitProps = new Set<string>()
     
     // Component-level properties
@@ -1650,7 +1650,7 @@ describe('{ComponentName} Toolbar Config', () => {
       })
     }
     
-    // Check that config props exist in UIKit.json (or are grouped)
+    // Check that config props exist in recursica_ui-kit.json (or are grouped)
     const configProps = new Set<string>()
     if (config.props) {
       Object.keys(config.props).forEach(prop => {
@@ -1663,11 +1663,11 @@ describe('{ComponentName} Toolbar Config', () => {
       })
     }
     
-    // All config props should exist in UIKit.json (or be valid grouped props)
+    // All config props should exist in recursica_ui-kit.json (or be valid grouped props)
     configProps.forEach(prop => {
       // Allow some flexibility for grouped props that combine multiple UIKit props
       if (!uikitProps.has(prop) && !prop.includes('-')) {
-        console.warn(`Config prop ${prop} not found in UIKit.json - may be a grouped prop`)
+        console.warn(`Config prop ${prop} not found in recursica_ui-kit.json - may be a grouped prop`)
       }
     })
   })
@@ -1798,7 +1798,7 @@ For props that combine multiple properties (like "border"), define the parent pr
 **Important Notes**:
 - Grouped props do NOT have icons (they appear in the parent prop's floating palette)
 - Grouped props do NOT need separate entries in the `props` object
-- Grouped prop names must match `UIKit.json` prop names exactly
+- Grouped prop names must match `recursica_ui-kit.json` prop names exactly
 - The parent prop (e.g., `border`) appears as a single icon in the toolbar
 
 **Note**: Grouped props do NOT need separate entries in the config - they only appear in the parent prop's `group` object. They won't appear as separate icons in the toolbar - they'll be accessible through the parent prop's floating palette.
@@ -1852,7 +1852,7 @@ After creating the config file and registering it in `loadToolbarConfig.ts`:
   - Test by navigating to the component's detail page and checking if toolbar loads
 
 - **Prop not appearing in toolbar**: 
-  - Check that the prop name in config matches the UIKit.json key exactly (case-sensitive)
+  - Check that the prop name in config matches the recursica_ui-kit.json key exactly (case-sensitive)
   - Verify the prop is defined in the toolbar config JSON file
   - Check browser console for warnings about missing icons
 
@@ -1863,7 +1863,7 @@ After creating the config file and registering it in `loadToolbarConfig.ts`:
 
 - **Wrong label displayed**:
   - Verify the `label` field in config matches what you expect
-  - Check that the prop name in config matches the UIKit.json key
+  - Check that the prop name in config matches the recursica_ui-kit.json key
 
 ### Step 10: Create Audit Documentation
 
@@ -1963,7 +1963,7 @@ The toolbar automatically detects these text property group names:
 
 ### Text Property Group Structure
 
-### UIKit.json Structure
+### recursica_ui-kit.json Structure
 
 ```json
 {
@@ -2469,7 +2469,7 @@ Components support component-level properties that are stored as CSS variables a
 1. **Elevation** (`elevation` prop) - **Exception: Needs Reactive Function**
    - Type: `string | undefined` (e.g., `"elevation-0"`, `"elevation-1"`, etc.)
    - CSS Variable: `--recursica-ui-kit-components-{component}-properties-elevation`
-   - Priority: **Prop** > **CSS Variable** > **UIKit.json default** > **No elevation**
+   - Priority: **Prop** > **CSS Variable** > **recursica_ui-kit.json default** > **No elevation**
    - **Why reactive**: Elevation needs to compute box-shadow values from elevation tokens, so it requires a reactive function
    - Implementation:
      ```typescript
@@ -2942,13 +2942,13 @@ console.log('✓ Toolbar config schema is valid');
 
 #### 2. Validate Prop Coverage
 
-Ensure all root-level props from `UIKit.json` are represented in the toolbar config:
+Ensure all root-level props from `recursica_ui-kit.json` are represented in the toolbar config:
 
 ```bash
-# Compare UIKit.json props with toolbar config
+# Compare recursica_ui-kit.json props with toolbar config
 node -e "
 const fs = require('fs');
-const uikit = JSON.parse(fs.readFileSync('src/vars/UIKit.json', 'utf8'));
+const uikit = JSON.parse(fs.readFileSync('recursica_ui-kit.json', 'utf8'));
 const config = JSON.parse(fs.readFileSync('src/modules/toolbar/configs/Button.toolbar.json', 'utf8'));
 
 function extractRootProps(obj, prefix = []) {
@@ -3094,9 +3094,9 @@ Include validation results in your audit document:
 - [x] No console errors about missing configs
 
 ### Prop Coverage
-- [x] All root props from UIKit.json are represented
+- [x] All root props from recursica_ui-kit.json are represented
 - [x] Variant props are correctly grouped
-- [x] Grouped props match UIKit.json prop names exactly
+- [x] Grouped props match recursica_ui-kit.json prop names exactly
 
 ### Icon Validation
 - [x] All icons are valid Phosphor Icons
@@ -3145,10 +3145,10 @@ src/components/adapters/
    - No console errors about missing configs
 
 2. **Schema Compliance**: The toolbar config JSON follows the correct schema structure
-3. **Prop Coverage**: All root-level props from `UIKit.json` are represented in the toolbar config
+3. **Prop Coverage**: All root-level props from `recursica_ui-kit.json` are represented in the toolbar config
 3. **Icon Validity**: All icon names are valid Phosphor Icons and are imported
-4. **Group Integrity**: All grouped props match actual prop names from `UIKit.json`
-5. **Variant Alignment**: Variant props are correctly configured to match `UIKit.json` structure
+4. **Group Integrity**: All grouped props match actual prop names from `recursica_ui-kit.json`
+5. **Variant Alignment**: Variant props are correctly configured to match `recursica_ui-kit.json` structure
 
 #### Example Audit Section Template
 
@@ -3164,7 +3164,7 @@ Include this section in every audit document:
 - [x] Variant structure is correct
 
 ### Prop Coverage
-- [x] All root props from UIKit.json are represented:
+- [x] All root props from recursica_ui-kit.json are represented:
   - [x] `font-size`
   - [x] `border-radius`
   - [x] `elevation`
@@ -3221,10 +3221,10 @@ This document audits the {ComponentName} component implementation for {Library},
 
 | Variable Name | Source | Used For |
 |--------------|--------|----------|
-| `--recursica-ui-kit-components-button-color-layer-0-variant-solid-background` | UIKit.json | Button background color |
-| `--recursica-ui-kit-components-button-color-layer-0-variant-solid-text` | UIKit.json | Button text color |
-| `--recursica-ui-kit-components-button-size-variant-default-height` | UIKit.json | Button height |
-| `--recursica-ui-kit-components-button-size-variant-default-horizontal-padding` | UIKit.json | Button padding |
+| `--recursica-ui-kit-components-button-color-layer-0-variant-solid-background` | recursica_ui-kit.json | Button background color |
+| `--recursica-ui-kit-components-button-color-layer-0-variant-solid-text` | recursica_ui-kit.json | Button text color |
+| `--recursica-ui-kit-components-button-size-variant-default-height` | recursica_ui-kit.json | Button height |
+| `--recursica-ui-kit-components-button-size-variant-default-horizontal-padding` | recursica_ui-kit.json | Button padding |
 
 ### Variables Used (with Library Fallbacks)
 
@@ -3243,7 +3243,7 @@ This document audits the {ComponentName} component implementation for {Library},
 |---------|---------|---------|
 | `--button-icon-size` | Icon width/height | `0px` (when no icon) |
 | `--button-icon-text-gap` | Gap between icon and text | `0px` (when no icon) |
-| `--button-content-max-width` | Maximum content width | From UIKit.json |
+| `--button-content-max-width` | Maximum content width | From recursica_ui-kit.json |
 
 ### Variables Used in CSS
 
@@ -3593,12 +3593,12 @@ After creating a new component, use this checklist to ensure completeness.
 - [ ] CSS override files created for all libraries
 - [ ] Components registered in registry files
 - [ ] Component name added to `ComponentName` type union
-- [ ] UIKit.json structure follows schema (validates automatically)
+- [ ] recursica_ui-kit.json structure follows schema (validates automatically)
 
 **Toolbar:**
 - [ ] Toolbar config file created (`{ComponentName}.toolbar.json`)
 - [ ] Toolbar config registered in `loadToolbarConfig.ts`
-- [ ] All UIKit.json props have icons, labels, and visible properties
+- [ ] All recursica_ui-kit.json props have icons, labels, and visible properties
 
 **CSS Variables:**
 - [ ] CSS variables used directly (no React listeners) for all properties except elevations and text styles
@@ -3609,7 +3609,7 @@ After creating a new component, use this checklist to ensure completeness.
 - [ ] No `!important` font-size rules in CSS files that would override text style inline styles
 
 **Text Style Module (If Applicable):**
-- [ ] Text property groups defined in `UIKit.json` with all 8 standard properties
+- [ ] Text property groups defined in `recursica_ui-kit.json` with all 8 standard properties
 - [ ] Text property groups added to toolbar config (`{ComponentName}.toolbar.json`)
 - [ ] Text property group names added to `textPropertyGroupNames` arrays if using custom names
 - [ ] `getComponentTextCssVar()` used to get CSS variable names
@@ -3679,7 +3679,7 @@ See the existing Button component as a reference:
   - `parseElevationValue()` - For parsing elevation values from CSS variables
 - **Component Registry**: `src/components/registry/`
 - **Testing Setup**: `vitest.setup.ts`
-- **UIKit.json Structure**: `src/vars/UIKit.json`
+- **recursica_ui-kit.json Structure**: `recursica_ui-kit.json` (project root)
   - **NEW STRUCTURE**: Uses `variants.styles.{variant}.properties.colors` for color variants
   - **NEW STRUCTURE**: Uses `variants.sizes.{variant}.properties.{property}` for size variants
   - **NEW STRUCTURE**: Uses `properties.{property}` for component-level properties

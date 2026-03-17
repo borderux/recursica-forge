@@ -8,7 +8,7 @@
 import { getVarsStore } from '../store/varsStore'
 import type { JsonLike } from '../resolvers/tokens'
 import type { RandomizeOptions } from './RandomizeOptionsModal'
-import uikitJson from '../../vars/UIKit.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 
 /**
  * Recursively finds all $value properties in an object
@@ -825,7 +825,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
             newValue = `{brand.palettes.core-colors.interactive.${randomVariant}.${randomTone}}`
           } else {
             // For non-interactive core colors, use .tone suffix to match CSS variable format
-            // This resolves to: var(--recursica-brand-themes-${mode}-palettes-core-${coreColor}-tone)
+            // This resolves to: var(--recursica_brand_themes_${mode}_palettes_core_${coreColor}-tone)
             newValue = `{brand.palettes.core-colors.${randomCoreColor}.tone}`
           }
         } else if (randomPalette === 'neutral') {
@@ -1644,10 +1644,10 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
 
       if (opts.theme.coreProperties) {
         cssVarsToNotify.push(
-          '--recursica-brand-themes-light-state-overlay-color',
-          '--recursica-brand-themes-light-state-overlay-opacity',
-          '--recursica-brand-themes-dark-state-overlay-color',
-          '--recursica-brand-themes-dark-state-overlay-opacity'
+          '--recursica_brand_themes_light_states_overlay_color',
+          '--recursica_brand_themes_light_states_overlay_opacity',
+          '--recursica_brand_themes_dark_states_overlay_color',
+          '--recursica_brand_themes_dark_states_overlay_opacity'
         )
       }
 
@@ -1656,11 +1656,11 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         for (const themeMode of ['light', 'dark'] as const) {
           for (let i = 0; i <= 4; i++) {
             cssVarsToNotify.push(
-              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-x-axis`,
-              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-y-axis`,
-              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-blur`,
-              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-spread`,
-              `--recursica-brand-themes-${themeMode}-elevations-elevation-${i}-shadow-color`
+              `--recursica_brand_themes_${themeMode}_elevations_elevation-${i}-x-axis`,
+              `--recursica_brand_themes_${themeMode}_elevations_elevation-${i}-y-axis`,
+              `--recursica_brand_themes_${themeMode}_elevations_elevation-${i}-blur`,
+              `--recursica_brand_themes_${themeMode}_elevations_elevation-${i}-spread`,
+              `--recursica_brand_themes_${themeMode}_elevations_elevation-${i}-shadow-color`
             )
           }
         }

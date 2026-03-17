@@ -2,7 +2,7 @@
  * Hook to read pagination configuration CSS variables.
  * Returns the current variant, size, and display settings for pagination elements.
  *
- * These correspond to properties in UIKit.json pagination section:
+ * These correspond to properties in recursica_ui-kit.json pagination section:
  *   - active-pages.style   → button variant (solid/outline/text)
  *   - active-pages.size    → button size (default/small)
  *   - inactive-pages.style → button variant

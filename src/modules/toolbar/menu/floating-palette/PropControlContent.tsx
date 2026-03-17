@@ -28,7 +28,7 @@ import { iconNameToReactComponent } from '../../../components/iconUtils'
 import { useCssVar } from '../../../../components/hooks/useCssVar'
 import { Dropdown } from '../../../../components/adapters/Dropdown'
 import type { ComponentLayer } from '../../../../components/registry/types'
-import uikitJson from '../../../../vars/UIKit.json'
+import uikitJson from '../../../../../recursica_ui-kit.json'
 import './PropControl.css'
 
 // Helper to format dimension label from key
@@ -173,7 +173,7 @@ function BrandDimensionSliderInline_DEPRECATED({
       Object.keys(dimensionCategoryData).forEach(dimensionKey => {
         const dimensionValue = dimensionCategoryData[dimensionKey]
         if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
-          const cssVar = `--recursica-brand-dimensions-${dimensionCategory}-${dimensionKey}`
+          const cssVar = `--recursica_brand_dimensions_${dimensionCategory}_${dimensionKey}`
           const cssValue = readCssVar(cssVar)
 
           if (cssValue) {
@@ -240,9 +240,9 @@ function BrandDimensionSliderInline_DEPRECATED({
       return
     }
 
-    if (currentValue.trim().startsWith('var(--recursica-')) {
+    if (currentValue.trim().startsWith('var(--recursica_')) {
       const matchingIndex = tokens.findIndex(t => {
-        const dimensionName = t.name.replace(`--recursica-brand-dimensions-${dimensionCategory}-`, '')
+        const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}_`, '')
         return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
       })
 
@@ -419,7 +419,7 @@ function TypographySliderInline({
 
         const sizeValue = textSizes[sizeKey]
         if (sizeValue && typeof sizeValue === 'object' && '$type' in sizeValue) {
-          const cssVar = `--recursica-brand-dimensions-text-size-${sizeKey}`
+          const cssVar = `--recursica_brand_dimensions_text-size_${sizeKey}`
           const cssValue = readCssVar(cssVar)
 
           if (cssValue) {
@@ -484,8 +484,8 @@ function TypographySliderInline({
       return braceMatch[1].toLowerCase()
     }
 
-    // Check for CSS variable: --recursica-brand-dimensions-text-size-2xs
-    const textSizeMatch = cssVarValue.match(/--recursica-brand-dimensions-text-size-([a-z0-9-]+)/)
+    // Check for CSS variable: --recursica_brand_dimensions_text-size_2xs
+    const textSizeMatch = cssVarValue.match(/--recursica_brand_dimensions_text-size_([a-z0-9-]+)/)
     if (textSizeMatch) {
       return textSizeMatch[1].toLowerCase()
     }
@@ -497,7 +497,7 @@ function TypographySliderInline({
       if (resolvedBraceMatch) {
         return resolvedBraceMatch[1].toLowerCase()
       }
-      const resolvedTextSizeMatch = resolved.match(/--recursica-brand-dimensions-text-size-([a-z0-9-]+)/)
+      const resolvedTextSizeMatch = resolved.match(/--recursica_brand_dimensions_text-size_([a-z0-9-]+)/)
       if (resolvedTextSizeMatch) {
         return resolvedTextSizeMatch[1].toLowerCase()
       }
@@ -847,7 +847,7 @@ export default function PropControlContent({
 
     const structure = parseComponentStructure(componentName)
 
-    // Special handling for Chip/Badge text-color: toolbar config uses "text-color" but UIKit.json uses "text"
+    // Special handling for Chip/Badge text-color: toolbar config uses "text-color" but recursica_ui-kit.json uses "text"
     const isTextColorMapping = (componentName.toLowerCase() === 'chip' || componentName.toLowerCase() === 'badge') &&
       propToCheck.name.toLowerCase() === 'text-color' &&
       propToCheck.category === 'colors'
@@ -962,7 +962,7 @@ export default function PropControlContent({
     componentName === 'MenuItem'
 
   if (prop.name.toLowerCase() === 'height' && componentName.toLowerCase() === 'badge') {
-    const minHeightVar = `--recursica-ui-kit-components-badge-size-variants-${sizeVariant}-min-height`
+    const minHeightVar = `--recursica_ui-kit_components_badge_size_variants_${sizeVariant}-min-height`
     primaryCssVar = minHeightVar
     cssVarsForControl = [minHeightVar]
   }
@@ -1457,11 +1457,11 @@ export default function PropControlContent({
     if (propToRender.type === 'dimension') {
       const propNameLower = propToRender.name.toLowerCase()
 
-      // FIRST: Check UIKit.json to determine if this property uses tokens or px
-      // This ensures we use the correct slider type based on what's actually in UIKit.json
+      // FIRST: Check recursica_ui-kit.json to determine if this property uses tokens or px
+      // This ensures we use the correct slider type based on what's actually in recursica_ui-kit.json
       const dimensionType = getDimensionPropertyType(componentName, propToRender.path, selectedVariants, propToRender.sourceComponent)
 
-      // If UIKit.json indicates this uses tokens, use BrandDimensionSliderInline (unless overridden below)
+      // If recursica_ui-kit.json indicates this uses tokens, use BrandDimensionSliderInline (unless overridden below)
       if (dimensionType === 'token') {
         // Determine dimension category based on property name
         let dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size' = 'general'
@@ -1475,7 +1475,7 @@ export default function PropControlContent({
         }
         // Default to 'general' for padding, gap, spacing (including tabs-content-gap)
 
-        // Use token slider for properties that UIKit.json says use tokens
+        // Use token slider for properties that recursica_ui-kit.json says use tokens
         // Key includes style+orientation for variant-specific props (e.g. tabs-content-gap)
         return (
           <BrandDimensionSliderInline
@@ -3648,11 +3648,11 @@ export default function PropControlContent({
   const propNameLower = prop.name.toLowerCase()
   const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text']
 
-  // Always check UIKit.json structure directly for text property groups, regardless of prop type
+  // Always check recursica_ui-kit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly
   const isTextPropertyGroup = textPropertyGroupNames.includes(propNameLower) &&
     (prop.type === 'text-group' || (() => {
-      // Fallback: Check UIKit.json structure directly
+      // Fallback: Check recursica_ui-kit.json structure directly
       try {
         const uikitRoot: any = uikitJson
         const components = uikitRoot?.['ui-kit']?.components || {}
@@ -3754,7 +3754,7 @@ export default function PropControlContent({
     const hasVertical = groupedPropsConfig && ('vertical-padding' in groupedPropsConfig || 'padding-vertical' in groupedPropsConfig)
 
     // Check component structure for padding-horizontal/padding-vertical props
-    // This handles cases like Avatar where UIKit.json has separate props but toolbar.json doesn't group them
+    // This handles cases like Avatar where recursica_ui-kit.json has separate props but toolbar.json doesn't group them
     const structure = parseComponentStructure(componentName)
     const hasPaddingHorizontal = structure.props.some(p =>
       (p.name === 'padding-horizontal' || p.name === 'horizontal-padding') &&
@@ -3781,7 +3781,7 @@ export default function PropControlContent({
         />
       )
     } else if (!hasGroupedProps && (hasPaddingHorizontal || hasPaddingVertical)) {
-      // Component has separate padding props in UIKit.json but toolbar doesn't group them (like Avatar)
+      // Component has separate padding props in recursica_ui-kit.json but toolbar doesn't group them (like Avatar)
       // Create a grouped config from the component structure
       const autoGroupedConfig: Record<string, ToolbarPropConfig> = {}
       if (hasPaddingHorizontal) {

@@ -11,6 +11,7 @@ import { ComponentProp, parseComponentStructure } from '../../utils/componentToo
 import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
 import type { ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import './TopBottomMarginToolbar.css'
+import { genericLayerText } from '../../../../core/css/cssVarBuilder'
 
 interface TopBottomMarginToolbarProps {
   componentName: string
@@ -66,7 +67,7 @@ export default function TopBottomMarginToolbar({
         )
       })}
       {topBottomMarginProps.length === 0 && (
-        <div style={{ padding: 'var(--recursica-brand-dimensions-general-md)', color: 'var(--recursica-brand-themes-light-layers-layer-0-properties-text-color)' }}>
+        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', color: `var(${genericLayerText(0, 'color')})` }}>
           No top-bottom-margin properties found for this component.
         </div>
       )}

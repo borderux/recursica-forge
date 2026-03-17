@@ -14,11 +14,12 @@ import { buildUIKitVars } from '../../core/resolvers/uikit'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { parseComponentStructure, type ComponentProp } from '../toolbar/utils/componentToolbarUtils'
-import uikitJson from '../../vars/UIKit.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 import { toCssVarName } from '../../components/utils/cssVarNames'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 /**
- * Extracts all CSS variables for a component from UIKit.json
+ * Extracts all CSS variables for a component from recursica_ui-kit.json
  */
 function getComponentCssVars(componentName: string, mode: 'light' | 'dark'): Array<{ path: string; cssVar: string; value: any; type: string }> {
   const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
@@ -85,7 +86,7 @@ export default function ComponentDebugTable({
   const { tokens, theme, uikit } = useVars()
   const [updateKey, setUpdateKey] = useState(0)
 
-  // Get all CSS vars for the component from UIKit.json
+  // Get all CSS vars for the component from recursica_ui-kit.json
   const allComponentVars = useMemo(() => {
     return getComponentCssVars(componentName, mode)
   }, [componentName, mode])
@@ -150,7 +151,7 @@ export default function ComponentDebugTable({
     })
   }, [allComponentVars, componentName, selectedVariants, selectedLayer])
 
-  // Get resolved original values from UIKit.json
+  // Get resolved original values from recursica_ui-kit.json
   const originalValues = useMemo(() => {
     try {
       const resolvedVars = buildUIKitVars(tokens, theme, uikit, mode)
@@ -173,14 +174,14 @@ export default function ComponentDebugTable({
       const currentValueRaw = readCssVar(v.cssVar) || ''
       
       // Extract just the CSS var name if it's wrapped in var(...)
-      // e.g., "var(--recursica-ui-kit-...)" -> "--recursica-ui-kit-..."
+      // e.g., "var(--recursica_ui-kit_...)" -> "--recursica_ui-kit_..."
       let currentValue = currentValueRaw
       const varMatch = currentValueRaw.match(/var\s*\(\s*(--[^)]+)\s*\)/)
       if (varMatch) {
         currentValue = varMatch[1]
       }
       
-      // Get original value from resolved UIKit.json
+      // Get original value from resolved recursica_ui-kit.json
       const originalValue = originalValues[v.cssVar] || ''
       
       // A variable is changed if:
@@ -224,9 +225,6 @@ export default function ComponentDebugTable({
     // Trigger a re-render by dispatching the reset event
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
   }
-
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   // Get CSS vars for the currently open prop control
   const highlightedCssVars = useMemo(() => {
@@ -285,9 +283,9 @@ export default function ComponentDebugTable({
   if (componentVars.length === 0) {
     return (
       <div style={{
-        padding: 'var(--recursica-brand-dimensions-general-md)',
-        color: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
-        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+        padding: 'var(--recursica_brand_dimensions_general_md)',
+        color: `var(${genericLayerText(0, 'low-emphasis')})`,
+        fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
       }}>
         No CSS variables found for {componentName}
       </div>
@@ -296,22 +294,22 @@ export default function ComponentDebugTable({
 
   return (
     <div style={{
-      marginTop: 'var(--recursica-brand-dimensions-general-lg)',
-      border: `1px solid var(${layer1Base}-border-color)`,
-      borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
+      marginTop: 'var(--recursica_brand_dimensions_general_lg)',
+      border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+      borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
       overflow: 'hidden',
       width: '100%',
     }}>
       <div style={{
-        padding: 'var(--recursica-brand-dimensions-general-md)',
-        background: `var(${layer1Base}-surface)`,
-        borderBottom: `1px solid var(${layer1Base}-border-color)`,
+        padding: 'var(--recursica_brand_dimensions_general_md)',
+        background: `var(${genericLayerProperty(1, 'surface')})`,
+        borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
       }}>
         <h3 style={{
           margin: 0,
-          fontSize: 'var(--recursica-brand-typography-body-font-size)',
+          fontSize: 'var(--recursica_brand_typography_body-font-size)',
           fontWeight: 600,
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          color: `var(${genericLayerText(0, 'color')})`,
         }}>
           CSS Variables Debug
         </h3>
@@ -322,39 +320,39 @@ export default function ComponentDebugTable({
         <table style={{
           width: '100%',
           borderCollapse: 'collapse',
-          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+          fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
         }}>
           <thead>
             <tr style={{
-              background: `var(${layer1Base}-surface)`,
-              borderBottom: `1px solid var(${layer1Base}-border-color)`,
+              background: `var(${genericLayerProperty(1, 'surface')})`,
+              borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
               position: 'sticky',
               top: 0,
               zIndex: 1,
             }}>
               <th style={{
-                padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
+                padding: 'var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)',
                 textAlign: 'left',
                 fontWeight: 600,
-                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                borderRight: `1px solid var(${layer1Base}-border-color)`,
+                color: `var(${genericLayerText(0, 'color')})`,
+                borderRight: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
               }}>
                 CSS Variable
               </th>
               <th style={{
-                padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
+                padding: 'var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)',
                 textAlign: 'left',
                 fontWeight: 600,
-                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                borderRight: `1px solid var(${layer1Base}-border-color)`,
+                color: `var(${genericLayerText(0, 'color')})`,
+                borderRight: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
               }}>
                 Current Value
               </th>
               <th style={{
-                padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
+                padding: 'var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)',
                 textAlign: 'center',
                 fontWeight: 600,
-                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                color: `var(${genericLayerText(0, 'color')})`,
                 width: '80px',
               }}>
                 Reset
@@ -371,37 +369,37 @@ export default function ComponentDebugTable({
                   key={v.cssVar}
                   style={{
                     background: index % 2 === 0 
-                      ? `var(${layer0Base}-surface)` 
-                      : `var(${layer1Base}-surface)`,
-                    borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                      ? `var(${genericLayerProperty(0, 'surface')})` 
+                      : `var(${genericLayerProperty(1, 'surface')})`,
+                    borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                   }}
                 >
                   <td style={{
-                    padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
-                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                    padding: 'var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)',
+                    color: `var(${genericLayerText(0, 'color')})`,
                     fontFamily: 'monospace',
-                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                    borderRight: `1px solid var(${layer1Base}-border-color)`,
+                    fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                    borderRight: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                     fontWeight: isHighlighted ? 700 : 400,
                   }}>
                     {v.cssVar}
                   </td>
                   <td style={{
-                    padding: 'var(--recursica-brand-dimensions-general-sm) var(--recursica-brand-dimensions-general-md)',
+                    padding: 'var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)',
                     color: isChanged 
-                      ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)`
-                      : `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      ? `var(--recursica_brand_palettes_core_interactive_default_color_tone)`
+                      : `var(${genericLayerText(0, 'color')})`,
                     background: isChanged 
-                      ? `var(${layer1Base}-surface)`
+                      ? `var(${genericLayerProperty(1, 'surface')})`
                       : 'transparent',
                     fontFamily: 'monospace',
-                    fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                    borderRight: `1px solid var(${layer1Base}-border-color)`,
+                    fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                    borderRight: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                   }}>
                     {v.currentValue || <span style={{ opacity: 0.5 }}>—</span>}
                   </td>
                 <td style={{
-                  padding: 'var(--recursica-brand-dimensions-general-sm)',
+                  padding: 'var(--recursica_brand_dimensions_general_sm)',
                   textAlign: 'center',
                 }}>
                   <Button
@@ -420,8 +418,8 @@ export default function ComponentDebugTable({
                       padding: 0,
                       opacity: v.isChanged ? 1 : 0.5,
                       color: v.isChanged 
-                        ? `var(--recursica-brand-themes-${mode}-layers-layer-2-elements-interactive-tone)`
-                        : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                        ? `var(${genericLayerProperty(2, 'interactive-tone')})`
+                        : `var(${genericLayerText(0, 'low-emphasis')})`,
                     }}
                   />
                 </td>

@@ -50,7 +50,7 @@ export function Button({
   const { mode } = useThemeMode()
   
   // Get elevation from CSS vars if not provided as props
-  // These are set by the toolbar and initialized from UIKit.json
+  // These are set by the toolbar and initialized from recursica_ui-kit.json
   const elevationVar = getComponentLevelCssVar('Button', 'elevation')
   
   // Reactively read elevation from CSS variable
@@ -189,10 +189,10 @@ function getButtonStyles(
   
   const cssVarVariant = variant
   
-  // Use UIKit.json button colors for standard layers
+  // Use recursica_ui-kit.json button colors for standard layers
   const bgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
   const textVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
-  // Build border color CSS var path directly to ensure it matches UIKit.json structure
+  // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const borderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   
   const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
@@ -215,7 +215,7 @@ function getButtonStyles(
   const textTransformVar = getComponentTextCssVar('Button', 'text', 'text-transform')
   const fontStyleVar = getComponentTextCssVar('Button', 'text', 'font-style')
   
-  // Size-specific vars - UIKit.json structure: size.default.height, size.small.height
+  // Size-specific vars - recursica_ui-kit.json structure: size.default.height, size.small.height
   const sizePrefix = size === 'small' ? 'small' : 'default'
   const sizeHeightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   const sizeMinWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)

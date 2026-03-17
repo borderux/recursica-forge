@@ -10,7 +10,7 @@ import { iconNameToReactComponent } from "../../components/iconUtils";
 import type { UiKit } from "../../uikit/UiKitContext";
 import { extractCssVarsFromObject, applyCssVars } from "../../theme/varsUtil";
 import { clearOverrides } from "../../theme/tokenOverrides";
-import tokensJson from "../../../vars/Tokens.json";
+import tokensJson from "../../../../recursica_tokens.json";
 import { useVars } from "../../vars/VarsContext";
 import { useThemeMode } from "../../theme/ThemeModeContext";
 import {
@@ -45,6 +45,7 @@ import {
   getCssAuditAutoRun,
   setCssAuditAutoRun,
 } from "../../../core/utils/cssAuditPreference";
+import { genericLayerText, genericLayerProperty } from "../../../core/css/cssVarBuilder";
 
 export default function MaterialShell({
   children,
@@ -133,7 +134,7 @@ export default function MaterialShell({
         fillRule='evenodd'
         clipRule='evenodd'
         d='M2.73689 0C1.22535 0 0 1.23486 0 2.75813V40.2687C0 41.792 1.22535 43.0269 2.73689 43.0269H61.3063C62.8178 43.0269 64.0431 41.792 64.0431 40.2687V2.75813C64.0431 1.23486 62.8178 0 61.3063 0H2.73689ZM4.10533 38.8628C4.10533 20.1314 18.8106 4.86124 37.2217 4.1372V38.8628H4.10533ZM45.4323 38.8628C42.4092 38.8628 39.9585 36.3931 39.9585 33.3465H45.4323V38.8628ZM59.8947 24.2447H39.9585V4.15383C50.6584 4.836 59.2177 13.4618 59.8947 24.2447ZM59.8674 27.0028C59.2296 33.2132 54.3317 38.1491 48.1692 38.7918V27.0028H59.8674ZM43.5165 27.0297C41.5515 27.0297 39.9585 28.635 39.9585 30.6153H43.5165V27.0297Z'
-        fill={`var(--recursica-brand-themes-${mode}-palettes-palette-1-primary-tone)`}
+        fill={`var(--recursica_brand_palettes_palette-1_primary_color_tone)`}
       />
     </svg>
   );
@@ -215,7 +216,7 @@ export default function MaterialShell({
 
   if (!mat || !styles)
     return (
-      <div style={{ padding: "var(--recursica-brand-dimensions-general-lg)" }}>
+      <div style={{ padding: "var(--recursica_brand_dimensions_general_lg)" }}>
         Loading Material UI…
       </div>
     );
@@ -237,8 +238,6 @@ export default function MaterialShell({
   } = mat;
   const { ThemeProvider, createTheme } = styles;
   const theme = createTheme();
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`;
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`;
   const showSidebar = location.pathname.startsWith("/tokens");
   const showThemeSidebar = location.pathname.startsWith("/theme");
 
@@ -252,11 +251,11 @@ export default function MaterialShell({
           ref={headerRef}
           position='static'
           sx={{
-            backgroundColor: `var(${layer0Base}-surface)`,
-            paddingTop: "var(--recursica-brand-dimensions-general-lg)",
-            paddingBottom: "var(--recursica-brand-dimensions-general-lg)",
-            paddingLeft: "var(--recursica-brand-dimensions-general-xl)",
-            paddingRight: "var(--recursica-brand-dimensions-general-xl)",
+            backgroundColor: `var(${genericLayerProperty(0, 'surface')})`,
+            paddingTop: "var(--recursica_brand_dimensions_general_lg)",
+            paddingBottom: "var(--recursica_brand_dimensions_general_lg)",
+            paddingLeft: "var(--recursica_brand_dimensions_general_xl)",
+            paddingRight: "var(--recursica_brand_dimensions_general_xl)",
             height: "auto",
             flexShrink: 0,
             boxShadow: "none",
@@ -264,7 +263,7 @@ export default function MaterialShell({
         >
           <Toolbar
             sx={{
-              gap: "var(--recursica-brand-dimensions-general-xl)",
+              gap: "var(--recursica_brand_dimensions_general_xl)",
               justifyContent: "space-between",
               minHeight: "auto !important",
               width: "100%",
@@ -279,7 +278,7 @@ export default function MaterialShell({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "var(--recursica-brand-dimensions-general-default)",
+                  gap: "var(--recursica_brand_dimensions_general_default)",
                   textDecoration: "none",
                 }}
               >
@@ -294,17 +293,11 @@ export default function MaterialShell({
                   <Box
                     component='span'
                     sx={{
-                      color: `var(${layer0Base.replace(
-                        "-properties",
-                        "-elements",
-                      )}-text-color)`,
-                      opacity: `var(${layer0Base.replace(
-                        "-properties",
-                        "-elements",
-                      )}-text-high-emphasis)`,
+                      color: `var(${genericLayerText(0, 'color')})`,
+                      opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                       fontWeight: 600,
                       fontSize:
-                        "var(--recursica-brand-typography-body-font-size)",
+                        "var(--recursica_brand_typography_body-font-size)",
                     }}
                   >
                     Recursica
@@ -313,15 +306,9 @@ export default function MaterialShell({
                     component='span'
                     sx={{
                       fontSize:
-                        "var(--recursica-brand-typography-body-small-font-size)",
-                      color: `var(${layer0Base.replace(
-                        "-properties",
-                        "-elements",
-                      )}-text-color)`,
-                      opacity: `var(${layer0Base.replace(
-                        "-properties",
-                        "-elements",
-                      )}-text-low-emphasis)`,
+                        "var(--recursica_brand_typography_body-small-font-size)",
+                      color: `var(${genericLayerText(0, 'color')})`,
+                      opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
                     }}
                   >
                     Theme Forge
@@ -400,16 +387,13 @@ export default function MaterialShell({
                       opacity:
                         currentRoute === "tokens"
                           ? 1
-                          : `var(${layer0Base.replace(
-                            "-properties",
-                            "-elements",
-                          )}-text-low-emphasis)`,
+                          : `var(${genericLayerText(0, 'low-emphasis')})`,
                       fontWeight:
                         currentRoute === "tokens"
                           ? 600
-                          : "var(--recursica-brand-typography-body-font-weight)",
+                          : "var(--recursica_brand_typography_body-font-weight)",
                       fontSize:
-                        "var(--recursica-brand-typography-body-font-size)",
+                        "var(--recursica_brand_typography_body-font-size)",
                       height: `var(${buttonHeight})`,
                       minHeight: `var(${buttonHeight})`,
                       paddingLeft: `var(${buttonPadding})`,
@@ -435,7 +419,7 @@ export default function MaterialShell({
                                 style={{
                                   width: 14,
                                   height: 14,
-                                  color: `var(--recursica-brand-themes-${mode}-palettes-core-alert-tone)`,
+                                  color: `var(--recursica_brand_palettes_core_alert_color_tone)`,
                                 }}
                               />
                             ) : null;
@@ -450,16 +434,13 @@ export default function MaterialShell({
                       opacity:
                         currentRoute === "theme"
                           ? 1
-                          : `var(${layer0Base.replace(
-                            "-properties",
-                            "-elements",
-                          )}-text-low-emphasis)`,
+                          : `var(${genericLayerText(0, 'low-emphasis')})`,
                       fontWeight:
                         currentRoute === "theme"
                           ? 600
-                          : "var(--recursica-brand-typography-body-font-weight)",
+                          : "var(--recursica_brand_typography_body-font-weight)",
                       fontSize:
-                        "var(--recursica-brand-typography-body-font-size)",
+                        "var(--recursica_brand_typography_body-font-size)",
                       height: `var(${buttonHeight})`,
                       minHeight: `var(${buttonHeight})`,
                       paddingLeft: `var(${buttonPadding})`,
@@ -482,16 +463,13 @@ export default function MaterialShell({
                       opacity:
                         currentRoute === "components"
                           ? 1
-                          : `var(${layer0Base.replace(
-                            "-properties",
-                            "-elements",
-                          )}-text-low-emphasis)`,
+                          : `var(${genericLayerText(0, 'low-emphasis')})`,
                       fontWeight:
                         currentRoute === "components"
                           ? 600
-                          : "var(--recursica-brand-typography-body-font-weight)",
+                          : "var(--recursica_brand_typography_body-font-weight)",
                       fontSize:
-                        "var(--recursica-brand-typography-body-font-size)",
+                        "var(--recursica_brand_typography_body-font-size)",
                       height: `var(${buttonHeight})`,
                       minHeight: `var(${buttonHeight})`,
                       paddingLeft: `var(${buttonPadding})`,
@@ -514,7 +492,7 @@ export default function MaterialShell({
               sx={{
                 display: "flex",
                 alignItems: "center",
-                gap: "var(--recursica-brand-dimensions-general-default)",
+                gap: "var(--recursica_brand_dimensions_general_default)",
                 marginLeft: "auto",
               }}
             >
@@ -528,9 +506,9 @@ export default function MaterialShell({
                       <RefreshIcon
                         style={{
                           width:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                           height:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                         }}
                       />
                     ) : null;
@@ -554,9 +532,9 @@ export default function MaterialShell({
                       <UploadIcon
                         style={{
                           width:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                           height:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                         }}
                       />
                     ) : null;
@@ -575,9 +553,9 @@ export default function MaterialShell({
                       <DownloadIcon
                         style={{
                           width:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                           height:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                         }}
                       />
                     ) : null;
@@ -596,9 +574,9 @@ export default function MaterialShell({
                       <BugIcon
                         style={{
                           width:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                           height:
-                            "var(--recursica-brand-dimensions-icons-default)",
+                            "var(--recursica_brand_dimensions_icons_default)",
                         }}
                       />
                     ) : null;
@@ -618,9 +596,9 @@ export default function MaterialShell({
                           <ShuffleIcon
                             style={{
                               width:
-                                "var(--recursica-brand-dimensions-icons-default)",
+                                "var(--recursica_brand_dimensions_icons_default)",
                               height:
-                                "var(--recursica-brand-dimensions-icons-default)",
+                                "var(--recursica_brand_dimensions_icons_default)",
                             }}
                           />
                         ) : null;
@@ -633,7 +611,7 @@ export default function MaterialShell({
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "var(--recursica-brand-dimensions-general-sm)",
+                        gap: "var(--recursica_brand_dimensions_general_sm)",
                       }}
                     >
                       <Switch
@@ -779,11 +757,8 @@ export default function MaterialShell({
             style={{
               flex: 1,
               minHeight: 0,
-              backgroundColor: `var(${layer0Base}-surface)`,
-              color: `var(${layer0Base.replace(
-                "-properties",
-                "-elements",
-              )}-text-color)`,
+              backgroundColor: `var(${genericLayerProperty(0, 'surface')})`,
+              color: `var(${genericLayerText(0, 'color')})`,
             }}
           >
             {children}
@@ -813,7 +788,7 @@ export default function MaterialShell({
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "var(--recursica-brand-dimensions-general-md)",
+                gap: "var(--recursica_brand_dimensions_general_md)",
                 minWidth: 400,
               }}
             >

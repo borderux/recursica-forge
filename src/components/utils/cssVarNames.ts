@@ -2,13 +2,25 @@
  * CSS Variable Name Utilities
  * 
  * Generates CSS variable names for UIKit components following the pattern:
- * --recursica-ui-kit-components-{component}-{path-segments}
+ * --recursica_ui-kit_components_{component}_{path-segments}
+ * 
+ * Uses underscore (_) as segment separator and --recursica_ as prefix.
+ * Underscores within segment names are escaped as __ to avoid ambiguity.
+ * Hyphens within segment names (e.g. layer-0, scale-02) are preserved.
  * 
  * This module provides generic utilities that work with any component structure.
  * Component-specific logic (like variant parsing) should be handled in component code.
  */
 
 import type { ComponentName, ComponentLayer } from '../registry/types'
+
+/**
+ * Escapes underscores within a single path segment.
+ * Underscores in segment names become __ so they don't collide with the _ separator.
+ */
+function escapeSegment(segment: string): string {
+  return segment.replace(/_/g, '__')
+}
 
 /**
  * Converts PascalCase component name to kebab-case
@@ -23,31 +35,27 @@ function pascalToKebabCase(str: string): string {
 }
 
 /**
- * Converts a UIKit.json path to a CSS variable name
- * 
  * @example
  * toCssVarName('components.button.color.layer-0.background-solid')
- * => '--recursica-ui-kit-components-button-color-layer-0-background-solid'
- * 
+ * => '--recursica_ui-kit_components_button_color_layer-0_background-solid'
+ *
  * @example
  * toCssVarName('components.button.color.layer-0.background-solid', 'light')
- * => '--recursica-ui-kit-themes-light-components-button-color-layer-0-background-solid'
+ * => '--recursica_ui-kit_themes_light_components_button_color_layer-0_background-solid'
  */
 export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // Remove leading/trailing dots and split
-  const parts = path.replace(/^\.+|\.+$/g, '').split('.')
+  const parts = path.replace(/^\.+|\.+$/g, '').split('.').filter(Boolean)
 
-  // Build CSS variable name
-  const varName = parts
-    .map(part => part.replace(/-/g, '-')) // Keep hyphens
-    .join('-')
+  // Build CSS variable name: escape underscores in segments, join with _
+  const varName = parts.map(escapeSegment).join('_')
 
-  // Include mode in the name if provided (like palette vars: --recursica-brand-themes-light-...)
+  // Include mode in the name if provided (like the resolver: --recursica_ui-kit_themes_light_...)
   if (mode) {
-    return `--recursica-ui-kit-themes-${mode}-${varName}`
+    return `--recursica_ui-kit_themes_${mode}_${varName}`
   }
 
-  return `--recursica-ui-kit-${varName}`
+  return `--recursica_ui-kit_${varName}`
 }
 
 /**
@@ -56,14 +64,14 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
  * 
  * @example
  * buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
- * => '--recursica-ui-kit-themes-light-components-button-variants-styles-solid-properties-colors-layer-0-background'
+ * => '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_background'
  * 
  * @example
  * buildComponentCssVarPath('Chip', 'properties', 'horizontal-padding', 'dark')
- * => '--recursica-ui-kit-themes-dark-components-chip-properties-horizontal-padding'
+ * => '--recursica_ui-kit_themes_dark_components_chip_properties_horizontal-padding'
  * 
  * @param component - Component name (e.g., 'Button', 'Chip')
- * @param pathSegments - Path segments from UIKit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background'])
+ * @param pathSegments - Path segments from recursica_ui-kit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background'])
  * @param mode - Optional theme mode ('light' | 'dark'). If not provided, reads from document.documentElement.getAttribute('data-theme-mode')
  * @returns CSS variable name
  */
@@ -100,7 +108,7 @@ export function buildComponentCssVarPath(
   if (validSegments.length === 0) {
     console.warn(`[buildComponentCssVarPath] No valid path segments for ${component}`)
     const componentKebab = pascalToKebabCase(component)
-    return `--recursica-ui-kit-themes-${mode}-components-${componentKebab}-invalid-path`
+    return `--recursica_ui-kit_components_${escapeSegment(componentKebab)}_invalid-path`
   }
 
   // Normalize segments: replace dots/spaces with hyphens, lowercase
@@ -110,7 +118,7 @@ export function buildComponentCssVarPath(
 
   // Build path: components.{component}.{path-segments}
   // Convert component name from PascalCase to kebab-case (e.g., 'MenuItem' -> 'menu-item')
-  // Normalize display names that differ from UIKit.json keys
+  // Normalize display names that differ from recursica_ui-kit.json keys
   const componentNameMap: Record<string, string> = {
     'checkbox-group-item': 'checkbox-item',
     'radio-button-group-item': 'radio-button-item',
@@ -150,7 +158,7 @@ export function getComponentCssVar(
   if (!property || property.includes('undefined') || property.includes('null')) {
     console.warn(`[getComponentCssVar] Invalid property value for ${component}: "${property}"`)
     const componentKebab = pascalToKebabCase(component)
-    return `--recursica-ui-kit-components-${componentKebab}-invalid-property`
+    return `--recursica_ui-kit_components_${escapeSegment(componentKebab)}_invalid-property`
   }
 
   // Normalize 'color' (singular) to 'colors' (plural) for backward compatibility
@@ -297,15 +305,15 @@ export function getFormCssVar(
  * 
  * @example
  * getComponentLevelCssVar('Button', 'elevation')
- * => '--recursica-ui-kit-components-button-properties-elevation'
+ * => '--recursica_ui-kit_themes_light_components_button_properties_elevation'
  * 
  * @example
  * getComponentLevelCssVar('Toast', 'text-size')
- * => '--recursica-ui-kit-components-toast-properties-text-size'
+ * => '--recursica_ui-kit_themes_light_components_toast_properties_text-size'
  * 
  * @example
  * getComponentLevelCssVar('Chip', 'colors.error.text-color')
- * => '--recursica-ui-kit-components-chip-properties-colors-error-text-color'
+ * => '--recursica_ui-kit_themes_light_components_chip_properties_colors_error_text-color'
  */
 export function getComponentLevelCssVar(
   component: ComponentName,
@@ -321,7 +329,7 @@ export function getComponentLevelCssVar(
  * 
  * @example
  * buildVariantColorCssVar('Chip', 'unselected', 'background', 'layer-0')
- * => '--recursica-ui-kit-components-chip-variants-styles-unselected-properties-colors-layer-0-background'
+ * => '--recursica_ui-kit_themes_light_components_chip_variants_styles_unselected_properties_colors_layer-0_background'
  */
 export function buildVariantColorCssVar(
   component: ComponentName,
@@ -340,7 +348,7 @@ export function buildVariantColorCssVar(
  * 
  * @example
  * buildVariantSizeCssVar('Button', 'default', 'height')
- * => '--recursica-ui-kit-components-button-variants-sizes-default-properties-height'
+ * => '--recursica_ui-kit_themes_light_components_button_variants_sizes_default_properties_height'
  */
 export function buildVariantSizeCssVar(
   component: ComponentName,
@@ -355,15 +363,15 @@ export function buildVariantSizeCssVar(
  * 
  * @example
  * getComponentTextCssVar('Button', 'text', 'font-size')
- * => '--recursica-ui-kit-components-button-properties-text-font-size'
+ * => '--recursica_ui-kit_themes_light_components_button_properties_text_font-size'
  * 
  * @example
  * getComponentTextCssVar('AccordionItem', 'header-text', 'font-weight')
- * => '--recursica-ui-kit-components-accordion-item-properties-header-text-font-weight'
+ * => '--recursica_ui-kit_themes_light_components_accordion-item_properties_header-text_font-weight'
  * 
  * @example
  * getComponentTextCssVar('Avatar', 'text', 'font-size', 'small')
- * => '--recursica-ui-kit-components-avatar-variants-sizes-small-properties-text-font-size'
+ * => '--recursica_ui-kit_themes_light_components_avatar_variants_sizes_small_properties_text_font-size'
  * 
  * @param componentName - Component name (e.g., 'Button', 'Label')
  * @param textElementName - Text element name (e.g., 'text', 'header-text', 'content-text', 'label-text', 'optional-text')

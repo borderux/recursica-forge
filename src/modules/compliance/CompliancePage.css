@@ -5,7 +5,7 @@
 .compliance-page {
     display: flex;
     flex-direction: column;
-    gap: var(--recursica-brand-dimensions-gutters-vertical);
+    gap: var(--recursica_brand_dimensions_gutters_vertical);
 }
 
 /* ─── Header ─── */
@@ -14,14 +14,14 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--recursica-brand-dimensions-general-lg);
+    gap: var(--recursica_brand_dimensions_general_lg);
     flex-wrap: wrap;
 }
 
 .compliance-page__header-actions {
     display: flex;
     align-items: center;
-    gap: var(--recursica-brand-dimensions-gutters-horizontal);
+    gap: var(--recursica_brand_dimensions_gutters_horizontal);
 }
 
 /* ─── Empty state ─── */
@@ -31,13 +31,13 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--recursica-brand-dimensions-general-sm);
-    padding: var(--recursica-brand-dimensions-general-xl) 0;
+    gap: var(--recursica_brand_dimensions_general_sm);
+    padding: var(--recursica_brand_dimensions_general_xl) 0;
     text-align: center;
 }
 
 .compliance-page__empty-icon {
-    margin-bottom: var(--recursica-brand-dimensions-general-sm);
+    margin-bottom: var(--recursica_brand_dimensions_general_sm);
     opacity: 0.5;
 }
 
@@ -46,7 +46,7 @@
 .compliance-page__group {
     display: flex;
     flex-direction: column;
-    gap: var(--recursica-brand-dimensions-general-default);
+    gap: var(--recursica_brand_dimensions_general_default);
 }
 
 .compliance-page__group-title {
@@ -67,7 +67,7 @@
 .compliance-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: var(--recursica-brand-typography-body-small-font-size, 13px);
+    font-size: var(--recursica_brand_typography_body-small-font-size, 13px);
 }
 
 .compliance-table thead tr {
@@ -79,11 +79,11 @@
     padding: 8px 12px;
     white-space: nowrap;
     /* Use subtitle-small type style */
-    font-size: var(--recursica-brand-typography-subtitle-small-font-size);
-    font-weight: var(--recursica-brand-typography-subtitle-small-font-weight);
-    font-family: var(--recursica-brand-typography-subtitle-small-font-family);
-    letter-spacing: var(--recursica-brand-typography-subtitle-small-font-letter-spacing);
-    line-height: var(--recursica-brand-typography-subtitle-small-line-height);
+    font-size: var(--recursica_brand_typography_subtitle-small-font-size);
+    font-weight: var(--recursica_brand_typography_subtitle-small-font-weight);
+    font-family: var(--recursica_brand_typography_subtitle-small-font-family);
+    letter-spacing: var(--recursica_brand_typography_subtitle-small-font-letter-spacing);
+    line-height: var(--recursica_brand_typography_subtitle-small-line-height);
 }
 
 .compliance-table__th-center {
@@ -150,7 +150,7 @@
 
 .compliance-page__confirm-dialog {
     border-radius: 12px;
-    padding: var(--recursica-brand-dimensions-general-lg);
+    padding: var(--recursica_brand_dimensions_general_lg);
     max-width: 400px;
     width: 90%;
     border: 1px solid;

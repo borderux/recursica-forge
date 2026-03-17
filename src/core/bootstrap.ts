@@ -1,8 +1,8 @@
 import { getVarsStore } from './store/varsStore'
 import { validateAllJsonSchemas } from './utils/validateJsonSchemas'
-import tokensImport from '../vars/Tokens.json'
-import themeImport from '../vars/Brand.json'
-import uikitImport from '../vars/UIKit.json'
+import tokensImport from '../../recursica_tokens.json'
+import themeImport from '../../recursica_brand.json'
+import uikitImport from '../../recursica_ui-kit.json'
 // Note: fontUtils is imported dynamically to avoid circular dependencies
 
 // Initialize the store and compute/apply initial CSS vars before React mounts

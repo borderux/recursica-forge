@@ -7,19 +7,19 @@ import * as readCssVarModule from '../css/readCssVar'
 vi.mock('../css/readCssVar', () => ({
   readCssVar: vi.fn((varName: string) => {
     const varMap: Record<string, string> = {
-      '--recursica-brand-light-palettes-core-white': '#ffffff',
-      '--recursica-brand-light-palettes-core-black': '#000000',
-      '--recursica-tokens-color-gray-000': '#ffffff',
-      '--recursica-tokens-color-gray-050': '#f5f5f5',
-      '--recursica-tokens-color-gray-100': '#e0e0e0',
-      '--recursica-tokens-color-gray-200': '#cccccc',
-      '--recursica-tokens-color-gray-300': '#b3b3b3',
-      '--recursica-tokens-color-gray-400': '#999999',
-      '--recursica-tokens-color-gray-500': '#808080',
-      '--recursica-tokens-color-gray-600': '#666666',
-      '--recursica-tokens-color-gray-700': '#4d4d4d',
-      '--recursica-tokens-color-gray-800': '#333333',
-      '--recursica-tokens-color-gray-900': '#000000'
+      '--recursica_brand_light_palettes_core_white': '#ffffff',
+      '--recursica_brand_light_palettes_core_black': '#000000',
+      '--recursica_tokens_color_gray_000': '#ffffff',
+      '--recursica_tokens_color_gray_050': '#f5f5f5',
+      '--recursica_tokens_color_gray_100': '#e0e0e0',
+      '--recursica_tokens_color_gray_200': '#cccccc',
+      '--recursica_tokens_color_gray_300': '#b3b3b3',
+      '--recursica_tokens_color_gray_400': '#999999',
+      '--recursica_tokens_color_gray_500': '#808080',
+      '--recursica_tokens_color_gray_600': '#666666',
+      '--recursica_tokens_color_gray_700': '#4d4d4d',
+      '--recursica_tokens_color_gray_800': '#333333',
+      '--recursica_tokens_color_gray_900': '#000000'
     }
     return varMap[varName] || null
   })
@@ -56,7 +56,7 @@ describe('findAaCompliantColor', () => {
     
     // Should return a lighter shade (lower level number) or fallback to white/black
     expect(result).toBeDefined()
-    expect(result).toMatch(/var\(--recursica-(tokens-color-gray-|brand-light-palettes-core-)/)
+    expect(result).toMatch(/var\(--recursica_(tokens_color_gray_|brand_light_palettes_core_)/)
   })
 
   it('should find AA-compliant color by stepping darker', () => {
@@ -65,7 +65,7 @@ describe('findAaCompliantColor', () => {
     
     // Should return a darker shade (higher level number) or fallback to white/black
     expect(result).toBeDefined()
-    expect(result).toMatch(/var\(--recursica-(tokens-color-gray-|brand-light-palettes-core-)/)
+    expect(result).toMatch(/var\(--recursica_(tokens_color_gray_|brand_light_palettes_core_)/)
   })
 
   it('should handle opacity when blending colors', () => {
@@ -73,7 +73,7 @@ describe('findAaCompliantColor', () => {
     const result = findAaCompliantColor('#808080', { family: 'gray', level: '500' }, 0.8, mockTokens)
     
     expect(result).toBeDefined()
-    expect(result).toMatch(/var\(--recursica-(tokens-color-gray-|brand-light-palettes-core-)/)
+    expect(result).toMatch(/var\(--recursica_(tokens_color_gray_|brand_light_palettes_core_)/)
   })
 
   it('should fallback to white/black when no token level works', () => {
@@ -83,14 +83,14 @@ describe('findAaCompliantColor', () => {
     expect(result).toBeDefined()
     // May find a lighter token level OR fallback to white/black
     // Both are valid outcomes
-    expect(result).toMatch(/var\(--recursica-(tokens-color-gray-|brand-light-palettes-core-)/)
+    expect(result).toMatch(/var\(--recursica_(tokens_color_gray_|brand_light_palettes_core_)/)
   })
 
   it('should handle null core token by trying white/black', () => {
     const result = findAaCompliantColor('#808080', null, 1, mockTokens)
     
     expect(result).toBeDefined()
-    expect(result).toContain('--recursica-brand-light-palettes-core-')
+    expect(result).toContain('--recursica_brand_light_palettes_core_')
   })
 
   it('should normalize 000 level to 050', () => {

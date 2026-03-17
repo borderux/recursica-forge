@@ -12,6 +12,7 @@ import { Tabs } from '../../components/adapters/Tabs'
 import { SidebarFooter } from './SidebarFooter'
 import { useCompliance } from '../../core/compliance/ComplianceContext'
 import { Badge } from '../../components/adapters/Badge'
+import { genericLayerProperty } from '../../core/css/cssVarBuilder'
 
 type ThemeNavItem = 'core-properties' | 'type' | 'palettes' | 'elevations' | 'layers' | 'dimensions' | 'compliance'
 
@@ -35,8 +36,6 @@ export function ThemeSidebar() {
 
   const currentNavItem = getCurrentNavItem()
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-
   const handleNavClick = (value: string | null) => {
     const item = (value || 'core-properties') as ThemeNavItem
     navigate(`/theme/${item}`)
@@ -57,16 +56,16 @@ export function ThemeSidebar() {
       style={{
         width: '252px',
         alignSelf: 'stretch',
-        backgroundColor: `var(${layer0Base}-surface)`,
-        borderRightWidth: `var(${layer0Base}-border-size, 1px)`,
+        backgroundColor: `var(${genericLayerProperty(0, 'surface')})`,
+        borderRightWidth: `var(${genericLayerProperty(0, 'border-size')}, 1px)`,
         borderRightStyle: 'solid',
-        borderRightColor: `var(${layer0Base}-border-color)`,
+        borderRightColor: `var(${genericLayerProperty(0, 'border-color')})`,
         display: 'flex',
         flexDirection: 'column',
-        paddingLeft: 'var(--recursica-brand-dimensions-general-xl)',
-        paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
-        paddingTop: 'var(--recursica-brand-dimensions-general-xl)',
-        paddingBottom: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingLeft: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingRight: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingTop: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingBottom: 'var(--recursica_brand_dimensions_general_xl)',
         flexShrink: 0,
         position: 'relative',
       }}

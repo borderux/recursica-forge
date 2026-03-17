@@ -4,6 +4,7 @@ import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
+import { token } from '../../../../core/css/cssVarBuilder'
 import { Menu } from '../../../../components/adapters/Menu'
 import { MenuItem } from '../../../../components/adapters/MenuItem'
 
@@ -42,7 +43,7 @@ export default function OpacitySelector({ targetCssVar, label }: OpacitySelector
   // Extract current token from CSS variable value
   const currentToken = useMemo(() => {
     if (!rawValue) return null
-    // Match patterns like: var(--recursica-tokens-opacity-solid) or var(--recursica-brand-themes-light-text-emphasis-low)
+    // Match patterns like: var(--recursica_tokens_opacity_solid) or var(--recursica_brand_text-emphasis_low)
     const tokenMatch = rawValue.match(/var\(--(?:recursica-)?tokens-opacity-([^)]+)\)/)
     if (tokenMatch) return `opacity/${tokenMatch[1]}`
     
@@ -88,7 +89,7 @@ export default function OpacitySelector({ targetCssVar, label }: OpacitySelector
 
   const handleSelect = (tokenName: string) => {
     const tokenKey = tokenName.replace('opacity/', '')
-    const opacityCssVar = `--recursica-tokens-opacity-${tokenKey}`
+    const opacityCssVar = token('opacity', tokenKey)
     
     // Update the target CSS variable to reference the opacity token
     updateCssVar(targetCssVar, `var(${opacityCssVar})`)
@@ -113,8 +114,8 @@ export default function OpacitySelector({ targetCssVar, label }: OpacitySelector
             cursor: 'pointer',
             padding: '4px 8px',
             borderRadius: '4px',
-            backgroundColor: 'var(--recursica-brand-layers-layer-0-properties-surface, #f5f5f5)',
-            border: '1px solid var(--recursica-brand-layers-layer-0-properties-border-color, #e0e0e0)',
+            backgroundColor: 'var(--recursica_brand_layers_layer-0_properties_surface, #f5f5f5)',
+            border: '1px solid var(--recursica_brand_layers_layer-0_properties_border-color, #e0e0e0)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',

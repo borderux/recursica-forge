@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
+import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
 
 type FontLetterSpacingTokensProps = {
   autoScale?: boolean
@@ -91,8 +92,6 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   }
 
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
   return (
@@ -105,7 +104,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
         const isTight = keyName === 'tight'
         const isWide = keyName === 'wide'
         const disabled = scaleByTW && !(isDefault || isTight || isWide)
-        const letterSpacingVar = `--recursica-tokens-font-letter-spacings-${keyName === 'tighest' ? 'tightest' : keyName}`
+        const letterSpacingVar = `--recursica_tokens_font_letter-spacings_${keyName === 'tighest' ? 'tightest' : keyName}`
         const isLast = index === items.length - 1
 
         return (
@@ -116,13 +115,13 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
             alignItems: 'stretch',
           }}>
             <label htmlFor={it.name} style={{
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              color: `var(${genericLayerText(0, 'color')})`,
+              opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
               minWidth: 80,
-              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+              paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               paddingRight: 0,
               display: 'flex',
               alignItems: 'center',
@@ -130,15 +129,15 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               {label}
             </label>
             <div style={{
-              fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
+              fontFamily: 'var(--recursica_tokens_font_typefaces_primary)',
               letterSpacing: `var(${letterSpacingVar})`,
-              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+              color: `var(${genericLayerText(0, 'color')})`,
+              opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
               lineHeight: 1.5,
-              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+              paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
+              paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               display: 'flex',
               alignItems: 'center',
             }}>
@@ -148,12 +147,12 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 'var(--recursica-brand-dimensions-general-default)',
-              borderLeft: `1px solid var(${layer1Base}-border-color)`,
-              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              gap: 'var(--recursica_brand_dimensions_general_default)',
+              borderLeft: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
+              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+              paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
+              paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               width: '350px',
               overflow: 'hidden',
             }}>

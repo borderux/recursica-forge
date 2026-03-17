@@ -98,7 +98,7 @@ export default function Pagination({
     const itemGapVar = buildComponentCssVarPath('Pagination', 'properties', 'item-gap')
 
     // Build the layer text color variable for the dots
-    const layerBase = `--recursica-brand-themes-${mode}-layers-${layer}`
+    const layerBase = `--recursica_brand_layer_${layer}`
     const textColorVar = `${layerBase}-elements-text-color`
     const highEmphasisVar = `${layerBase}-elements-text-high-emphasis`
 

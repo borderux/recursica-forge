@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
+import { genericLayerProperty, genericLayerText, tokenFont } from '../../../core/css/cssVarBuilder'
 
 type FontLineHeightTokensProps = {
   autoScale?: boolean
@@ -78,8 +79,6 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
 
   const scaleByST = autoScale
   const { mode } = useThemeMode()
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. As the creature soared through the air with remarkable agility, it noticed a shimmering portal opening beneath the ancient oak tree. Without hesitation, the goblin adjusted its trajectory mid-flight, tumbling gracefully through the mystical gateway into a realm where time flowed backwards and colors sang in harmony. The dwarf, momentarily stunned by this unexpected display of acrobatic prowess, slowly rose from his comfortable position and began to chase after the vanishing figure, determined to understand the secrets of this magical transformation that had unfolded before his very eyes."
 
   return (
@@ -92,7 +91,7 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
         const isShort = k === 'short'
         const isTall = k === 'tall'
         const disabled = scaleByST && !(isDefault || isShort || isTall)
-        const lineHeightVar = `--recursica-tokens-font-line-heights-${k}`
+        const lineHeightVar = tokenFont('line-heights', k)
         const isLast = index === order.length - 1
 
         return (
@@ -103,13 +102,13 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
             alignItems: 'stretch',
           }}>
             <label htmlFor={name} style={{
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              color: `var(${genericLayerText(0, 'color')})`,
+              opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
               minWidth: 80,
-              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+              paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               paddingRight: 0,
               display: 'flex',
               alignItems: 'center',
@@ -117,14 +116,14 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
               {label}
             </label>
             <div style={{
-              fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
+              fontFamily: 'var(--recursica_tokens_font_typefaces_primary)',
               lineHeight: `var(${lineHeightVar})`,
-              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              color: `var(${genericLayerText(0, 'color')})`,
+              opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+              paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
+              paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               display: 'flex',
               alignItems: 'center',
             }}>
@@ -134,12 +133,12 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 'var(--recursica-brand-dimensions-general-default)',
-              borderLeft: `1px solid var(${layer1Base}-border-color)`,
-              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              gap: 'var(--recursica_brand_dimensions_general_default)',
+              borderLeft: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
+              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+              paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
+              paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               width: '350px',
               overflow: 'hidden',
             }}>

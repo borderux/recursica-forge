@@ -5,7 +5,7 @@
  * 1. Check contrast between interactive on-tone and tone
  * 2. Step through color scale to find accessible color
  * 3. If none found, try white, then black
- * 4. Update Brand.json with found values
+ * 4. Update recursica_brand.json with found values
  */
 
 import { readFileSync, writeFileSync } from 'fs'
@@ -70,7 +70,7 @@ function findAccessibleColor(
   // Check if current interactive color is accessible
   const currentContrast = contrastRatio(toneHex, interactiveHex)
   if (currentContrast >= AA_THRESHOLD) {
-    // Current is accessible, but we need to return a Brand.json reference
+    // Current is accessible, but we need to return a recursica_brand.json reference
     // Find what the current interactive hex maps to
     return findBrandJsonRefForHex(interactiveHex, tokens, brand, mode)
   }
@@ -135,7 +135,7 @@ function findAccessibleColor(
   return whiteContrast >= blackContrast ? whiteRef : blackRef
 }
 
-// Find Brand.json reference for a hex color
+// Find recursica_brand.json reference for a hex color
 function findBrandJsonRefForHex(hex: string, tokens: JsonLike, brand: JsonLike, mode: 'light' | 'dark'): string {
   const found = findColorFamilyAndLevel(hex, tokens)
   if (found) {
@@ -178,8 +178,8 @@ function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family: strin
 }
 
 function main() {
-  const brandPath = join(process.cwd(), 'src/vars/Brand.json')
-  const tokensPath = join(process.cwd(), 'src/vars/Tokens.json')
+  const brandPath = join(process.cwd(), 'recursica_brand.json')
+  const tokensPath = join(process.cwd(), 'recursica_tokens.json')
   
   const brandJson = JSON.parse(readFileSync(brandPath, 'utf-8'))
   const tokensJson = JSON.parse(readFileSync(tokensPath, 'utf-8'))
@@ -240,7 +240,7 @@ function main() {
       // Get current interactive value
       const currentInteractiveRef = colorDef.interactive?.$value
       
-      // Update Brand.json
+      // Update recursica_brand.json
       if (accessibleRef && accessibleRef !== currentInteractiveRef) {
         console.log(`  Updating ${mode} ${colorName} interactive: ${currentInteractiveRef} -> ${accessibleRef}`)
         colorDef.interactive.$value = accessibleRef
@@ -250,9 +250,9 @@ function main() {
     }
   }
   
-  // Write updated Brand.json
+  // Write updated recursica_brand.json
   writeFileSync(brandPath, JSON.stringify(brandJson, null, 2) + '\n', 'utf-8')
-  console.log('Brand.json updated successfully!')
+  console.log('recursica_brand.json updated successfully!')
 }
 
 // Run if executed directly

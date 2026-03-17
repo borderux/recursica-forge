@@ -2,11 +2,12 @@ import React, { useMemo, useState, useEffect } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { readOverrides, setOverride, writeOverrides } from '../../theme/tokenOverrides'
-import tokensImport from '../../../vars/Tokens.json'
+import tokensImport from '../../../../recursica_tokens.json'
 import { Slider } from '../../../components/adapters/Slider'
 import { Button } from '../../../components/adapters/Button'
 import { Switch } from '../../../components/adapters/Switch'
 import { iconNameToReactComponent } from '../../components/iconUtils'
+import { genericLayerText } from '../../../core/css/cssVarBuilder'
 
 export default function SizeTokens() {
   const { tokens: tokensJson, resetAll, updateToken, recomputeAndApplyAll } = useVars()
@@ -174,10 +175,7 @@ export default function SizeTokens() {
 
     recomputeAndApplyAll()
   }
-
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
-  const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
+  const interactiveColor = `--recursica_brand_palettes_core_interactive`
 
   return (
     <div style={{ display: 'grid', gap: 0 }}>
@@ -186,37 +184,37 @@ export default function SizeTokens() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
+        marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
       }}>
         <h2 style={{
           margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+          fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+          fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+          fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+          letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+          lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+          color: `var(${genericLayerText(0, 'color')})`,
+          opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
         }}>
           Size
         </h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_md)' }}>
           <Button
             variant="outline"
             size="small"
             onClick={handleReset}
             icon={(() => {
               const RefreshIcon = iconNameToReactComponent('arrow-path')
-              return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+              return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
             })()}
           >
             Reset all
           </Button>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-sm)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
             <span style={{
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              color: `var(${genericLayerText(0, 'color')})`,
+              opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
             }}>
               Auto scale
             </span>
@@ -319,15 +317,15 @@ export default function SizeTokens() {
             <div key={it.name} style={{
               display: 'grid',
               gridTemplateColumns: 'auto 1fr auto auto',
-              gap: 'var(--recursica-brand-dimensions-general-md)',
+              gap: 'var(--recursica_brand_dimensions_general_md)',
               alignItems: 'center',
               paddingTop: 0,
-              paddingBottom: isLast ? 0 : 'var(--recursica-brand-dimensions-general-default)',
+              paddingBottom: isLast ? 0 : 'var(--recursica_brand_dimensions_general_default)',
             }}>
               <label htmlFor={it.name} style={{
-                fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                color: `var(${genericLayerText(0, 'color')})`,
+                opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                 minWidth: 80,
               }}>
                 {label}

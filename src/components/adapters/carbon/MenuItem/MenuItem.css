@@ -51,7 +51,7 @@
 }
 
 .cds-menu-item:focus:not([data-disabled="true"]) {
-  outline: 2px solid var(--recursica-brand-themes-light-palettes-palette-1-default-color-tone, #0066cc);
+  outline: 2px solid var(--recursica_brand_themes_light_palettes_palette_1_default_color_tone, #0066cc);
   outline-offset: -2px;
 }
 

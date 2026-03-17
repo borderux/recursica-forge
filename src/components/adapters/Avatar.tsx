@@ -46,7 +46,7 @@ export function Avatar({
   const { mode } = useThemeMode()
   
   // Get elevation from CSS vars if not provided as props
-  // These are set by the toolbar and initialized from UIKit.json
+  // These are set by the toolbar and initialized from recursica_ui-kit.json
   const elevationVar = getComponentLevelCssVar('Avatar', 'elevation')
   
   // Reactively read elevation from CSS variable

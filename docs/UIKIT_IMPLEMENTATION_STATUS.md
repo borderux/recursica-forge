@@ -55,16 +55,16 @@
 
 ## 🔄 In Progress / Next Steps
 
-### 1. CSS Variable Generation from UIKit.json
+### 1. CSS Variable Generation from recursica_ui-kit.json
 **Status**: Not yet implemented
 **Required**: 
-- Create utility to read UIKit.json
-- Generate CSS variables from UIKit.json structure
+- Create utility to read recursica_ui-kit.json
+- Generate CSS variables from recursica_ui-kit.json structure
 - Apply CSS variables to document root
 - Handle light/dark mode switching (currently handled at app level)
 
 **Files Needed**:
-- `src/components/utils/generateCssVars.ts` - Generate CSS vars from UIKit.json
+- `src/components/utils/generateCssVars.ts` - Generate CSS vars from recursica_ui-kit.json
 - Integration with existing CSS variable system
 
 ### 2. Remaining Component Adapters
@@ -117,10 +117,10 @@
 3. Register in registry files
 4. Update PreviewPage to use adapter
 
-### 3. UIKit.json Structure Expansion
+### 3. recursica_ui-kit.json Structure Expansion
 **Status**: Only Button has full structure
 **Required**: 
-- Add component definitions to UIKit.json for all 35 components
+- Add component definitions to recursica_ui-kit.json for all 35 components
 - Follow the pattern established for Button:
   ```json
   {
@@ -167,7 +167,7 @@ CSS Variables (--recursica-ui-kit-components-*)
 
 ### CSS Variable Flow
 ```
-UIKit.json
+recursica_ui-kit.json
   ↓
 CSS Variable Generator (to be implemented)
   ↓
@@ -184,11 +184,11 @@ Component Styles (via useCssVar hook)
 
 ## 🐛 Known Issues / Considerations
 
-1. **CSS Variable Generation**: Need to generate CSS vars from UIKit.json and apply them
+1. **CSS Variable Generation**: Need to generate CSS vars from recursica_ui-kit.json and apply them
 2. **Theme Mode**: Light/dark mode switching needs to update CSS variable names or values
 3. **Library Provider Loading**: All providers load even if not needed (acceptable for now)
 4. **Component Lazy Loading**: Components are lazy-loaded but providers are not
-5. **Missing UIKit.json Definitions**: Only Button has full structure defined
+5. **Missing recursica_ui-kit.json Definitions**: Only Button has full structure defined
 
 ## 📝 Usage Example
 

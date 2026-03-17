@@ -9,10 +9,10 @@
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  padding: var(--recursica-brand-dimensions-general-md);
-  background: var(--recursica-brand-themes-light-palettes-core-warning, #f59e0b);
+  padding: var(--recursica_brand_dimensions_general_md);
+  background: var(--recursica_brand_themes_light_palettes_core_warning, #f59e0b);
   color: white;
-  border-radius: var(--recursica-brand-dimensions-border-radius-default);
+  border-radius: var(--recursica_brand_dimensions_border-radii_default);
   font-size: 13px;
   line-height: 1.5;
   z-index: 10;
@@ -20,7 +20,7 @@
 
 .button-preview-row {
   display: flex;
-  gap: var(--recursica-brand-dimensions-general-md);
+  gap: var(--recursica_brand_dimensions_general_md);
   align-items: center;
   flex-wrap: wrap;
 }

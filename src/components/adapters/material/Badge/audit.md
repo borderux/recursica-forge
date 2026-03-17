@@ -22,11 +22,11 @@ This document audits the Badge component implementation for Material UI, identif
 
 | Variable Name | Source | Used For |
 |--------------|--------|----------|
-| `--recursica-ui-kit-components-badge-color-variant-{variant}-color-layer-{n}-background` | UIKit.json | Badge background color |
-| `--recursica-ui-kit-components-badge-color-variant-{variant}-color-layer-{n}-text` | UIKit.json | Badge text color |
-| `--recursica-ui-kit-components-badge-font-size` | UIKit.json | Badge font size |
-| `--recursica-ui-kit-components-badge-padding` | UIKit.json | Badge padding |
-| `--recursica-ui-kit-components-badge-border-radius` | UIKit.json | Badge border radius |
+| `--recursica-ui-kit-components-badge-color-variant-{variant}-color-layer-{n}-background` | recursica_ui-kit.json | Badge background color |
+| `--recursica-ui-kit-components-badge-color-variant-{variant}-color-layer-{n}-text` | recursica_ui-kit.json | Badge text color |
+| `--recursica-ui-kit-components-badge-font-size` | recursica_ui-kit.json | Badge font size |
+| `--recursica-ui-kit-components-badge-padding` | recursica_ui-kit.json | Badge padding |
+| `--recursica-ui-kit-components-badge-border-radius` | recursica_ui-kit.json | Badge border radius |
 
 ### Variables Used (with Library Fallbacks)
 
@@ -162,7 +162,7 @@ Screenshots should be captured for each test case to ensure visual consistency w
 - [x] Variant structure is correct
 
 ### Prop Coverage
-- [x] All root props from UIKit.json are represented:
+- [x] All root props from recursica_ui-kit.json are represented:
   - [x] `font-size`
   - [x] `padding`
   - [x] `border-radius`

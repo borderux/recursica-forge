@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import config from '../Accordion.toolbar.json'
-import uikitJson from '../../../../vars/UIKit.json'
+import uikitJson from '../../../../../recursica_ui-kit.json'
 
 describe('Accordion Toolbar Config', () => {
   it('should have valid JSON structure', () => {
@@ -28,7 +28,7 @@ describe('Accordion Toolbar Config', () => {
     }
   })
 
-  it('should have props that match UIKit.json structure', () => {
+  it('should have props that match recursica_ui-kit.json structure', () => {
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
     const componentKey = 'accordion'
     const itemComponentKey = 'accordion-item'
@@ -36,7 +36,7 @@ describe('Accordion Toolbar Config', () => {
     const itemComponent = uikitJson['ui-kit']?.components?.[itemComponentKey]
 
     if (!component) {
-      console.warn(`Component ${componentKey} not found in UIKit.json - skipping prop validation`)
+      console.warn(`Component ${componentKey} not found in recursica_ui-kit.json - skipping prop validation`)
       consoleSpy.mockRestore()
       return
     }
@@ -86,18 +86,18 @@ describe('Accordion Toolbar Config', () => {
 
     configProps.forEach(prop => {
       if (!uikitProps.has(prop) && !prop.includes('-')) {
-        console.warn(`Config prop ${prop} not found in UIKit.json - may be a grouped prop`)
+        console.warn(`Config prop ${prop} not found in recursica_ui-kit.json - may be a grouped prop`)
       }
     })
     consoleSpy.mockRestore()
   })
 
-  it('should have all required props from UIKit.json (container only)', () => {
+  it('should have all required props from recursica_ui-kit.json (container only)', () => {
     const componentKey = 'accordion'
     const component = uikitJson['ui-kit']?.components?.[componentKey]
 
     if (!component) {
-      console.warn(`Component ${componentKey} not found in UIKit.json - skipping prop validation`)
+      console.warn(`Component ${componentKey} not found in recursica_ui-kit.json - skipping prop validation`)
       return
     }
 
