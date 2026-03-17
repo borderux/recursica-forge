@@ -13,6 +13,7 @@ import { Button } from '../../Button'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { usePaginationConfig } from '../../hooks/usePaginationConfig'
+import { genericLayerText } from '../../../../core/css/cssVarBuilder'
 import type { PaginationProps as AdapterPaginationProps } from '../../Pagination'
 import './Pagination.css'
 
@@ -46,9 +47,9 @@ export default function Pagination({
     const itemGapVar = buildComponentCssVarPath('Pagination', 'properties', 'item-gap')
 
     // Build the layer text color variable for the dots
-    const layerBase = `--recursica_brand_layer_${layer}`
-    const textColorVar = `${layerBase}-elements-text-color`
-    const highEmphasisVar = `${layerBase}-elements-text-high-emphasis`
+    const layerNum = layer.replace('layer-', '')
+    const textColorVar = genericLayerText(layerNum, 'color')
+    const highEmphasisVar = genericLayerText(layerNum, 'high-emphasis')
 
     // Helper to render nav button content based on display mode
     const getNavButtonProps = (icon: React.ReactNode, label: string) => {

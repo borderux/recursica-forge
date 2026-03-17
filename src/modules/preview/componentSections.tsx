@@ -35,7 +35,7 @@ import { getComponentCssVar, getComponentTextCssVar } from '../../components/uti
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
-import { genericLayerProperty } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 
@@ -123,12 +123,12 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
 
     // Build layer text color CSS variables
     const layerTextColorVars = React.useMemo(() => {
-      const layerBase = `--recursica_brand_layer_${layer}_properties`
+      const layerNum = layer.replace('layer-', '')
 
       return {
-        textColor: `${layerBase.replace('-properties', '-elements')}-text-color`,
-        highEmphasis: `${layerBase.replace('-properties', '-elements')}-text-high-emphasis`,
-        lowEmphasis: `${layerBase.replace('-properties', '-elements')}-text-low-emphasis`,
+        textColor: genericLayerText(layerNum, 'color'),
+        highEmphasis: genericLayerText(layerNum, 'high-emphasis'),
+        lowEmphasis: genericLayerText(layerNum, 'low-emphasis'),
       }
     }, [layer, mode])
 
@@ -518,9 +518,9 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <div style={{ display: 'grid', gap: 16 }}>
             {layers.map((layer) => {
               // Build CSS variable names for this layer's text color with high emphasis
-              const layerBase = `--recursica_brand_${mode}-layers-${layer}-properties`
-              const textColorVar = `${layerBase.replace('-properties', '-elements')}-text-color`
-              const highEmphasisVar = `${layerBase.replace('-properties', '-elements')}-text-high-emphasis`
+              const layerNum = layer.replace('layer-', '')
+              const textColorVar = genericLayerText(layerNum, 'color')
+              const highEmphasisVar = genericLayerText(layerNum, 'high-emphasis')
 
               return (
                 <div key={layer} style={{ display: 'grid', gap: 12 }}>

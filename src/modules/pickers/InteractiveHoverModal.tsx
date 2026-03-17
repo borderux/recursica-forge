@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, genericElevation } from '../../core/css/cssVarBuilder'
 
 export type InteractiveHoverModalProps = {
   open: boolean
@@ -47,7 +47,7 @@ export function InteractiveHoverModal({
           color: `var(${genericLayerText(3, 'color')})`,
           border: `var(${genericLayerProperty(3, 'border-size')}) solid var(${genericLayerProperty(3, 'border-color')})`,
           borderRadius: `var(${genericLayerProperty(3, 'border-radius')})`,
-          boxShadow: `var(--recursica_brand_elevations_elevation-4-x-axis) var(--recursica_brand_elevations_elevation-4-y-axis) var(--recursica_brand_elevations_elevation-4-blur) var(--recursica_brand_elevations_elevation-4-spread) var(--recursica_brand_elevations_elevation-4-shadow-color)`,
+          boxShadow: `var(${genericElevation(4, 'x-axis')}) var(${genericElevation(4, 'y-axis')}) var(${genericElevation(4, 'blur')}) var(${genericElevation(4, 'spread')}) var(${genericElevation(4, 'shadow-color')})`,
           padding: 24,
           display: 'grid',
           gap: 16,

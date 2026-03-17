@@ -55,6 +55,9 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     return trimmed.startsWith('{') && trimmed.endsWith('}')
   }
 
+  // Track brace-notation vars already reported to avoid duplicates
+  const braceNotationReported = new Set<string>()
+
   // Helper to add variable with location tracking
   const addVar = (varName: string, value: string, location: string) => {
     allVars.add(varName)
@@ -67,8 +70,9 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     }
     varLocations.get(varName)!.add(location)
     
-    // Check for brace notation in CSS variable values
-    if (isBraceNotation(value)) {
+    // Check for brace notation in CSS variable values (only report once per var)
+    if (isBraceNotation(value) && !braceNotationReported.has(varName)) {
+      braceNotationReported.add(varName)
       const locations = varLocations.get(varName) || new Set()
       const locationStr = Array.from(locations).join(', ')
       const isRoot = locationStr.includes('root')
@@ -1096,8 +1100,8 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
       }
     }
 
-    // Check for invalid characters
-    if (!/^--[a-z0-9-]+$/i.test(varName)) {
+    // Check for invalid characters (underscores are valid and used as standard delimiter)
+    if (!/^--[a-z0-9_-]+$/i.test(varName)) {
       issues.push('invalid-characters')
     }
 
@@ -1274,8 +1278,8 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
         const varRefs = extractVarRefs(value)
         
         for (const varRef of varRefs) {
-          if (checkedVars.has(`${elPath}:${cssProp}:${varRef}`)) continue
-          checkedVars.add(`${elPath}:${cssProp}:${varRef}`)
+          if (checkedVars.has(`${cssProp}:${varRef}`)) continue
+          checkedVars.add(`${cssProp}:${varRef}`)
 
           // Check if variable is defined
           const isDefined = isCssVarDefined(varRef, el as HTMLElement)
@@ -1351,8 +1355,8 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
               // Find which nested variable failed
               const failedVar = trace.chain[trace.chain.length - 1]
               if (!isCssVarDefined(failedVar, el as HTMLElement)) {
-                if (!checkedVars.has(`${elPath}:${cssProp}:${failedVar}`)) {
-                  checkedVars.add(`${elPath}:${cssProp}:${failedVar}`)
+                if (!checkedVars.has(`${cssProp}:${failedVar}`)) {
+                  checkedVars.add(`${cssProp}:${failedVar}`)
                   
                   const similar = findSimilarVars(failedVar, allDefinedVars)
                   let issueType: DeepAuditIssue['issueType'] = 'undefined'
@@ -1407,8 +1411,8 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
           const varRefs = extractVarRefs(value)
           
           for (const varRef of varRefs) {
-            if (checkedVars.has(`${elPath}:inline:${cssProp}:${varRef}`)) continue
-            checkedVars.add(`${elPath}:inline:${cssProp}:${varRef}`)
+            if (checkedVars.has(`inline:${cssProp}:${varRef}`)) continue
+            checkedVars.add(`inline:${cssProp}:${varRef}`)
 
             const isDefined = isCssVarDefined(varRef, el as HTMLElement)
             

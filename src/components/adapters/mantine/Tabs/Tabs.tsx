@@ -148,8 +148,8 @@ export default function Tabs({
       '--recursica_tabs_content_align': tabContentAlignment,
       '--recursica_tabs_content_justify': tabContentAlignment === 'center' ? 'center' : tabContentAlignment === 'right' ? 'flex-end' : 'flex-start',
       // Hover state (inactive tabs only)
-      '--recursica_tabs_hover_opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-      '--recursica_tabs_hover_color': `var(${hoverColorVar}, #000000)`, // Hover color
+      '--recursica_tabs_hover_opacity': `var(${hoverOpacityVar})`,
+      '--recursica_tabs_hover_color': `var(${hoverColorVar})`,
       ...style,
       ...mantine?.style,
     },

@@ -14,6 +14,7 @@ import type { DatePickerProps as AdapterDatePickerProps } from '../../DatePicker
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
+import { genericLayerText } from '../../../../core/css/cssVarBuilder'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
@@ -347,7 +348,7 @@ export default function DatePicker({
     const yearDropdownItems = useMemo(() => getYearDropdownItems(new Date().getFullYear()), [])
 
     const accentColorVar = `--recursica_brand_palettes_core_interactive_default_color_tone`
-    const textLowEmphasisVar = `--recursica_brand_layer_1_elements_text-low-emphasis`
+    const textLowEmphasisVar = genericLayerText(1, 'low-emphasis')
 
     // Calendar popover content
     const calendarContent = (

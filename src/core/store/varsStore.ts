@@ -2155,10 +2155,17 @@ class VarsStore {
 
               // If the current value is a token reference (set by toolbar), don't overwrite it
               // Token references look like: {brand.themes.light.elevations.elevation-X}
+              // BUT: if the generated value is a proper var() reference (resolved), always use it
+              // over stale unresolved brace notation from previous sessions
               if (inlineValue && inlineValue.startsWith('{') && inlineValue.includes('brand.themes')) {
-                // Keep the toolbar-set value, don't overwrite with generated value
-                delete uikitVars[cssVar]
-                continue
+                // Only preserve if the new value is ALSO brace notation (unresolved)
+                // If the new value is resolved (starts with var()), use the resolved value
+                if (generatedValueTrimmed.startsWith('{') || !generatedValueTrimmed.startsWith('var(')) {
+                  // Keep the toolbar-set value, don't overwrite with generated value
+                  delete uikitVars[cssVar]
+                  continue
+                }
+                // Otherwise, resolved value takes precedence over stale brace notation
               }
 
               // Track if this var will actually change from what's currently in the DOM

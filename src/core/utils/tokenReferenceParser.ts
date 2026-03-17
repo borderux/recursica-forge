@@ -329,21 +329,24 @@ export function resolveTokenReferenceToCssVar(
     }
 
     // Palette core-colors references with state: palettes.core-colors.interactive.default.tone
-    const paletteCoreColorsStateMatch = /^palettes?\.core-colors?\.([a-z0-9-]+)\.([a-z0-9-]+)\.(tone|on-tone)$/i.exec(pathParts.join('.'))
+    // Also handle normalized form: palettes.core.interactive.default.tone (stale refs)
+    const paletteCoreColorsStateMatch = /^palettes?\.core(?:-colors)?\.([a-z0-9-]+)\.([a-z0-9-]+)\.(tone|on-tone)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsStateMatch) {
       const [, coreColor, coreState, type] = paletteCoreColorsStateMatch
       return `var(${paletteCore(mode, coreColor, coreState, type)})`
     }
 
-    // Palette core-colors references with property: palettes.core-colors.success.tone, palettes.core-colors.success.interactive, palettes.core-colors.success.on-tone
-    const paletteCoreColorsPropertyMatch = /^palettes?\.core-colors?\.([a-z0-9-]+)\.(tone|on-tone|interactive)$/i.exec(pathParts.join('.'))
+    // Palette core-colors references with property: palettes.core-colors.success.tone, etc.
+    // Also handle normalized form: palettes.core.success.tone (stale refs)
+    const paletteCoreColorsPropertyMatch = /^palettes?\.core(?:-colors)?\.([a-z0-9-]+)\.(tone|on-tone|interactive)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsPropertyMatch) {
       const [, coreColor, property] = paletteCoreColorsPropertyMatch
       return `var(${paletteCore(mode, coreColor, property)})`
     }
 
     // Palette core-colors references: palettes.core-colors.alert
-    const paletteCoreColorsMatch = /^palettes?\.core-colors?\.(alert|warning|success|interactive|black|white)$/i.exec(pathParts.join('.'))
+    // Also handle normalized form: palettes.core.alert (stale refs)
+    const paletteCoreColorsMatch = /^palettes?\.core(?:-colors)?\.(alert|warning|success|interactive|black|white)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsMatch) {
       const [, coreColor] = paletteCoreColorsMatch
       return `var(${paletteCore(mode, coreColor)})`

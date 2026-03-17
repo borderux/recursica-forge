@@ -35,24 +35,26 @@ function pascalToKebabCase(str: string): string {
 }
 
 /**
- * Converts a recursica_ui-kit.json path to a CSS variable name
- * 
  * @example
  * toCssVarName('components.button.color.layer-0.background-solid')
  * => '--recursica_ui-kit_components_button_color_layer-0_background-solid'
  *
  * @example
  * toCssVarName('components.button.color.layer-0.background-solid', 'light')
- * => '--recursica_ui-kit_components_button_color_layer-0_background-solid'
+ * => '--recursica_ui-kit_themes_light_components_button_color_layer-0_background-solid'
  */
-export function toCssVarName(path: string, _mode?: 'light' | 'dark'): string {
+export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // Remove leading/trailing dots and split
   const parts = path.replace(/^\.+|\.+$/g, '').split('.').filter(Boolean)
 
   // Build CSS variable name: escape underscores in segments, join with _
   const varName = parts.map(escapeSegment).join('_')
 
-  // Generic (scoped) names — no theme prefix. The CSS cascade resolves the theme.
+  // Include mode in the name if provided (like the resolver: --recursica_ui-kit_themes_light_...)
+  if (mode) {
+    return `--recursica_ui-kit_themes_${mode}_${varName}`
+  }
+
   return `--recursica_ui-kit_${varName}`
 }
 

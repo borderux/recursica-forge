@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { TextField } from '../../components/adapters/TextField'
 import { Dropdown } from '../../components/adapters/Dropdown'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, genericElevation } from '../../core/css/cssVarBuilder'
 
 export type CustomFontModalProps = {
   open: boolean
@@ -113,7 +113,7 @@ export function CustomFontModal({
           color: `var(${genericLayerText(3, 'color')})`,
           border: `1px solid var(${genericLayerProperty(3, 'border-color')})`,
           borderRadius: 12,
-          boxShadow: `var(--recursica_brand_elevations_elevation-4-x-axis) var(--recursica_brand_elevations_elevation-4-y-axis) var(--recursica_brand_elevations_elevation-4-blur) var(--recursica_brand_elevations_elevation-4-spread) var(--recursica_brand_elevations_elevation-4-shadow-color)`,
+          boxShadow: `var(${genericElevation(4, 'x-axis')}) var(${genericElevation(4, 'y-axis')}) var(${genericElevation(4, 'blur')}) var(${genericElevation(4, 'spread')}) var(${genericElevation(4, 'shadow-color')})`,
           padding: 20,
           display: 'grid',
           gap: 16,

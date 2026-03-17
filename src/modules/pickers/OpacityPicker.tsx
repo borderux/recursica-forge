@@ -6,7 +6,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getVarsStore } from '../../core/store/varsStore'
 import { tokenOpacity } from '../../core/css/cssVarBuilder'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, genericElevation } from '../../core/css/cssVarBuilder'
 
 export default function OpacityPicker() {
   const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
@@ -272,7 +272,7 @@ export default function OpacityPicker() {
       color: `var(${genericLayerText(3, 'color')})`,
       border: `var(${genericLayerProperty(3, 'border-size')}) solid var(${genericLayerProperty(3, 'border-color')})`, 
       borderRadius: `var(${genericLayerProperty(3, 'border-radius')})`, 
-      boxShadow: `var(--recursica_brand_elevations_elevation-4-x-axis) var(--recursica_brand_elevations_elevation-4-y-axis) var(--recursica_brand_elevations_elevation-4-blur) var(--recursica_brand_elevations_elevation-4-spread) var(--recursica_brand_elevations_elevation-4-shadow-color)`, 
+      boxShadow: `var(${genericElevation(4, 'x-axis')}) var(${genericElevation(4, 'y-axis')}) var(${genericElevation(4, 'blur')}) var(${genericElevation(4, 'spread')}) var(${genericElevation(4, 'shadow-color')})`, 
       padding: 10, 
       zIndex: 20000 
     }}>
