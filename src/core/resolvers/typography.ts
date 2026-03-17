@@ -571,8 +571,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${shortPrefix}font-letter-spacing`] = brandVal
       } else {
         // Fallback to default token reference
-        vars[`${brandPrefix}font-letter-spacing`] = 'var(--recursica_tokens_font_letter_spacings_default)'
-        vars[`${shortPrefix}font-letter-spacing`] = 'var(--recursica_tokens_font_letter_spacings_default)'
+        vars[`${brandPrefix}font-letter-spacing`] = 'var(--recursica_tokens_font_letter-spacings_default)'
+        vars[`${shortPrefix}font-letter-spacing`] = 'var(--recursica_tokens_font_letter-spacings_default)'
       }
     }
     if (lineHeight != null) {
@@ -586,8 +586,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
         vars[`${shortPrefix}line-height`] = brandVal
       } else {
         // Fallback to default token reference
-        vars[`${brandPrefix}line-height`] = 'var(--recursica_tokens_font_line_heights_default)'
-        vars[`${shortPrefix}line-height`] = 'var(--recursica_tokens_font_line_heights_default)'
+        vars[`${brandPrefix}line-height`] = 'var(--recursica_tokens_font_line-heights_default)'
+        vars[`${shortPrefix}line-height`] = 'var(--recursica_tokens_font_line-heights_default)'
       }
     }
 

@@ -32,10 +32,10 @@ function prefixToCssVarName(prefix: string): string {
 function extractTokenFromCssVar(cssValue: string): string | null {
   if (!cssValue) return null
   // Match patterns like: var(--recursica_tokens_font_sizes_md)
-  // Uses plural form
-  const match = cssValue.match(/var\(--recursica_tokens_font_(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)-([^)]+)\)/)
+  // The separator between category and key is underscore (_), matching cssVarBuilder.tokenFont()
+  const match = cssValue.match(/var\(--recursica_tokens_font_(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)_([^)]+)\)/)
   if (match) return match[1]
-  // Also match: var(--tokens-font-size-md) (without recursica prefix)
+  // Also match: var(--tokens-font-size-md) (without recursica prefix, legacy format)
   const match2 = cssValue.match(/var\(--tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)-([^)]+)\)/)
   if (match2) return match2[1]
   return null
@@ -45,29 +45,43 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   const { tokens, theme } = useVars()
   const [updateKey, setUpdateKey] = useState(0)
 
+  // Local slider state to prevent snap-back during drag.
+  // These track the slider index independently of CSS var re-derivation.
+  const [localSizeIdx, setLocalSizeIdx] = useState<number | null>(null)
+  const [localWeightIdx, setLocalWeightIdx] = useState<number | null>(null)
+  const [localSpacingIdx, setLocalSpacingIdx] = useState<number | null>(null)
+  const [localLineHeightIdx, setLocalLineHeightIdx] = useState<number | null>(null)
+
   // Listen for reset events to refresh font options
+  // Clear local slider overrides so they re-derive from CSS vars
   useEffect(() => {
     const handler = () => {
+      setLocalSizeIdx(null)
+      setLocalWeightIdx(null)
+      setLocalSpacingIdx(null)
+      setLocalLineHeightIdx(null)
       setUpdateKey((k) => k + 1)
     }
     window.addEventListener('tokenOverridesChanged', handler)
     window.addEventListener('typeChoicesChanged', handler)
-    window.addEventListener('cssVarsUpdated', handler)
     return () => {
       window.removeEventListener('tokenOverridesChanged', handler)
       window.removeEventListener('typeChoicesChanged', handler)
-      window.removeEventListener('cssVarsUpdated', handler)
     }
   }, [])
 
   // Re-read values when panel opens or selected prefixes change
   useEffect(() => {
     if (open && selectedPrefixes.length > 0) {
+      // Clear local overrides so sliders re-derive from CSS vars
+      setLocalSizeIdx(null)
+      setLocalWeightIdx(null)
+      setLocalSpacingIdx(null)
+      setLocalLineHeightIdx(null)
       // Force re-read by incrementing updateKey
-      // Use a small delay to ensure CSS variables are available
       const timeoutId = setTimeout(() => {
         setUpdateKey((k) => k + 1)
-      }, 100) // Increased delay to ensure CSS vars are ready
+      }, 100)
       return () => clearTimeout(timeoutId)
     }
   }, [open, selectedPrefixes])
@@ -834,10 +848,11 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
             {sizeOptions.length > 0 ? (
               <Slider
-                value={sortedSizeTokens.findIndex(t => t.short === sizeCurrentToken) || 0}
+                value={localSizeIdx ?? Math.max(0, sortedSizeTokens.findIndex(t => t.short === sizeCurrentToken))}
                 onChange={(val) => {
-                  const idx = typeof val === 'number' ? val : val[0]
-                  const token = sortedSizeTokens[Math.round(idx)]
+                  const idx = Math.round(typeof val === 'number' ? val : val[0])
+                  setLocalSizeIdx(idx)
+                  const token = sortedSizeTokens[idx]
                   if (token) {
                     updateCssVarValue('font-size', token.short)
                   }
@@ -862,10 +877,11 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
             {weightOptions.length > 0 ? (
               <Slider
-                value={Math.max(0, sortedWeightTokens.findIndex(t => t.short === weightCurrentToken))}
+                value={localWeightIdx ?? Math.max(0, sortedWeightTokens.findIndex(t => t.short === weightCurrentToken))}
                 onChange={(val) => {
-                  const idx = typeof val === 'number' ? val : val[0]
-                  const token = sortedWeightTokens[Math.round(idx)]
+                  const idx = Math.round(typeof val === 'number' ? val : val[0])
+                  setLocalWeightIdx(idx)
+                  const token = sortedWeightTokens[idx]
                   if (token) {
                     updateCssVarValue('font-weight', token.short)
                   }
@@ -890,10 +906,11 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
             {spacingOptions.length > 0 ? (
               <Slider
-                value={sortedSpacingTokens.findIndex(t => t.short === spacingCurrentToken) || 0}
+                value={localSpacingIdx ?? Math.max(0, sortedSpacingTokens.findIndex(t => t.short === spacingCurrentToken))}
                 onChange={(val) => {
-                  const idx = typeof val === 'number' ? val : val[0]
-                  const token = sortedSpacingTokens[Math.round(idx)]
+                  const idx = Math.round(typeof val === 'number' ? val : val[0])
+                  setLocalSpacingIdx(idx)
+                  const token = sortedSpacingTokens[idx]
                   if (token) {
                     updateCssVarValue('font-letter-spacing', token.short)
                   }
@@ -918,10 +935,11 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
             {lineHeightOptions.length > 0 ? (
               <Slider
-                value={sortedLineHeightTokens.findIndex(t => t.short === lineHeightCurrentToken) || 0}
+                value={localLineHeightIdx ?? Math.max(0, sortedLineHeightTokens.findIndex(t => t.short === lineHeightCurrentToken))}
                 onChange={(val) => {
-                  const idx = typeof val === 'number' ? val : val[0]
-                  const token = sortedLineHeightTokens[Math.round(idx)]
+                  const idx = Math.round(typeof val === 'number' ? val : val[0])
+                  setLocalLineHeightIdx(idx)
+                  const token = sortedLineHeightTokens[idx]
                   if (token) {
                     updateCssVarValue('line-height', token.short)
                   }
