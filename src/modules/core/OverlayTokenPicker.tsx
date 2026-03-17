@@ -8,7 +8,7 @@ import Dropdown from '../toolbar/menu/dropdown/Dropdown'
 import { Label } from '../../components/adapters/Label'
 import './OverlayTokenPicker.css'
 import { getVarsStore } from '../../core/store/varsStore'
-import { tokenOpacity } from '../../core/css/cssVarBuilder'
+import { tokenOpacity, paletteCore, palette, layerProperty, layerText, state } from '../../core/css/cssVarBuilder'
 
 interface OverlayTokenPickerProps {
   anchorElement: HTMLElement | null
@@ -20,8 +20,8 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
   const { mode } = useThemeMode()
   const modeLower = mode.toLowerCase()
   
-  const overlayColorVar = `--recursica_brand_themes_${modeLower}-state-overlay-color`
-  const overlayOpacityVar = `--recursica_brand_themes_${modeLower}-state-overlay-opacity`
+  const overlayColorVar = state(modeLower, 'overlay_color')
+  const overlayOpacityVar = state(modeLower, 'overlay_opacity')
 
   // Get opacity tokens and build dropdown options
   const opacityOptions = useMemo(() => {
@@ -190,21 +190,21 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
         if (interactive.default?.tone) {
           colors.push({
             key: 'interactive-default',
-            cssVar: `--recursica_brand_themes_${modeLower}_palettes_core-interactive-default-tone`,
+            cssVar: paletteCore(modeLower, 'interactive-default-tone'),
             label: 'Interactive / Default'
           })
         }
         if (interactive.hover?.tone) {
           colors.push({
             key: 'interactive-hover',
-            cssVar: `--recursica_brand_themes_${modeLower}_palettes_core-interactive-hover-tone`,
+            cssVar: paletteCore(modeLower, 'interactive-hover-tone'),
             label: 'Interactive / Hover'
           })
         }
         if (!interactive.default && !interactive.hover && interactive.tone) {
           colors.push({
             key: 'interactive',
-            cssVar: `--recursica_brand_themes_${modeLower}_palettes_core-interactive`,
+            cssVar: paletteCore(modeLower, 'interactive'),
             label: 'Interactive'
           })
         }
@@ -216,7 +216,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
         if (coreColorsObj[colorKey]) {
           colors.push({
             key: colorKey,
-            cssVar: `--recursica_brand_themes_${modeLower}_palettes_core-${colorKey}-tone`,
+            cssVar: paletteCore(modeLower, `${colorKey}-tone`),
             label: colorKey.charAt(0).toUpperCase() + colorKey.slice(1)
           })
         }
@@ -265,7 +265,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
   // Build palette CSS var
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
     const normalizedLevel = level === 'primary' ? 'default' : level
-    return `--recursica_brand_themes_${modeLower}_palettes_${paletteKey}-${normalizedLevel}-tone`
+    return palette(modeLower, paletteKey, normalizedLevel, 'color_tone')
   }
 
   // Check if a palette swatch is selected
@@ -453,10 +453,10 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                 style={{
                   width: '100%',
                   padding: `var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)`,
-                  border: `1px solid var(--recursica_brand_themes_${modeLower}_layers_layer-2_properties_border-color)`,
+                  border: `1px solid var(${layerProperty(modeLower, 2, 'border-color')})`,
                   borderRadius: 'var(--recursica_brand_dimensions_border-radii_sm)',
-                  backgroundColor: `var(--recursica_brand_themes_${modeLower}_layers_layer-2_properties_surface)`,
-                  color: `var(--recursica_brand_themes_${modeLower}_layers_layer-2_elements_text-color)`,
+                  backgroundColor: `var(${layerProperty(modeLower, 2, 'surface')})`,
+                  color: `var(${layerText(modeLower, 2, 'color')})`,
                   fontFamily: 'var(--recursica_brand_typography_body-font-family)',
                   fontSize: 'var(--recursica_brand_typography_body-font-size)',
                   cursor: 'pointer',
@@ -512,7 +512,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
               width: swatch,
               height: swatch,
               cursor: 'pointer',
-              border: `1px solid var(--recursica_brand_themes_${modeLower}_palettes_neutral-500-tone)`,
+              border: `1px solid var(${palette(modeLower, 'neutral', '500', 'color_tone')})`,
               flex: '0 0 auto',
               borderRadius: 0,
               boxSizing: 'border-box',
@@ -543,7 +543,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                   y1="2"
                   x2={swatch - 2}
                   y2={swatch - 2}
-                  stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral-500-tone)`}
+                  stroke={`var(${palette(modeLower, 'neutral', '500', 'color_tone')})`}
                   strokeWidth="1.5"
                   strokeLinecap="round"
                 />
@@ -577,8 +577,8 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                   height: swatch,
                   cursor: 'pointer',
                   border: isSelected 
-                    ? `2px solid var(--recursica_brand_themes_${modeLower}_palettes_core-black)` 
-                    : `1px solid var(--recursica_brand_themes_${modeLower}_palettes_neutral-500-tone)`,
+                    ? `2px solid var(${paletteCore(modeLower, 'black')})` 
+                    : `1px solid var(${palette(modeLower, 'neutral', '500', 'color_tone')})`,
                   flex: '0 0 auto',
                   padding: isSelected ? '1px' : '0',
                   borderRadius: isSelected ? '5px' : '0',

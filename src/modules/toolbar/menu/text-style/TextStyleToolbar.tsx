@@ -148,12 +148,7 @@ export default function TextStyleToolbar({
   }, [tokensFromVars])
 
   // Get current font family state - declared early so it can be used in useMemo dependencies
-  const [currentFontFamily, setCurrentFontFamily] = useState<string>(() => {
-    const currentFontFamilyValue = readCssVar(fontFamilyVar) || ''
-    // Extract CSS var name from value (e.g., "var(--recursica_tokens_font_typefaces_primary)" -> "--recursica_tokens_font_typefaces_primary")
-    const extracted = currentFontFamilyValue.match(/var\(([^)]+)\)/)?.[1] || currentFontFamilyValue
-    return extracted
-  })
+  const [currentFontFamily, setCurrentFontFamily] = useState<string>('')
 
   // Helper function to get available weight keys for the current font
   const getAvailableWeightKeysForFont = useCallback((fontName: string): Set<string> | null => {
@@ -603,33 +598,50 @@ export default function TextStyleToolbar({
       // Extract CSS var name from value (e.g., "var(--recursica_tokens_font_typefaces_primary)" -> "--recursica_tokens_font_typefaces_primary")
       const extracted = currentFontFamilyValue.match(/var\(([^)]+)\)/)?.[1] || currentFontFamilyValue
 
-      // Ensure the extracted value matches one of the available font families
-      // If not, try to find a match by comparing resolved values
-      let matchedCssVar = extracted
-      if (fontFamilies.length > 0) {
-        // First, try exact match
-        const exactMatch = fontFamilies.find(f => f.cssVar === extracted)
-        if (exactMatch) {
-          matchedCssVar = exactMatch.cssVar
-        } else {
-          // Try to match by resolved value
-          const currentResolved = readCssVarResolved(extracted)
-          if (currentResolved) {
-            const resolvedMatch = fontFamilies.find(f => {
-              const fResolved = readCssVarResolved(f.cssVar)
-              return fResolved && fResolved.trim() === currentResolved.trim()
-            })
-            if (resolvedMatch) {
-              matchedCssVar = resolvedMatch.cssVar
-            } else {
-              // No match found, keep the extracted value (will default to first option in select)
-              matchedCssVar = extracted
-            }
+      if (fontFamilies.length === 0) {
+        setCurrentFontFamily(extracted)
+        return
+      }
+
+      // First, try exact match by CSS var name
+      const exactMatch = fontFamilies.find(f => f.cssVar === extracted)
+      if (exactMatch) {
+        setCurrentFontFamily(exactMatch.cssVar)
+        return
+      }
+
+      // If extracted looks like a CSS var (starts with --), try resolving it
+      if (extracted.startsWith('--')) {
+        const currentResolved = readCssVarResolved(extracted)
+        if (currentResolved) {
+          const resolvedMatch = fontFamilies.find(f => {
+            const fResolved = readCssVarResolved(f.cssVar)
+            return fResolved && fResolved.trim() === currentResolved.trim()
+          })
+          if (resolvedMatch) {
+            setCurrentFontFamily(resolvedMatch.cssVar)
+            return
           }
+        }
+      } else if (extracted) {
+        // Extracted is a resolved font name (e.g., "Lexend") — happens when CSS var
+        // is set via scoped CSS rather than inline styles on :root.
+        // Compare by normalizing the resolved font name against each family's resolved value.
+        const normalizedExtracted = extracted.trim().replace(/^["']|["']$/g, '').split(',')[0].trim().toLowerCase()
+        const resolvedMatch = fontFamilies.find(f => {
+          const fResolved = readCssVarResolved(f.cssVar)
+          if (!fResolved) return false
+          const normalizedResolved = fResolved.trim().replace(/^["']|["']$/g, '').split(',')[0].trim().toLowerCase()
+          return normalizedResolved === normalizedExtracted
+        })
+        if (resolvedMatch) {
+          setCurrentFontFamily(resolvedMatch.cssVar)
+          return
         }
       }
 
-      setCurrentFontFamily(matchedCssVar)
+      // No match found, keep the extracted value
+      setCurrentFontFamily(extracted)
     }
 
     updateCurrentFontFamily()

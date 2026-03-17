@@ -182,7 +182,7 @@ export default function ModalPreview({
                             marginTop: 'auto',
                             borderTop: scrollable ? `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})` : 'none',
                         }}>
-                            <Group justify="flex-end" gap={`var(${buttonGapVar}, 0px)`}>
+                            <Group justify="flex-end" gap={`var(${buttonGapVar})`}>
                                 <Button
                                     variant="text"
                                     layer={selectedLayer as any}
@@ -272,7 +272,7 @@ export default function ModalPreview({
                         marginTop: 'auto',
                         borderTop: `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`,
                     }}>
-                        <Group justify="flex-end" gap={`var(${buttonGapVar}, 0px)`}>
+                        <Group justify="flex-end" gap={`var(${buttonGapVar})`}>
                             <Button
                                 variant="text"
                                 layer={selectedLayer as any}

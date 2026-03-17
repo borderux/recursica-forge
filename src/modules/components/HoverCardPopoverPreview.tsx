@@ -14,7 +14,7 @@ import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssV
 import { getElevationBoxShadow, parseElevationValue } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
-import { genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerText, genericElevation } from '../../core/css/cssVarBuilder'
 
 interface HoverCardPopoverPreviewProps {
     selectedVariants: Record<string, string>
@@ -86,10 +86,10 @@ export default function HoverCardPopoverPreview({
         const match = activeElevation.match(/elevation-(\d+)/)
         if (!match) return '0 0 0 rgba(0,0,0,0)'
         const level = match[1]
-        const xAxis = `var(--recursica_brand_elevations_elevation-${level}-x-axis, 0px)`
-        const yAxis = `var(--recursica_brand_elevations_elevation-${level}-y-axis, 0px)`
-        const blur = `var(--recursica_brand_elevations_elevation-${level}-blur, 0px)`
-        const color = `var(--recursica_brand_elevations_elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+        const xAxis = `var(${genericElevation(level, 'x-axis')})`
+        const yAxis = `var(${genericElevation(level, 'y-axis')})`
+        const blur = `var(${genericElevation(level, 'blur')})`
+        const color = `var(${genericElevation(level, 'shadow-color')})`
         return `${xAxis} ${yAxis} ${blur} ${color}`
     })()
 

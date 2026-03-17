@@ -9,6 +9,7 @@ import { parseTokenReference, type TokenReferenceContext } from '../../core/util
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getVarsStore } from '../../core/store/varsStore'
 import { Dropdown } from '../../components/adapters/Dropdown'
+import { paletteCore } from '../../core/css/cssVarBuilder'
 
 
 type PaletteColorSelectorProps = {
@@ -59,8 +60,8 @@ function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'w
   const modeLower = modeLabel.toLowerCase()
 
   // Read actual core black and white colors from CSS variables (not hardcoded)
-  const coreBlackVar = `--recursica_brand_themes_${modeLower}_palettes_core-black`
-  const coreWhiteVar = `--recursica_brand_themes_${modeLower}_palettes_core-white`
+  const coreBlackVar = paletteCore(modeLower, 'black')
+  const coreWhiteVar = paletteCore(modeLower, 'white')
   const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
   const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
 
@@ -457,8 +458,8 @@ export default function PaletteColorSelector({
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
         // Get actual core color values (read from CSS variables to get current values)
-        const coreBlackVar = `--recursica_brand_themes_${modeLower}_palettes_core-black`
-        const coreWhiteVar = `--recursica_brand_themes_${modeLower}_palettes_core-white`
+        const coreBlackVar = paletteCore(modeLower, 'black')
+        const coreWhiteVar = paletteCore(modeLower, 'white')
         const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
         const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
         const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`

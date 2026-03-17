@@ -12,7 +12,7 @@ import { pickAAOnTone, contrastRatio } from '../theme/contrastUtil'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { tokenToCssVar } from '../../core/css/tokenRefs'
 import { getVarsStore } from '../../core/store/varsStore'
-import { tokenColors } from '../../core/css/cssVarBuilder'
+import { tokenColors, paletteCore, layerProperty } from '../../core/css/cssVarBuilder'
 import { updateCoreColorOnTonesForCompliance } from '../../core/compliance/coreColorAaCompliance'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Modal } from '../../components/adapters/Modal'
@@ -1060,7 +1060,7 @@ export default function ColorTokenPicker() {
               height: swatch,
               cursor: 'pointer',
               background: 'transparent',
-              border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+              border: `1px solid ${isNoneSelected ? `var(${paletteCore(modeLower, 'black')})` : `var(${layerProperty(modeLower, 3, 'border-color')})`}`,
               position: 'relative',
               padding: isNoneSelected ? '1px' : '0',
               borderRadius: isNoneSelected ? '5px' : '0',

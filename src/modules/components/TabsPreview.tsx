@@ -6,6 +6,7 @@ import { Badge } from '../../components/adapters/Badge'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useCssVar } from '../../components/hooks/useCssVar'
 import { buildComponentCssVarPath } from '../../components/utils/cssVarNames'
+import { layerText } from '../../core/css/cssVarBuilder'
 
 interface TabsPreviewProps {
     selectedVariants: Record<string, string>
@@ -107,8 +108,9 @@ export default function TabsPreview({
 }: TabsPreviewProps) {
     const { mode } = useThemeMode()
     const modeLower = mode.toLowerCase()
-    const textColorVar = `--recursica_brand_themes_${modeLower}_layers_${selectedLayer}-elements-text-color`
-    const textEmphasisVar = `--recursica_brand_themes_${modeLower}_layers_${selectedLayer}-elements-text-high-emphasis`
+    const layerNum = selectedLayer.replace('layer-', '')
+    const textColorVar = layerText(modeLower, layerNum, 'color')
+    const textEmphasisVar = layerText(modeLower, layerNum, 'high-emphasis')
 
     const [value1, setValue1] = useState<string | null>('gallery')
     const [value2, setValue2] = useState<string | null>('gallery')
