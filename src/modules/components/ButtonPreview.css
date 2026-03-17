@@ -12,7 +12,7 @@
   padding: var(--recursica_brand_dimensions_general_md);
   background: var(--recursica_brand_themes_light_palettes_core_warning, #f59e0b);
   color: white;
-  border-radius: var(--recursica_brand_dimensions_border-radius_default);
+  border-radius: var(--recursica_brand_dimensions_border-radii_default);
   font-size: 13px;
   line-height: 1.5;
   z-index: 10;

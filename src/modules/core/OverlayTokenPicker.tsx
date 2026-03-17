@@ -453,10 +453,10 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                 style={{
                   width: '100%',
                   padding: `var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)`,
-                  border: `1px solid var(--recursica_brand_themes_${modeLower}_layers_layer-2-properties-border-color)`,
+                  border: `1px solid var(--recursica_brand_themes_${modeLower}_layers_layer-2_properties_border-color)`,
                   borderRadius: 'var(--recursica_brand_dimensions_border-radii_sm)',
-                  backgroundColor: `var(--recursica_brand_themes_${modeLower}_layers_layer-2-properties-surface)`,
-                  color: `var(--recursica_brand_themes_${modeLower}_layers_layer-2-elements-text-color)`,
+                  backgroundColor: `var(--recursica_brand_themes_${modeLower}_layers_layer-2_properties_surface)`,
+                  color: `var(--recursica_brand_themes_${modeLower}_layers_layer-2_elements_text-color)`,
                   fontFamily: 'var(--recursica_brand_typography_body-font-family)',
                   fontSize: 'var(--recursica_brand_typography_body-font-size)',
                   cursor: 'pointer',
@@ -522,7 +522,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
               style={{
                 width: '100%',
                 height: '100%',
-                background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3-properties-surface)`,
+                background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_surface)`,
                 position: 'relative',
               }}
             >

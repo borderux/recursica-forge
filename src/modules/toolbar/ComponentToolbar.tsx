@@ -29,7 +29,7 @@ import brandJson from '../../../recursica_brand.json'
 import { getComponentTextCssVar, buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import type { ComponentName } from '../../components/registry/types'
 import './ComponentToolbar.css'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { layerProperty, layerText } from '../../core/css/cssVarBuilder'
 
 export interface ComponentToolbarProps {
   componentName: ComponentName
@@ -985,22 +985,22 @@ export default function ComponentToolbar({
   }
 
   return (
-    <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="component-toolbar-panel" data-recursica-theme={mode} data-recursica-layer="0" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
-      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${genericLayerProperty(0, 'border-color')})` }}>
+      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
             {LayerIcon && <LayerIcon style={{
               width: '16px',
               height: '16px',
-              color: `var(${genericLayerText(0, 'color')})`,
-              opacity: `var(${genericLayerText(0, 'low-emphasis')})`
+              color: `var(${layerText(mode, 0, 'color')})`,
+              opacity: `var(${layerText(mode, 0, 'low-emphasis')})`
             }} />}
             <span style={{
               fontFamily: `var(${accordionHeaderFontFamilyVar})`,
               fontSize: `var(${accordionHeaderFontSizeVar})`,
               fontWeight: `var(${accordionHeaderFontWeightVar})`,
-              color: `var(${genericLayerText(0, 'color')})`
+              color: `var(${layerText(mode, 0, 'color')})`
             }}>Layer</span>
           </div>
           <SegmentedControl
@@ -1024,7 +1024,7 @@ export default function ComponentToolbar({
 
       {/* Variants Dropdowns */}
       {visibleVariants.length > 0 && (
-        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${genericLayerProperty(0, 'border-color')})` }}>
+        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
           {visibleVariants.map((variant, index) => {
             const isBoolean = isBooleanVariant(variant.variants)
             return (
@@ -1126,7 +1126,7 @@ export default function ComponentToolbar({
       />
 
       {/* Reset Button */}
-      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(${genericLayerProperty(0, 'border-color')})` }}>
+      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
         <Button
           onClick={handleReset}
           variant="outline"
@@ -1146,7 +1146,7 @@ export default function ComponentToolbar({
       {/* Switches Section */}
       <div style={{
         padding: 'var(--recursica_brand_dimensions_general_md)',
-        borderTop: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
+        borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})`,
         display: 'flex',
         flexDirection: 'column',
         gap: 'var(--recursica_brand_dimensions_general_sm)',
@@ -1165,8 +1165,8 @@ export default function ComponentToolbar({
           <label
             onClick={() => setDebugMode(!debugMode)}
             style={{
-              color: `var(${genericLayerText(0, 'color')})`,
-              opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
+              color: `var(${layerText(mode, 0, 'color')})`,
+              opacity: `var(${layerText(mode, 0, 'low-emphasis')})`,
               fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
               cursor: 'pointer',
               flex: 1,

@@ -291,7 +291,7 @@ export default function DimensionTokenSelector({
         Object.keys(borderRadius).forEach(radiusKey => {
           const radiusValue = borderRadius[radiusKey]
           if (radiusValue && typeof radiusValue === 'object' && '$value' in radiusValue) {
-            const cssVar = `--recursica_brand_dimensions_border-radius_${radiusKey}`
+            const cssVar = `--recursica_brand_dimensions_border-radii_${radiusKey}`
             const cssValue = readCssVar(cssVar)
 
             // Only add if the CSS var exists (has been generated)

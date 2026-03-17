@@ -44,7 +44,7 @@
   padding: 0 4px;
   background: transparent;
   border: none;
-  border-radius: var(--recursica_brand_dimensions_border-radius_default);
+  border-radius: var(--recursica_brand_dimensions_border-radii_default);
   cursor: pointer;
   color: var(--recursica_brand_layer_0_elements_text-color);
   opacity: var(--recursica_brand_layer_0_elements_text-high-emphasis);
@@ -73,7 +73,7 @@
   inset: 0;
   background: var(--recursica_brand_palettes_core_black);
   opacity: 0.2;
-  border-radius: var(--recursica_brand_dimensions_border-radius_default);
+  border-radius: var(--recursica_brand_dimensions_border-radii_default);
   pointer-events: none;
   z-index: 0;
 }

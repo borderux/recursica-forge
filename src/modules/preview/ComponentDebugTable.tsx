@@ -296,7 +296,7 @@ export default function ComponentDebugTable({
     <div style={{
       marginTop: 'var(--recursica_brand_dimensions_general_lg)',
       border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
-      borderRadius: 'var(--recursica_brand_dimensions_border-radius_default)',
+      borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
       overflow: 'hidden',
       width: '100%',
     }}>

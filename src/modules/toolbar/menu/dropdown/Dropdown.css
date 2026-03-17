@@ -164,9 +164,9 @@ html[data-theme-mode="dark"] .variant-label-icon {
 }
 
 .variant-label-text {
-  font-family: var(--recursica_ui-kit_themes_light_components_accordion-item_properties_header-text_font_family);
-  font-size: var(--recursica_ui-kit_themes_light_components_accordion-item_properties_header-text_font_size);
-  font-weight: var(--recursica_ui-kit_themes_light_components_accordion-item_properties_header-text_font_weight);
+  font-family: var(--recursica_ui-kit_themes_light_components_accordion-item_properties_header-text_font-family);
+  font-size: var(--recursica_ui-kit_themes_light_components_accordion-item_properties_header-text_font-size);
+  font-weight: var(--recursica_ui-kit_themes_light_components_accordion-item_properties_header-text_font-weight);
   color: var(--recursica_brand_themes_light_layers_layer-0_elements_text-color);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -174,9 +174,9 @@ html[data-theme-mode="dark"] .variant-label-icon {
 }
 
 html[data-theme-mode="dark"] .variant-label-text {
-  font-family: var(--recursica_ui-kit_themes_dark_components_accordion-item_properties_header-text_font_family);
-  font-size: var(--recursica_ui-kit_themes_dark_components_accordion-item_properties_header-text_font_size);
-  font-weight: var(--recursica_ui-kit_themes_dark_components_accordion-item_properties_header-text_font_weight);
+  font-family: var(--recursica_ui-kit_themes_dark_components_accordion-item_properties_header-text_font-family);
+  font-size: var(--recursica_ui-kit_themes_dark_components_accordion-item_properties_header-text_font-size);
+  font-weight: var(--recursica_ui-kit_themes_dark_components_accordion-item_properties_header-text_font-weight);
   color: var(--recursica_brand_themes_dark_layers_layer-0_elements_text-color);
 }
 
@@ -193,7 +193,7 @@ html[data-theme-mode="dark"] .variant-label-text {
   padding: var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md);
   background: transparent;
   border: none;
-  border-radius: var(--recursica_brand_dimensions_border-radius_default);
+  border-radius: var(--recursica_brand_dimensions_border-radii_default);
   cursor: pointer;
   color: var(--recursica_brand_themes_light_layers_layer-0_elements_text-color);
   opacity: var(--recursica_brand_themes_light_layers_layer-0_elements_text-high-emphasis);
@@ -229,7 +229,7 @@ html[data-theme-mode="dark"] .variant-dropdown-button:active {
   inset: 0;
   background: var(--recursica_brand_themes_light_palettes_core_black);
   opacity: 0.2;
-  border-radius: var(--recursica_brand_dimensions_border-radius_default);
+  border-radius: var(--recursica_brand_dimensions_border-radii_default);
   pointer-events: none;
   z-index: 0;
 }

@@ -1060,7 +1060,7 @@ export default function ColorTokenPicker() {
               height: swatch,
               cursor: 'pointer',
               background: 'transparent',
-              border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3-properties-border-color)`}`,
+              border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
               position: 'relative',
               padding: isNoneSelected ? '1px' : '0',
               borderRadius: isNoneSelected ? '5px' : '0',
@@ -1072,7 +1072,7 @@ export default function ColorTokenPicker() {
               height: '100%',
               borderRadius: isNoneSelected ? '4px' : '0',
               position: 'relative',
-              background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3-properties-surface)`
+              background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_surface)`
             }}>
               <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
                 <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral-500-tone)`} strokeWidth="1.5" />
@@ -1113,7 +1113,7 @@ export default function ColorTokenPicker() {
                       height: swatch,
                       background: tokenCssVar ? `var(${tokenCssVar})` : it.value,
                       cursor: 'pointer',
-                      border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3-properties-border-color)`}`,
+                      border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                       padding: isSelected ? '1px' : '0',
                       borderRadius: isSelected ? '5px' : '0',
                       boxSizing: 'border-box',

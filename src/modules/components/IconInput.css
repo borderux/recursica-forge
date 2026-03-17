@@ -33,7 +33,7 @@
   flex: 1;
   padding: var(--recursica_brand_dimensions_general_sm);
   border: 1px solid var(--recursica_brand_themes_light_layers_layer-2_elements_border-color);
-  border-radius: var(--recursica_brand_dimensions_border-radius_default);
+  border-radius: var(--recursica_brand_dimensions_border-radii_default);
   font-size: var(--recursica_brand_typography_body-small-font-size);
   color: var(--recursica_brand_themes_light_layers_layer-2_elements_text-color);
   opacity: var(--recursica_brand_themes_light_layers_layer-2_elements_text-high-emphasis);
@@ -51,7 +51,7 @@
   justify-content: center;
   padding: var(--recursica_brand_dimensions_general_sm);
   background: var(--recursica_brand_themes_light_layers_layer-1_properties_surface);
-  border-radius: var(--recursica_brand_dimensions_border-radius_default);
+  border-radius: var(--recursica_brand_dimensions_border-radii_default);
   min-width: 40px;
   min-height: 40px;
   flex-shrink: 0;

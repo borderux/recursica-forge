@@ -94,7 +94,7 @@
 
 .suggest-tones__hex {
     font-size: 11px;
-    font-family: var(--recursica_brand_typography_code_font_family, monospace);
+    font-family: monospace;
     opacity: 0.5;
 }
 
