@@ -285,9 +285,6 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
       // Update CSS var directly (same as palette colors)
       const cssVarValue = `var(${coreColorCssVar})`
       const success = updateCssVar(overlayColorVar, cssVarValue, tokensJson)
-      if (!success) {
-        console.warn(`[OverlayPicker] Failed to update overlay color CSS var: ${overlayColorVar} = ${cssVarValue}`)
-      }
       
       // Update theme JSON
       if (setTheme && themeJson) {

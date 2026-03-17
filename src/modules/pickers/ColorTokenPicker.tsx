@@ -303,7 +303,6 @@ export default function ColorTokenPicker() {
     // Only update if this is a -tone variable, not -on-tone
     // We should always be updating the tone value, never the on-tone value
     if (cssVar.includes('-on-tone')) {
-      console.warn(`updateCoreColorInTheme called with on-tone CSS variable: ${cssVar}. Skipping update - only tone values should be updated.`)
       return
     }
 
@@ -614,7 +613,6 @@ export default function ColorTokenPicker() {
     // Parse token name: color/{family}/{level} or colors/{family}/{level}
     const tokenParts = tokenName.split('/')
     if (tokenParts.length !== 3 || (tokenParts[0] !== 'color' && tokenParts[0] !== 'colors')) {
-      console.warn('Invalid token name format:', tokenName)
       return
     }
 

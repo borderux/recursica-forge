@@ -106,7 +106,6 @@ export function buildComponentCssVarPath(
   )
 
   if (validSegments.length === 0) {
-    console.warn(`[buildComponentCssVarPath] No valid path segments for ${component}`)
     const componentKebab = pascalToKebabCase(component)
     return `--recursica_ui-kit_components_${escapeSegment(componentKebab)}_invalid-path`
   }
@@ -156,7 +155,6 @@ export function getComponentCssVar(
 ): string {
   // Guard against undefined/null values being stringified into property names
   if (!property || property.includes('undefined') || property.includes('null')) {
-    console.warn(`[getComponentCssVar] Invalid property value for ${component}: "${property}"`)
     const componentKebab = pascalToKebabCase(component)
     return `--recursica_ui-kit_components_${escapeSegment(componentKebab)}_invalid-property`
   }

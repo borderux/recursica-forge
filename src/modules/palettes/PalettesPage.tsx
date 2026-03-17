@@ -859,7 +859,6 @@ export default function PalettesPage() {
 
   const addPalette = () => {
     if (!canAddPalette || unusedFamilies.length === 0) {
-      console.warn('Cannot add palette:', { canAddPalette, unusedFamiliesLength: unusedFamilies.length })
       return
     }
 
@@ -868,7 +867,6 @@ export default function PalettesPage() {
     const family = unusedFamilies[0]
 
     if (!family) {
-      console.warn('No family available to add palette')
       return
     }
 

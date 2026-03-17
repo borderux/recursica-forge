@@ -327,7 +327,6 @@ function findClosestColorToken(hex: string, tokens: JsonLike): { family: string;
 export function hexToCssVarRef(hex: string, tokens: JsonLike): string | null {
   const found = findColorFamilyAndLevel(hex, tokens)
   if (!found) {
-    console.warn(`[hexToCssVarRef] No exact token match for hex ${hex}`)
     return null
   }
 

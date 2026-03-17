@@ -429,7 +429,6 @@ const phosphorIconMap: Record<string, IconComponent> = {
 export function getIcon(iconName: string): IconComponent | null {
   const IconComponent = phosphorIconMap[iconName]
   if (!IconComponent) {
-    console.warn(`Icon "${iconName}" not found in icon map`)
     return null
   }
 
