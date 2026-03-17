@@ -85,24 +85,24 @@ describe('tokenToCssVar', () => {
     // With tokens provided, should resolve alias to scale
     const result1 = tokenToCssVar('color/gray/1000', mockTokens)
     expect(result1).toBeTruthy()
-    expect(result1).toContain('--recursica-tokens-colors-scale-')
+    expect(result1).toContain('--recursica_tokens_colors_scale-0')
     // Note: 1000 is preserved as-is in tokenToCssVar (not normalized to 900)
-    expect(result1).toContain('-1000')
+    expect(result1).toContain('_1000')
     
     const result2 = tokenToCssVar('color/gray/500', mockTokens)
     expect(result2).toBeTruthy()
-    expect(result2).toContain('--recursica-tokens-colors-scale-')
-    expect(result2).toContain('-500') // Uses scale
+    expect(result2).toContain('--recursica_tokens_colors_scale-0')
+    expect(result2).toContain('_500') // Uses scale
     
     expect(tokenToCssVar('color/salmon/500', mockTokens)).toBeNull() // salmon not in mock tokens
   })
 
   it('should handle tokens with different separators', () => {
     // Function uses plural forms (opacities, sizes)
-    expect(tokenToCssVar('opacity/solid')).toBe('var(--recursica-tokens-opacities-solid)')
-    expect(tokenToCssVar('opacities/solid')).toBe('var(--recursica-tokens-opacities-solid)')
-    expect(tokenToCssVar('size/sm')).toBe('var(--recursica-tokens-sizes-sm)')
-    expect(tokenToCssVar('sizes/sm')).toBe('var(--recursica-tokens-sizes-sm)')
+    expect(tokenToCssVar('opacity/solid')).toBe('var(--recursica_tokens_opacities_solid)')
+    expect(tokenToCssVar('opacities/solid')).toBe('var(--recursica_tokens_opacities_solid)')
+    expect(tokenToCssVar('size/sm')).toBe('var(--recursica_tokens_sizes_sm)')
+    expect(tokenToCssVar('sizes/sm')).toBe('var(--recursica_tokens_sizes_sm)')
   })
 
   it('should return null for invalid token paths', () => {
@@ -122,7 +122,7 @@ describe('tokenToCssVar', () => {
         }
       }
     }
-    expect(tokenToCssVar('color/gray-blue/100', tokensWithHyphen)).toMatch(/var\(--recursica-tokens-colors-scale-0\d+-100\)/)
+    expect(tokenToCssVar('color/gray-blue/100', tokensWithHyphen)).toMatch(/var\(--recursica_tokens_colors_scale-0\d+_100\)/)
   })
 })
 

@@ -63,37 +63,37 @@ describe('buildDimensionVars', () => {
   it('should generate dimension CSS variables', () => {
     const vars = buildDimensionVars(mockTokens, mockTheme, 'light')
     
-    expect(vars['--recursica-brand-dimensions-sm']).toBeDefined()
-    expect(vars['--recursica-brand-dimensions-md']).toBeDefined()
-    expect(vars['--recursica-brand-dimensions-lg']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_sm']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_md']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_lg']).toBeDefined()
   })
 
   it('should resolve token references in dimensions', () => {
     const vars = buildDimensionVars(mockTokens, mockTheme, 'light')
     
     // Should resolve token references to CSS vars
-    const smVar = vars['--recursica-brand-dimensions-sm']
-    expect(smVar).toContain('var(--recursica-tokens-size-sm)')
+    const smVar = vars['--recursica_brand_dimensions_sm']
+    expect(smVar).toContain('var(--recursica_tokens_sizes_sm)')
   })
 
   it('should handle numeric values directly', () => {
     const vars = buildDimensionVars(mockTokens, mockTheme, 'light')
     
     // border-radius values are numeric, should have px suffix
-    const borderRadiusVar = vars['--recursica-brand-dimensions-border-radius-default']
+    const borderRadiusVar = vars['--recursica_brand_dimensions_border-radius_default']
     expect(borderRadiusVar).toBe('4px')
   })
 
   it('should handle nested dimension structures', () => {
     const vars = buildDimensionVars(mockTokens, mockTheme, 'light')
     
-    expect(vars['--recursica-brand-dimensions-border-radius-default']).toBeDefined()
-    expect(vars['--recursica-brand-dimensions-border-radius-sm']).toBeDefined()
-    expect(vars['--recursica-brand-dimensions-border-radius-lg']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_border-radius_default']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_border-radius_sm']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_border-radius_lg']).toBeDefined()
     
-    expect(vars['--recursica-brand-dimensions-spacer-sm']).toBeDefined()
-    expect(vars['--recursica-brand-dimensions-spacer-md']).toBeDefined()
-    expect(vars['--recursica-brand-dimensions-spacer-lg']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_spacer_sm']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_spacer_md']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_spacer_lg']).toBeDefined()
   })
 
   it('should handle brand dimension references', () => {
@@ -110,8 +110,8 @@ describe('buildDimensionVars', () => {
     
     const vars = buildDimensionVars(mockTokens, themeWithBrandRef, 'light')
     // Should resolve to CSS var reference
-    const smVar = vars['--recursica-brand-dimensions-sm']
-    expect(smVar).toContain('var(--recursica-brand-dimensions-md)')
+    const smVar = vars['--recursica_brand_dimensions_sm']
+    expect(smVar).toContain('var(--recursica_brand_dimensions_md)')
   })
 
   it('should handle legacy theme dimension references', () => {
@@ -128,8 +128,8 @@ describe('buildDimensionVars', () => {
     
     const vars = buildDimensionVars(mockTokens, themeWithLegacyRef, 'light')
     // Should resolve to CSS var reference
-    const smVar = vars['--recursica-brand-dimensions-sm']
-    expect(smVar).toContain('var(--recursica-brand-dimensions-sm)')
+    const smVar = vars['--recursica_brand_dimensions_sm']
+    expect(smVar).toContain('var(--recursica_brand_dimensions_sm)')
   })
 
   it('should handle empty dimensions gracefully', () => {
@@ -155,7 +155,7 @@ describe('buildDimensionVars', () => {
     }
     
     const vars = buildDimensionVars(mockTokens, themeWithoutBrand, 'light')
-    expect(vars['--recursica-brand-dimensions-sm']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_sm']).toBeDefined()
   })
 
   it('should handle string values with units', () => {
@@ -171,7 +171,7 @@ describe('buildDimensionVars', () => {
     }
     
     const vars = buildDimensionVars(mockTokens, themeWithString, 'light')
-    const smVar = vars['--recursica-brand-dimensions-sm']
+    const smVar = vars['--recursica_brand_dimensions_sm']
     expect(smVar).toBe('8px')
   })
 
@@ -188,7 +188,7 @@ describe('buildDimensionVars', () => {
     }
     
     const vars = buildDimensionVars(mockTokens, themeWithNumber, 'light')
-    const smVar = vars['--recursica-brand-dimensions-sm']
+    const smVar = vars['--recursica_brand_dimensions_sm']
     expect(smVar).toBe('8px')
   })
 
@@ -207,8 +207,8 @@ describe('buildDimensionVars', () => {
     
     const vars = buildDimensionVars(mockTokens, themeWithMetadata, 'light')
     // Should not create vars for $type
-    expect(vars['--recursica-brand-dimensions-$type']).toBeUndefined()
-    expect(vars['--recursica-brand-dimensions-sm']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_$type']).toBeUndefined()
+    expect(vars['--recursica_brand_dimensions_sm']).toBeDefined()
   })
 })
 

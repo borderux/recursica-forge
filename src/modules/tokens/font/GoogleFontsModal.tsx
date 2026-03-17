@@ -7,6 +7,7 @@ import { Dropdown } from '../../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { ensureFontLoaded, getActualFontFamilyName, getCachedFontFamilyName } from '../../type/fontUtils'
 import { Modal } from '../../../components/adapters/Modal'
+import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
 
 export type GoogleFontsModalProps = {
   open: boolean
@@ -71,11 +72,8 @@ export function GoogleFontsModal({
     if (selectedCount === totalCount) return { checked: true, indeterminate: false }
     return { checked: false, indeterminate: true }
   }, [selectedCombos.size, allWeightStyleCombos.length])
-
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
-  const layer2Base = `--recursica-brand-themes-${mode}-layers-layer-2-properties`
-  const layer3Base = `--recursica-brand-themes-${mode}-layers-layer-3-properties`
+  const layer2Base = `--recursica_brand_layer_2_properties`
+  const layer3Base = `--recursica_brand_layer_3_properties`
 
   // Initialize selectedCombos when modal opens or tab changes
   useEffect(() => {
@@ -533,9 +531,9 @@ export function GoogleFontsModal({
       primaryActionDisabled={loading || (activeTab === 'google' && (!googleFontsUrl.trim() || selectedCombos.size === 0)) || (activeTab === 'custom' && (!customFontName.trim() || selectedCombos.size === 0))}
       secondaryActionDisabled={loading}
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-lg)' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: 'var(--recursica-brand-dimensions-general-default)', borderBottom: `1px solid var(${layer1Base}-border-color)`, flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 'var(--recursica_brand_dimensions_general_default)', borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`, flexShrink: 0 }}>
           <button
             onClick={() => {
               setActiveTab('google')
@@ -544,17 +542,17 @@ export function GoogleFontsModal({
             style={{
               border: 'none',
               background: 'transparent',
-              padding: 'var(--recursica-brand-dimensions-general-default)',
-              borderBottom: `2px solid ${activeTab === 'google' ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)` : 'transparent'}`,
+              padding: 'var(--recursica_brand_dimensions_general_default)',
+              borderBottom: `2px solid ${activeTab === 'google' ? `var(--recursica_brand_palettes_core_interactive)` : 'transparent'}`,
               color: activeTab === 'google'
-                ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
-                : `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                ? `var(--recursica_brand_palettes_core_interactive)`
+                : `var(${genericLayerText(0, 'color')})`,
               opacity: activeTab === 'google'
-                ? `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
-                : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                ? `var(${genericLayerText(0, 'high-emphasis')})`
+                : `var(${genericLayerText(0, 'low-emphasis')})`,
               cursor: 'pointer',
-              fontSize: 'var(--recursica-brand-typography-body-font-size)',
-              fontWeight: activeTab === 'google' ? 'var(--recursica-brand-typography-body-font-weight)' : '400',
+              fontSize: 'var(--recursica_brand_typography_body-font-size)',
+              fontWeight: activeTab === 'google' ? 'var(--recursica_brand_typography_body-font-weight)' : '400',
             }}
           >
             Google Fonts
@@ -569,17 +567,17 @@ export function GoogleFontsModal({
             style={{
               border: 'none',
               background: 'transparent',
-              padding: 'var(--recursica-brand-dimensions-general-default)',
-              borderBottom: `2px solid ${activeTab === 'custom' ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)` : 'transparent'}`,
+              padding: 'var(--recursica_brand_dimensions_general_default)',
+              borderBottom: `2px solid ${activeTab === 'custom' ? `var(--recursica_brand_palettes_core_interactive)` : 'transparent'}`,
               color: activeTab === 'custom'
-                ? `var(--recursica-brand-themes-${mode}-palettes-core-interactive)`
-                : `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                ? `var(--recursica_brand_palettes_core_interactive)`
+                : `var(${genericLayerText(0, 'color')})`,
               opacity: activeTab === 'custom'
-                ? `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
-                : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                ? `var(${genericLayerText(0, 'high-emphasis')})`
+                : `var(${genericLayerText(0, 'low-emphasis')})`,
               cursor: 'pointer',
-              fontSize: 'var(--recursica-brand-typography-body-font-size)',
-              fontWeight: activeTab === 'custom' ? 'var(--recursica-brand-typography-body-font-weight)' : '400',
+              fontSize: 'var(--recursica_brand_typography_body-font-size)',
+              fontWeight: activeTab === 'custom' ? 'var(--recursica_brand_typography_body-font-weight)' : '400',
             }}
           >
             Custom Font
@@ -588,17 +586,17 @@ export function GoogleFontsModal({
 
         {/* Tab Content - Scrollable area handled by Modal prop */}
         <div>
-          <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)', paddingBottom: 'var(--recursica-brand-dimensions-general-md)' }}>
+          <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_md)', paddingBottom: 'var(--recursica_brand_dimensions_general_md)' }}>
             {activeTab === 'google' ? (
               <>
-                <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+                <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_md)' }}>
                   <div>
                     <label style={{
                       display: 'block',
-                      marginBottom: 'var(--recursica-brand-dimensions-general-default)',
-                      fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                      marginBottom: 'var(--recursica_brand_dimensions_general_default)',
+                      fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                      color: `var(${genericLayerText(0, 'color')})`,
+                      opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                     }}>
                       Google Fonts URL
                     </label>
@@ -630,10 +628,10 @@ export function GoogleFontsModal({
                       style={{ width: '100%' }}
                     />
                     <div style={{
-                      marginTop: 'var(--recursica-brand-dimensions-general-default)',
-                      fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                      marginTop: 'var(--recursica_brand_dimensions_general_default)',
+                      fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                      color: `var(${genericLayerText(0, 'color')})`,
+                      opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
                     }}>
                       Paste a Google Fonts URL. The font family name will be extracted automatically.
                     </div>
@@ -681,12 +679,12 @@ export function GoogleFontsModal({
 
                   {/* Weight+Style Combination Selection - Table Layout */}
                   {availableFonts.length > 0 && (
-                    <div style={{ marginTop: 'var(--recursica-brand-dimensions-general-md)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)', marginBottom: 'var(--recursica-brand-dimensions-general-md)' }}>
+                    <div style={{ marginTop: 'var(--recursica_brand_dimensions_general_md)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_default)', marginBottom: 'var(--recursica_brand_dimensions_general_md)' }}>
                         <span style={{
-                          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                          opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                          fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                          color: `var(${genericLayerText(0, 'color')})`,
+                          opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                         }}>
                           Select weight+style combinations:
                         </span>
@@ -707,35 +705,35 @@ export function GoogleFontsModal({
                       {/* Table with weights as rows and styles as columns */}
                       <div style={{
                         overflowX: 'auto',
-                        border: `1px solid var(${layer1Base}-border-color)`,
-                        borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+                        border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                        borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
                       }}>
                         <table style={{
                           width: '100%',
                           borderCollapse: 'collapse',
-                          fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                          fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
                           tableLayout: 'fixed',
                         }}>
                           <thead>
                             <tr>
                               <th style={{
-                                padding: 'var(--recursica-brand-dimensions-general-default)',
+                                padding: 'var(--recursica_brand_dimensions_general_default)',
                                 textAlign: 'left',
-                                borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-                                fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                                borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                                color: `var(${genericLayerText(0, 'color')})`,
+                                opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                                fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
                               }}>
                                 Weight
                               </th>
                               {styles.map(style => (
                                 <th key={style} style={{
-                                  padding: 'var(--recursica-brand-dimensions-general-default)',
+                                  padding: 'var(--recursica_brand_dimensions_general_default)',
                                   textAlign: 'center',
-                                  borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-                                  fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                                  borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                                  color: `var(${genericLayerText(0, 'color')})`,
+                                  opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                                  fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
                                   textTransform: 'capitalize',
                                   width: '50%',
                                 }}>
@@ -747,13 +745,13 @@ export function GoogleFontsModal({
                           <tbody>
                             {weights.map(weight => (
                               <tr key={weight} style={{
-                                borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                                borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                               }}>
                                 <td style={{
-                                  padding: 'var(--recursica-brand-dimensions-general-default)',
-                                  color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                                  opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-                                  fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                                  padding: 'var(--recursica_brand_dimensions_general_default)',
+                                  color: `var(${genericLayerText(0, 'color')})`,
+                                  opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                                  fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
                                 }}>
                                   {weight}
                                 </td>
@@ -762,7 +760,7 @@ export function GoogleFontsModal({
                                   const isSelected = selectedCombos.has(comboId)
                                   return (
                                     <td key={style} style={{
-                                      padding: 'var(--recursica-brand-dimensions-general-default)',
+                                      padding: 'var(--recursica_brand_dimensions_general_default)',
                                       textAlign: 'center',
                                       verticalAlign: 'middle',
                                     }}>
@@ -796,13 +794,13 @@ export function GoogleFontsModal({
                   )}
                   {availableFonts.length === 1 && (
                     <div style={{
-                      marginTop: 'var(--recursica-brand-dimensions-general-default)',
-                      padding: 'var(--recursica-brand-dimensions-general-default)',
-                      borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-                      background: `var(${layer1Base}-surface)`,
-                      border: `1px solid var(${layer1Base}-border-color)`,
-                      fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                      marginTop: 'var(--recursica_brand_dimensions_general_default)',
+                      padding: 'var(--recursica_brand_dimensions_general_default)',
+                      borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
+                      background: `var(${genericLayerProperty(1, 'surface')})`,
+                      border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                      fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                      color: `var(${genericLayerText(0, 'color')})`,
                     }}>
                       Font detected: <strong>{availableFonts[0]}</strong>
                     </div>
@@ -811,7 +809,7 @@ export function GoogleFontsModal({
               </>
             ) : (
               <>
-                <div style={{ display: 'grid', gap: 'var(--recursica-brand-dimensions-general-md)' }}>
+                <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_md)' }}>
                   <div>
                     <Dropdown
                       label="Sequence"
@@ -833,10 +831,10 @@ export function GoogleFontsModal({
                   <div>
                     <label style={{
                       display: 'block',
-                      marginBottom: 'var(--recursica-brand-dimensions-general-default)',
-                      fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                      marginBottom: 'var(--recursica_brand_dimensions_general_default)',
+                      fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                      color: `var(${genericLayerText(0, 'color')})`,
+                      opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                     }}>
                       Font Family Name
                     </label>
@@ -872,12 +870,12 @@ export function GoogleFontsModal({
                     />
                   </div>
 
-                  <div style={{ marginTop: 'var(--recursica-brand-dimensions-general-md)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica-brand-dimensions-general-default)', marginBottom: 'var(--recursica-brand-dimensions-general-md)' }}>
+                  <div style={{ marginTop: 'var(--recursica_brand_dimensions_general_md)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_default)', marginBottom: 'var(--recursica_brand_dimensions_general_md)' }}>
                       <span style={{
-                        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                        color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                        opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                        fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                        color: `var(${genericLayerText(0, 'color')})`,
+                        opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                       }}>
                         Select weight+style combinations:
                       </span>
@@ -897,35 +895,35 @@ export function GoogleFontsModal({
 
                     <div style={{
                       overflowX: 'auto',
-                      border: `1px solid var(${layer1Base}-border-color)`,
-                      borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
+                      border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                      borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
                     }}>
                       <table style={{
                         width: '100%',
                         borderCollapse: 'collapse',
-                        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+                        fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
                         tableLayout: 'fixed',
                       }}>
                         <thead>
                           <tr>
                             <th style={{
-                              padding: 'var(--recursica-brand-dimensions-general-default)',
+                              padding: 'var(--recursica_brand_dimensions_general_default)',
                               textAlign: 'left',
-                              borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-                              fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                              borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                              color: `var(${genericLayerText(0, 'color')})`,
+                              opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                              fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
                             }}>
                               Weight
                             </th>
                             {styles.map(style => (
                               <th key={style} style={{
-                                padding: 'var(--recursica-brand-dimensions-general-default)',
+                                padding: 'var(--recursica_brand_dimensions_general_default)',
                                 textAlign: 'center',
-                                borderBottom: `1px solid var(${layer1Base}-border-color)`,
-                                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-                                fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                                borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+                                color: `var(${genericLayerText(0, 'color')})`,
+                                opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                                fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
                                 textTransform: 'capitalize',
                                 width: '50%',
                               }}>
@@ -937,13 +935,13 @@ export function GoogleFontsModal({
                         <tbody>
                           {weights.map(weight => (
                             <tr key={weight} style={{
-                              borderBottom: `1px solid var(${layer1Base}-border-color)`,
+                              borderBottom: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                             }}>
                               <td style={{
-                                padding: 'var(--recursica-brand-dimensions-general-default)',
-                                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
-                                fontWeight: 'var(--recursica-brand-typography-body-font-weight)',
+                                padding: 'var(--recursica_brand_dimensions_general_default)',
+                                color: `var(${genericLayerText(0, 'color')})`,
+                                opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+                                fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
                               }}>
                                 {weight}
                               </td>
@@ -952,7 +950,7 @@ export function GoogleFontsModal({
                                 const isSelected = selectedCombos.has(comboId)
                                 return (
                                   <td key={style} style={{
-                                    padding: 'var(--recursica-brand-dimensions-general-default)',
+                                    padding: 'var(--recursica_brand_dimensions_general_default)',
                                     textAlign: 'center',
                                     verticalAlign: 'middle',
                                   }}>
@@ -991,13 +989,13 @@ export function GoogleFontsModal({
 
         {error && (
           <div style={{
-            padding: 'var(--recursica-brand-dimensions-general-default)',
-            borderRadius: 'var(--recursica-brand-dimensions-border-radii-default)',
-            background: `var(--recursica-brand-themes-${mode}-palettes-core-error-50-tone)`,
-            border: `1px solid var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
-            fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-            color: `var(--recursica-brand-themes-${mode}-palettes-core-error-200-tone)`,
-            marginTop: 'var(--recursica-brand-dimensions-general-md)',
+            padding: 'var(--recursica_brand_dimensions_general_default)',
+            borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
+            background: `var(--recursica_brand_palettes_core_error-50_color_tone)`,
+            border: `1px solid var(--recursica_brand_palettes_core_error-200_color_tone)`,
+            fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+            color: `var(--recursica_brand_palettes_core_error-200_color_tone)`,
+            marginTop: 'var(--recursica_brand_dimensions_general_md)',
             flexShrink: 0
           }}>
             {error}

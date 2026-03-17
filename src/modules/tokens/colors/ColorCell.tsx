@@ -54,11 +54,9 @@ export function ColorCell({
   const cssVar = tokenName ? (() => {
     const cssVarRef = tokenToCssVar(tokenName, tokens)
     if (cssVarRef) {
-      // Extract CSS var name from var(--name) format
       return cssVarRef.replace(/^var\s*\(\s*|\)\s*$/g, '')
     }
-    // Fallback to simple conversion (shouldn't happen if tokens is provided)
-    return `--recursica-tokens-${tokenName.replace(/\//g, '-')}`
+    return null
   })() : null
 
   return (
@@ -74,10 +72,10 @@ export function ColorCell({
           background: cssVar ? `var(${cssVar})` : 'transparent',
           cursor: tokenName ? 'pointer' : 'default',
           boxShadow,
-          borderTopLeftRadius: isFirst ? 'var(--recursica-brand-dimensions-border-radii-lg)' : 0,
-          borderTopRightRadius: isFirst ? 'var(--recursica-brand-dimensions-border-radii-lg)' : 0,
-          borderBottomLeftRadius: isLast ? 'var(--recursica-brand-dimensions-border-radii-lg)' : 0,
-          borderBottomRightRadius: isLast ? 'var(--recursica-brand-dimensions-border-radii-lg)' : 0,
+          borderTopLeftRadius: isFirst ? 'var(--recursica_brand_dimensions_border-radii_lg)' : 0,
+          borderTopRightRadius: isFirst ? 'var(--recursica_brand_dimensions_border-radii_lg)' : 0,
+          borderBottomLeftRadius: isLast ? 'var(--recursica_brand_dimensions_border-radii_lg)' : 0,
+          borderBottomRightRadius: isLast ? 'var(--recursica_brand_dimensions_border-radii_lg)' : 0,
         }}
       />
       {tokenName && openPicker && openPicker.tokenName === tokenName && (

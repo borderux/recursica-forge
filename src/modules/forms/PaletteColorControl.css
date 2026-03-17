@@ -3,7 +3,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px 8px;
-  border: 1px solid var(--recursica-brand-themes-light-layers-layer-3-properties-border-color);
+  border: 1px solid var(--recursica_brand_themes_light_layers_layer-3_properties_border-color);
   background: transparent;
   border-radius: 6px;
   cursor: pointer;
@@ -11,15 +11,15 @@
 }
 
 html[data-theme-mode="dark"] .palette-color-control {
-  border-color: var(--recursica-brand-themes-dark-layers-layer-3-properties-border-color);
+  border-color: var(--recursica_brand_themes_dark_layers_layer-3_properties_border-color);
 }
 
 .palette-color-control:hover {
-  background: var(--recursica-brand-themes-light-layers-layer-3-properties-surface-hover, var(--recursica-brand-themes-light-layers-layer-3-properties-surface));
+  background: var(--recursica_brand_themes_light_layers_layer-3_properties_surface-hover, var(--recursica_brand_themes_light_layers_layer-3_properties_surface));
 }
 
 html[data-theme-mode="dark"] .palette-color-control:hover {
-  background: var(--recursica-brand-themes-dark-layers-layer-3-properties-surface-hover, var(--recursica-brand-themes-dark-layers-layer-3-properties-surface));
+  background: var(--recursica_brand_themes_dark_layers_layer-3_properties_surface-hover, var(--recursica_brand_themes_dark_layers_layer-3_properties_surface));
 }
 
 .palette-color-control-label {
@@ -27,11 +27,11 @@ html[data-theme-mode="dark"] .palette-color-control:hover {
   margin-bottom: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--recursica-brand-themes-light-layers-layer-3-elements-text-color);
+  color: var(--recursica_brand_themes_light_layers_layer-3_elements_text-color);
 }
 
 html[data-theme-mode="dark"] .palette-color-control-label {
-  color: var(--recursica-brand-themes-dark-layers-layer-3-elements-text-color);
+  color: var(--recursica_brand_themes_dark_layers_layer-3_elements_text-color);
 }
 
 .palette-color-control-swatch {
@@ -51,14 +51,14 @@ html[data-theme-mode="dark"] .palette-color-control-label {
   left: -1px;
   right: -1px;
   bottom: -1px;
-  border: 1px solid var(--recursica-brand-themes-light-palettes-neutral-500-tone);
+  border: 1px solid var(--recursica_brand_themes_light_palettes_neutral_500_color_tone);
   border-radius: 4px;
   pointer-events: none;
   z-index: 1;
 }
 
 html[data-theme-mode="dark"] .palette-color-control-swatch::before {
-  border-color: var(--recursica-brand-themes-dark-palettes-neutral-500-tone);
+  border-color: var(--recursica_brand_themes_dark_palettes_neutral_500_color_tone);
 }
 
 /* Ensure the leading icon container doesn't clip the swatch border */

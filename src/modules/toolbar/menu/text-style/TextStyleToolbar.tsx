@@ -10,6 +10,7 @@ import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
+import { tokenFont } from '../../../../core/css/cssVarBuilder'
 import { toSentenceCase } from '../../utils/componentToolbarUtils'
 import { getComponentTextCssVar, buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import { Slider } from '../../../../components/adapters/Slider'
@@ -112,7 +113,7 @@ export default function TextStyleToolbar({
         // If overrides exist for typefaces, only include fonts present in overrides
         if (hasTypefaceOverrides && !overrides[`font/typeface/${key}`]) return
 
-        const cssVar = `--recursica-tokens-font-typefaces-${key}`
+        const cssVar = tokenFont('typefaces', key)
         const cssValue = readCssVar(cssVar)
 
         if (cssValue) {
@@ -147,12 +148,7 @@ export default function TextStyleToolbar({
   }, [tokensFromVars])
 
   // Get current font family state - declared early so it can be used in useMemo dependencies
-  const [currentFontFamily, setCurrentFontFamily] = useState<string>(() => {
-    const currentFontFamilyValue = readCssVar(fontFamilyVar) || ''
-    // Extract CSS var name from value (e.g., "var(--recursica-tokens-font-typefaces-primary)" -> "--recursica-tokens-font-typefaces-primary")
-    const extracted = currentFontFamilyValue.match(/var\(([^)]+)\)/)?.[1] || currentFontFamilyValue
-    return extracted
-  })
+  const [currentFontFamily, setCurrentFontFamily] = useState<string>('')
 
   // Helper function to get available weight keys for the current font
   const getAvailableWeightKeysForFont = useCallback((fontName: string): Set<string> | null => {
@@ -337,7 +333,7 @@ export default function TextStyleToolbar({
           : (typeof weightValue === 'number' ? weightValue : Number(weightValue))
 
         if (Number.isFinite(weightNum)) {
-          const cssVar = `--recursica-tokens-font-weights-${key}`
+          const cssVar = tokenFont('weights', key)
           const cssValue = readCssVar(cssVar)
 
           if (cssValue) {
@@ -377,7 +373,7 @@ export default function TextStyleToolbar({
         // Include all valid tokens, including 0 (default)
         // Check for NaN explicitly since Number.isFinite(0) is true but we want to ensure it's a valid number
         if (Number.isFinite(spacingNum) && !isNaN(spacingNum)) {
-          const cssVar = `--recursica-tokens-font-letter-spacings-${key}`
+          const cssVar = tokenFont('letter-spacings', key)
           // Include all valid tokens, even if CSS variable doesn't exist yet
           // The CSS variable will be created when the token is used
           options.push({
@@ -393,17 +389,17 @@ export default function TextStyleToolbar({
       if (!foundKeys.has('default')) {
         options.push({
           label: 'Default',
-          cssVar: '--recursica-tokens-font-letter-spacings-default',
+          cssVar: tokenFont('letter-spacings', 'default'),
           value: 0,
         })
       }
     } catch (error) {
       console.error('Error loading letter spacings:', error)
       // Even on error, ensure default is available
-      if (!options.find(opt => opt.cssVar === '--recursica-tokens-font-letter-spacings-default')) {
+      if (!options.find(opt => opt.cssVar === tokenFont('letter-spacings', 'default'))) {
         options.push({
           label: 'Default',
-          cssVar: '--recursica-tokens-font-letter-spacings-default',
+          cssVar: tokenFont('letter-spacings', 'default'),
           value: 0,
         })
       }
@@ -430,7 +426,7 @@ export default function TextStyleToolbar({
           : (typeof heightValue === 'number' ? heightValue : Number(heightValue))
 
         if (Number.isFinite(heightNum)) {
-          const cssVar = `--recursica-tokens-font-line-heights-${key}`
+          const cssVar = tokenFont('line-heights', key)
           // Include all valid tokens, even if CSS variable doesn't exist yet
           // The CSS variable will be created when the token is used
           options.push({
@@ -461,7 +457,7 @@ export default function TextStyleToolbar({
 
         const sizeValue = sizes[sizeKey]
         if (sizeValue && typeof sizeValue === 'object' && '$value' in sizeValue) {
-          const cssVar = `--recursica-tokens-font-sizes-${sizeKey}`
+          const cssVar = tokenFont('sizes', sizeKey)
           const cssValue = readCssVar(cssVar)
 
           if (cssValue) {
@@ -599,36 +595,53 @@ export default function TextStyleToolbar({
   useEffect(() => {
     const updateCurrentFontFamily = () => {
       const currentFontFamilyValue = readCssVar(fontFamilyVar) || ''
-      // Extract CSS var name from value (e.g., "var(--recursica-tokens-font-typefaces-primary)" -> "--recursica-tokens-font-typefaces-primary")
+      // Extract CSS var name from value (e.g., "var(--recursica_tokens_font_typefaces_primary)" -> "--recursica_tokens_font_typefaces_primary")
       const extracted = currentFontFamilyValue.match(/var\(([^)]+)\)/)?.[1] || currentFontFamilyValue
 
-      // Ensure the extracted value matches one of the available font families
-      // If not, try to find a match by comparing resolved values
-      let matchedCssVar = extracted
-      if (fontFamilies.length > 0) {
-        // First, try exact match
-        const exactMatch = fontFamilies.find(f => f.cssVar === extracted)
-        if (exactMatch) {
-          matchedCssVar = exactMatch.cssVar
-        } else {
-          // Try to match by resolved value
-          const currentResolved = readCssVarResolved(extracted)
-          if (currentResolved) {
-            const resolvedMatch = fontFamilies.find(f => {
-              const fResolved = readCssVarResolved(f.cssVar)
-              return fResolved && fResolved.trim() === currentResolved.trim()
-            })
-            if (resolvedMatch) {
-              matchedCssVar = resolvedMatch.cssVar
-            } else {
-              // No match found, keep the extracted value (will default to first option in select)
-              matchedCssVar = extracted
-            }
+      if (fontFamilies.length === 0) {
+        setCurrentFontFamily(extracted)
+        return
+      }
+
+      // First, try exact match by CSS var name
+      const exactMatch = fontFamilies.find(f => f.cssVar === extracted)
+      if (exactMatch) {
+        setCurrentFontFamily(exactMatch.cssVar)
+        return
+      }
+
+      // If extracted looks like a CSS var (starts with --), try resolving it
+      if (extracted.startsWith('--')) {
+        const currentResolved = readCssVarResolved(extracted)
+        if (currentResolved) {
+          const resolvedMatch = fontFamilies.find(f => {
+            const fResolved = readCssVarResolved(f.cssVar)
+            return fResolved && fResolved.trim() === currentResolved.trim()
+          })
+          if (resolvedMatch) {
+            setCurrentFontFamily(resolvedMatch.cssVar)
+            return
           }
+        }
+      } else if (extracted) {
+        // Extracted is a resolved font name (e.g., "Lexend") — happens when CSS var
+        // is set via scoped CSS rather than inline styles on :root.
+        // Compare by normalizing the resolved font name against each family's resolved value.
+        const normalizedExtracted = extracted.trim().replace(/^["']|["']$/g, '').split(',')[0].trim().toLowerCase()
+        const resolvedMatch = fontFamilies.find(f => {
+          const fResolved = readCssVarResolved(f.cssVar)
+          if (!fResolved) return false
+          const normalizedResolved = fResolved.trim().replace(/^["']|["']$/g, '').split(',')[0].trim().toLowerCase()
+          return normalizedResolved === normalizedExtracted
+        })
+        if (resolvedMatch) {
+          setCurrentFontFamily(resolvedMatch.cssVar)
+          return
         }
       }
 
-      setCurrentFontFamily(matchedCssVar)
+      // No match found, keep the extracted value
+      setCurrentFontFamily(extracted)
     }
 
     updateCurrentFontFamily()
@@ -732,17 +745,17 @@ export default function TextStyleToolbar({
 
     // Find matching token for font size
     if (fontSizeValue) {
-      const sizeMatch = fontSizeValue.match(/--recursica-tokens-font-sizes-([a-z0-9-]+)/)
+      const sizeMatch = fontSizeValue.match(/--recursica_tokens_font_sizes_([a-z0-9-]+)/)
       if (sizeMatch) {
-        setCurrentFontSizeToken(`--recursica-tokens-font-sizes-${sizeMatch[1]}`)
+        setCurrentFontSizeToken(tokenFont('sizes', sizeMatch[1]))
       } else {
         // Try to match by resolved pixel value
         const resolved = readCssVarResolved(fontSizeVar)
         if (resolved) {
           // First try to find a CSS variable reference in the resolved value
-          const sizeMatchResolved = resolved.match(/--recursica-tokens-font-sizes-([a-z0-9-]+)/)
+          const sizeMatchResolved = resolved.match(/--recursica_tokens_font_sizes_([a-z0-9-]+)/)
           if (sizeMatchResolved) {
-            setCurrentFontSizeToken(`--recursica-tokens-font-sizes-${sizeMatchResolved[1]}`)
+            setCurrentFontSizeToken(tokenFont('sizes', sizeMatchResolved[1]))
           } else {
             // Try to match by pixel/rem/em value
             const pixelMatch = resolved.match(/([\d.]+)(px|rem|em)/)
@@ -775,9 +788,9 @@ export default function TextStyleToolbar({
 
     // Find matching token for font weight
     if (fontWeightValue) {
-      const weightMatch = fontWeightValue.match(/--recursica-tokens-font-weights-([a-z0-9-]+)/)
+      const weightMatch = fontWeightValue.match(/--recursica_tokens_font_weights_([a-z0-9-]+)/)
       if (weightMatch) {
-        setCurrentFontWeightToken(`--recursica-tokens-font-weights-${weightMatch[1]}`)
+        setCurrentFontWeightToken(tokenFont('weights', weightMatch[1]))
       } else {
         // Try to match by numeric value
         const numMatch = fontWeightValue.match(/(\d+)/)
@@ -793,9 +806,9 @@ export default function TextStyleToolbar({
 
     // Find matching token for letter spacing
     if (letterSpacingValue) {
-      const spacingMatch = letterSpacingValue.match(/--recursica-tokens-font-letter-spacings-([a-z0-9-]+)/)
+      const spacingMatch = letterSpacingValue.match(/--recursica_tokens_font_letter-spacings_([a-z0-9-]+)/)
       if (spacingMatch) {
-        setCurrentLetterSpacingToken(`--recursica-tokens-font-letter-spacings-${spacingMatch[1]}`)
+        setCurrentLetterSpacingToken(tokenFont('letter-spacings', spacingMatch[1]))
       } else {
         // Try to match by resolved value (letter spacing is typically in em units)
         const resolved = readCssVarResolved(letterSpacingVar)
@@ -835,9 +848,9 @@ export default function TextStyleToolbar({
 
     // Find matching token for line height
     if (lineHeightValue) {
-      const heightMatch = lineHeightValue.match(/--recursica-tokens-font-line-heights-([a-z0-9-]+)/)
+      const heightMatch = lineHeightValue.match(/--recursica_tokens_font_line-heights_([a-z0-9-]+)/)
       if (heightMatch) {
-        setCurrentLineHeightToken(`--recursica-tokens-font-line-heights-${heightMatch[1]}`)
+        setCurrentLineHeightToken(tokenFont('line-heights', heightMatch[1]))
       } else {
         // Try to match by resolved value (line height can be unitless, px, em, or rem)
         const resolved = readCssVarResolved(lineHeightVar)
@@ -892,16 +905,16 @@ export default function TextStyleToolbar({
       const fontSizeValue = readCssVarResolved(fontSizeVar) || readCssVar(fontSizeVar) || ''
 
       if (fontSizeValue) {
-        const sizeMatch = fontSizeValue.match(/--recursica-tokens-font-sizes-([a-z0-9-]+)/)
+        const sizeMatch = fontSizeValue.match(/--recursica_tokens_font_sizes_([a-z0-9-]+)/)
         if (sizeMatch) {
-          setCurrentFontSizeToken(`--recursica-tokens-font-sizes-${sizeMatch[1]}`)
+          setCurrentFontSizeToken(tokenFont('sizes', sizeMatch[1]))
         } else {
           // Try to match by resolved pixel value
           const resolved = readCssVarResolved(fontSizeVar)
           if (resolved) {
-            const sizeMatchResolved = resolved.match(/--recursica-tokens-font-sizes-([a-z0-9-]+)/)
+            const sizeMatchResolved = resolved.match(/--recursica_tokens_font_sizes_([a-z0-9-]+)/)
             if (sizeMatchResolved) {
-              setCurrentFontSizeToken(`--recursica-tokens-font-sizes-${sizeMatchResolved[1]}`)
+              setCurrentFontSizeToken(tokenFont('sizes', sizeMatchResolved[1]))
             } else if (fontSizes.length > 0) {
               // Try to match by pixel/rem/em value
               const pixelMatch = resolved.match(/([\d.]+)(px|rem|em)/)
@@ -933,16 +946,16 @@ export default function TextStyleToolbar({
       }
 
       if (fontWeightValue) {
-        const weightMatch = fontWeightValue.match(/--recursica-tokens-font-weights-([a-z0-9-]+)/)
+        const weightMatch = fontWeightValue.match(/--recursica_tokens_font_weights_([a-z0-9-]+)/)
         if (weightMatch) {
-          setCurrentFontWeightToken(`--recursica-tokens-font-weights-${weightMatch[1]}`)
+          setCurrentFontWeightToken(tokenFont('weights', weightMatch[1]))
         }
       }
 
       if (letterSpacingValue) {
-        const spacingMatch = letterSpacingValue.match(/--recursica-tokens-font-letter-spacings-([a-z0-9-]+)/)
+        const spacingMatch = letterSpacingValue.match(/--recursica_tokens_font_letter-spacings_([a-z0-9-]+)/)
         if (spacingMatch) {
-          setCurrentLetterSpacingToken(`--recursica-tokens-font-letter-spacings-${spacingMatch[1]}`)
+          setCurrentLetterSpacingToken(tokenFont('letter-spacings', spacingMatch[1]))
         } else if (letterSpacings.length > 0) {
           // Try to match by resolved value (letter spacing is typically in em units)
           const resolved = readCssVarResolved(letterSpacingVar)
@@ -979,9 +992,9 @@ export default function TextStyleToolbar({
       }
 
       if (lineHeightValue) {
-        const heightMatch = lineHeightValue.match(/--recursica-tokens-font-line-heights-([a-z0-9-]+)/)
+        const heightMatch = lineHeightValue.match(/--recursica_tokens_font_line-heights_([a-z0-9-]+)/)
         if (heightMatch) {
-          setCurrentLineHeightToken(`--recursica-tokens-font-line-heights-${heightMatch[1]}`)
+          setCurrentLineHeightToken(tokenFont('line-heights', heightMatch[1]))
         } else if (lineHeights.length > 0) {
           // Try to match by resolved value (line height can be unitless, px, em, or rem)
           const resolved = readCssVarResolved(lineHeightVar)
@@ -1048,8 +1061,8 @@ export default function TextStyleToolbar({
         const availableWeightKeys = getAvailableWeightKeysForFont(fontName)
 
         if (availableWeightKeys && availableWeightKeys.size > 0) {
-          // Extract current weight key from CSS var (e.g., "--recursica-tokens-font-weights-regular" -> "regular")
-          const weightKeyMatch = currentFontWeightToken.match(/--recursica-tokens-font-weights-([a-z0-9-]+)/)
+          // Extract current weight key from CSS var (e.g., "--recursica_tokens_font_weights_regular" -> "regular")
+          const weightKeyMatch = currentFontWeightToken.match(/--recursica_tokens_font_weights_([a-z0-9-]+)/)
           const currentWeightKey = weightKeyMatch ? weightKeyMatch[1] : null
 
           // If current weight is not available, switch to first available weight
@@ -1070,7 +1083,7 @@ export default function TextStyleToolbar({
                 : (typeof weightValue === 'number' ? weightValue : Number(weightValue))
 
               if (Number.isFinite(weightNum)) {
-                const cssVar = `--recursica-tokens-font-weights-${key}`
+                const cssVar = tokenFont('weights', key)
                 const cssValue = readCssVar(cssVar)
                 if (cssValue) {
                   availableWeights.push({ key, cssVar, value: weightNum })

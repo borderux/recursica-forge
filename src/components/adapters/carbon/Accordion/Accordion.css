@@ -181,7 +181,7 @@
 .recursica-accordion.carbon-accordion .cds--accordion__content button,
 .recursica-accordion.carbon-accordion .cds--accordion__content .recursica-button,
 .recursica-accordion.carbon-accordion .cds--accordion__content .cds--btn {
-  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
+  border: var(--recursica_ui-kit_components_button_properties_border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
 }
 
 /* Ensure segmented control buttons maintain their custom styling - no borders on individual buttons */

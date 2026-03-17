@@ -28,17 +28,17 @@ This document audits the Chip component implementation for Material UI, identify
 
 | Variable Name | Source | Used For |
 |--------------|--------|----------|
-| `--recursica-ui-kit-components-chip-color-layer-{layer}-variant-{variant}-background` | UIKit.json | Chip background color |
-| `--recursica-ui-kit-components-chip-color-layer-{layer}-variant-{variant}-text` | UIKit.json | Chip text color |
-| `--recursica-ui-kit-components-chip-color-layer-{layer}-variant-{variant}-border` | UIKit.json | Chip border color |
-| `--recursica-ui-kit-components-chip-size-variant-{size}-height` | UIKit.json | Chip height |
-| `--recursica-ui-kit-components-chip-size-variant-{size}-min-width` | UIKit.json | Chip minimum width |
-| `--recursica-ui-kit-components-chip-size-variant-{size}-horizontal-padding` | UIKit.json | Chip horizontal padding |
-| `--recursica-ui-kit-components-chip-size-variant-{size}-icon` | UIKit.json | Icon size |
-| `--recursica-ui-kit-components-chip-size-variant-{size}-icon-text-gap` | UIKit.json | Gap between icon and text |
-| `--recursica-ui-kit-components-chip-size-border-radius` | UIKit.json | Chip border radius |
-| `--recursica-brand-{mode}-state-disabled` | Brand.json | Disabled state opacity |
-| `--recursica-brand-{mode}-elevations-elevation-{level}-*` | Brand.json | Elevation box-shadow values |
+| `--recursica-ui-kit-components-chip-color-layer-{layer}-variant-{variant}-background` | recursica_ui-kit.json | Chip background color |
+| `--recursica-ui-kit-components-chip-color-layer-{layer}-variant-{variant}-text` | recursica_ui-kit.json | Chip text color |
+| `--recursica-ui-kit-components-chip-color-layer-{layer}-variant-{variant}-border` | recursica_ui-kit.json | Chip border color |
+| `--recursica-ui-kit-components-chip-size-variant-{size}-height` | recursica_ui-kit.json | Chip height |
+| `--recursica-ui-kit-components-chip-size-variant-{size}-min-width` | recursica_ui-kit.json | Chip minimum width |
+| `--recursica-ui-kit-components-chip-size-variant-{size}-horizontal-padding` | recursica_ui-kit.json | Chip horizontal padding |
+| `--recursica-ui-kit-components-chip-size-variant-{size}-icon` | recursica_ui-kit.json | Icon size |
+| `--recursica-ui-kit-components-chip-size-variant-{size}-icon-text-gap` | recursica_ui-kit.json | Gap between icon and text |
+| `--recursica-ui-kit-components-chip-size-border-radius` | recursica_ui-kit.json | Chip border radius |
+| `--recursica-brand-{mode}-state-disabled` | recursica_brand.json | Disabled state opacity |
+| `--recursica-brand-{mode}-elevations-elevation-{level}-*` | recursica_brand.json | Elevation box-shadow values |
 
 ### Variables Used (with Library Fallbacks)
 

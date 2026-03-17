@@ -5,6 +5,8 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getVarsStore } from '../../core/store/varsStore'
+import { tokenOpacity } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, genericElevation } from '../../core/css/cssVarBuilder'
 
 export default function OpacityPicker() {
   const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
@@ -46,7 +48,7 @@ export default function OpacityPicker() {
       const rawValue = readCssVar(cssVar)
       if (!rawValue) return null
       
-      // Match patterns like: var(--recursica-tokens-opacities-solid) or var(--tokens-opacities-solid) or old format (opacity)
+      // Match patterns like: var(--recursica_tokens_opacities_solid) or var(--tokens-opacities-solid) or old format (opacity)
       let match = rawValue.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
       if (match) return `opacity/${match[1]}`
       
@@ -137,7 +139,7 @@ export default function OpacityPicker() {
     
     // Build the opacity token CSS variable - use plural form (opacities)
     const tokenKey = tokenName.replace('opacity/', '')
-    const opacityCssVar = `--recursica-tokens-opacities-${tokenKey}`
+    const opacityCssVar = tokenOpacity(tokenKey)
     
     // Immediately update currentToken to show selection
     setCurrentToken(tokenName)
@@ -169,7 +171,7 @@ export default function OpacityPicker() {
           if (!themes[modeKey]['text-emphasis']) themes[modeKey]['text-emphasis'] = {}
           
           // Update the opacity reference in theme JSON
-          // Use singular form (opacity) to match Brand.json structure, but support both
+          // Use singular form (opacity) to match recursica_brand.json structure, but support both
           themes[modeKey]['text-emphasis'][emphasisKey] = {
             $type: 'number',
             // Support both singular (opacity) and plural (opacities) for backwards compatibility
@@ -184,7 +186,7 @@ export default function OpacityPicker() {
           // Update the hover opacity reference in theme JSON
           themes[modeKey].states.hover = {
             $type: 'number',
-            // Use singular form (opacity) to match Brand.json structure
+            // Use singular form (opacity) to match recursica_brand.json structure
             $value: `{tokens.opacity.${tokenKey}}`
           }
         } else if (isDisabledOpacity) {
@@ -196,7 +198,7 @@ export default function OpacityPicker() {
           // Update the disabled opacity reference in theme JSON
           themes[modeKey].states.disabled = {
             $type: 'number',
-            // Use singular form (opacity) to match Brand.json structure
+            // Use singular form (opacity) to match recursica_brand.json structure
             $value: `{tokens.opacity.${tokenKey}}`
           }
         } else if (isOverlayOpacity) {
@@ -209,7 +211,7 @@ export default function OpacityPicker() {
           // Update the overlay opacity reference in theme JSON
           themes[modeKey].states.overlay.opacity = {
             $type: 'number',
-            // Use singular form (opacity) to match Brand.json structure
+            // Use singular form (opacity) to match recursica_brand.json structure
             $value: `{tokens.opacity.${tokenKey}}`
           }
         }
@@ -259,16 +261,18 @@ export default function OpacityPicker() {
   if (!anchor || !targetCssVar) return null
   
   return createPortal(
-    <div style={{ 
+    <div
+      data-recursica-layer="3"
+      style={{ 
       position: 'absolute', 
       top: pos.top, 
       left: pos.left, 
       width: 240, 
-      background: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface)`, 
-      color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)`,
-      border: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-size) solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color)`, 
-      borderRadius: `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-radius)`, 
-      boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-4-x-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-y-axis) var(--recursica-brand-themes-${mode}-elevations-elevation-4-blur) var(--recursica-brand-themes-${mode}-elevations-elevation-4-spread) var(--recursica-brand-themes-${mode}-elevations-elevation-4-shadow-color)`, 
+      background: `var(${genericLayerProperty(3, 'surface')})`, 
+      color: `var(${genericLayerText(3, 'color')})`,
+      border: `var(${genericLayerProperty(3, 'border-size')}) solid var(${genericLayerProperty(3, 'border-color')})`, 
+      borderRadius: `var(${genericLayerProperty(3, 'border-radius')})`, 
+      boxShadow: `var(${genericElevation(4, 'x-axis')}) var(${genericElevation(4, 'y-axis')}) var(${genericElevation(4, 'blur')}) var(${genericElevation(4, 'spread')}) var(${genericElevation(4, 'shadow-color')})`, 
       padding: 10, 
       zIndex: 20000 
     }}>
@@ -299,7 +303,7 @@ export default function OpacityPicker() {
         <button 
           onClick={() => { setAnchor(null); setTargetCssVar(null); setCurrentToken(null) }} 
           aria-label="Close" 
-          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)` }}
+          style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 16, color: `var(${genericLayerText(3, 'color')})` }}
         >
           &times;
         </button>
@@ -316,11 +320,11 @@ export default function OpacityPicker() {
                 justifyContent: 'space-between', 
                 alignItems: 'center',
                 width: '100%', 
-                border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-3-properties-border-color)`, 
+                border: `1px solid var(${genericLayerProperty(3, 'border-color')})`, 
                 background: isSelected 
-                  ? `var(--recursica-brand-themes-${mode}-layers-layer-3-properties-surface)` 
+                  ? `var(${genericLayerProperty(3, 'surface')})` 
                   : 'transparent', 
-                color: `var(--recursica-brand-themes-${mode}-layers-layer-3-elements-text-color)`,
+                color: `var(${genericLayerText(3, 'color')})`,
                 borderRadius: 6, 
                 padding: '6px 8px', 
                 cursor: 'pointer',
@@ -329,7 +333,7 @@ export default function OpacityPicker() {
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layers-layer-2-properties-surface)`
+                  e.currentTarget.style.background = `var(${genericLayerProperty(2, 'surface')})`
                 }
               }}
               onMouseLeave={(e) => {
@@ -340,7 +344,7 @@ export default function OpacityPicker() {
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {isSelected && (
-                  <span style={{ fontSize: 14, color: `var(--recursica-brand-themes-${mode}-palettes-core-interactive-default-tone)` }}>✓</span>
+                  <span style={{ fontSize: 14, color: `var(--recursica_brand_palettes_core_interactive_default_color_tone)` }}>✓</span>
                 )}
                 <span style={{ textTransform: 'capitalize' }}>{opt.name.replace('opacity/','')}</span>
               </span>

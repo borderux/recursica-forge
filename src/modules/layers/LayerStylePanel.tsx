@@ -7,13 +7,14 @@ import { Label } from '../../components/adapters/Label'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { Button } from '../../components/adapters/Button'
 import { Panel } from '../../components/adapters/Panel'
-import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
+import { readCssVar } from '../../core/css/readCssVar'
 import { updateCssVar as updateCssVarFn } from '../../core/css/updateCssVar'
-import brandDefault from '../../vars/Brand.json'
+import brandDefault from '../../../recursica_brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { genericLayerProperty, genericLayerText, layerProperty, layerText } from '../../core/css/cssVarBuilder'
 
 // Helper to format dimension label from key
 const formatDimensionLabel = (key: string): string => {
@@ -31,6 +32,15 @@ const formatDimensionLabel = (key: string): string => {
   return key.charAt(0).toUpperCase() + key.slice(1)
 }
 
+// Extract the last segment from a token reference like "{brand.dimensions.general.xl}" -> "xl"
+const extractDimensionKey = (tokenRef: any): string | undefined => {
+  if (!tokenRef) return undefined
+  const val = typeof tokenRef === 'object' && '$value' in tokenRef ? tokenRef.$value : tokenRef
+  if (typeof val !== 'string') return undefined
+  const match = val.match(/\{[^}]*\.([^.}]+)\}$/)
+  return match ? match[1] : undefined
+}
+
 // Inline brand dimension slider for LayerStylePanel
 function BrandDimensionSliderInline({
   targetCssVar,
@@ -38,73 +48,92 @@ function BrandDimensionSliderInline({
   dimensionCategory,
   layer = 'layer-1',
   onUpdate,
+  initialKey,
 }: {
   targetCssVar: string
   label: string
   dimensionCategory: 'border-radii' | 'general'
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
   onUpdate?: (cssVar: string, tokenValue: string) => void
+  initialKey?: string
 }) {
   const { theme } = useVars()
   const { mode } = useThemeMode()
+
+  // Stabilize: only recompute when dimension keys change, not on every theme render
+  const dimensionKeys = useMemo(() => {
+    try {
+      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const dimensions = root?.dimensions || {}
+      const dimensionCategoryData = dimensions[dimensionCategory] || {}
+      return Object.keys(dimensionCategoryData).filter(k => {
+        const v = dimensionCategoryData[k]
+        return v && typeof v === 'object' && '$value' in v
+      }).sort().join(',')
+    } catch { return '' }
+  }, [theme, dimensionCategory])
 
   const tokens = useMemo(() => {
     const options: Array<{ name: string; value: number; label: string; key: string }> = []
 
     try {
-      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      const dimensions = root?.dimensions || {}
-      const dimensionCategoryData = dimensions[dimensionCategory] || {}
-
-      Object.keys(dimensionCategoryData).forEach(dimensionKey => {
-        const dimensionValue = dimensionCategoryData[dimensionKey]
-        if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
-          const cssVar = `--recursica-brand-dimensions-${dimensionCategory}-${dimensionKey}`
-          const cssValue = readCssVar(cssVar)
-
-          if (cssValue) {
-            const resolvedValue = readCssVarResolved(cssVar)
-            let numericValue: number | undefined
-
-            if (resolvedValue) {
-              const match = resolvedValue.match(/^(-?\d+(?:\.\d+)?)/)
-              if (match) {
-                numericValue = parseFloat(match[1])
-              }
-            }
-
-            const displayLabel = formatDimensionLabel(dimensionKey)
-
-            options.push({
-              name: cssVar,
-              value: numericValue ?? 0,
-              label: displayLabel,
-              key: dimensionKey,
-            })
+      const keys = dimensionKeys.split(',').filter(Boolean)
+      keys.forEach(dimensionKey => {
+        const cssVar = `--recursica_brand_dimensions_${dimensionCategory}_${dimensionKey}`
+        let numericValue: number | undefined
+        if (typeof document !== 'undefined') {
+          const computed = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim()
+          if (computed) {
+            const match = computed.match(/^(-?\d+(?:\.\d+)?)/)
+            if (match) numericValue = parseFloat(match[1])
           }
         }
+        if (numericValue !== undefined || dimensionKey === 'none') {
+          options.push({
+            name: cssVar,
+            value: numericValue ?? 0,
+            label: formatDimensionLabel(dimensionKey),
+            key: dimensionKey,
+          })
+        }
       })
 
-      const sortedTokens = options.sort((a, b) => {
+      return options.sort((a, b) => {
         if (a.key === 'none') return -1
         if (b.key === 'none') return 1
-        if (a.value !== undefined && b.value !== undefined) {
-          return a.value - b.value
-        }
-        if (a.value !== undefined) return -1
-        if (b.value !== undefined) return 1
-        return a.label.localeCompare(b.label)
+        return (a.value ?? 0) - (b.value ?? 0)
       })
-
-      return sortedTokens
     } catch (error) {
-      console.error(`Error loading ${dimensionCategory} tokens:`, error)
       return []
     }
-  }, [theme, mode, dimensionCategory])
+  }, [dimensionKeys, dimensionCategory])
 
-  const [selectedIndex, setSelectedIndex] = useState<number>(0)
+  const [selectedIndex, setSelectedIndex] = useState<number>(() => {
+    // Initialize from JSON-derived key if available
+    if (initialKey && tokens.length > 0) {
+      const idx = tokens.findIndex(t => t.key === initialKey)
+      if (idx >= 0) return idx
+    }
+    return 0
+  })
   const justSetValueRef = useRef<string | null>(null)
+  const hasInteractedRef = useRef(false)
+
+  // Re-sync when initialKey or tokens change (handles async token loading and layer switching)
+  // but not after the user has started interacting
+  useEffect(() => {
+    if (hasInteractedRef.current) return
+    if (initialKey && tokens.length > 0) {
+      const idx = tokens.findIndex(t => t.key === initialKey)
+      if (idx >= 0) setSelectedIndex(idx)
+    }
+  }, [initialKey, tokens])
+
+  // Reset interaction flag when switching to a different layer/control
+  useEffect(() => {
+    hasInteractedRef.current = false
+  }, [initialKey])
+
 
   const readInitialValue = useCallback(() => {
     // Don't read if we just set a value ourselves
@@ -112,11 +141,7 @@ function BrandDimensionSliderInline({
       return
     }
 
-    const inlineValue = typeof document !== 'undefined'
-      ? document.documentElement.style.getPropertyValue(targetCssVar).trim()
-      : ''
-
-    const currentValue = inlineValue || readCssVar(targetCssVar)
+    const currentValue = readCssVar(targetCssVar)
 
     if (!currentValue || currentValue === 'null' || currentValue === '') {
       const noneIndex = tokens.findIndex(t => t.key === 'none')
@@ -124,20 +149,23 @@ function BrandDimensionSliderInline({
       return
     }
 
-    if (currentValue.trim().startsWith('var(--recursica-')) {
+    // Try to match by dimension var name in the value string
+    if (currentValue.trim().startsWith('var(--recursica_')) {
       const matchingIndex = tokens.findIndex(t => {
-        const dimensionName = t.name.replace(`--recursica-brand-dimensions-${dimensionCategory}-`, '')
-        return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
+        const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}_`, '')
+        return currentValue.includes(`${dimensionCategory}_${dimensionName}`) || currentValue.includes(`dimensions_${dimensionCategory}_${dimensionName}`)
       })
-
       if (matchingIndex >= 0) {
         setSelectedIndex(matchingIndex)
         return
       }
+    }
 
-      const resolved = readCssVarResolved(targetCssVar)
-      if (resolved) {
-        const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
+    // Fallback: resolve to pixel value and match by closest token
+    if (typeof document !== 'undefined') {
+      const computedValue = getComputedStyle(document.documentElement).getPropertyValue(targetCssVar).trim()
+      if (computedValue) {
+        const match = computedValue.match(/^(-?\d+(?:\.\d+)?)px/i)
         if (match) {
           const pxValue = parseFloat(match[1])
           if (pxValue === 0) {
@@ -147,16 +175,17 @@ function BrandDimensionSliderInline({
               return
             }
           }
-
-          const matchingIndex = tokens
-            .map((t, idx) => ({ token: t, index: idx, diff: Math.abs((t.value ?? 0) - pxValue) }))
-            .reduce((closest, current) => {
-              if (!closest) return current
-              return current.diff < closest.diff ? current : closest
-            }, undefined as { token: typeof tokens[0]; index: number; diff: number } | undefined)
-
-          if (matchingIndex && matchingIndex.diff < 1) {
-            setSelectedIndex(matchingIndex.index)
+          // Resolve each token's actual pixel value at match time
+          const closest = tokens
+            .map((t, idx) => {
+              const tokenComputed = getComputedStyle(document.documentElement).getPropertyValue(t.name).trim()
+              const tokenMatch = tokenComputed.match(/^(-?\d+(?:\.\d+)?)/)
+              const tokenPx = tokenMatch ? parseFloat(tokenMatch[1]) : (t.value ?? 0)
+              return { token: t, index: idx, diff: Math.abs(tokenPx - pxValue) }
+            })
+            .reduce((best, cur) => (!best || cur.diff < best.diff) ? cur : best, undefined as { token: typeof tokens[0]; index: number; diff: number } | undefined)
+          if (closest && closest.diff < 1) {
+            setSelectedIndex(closest.index)
             return
           }
         }
@@ -167,47 +196,36 @@ function BrandDimensionSliderInline({
   }, [targetCssVar, tokens, dimensionCategory])
 
   useEffect(() => {
-    readInitialValue()
+    // Defer to next frame to ensure browser CSS is fully resolved
+    const frameId = requestAnimationFrame(() => readInitialValue())
+    return () => cancelAnimationFrame(frameId)
   }, [readInitialValue])
-
-  useEffect(() => {
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null
-
-    const handleCssVarUpdate = (event: CustomEvent) => {
-      const updatedVars = event.detail?.cssVars
-      // Only process if this specific CSS var was updated
-      if (!Array.isArray(updatedVars) || !updatedVars.includes(targetCssVar)) {
-        return
-      }
-
-      // Don't process if we just set this value ourselves
-      if (justSetValueRef.current !== null) {
-        return
-      }
-
-      // Debounce to prevent excessive reads
-      if (debounceTimer) {
-        clearTimeout(debounceTimer)
-      }
-
-      debounceTimer = setTimeout(() => {
-        // Double-check we're not in the middle of our own update
-        if (justSetValueRef.current === null) {
-          readInitialValue()
-        }
-      }, 50) // Longer delay to ensure CSS var is fully processed
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer)
-      }
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    }
-  }, [readInitialValue, targetCssVar])
+  // Derive scoped var for live preview (LayerModule reads scoped vars, not themed)
+  // Themed: --recursica_brand_themes_light_layers_layer-1_properties_padding
+  // Scoped: --recursica_brand_layer_1_properties_padding
+  const scopedVar = useMemo(() => {
+    const m = targetCssVar.match(/layer-(\d+)_properties_(.+)$/)
+    if (m) return `--recursica_brand_layer_${m[1]}_properties_${m[2]}`
+    return ''
+  }, [targetCssVar])
 
   const handleSliderChange = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
+    setSelectedIndex(clampedIndex)
+    hasInteractedRef.current = true
+    // Direct CSS var write for live preview
+    const selectedToken = tokens[clampedIndex]
+    if (selectedToken) {
+      const tokenValue = `var(${selectedToken.name})`
+      document.documentElement.style.setProperty(targetCssVar, tokenValue)
+      if (scopedVar) {
+        document.documentElement.style.setProperty(scopedVar, tokenValue)
+      }
+    }
+  }
+
+  const handleSliderCommit = (value: number | [number, number]) => {
     const numValue = typeof value === 'number' ? value : value[0]
     const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
     setSelectedIndex(clampedIndex)
@@ -215,30 +233,15 @@ function BrandDimensionSliderInline({
     const selectedToken = tokens[clampedIndex]
     if (selectedToken) {
       const tokenValue = `var(${selectedToken.name})`
-      updateCssVarFn(targetCssVar, tokenValue)
-      // Set a flag to prevent the listener from reverting our change
+      updateCssVarFn(targetCssVar, tokenValue, undefined, true)
       justSetValueRef.current = tokenValue
-      // Keep the flag longer to ensure CSS var is fully processed
       setTimeout(() => {
         justSetValueRef.current = null
-      }, 200)
+      }, 500)
 
       if (onUpdate) {
         onUpdate(targetCssVar, tokenValue)
       }
-
-      // Don't dispatch event immediately - let the CSS var update naturally
-      // Only dispatch if needed for other components, but with a longer delay
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          // Only dispatch if we're not in the middle of our own update
-          if (justSetValueRef.current === tokenValue) {
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: [targetCssVar] }
-            }))
-          }
-        }, 50) // Longer delay to ensure CSS var is processed
-      })
     }
   }
 
@@ -271,6 +274,7 @@ function BrandDimensionSliderInline({
     <Slider
       value={safeSelectedIndex}
       onChange={handleSliderChange}
+      onChangeCommitted={handleSliderCommit}
       min={0}
       max={tokens.length - 1}
       step={1}
@@ -350,86 +354,58 @@ function ElevationSliderInline({
   }, [primaryVar, tokens])
 
   useEffect(() => {
-    readInitialValue()
+    const frameId = requestAnimationFrame(() => readInitialValue())
+    return () => cancelAnimationFrame(frameId)
   }, [readInitialValue])
 
-  useEffect(() => {
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      const updatedVars = detail?.cssVars
-      // Only process if this specific CSS var was updated
-      if (!Array.isArray(updatedVars) || !updatedVars.includes(primaryVar)) {
-        return
-      }
-
-      // Don't process if we just set this value ourselves
-      if (justSetValueRef.current !== null) {
-        return
-      }
-
-      // Debounce to prevent excessive reads
-      if (debounceTimer) {
-        clearTimeout(debounceTimer)
-      }
-
-      debounceTimer = setTimeout(() => {
-        // Double-check we're not in the middle of our own update
-        if (justSetValueRef.current === null) {
-          readInitialValue()
-        }
-      }, 50) // Longer delay to ensure CSS var is fully processed
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer)
-      }
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-    }
-  }, [readInitialValue, primaryVar])
+  // Derive the scoped CSS var (read by LayerModule) from the themed primaryVar
+  // Themed: --recursica_brand_themes_light_layers_layer-1_properties_elevation
+  // Scoped: --recursica_brand_layer_1_properties_elevation
+  const scopedElevationVar = useMemo(() => {
+    const m = primaryVar.match(/layer-(\d+)_properties_elevation/)
+    if (m) return `--recursica_brand_layer_${m[1]}_properties_elevation`
+    return ''
+  }, [primaryVar])
 
   const handleSliderChange = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
+    setSelectedIndex(clampedIndex)
+    // Direct CSS var write for live preview
+    const selectedToken = tokens[clampedIndex]
+    if (selectedToken) {
+      // Set both themed and scoped vars for immediate preview
+      document.documentElement.style.setProperty(primaryVar, selectedToken.name)
+      if (scopedElevationVar) {
+        document.documentElement.style.setProperty(scopedElevationVar, selectedToken.name)
+      }
+    }
+  }
+
+  const handleSliderCommit = (value: number | [number, number]) => {
     const numValue = typeof value === 'number' ? value : value[0]
     const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
     setSelectedIndex(clampedIndex)
 
     const selectedToken = tokens[clampedIndex]
     if (selectedToken) {
-      // The CSS variable should contain just the elevation name (e.g., "elevation-0"),
-      // not the full token reference. The resolver extracts this during build.
-      // For direct updates, we set it to just the elevation name.
-      const elevationName = selectedToken.name // e.g., "elevation-0"
+      const elevationName = selectedToken.name
       const tokenReference = `{brand.themes.${mode}.elevations.${selectedToken.name}}`
 
-      // Set the CSS variable to just the elevation name (as the resolver would do)
-      updateCssVarFn(primaryVar, elevationName)
-
-      // Set a flag to prevent the listener from reverting our change
-      justSetValueRef.current = tokenReference
-      // Keep the flag longer to ensure CSS var is fully processed
-      setTimeout(() => {
-        justSetValueRef.current = null
-      }, 200)
-
-      if (onUpdate) {
-        // Pass the token reference for JSON updates
-        onUpdate(['properties', 'elevation'], tokenReference)
+      updateCssVarFn(primaryVar, elevationName, undefined, true)
+      if (scopedElevationVar) {
+        document.documentElement.style.setProperty(scopedElevationVar, elevationName)
       }
 
-      // Dispatch event to notify other components
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          // Only dispatch if we're not in the middle of our own update
-          if (justSetValueRef.current === tokenReference) {
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: [primaryVar] }
-            }))
-          }
-        }, 50)
-      })
+      justSetValueRef.current = tokenReference
+      setTimeout(() => {
+        justSetValueRef.current = null
+      }, 500)
+
+      if (onUpdate) {
+        onUpdate(['properties', 'elevation'], tokenReference)
+      }
     }
   }
 
@@ -474,6 +450,7 @@ function ElevationSliderInline({
     <Slider
       value={safeSelectedIndex}
       onChange={handleSliderChange}
+      onChangeCommitted={handleSliderCommit}
       min={0}
       max={tokens.length - 1}
       step={1}
@@ -490,6 +467,66 @@ function ElevationSliderInline({
         return elevationNum === 0 ? 'None' : String(elevationNum)
       })()}
       label={<Label layer={layer} layout="stacked">{label}</Label>}
+    />
+  )
+}
+
+// Separate component for border size to use local state (avoids controlled value bounce)
+function BorderSizeSlider({
+  borderSizeCssVar,
+  initialValue,
+  updateValue,
+  tokensJson,
+}: {
+  borderSizeCssVar: string
+  initialValue: number
+  updateValue: (path: string[], raw: string) => void
+  tokensJson: any
+}) {
+  const [localValue, setLocalValue] = useState(initialValue)
+
+
+  useEffect(() => {
+    setLocalValue(initialValue)
+  }, [initialValue])
+
+  // Derive scoped var for live preview
+  const scopedBorderSizeVar = useMemo(() => {
+    const m = borderSizeCssVar.match(/layer-(\d+)_properties_(.+)$/)
+    if (m) return `--recursica_brand_layer_${m[1]}_properties_${m[2]}`
+    return ''
+  }, [borderSizeCssVar])
+
+  return (
+    <Slider
+      value={localValue}
+      onChange={(value) => {
+        const numValue = typeof value === 'number' ? value : value[0]
+        const safeValue = Number.isFinite(numValue) ? numValue : 0
+        setLocalValue(safeValue)
+        // Direct CSS var write for live preview
+        document.documentElement.style.setProperty(borderSizeCssVar, `${safeValue}px`)
+        if (scopedBorderSizeVar) {
+          document.documentElement.style.setProperty(scopedBorderSizeVar, `${safeValue}px`)
+        }
+      }}
+      onChangeCommitted={(value) => {
+        const numValue = typeof value === 'number' ? value : value[0]
+        const safeValue = Number.isFinite(numValue) ? numValue : 0
+        setLocalValue(safeValue)
+        updateCssVarFn(borderSizeCssVar, `${safeValue}px`, tokensJson)
+        updateValue(['properties', 'border-size'], String(safeValue))
+      }}
+      min={0}
+      max={20}
+      step={1}
+      layer="layer-3"
+      layout="stacked"
+      showInput={false}
+      showValueLabel={true}
+      showMinMaxLabels={false}
+      valueLabel={(val) => `${val}px`}
+      label={<Label layer="layer-3" layout="stacked">Border Size</Label>}
     />
   )
 }
@@ -593,112 +630,21 @@ export default function LayerStylePanel({
 
   // Compute CSS vars at top level for useEffect hooks
   const paddingCssVar = useMemo(() => {
-    return selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-padding`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-padding`
+    const lvl = selectedLevels.length > 0 ? selectedLevels[0] : layerKey.replace('layer-', '')
+    return `${layerProperty(mode, lvl, 'padding')}`
   }, [selectedLevels, mode, layerKey])
 
   const borderRadiusCssVar = useMemo(() => {
     if (isOnlyLayer0) return ''
-    return selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-border-radius`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-border-radius`
+    const lvl = selectedLevels.length > 0 ? selectedLevels[0] : layerKey.replace('layer-', '')
+    return `${layerProperty(mode, lvl, 'border-radius')}`
   }, [selectedLevels, mode, layerKey, isOnlyLayer0])
 
   const borderSizeCssVar = useMemo(() => {
     if (isOnlyLayer0) return ''
-    return selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-border-size`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-border-size`
+    const lvl = selectedLevels.length > 0 ? selectedLevels[0] : layerKey.replace('layer-', '')
+    return `${layerProperty(mode, lvl, 'border-size')}`
   }, [selectedLevels, mode, layerKey, isOnlyLayer0])
-
-  // Consolidated listener for CSS variable updates with debouncing
-  useEffect(() => {
-    let debounceTimer: ReturnType<typeof setTimeout> | null = null
-    const pendingUpdates = new Set<string>()
-
-    const handleCssVarUpdate = (e: CustomEvent) => {
-      const updatedVars = e.detail?.cssVars || []
-      if (!Array.isArray(updatedVars)) return
-
-      // Check if any of our CSS vars were updated
-      const relevantVars = [paddingCssVar, borderRadiusCssVar, borderSizeCssVar].filter(Boolean)
-      const hasRelevantUpdate = relevantVars.some(v => updatedVars.includes(v))
-
-      if (!hasRelevantUpdate) return
-
-      // Debounce updates to prevent excessive processing
-      if (debounceTimer) {
-        clearTimeout(debounceTimer)
-      }
-
-      updatedVars.forEach(v => {
-        if (relevantVars.includes(v)) {
-          pendingUpdates.add(v)
-        }
-      })
-
-      debounceTimer = setTimeout(() => {
-        // Process all pending updates at once
-        pendingUpdates.forEach(cssVar => {
-          if (cssVar === paddingCssVar) {
-            const cssValue = readCssVar(paddingCssVar)
-            if (cssValue && cssValue.trim().startsWith('var(')) {
-              const match = cssValue.match(/--recursica-brand-dimensions-general-([^)]+)/)
-              if (match) {
-                const generalName = match[1]
-                const tokenRef = `{brand.dimensions.general.${generalName}}`
-                onUpdate((layerSpec: any) => {
-                  const next = JSON.parse(JSON.stringify(layerSpec || {}))
-                  if (!next.properties) next.properties = {}
-                  next.properties.padding = { $type: 'number', $value: tokenRef }
-                  return next
-                })
-              }
-            }
-          } else if (cssVar === borderRadiusCssVar) {
-            const cssValue = readCssVar(borderRadiusCssVar)
-            if (cssValue && cssValue.trim().startsWith('var(')) {
-              const match = cssValue.match(/--recursica-brand-dimensions-border-radii-([^)]+)/)
-              if (match) {
-                const radiusName = match[1]
-                const tokenRef = `{brand.dimensions.border-radii.${radiusName}}`
-                onUpdate((layerSpec: any) => {
-                  const next = JSON.parse(JSON.stringify(layerSpec || {}))
-                  if (!next.properties) next.properties = {}
-                  next.properties['border-radius'] = { $type: 'number', $value: tokenRef }
-                  return next
-                })
-              }
-            }
-          } else if (cssVar === borderSizeCssVar) {
-            const cssValue = readCssVar(borderSizeCssVar)
-            if (cssValue) {
-              const match = cssValue.match(/^(\d+(?:\.\d+)?)px$/)
-              if (match) {
-                const pxValue = parseFloat(match[1])
-                onUpdate((layerSpec: any) => {
-                  const next = JSON.parse(JSON.stringify(layerSpec || {}))
-                  if (!next.properties) next.properties = {}
-                  next.properties['border-size'] = { $type: 'number', $value: pxValue }
-                  return next
-                })
-              }
-            }
-          }
-        })
-        pendingUpdates.clear()
-      }, 50) // 50ms debounce
-    }
-
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer)
-      }
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    }
-  }, [paddingCssVar, borderRadiusCssVar, borderSizeCssVar, onUpdate])
 
   const updateValue = (path: string[], raw: string) => {
     const value: any = (() => {
@@ -734,9 +680,8 @@ export default function LayerStylePanel({
     const isSelect = options.length > 0
 
     // Build CSS variable name for this field
-    const fieldCssVar = selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-${pathKey.replace(/\./g, '-')}`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-${pathKey.replace(/\./g, '-')}`
+    const fieldLvl = selectedLevels.length > 0 ? selectedLevels[0] : layerKey.replace('layer-', '')
+    const fieldCssVar = `${layerProperty(mode, fieldLvl, pathKey.replace(/\./g, '-'))}`
 
     // For element-text-color, check contrast against surface
     // For surface, check contrast against element-text-color
@@ -744,15 +689,9 @@ export default function LayerStylePanel({
     // Check if this is element-text-color (pathKey might be "element.text.color" with dots)
     const isElementTextColor = pathKey.includes('element-text-color') || pathKey.includes('element.text.color')
     if (isColor && isElementTextColor) {
-      const surfaceVar = selectedLevels.length > 0
-        ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-surface`
-        : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-surface`
-      contrastColorCssVar = surfaceVar
+      contrastColorCssVar = `${layerProperty(mode, fieldLvl, 'surface')}`
     } else if (isColor && (pathKey === 'surface' || pathKey.includes('surface'))) {
-      const textColorVar = selectedLevels.length > 0
-        ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-elements-text-color`
-        : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-elements-text-color`
-      contrastColorCssVar = textColorVar
+      contrastColorCssVar = `${layerText(mode, fieldLvl, 'color')}`
     }
 
     // For color fields, use PaletteColorControl instead of select
@@ -791,10 +730,10 @@ export default function LayerStylePanel({
               onChange={(e) => updateValue(path, e.currentTarget.value)}
               style={{
                 padding: '6px 8px',
-                border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`,
+                border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
                 borderRadius: 6,
-                backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`,
-                color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)`,
+                backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+                color: `var(${genericLayerText(1, 'color')})`,
                 fontSize: 14,
               }}
             />
@@ -805,21 +744,17 @@ export default function LayerStylePanel({
   }
   const renderPaletteButton = (target: 'surface' | 'border-color', title: string) => {
     // Build CSS variables for all selected layers
-    const targetCssVar = selectedLevels.length > 0
-      ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-${target}`
-      : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-${target}`
+    const paletteLvl = selectedLevels.length > 0 ? selectedLevels[0] : layerKey.replace('layer-', '')
+    const targetCssVar = `${layerProperty(mode, paletteLvl, target)}`
     const targetCssVars = selectedLevels.map(level =>
-      `--recursica-brand-themes-${mode}-layers-layer-${level}-properties-${target}`
+      `${layerProperty(mode, level, target)}`
     )
 
     // For surface color, check contrast against element-text-color (the label text color)
     // For element-text-color, check contrast against surface
     let contrastColorCssVar: string | undefined
     if (target === 'surface') {
-      const textColorVar = selectedLevels.length > 0
-        ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-elements-text-color`
-        : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-elements-text-color`
-      contrastColorCssVar = textColorVar
+      contrastColorCssVar = `${layerText(mode, paletteLvl, 'color')}`
     }
 
     return (
@@ -867,9 +802,9 @@ export default function LayerStylePanel({
         // Clear CSS variables for surface, border-color, and text-color so they regenerate from theme defaults
         const rootEl = document.documentElement
         levels.forEach((lvl) => {
-          const surfaceVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-surface`
-          const borderVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-properties-border-color`
-          const textColorVar = `--recursica-brand-themes-${mode}-layers-layer-${lvl}-elements-text-color`
+          const surfaceVar = `${layerProperty(mode, lvl, 'surface')}`
+          const borderVar = `${layerProperty(mode, lvl, 'border-color')}`
+          const textColorVar = `${layerText(mode, lvl, 'color')}`
           rootEl.style.removeProperty(surfaceVar)
           rootEl.style.removeProperty(textColorVar)
           if (lvl > 0) {
@@ -888,7 +823,7 @@ export default function LayerStylePanel({
       }}
       icon={(() => {
         const ResetIcon = iconNameToReactComponent('arrow-path')
-        return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+        return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
       })()}
       layer="layer-0"
     >
@@ -916,9 +851,8 @@ export default function LayerStylePanel({
         {renderPaletteButton('surface', 'Surface Color')}
         {!isOnlyLayer0 && renderPaletteButton('border-color', 'Border Color')}
         {!isOnlyLayer0 && (() => {
-          const elevationCssVar = selectedLevels.length > 0
-            ? `--recursica-brand-themes-${mode}-layers-layer-${selectedLevels[0]}-properties-elevation`
-            : `--recursica-brand-themes-${mode}-layers-layer-${layerKey}-properties-elevation`
+          const elevLvl = selectedLevels.length > 0 ? selectedLevels[0] : layerKey.replace('layer-', '')
+          const elevationCssVar = `${layerProperty(mode, elevLvl, 'elevation')}`
 
           return (
             <ElevationSliderInline
@@ -926,6 +860,7 @@ export default function LayerStylePanel({
               label="Elevation"
               elevationOptions={elevationOptions}
               mode={mode}
+              onUpdate={updateValue}
               layer="layer-2"
             />
           )
@@ -936,23 +871,19 @@ export default function LayerStylePanel({
             label="Padding"
             dimensionCategory="general"
             layer="layer-1"
-            onUpdate={(cssVar, tokenValue) => {
-              // Sync to theme JSON when CSS var updates
-              const cssValue = readCssVar(cssVar)
-              if (cssValue && cssValue.trim().startsWith('var(')) {
-                const match = cssValue.match(/--recursica-brand-dimensions-general-([^)]+)/)
-                if (match) {
-                  const generalName = match[1]
-                  const tokenRef = `{brand.dimensions.general.${generalName}}`
-                  onUpdate((layerSpec: any) => {
-                    const next = JSON.parse(JSON.stringify(layerSpec || {}))
-                    if (!next.properties) next.properties = {}
-                    next.properties.padding = { $type: 'number', $value: tokenRef }
-                    return next
-                  })
-                }
+            onUpdate={(_cssVar, tokenValue) => {
+              const match = tokenValue.match(/--recursica_brand_dimensions_general_([^)]+)/)
+              if (match) {
+                const tokenRef = `{brand.dimensions.general.${match[1]}}`
+                onUpdate((layerSpec: any) => {
+                  const next = JSON.parse(JSON.stringify(layerSpec || {}))
+                  if (!next.properties) next.properties = {}
+                  next.properties.padding = { $type: 'number', $value: tokenRef }
+                  return next
+                })
               }
             }}
+            initialKey={extractDimensionKey(spec?.properties?.padding)}
           />
         )}
         {!isOnlyLayer0 && borderRadiusCssVar && (
@@ -961,50 +892,28 @@ export default function LayerStylePanel({
             label="Border Radius"
             dimensionCategory="border-radii"
             layer="layer-1"
-            onUpdate={(cssVar, tokenValue) => {
-              // Sync to theme JSON when CSS var updates
-              const cssValue = readCssVar(cssVar)
-              if (cssValue && cssValue.trim().startsWith('var(')) {
-                const match = cssValue.match(/--recursica-brand-dimensions-border-radii-([^)]+)/)
-                if (match) {
-                  const radiusName = match[1]
-                  const tokenRef = `{brand.dimensions.border-radii.${radiusName}}`
-                  onUpdate((layerSpec: any) => {
-                    const next = JSON.parse(JSON.stringify(layerSpec || {}))
-                    if (!next.properties) next.properties = {}
-                    next.properties['border-radius'] = { $type: 'number', $value: tokenRef }
-                    return next
-                  })
-                }
+            onUpdate={(_cssVar, tokenValue) => {
+              const match = tokenValue.match(/--recursica_brand_dimensions_border-radii_([^)]+)/)
+              if (match) {
+                const tokenRef = `{brand.dimensions.border-radii.${match[1]}}`
+                onUpdate((layerSpec: any) => {
+                  const next = JSON.parse(JSON.stringify(layerSpec || {}))
+                  if (!next.properties) next.properties = {}
+                  next.properties['border-radius'] = { $type: 'number', $value: tokenRef }
+                  return next
+                })
               }
             }}
+            initialKey={extractDimensionKey(spec?.properties?.['border-radius'])}
           />
         )}
         {!isOnlyLayer0 && borderSizeCssVar && (() => {
-          const currentValue = (() => {
-            const v = (spec as any)?.properties?.['border-size']?.$value
-            return typeof v === 'number' ? v : 0
-          })()
-
           return (
-            <Slider
-              value={currentValue}
-              onChange={(value) => {
-                const numValue = typeof value === 'number' ? value : value[0]
-                updateValue(['properties', 'border-size'], String(Number.isFinite(numValue) ? numValue : 0))
-                // Also update CSS var directly
-                updateCssVarFn(borderSizeCssVar, `${numValue}px`, tokensJson)
-              }}
-              min={0}
-              max={20}
-              step={1}
-              layer="layer-3"
-              layout="stacked"
-              showInput={false}
-              showValueLabel={true}
-              showMinMaxLabels={false}
-              valueLabel={(val) => `${val}px`}
-              label={<Label layer="layer-3" layout="stacked">Border Size</Label>}
+            <BorderSizeSlider
+              borderSizeCssVar={borderSizeCssVar}
+              initialValue={typeof (spec as any)?.properties?.['border-size']?.$value === 'number' ? (spec as any).properties['border-size'].$value : 0}
+              updateValue={updateValue}
+              tokensJson={tokensJson}
             />
           )
         })()}

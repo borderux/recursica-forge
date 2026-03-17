@@ -32,13 +32,13 @@ export default function Toast({
   const { mode } = useThemeMode()
   const CloseIcon = iconNameToReactComponent('x-mark')
   
-  // Use UIKit.json toast colors for standard layers
+  // Use recursica_ui-kit.json toast colors for standard layers
   const toastBgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
   const toastTextVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
-  // Button color from UIKit.json
+  // Button color from recursica_ui-kit.json
   const toastButtonVar = getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
   
-  // Get component-level CSS variables (these are under toast.properties in UIKit.json)
+  // Get component-level CSS variables (these are under toast.properties in recursica_ui-kit.json)
   const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
   const minWidthVar = getComponentLevelCssVar('Toast', 'min-width')

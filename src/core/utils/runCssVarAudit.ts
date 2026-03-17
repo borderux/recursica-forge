@@ -35,7 +35,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
   // Get all CSS variables from root
   for (let i = 0; i < computedStyle.length; i++) {
     const prop = computedStyle[i]
-    if (prop.startsWith('--recursica-')) {
+    if (prop.startsWith('--recursica_')) {
       allVars.add(prop)
     }
   }
@@ -49,7 +49,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
     // Check computed styles
     for (let i = 0; i < elComputed.length; i++) {
       const prop = elComputed[i]
-      if (prop.startsWith('--recursica-')) {
+      if (prop.startsWith('--recursica_')) {
         allVars.add(prop)
       }
     }
@@ -58,7 +58,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
     if (elInline && elInline.length > 0) {
       for (let i = 0; i < elInline.length; i++) {
         const prop = elInline[i]
-        if (prop.startsWith('--recursica-')) {
+        if (prop.startsWith('--recursica_')) {
           allVars.add(prop)
         }
       }
@@ -76,7 +76,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
             const style = rule.style
             for (let i = 0; i < style.length; i++) {
               const prop = style[i]
-              if (prop.startsWith('--recursica-')) {
+              if (prop.startsWith('--recursica_')) {
                 allVars.add(prop)
               }
             }
@@ -179,7 +179,7 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
       if (totalIssues > 0) {
         console.log(`\n💡 Remember:`)
         console.log(`   - NEVER add fallback values`)
-        console.log(`   - NEVER modify Tokens.json, Brand.json, or UIKit.json`)
+        console.log(`   - NEVER modify recursica_tokens.json, recursica_brand.json, or recursica_ui-kit.json`)
         console.log(`   - Always fix the code using the variable, not the normalization process`)
         console.log(`   - Never create CSS aliases for the same variable`)
         console.log(`   - Always normalize CSS variables using utility functions`)
@@ -214,7 +214,7 @@ function getAllCssVars(): string[] {
   // Get all CSS variables from root
   for (let i = 0; i < computedStyle.length; i++) {
     const prop = computedStyle[i]
-    if (prop.startsWith('--recursica-')) {
+    if (prop.startsWith('--recursica_')) {
       allVars.add(prop)
     }
   }
@@ -228,7 +228,7 @@ function getAllCssVars(): string[] {
     // Check computed styles
     for (let i = 0; i < elComputed.length; i++) {
       const prop = elComputed[i]
-      if (prop.startsWith('--recursica-')) {
+      if (prop.startsWith('--recursica_')) {
         allVars.add(prop)
       }
     }
@@ -237,7 +237,7 @@ function getAllCssVars(): string[] {
     if (elInline && elInline.length > 0) {
       for (let i = 0; i < elInline.length; i++) {
         const prop = elInline[i]
-        if (prop.startsWith('--recursica-')) {
+        if (prop.startsWith('--recursica_')) {
           allVars.add(prop)
         }
       }
@@ -255,7 +255,7 @@ function getAllCssVars(): string[] {
             const style = rule.style
             for (let i = 0; i < style.length; i++) {
               const prop = style[i]
-              if (prop.startsWith('--recursica-')) {
+              if (prop.startsWith('--recursica_')) {
                 allVars.add(prop)
               }
             }
@@ -298,10 +298,10 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
       '/components',
     ]
 
-    // Dynamically get component routes from UIKit.json
+    // Dynamically get component routes from recursica_ui-kit.json
     try {
-      // Fetch UIKit.json to get the list of mapped components
-      const response = await fetch('/src/vars/UIKit.json')
+      // Fetch recursica_ui-kit.json to get the list of mapped components
+      const response = await fetch('/recursica_ui-kit.json')
       const uikitJson = await response.json()
       const components = uikitJson?.['ui-kit']?.components || {}
 
@@ -312,7 +312,7 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
 
       defaultRoutes.push(...componentRoutes)
     } catch (error) {
-      console.warn('Failed to load UIKit.json for component routes, using base routes only:', error)
+      console.warn('Failed to load recursica_ui-kit.json for component routes, using base routes only:', error)
     }
 
     const routesToAudit = routes || defaultRoutes
@@ -484,7 +484,7 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || process.env.NODE_EN
 
       console.log(`\n💡 Remember:`)
       console.log(`   - NEVER add fallback values`)
-      console.log(`   - NEVER modify Tokens.json, Brand.json, or UIKit.json`)
+      console.log(`   - NEVER modify recursica_tokens.json, recursica_brand.json, or recursica_ui-kit.json`)
       console.log(`   - Always fix the code using the variable, not the normalization process`)
       console.log(`   - Never create CSS aliases for the same variable`)
       console.log(`   - Always normalize CSS variables using utility functions`)

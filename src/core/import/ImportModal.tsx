@@ -258,7 +258,7 @@ export function ImportModal({
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "var(--recursica-brand-dimensions-general-md)",
+          gap: "var(--recursica_brand_dimensions_general_md)",
         }}
       >
         <SegmentedControl
@@ -352,7 +352,7 @@ export function ImportModal({
                       style={{
                         padding: "12px",
                         backgroundColor:
-                          "var(--recursica-brand-themes-light-palettes-palette-2-danger-tone, #fee)",
+                          "var(--recursica_brand_themes_light_palettes_palette_2_danger_color_tone, #fee)",
                         color: "#c00",
                         borderRadius: "4px",
                         fontSize: "14px",
@@ -471,7 +471,7 @@ export function ImportModal({
                             styles: {
                               dropdown: {
                                 maxHeight:
-                                  "calc(var(--recursica-component-menu-item-min-height, 36px) * 5.5)",
+                                  "calc(var(--recursica_component_menu_item_min_height, 36px) * 5.5)",
                                 overflowY: "auto",
                               },
                             },
@@ -540,7 +540,7 @@ export function ImportModal({
                       style={{
                         padding: "16px",
                         backgroundColor:
-                          "var(--recursica-brand-themes-light-layers-layer-2-surface, rgba(0,0,0,0.02))",
+                          "var(--recursica_brand_themes_light_layers_layer-2_surface, rgba(0,0,0,0.02))",
                         borderRadius: "8px",
                       }}
                     >

@@ -4,9 +4,9 @@ import addFormats from 'ajv-formats'
 import brandSchema from '../../schemas/brand.schema.json'
 import tokensSchema from '../../schemas/tokens.schema.json'
 import uikitSchema from '../../schemas/uikit.schema.json'
-import brandJson from './Brand.json'
-import tokensJson from './Tokens.json'
-import uikitJson from './UIKit.json'
+import brandJson from '../../recursica_brand.json'
+import tokensJson from '../../recursica_tokens.json'
+import uikitJson from '../../recursica_ui-kit.json'
 import {
   validateReferences,
   REF_WORKAROUND_IDS,
@@ -17,7 +17,7 @@ describe('JSON Schema Validation', () => {
   const ajv = new Ajv({ allErrors: true, strict: false })
   addFormats(ajv)
 
-  describe('Brand.json', () => {
+  describe('recursica_brand.json', () => {
     it('should validate against brand schema', () => {
       const validate = ajv.compile(brandSchema)
       const valid = validate(brandJson)
@@ -40,9 +40,9 @@ describe('JSON Schema Validation', () => {
         })
         
         if (criticalErrors.length > 0) {
-          console.error('Brand.json has critical validation errors:', criticalErrors)
+          console.error('recursica_brand.json has critical validation errors:', criticalErrors)
           // Fail the test on critical errors
-          throw new Error(`Brand.json validation failed with ${criticalErrors.length} critical error(s). First error: ${JSON.stringify(criticalErrors[0])}`)
+          throw new Error(`recursica_brand.json validation failed with ${criticalErrors.length} critical error(s). First error: ${JSON.stringify(criticalErrors[0])}`)
         }
       }
       
@@ -99,7 +99,7 @@ describe('JSON Schema Validation', () => {
     })
   })
 
-  describe('Tokens.json', () => {
+  describe('recursica_tokens.json', () => {
     it('should validate against tokens schema', () => {
       const validate = ajv.compile(tokensSchema)
       const valid = validate(tokensJson)
@@ -120,9 +120,9 @@ describe('JSON Schema Validation', () => {
         })
         
         if (criticalErrors.length > 0) {
-          console.error('Tokens.json has critical validation errors:', criticalErrors)
+          console.error('recursica_tokens.json has critical validation errors:', criticalErrors)
           // Fail the test on critical errors
-          throw new Error(`Tokens.json validation failed with ${criticalErrors.length} critical error(s). First error: ${JSON.stringify(criticalErrors[0])}`)
+          throw new Error(`recursica_tokens.json validation failed with ${criticalErrors.length} critical error(s). First error: ${JSON.stringify(criticalErrors[0])}`)
         }
       }
       
@@ -176,7 +176,7 @@ describe('JSON Schema Validation', () => {
     })
   })
 
-  describe('UIKit.json', () => {
+  describe('recursica_ui-kit.json', () => {
     it('should validate against uikit schema', () => {
       const validate = ajv.compile(uikitSchema)
       const valid = validate(uikitJson)
@@ -192,9 +192,9 @@ describe('JSON Schema Validation', () => {
         })
         
         if (criticalErrors.length > 0) {
-          console.error('UIKit.json has critical validation errors:', criticalErrors)
+          console.error('recursica_ui-kit.json has critical validation errors:', criticalErrors)
           // Fail the test on critical errors
-          throw new Error(`UIKit.json validation failed with ${criticalErrors.length} critical error(s). First error: ${JSON.stringify(criticalErrors[0])}`)
+          throw new Error(`recursica_ui-kit.json validation failed with ${criticalErrors.length} critical error(s). First error: ${JSON.stringify(criticalErrors[0])}`)
         }
       }
       
@@ -230,7 +230,7 @@ describe('JSON Schema Validation', () => {
   })
 
   describe('JSON Structure Consistency', () => {
-    it('should have consistent structure between light and dark themes in Brand.json', () => {
+    it('should have consistent structure between light and dark themes in recursica_brand.json', () => {
       const lightPalettes = Object.keys(brandJson.brand?.themes?.light?.palettes || {})
       const darkPalettes = Object.keys(brandJson.brand?.themes?.dark?.palettes || {})
       
@@ -248,8 +248,8 @@ describe('JSON Schema Validation', () => {
   })
 
   describe('Schema Validation Edge Cases', () => {
-    it('should reject invalid color hex values in Tokens.json', () => {
-      // Use the actual structure from Tokens.json (colors with scales)
+    it('should reject invalid color hex values in recursica_tokens.json', () => {
+      // Use the actual structure from recursica_tokens.json (colors with scales)
       const invalidTokens = {
         tokens: {
           colors: {
@@ -282,7 +282,7 @@ describe('JSON Schema Validation', () => {
     })
 
     it('should reject invalid opacity values (outside 0-1 range)', () => {
-      // Use the actual structure from Tokens.json (opacities plural)
+      // Use the actual structure from recursica_tokens.json (opacities plural)
       const invalidTokens = {
         tokens: {
           opacities: {
@@ -306,7 +306,7 @@ describe('JSON Schema Validation', () => {
       // If validation passes, the schema might be permissive (which is acceptable)
     })
 
-    it('should reject Brand.json missing required core-colors', () => {
+    it('should reject recursica_brand.json missing required core-colors', () => {
       const invalidBrand = {
         brand: {
           themes: {
@@ -333,7 +333,7 @@ describe('JSON Schema Validation', () => {
       }
     })
 
-    it('should reject Brand.json missing required neutral palette', () => {
+    it('should reject recursica_brand.json missing required neutral palette', () => {
       const invalidBrand = {
         brand: {
           themes: {
@@ -379,7 +379,7 @@ describe('JSON Schema Validation', () => {
       }
     })
 
-    it('should reject UIKit.json missing required globals section', () => {
+    it('should reject recursica_ui-kit.json missing required globals section', () => {
       const invalidUIKit = {
         'ui-kit': {
           // Missing globals section
@@ -400,7 +400,7 @@ describe('JSON Schema Validation', () => {
       }
     })
 
-    it('should validate correct token reference patterns in Brand.json', () => {
+    it('should validate correct token reference patterns in recursica_brand.json', () => {
       const validBrand = {
         brand: {
           themes: {
@@ -456,7 +456,7 @@ describe('JSON Schema Validation', () => {
       expect(valid).toBe(true)
     })
 
-    it('should validate elevation structure in Brand.json', () => {
+    it('should validate elevation structure in recursica_brand.json', () => {
       const brandWithElevation = {
         brand: {
           themes: {

@@ -11,6 +11,7 @@
 import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
 import { updateUIKitValue, removeUIKitValue } from './updateUIKitValue'
+import { updateBrandValue } from './updateBrandValue'
 
 // Global flag to suppress events during bulk updates
 let suppressEvents = false
@@ -65,7 +66,7 @@ function fireBatchedEvent() {
 /**
  * Updates a single CSS variable with validation
  * 
- * @param cssVarName - The CSS variable name (e.g., '--recursica-brand-light-palettes-core-black')
+ * @param cssVarName - The CSS variable name (e.g., '--recursica_brand_light_palettes_core_black')
  * @param value - The value to set (must be a token reference for brand vars)
  * @param tokens - Optional tokens object for auto-fixing hex values
  * @param silent - If true, don't dispatch cssVarsUpdated event (for bulk updates)
@@ -84,7 +85,7 @@ export function updateCssVar(
   // and don't need to trigger component re-renders (CSS var() references resolve automatically)
   // UIKit vars should never dispatch cssVarsUpdated events - they update the DOM directly
   // and CSS automatically picks up the changes via var() references
-  const isUIKitVar = cssVarName.includes('-ui-kit-') && (cssVarName.includes('-components-') || cssVarName.includes('-globals-'))
+  const isUIKitVar = cssVarName.includes('_ui-kit_') && (cssVarName.includes('_components_') || cssVarName.includes('_globals_'))
   // UIKit vars are ALWAYS silent, regardless of the silent parameter
   // For non-UIKit vars, respect the silent parameter
   const shouldBeSilent = isUIKitVar || (silent === true)
@@ -117,6 +118,12 @@ export function updateCssVar(
   // CRITICAL FIX: Ensure all UIKit var changes from any slider/picker save to JSON store automatically
   if (isUIKitVar) {
     updateUIKitValue(cssVarName, trimmedValue)
+  }
+
+  // Sync brand CSS var changes to the JSON store
+  // This ensures AA compliance fixes (and any other brand var changes) persist in the store
+  if (isBrandVar(cssVarName)) {
+    updateBrandValue(cssVarName, trimmedValue)
   }
 
   // Dispatch event to notify components of CSS variable updates
@@ -170,8 +177,8 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
         // Always use scale key - findTokenByHex returns scale in the scale property
         const scaleKey = tokenMatch.scale || (tokenMatch.family.startsWith('scale-') ? tokenMatch.family : null)
         if (scaleKey) {
-          const normalizedLevel = tokenMatch.level === '000' ? '050' : tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
-          return `var(--recursica-tokens-colors-${scaleKey}-${normalizedLevel})`
+          const normalizedLevel = tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
+          return `var(--recursica_tokens_colors_${scaleKey}_${normalizedLevel})`
         }
         // If no scale found, try to resolve alias to scale key
         const tokensRoot: any = (tokens as any)?.tokens || tokens || {}
@@ -182,8 +189,8 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
           return scale && typeof scale === 'object' && scale.alias === tokenMatch.family
         })
         if (resolvedScaleKey) {
-          const normalizedLevel = tokenMatch.level === '000' ? '050' : tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
-          return `var(--recursica-tokens-colors-${resolvedScaleKey}-${normalizedLevel})`
+          const normalizedLevel = tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
+          return `var(--recursica_tokens_colors_${resolvedScaleKey}_${normalizedLevel})`
         }
         // Last resort: use tokenToCssVar which will handle it
         // Try new format first (colors/...)
@@ -196,8 +203,8 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
         }
         // If still no CSS var and we have old format, generate old format CSS var directly
         if (!cssVar && tokens?.tokens?.color && !tokenMatch.scale) {
-          const normalizedLevel = tokenMatch.level === '000' ? '050' : tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
-          return `var(--recursica-tokens-color-${tokenMatch.family}-${normalizedLevel})`
+          const normalizedLevel = tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
+          return `var(--recursica_tokens_color_${tokenMatch.family}_${normalizedLevel})`
         }
         if (cssVar) return cssVar
       }
@@ -225,8 +232,8 @@ export function removeCssVar(cssVarName: string, silent?: boolean): void {
   root.style.removeProperty(cssVarName)
 
   // Also remove unprefixed version if it exists
-  if (cssVarName.startsWith('--recursica-')) {
-    const unprefixed = cssVarName.replace('--recursica-', '--')
+  if (cssVarName.startsWith('--recursica_')) {
+    const unprefixed = cssVarName.replace('--recursica_', '--')
     root.style.removeProperty(unprefixed)
   }
 

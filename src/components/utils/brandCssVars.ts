@@ -6,17 +6,18 @@
  */
 
 import { readCssVar } from '../../core/css/readCssVar'
+import { brandTypography, genericState, elevation as elevationVar } from '../../core/css/cssVarBuilder'
 
 /**
  * Generates CSS variable name for brand typography properties
  * 
  * @example
  * getBrandTypographyCssVar('caption', 'font-size')
- * => '--recursica-brand-typography-caption-font-size'
+ * => '--recursica_brand_typography_caption-font-size'
  * 
  * @example
  * getBrandTypographyCssVar('button', 'font-weight')
- * => '--recursica-brand-typography-button-font-weight'
+ * => '--recursica_brand_typography_button_font-weight'
  */
 export function getBrandTypographyCssVar(
   style: string,
@@ -24,38 +25,28 @@ export function getBrandTypographyCssVar(
 ): string {
   const normalizedStyle = style.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
   const normalizedProperty = property.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-  return `--recursica-brand-typography-${normalizedStyle}-${normalizedProperty}`
+  return brandTypography(normalizedStyle, normalizedProperty)
 }
 
 /**
- * Generates CSS variable name for brand state properties
+ * Generates CSS variable name for brand state properties.
+ * Returns the **generic** (scoped) name — the CSS cascade resolves the theme.
  * 
  * @example
  * getBrandStateCssVar('light', 'disabled')
- * => '--recursica-brand-themes-light-state-disabled'
- * 
- * @example
- * getBrandStateCssVar('dark', 'hover')
- * => '--recursica-brand-themes-dark-state-hover'
+ * => '--recursica_brand_states_disabled'
  */
 export function getBrandStateCssVar(
-  mode: 'light' | 'dark',
+  _mode: 'light' | 'dark',
   state: string
 ): string {
   const normalizedState = state.replace(/\./g, '-').replace(/\s+/g, '-').toLowerCase()
-  return `--recursica-brand-themes-${mode}-state-${normalizedState}`
+  return genericState(normalizedState)
 }
 
 /**
- * Generates box-shadow CSS value from elevation level
- * 
- * @example
- * getElevationBoxShadow('light', 'elevation-1')
- * => 'var(--recursica-brand-themes-light-elevations-elevation-1-x-axis, 0px) var(--recursica-brand-themes-light-elevations-elevation-1-y-axis, 0px) ...'
- * 
- * @param mode - Theme mode ('light' or 'dark')
- * @param elevation - Elevation level (e.g., 'elevation-1', 'elevation-2')
- * @returns Box-shadow CSS value or undefined if elevation is invalid or elevation-0
+ * Generates box-shadow CSS value from elevation level.
+ * Uses theme-scoped var names.
  */
 export function getElevationBoxShadow(
   mode: 'light' | 'dark',
@@ -71,33 +62,19 @@ export function getElevationBoxShadow(
   }
 
   const elevationLevel = elevationMatch[1]
-  const xAxisVar = `--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-x-axis`
-  const yAxisVar = `--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-y-axis`
-  const blurVar = `--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-blur`
-
-  // Read actual CSS variable values to verify they exist and have correct values
-  let xAxisValue = 'N/A'
-  let yAxisValue = 'N/A'
-  let blurValue = 'N/A'
-  if (typeof document !== 'undefined') {
-    const computed = getComputedStyle(document.documentElement)
-    xAxisValue = computed.getPropertyValue(xAxisVar) || 'not found'
-    yAxisValue = computed.getPropertyValue(yAxisVar) || 'not found'
-    blurValue = computed.getPropertyValue(blurVar) || 'not found'
-  }
-
-  const boxShadow = `var(${xAxisVar}, 0px) var(${yAxisVar}, 0px) var(${blurVar}, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-spread, 0px) var(--recursica-brand-themes-${mode}-elevations-elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+  // Use the elevation builder for correct underscore-delimited format
+  const boxShadow = `var(${elevationVar(mode, elevationLevel, 'x-axis')}) var(${elevationVar(mode, elevationLevel, 'y-axis')}) var(${elevationVar(mode, elevationLevel, 'blur')}) var(${elevationVar(mode, elevationLevel, 'spread')}) var(${elevationVar(mode, elevationLevel, 'shadow-color')})`
 
   return boxShadow
 }
 
 /**
- * Parses elevation value from UIKit.json or prop value
+ * Parses elevation value from recursica_ui-kit.json or prop value
  * 
  * Handles both direct elevation values (e.g., "elevation-1") and
  * brand references (e.g., "{brand.themes.light.elevations.elevation-4}")
  * 
- * @param elevationValue - Elevation value from UIKit.json or prop
+ * @param elevationValue - Elevation value from recursica_ui-kit.json or prop
  * @returns Parsed elevation level (e.g., "elevation-1") or undefined
  */
 export function parseElevationValue(elevationValue: string | undefined): string | undefined {
@@ -123,7 +100,7 @@ export function parseElevationValue(elevationValue: string | undefined): string 
  * Extracts mode information from elevation token reference or CSS variable name
  * 
  * @param elevationValue - Elevation value that may contain a token reference
- * @param cssVarName - Optional CSS variable name (e.g., "--recursica-ui-kit-themes-dark-components-toast-properties-elevation-layer-1")
+ * @param cssVarName - Optional CSS variable name (e.g., "--recursica_ui-kit_themes_dark_components_toast_properties_elevation_layer-1")
  * @returns Mode ('light' | 'dark') if found in token reference or CSS variable name, undefined otherwise
  */
 export function extractElevationMode(elevationValue: string | undefined, cssVarName?: string): 'light' | 'dark' | undefined {
@@ -140,9 +117,9 @@ export function extractElevationMode(elevationValue: string | undefined, cssVarN
   }
 
   // If not found in value, try to extract mode from CSS variable name
-  // CSS var names like: --recursica-ui-kit-themes-dark-components-toast-properties-elevation-layer-1
+  // CSS var names like: --recursica_ui-kit_themes_dark_components_toast_properties_elevation_layer-1
   if (cssVarName) {
-    const varModeMatch = cssVarName.match(/themes-(light|dark)-components/)
+    const varModeMatch = cssVarName.match(/themes_(light|dark)_components/)
     if (varModeMatch) {
       return varModeMatch[1] as 'light' | 'dark'
     }
@@ -152,45 +129,23 @@ export function extractElevationMode(elevationValue: string | undefined, cssVarN
 }
 
 /**
- * Gets elevation box-shadow for a given layer
- * 
- * The layer elevation in Brand.json is a composite boxShadow type that references
- * a top-level elevation (e.g., elevation-2). The token compiler does NOT produce
- * a single CSS variable for the layer's elevation — instead, the elevation is
- * stored as sub-properties at the top-level elevations path. 
- * 
- * This function resolves the layer → elevation mapping by reading the Brand.json
- * token structure. Falls back to reading the layer's sub-property CSS variables
- * if they exist.
- * 
- * @param mode - Theme mode ('light' or 'dark')
- * @param layer - Layer identifier ('layer-0', 'layer-1', 'layer-2', 'layer-3')
- * @returns Box-shadow CSS value or undefined if no elevation found
- * 
- * @example
- * getLayerElevationBoxShadow('light', 'layer-2')
- * => 'var(--recursica-brand-themes-light-elevations-elevation-2-x-axis, 0px) ...'
+ * Gets elevation box-shadow for a given layer.
+ * Uses theme-scoped var names via `getElevationBoxShadow`.
  */
 export function getLayerElevationBoxShadow(
   mode: 'light' | 'dark',
   layer: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 ): string | undefined {
   // First, try reading the layer's elevation sub-properties directly
-  // (in case the token compiler does produce them as sub-vars)
-  const layerElevBase = `--recursica-brand-themes-${mode}-layers-${layer}-properties-elevation`
-  const layerYAxis = readCssVar(`${layerElevBase}-y-axis`)
+  const layerNum = layer.replace('layer-', '')
+  const layerElevBase = `--recursica_brand_layer_${layerNum}_properties_elevation`
+  const layerYAxis = readCssVar(`${layerElevBase}_y-axis`)
 
   if (layerYAxis) {
-    // Sub-properties exist at the layer level — build box-shadow from them
-    return `var(${layerElevBase}-x-axis, 0px) var(${layerElevBase}-y-axis, 0px) var(${layerElevBase}-blur, 0px) var(${layerElevBase}-spread, 0px) var(${layerElevBase}-shadow-color, rgba(0, 0, 0, 0))`
+    return `var(${layerElevBase}_x-axis) var(${layerElevBase}_y-axis) var(${layerElevBase}_blur) var(${layerElevBase}_spread) var(${layerElevBase}_shadow-color)`
   }
 
-  // Sub-properties don't exist at layer level. Resolve by reading Brand.json's
-  // layer → elevation reference. The elevation property value in Brand.json is
-  // a reference like {brand.themes.light.elevations.elevation-2}.
-  // We try to read the CSS variable for that reference to find the elevation level.
-
-  // Try reading the raw elevation value (might be set as a string ref or value)
+  // Try reading the raw elevation value
   const elevationValue = readCssVar(`${layerElevBase}`)
   if (elevationValue) {
     const elevation = parseElevationValue(elevationValue.trim())
@@ -199,9 +154,7 @@ export function getLayerElevationBoxShadow(
     }
   }
 
-  // Last resort: use known Brand.json layer → elevation mapping
-  // This mapping is from Brand.json: each layer's elevation.$value references
-  // a specific top-level elevation level
+  // Last resort: use known layer → elevation mapping
   const layerElevationMap: Record<string, string> = {
     'layer-0': 'elevation-0',
     'layer-1': 'elevation-0',

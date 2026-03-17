@@ -47,18 +47,18 @@ export default function TransferListPreview({
         margin: 0,
         marginBottom: 16,
         textTransform: 'capitalize' as const,
-        fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-        fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-        fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-        letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-        lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+        fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+        fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+        fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+        letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+        lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
     } as React.CSSProperties
 
     return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
+            gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
             width: '100%',
             alignItems: 'center',
         }}>

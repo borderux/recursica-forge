@@ -30,23 +30,23 @@ This document audits the Button component implementation for Carbon Design Syste
 
 | Variable Name | Source | Used For |
 |--------------|--------|----------|
-| `--recursica-ui-kit-components-button-color-layer-{n}-variant-{variant}-background` | UIKit.json | Button background color |
-| `--recursica-ui-kit-components-button-color-layer-{n}-variant-{variant}-text` | UIKit.json | Button text color |
-| `--recursica-ui-kit-components-button-size-variant-{size}-height` | UIKit.json | Button height |
-| `--recursica-ui-kit-components-button-size-variant-{size}-min-width` | UIKit.json | Button minimum width |
-| `--recursica-ui-kit-components-button-size-variant-{size}-horizontal-padding` | UIKit.json | Button horizontal padding |
-| `--recursica-ui-kit-components-button-size-variant-{size}-icon` | UIKit.json | Icon size |
-| `--recursica-ui-kit-components-button-size-variant-{size}-icon-text-gap` | UIKit.json | Gap between icon and text |
-| `--recursica-ui-kit-components-button-border-radius` | UIKit.json | Button border radius |
-| `--recursica-ui-kit-components-button-font-size` | UIKit.json | Button font size |
-| `--recursica-ui-kit-components-button-content-max-width` | UIKit.json | Maximum content width |
-| `--recursica-brand-typography-button-font-weight` | Brand.json | Button font weight |
-| `--recursica-brand-light-state-disabled` | Brand.json | Disabled state opacity |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-x-axis` | Brand.json | Elevation shadow x-axis offset |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-y-axis` | Brand.json | Elevation shadow y-axis offset |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-blur` | Brand.json | Elevation shadow blur radius |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-spread` | Brand.json | Elevation shadow spread radius |
-| `--recursica-brand-{mode}-elevations-elevation-{n}-shadow-color` | Brand.json | Elevation shadow color |
+| `--recursica-ui-kit-components-button-color-layer-{n}-variant-{variant}-background` | recursica_ui-kit.json | Button background color |
+| `--recursica-ui-kit-components-button-color-layer-{n}-variant-{variant}-text` | recursica_ui-kit.json | Button text color |
+| `--recursica-ui-kit-components-button-size-variant-{size}-height` | recursica_ui-kit.json | Button height |
+| `--recursica-ui-kit-components-button-size-variant-{size}-min-width` | recursica_ui-kit.json | Button minimum width |
+| `--recursica-ui-kit-components-button-size-variant-{size}-horizontal-padding` | recursica_ui-kit.json | Button horizontal padding |
+| `--recursica-ui-kit-components-button-size-variant-{size}-icon` | recursica_ui-kit.json | Icon size |
+| `--recursica-ui-kit-components-button-size-variant-{size}-icon-text-gap` | recursica_ui-kit.json | Gap between icon and text |
+| `--recursica-ui-kit-components-button-border-radius` | recursica_ui-kit.json | Button border radius |
+| `--recursica-ui-kit-components-button-font-size` | recursica_ui-kit.json | Button font size |
+| `--recursica-ui-kit-components-button-content-max-width` | recursica_ui-kit.json | Maximum content width |
+| `--recursica-brand-typography-button-font-weight` | recursica_brand.json | Button font weight |
+| `--recursica-brand-light-state-disabled` | recursica_brand.json | Disabled state opacity |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-x-axis` | recursica_brand.json | Elevation shadow x-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-y-axis` | recursica_brand.json | Elevation shadow y-axis offset |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-blur` | recursica_brand.json | Elevation shadow blur radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-spread` | recursica_brand.json | Elevation shadow spread radius |
+| `--recursica-brand-{mode}-elevations-elevation-{n}-shadow-color` | recursica_brand.json | Elevation shadow color |
 
 ### Variables Used (with Library Fallbacks)
 
@@ -102,7 +102,7 @@ style: {
 | `--button-color` | Button text color | From Recursica CSS var |
 | `--button-icon-size` | Icon width/height | `0px` (when no icon) |
 | `--button-icon-text-gap` | Gap between icon and text | `0px` (when no icon) |
-| `--button-content-max-width` | Maximum content width | From UIKit.json |
+| `--button-content-max-width` | Maximum content width | From recursica_ui-kit.json |
 
 ### Variables Used in CSS
 
@@ -322,7 +322,7 @@ background-color: var(--button-bg, var(--recursica-ui-kit-components-button-colo
 - [x] Variant structure is correct
 
 ### Prop Coverage
-- [x] All root props from UIKit.json are represented:
+- [x] All root props from recursica_ui-kit.json are represented:
   - [x] `font-size`
   - [x] `border-radius`
   - [x] `elevation`

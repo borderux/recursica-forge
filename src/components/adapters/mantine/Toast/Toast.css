@@ -3,35 +3,35 @@
 .recursica-toast {
   display: flex !important;
   align-items: center !important;
-  padding: var(--toast-vertical-padding, var(--recursica-ui-kit-components-toast-properties-vertical-padding)) var(--toast-horizontal-padding, var(--recursica-ui-kit-components-toast-properties-horizontal-padding)) !important;
-  min-width: var(--toast-min-width, var(--recursica-ui-kit-components-toast-properties-min-width)) !important;
-  max-width: var(--toast-max-width, var(--recursica-ui-kit-components-toast-properties-max-width)) !important;
-  min-height: var(--toast-min-height, var(--recursica-ui-kit-components-toast-properties-min-height)) !important;
-  background-color: var(--toast-bg, var(--recursica-ui-kit-components-toast-variants-styles-default-properties-colors-layer-0-background)) !important;
-  color: var(--toast-text, var(--recursica-ui-kit-components-toast-variants-styles-default-properties-colors-layer-0-text)) !important;
+  padding: var(--toast-vertical-padding, var(--recursica_ui-kit_components_toast_properties_vertical_padding)) var(--toast-horizontal-padding, var(--recursica_ui-kit_components_toast_properties_horizontal_padding)) !important;
+  min-width: var(--toast-min-width, var(--recursica_ui-kit_components_toast_properties_min_width)) !important;
+  max-width: var(--toast-max-width, var(--recursica_ui-kit_components_toast_properties_max_width)) !important;
+  min-height: var(--toast-min-height, var(--recursica_ui-kit_components_toast_properties_min_height)) !important;
+  background-color: var(--toast-bg, var(--recursica_ui-kit_components_toast_variants_styles_default_properties_colors_layer-0_background)) !important;
+  color: var(--toast-text, var(--recursica_ui-kit_components_toast_variants_styles_default_properties_colors_layer-0_text)) !important;
   border-radius: 8px !important;
 }
 
 .recursica-toast-content {
   display: flex !important;
   align-items: center !important;
-  gap: var(--toast-spacing, var(--recursica-ui-kit-components-toast-properties-spacing)) !important;
+  gap: var(--toast-spacing, var(--recursica_ui-kit_components_toast_properties_spacing)) !important;
   width: 100% !important;
 }
 
 .recursica-toast-icon {
   display: inline-flex !important;
-  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-properties-icon)) !important;
-  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-properties-icon)) !important;
+  width: var(--toast-icon-size, var(--recursica_ui-kit_components_toast_properties_icon)) !important;
+  height: var(--toast-icon-size, var(--recursica_ui-kit_components_toast_properties_icon)) !important;
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;
 }
 
 .recursica-toast-icon svg {
-  width: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-properties-icon)) !important;
-  height: var(--toast-icon-size, var(--recursica-ui-kit-components-toast-properties-icon)) !important;
-  color: var(--toast-text, var(--recursica-ui-kit-components-toast-variants-styles-default-properties-colors-layer-0-text)) !important;
+  width: var(--toast-icon-size, var(--recursica_ui-kit_components_toast_properties_icon)) !important;
+  height: var(--toast-icon-size, var(--recursica_ui-kit_components_toast_properties_icon)) !important;
+  color: var(--toast-text, var(--recursica_ui-kit_components_toast_variants_styles_default_properties_colors_layer-0_text)) !important;
   fill: currentColor !important;
 }
 

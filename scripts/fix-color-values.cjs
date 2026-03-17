@@ -1,5 +1,5 @@
 const fs = require('fs');
-const path = '/Users/aaronmartlage/Documents/recursica-forge/recursica-forge/src/vars/Tokens.json';
+const path = require('path').resolve(__dirname, '../recursica_tokens.json');
 
 function transform(value) {
   if (!value) return value;

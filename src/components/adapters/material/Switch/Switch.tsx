@@ -28,17 +28,17 @@ if (typeof window !== 'undefined') {
   const trackSelectedVar = getComponentCssVar('Switch', 'colors', 'default-track-selected', 'layer-0')
   const trackUnselectedVar = getComponentCssVar('Switch', 'colors', 'default-track-unselected', 'layer-0')
   
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-thumb-elevation')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-thumb-elevation', 'none')
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_thumb_elevation')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_thumb_elevation', 'none')
   }
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-track-elevation')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-track-elevation', 'none')
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_elevation')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_track_elevation', 'none')
   }
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-track-checked')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-track-checked', `var(${trackSelectedVar})`)
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_checked')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_track_checked', `var(${trackSelectedVar})`)
   }
-  if (!root.style.getPropertyValue('--recursica-ui-kit-components-switch-track-unchecked')) {
-    root.style.setProperty('--recursica-ui-kit-components-switch-track-unchecked', `var(${trackUnselectedVar})`)
+  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_unchecked')) {
+    root.style.setProperty('--recursica_ui-kit_components_switch_track_unchecked', `var(${trackUnselectedVar})`)
   }
 }
 
@@ -80,7 +80,7 @@ export default function Switch({
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
   
-  // Use CSS variables directly - they already point to the correct layer-specific values from UIKit.json
+  // Use CSS variables directly - they already point to the correct layer-specific values from recursica_ui-kit.json
   const thumbSelectedColor = `var(${thumbSelectedVar})`
   const thumbUnselectedColor = `var(${thumbUnselectedVar})`
   const trackSelectedColor = `var(${trackSelectedVar})`
@@ -146,10 +146,10 @@ export default function Switch({
     }
   }, [thumbElevationVar, trackElevationVar])
   
-  // Determine track elevation to apply - prioritize prop, then UIKit.json
+  // Determine track elevation to apply - prioritize prop, then recursica_ui-kit.json
   const trackElevationBoxShadow = getElevationBoxShadow(mode, elevation ?? trackElevationFromVar)
   
-  // Determine thumb elevation from UIKit.json
+  // Determine thumb elevation from recursica_ui-kit.json
   const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
   
   // Calculate track height: thumb height + 2 * track inner padding

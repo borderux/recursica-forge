@@ -1,5 +1,5 @@
 const fs = require('fs');
-const path = '/Users/aaronmartlage/Documents/recursica-forge/recursica-forge/src/vars/Brand.json';
+const path = require('path').resolve(__dirname, '../recursica_brand.json');
 
 function isNumericShadeKey(key) {
   return /^\d{3,4}$/.test(key);
@@ -67,7 +67,7 @@ function resequenceBrandPalettes(brand) {
   const raw = fs.readFileSync(path, 'utf8');
   const json = JSON.parse(raw);
   if (!json.brand) {
-    throw new Error('No brand key found in Brand.json');
+    throw new Error('No brand key found in recursica_brand.json');
   }
   resequenceBrandPalettes(json.brand);
   const output = JSON.stringify(json, null, 2) + '\n';

@@ -1,4 +1,4 @@
-import uikitJson from '../../vars/UIKit.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 
 export interface CheckboxItem {
     key: string

@@ -8,11 +8,12 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useMemo, useEffect, useState } from 'react'
-import uikitJson from '../../vars/UIKit.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { SidebarFooter } from '../app/SidebarFooter'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 type ComponentItem = {
   name: string
@@ -38,7 +39,7 @@ export function ComponentsSidebar({
   const navigate = useNavigate()
   const { mode } = useThemeMode()
 
-  // Get list of mapped components from UIKit.json
+  // Get list of mapped components from recursica_ui-kit.json
   const mappedComponents = useMemo(() => {
     const components = (uikitJson as any)?.['ui-kit']?.components || {}
     return new Set(Object.keys(components).map(name => {
@@ -231,9 +232,7 @@ export function ComponentsSidebar({
       navigate(`/components/${slug}`, { replace: true })
     }
   }, [location.pathname, componentTree, navigate])
-
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const interactiveColor = `--recursica-brand-themes-${mode}-palettes-core-interactive`
+  const interactiveColor = `--recursica_brand_palettes_core_interactive`
 
   const handleNavClick = (componentName: string) => {
     const slug = componentNameToSlug(componentName)
@@ -248,21 +247,21 @@ export function ComponentsSidebar({
         position: 'sticky',
         top: 0,
         alignSelf: 'flex-start',
-        backgroundColor: `var(${layer0Base}-surface)`,
-        borderRightWidth: `var(${layer0Base}-border-size, 1px)`,
+        backgroundColor: `var(${genericLayerProperty(0, 'surface')})`,
+        borderRightWidth: `var(${genericLayerProperty(0, 'border-size')}, 1px)`,
         borderRightStyle: 'solid',
-        borderRightColor: `var(${layer0Base}-border-color)`,
+        borderRightColor: `var(${genericLayerProperty(0, 'border-color')})`,
         display: 'flex',
         flexDirection: 'column',
-        paddingLeft: 'var(--recursica-brand-dimensions-general-xl)',
-        paddingRight: 'var(--recursica-brand-dimensions-general-xl)',
-        paddingTop: 'var(--recursica-brand-dimensions-general-xl)',
-        paddingBottom: 'var(--recursica-brand-dimensions-general-xl)',
+        paddingLeft: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingRight: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingTop: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingBottom: 'var(--recursica_brand_dimensions_general_xl)',
         flexShrink: 0,
       }}
     >
       {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-general-sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
         {componentTree.map((node) => {
           const hasChildren = node.children && node.children.length > 0
           const isExpanded = expandedNodes.has(node.name)
@@ -297,12 +296,12 @@ export function ComponentsSidebar({
                       border: 'none',
                       background: 'transparent',
                       cursor: 'pointer',
-                      padding: 'var(--recursica-brand-dimensions-general-default)',
+                      padding: 'var(--recursica_brand_dimensions_general_default)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                      opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                      color: `var(${genericLayerText(0, 'color')})`,
+                      opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
                     }}
                     aria-label={isExpanded ? 'Collapse' : 'Expand'}
                   >
@@ -327,35 +326,35 @@ export function ComponentsSidebar({
                   style={{
                     flex: 1,
                     textAlign: 'left',
-                    padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
-                    borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
+                    padding: 'var(--recursica_brand_dimensions_general_default) var(--recursica_brand_dimensions_general_md)',
+                    borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
                     border: 'none',
                     background: 'transparent',
-                    color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                    color: `var(${genericLayerText(0, 'color')})`,
                     opacity: isActive
-                      ? `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
+                      ? `var(${genericLayerText(0, 'high-emphasis')})`
                       : isUnmapped
                         ? `var(${disabledOpacity})`
-                        : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                        : `var(${genericLayerText(0, 'low-emphasis')})`,
                     cursor: 'pointer',
                     transition: 'opacity 0.2s',
                     position: 'relative',
-                    fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-                    fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                    fontWeight: isActive ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
-                    letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-                    lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+                    fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+                    fontSize: 'var(--recursica_brand_typography_body-font-size)',
+                    fontWeight: isActive ? 600 : 'var(--recursica_brand_typography_body-font-weight)',
+                    letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+                    lineHeight: 'var(--recursica_brand_typography_body-line-height)',
                   }}
                   onMouseEnter={(e) => {
                     if (!isActive && !isUnmapped) {
-                      e.currentTarget.style.opacity = `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
+                      e.currentTarget.style.opacity = `var(${genericLayerText(0, 'high-emphasis')})`
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) {
                       e.currentTarget.style.opacity = isUnmapped
                         ? `var(${disabledOpacity})`
-                        : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`
+                        : `var(${genericLayerText(0, 'low-emphasis')})`
                     }
                   }}
                 >
@@ -390,36 +389,36 @@ export function ComponentsSidebar({
                         onClick={() => handleNavClick(child.name)}
                         style={{
                           textAlign: 'left',
-                          padding: 'var(--recursica-brand-dimensions-general-default) var(--recursica-brand-dimensions-general-md)',
-                          paddingLeft: 'var(--recursica-brand-dimensions-general-lg)',
-                          borderRadius: 'var(--recursica-brand-dimensions-border-radius-default)',
+                          padding: 'var(--recursica_brand_dimensions_general_default) var(--recursica_brand_dimensions_general_md)',
+                          paddingLeft: 'var(--recursica_brand_dimensions_general_lg)',
+                          borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
                           border: 'none',
                           background: 'transparent',
-                          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+                          color: `var(${genericLayerText(0, 'color')})`,
                           opacity: isChildActive
-                            ? `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
+                            ? `var(${genericLayerText(0, 'high-emphasis')})`
                             : isChildUnmapped
                               ? `var(${disabledOpacity})`
-                              : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`,
+                              : `var(${genericLayerText(0, 'low-emphasis')})`,
                           cursor: 'pointer',
                           transition: 'opacity 0.2s',
                           position: 'relative',
-                          fontFamily: 'var(--recursica-brand-typography-body-font-family)',
-                          fontSize: 'var(--recursica-brand-typography-body-font-size)',
-                          fontWeight: isChildActive ? 600 : 'var(--recursica-brand-typography-body-font-weight)',
-                          letterSpacing: 'var(--recursica-brand-typography-body-font-letter-spacing)',
-                          lineHeight: 'var(--recursica-brand-typography-body-line-height)',
+                          fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+                          fontSize: 'var(--recursica_brand_typography_body-font-size)',
+                          fontWeight: isChildActive ? 600 : 'var(--recursica_brand_typography_body-font-weight)',
+                          letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+                          lineHeight: 'var(--recursica_brand_typography_body-line-height)',
                         }}
                         onMouseEnter={(e) => {
                           if (!isChildActive && !isChildUnmapped) {
-                            e.currentTarget.style.opacity = `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`
+                            e.currentTarget.style.opacity = `var(${genericLayerText(0, 'high-emphasis')})`
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isChildActive) {
                             e.currentTarget.style.opacity = isChildUnmapped
                               ? `var(${disabledOpacity})`
-                              : `var(${layer0Base.replace('-properties', '-elements')}-text-low-emphasis)`
+                              : `var(${genericLayerText(0, 'low-emphasis')})`
                           }
                         }}
                       >

@@ -56,7 +56,7 @@ export function clearOverrides(initialAll?: any) {
     const removeKeys = (
       Object.keys(localStorage || {}) as Array<string>
     ).filter((k) => (
-      // keep 'family-friendly-names' intact; it is sourced from Tokens.json
+      // keep 'family-friendly-names' intact; it is sourced from recursica_tokens.json
       k === 'font-families-deleted' ||
       k === 'effects-scale-by-default' ||
       k === 'font-letter-scale-by-tight-wide' ||

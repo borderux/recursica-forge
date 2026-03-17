@@ -5,7 +5,7 @@
  * Handles active/inactive states for bullets and connectors.
  * Display-only — no click handlers.
  *
- * Bullet styles now come from the TimelineBullet subcomponent in UIKit.json.
+ * Bullet styles now come from the TimelineBullet subcomponent in recursica_ui-kit.json.
  */
 
 import { Timeline as MantineTimeline } from '@mantine/core'

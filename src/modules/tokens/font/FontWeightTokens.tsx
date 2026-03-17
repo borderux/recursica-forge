@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { Slider } from '../../../components/adapters/Slider'
 import { Label } from '../../../components/adapters/Label'
+import { genericLayerProperty } from '../../../core/css/cssVarBuilder'
 
 export default function FontWeightTokens() {
   const { tokens: tokensJson, updateToken } = useVars()
@@ -34,7 +35,7 @@ export default function FontWeightTokens() {
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
 
   return (
-    <section style={{ background: 'var(--recursica-brand-themes-light-layers-layer-0-properties-surface)', border: '1px solid var(--recursica-brand-themes-light-layers-layer-1-properties-border-color)', borderRadius: 8, padding: 12 }}>
+    <section data-recursica-layer="0" style={{ background: `var(${genericLayerProperty(0, 'surface')})`, border: `1px solid var(${genericLayerProperty(0, 'border-color')})`, borderRadius: `var(--recursica_brand_dimensions_border-radii_xl)`, padding: `var(${genericLayerProperty(0, 'padding')})` }}>
       <div style={{ fontWeight: 600, marginBottom: 8 }}>Font Weight</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr minmax(0, 300px) 80px', gap: 8, alignItems: 'center' }}>
         {items.map((it) => {

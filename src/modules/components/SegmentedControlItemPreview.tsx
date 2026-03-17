@@ -25,8 +25,8 @@ export default function SegmentedControlItemPreview({
         const updatedVars = detail?.cssVars || []
         // If all vars are UIKit vars, skip re-render
         const nonUIKitVars = updatedVars.filter((v: string) =>
-          !v.startsWith('--recursica-ui-kit-components-') &&
-          !v.startsWith('--recursica-ui-kit-globals-')
+          !v.startsWith('--recursica_ui-kit_components_') &&
+          !v.startsWith('--recursica_ui-kit_globals_')
         )
         if (updatedVars.length > 0 && nonUIKitVars.length === 0) {
           return // All vars are UIKit vars - skip re-render

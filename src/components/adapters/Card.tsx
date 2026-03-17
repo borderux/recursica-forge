@@ -5,7 +5,7 @@
  * based on the current UI kit selection. A Card is a container component with
  * optional header (title), sections, footer, and elevation.
  * 
- * The card's container appearance defaults come from UIKit.json per-layer
+ * The card's container appearance defaults come from recursica_ui-kit.json per-layer
  * properties which reference the brand layer system (one level above the
  * container layer). Users can override these per layer via the toolbar.
  * 

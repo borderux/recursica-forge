@@ -22,6 +22,7 @@ import { readCssVarNumber } from '../../core/css/readCssVar'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import './SuggestTonesModal.css'
+import { genericLayerText } from '../../core/css/cssVarBuilder'
 
 // Standard scale levels in order from lightest to darkest (light mode)
 const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
@@ -81,8 +82,8 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
         // Get emphasis opacity
         const emphasis = issue.emphasis || 'high'
         const emphasisVar = emphasis === 'high'
-            ? `--recursica-brand-themes-${issue.mode}-text-emphasis-high`
-            : `--recursica-brand-themes-${issue.mode}-text-emphasis-low`
+            ? `--recursica_brand_themes_${issue.mode}-text-emphasis-high`
+            : `--recursica_brand_themes_${issue.mode}-text-emphasis-low`
         const emphasisOpacity = readCssVarNumber(emphasisVar, emphasis === 'high' ? 1 : 0.6)
 
         const tones = generateSuggestedTones(
@@ -146,12 +147,12 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                 <p
                     className="suggest-tones__subtitle"
                     style={{
-                        color: `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)`,
-                        fontFamily: 'var(--recursica-brand-typography-body-small-font-family)',
-                        fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-                        fontWeight: 'var(--recursica-brand-typography-body-small-font-weight)',
-                        letterSpacing: 'var(--recursica-brand-typography-body-small-font-letter-spacing)',
-                        lineHeight: 'var(--recursica-brand-typography-body-small-line-height)',
+                        color: `var(${genericLayerText(1, 'color')})`,
+                        fontFamily: 'var(--recursica_brand_typography_body-small-font-family)',
+                        fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                        fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',
+                        letterSpacing: 'var(--recursica_brand_typography_body-small-font-letter-spacing)',
+                        lineHeight: 'var(--recursica_brand_typography_body-small-line-height)',
                     }}
                 >
                     {issue.location} · {familyLabel} · {emphasisLabel}

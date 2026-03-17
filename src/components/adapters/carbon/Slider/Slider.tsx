@@ -12,6 +12,7 @@ import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
+import { genericLayerText } from '../../../../core/css/cssVarBuilder'
 import { NumberInput } from '../../NumberInput'
 import './Slider.css'
 
@@ -101,7 +102,7 @@ export default function Slider({
     }
   }, [thumbElevationVar])
 
-  // Determine thumb elevation from UIKit.json
+  // Determine thumb elevation from recursica_ui-kit.json
   const thumbElevationBoxShadow = getElevationBoxShadow(mode, thumbElevationFromVar)
 
   const isRange = Array.isArray(value)
@@ -185,8 +186,9 @@ export default function Slider({
   const readOnlyValueFontStyleVar = getComponentTextCssVar('Slider', 'read-only-value', 'font-style')
 
   // Use layer text color directly for labels and values
-  const layerTextColorVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-color`
-  const layerTextEmphasisVar = `--recursica-brand-themes-${mode}-layers-${layer}-elements-text-high-emphasis`
+  const layerNum = parseInt(layer.replace('layer-', ''), 10) || 0
+  const layerTextColorVar = genericLayerText(layerNum, 'color')
+  const layerTextEmphasisVar = genericLayerText(layerNum, 'high-emphasis')
 
   // State to force re-render when text CSS variables change
   const [textVarsUpdate, setTextVarsUpdate] = useState(0)
@@ -248,7 +250,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: `var(${layerTextEmphasisVar}, 0.7)`,
+          opacity: `var(${layerTextEmphasisVar})`,
           flexShrink: 0,
           marginRight: '8px',
         } as React.CSSProperties}>
@@ -260,14 +262,14 @@ export default function Slider({
         title={computedTooltipText}
         style={{
           flex: 1,
-          ['--recursica-ui-kit-components-slider-track-color' as string]: trackColor,
-          ['--recursica-ui-kit-components-slider-track-active-color' as string]: trackActiveColor,
-          ['--recursica-ui-kit-components-slider-thumb-color' as string]: thumbColor,
-          ['--recursica-ui-kit-components-slider-track-height' as string]: `var(${trackHeightVar}, 4px)`,
-          ['--recursica-ui-kit-components-slider-thumb-size' as string]: `var(${thumbSizeVar}, 20px)`,
-          ['--recursica-ui-kit-components-slider-track-border-radius' as string]: `var(${trackBorderRadiusVar})`,
-          ['--recursica-ui-kit-components-slider-thumb-border-radius' as string]: `var(${thumbBorderRadiusVar})`,
-          ['--recursica-ui-kit-components-slider-thumb-elevation' as string]: thumbElevationBoxShadow || '0 1px 2px rgba(0, 0, 0, 0.15)',
+          ['--recursica_ui-kit_components_slider_track_color' as string]: trackColor,
+          ['--recursica_ui-kit_components_slider_track_active_color' as string]: trackActiveColor,
+          ['--recursica_ui-kit_components_slider_thumb_color' as string]: thumbColor,
+          ['--recursica_ui-kit_components_slider_track_height' as string]: `var(${trackHeightVar}, 4px)`,
+          ['--recursica_ui-kit_components_slider_thumb_size' as string]: `var(${thumbSizeVar}, 20px)`,
+          ['--recursica_ui-kit_components_slider_track_border-radius' as string]: `var(${trackBorderRadiusVar})`,
+          ['--recursica_ui-kit_components_slider_thumb_border-radius' as string]: `var(${thumbBorderRadiusVar})`,
+          ['--recursica_ui-kit_components_slider_thumb_elevation' as string]: thumbElevationBoxShadow || '0 1px 2px rgba(0, 0, 0, 0.15)',
         } as React.CSSProperties}
       >
         <CarbonSlider
@@ -298,7 +300,7 @@ export default function Slider({
           textTransform: minMaxLabelTextTransformVar ? (readCssVar(minMaxLabelTextTransformVar) || 'none') : 'none',
           fontStyle: minMaxLabelFontStyleVar ? (readCssVar(minMaxLabelFontStyleVar) || 'normal') : 'normal',
           color: `var(${layerTextColorVar})`,
-          opacity: `var(${layerTextEmphasisVar}, 0.7)`,
+          opacity: `var(${layerTextEmphasisVar})`,
           flexShrink: 0,
           marginLeft: '8px',
         } as React.CSSProperties}>
@@ -357,7 +359,7 @@ export default function Slider({
             disableTopBottomMargin={true}
             className="recursica-slider-number-input"
             style={{
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
             }}
           />
         </>

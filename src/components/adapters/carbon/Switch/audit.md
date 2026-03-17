@@ -32,10 +32,10 @@ This document audits the Switch component implementation for Carbon Design Syste
 
 | Variable Name | Source | Used For |
 |--------------|--------|----------|
-| `--recursica-ui-kit-components-switch-color-layer-{n}-variant-{variant}-thumb` | UIKit.json | Switch thumb color |
-| `--recursica-ui-kit-components-switch-color-layer-{n}-variant-{variant}-track-selected` | UIKit.json | Switch track color when checked |
-| `--recursica-ui-kit-components-switch-color-layer-{n}-variant-{variant}-track-unselected` | UIKit.json | Switch track color when unchecked |
-| `--recursica-ui-kit-components-switch-size-variant-{size}-border-radius` | UIKit.json | Switch border radius |
+| `--recursica-ui-kit-components-switch-color-layer-{n}-variant-{variant}-thumb` | recursica_ui-kit.json | Switch thumb color |
+| `--recursica-ui-kit-components-switch-color-layer-{n}-variant-{variant}-track-selected` | recursica_ui-kit.json | Switch track color when checked |
+| `--recursica-ui-kit-components-switch-color-layer-{n}-variant-{variant}-track-unselected` | recursica_ui-kit.json | Switch track color when unchecked |
+| `--recursica-ui-kit-components-switch-size-variant-{size}-border-radius` | recursica_ui-kit.json | Switch border radius |
 
 ### Variables Used (with Library Fallbacks)
 
@@ -80,7 +80,7 @@ Where:
 | `--recursica-toggle-thumb-bg` | Thumb background color | From Recursica CSS var |
 | `--recursica-toggle-track-checked` | Track background when checked | From Recursica CSS var |
 | `--recursica-toggle-track-unchecked` | Track background when unchecked | From Recursica CSS var |
-| `--recursica-toggle-border-radius` | Switch border radius | From UIKit.json |
+| `--recursica-toggle-border-radius` | Switch border radius | From recursica_ui-kit.json |
 
 **Note**: Carbon uses `--recursica-toggle-*` naming convention (not `--switch-*`) to match Carbon's "Toggle" component naming.
 
@@ -92,7 +92,7 @@ The Switch component supports elevation:
 - **CSS Variable**: `--recursica-ui-kit-components-switch-elevation` (read via `getComponentCssVar('Switch', 'size', 'elevation', undefined)`)
 - **Priority Order**:
   1. Prop value (`elevation` prop)
-  2. UIKit.json value (from CSS variable)
+  2. recursica_ui-kit.json value (from CSS variable)
 
 ### Variables Used in CSS
 
@@ -189,7 +189,7 @@ grep -r "var(--recursica-.*var(--cds-" src/components/adapters/carbon/Switch/
 1. **Variants**: default
 2. **Layers**: layer-0, layer-1, layer-2, layer-3
 3. **States**: unchecked, checked, disabled
-4. **Size Variants**: default (only one size variant in UIKit.json)
+4. **Size Variants**: default (only one size variant in recursica_ui-kit.json)
 
 ### Screenshots
 
@@ -229,7 +229,7 @@ None. The implementation follows all guidelines correctly.
 
 ## Implementation Notes
 
-- Switch uses `toCssVarName` utility to build CSS variable names from UIKit.json structure
+- Switch uses `toCssVarName` utility to build CSS variable names from recursica_ui-kit.json structure
 - Carbon uses "Toggle" component (not "Switch") as per Carbon Design System
 - Component-level CSS variables use `--recursica-toggle-*` naming (not `--switch-*`) to match Carbon's naming
 - The component uses a wrapper div (`.recursica-carbon-toggle-wrapper`) to scope CSS overrides
@@ -246,7 +246,7 @@ None. The implementation follows all guidelines correctly.
 - [x] Variant structure is correct
 
 ### Prop Coverage
-- [x] All root props from UIKit.json are represented:
+- [x] All root props from recursica_ui-kit.json are represented:
   - [x] `thumb-height`
   - [x] `thumb-width`
   - [x] `track-inner-padding`

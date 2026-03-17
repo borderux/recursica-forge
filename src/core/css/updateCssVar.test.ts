@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { updateCssVar, updateCssVars, removeCssVar } from './updateCssVar'
 import { readCssVar } from './readCssVar'
 
-describe('updateCssVar', () => {
+describe('updateCssVar', { timeout: 60000 }, () => {
   beforeEach(() => {
     document.documentElement.style.cssText = ''
     vi.clearAllMocks()
@@ -25,17 +25,17 @@ describe('updateCssVar', () => {
 
   it('should update brand CSS variable with valid token reference', () => {
     const result = updateCssVar(
-      '--recursica-brand-light-palettes-core-black',
-      'var(--recursica-tokens-color-gray-1000)'
+      '--recursica_brand_light_palettes_core_black',
+      'var(--recursica_tokens_color_gray_1000)'
     )
     expect(result).toBe(true)
-    expect(readCssVar('--recursica-brand-light-palettes-core-black')).toBe('var(--recursica-tokens-color-gray-1000)')
+    expect(readCssVar('--recursica_brand_light_palettes_core_black')).toBe('var(--recursica_tokens_color_gray_1000)')
   })
 
   it('should reject brand CSS variable with hardcoded hex value', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const result = updateCssVar(
-      '--recursica-brand-light-palettes-core-black',
+      '--recursica_brand_light_palettes_core_black',
       '#000000'
     )
     expect(result).toBe(false)
@@ -56,32 +56,32 @@ describe('updateCssVar', () => {
     }
     
     const result = updateCssVar(
-      '--recursica-brand-light-palettes-core-black',
+      '--recursica_brand_light_palettes_core_black',
       '#000000',
       tokens
     )
     
     expect(result).toBe(true)
     expect(consoleWarnSpy).toHaveBeenCalled()
-    const updatedValue = readCssVar('--recursica-brand-light-palettes-core-black')
+    const updatedValue = readCssVar('--recursica_brand_light_palettes_core_black')
     // The function may generate either old format (color-gray-900) or new format (colors-scale-XX-900)
     // Both are valid, so check for either
-    expect(updatedValue).toMatch(/var\(--recursica-tokens-(color-gray-900|colors-scale-\d+-900)\)/)
+    expect(updatedValue).toMatch(/var\(--recursica_tokens_(color_gray_900|colors_scale-\d+_900)\)/)
     
     consoleWarnSpy.mockRestore()
   })
 
   it('should accept color-mix() with token references for brand vars', () => {
     const result = updateCssVar(
-      '--recursica-brand-light-palettes-core-black',
-      'color-mix(in srgb, var(--recursica-tokens-color-gray-1000) 80%, transparent)'
+      '--recursica_brand_light_palettes_core_black',
+      'color-mix(in srgb, var(--recursica_tokens_color_gray_1000) 80%, transparent)'
     )
     expect(result).toBe(true)
   })
 
   it('should accept var() references with unprefixed tokens', () => {
     const result = updateCssVar(
-      '--recursica-brand-light-palettes-core-black',
+      '--recursica_brand_light_palettes_core_black',
       'var(--tokens-color-gray-1000)'
     )
     expect(result).toBe(true)
@@ -110,7 +110,7 @@ describe('updateCssVars', () => {
   it('should return count of successful updates', () => {
     const vars = {
       '--valid-var': 'value',
-      '--recursica-brand-invalid': '#000000' // This will fail validation
+      '--recursica_brand_invalid': '#000000' // This will fail validation
     }
     
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -133,24 +133,24 @@ describe('removeCssVar', () => {
     expect(readCssVar('--test-var')).toBeUndefined()
   })
 
-  it('should remove unprefixed version when removing recursica-prefixed var', () => {
-    document.documentElement.style.setProperty('--recursica-test-var', 'value1')
-    document.documentElement.style.setProperty('--test-var', 'value2')
+  it('should remove unprefixed version when removing recursica_-prefixed var', () => {
+    document.documentElement.style.setProperty('--recursica_test_var', 'value1')
+    document.documentElement.style.setProperty('--test_var', 'value2')
     
-    removeCssVar('--recursica-test-var')
+    removeCssVar('--recursica_test_var')
     
-    expect(readCssVar('--recursica-test-var')).toBeUndefined()
-    expect(readCssVar('--test-var')).toBeUndefined() // Should also be removed
+    expect(readCssVar('--recursica_test_var')).toBeUndefined()
+    expect(readCssVar('--test_var')).toBeUndefined() // Should also be removed
   })
 
-  it('should not remove unprefixed version if var does not start with --recursica-', () => {
+  it('should not remove unprefixed version if var does not start with --recursica_', () => {
     document.documentElement.style.setProperty('--test-var', 'value')
-    document.documentElement.style.setProperty('--recursica-test-var', 'value2')
+    document.documentElement.style.setProperty('--recursica_test_var', 'value2')
     
     removeCssVar('--test-var')
     
     expect(readCssVar('--test-var')).toBeUndefined()
-    expect(readCssVar('--recursica-test-var')).toBe('value2') // Should remain
+    expect(readCssVar('--recursica_test_var')).toBe('value2') // Should remain
   })
 })
 

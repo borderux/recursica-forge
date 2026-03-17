@@ -3,7 +3,7 @@
  * 
  * Renders all three loader types (oval, bars, dots).
  * Uses CSS-based animations for all three since Carbon's Loading component
- * has limited type support. Uses CSS variables from UIKit.json.
+ * has limited type support. Uses CSS variables from recursica_ui-kit.json.
  */
 
 import { useState, useEffect } from 'react'

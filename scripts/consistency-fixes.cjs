@@ -1,5 +1,5 @@
 const fs = require('fs');
-const path = '/Users/aaronmartlage/Documents/recursica-forge/recursica-forge/src/vars/Brand.json';
+const path = require('path').resolve(__dirname, '../recursica_brand.json');
 
 function updateThemeRefs(str) {
   if (typeof str !== 'string') return str;

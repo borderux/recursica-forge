@@ -1,4 +1,4 @@
-import tokensImport from '../../vars/Tokens.json'
+import tokensImport from '../../../recursica_tokens.json'
 
 export interface FontEntry {
     id: string // e.g. "primary", "secondary"
@@ -18,7 +18,7 @@ export function getStoredFonts(): FontEntry[] {
         console.warn('[fontStore] Failed to read rf:fonts from localStorage', err)
     }
 
-    // Fallback to Tokens.json defaults
+    // Fallback to recursica_tokens.json defaults
     return getDefaultFonts()
 }
 
@@ -97,7 +97,7 @@ export function getDefaultFonts(): FontEntry[] {
             }
         }
     } catch (err) {
-        console.warn('[fontStore] Failed to parse default fonts from Tokens.json', err)
+        console.warn('[fontStore] Failed to parse default fonts from recursica_tokens.json', err)
     }
 
     return defaultFonts

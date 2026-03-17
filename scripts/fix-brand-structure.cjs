@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const brandPath = path.join(__dirname, '../src/vars/Brand.json');
+const brandPath = path.join(__dirname, '../recursica_brand.json');
 
-console.log('Reading Brand.json...');
+console.log('Reading recursica_brand.json...');
 const brand = JSON.parse(fs.readFileSync(brandPath, 'utf8'));
 
 // Fix: Rename "core" to "core-colors" in both light and dark
@@ -85,7 +85,7 @@ if (brand.brand?.light && brand.brand?.dark) {
   });
 }
 
-console.log('Writing updated Brand.json...');
+console.log('Writing updated recursica_brand.json...');
 fs.writeFileSync(brandPath, JSON.stringify(brand, null, 2) + '\n');
 console.log('✓ Done!');
 

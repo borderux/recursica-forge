@@ -11,11 +11,11 @@ import { Loader } from '../../components/adapters/Loader'
 
 const h2Style: React.CSSProperties = {
     margin: 0,
-    fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-    fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-    fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-    letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-    lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
+    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
 }
 
 interface LoaderPreviewProps {
@@ -39,7 +39,7 @@ export default function LoaderPreview({
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
+            gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
             alignItems: 'center',
             width: '100%',
         }}>
@@ -49,7 +49,7 @@ export default function LoaderPreview({
                     style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 'var(--recursica-brand-dimensions-gutters-vertical)',
+                        gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
                         alignItems: 'center',
                     }}
                 >

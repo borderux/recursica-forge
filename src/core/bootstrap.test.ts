@@ -25,15 +25,15 @@ vi.mock('./store/varsStore', () => ({
 }))
 
 // Mock JSON imports
-vi.mock('../vars/Tokens.json', () => ({
+vi.mock('../../recursica_tokens.json', () => ({
   default: { tokens: {} }
 }))
 
-vi.mock('../vars/Brand.json', () => ({
+vi.mock('../../recursica_brand.json', () => ({
   default: { brand: { themes: { light: {}, dark: {} } } }
 }))
 
-vi.mock('../vars/UIKit.json', () => ({
+vi.mock('../../recursica_ui-kit.json', () => ({
   default: { 'ui-kit': { globals: {}, components: {} } }
 }))
 

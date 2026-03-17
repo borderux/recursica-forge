@@ -8,6 +8,7 @@ import { removeCssVar } from '../../core/css/updateCssVar'
 import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 export default function ElevationsPage() {
   const { tokens: tokensJson, theme, elevation, updateElevation, updateToken } = useVars()
@@ -59,6 +60,26 @@ export default function ElevationsPage() {
     return out.sort((a, b) => a.value - b.value)
   }, [tokensJson])
 
+  // Helper to read theme default values for an elevation level
+  const getThemeDefaults = (elevationKey: string): { blur: number; spread: number; offsetX: number; offsetY: number } => {
+    try {
+      const brand: any = (theme as any)?.brand || (theme as any)
+      const themes = brand?.themes || brand
+      const elevations: any = themes?.[mode]?.elevations || brand?.[mode]?.elevations || {}
+      const node: any = elevations[elevationKey]?.['$value'] || {}
+      const toNum = (ref?: any): number => {
+        if (ref && typeof ref === 'object' && '$value' in ref) {
+          const val = ref.$value
+          if (val && typeof val === 'object' && 'value' in val) return typeof val.value === 'number' ? val.value : Number(val.value) || 0
+          if (typeof val === 'number') return val
+        }
+        if (typeof ref === 'number') return ref
+        return 0
+      }
+      return { blur: toNum(node?.blur), spread: toNum(node?.spread), offsetX: toNum(node?.x), offsetY: toNum(node?.y) }
+    } catch { return { blur: 0, spread: 0, offsetX: 0, offsetY: 0 } }
+  }
+
   // Batched version that updates multiple elevations in a single updateElevation call
   const updateElevationControlsBatch = (elevationKeys: string[], property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
     // Determine token names and final values BEFORE updating state
@@ -107,7 +128,7 @@ export default function ElevationsPage() {
           const absValue = Math.abs(value)
           const direction = value >= 0 ? 'right' : 'left'
           const existingControl = next.controls[mode][elevationKey]
-          const existing = existingControl ? { ...existingControl } : { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+          const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
           next.controls[mode] = {
             ...next.controls[mode],
             [elevationKey]: { ...existing, offsetX: absValue }
@@ -119,7 +140,7 @@ export default function ElevationsPage() {
           const absValue = Math.abs(value)
           const direction = value >= 0 ? 'down' : 'up'
           const existingControl = next.controls[mode][elevationKey]
-          const existing = existingControl ? { ...existingControl } : { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+          const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
           next.controls[mode] = {
             ...next.controls[mode],
             [elevationKey]: { ...existing, offsetY: absValue }
@@ -129,14 +150,14 @@ export default function ElevationsPage() {
           next.directions[mode] = { ...next.directions[mode], [elevationKey]: { x: currentX, y: direction } }
         } else if (property === 'blur') {
           const existingControl = next.controls[mode][elevationKey]
-          const existing = existingControl ? { ...existingControl } : { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+          const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
           next.controls[mode] = {
             ...next.controls[mode],
             [elevationKey]: { ...existing, blur: value }
           }
         } else if (property === 'spread') {
           const existingControl = next.controls[mode][elevationKey]
-          const existing = existingControl ? { ...existingControl } : { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+          const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
           next.controls[mode] = {
             ...next.controls[mode],
             [elevationKey]: { ...existing, spread: value }
@@ -192,7 +213,7 @@ export default function ElevationsPage() {
       if (property === 'offsetX') {
         const absValue = Math.abs(value)
         const direction = value >= 0 ? 'right' : 'left'
-        const existing = next.controls[mode][elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+        const existing = next.controls[mode][elevationKey] || getThemeDefaults(elevationKey)
         next.controls[mode] = {
           ...next.controls[mode],
           [elevationKey]: { ...existing, offsetX: absValue }
@@ -206,7 +227,7 @@ export default function ElevationsPage() {
         const direction = value >= 0 ? 'down' : 'up'
         // Get existing control or create new default - ensure we get a copy, not a reference
         const existingControl = next.controls[mode][elevationKey]
-        const existing = existingControl ? { ...existingControl } : { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+        const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
         const beforeUpdate = JSON.stringify({ light: next.controls.light?.[elevationKey], dark: next.controls.dark?.[elevationKey] })
         next.controls[mode] = {
           ...next.controls[mode],
@@ -220,7 +241,7 @@ export default function ElevationsPage() {
       } else if (property === 'blur') {
         // Get existing control or create new default - ensure we get a copy, not a reference
         const existingControl = next.controls[mode][elevationKey]
-        const existing = existingControl ? { ...existingControl } : { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+        const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
         const beforeUpdate = JSON.stringify({ light: next.controls.light?.[elevationKey], dark: next.controls.dark?.[elevationKey] })
         next.controls[mode] = {
           ...next.controls[mode],
@@ -228,7 +249,7 @@ export default function ElevationsPage() {
         }
         const afterUpdate = JSON.stringify({ light: next.controls.light?.[elevationKey], dark: next.controls.dark?.[elevationKey] })
       } else if (property === 'spread') {
-        const existing = next.controls[mode][elevationKey] || { blur: 0, spread: 0, offsetX: 0, offsetY: 0 }
+        const existing = next.controls[mode][elevationKey] || getThemeDefaults(elevationKey)
         next.controls[mode] = {
           ...next.controls[mode],
           [elevationKey]: { ...existing, spread: value }
@@ -345,8 +366,8 @@ export default function ElevationsPage() {
         const defaultOffsetX = toNumeric(node?.x)
         const defaultOffsetY = toNumeric(node?.y)
 
-        // Remove controls for current mode (revert to Brand.json defaults)
-        // This allows recomputeAndApplyAll to use Brand.json defaults and update tokens
+        // Remove controls for current mode (revert to recursica_brand.json defaults)
+        // This allows recomputeAndApplyAll to use recursica_brand.json defaults and update tokens
         const { [key]: _, ...restControls } = next.controls[mode]
         next.controls[mode] = restControls
 
@@ -376,9 +397,16 @@ export default function ElevationsPage() {
         const { [key]: __, ...paletteRest } = next.paletteSelections
         next.paletteSelections = paletteRest
 
-        // Clear shadow color CSS variable to reset to default
-        const shadowColorCssVar = `--recursica-brand-themes-${mode}-elevations-elevation-${lvl}-shadow-color`
-        removeCssVar(shadowColorCssVar)
+        // Clear shadow color CSS variables (both scoped and themed) to reset to default
+        const scopedShadowColorCssVar = `--recursica_brand_elevations_elevation-${lvl}_shadow-color`
+        const themedShadowColorCssVar = `--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_shadow-color`
+        removeCssVar(scopedShadowColorCssVar)
+        removeCssVar(themedShadowColorCssVar)
+        // Also clear scoped elevation property vars so resolver defaults take effect
+        const propNames = ['blur', 'spread', 'x-axis', 'y-axis'] as const
+        propNames.forEach((prop) => {
+          removeCssVar(`--recursica_brand_elevations_elevation-${lvl}_${prop}`)
+        })
 
         // Update alpha tokens (mode-specific)
         const alphaToken = parseOpacityToken(node?.opacity)
@@ -422,26 +450,24 @@ export default function ElevationsPage() {
     })
   }
 
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-
   const handleResetAll = () => {
     // Reset all elevations (0-4) to theme defaults
     revertSelected(new Set([0, 1, 2, 3, 4]))
   }
 
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface)`, color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)` }}>
-      <div className="container-padding" style={{ padding: 'var(--recursica-brand-dimensions-general-xl)' }}>
+    <div id="body" className="antialiased" style={{ backgroundColor: `var(${genericLayerProperty(0, 'surface')})`, color: `var(${genericLayerText(0, 'color')})` }}>
+      <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
         <div className="section">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h1 style={{
               margin: 0,
-              fontFamily: 'var(--recursica-brand-typography-h1-font-family)',
-              fontSize: 'var(--recursica-brand-typography-h1-font-size)',
-              fontWeight: 'var(--recursica-brand-typography-h1-font-weight)',
-              letterSpacing: 'var(--recursica-brand-typography-h1-font-letter-spacing)',
-              lineHeight: 'var(--recursica-brand-typography-h1-line-height)',
-              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+              fontFamily: 'var(--recursica_brand_typography_h1-font-family)',
+              fontSize: 'var(--recursica_brand_typography_h1-font-size)',
+              fontWeight: 'var(--recursica_brand_typography_h1-font-weight)',
+              letterSpacing: 'var(--recursica_brand_typography_h1-font-letter-spacing)',
+              lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
+              color: `var(${genericLayerText(0, 'color')})`,
             }}>Elevations</h1>
             <Button
               variant="outline"
@@ -449,7 +475,7 @@ export default function ElevationsPage() {
               onClick={handleResetAll}
               icon={(() => {
                 const ResetIcon = iconNameToReactComponent('arrow-path')
-                return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica-brand-dimensions-icons-default)', height: 'var(--recursica-brand-dimensions-icons-default)' }} /> : null
+                return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
               })()}
               layer="layer-1"
             >
@@ -457,9 +483,9 @@ export default function ElevationsPage() {
             </Button>
           </div>
           <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
-            <div className="elevation-grid" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica-brand-dimensions-gutters-vertical)' }}>
+            <div className="elevation-grid" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', isolation: 'isolate' }}>
               {[0, 1, 2, 3, 4].map((i) => (
-                <div key={i} style={{ width: '100%' }}>
+                <div key={i} style={{ width: '100%', position: 'relative', zIndex: i }}>
                   <ElevationModule
                     label={i === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${i}`}
                     level={i}
@@ -513,6 +539,35 @@ export default function ElevationsPage() {
               })
             }}
             revertSelected={revertSelected}
+            onShadowColorSelect={(cssVar) => {
+              // Parse palette key and level from CSS var name
+              // Format: --recursica_brand_themes_light_palettes_{paletteKey}_{level}_color_tone
+              // or:     --recursica_brand_palettes_{paletteKey}_{level}_color_tone
+              const match = cssVar.match(/palettes_([a-z0-9-]+)_(\d+)_color_tone/)
+              if (match) {
+                const paletteKey = match[1]
+                const level = match[2]
+                updateElevation((prev) => {
+                  const next = { ...prev }
+                  next.paletteSelections = { ...next.paletteSelections }
+                  selectedLevels.forEach((lvl) => {
+                    next.paletteSelections[`elevation-${lvl}`] = { paletteKey, level }
+                  })
+                  return next
+                })
+              } else if (cssVar === '') {
+                // "None" was selected — clear palette selections
+                updateElevation((prev) => {
+                  const next = { ...prev }
+                  next.paletteSelections = { ...next.paletteSelections }
+                  selectedLevels.forEach((lvl) => {
+                    const { [`elevation-${lvl}`]: _, ...rest } = next.paletteSelections
+                    next.paletteSelections = rest
+                  })
+                  return next
+                })
+              }
+            }}
             onClose={() => setSelectedLevels(new Set())}
           />
         )}

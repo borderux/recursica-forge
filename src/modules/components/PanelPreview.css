@@ -64,14 +64,14 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: var(--recursica-brand-themes-light-states-overlay-color, rgba(0, 0, 0, 1));
-    opacity: var(--recursica-brand-themes-light-states-overlay-opacity, 0.5);
+    background: var(--recursica_brand_themes_light_states_overlay_color, rgba(0, 0, 0, 1));
+    opacity: var(--recursica_brand_themes_light_states_overlay_opacity, 0.5);
     animation: panel-overlay-fade-in 200ms ease-out forwards;
 }
 
 html[data-theme-mode="dark"] .panel-overlay-backdrop {
-    background: var(--recursica-brand-themes-dark-states-overlay-color, rgba(0, 0, 0, 1));
-    opacity: var(--recursica-brand-themes-dark-states-overlay-opacity, 0.5);
+    background: var(--recursica_brand_themes_dark_states_overlay_color, rgba(0, 0, 0, 1));
+    opacity: var(--recursica_brand_themes_dark_states_overlay_opacity, 0.5);
 }
 
 .panel-overlay-backdrop.closing {

@@ -35,10 +35,10 @@
 /* Use Recursica CSS variables with Carbon variables as fallbacks */
 .cds--btn {
   /* Set max-width on button root to constrain content */
-  max-width: calc(var(--button-max-width, var(--recursica-ui-kit-components-button-properties-max-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  max-width: calc(var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max_width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
   /* Use Recursica CSS vars with Carbon vars as fallbacks - don't modify Carbon vars directly */
-  background-color: var(--button-bg, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background, var(--cds-button-primary))) !important;
-  color: var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-text, var(--cds-button-text-primary))) !important;
+  background-color: var(--button-bg, var(--recursica_ui-kit_components_button_color_layer-0_variant_solid_background, var(--cds-button-primary))) !important;
+  color: var(--button-color, var(--recursica_ui-kit_components_button_color_layer-0_variant_solid_text, var(--cds-button-text-primary))) !important;
 }
 
 /* Target text content for truncation */
@@ -52,7 +52,7 @@
 
 /* For text-only buttons (no icon), use full content max width and center */
 .cds--btn:not(:has(> svg)) {
-  max-width: var(--button-max-width, var(--recursica-ui-kit-components-button-properties-max-width)) !important;
+  max-width: var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max_width)) !important;
   justify-content: center !important;
 }
 
@@ -65,7 +65,7 @@
 .cds--btn--primary,
 .recursica-accordion .cds--btn--primary,
 .recursica-accordion .cds--accordion__content .cds--btn--primary {
-  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
+  border: var(--recursica_ui-kit_components_button_properties_border-size, 1px) solid var(--button-border-color, var(--button-color)) !important;
 }
 
 /* Ensure outline variant (secondary) has a border with the correct color */
@@ -73,7 +73,7 @@
 .cds--btn--secondary,
 .recursica-accordion .cds--btn--secondary,
 .recursica-accordion .cds--accordion__content .cds--btn--secondary {
-  border: var(--recursica-ui-kit-components-button-properties-border-size, 1px) solid var(--button-border-color) !important;
+  border: var(--recursica_ui-kit_components_button_properties_border-size, 1px) solid var(--button-border-color) !important;
 }
 
 /* Ensure text variant (tertiary) has no border */

@@ -1,7 +1,7 @@
 /**
  * Runtime JSON Schema Validation Utility
  * 
- * Validates Brand.json, Tokens.json, and UIKit.json against their schemas
+ * Validates recursica_brand.json, recursica_tokens.json, and recursica_ui-kit.json against their schemas
  * and throws errors on critical validation failures.
  */
 
@@ -37,7 +37,7 @@ function filterCriticalErrors(errors: any[] | null | undefined): any[] {
 }
 
 /**
- * Validates Brand.json against its schema
+ * Validates recursica_brand.json against its schema
  */
 export function validateBrandJson(brandJson: JsonLike): void {
   const validate = ajv.compile(brandSchema)
@@ -47,9 +47,9 @@ export function validateBrandJson(brandJson: JsonLike): void {
     const criticalErrors = filterCriticalErrors(validate.errors)
 
     if (criticalErrors.length > 0) {
-      console.error('[Schema Validation] Brand.json has critical validation errors:', criticalErrors)
+      console.error('[Schema Validation] recursica_brand.json has critical validation errors:', criticalErrors)
       throw new Error(
-        `Brand.json validation failed with ${criticalErrors.length} critical error(s). ` +
+        `recursica_brand.json validation failed with ${criticalErrors.length} critical error(s). ` +
         `First error: ${JSON.stringify(criticalErrors[0])}`
       )
     }
@@ -57,7 +57,7 @@ export function validateBrandJson(brandJson: JsonLike): void {
 }
 
 /**
- * Validates Tokens.json against its schema
+ * Validates recursica_tokens.json against its schema
  */
 export function validateTokensJson(tokensJson: JsonLike): void {
   const validate = ajv.compile(tokensSchema)
@@ -67,9 +67,9 @@ export function validateTokensJson(tokensJson: JsonLike): void {
     const criticalErrors = filterCriticalErrors(validate.errors)
 
     if (criticalErrors.length > 0) {
-      console.error('[Schema Validation] Tokens.json has critical validation errors:', criticalErrors)
+      console.error('[Schema Validation] recursica_tokens.json has critical validation errors:', criticalErrors)
       throw new Error(
-        `Tokens.json validation failed with ${criticalErrors.length} critical error(s). ` +
+        `recursica_tokens.json validation failed with ${criticalErrors.length} critical error(s). ` +
         `First error: ${JSON.stringify(criticalErrors[0])}`
       )
     }
@@ -118,7 +118,7 @@ function findThemeReferences(
 }
 
 /**
- * Validates UIKit.json against its schema
+ * Validates recursica_ui-kit.json against its schema
  */
 export function validateUIKitJson(uikitJson: JsonLike): void {
   const validate = ajv.compile(uikitSchema)
@@ -128,9 +128,9 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
     const criticalErrors = filterCriticalErrors(validate.errors)
 
     if (criticalErrors.length > 0) {
-      console.error('[Schema Validation] UIKit.json has critical validation errors:', criticalErrors)
+      console.error('[Schema Validation] recursica_ui-kit.json has critical validation errors:', criticalErrors)
       throw new Error(
-        `UIKit.json validation failed with ${criticalErrors.length} critical error(s). ` +
+        `recursica_ui-kit.json validation failed with ${criticalErrors.length} critical error(s). ` +
         `First error: ${JSON.stringify(criticalErrors[0])}`
       )
     }
@@ -144,9 +144,9 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
       `  - ${ref.path}: "${ref.value}"`
     ).join('\n')
 
-    console.error('[Schema Validation] UIKit.json contains theme references:', themeRefs)
+    console.error('[Schema Validation] recursica_ui-kit.json contains theme references:', themeRefs)
     throw new Error(
-      `UIKit.json validation failed: Found ${themeRefs.length} theme reference(s). ` +
+      `recursica_ui-kit.json validation failed: Found ${themeRefs.length} theme reference(s). ` +
       `All token references must be theme-agnostic (use {brand.*} instead of {brand.themes.light.*} or {brand.themes.dark.*}).\n` +
       `Theme references found:\n${errorMessages}`
     )

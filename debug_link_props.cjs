@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const uikitPath = path.resolve('./src/vars/UIKit.json');
+const uikitPath = path.resolve('./recursica_ui-kit.json');
 const uikitJson = JSON.parse(fs.readFileSync(uikitPath, 'utf-8'));
 
 function toCssVarName(name, mode) {

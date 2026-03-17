@@ -19,7 +19,7 @@ describe('export filenames', () => {
 })
 
 describe('exportCssStylesheet output', () => {
-  const testVar = '--recursica-tokens-colors-scale-02-500'
+  const testVar = '--recursica_tokens_colors_scale-02_500'
   const testValue = '#ffffff'
 
   beforeEach(() => {
@@ -35,6 +35,6 @@ describe('exportCssStylesheet output', () => {
     expect(specific).toBeDefined()
     const varLine = specific!.split('\n').find((l) => l.includes('scale-02') && l.includes(testValue))
     expect(varLine).toBeDefined()
-    expect(varLine).toMatch(/^\s*--recursica-tokens-colors-scale-02_500:\s*#ffffff;\s*$/)
+    expect(varLine).toMatch(/^\s*--recursica_tokens_colors_scale-02_500:\s*#ffffff;\s*$/)
   })
 })

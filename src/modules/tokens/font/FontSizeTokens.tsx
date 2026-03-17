@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from 'react'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
+import { genericLayerProperty, genericLayerText, tokenFont } from '../../../core/css/cssVarBuilder'
 
 type FontSizeTokensProps = {
   autoScale?: boolean
@@ -102,8 +103,6 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
 
   const scaleByDefault = autoScale
   const toTitle = (s: string) => (s || '').replace(/[-_/]+/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()).trim()
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
-  const layer1Base = `--recursica-brand-themes-${mode}-layers-layer-1-properties`
 
   const exampleText = "The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal."
 
@@ -116,7 +115,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
         const isDefault = keyName === 'md'
         const isSmall = keyName === 'sm'
         const disabled = scaleByDefault && !(isDefault || isSmall)
-        const fontSizeVar = `--recursica-tokens-font-sizes-${keyName}`
+        const fontSizeVar = tokenFont('sizes', keyName)
         const isLast = index === items.length - 1
 
         return (
@@ -127,13 +126,13 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
             alignItems: 'stretch',
           }}>
             <label htmlFor={it.name} style={{
-              fontSize: 'var(--recursica-brand-typography-body-small-font-size)',
-              color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-              opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              color: `var(${genericLayerText(0, 'color')})`,
+              opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
               minWidth: 60,
-              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+              paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               paddingRight: 0,
               display: 'flex',
               alignItems: 'center',
@@ -143,15 +142,15 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
             <div
               key={`sample-${it.name}-${updateKey}`}
               style={{
-                fontFamily: 'var(--recursica-tokens-font-typefaces-primary)',
+                fontFamily: 'var(--recursica_tokens_font_typefaces_primary)',
                 fontSize: `var(${fontSizeVar})`,
-                color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
-                opacity: `var(${layer0Base.replace('-properties', '-elements')}-text-high-emphasis)`,
+                color: `var(${genericLayerText(0, 'color')})`,
+                opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                 lineHeight: 1.5,
-                paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-                paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-                paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-                paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+                paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+                paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+                paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
+                paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
                 display: 'flex',
                 alignItems: 'center',
                 overflow: 'visible',
@@ -163,12 +162,12 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 'var(--recursica-brand-dimensions-general-default)',
-              borderLeft: `1px solid var(${layer1Base}-border-color)`,
-              paddingTop: index === 0 ? 'var(--recursica-brand-dimensions-gutters-vertical)' : 0,
-              paddingBottom: 'var(--recursica-brand-dimensions-gutters-vertical)',
-              paddingLeft: 'var(--recursica-brand-dimensions-gutters-horizontal)',
-              paddingRight: 'var(--recursica-brand-dimensions-gutters-horizontal)',
+              gap: 'var(--recursica_brand_dimensions_general_default)',
+              borderLeft: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
+              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
+              paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
+              paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               width: '350px',
             }}>
               <Slider

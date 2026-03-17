@@ -162,9 +162,9 @@ export default function IconGroupToolbar({
   const iconPositionConfig = groupedPropsConfig?.['iconPosition']
 
   const componentKebab = componentName.toLowerCase().replace(/\s+/g, '-')
-  const showIconVar = showIconConfig ? `--recursica-ui-kit-components-${componentKebab}-properties-show-icon` : ''
-  const iconNameVar = iconNameConfig ? `--recursica-ui-kit-components-${componentKebab}-properties-icon-name` : ''
-  const iconPositionVar = iconPositionConfig ? `--recursica-ui-kit-components-${componentKebab}-properties-icon-position` : ''
+  const showIconVar = showIconConfig ? `--recursica_ui-kit_components_${componentKebab}-properties-show-icon` : ''
+  const iconNameVar = iconNameConfig ? `--recursica_ui-kit_components_${componentKebab}-properties-icon-name` : ''
+  const iconPositionVar = iconPositionConfig ? `--recursica_ui-kit_components_${componentKebab}-properties-icon-position` : ''
 
   const showIconValue = useCssVar(showIconVar, 'false')
   // If there's no showIcon config, treat the icon as always active

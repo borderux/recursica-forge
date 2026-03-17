@@ -3,6 +3,7 @@ import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { useVars } from '../../../vars/VarsContext'
 import { useMemo } from 'react'
 import './LayerSegmentedControl.css'
+import { genericLayerProperty, genericLayerText } from '../../../../core/css/cssVarBuilder'
 
 interface LayerSegmentedControlProps {
   selected: string
@@ -42,8 +43,8 @@ export default function LayerSegmentedControl({ selected, onSelect, className = 
       <div 
         className="layer-segmented-control-buttons"
         style={{
-          border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-color)`,
-          borderRadius: `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-border-radius)`,
+          border: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
+          borderRadius: `var(${genericLayerProperty(0, 'border-radius')})`,
         }}
       >
         {layers.map((layer, index) => {
@@ -56,16 +57,16 @@ export default function LayerSegmentedControl({ selected, onSelect, className = 
               onClick={() => onSelect(layer)}
               style={{
                 background: isSelected 
-                  ? `var(--recursica-brand-themes-${mode}-layers-layer-1-properties-surface)`
+                  ? `var(${genericLayerProperty(1, 'surface')})`
                   : 'transparent',
                 color: isSelected
-                  ? `var(--recursica-brand-themes-${mode}-layers-layer-1-elements-text-color)`
-                  : `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-color)`,
+                  ? `var(${genericLayerText(1, 'color')})`
+                  : `var(${genericLayerText(0, 'color')})`,
                 fontWeight: isSelected ? 600 : 400,
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.background = `var(--recursica-brand-themes-${mode}-layers-layer-0-properties-surface-hover)`
+                  e.currentTarget.style.background = `var(${genericLayerProperty(0, 'surface-hover')})`
                 }
               }}
               onMouseLeave={(e) => {

@@ -1,7 +1,7 @@
 /**
  * Dimension CSS Variable Resolver
  * 
- * Generates CSS variables from Brand.json dimension section.
+ * Generates CSS variables from recursica_brand.json dimension section.
  */
 
 import type { JsonLike } from './tokens'
@@ -32,7 +32,7 @@ function traverseDimensions(
       const val = (value as any).$value
       const type = (value as any).$type
       // Dimensions are now at brand level, so CSS vars don't include mode
-      const cssVarName = `--recursica-brand-dimensions-${currentPath.join('-')}`
+      const cssVarName = `--recursica_brand_dimensions_${currentPath.join('_')}`
 
       // Check if value is a token reference (e.g., {tokens.size.2x})
       if (typeof val === 'string') {
@@ -72,7 +72,7 @@ function traverseDimensions(
 }
 
 /**
- * Builds CSS variables from Brand.json dimension section
+ * Builds CSS variables from recursica_brand.json dimension section
  * 
  * @param tokens - Tokens JSON for resolving token references
  * @param theme - Brand JSON containing dimension definitions

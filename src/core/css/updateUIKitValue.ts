@@ -10,14 +10,14 @@ import { getVarsStore } from '../store/varsStore'
  * handle hyphenated keys like `border-size` or `min-height`.
  * 
  * @example
- * cssVarToUIKitPath('--recursica-ui-kit-themes-light-components-chip-variants-styles-unselected-properties-colors-layer-0-background', currentUIKit)
+ * cssVarToUIKitPath('--recursica_ui-kit_themes_light_components_chip_variants_styles_unselected_properties_colors_layer-0_background', currentUIKit)
  */
 function cssVarToUIKitPath(cssVar: string, rootObj: any): string[] | null {
-    const match = cssVar.match(/^--recursica-ui-kit-(?:themes-(?:light|dark)-)?(.+)$/)
+    const match = cssVar.match(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?(.+)$/)
     if (!match) return null
 
     const pathString = match[1]
-    const parts = pathString.split('-')
+    const parts = pathString.split('_')
     const path: string[] = ['ui-kit']
     let current = rootObj?.['ui-kit'] || rootObj
     let i = 0
@@ -25,14 +25,14 @@ function cssVarToUIKitPath(cssVar: string, rootObj: any): string[] | null {
     while (i < parts.length) {
         if (!current || typeof current !== 'object') {
             // Reached a leaf or undefined node, assume the rest is one long hyphenated key
-            path.push(parts.slice(i).join('-'))
+            path.push(parts.slice(i).join('_'))
             break
         }
 
         // Greedy match: try longest possible key combinations
         let matched = false
         for (let j = parts.length; j > i; j--) {
-            const candidateKey = parts.slice(i, j).join('-')
+            const candidateKey = parts.slice(i, j).join('-')  // JSON keys use hyphens internally
             if (candidateKey in current) {
                 path.push(candidateKey)
                 current = current[candidateKey]
@@ -93,107 +93,35 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
 
     // Convert the value to the proper format
     // If it's a var() reference, extract the token path
+    // With underscore-delimited var names, splitting on '_' gives correct JSON path segments
+    // directly (compound segments like 'scale-02', 'layer-0' are intact within a segment)
     let tokenValue = value
-    if (value.startsWith('var(--recursica-brand-themes-')) {
-        // Extract: var(--recursica-brand-themes-light-palettes-palette-1-500-tone)
+    if (value.startsWith('var(--recursica_brand_themes_')) {
+        // Extract: var(--recursica_brand_themes_light_palettes_palette-1_500_color_tone)
+        // Split on '_' gives: ['light', 'palettes', 'palette-1', '500', 'color', 'tone']
         // Convert to: {brand.themes.light.palettes.palette-1.500.color.tone}
-        const varMatch = value.match(/var\(--recursica-brand-themes-(.+)\)/)
+        const varMatch = value.match(/var\(--recursica_brand_themes_(.+)\)/)
         if (varMatch) {
-            // Don't blindly replace all hyphens - need to be smarter
-            // The pattern is: mode-section-subsection-...-property
-            // e.g., light-palettes-palette-1-500-tone
-            const parts = varMatch[1].split('-')
-            const tokenParts = ['brand', 'themes']
-
-            let i = 0
-            // First part is mode (light/dark)
-            if (i < parts.length) {
-                tokenParts.push(parts[i])
-                i++
-            }
-
-            // Rest of the parts - need to handle multi-word segments
-            while (i < parts.length) {
-                const part = parts[i]
-
-                // Check for known multi-word patterns
-                if (part === 'palette' && i + 1 < parts.length && /^\d+$/.test(parts[i + 1])) {
-                    // palette-1, palette-2, etc.
-                    tokenParts.push(`${part}-${parts[i + 1]}`)
-                    i += 2
-                } else if (part === 'core' && i + 1 < parts.length && parts[i + 1] === 'colors') {
-                    tokenParts.push('core-colors')
-                    i += 2
-                } else if (part === 'text' && i + 1 < parts.length && parts[i + 1] === 'emphasis') {
-                    tokenParts.push('text-emphasis')
-                    i += 2
-                } else if (/^\d+$/.test(part) && i + 2 < parts.length && parts[i + 1] === 'on' && parts[i + 2] === 'tone') {
-                    // 500-on-tone -> 500.color.on-tone
-                    tokenParts.push(`${part}.color.on-tone`)
-                    i += 3
-                } else if (/^\d+$/.test(part) && i + 1 < parts.length && parts[i + 1] === 'tone') {
-                    // 500-tone -> 500.color.tone
-                    tokenParts.push(`${part}.color.tone`)
-                    i += 2
-                } else if (/^\d+$/.test(part) && i + 1 < parts.length && parts[i + 1] === 'color') {
-                    // 500-color (standalone, not followed by tone)
-                    tokenParts.push(`${part}.color`)
-                    i += 2
-                } else if (part === 'on' && i + 1 < parts.length && parts[i + 1] === 'tone') {
-                    // on-tone for non-numbers (e.g. success-on-tone, black-on-tone)
-                    tokenParts.push('on-tone')
-                    i += 2
-                } else {
-                    tokenParts.push(part)
-                    i++
-                }
-            }
-
-            tokenValue = `{${tokenParts.join('.')}}`
+            const parts = varMatch[1].split('_')
+            tokenValue = `{brand.themes.${parts.join('.')}}`
         }
-    } else if (value.startsWith('var(--recursica-tokens-')) {
-        // Extract: var(--recursica-tokens-colors-scale-01-500)
+    } else if (value.startsWith('var(--recursica_tokens_')) {
+        // Extract: var(--recursica_tokens_colors_scale-01_500)
+        // Split on '_' gives: ['colors', 'scale-01', '500']
         // Convert to: {tokens.colors.scale-01.500}
-        const varMatch = value.match(/var\(--recursica-tokens-(.+)\)/)
+        const varMatch = value.match(/var\(--recursica_tokens_(.+)\)/)
         if (varMatch) {
-            const parts = varMatch[1].split('-')
-            const tokenParts: string[] = []
-            let i = 0
-            while (i < parts.length) {
-                const part = parts[i]
-                if (part === 'scale' && i + 1 < parts.length && /^\d+$/.test(parts[i + 1])) {
-                    tokenParts.push(`${part}-${parts[i + 1]}`)
-                    i += 2
-                } else if (part === 'letter' && i + 1 < parts.length && parts[i + 1] === 'spacings') {
-                    tokenParts.push('letter-spacings')
-                    i += 2
-                } else if (part === 'line' && i + 1 < parts.length && parts[i + 1] === 'heights') {
-                    tokenParts.push('line-heights')
-                    i += 2
-                } else {
-                    tokenParts.push(part)
-                    i++
-                }
-            }
-            tokenValue = `{tokens.${tokenParts.join('.')}}`
+            const parts = varMatch[1].split('_')
+            tokenValue = `{tokens.${parts.join('.')}}`
         }
-    } else if (value.startsWith('var(--recursica-brand-dimensions-')) {
-        const varMatch = value.match(/var\(--recursica-brand-dimensions-(.+)\)/)
+    } else if (value.startsWith('var(--recursica_brand_dimensions_')) {
+        // Extract: var(--recursica_brand_dimensions_border-radii_default)
+        // Split on '_' gives: ['border-radii', 'default']
+        // Convert to: {brand.dimensions.border-radii.default}
+        const varMatch = value.match(/var\(--recursica_brand_dimensions_(.+)\)/)
         if (varMatch) {
-            const parts = varMatch[1].split('-')
-            const dimParts: string[] = []
-            let i = 0
-            while (i < parts.length) {
-                const part = parts[i]
-                if (part === 'border' && i + 1 < parts.length && parts[i + 1] === 'radii') {
-                    dimParts.push('border-radii')
-                    i += 2
-                } else {
-                    dimParts.push(part)
-                    i++
-                }
-            }
-            tokenValue = `{brand.dimensions.${dimParts.join('.')}}`
+            const parts = varMatch[1].split('_')
+            tokenValue = `{brand.dimensions.${parts.join('.')}}`
         }
     }
 

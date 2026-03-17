@@ -469,8 +469,8 @@ export default function SegmentedControl({
 
       // CRITICAL: Filter out UIKit CSS variables - they're silent and don't need re-renders
       const nonUIKitVars = updatedVars.filter((v: string) =>
-        !v.startsWith('--recursica-ui-kit-components-') &&
-        !v.startsWith('--recursica-ui-kit-globals-')
+        !v.startsWith('--recursica_ui-kit_components_') &&
+        !v.startsWith('--recursica_ui-kit_globals_')
       )
 
       // Only update if a relevant CSS variable was updated (excluding UIKit vars)
@@ -555,7 +555,7 @@ export default function SegmentedControl({
       for (const cssVar of relevantCssVars) {
         // CRITICAL: Skip UIKit CSS variables entirely - they're managed via toolbar
         // and don't need component re-renders (CSS var() references resolve automatically)
-        const isUIKitVar = cssVar.startsWith('--recursica-ui-kit-components-') || cssVar.startsWith('--recursica-ui-kit-globals-')
+        const isUIKitVar = cssVar.startsWith('--recursica_ui-kit_components_') || cssVar.startsWith('--recursica_ui-kit_globals_')
         if (isUIKitVar) {
           continue // Skip UIKit vars - they don't need re-renders
         }

@@ -6,13 +6,14 @@ import PaletteColorControl from '../forms/PaletteColorControl'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
-import uikitJson from '../../vars/UIKit.json'
+import uikitJson from '../../../recursica_ui-kit.json'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { toCssVarName } from '../../components/utils/cssVarNames'
+import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 
 /**
- * Extracts all CSS variables for a component from UIKit.json
+ * Extracts all CSS variables for a component from recursica_ui-kit.json
  */
 function getComponentCssVars(componentName: string, mode: 'light' | 'dark'): Array<{ path: string; cssVar: string; value: any; type: string }> {
   const componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
@@ -155,11 +156,11 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
     return tokens.sort((a, b) => a.value - b.value)
   }, [tokensJson])
   
-  // Extract token name from CSS var value (e.g., "var(--recursica-tokens-size-md)" -> "size/md")
+  // Extract token name from CSS var value (e.g., "var(--recursica_tokens_size_md)" -> "size/md")
   const extractTokenFromCssVar = (cssValue: string): string | null => {
     if (!cssValue) return null
-    // Match: var(--recursica-tokens-size-{name})
-    const match = cssValue.match(/var\s*\(\s*--recursica-tokens-size-([^)]+)\s*\)/)
+    // Match: var(--recursica_tokens_size_{name})
+    const match = cssValue.match(/var\s*\(\s*--recursica_tokens_size_([^)]+)\s*\)/)
     if (match) return `size/${match[1]}`
     return null
   }
@@ -170,22 +171,21 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
     })
     setUpdateKey(k => k + 1)
   }
-  
-  const layer0Base = `--recursica-brand-themes-${mode}-layers-layer-0-properties`
   const CloseIcon = iconNameToReactComponent('x-mark')
   
   return (
     <div 
-      aria-hidden={!open} 
+      aria-hidden={!open}
+      data-recursica-layer="2"
       style={{ 
         position: 'fixed', 
         top: 0, 
         right: 0, 
         height: '100vh', 
         width: '320px', 
-        background: `var(--recursica-brand-themes-${mode}-layers-layer-2-properties-surface)`, 
-        borderLeft: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-2-properties-border-color)`, 
-        boxShadow: `var(--recursica-brand-themes-${mode}-elevations-elevation-3-shadow-color)`, 
+        background: `var(${genericLayerProperty(2, 'surface')})`, 
+        borderLeft: `1px solid var(${genericLayerProperty(2, 'border-color')})`, 
+        boxShadow: `var(--recursica_brand_elevations_elevation-3-shadow-color)`, 
         transform: open ? 'translateX(0)' : 'translateX(100%)', 
         transition: 'transform 200ms ease', 
         zIndex: 10000, 
@@ -196,12 +196,12 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
         <h2 style={{ 
           margin: 0,
-          fontFamily: 'var(--recursica-brand-typography-h2-font-family)',
-          fontSize: 'var(--recursica-brand-typography-h2-font-size)',
-          fontWeight: 'var(--recursica-brand-typography-h2-font-weight)',
-          letterSpacing: 'var(--recursica-brand-typography-h2-font-letter-spacing)',
-          lineHeight: 'var(--recursica-brand-typography-h2-line-height)',
-          color: `var(${layer0Base.replace('-properties', '-elements')}-text-color)`,
+          fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+          fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+          fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+          letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+          lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+          color: `var(${genericLayerText(0, 'color')})`,
         }}>{componentName}</h2>
         <Button 
           onClick={onClose} 
@@ -213,7 +213,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
       </div>
       
       {componentVars.length === 0 ? (
-        <div style={{ padding: 24, textAlign: 'center', color: `var(--recursica-brand-themes-${mode}-layers-layer-0-elements-text-low-emphasis)` }}>
+        <div style={{ padding: 24, textAlign: 'center', color: `var(${genericLayerText(0, 'low-emphasis')})` }}>
           No CSS variables found for {componentName}
         </div>
       ) : (
@@ -246,7 +246,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                           toggleAccordion(accordionKey)
                         }
                       }}
-                      style={{ border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, borderRadius: 6, overflow: 'hidden' }}
+                      style={{ border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 6, overflow: 'hidden' }}
                     >
                       <summary
                         style={{
@@ -305,7 +305,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                                   const token = sortedTokens[Math.round(idx)]
                                   if (token) {
                                     const tokenKey = token.name.replace('size/', '')
-                                    updateCssVar(cssVar, `var(--recursica-tokens-size-${tokenKey})`)
+                                    updateCssVar(cssVar, `var(--recursica_tokens_size_${tokenKey})`)
                                     setUpdateKey(k => k + 1)
                                   }
                                 }}
@@ -337,7 +337,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                                 placeholder={`Enter value (type: ${type})`}
                                 style={{ 
                                   padding: '6px 8px', 
-                                  border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, 
+                                  border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, 
                                   borderRadius: 6 
                                 }}
                               />
@@ -393,7 +393,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                         const token = sortedTokens[Math.round(idx)]
                         if (token) {
                           const tokenKey = token.name.replace('size/', '')
-                          updateCssVar(cssVar, `var(--recursica-tokens-size-${tokenKey})`)
+                          updateCssVar(cssVar, `var(--recursica_tokens_size_${tokenKey})`)
                           setUpdateKey(k => k + 1)
                         }
                       }}
@@ -425,7 +425,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                       placeholder={`Enter value (type: ${type})`}
                       style={{ 
                         padding: '6px 8px', 
-                        border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, 
+                        border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, 
                         borderRadius: 6 
                       }}
                     />
@@ -441,7 +441,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
               onClick={handleRevertAll}
               style={{ 
                 padding: '8px 10px', 
-                border: `1px solid var(--recursica-brand-themes-${mode}-layers-layer-1-properties-border-color)`, 
+                border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, 
                 background: 'transparent', 
                 borderRadius: 6, 
                 cursor: 'pointer' 
