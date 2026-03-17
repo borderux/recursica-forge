@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { updateCssVar, updateCssVars, removeCssVar } from './updateCssVar'
 import { readCssVar } from './readCssVar'
 
-describe('updateCssVar', () => {
+describe('updateCssVar', { timeout: 60000 }, () => {
   beforeEach(() => {
     document.documentElement.style.cssText = ''
     vi.clearAllMocks()

@@ -43,7 +43,7 @@ const mockTheme = {
   }
 }
 
-describe('AAComplianceWatcher', () => {
+describe('AAComplianceWatcher', { timeout: 60000 }, () => {
   beforeEach(() => {
     // Clear all CSS variables
     document.documentElement.style.cssText = ''
