@@ -80,16 +80,16 @@ describe('buildDimensionVars', () => {
     const vars = buildDimensionVars(mockTokens, mockTheme, 'light')
     
     // border-radius values are numeric, should have px suffix
-    const borderRadiusVar = vars['--recursica_brand_dimensions_border-radii_default']
+    const borderRadiusVar = vars['--recursica_brand_dimensions_border-radius_default']
     expect(borderRadiusVar).toBe('4px')
   })
 
   it('should handle nested dimension structures', () => {
     const vars = buildDimensionVars(mockTokens, mockTheme, 'light')
     
-    expect(vars['--recursica_brand_dimensions_border-radii_default']).toBeDefined()
-    expect(vars['--recursica_brand_dimensions_border-radii_sm']).toBeDefined()
-    expect(vars['--recursica_brand_dimensions_border-radii_lg']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_border-radius_default']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_border-radius_sm']).toBeDefined()
+    expect(vars['--recursica_brand_dimensions_border-radius_lg']).toBeDefined()
     
     expect(vars['--recursica_brand_dimensions_spacer_sm']).toBeDefined()
     expect(vars['--recursica_brand_dimensions_spacer_md']).toBeDefined()
