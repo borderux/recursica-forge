@@ -13,10 +13,13 @@
   max-width: var(--accordion-max-width) !important;
 }
 
-/* Remove borders from ALL nested elements - only the root container should have border */
+/* Remove borders from Mantine's own accordion sub-elements - only the root container should have border */
 .recursica-accordion.mantine-accordion .mantine-Accordion-item,
-.recursica-accordion.mantine-accordion .mantine-Accordion-item *,
-.recursica-accordion.mantine-accordion>* {
+.recursica-accordion.mantine-accordion .mantine-Accordion-control,
+.recursica-accordion.mantine-accordion .mantine-Accordion-label,
+.recursica-accordion.mantine-accordion .mantine-Accordion-panel,
+.recursica-accordion.mantine-accordion .mantine-Accordion-content,
+.recursica-accordion.mantine-accordion .mantine-Accordion-chevron {
   border: none !important;
   border-top: none !important;
   border-bottom: none !important;

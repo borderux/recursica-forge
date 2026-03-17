@@ -51,14 +51,14 @@ html[data-theme-mode="dark"] .palette-color-control-label {
   left: -1px;
   right: -1px;
   bottom: -1px;
-  border: 1px solid var(--recursica_brand_themes_light_palettes_neutral_500_tone);
+  border: 1px solid var(--recursica_brand_themes_light_palettes_neutral_500_color_tone);
   border-radius: 4px;
   pointer-events: none;
   z-index: 1;
 }
 
 html[data-theme-mode="dark"] .palette-color-control-swatch::before {
-  border-color: var(--recursica_brand_themes_dark_palettes_neutral_500_tone);
+  border-color: var(--recursica_brand_themes_dark_palettes_neutral_500_color_tone);
 }
 
 /* Ensure the leading icon container doesn't clip the swatch border */

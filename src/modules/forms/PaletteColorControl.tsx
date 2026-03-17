@@ -510,6 +510,12 @@ export default function PaletteColorControl({
     let paletteValue = findPaletteInChain(displayCssVar)
     let cssValue = paletteValue || readCssVar(displayCssVar)
 
+    // If the value is explicitly 'transparent', treat it as None/unset
+    if (cssValue === 'transparent') {
+      setDisplayLabel(fallbackLabel)
+      return
+    }
+
     // If we didn't find a palette reference in the chain, try resolving to hex and matching
     if (!paletteValue && cssValue) {
       // Resolve deeper to handle UIKit variables that chain to other variables
@@ -923,8 +929,18 @@ export default function PaletteColorControl({
   }
 
   // Check if color is null/not set
-  const isColorNull = displayLabel === 'None' || !readCssVar(displayCssVar)
+  const cssVarValue = readCssVar(displayCssVar)
+  const isColorNull = displayLabel === 'None' || !cssVarValue || cssVarValue === 'transparent'
   const modeLower = mode.toLowerCase()
+
+  // Resolve swatch fill color from :root to bypass scoped CSS engine shadowing.
+  // When the toolbar panel has data-recursica-layer/theme attributes, scoped aliases
+  // can shadow the inline override on :root. Reading the resolved hex directly avoids this.
+  const resolvedSwatchColor = useMemo(() => {
+    if (isColorNull) return 'transparent'
+    const hex = readCssVarResolved(displayCssVar, 10)
+    return hex && /^#[0-9a-f]{3,8}$/i.test(hex.trim()) ? hex.trim() : `var(${displayCssVar}, transparent)`
+  }, [displayCssVar, isColorNull, refreshKey, mode])
 
   // Use the same border style as the overlay swatches
   // Match PaletteSwatchPicker's border style exactly
@@ -1027,7 +1043,7 @@ export default function PaletteColorControl({
       <span
         className="palette-color-control-swatch-inner"
         style={{
-          background: `var(${displayCssVar}, transparent)`,
+          background: resolvedSwatchColor,
           width: '100%',
           height: '100%',
           display: 'block',

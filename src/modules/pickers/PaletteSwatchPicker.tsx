@@ -335,7 +335,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
             onClick={(e) => {
               e.stopPropagation()
               const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
-              cssVarsToUpdate.forEach((v) => removeCssVar(v))
+              cssVarsToUpdate.forEach((v) => updateCssVar(v, 'transparent', tokensJson))
               setAnchor(null)
               onSelect?.('')
               window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))

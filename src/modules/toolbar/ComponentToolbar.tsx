@@ -985,7 +985,7 @@ export default function ComponentToolbar({
   }
 
   return (
-    <div className="component-toolbar-panel" data-recursica-theme={mode} data-recursica-layer="0" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
       <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -1123,6 +1123,30 @@ export default function ComponentToolbar({
           }
         }}
         layer="layer-0"
+        style={(componentName === 'Accordion' || componentName === 'AccordionItem'
+          ? {}
+          : {
+            /* Override the component-specific CSS vars that the Accordion adapter sets.
+               These prevent the preview accordion's colors from leaking into the toolbar.
+               The adapter spreads ...style last, so these override the adapter's computed values.
+               Skipped for Accordion/AccordionItem so the toolbar acts as a live preview. */
+            ['--accordion-bg' as string]: 'transparent',
+            ['--accordion-border' as string]: 'transparent',
+            ['--accordion-border-size' as string]: '0',
+            ['--accordion-border-radius' as string]: '0',
+            ['--accordion-padding' as string]: '0',
+            ['--accordion-item-gap' as string]: '0',
+            ['--accordion-item-header-bg-collapsed' as string]: 'transparent',
+            ['--accordion-item-header-bg-expanded' as string]: 'transparent',
+            ['--accordion-item-border-radius' as string]: '0',
+            ['--accordion-item-content-bg' as string]: 'transparent',
+            ['--accordion-item-divider-color' as string]: `var(${layerProperty(mode, 0, 'border-color')})`,
+            ['--accordion-item-header-text' as string]: `var(${layerText(mode, 0, 'color')})`,
+            ['--accordion-item-icon-color' as string]: `var(${layerText(mode, 0, 'color')})`,
+            ['--accordion-item-content-text' as string]: `var(${layerText(mode, 0, 'color')})`,
+            boxShadow: 'none',
+          }
+        ) as React.CSSProperties}
       />
 
       {/* Reset Button */}

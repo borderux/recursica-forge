@@ -185,7 +185,7 @@ export default function ColorTokenPicker() {
   // Helper: Build CSS variable name for a color token (matches varsStore format)
   // Always uses scale key (e.g., scale-01) instead of alias (e.g., cornflower)
   const buildTokenCssVar = (family: string, level: string): string => {
-    const normalizedLevel = level === '000' ? '050' : level === '1000' ? '1000' : String(level).padStart(3, '0')
+    const normalizedLevel = level === '1000' ? '1000' : String(level).padStart(3, '0')
 
     // If family is already a scale key (starts with scale-), use it directly
     if (family.startsWith('scale-')) {
@@ -1075,11 +1075,11 @@ export default function ColorTokenPicker() {
               background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_surface)`
             }}>
               <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
-                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral-500-tone)`} strokeWidth="1.5" />
+                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone)`} strokeWidth="1.5" />
               </svg>
               {isNoneSelected && (
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` }} /> : '✓'}
+                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` }} /> : '✓'}
                 </div>
               )}
             </div>
@@ -1102,6 +1102,14 @@ export default function ColorTokenPicker() {
                   tokenCssVar = buildTokenCssVar(family, level)
                 }
 
+                // Calculate checkmark color from hex for guaranteed contrast
+                const hex = it.value.replace('#', '')
+                const r = parseInt(hex.slice(0, 2), 16)
+                const g = parseInt(hex.slice(2, 4), 16)
+                const b = parseInt(hex.slice(4, 6), 16)
+                const yiq = (r * 299 + g * 587 + b * 114) / 1000
+                const checkColor = yiq < 128 ? '#ffffff' : '#000000'
+
                 return (
                   <div
                     key={it.name}
@@ -1113,7 +1121,7 @@ export default function ColorTokenPicker() {
                       height: swatch,
                       background: tokenCssVar ? `var(${tokenCssVar})` : it.value,
                       cursor: 'pointer',
-                      border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core-black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                      border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                       padding: isSelected ? '1px' : '0',
                       borderRadius: isSelected ? '5px' : '0',
                       boxSizing: 'border-box',
@@ -1122,19 +1130,7 @@ export default function ColorTokenPicker() {
                   >
                     {isSelected && (
                       <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                        {(() => {
-                          const hex = it.value.replace('#', '')
-                          const r = parseInt(hex.slice(0, 2), 16)
-                          const g = parseInt(hex.slice(2, 4), 16)
-                          const b = parseInt(hex.slice(4, 6), 16)
-                          const yiq = (r * 299 + g * 587 + b * 114) / 1000
-                          const isDark = yiq < 128
-                          const checkColor = isDark
-                            ? `var(--recursica_brand_themes_${modeLower}_palettes_core-white)`
-                            : `var(--recursica_brand_themes_${modeLower}_palettes_core-black)`
-
-                          return CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: checkColor }} /> : <span style={{ color: checkColor }}>✓</span>
-                        })()}
+                        {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: checkColor }} /> : <span style={{ color: checkColor }}>✓</span>}
                       </div>
                     )}
                   </div>

@@ -177,7 +177,7 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
         // Always use scale key - findTokenByHex returns scale in the scale property
         const scaleKey = tokenMatch.scale || (tokenMatch.family.startsWith('scale-') ? tokenMatch.family : null)
         if (scaleKey) {
-          const normalizedLevel = tokenMatch.level === '000' ? '050' : tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
+          const normalizedLevel = tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
           return `var(--recursica_tokens_colors_${scaleKey}_${normalizedLevel})`
         }
         // If no scale found, try to resolve alias to scale key
@@ -189,7 +189,7 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
           return scale && typeof scale === 'object' && scale.alias === tokenMatch.family
         })
         if (resolvedScaleKey) {
-          const normalizedLevel = tokenMatch.level === '000' ? '050' : tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
+          const normalizedLevel = tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
           return `var(--recursica_tokens_colors_${resolvedScaleKey}_${normalizedLevel})`
         }
         // Last resort: use tokenToCssVar which will handle it
@@ -203,7 +203,7 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
         }
         // If still no CSS var and we have old format, generate old format CSS var directly
         if (!cssVar && tokens?.tokens?.color && !tokenMatch.scale) {
-          const normalizedLevel = tokenMatch.level === '000' ? '050' : tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
+          const normalizedLevel = tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
           return `var(--recursica_tokens_color_${tokenMatch.family}_${normalizedLevel})`
         }
         if (cssVar) return cssVar

@@ -173,7 +173,7 @@ function BrandDimensionSliderInline_DEPRECATED({
       Object.keys(dimensionCategoryData).forEach(dimensionKey => {
         const dimensionValue = dimensionCategoryData[dimensionKey]
         if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
-          const cssVar = `--recursica_brand_dimensions_${dimensionCategory}-${dimensionKey}`
+          const cssVar = `--recursica_brand_dimensions_${dimensionCategory}_${dimensionKey}`
           const cssValue = readCssVar(cssVar)
 
           if (cssValue) {
@@ -242,7 +242,7 @@ function BrandDimensionSliderInline_DEPRECATED({
 
     if (currentValue.trim().startsWith('var(--recursica_')) {
       const matchingIndex = tokens.findIndex(t => {
-        const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}-`, '')
+        const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}_`, '')
         return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
       })
 
