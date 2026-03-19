@@ -27,7 +27,7 @@ export function useJsonExport() {
   const [showGitHubModal, setShowGitHubModal] = useState(false)
   const [githubExportFiles, setGithubExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null>(null)
   
-  const handleExport = () => {
+  const handleExport = (knownIssueCount?: number) => {
     // Step 1: Validate all JSON files and CSS
     const errors: ValidationError[] = []
     
@@ -78,7 +78,12 @@ export function useJsonExport() {
       return
     }
     
-    // Step 2: Validation passed, check AA compliance
+    // Step 2: Check AA compliance — skip if caller already knows there are zero issues
+    if (knownIssueCount === 0) {
+      setShowSelectionModal(true)
+      return
+    }
+
     const issues = checkAACompliance()
     
     if (issues.length > 0) {

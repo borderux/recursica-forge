@@ -560,7 +560,7 @@ export default function MaterialShell({
                       />
                     ) : null;
                   })()}
-                  onClick={handleExport}
+                  onClick={() => handleExport(issueCount)}
                 />
               </Tooltip>
 

@@ -543,7 +543,7 @@ export default function CarbonShell({
                       />
                     ) : null;
                   })()}
-                  onClick={handleExport}
+                  onClick={() => handleExport(issueCount)}
                 />
               </Tooltip>
 
