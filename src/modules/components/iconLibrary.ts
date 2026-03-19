@@ -72,7 +72,9 @@ import {
   FileSvg,
   FileText,
   Fire,
+  Flask,
   FrameCorners,
+  GitDiff,
   FunnelSimple,
   GoogleLogo,
   GridFour,
@@ -411,6 +413,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
 
   // Nature & Objects
   'fire': Fire,
+  'flask': Flask,
+  'git-diff': GitDiff,
   'tree': Tree,
   'shield': Shield,
   'crown': Crown,

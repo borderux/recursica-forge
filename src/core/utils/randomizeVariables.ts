@@ -362,6 +362,63 @@ function generateRandomValue(originalValue: any, index: number, context: {
             const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
             return `{tokens.font.decorations.${randomScale}}`
           }
+        } // end typography
+
+        // 4b. Opacity: tokens.opacities.* refs (used directly in component properties)
+        if (parts[0] === 'tokens' && parts[1] === 'opacities') {
+          const scales = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
+          const currentScale = parts[2]
+          const filtered = currentScale ? scales.filter(s => s !== currentScale) : scales
+          return `{tokens.opacities.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+        }
+
+        // 6. Catch-all for brand.dimensions.* — regardless of context.isSize
+        if (parts[0] === 'brand' && parts[1] === 'dimensions') {
+          const sub = parts[2]
+          if (sub === 'border-radii') {
+            const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', 'pill', 'circle']
+            const filtered = scales.filter(s => !originalValue.includes(s))
+            return `{brand.dimensions.border-radii.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+          } else if (sub === 'icons') {
+            const scales = ['xs', 'sm', 'default', 'lg', 'xl']
+            const filtered = scales.filter(s => !originalValue.includes(s))
+            return `{brand.dimensions.icons.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+          } else {
+            const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl']
+            const filtered = scales.filter(s => !originalValue.includes(s))
+            return `{brand.dimensions.general.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+          }
+        }
+
+        // 7. Catch-all for brand.typography.* — route to typography token
+        if (parts[0] === 'brand' && parts[1] === 'typography') {
+          const typefaces = ['primary', 'secondary', 'tertiary']
+          return `{tokens.font.typefaces.${typefaces[Math.floor(Math.random() * typefaces.length)]}}`
+        }
+
+        // 8. Catch-all: if none matched but we have a known namespace, infer type from path keywords
+        if ((parts[0] === 'brand' || parts[0] === 'tokens' || parts[0] === 'ui-kit') && context.randomizeTokenRef) {
+          const ref = originalValue.toLowerCase()
+          // Color-flavored refs
+          if (ref.includes('palette') || ref.includes('color') || ref.includes('core-colors')) {
+            const paletteNames = ['palette-1', 'palette-2', 'palette-3', 'neutral']
+            const levels = ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+            const tones = ['tone', 'on-tone']
+            const p = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+            const l = levels[Math.floor(Math.random() * levels.length)]
+            const t = tones[Math.floor(Math.random() * tones.length)]
+            return `{brand.palettes.${p}.${l}.color.${t}}`
+          }
+          // Size-flavored refs
+          if (ref.includes('dimension') || ref.includes('padding') || ref.includes('radius') || ref.includes('gap') || ref.includes('spacing')) {
+            const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl']
+            return `{brand.dimensions.general.${scales[Math.floor(Math.random() * scales.length)]}}`
+          }
+          // Elevation refs
+          if (ref.includes('elevation')) {
+            const scales = ['elevation-0', 'elevation-1', 'elevation-2', 'elevation-3', 'elevation-4']
+            return `{brand.elevations.${scales[Math.floor(Math.random() * scales.length)]}}`
+          }
         }
       }
       // Keep references as-is to maintain validity (if not randomizing)
