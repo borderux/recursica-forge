@@ -206,8 +206,7 @@ export default function SizeTokens() {
                       // Dragging default with auto-scale: update local slider state for smooth UI
                       setSliderValues((prev) => ({ ...prev, [rawKey]: next }))
                     } else if (!scaleByDefault) {
-                      // No auto-scale: update CSS var immediately
-                      writeSizeCssVar(rawKey, next)
+                      // Update local state only — no CSS write during drag prevents cssVarsUpdated race
                       setValues((prev) => ({ ...prev, [rawKey]: next }))
                     }
                   }}
@@ -230,8 +229,11 @@ export default function SizeTokens() {
                         return copy
                       })
                       setValues(readAllFromCss())
+                    } else if (!scaleByDefault) {
+                      // Write to CSS once on commit — local state already reflects the value
+                      writeSizeCssVar(rawKey, next)
+                      setValues(readAllFromCss())
                     }
-                    // No else needed — non-auto-scale writes happen in onChange
                   }}
                   min={0}
                   max={100}
