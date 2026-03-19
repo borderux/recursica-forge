@@ -418,7 +418,7 @@ export default function MantineShell({
                       />
                     ) : null;
                   })()}
-                  onClick={handleExport}
+                  onClick={() => handleExport(issueCount)}
                 />
               </Tooltip>
 
