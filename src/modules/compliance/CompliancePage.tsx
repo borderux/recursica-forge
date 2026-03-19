@@ -444,7 +444,7 @@ export default function CompliancePage() {
             {issues.length === 0 && (
                 <div className="compliance-page__empty">
                     <div className="compliance-page__empty-icon" style={{
-                        color: `var(--recursica_brand_themes_${mode}_palettes_palette-1_default_color_tone)`,
+                        color: `var(--recursica_brand_palettes_palette-1_primary_color_tone)`,
                     }}>
                         {CheckIcon && <CheckIcon style={{
                             width: 'var(--recursica_brand_dimensions_icons_lg)',
