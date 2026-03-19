@@ -335,6 +335,7 @@ export default function Slider({
           state={disabled ? 'disabled' : 'default'}
           readOnly={readOnly}
           layer="layer-0"
+          disableTopBottomMargin={true}
           style={{
             width: `var(${inputWidthVar}, 60px)`,
             fontSize: 'var(--recursica_brand_typography_body-small-font-size)',

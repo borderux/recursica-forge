@@ -19,9 +19,9 @@ export type ColorScaleProps = {
   familyNames: Record<string, string>
   deletedFamilies: Record<string, true>
   hoveredSwatch: string | null
-  openPicker: { tokenName: string; swatchRect: DOMRect } | null
+  openPicker: { tokenName: string; anchorElement: HTMLElement } | null
   setHoveredSwatch: (tokenName: string | null) => void
-  setOpenPicker: (picker: { tokenName: string; swatchRect: DOMRect } | null) => void
+  setOpenPicker: (picker: { tokenName: string; anchorElement: HTMLElement } | null) => void
   onNameFromHex: (family: string, hex: string) => void
   onChange: (tokenName: string, hex: string, cascadeDown: boolean, cascadeUp: boolean) => void
   onFamilyNameChange: (family: string, newName: string) => void
@@ -174,8 +174,7 @@ export function ColorScale({
               }}
               onClick={(ev) => {
                 if (!tokenName) return
-                const rect = (ev.currentTarget as HTMLDivElement).getBoundingClientRect()
-                setOpenPicker({ tokenName, swatchRect: rect })
+                setOpenPicker({ tokenName, anchorElement: ev.currentTarget as HTMLDivElement })
               }}
               onChange={(hex, cascadeDown, cascadeUp) => {
                 if (tokenName) onChange(tokenName, hex, cascadeDown, cascadeUp)

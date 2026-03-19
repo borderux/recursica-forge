@@ -167,7 +167,7 @@ export default function ColorTokens() {
   const { mode: themeMode } = useThemeMode()
   const [values, setValues] = useState<Record<string, string | number>>({})
   const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
-  const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
+  const [openPicker, setOpenPicker] = useState<{ tokenName: string; anchorElement: HTMLElement } | null>(null)
 
   // Close picker when mode changes
   useEffect(() => {

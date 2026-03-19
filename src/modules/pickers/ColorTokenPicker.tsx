@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { updateCssVar, removeCssVar, clearPendingCssVars, suppressCssVarEvents } from '../../core/css/updateCssVar'
@@ -16,7 +15,7 @@ import { getVarsStore } from '../../core/store/varsStore'
 import { tokenColors, paletteCore, layerProperty, extractColorToken, colorTokenToPath } from '../../core/css/cssVarBuilder'
 import { updateCoreColorOnTonesForCompliance } from '../../core/compliance/coreColorAaCompliance'
 import { iconNameToReactComponent } from '../components/iconUtils'
-import { Modal } from '../../components/adapters/Modal'
+import FloatingPalette from '../toolbar/menu/floating-palette/FloatingPalette'
 import { Label } from '../../components/adapters/Label'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
@@ -26,7 +25,6 @@ export default function ColorTokenPicker() {
   const modeLower = mode.toLowerCase() as 'light' | 'dark'
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetVar, setTargetVar] = useState<string | null>(null)
-  const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
 
@@ -161,26 +159,11 @@ export default function ColorTokenPicker() {
     return byFamily
   }, [tokensJson])
 
-    // Handle opening from legacy global function if needed, but prefer useColorTokenPicker hook
+    // Handle opening from global function
     ; (window as any).openPicker = (el: HTMLElement, cssVar: string) => {
       window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
-
       setAnchor(el)
       setTargetVar(cssVar)
-
-      const rect = el.getBoundingClientRect()
-      const viewportWidth = window.innerWidth
-      // Estimate width: label column (110) + 12 swatches (12 * 25) + padding/margins
-      const estimatedWidth = 420
-
-      let left = rect.left
-      // If the picker would go off the right edge, align its right edge with the button's right edge
-      if (left + estimatedWidth > viewportWidth - 20) {
-        left = Math.max(16, rect.right - estimatedWidth)
-      }
-
-      // Convert viewport coordinates to page coordinates so the overlay scrolls with the page
-      setPos({ top: rect.bottom + 8 + window.scrollY, left: left + window.scrollX })
     }
 
   // Helper: Build CSS variable name for a color token (matches varsStore format)
@@ -1003,29 +986,15 @@ export default function ColorTokenPicker() {
   const isNoneSelected = !targetResolvedValue?.direct || targetResolvedValue.direct === 'transparent' || targetResolvedValue.direct === 'null' || targetResolvedValue.direct === ''
 
   return (
-    <Modal
-      isOpen={true}
+    <FloatingPalette
+      anchorElement={anchor}
+      title="Pick a color"
       onClose={() => {
         setAnchor(null)
         setTargetVar(null)
       }}
-      title="Pick a color"
-      size="auto"
-      withOverlay={false}
-      centered={false}
-      position={{ x: pos.left, y: pos.top }}
-      onPositionChange={(newPos) => setPos({ top: newPos.y, left: newPos.x })}
       draggable={true}
-      showHeader={true}
-      showFooter={false}
-      padding={true}
-      layer="layer-3"
-      zIndex={20000}
-      className="color-token-picker-overlay"
-      style={{
-        overflow: 'visible',
-        visibility: pos.top === -9999 ? 'hidden' : 'visible',
-      }}
+      className="color-token-picker"
     >
       <div
         style={{
@@ -1131,7 +1100,7 @@ export default function ColorTokenPicker() {
           </div>
         ))}
       </div>
-    </Modal>
+    </FloatingPalette>
   )
 }
 
