@@ -15,8 +15,8 @@ export type ColorCellProps = {
   onChange: (hex: string, cascadeDown: boolean, cascadeUp: boolean) => void
   onNameFromHex: (family: string, hex: string) => void
   displayFamilyName: string
-  openPicker: { tokenName: string; swatchRect: DOMRect } | null
-  setOpenPicker: (picker: { tokenName: string; swatchRect: DOMRect } | null) => void
+  openPicker: { tokenName: string; anchorElement: HTMLElement } | null
+  setOpenPicker: (picker: { tokenName: string; anchorElement: HTMLElement } | null) => void
   tokens?: JsonLike
   isFirst?: boolean
   isLast?: boolean
@@ -82,7 +82,7 @@ export function ColorCell({
         <ColorPickerOverlay
           tokenName={tokenName}
           currentHex={/^#([0-9a-f]{6})$/i.test(currentHex) ? currentHex : '#000000'}
-          swatchRect={openPicker.swatchRect}
+          anchorElement={openPicker.anchorElement}
           onClose={() => setOpenPicker(null)}
           onNameFromHex={onNameFromHex}
           displayFamilyName={displayFamilyName}

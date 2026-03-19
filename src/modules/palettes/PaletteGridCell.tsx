@@ -61,7 +61,7 @@ export function PaletteEmphasisCell({
 }: PaletteEmphasisCellProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [updateTrigger, setUpdateTrigger] = useState(0)
-  const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
+  const [openPicker, setOpenPicker] = useState<{ tokenName: string; anchorElement: HTMLElement } | null>(null)
 
   // Close picker when mode changes
   useEffect(() => {
@@ -293,8 +293,7 @@ export function PaletteEmphasisCell({
 
             // Open ColorPickerOverlay
             window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
-            const rect = cellRef.current.getBoundingClientRect()
-            setOpenPicker({ tokenName, swatchRect: rect })
+            setOpenPicker({ tokenName, anchorElement: cellRef.current })
           }
           return
         }
@@ -482,7 +481,7 @@ export function PaletteEmphasisCell({
           <ColorPickerOverlay
             tokenName={tokenName}
             currentHex={currentHex}
-            swatchRect={openPicker.swatchRect}
+            anchorElement={openPicker.anchorElement}
             onClose={() => setOpenPicker(null)}
             onNameFromHex={async (fam: string, hex: string) => {
               // Optional: Update family name from hex

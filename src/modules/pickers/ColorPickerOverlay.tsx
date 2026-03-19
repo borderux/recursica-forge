@@ -5,13 +5,13 @@ import { useVars } from '../vars/VarsContext'
 import { TextField } from '../../components/adapters/TextField'
 import { CheckboxItem } from '../../components/adapters/CheckboxItem'
 import { Button } from '../../components/adapters/Button'
-import { Modal } from '../../components/adapters/Modal'
+import FloatingPalette from '../toolbar/menu/floating-palette/FloatingPalette'
 import { Tag } from '@phosphor-icons/react'
 
 export type ColorPickerOverlayProps = {
   tokenName: string
   currentHex: string
-  swatchRect: DOMRect
+  anchorElement: HTMLElement | null
   onClose: () => void
   onChange: (hex: string, cascadeDown: boolean, cascadeUp: boolean) => void
   onNameFromHex: (family: string, hex: string) => void
@@ -21,16 +21,14 @@ export type ColorPickerOverlayProps = {
 export function ColorPickerOverlay({
   tokenName,
   currentHex,
-  swatchRect,
+  anchorElement,
   onClose,
   onChange,
   onNameFromHex,
   displayFamilyName,
 }: ColorPickerOverlayProps) {
-  const overlayRef = useRef<HTMLDivElement | null>(null)
   const svRef = useRef<HTMLDivElement | null>(null)
   const hRef = useRef<HTMLDivElement | null>(null)
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
   const [hsvState, setHsvState] = useState<{ h: number; s: number; v: number }>(() => hexToHsv(/^#([0-9a-f]{6})$/i.test(currentHex) ? currentHex : '#000000'))
   const [cascadeDown, setCascadeDown] = useState<boolean>(false)
   const [cascadeUp, setCascadeUp] = useState<boolean>(false)
@@ -50,36 +48,6 @@ export function ColorPickerOverlay({
     setHsvState(hexToHsv(/^#([0-9a-f]{6})$/i.test(currentHex) ? currentHex : '#000000'))
     setHexInput((/^#([0-9a-f]{6})$/i.test(currentHex) ? currentHex : '#000000').toLowerCase())
   }, [currentHex])
-
-  useEffect(() => {
-    const calculatePosition = () => {
-      const overlayW = 300 // fixed width
-      const overlayH = overlayRef.current?.offsetHeight || 320
-
-      // Calculate positions relative to the viewport (for Modal's fixed positioning)
-      const candidates = [
-        { y: swatchRect.bottom + 8, x: swatchRect.left },
-        { y: swatchRect.top - overlayH - 8, x: swatchRect.left },
-        { y: swatchRect.bottom + 8, x: swatchRect.left - overlayW + swatchRect.width },
-        { y: swatchRect.top - overlayH - 8, x: swatchRect.left - overlayW + swatchRect.width },
-      ]
-
-      // Check if position fits in viewport
-      const fits = (p: { y: number; x: number }) => {
-        return p.x >= 0 && p.x + overlayW <= window.innerWidth && p.y >= 0 && p.y + overlayH <= window.innerHeight
-      }
-
-      const chosen = candidates.find(fits) || candidates[0]
-      setPos({ top: chosen.y, left: chosen.x })
-    }
-
-    // Initial calculation
-    calculatePosition()
-
-    // Handle resize
-    window.addEventListener('resize', calculatePosition)
-    return () => window.removeEventListener('resize', calculatePosition)
-  }, [swatchRect.top, swatchRect.left, swatchRect.width, swatchRect.height]) // Re-calc if swatch moves, but NOT on hex change
 
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n))
 
@@ -165,32 +133,14 @@ export function ColorPickerOverlay({
   }, [tokenName, tokens])
 
   return (
-    <Modal
-      isOpen={true}
-      onClose={onClose}
+    <FloatingPalette
+      anchorElement={anchorElement}
       title={scaleDisplayName}
-      size={300}
-      withOverlay={false}
-      centered={false}
-      position={pos ? { x: pos.left, y: pos.top } : { x: 0, y: 0 }}
-      onPositionChange={(newPos) => setPos({ top: newPos.y, left: newPos.x })}
+      onClose={onClose}
       draggable={true}
-      showHeader={true}
-      showFooter={false}
-      padding={true}
-      layer="layer-3"
-      zIndex={20000}
       className="color-picker-overlay"
-      style={{
-        overflow: 'visible',
-        visibility: pos ? 'visible' : 'hidden'
-      }}
     >
-      <div
-        ref={overlayRef}
-        style={{ display: 'grid', gap: 10 }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_default)' }}>
         <div
           ref={svRef}
           onMouseDown={(e) => {
@@ -227,55 +177,55 @@ export function ColorPickerOverlay({
         >
           <div style={{ position: 'absolute', left: hueThumbLeft, top: '50%', transform: 'translate(-50%, -50%)', width: 12, height: 12, borderRadius: '50%', border: '2px solid #fff', boxShadow: '0 0 0 1px rgba(0,0,0,0.5)', pointerEvents: 'none' }} />
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <TextField
-            value={hexInput}
-            onChange={(e) => {
-              const raw = e.currentTarget.value
-              setHexInput(raw)
-              const m = raw.match(/^#?[0-9a-fA-F]{6}$/)
-              if (m) {
-                const normalized = (raw.startsWith('#') ? raw : `#${raw}`).toLowerCase()
-                setHsvState(hexToHsv(normalized))
-                onChange(normalized, cascadeDown, cascadeUp)
-              }
-            }}
-            style={{ flex: 1, fontSize: 13 }}
-            layer="layer-3"
-          />
-          <Button
-            title="Name this color"
-            variant="outline"
-            size="small"
-            layer="layer-3"
-            icon={<Tag size={16} />}
-            onClick={() => {
-              const parts = tokenName.split('/')
-              const family = parts.length === 3 ? parts[1] : ''
-              const hex = hsvToHex(hsvState.h, hsvState.s, hsvState.v)
-              onNameFromHex(family, hex)
-            }}
-          />
-        </div>
-        <CheckboxItem
-          checked={cascadeUp}
-          onChange={(next: boolean) => {
-            setCascadeUp(next)
-            onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), cascadeDown, next)
+      </div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <TextField
+          value={hexInput}
+          onChange={(e) => {
+            const raw = e.currentTarget.value
+            setHexInput(raw)
+            const m = raw.match(/^#?[0-9a-fA-F]{6}$/)
+            if (m) {
+              const normalized = (raw.startsWith('#') ? raw : `#${raw}`).toLowerCase()
+              setHsvState(hexToHsv(normalized))
+              onChange(normalized, cascadeDown, cascadeUp)
+            }
           }}
-          label="Cascade colors upward"
+          style={{ flex: 1, fontSize: 13 }}
           layer="layer-3"
         />
-        <CheckboxItem
-          checked={cascadeDown}
-          onChange={(next: boolean) => {
-            setCascadeDown(next)
-            onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), next, cascadeUp)
-          }}
-          label="Cascade colors downward"
+        <Button
+          title="Name this color"
+          variant="outline"
+          size="small"
           layer="layer-3"
+          icon={<Tag size={16} />}
+          onClick={() => {
+            const parts = tokenName.split('/')
+            const family = parts.length === 3 ? parts[1] : ''
+            const hex = hsvToHex(hsvState.h, hsvState.s, hsvState.v)
+            onNameFromHex(family, hex)
+          }}
         />
       </div>
-    </Modal>
+      <CheckboxItem
+        checked={cascadeUp}
+        onChange={(next: boolean) => {
+          setCascadeUp(next)
+          onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), cascadeDown, next)
+        }}
+        label="Cascade colors upward"
+        layer="layer-3"
+      />
+      <CheckboxItem
+        checked={cascadeDown}
+        onChange={(next: boolean) => {
+          setCascadeDown(next)
+          onChange(hsvToHex(hsvState.h, hsvState.s, hsvState.v), next, cascadeUp)
+        }}
+        label="Cascade colors downward"
+        layer="layer-3"
+      />
+    </FloatingPalette>
   )
 }

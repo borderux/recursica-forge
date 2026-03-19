@@ -31,14 +31,13 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--recursica_brand_dimensions_general_sm);
+    gap: var(--recursica_brand_dimensions_gutters_vertical);
     padding: var(--recursica_brand_dimensions_general_xl) 0;
     text-align: center;
 }
 
 .compliance-page__empty-icon {
-    margin-bottom: var(--recursica_brand_dimensions_general_sm);
-    opacity: 0.5;
+    display: flex;
 }
 
 /* ─── Groups ─── */
