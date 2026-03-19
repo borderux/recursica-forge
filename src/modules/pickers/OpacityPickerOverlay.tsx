@@ -9,7 +9,7 @@ import { tokenOpacity } from '../../core/css/cssVarBuilder'
 
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
-import { Modal } from '../../components/adapters/Modal'
+import FloatingPalette from '../toolbar/menu/floating-palette/FloatingPalette'
 
 function toTitleCase(label: string): string {
   return (label || '')
@@ -32,12 +32,11 @@ export type OpacityPickerOverlayProps = {
 
 export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose, onSelect }: OpacityPickerOverlayProps) {
   const { tokens: tokensJson, theme: themeJson } = useVars()
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
+  const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null)
   const [selectedTokenName, setSelectedTokenName] = useState<string | undefined>(propTokenName)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
   const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
-  const overlayRef = React.useRef<HTMLDivElement | null>(null)
 
   // Close overlay when mode changes
   useEffect(() => {
@@ -116,25 +115,6 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
     return extractTokenFromCssVar(targetCssVar)
   }, [targetCssVar, version, cssVarUpdateTrigger]) // Include version and cssVarUpdateTrigger to react to changes
 
-  const calculatePosition = (el: HTMLElement) => {
-    const rect = el.getBoundingClientRect()
-    const overlayW = 400 // Fixed width in props
-    const overlayH = overlayRef.current?.offsetHeight || 200
-
-    const candidates = [
-      { y: rect.bottom + 8, x: rect.left },
-      { y: rect.top - overlayH - 8, x: rect.left },
-      { y: rect.bottom + 8, x: rect.left - overlayW + rect.width },
-      { y: rect.top - overlayH - 8, x: rect.left - overlayW + rect.width },
-    ]
-
-    const fits = (p: { y: number; x: number }) => {
-      return p.x >= 0 && p.x + overlayW <= window.innerWidth && p.y >= 0 && p.y + overlayH <= window.innerHeight
-    }
-
-    const chosen = candidates.find(fits) || candidates[0]
-    setPos({ top: chosen.y, left: chosen.x })
-  }
 
     ; (window as any).openOpacityPicker = (el: HTMLElement, targetTokenNameOrCssVar?: string) => {
       // If it looks like a CSS variable (starts with --), treat it as targetCssVar
@@ -151,14 +131,13 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
         setCurrentToken(null)
       }
 
-      // Calculate viewport-relative position for Modal's fixed positioning
-      calculatePosition(el)
+      setAnchorElement(el)
     }
 
   const handleClose = () => {
     setTargetCssVar(null)
     setCurrentToken(null)
-    setPos(null)
+    setAnchorElement(null)
     onClose?.()
   }
 
@@ -272,33 +251,18 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
     handleClose()
   }
 
-  if (!pos && !propTokenName) return null
+  if (!anchorElement && !propTokenName) return null
 
   const { mode } = useThemeMode()
   return (
-    <Modal
-      isOpen={true}
-      onClose={handleClose}
+    <FloatingPalette
+      anchorElement={anchorElement}
       title="Opacity"
-      size={400}
-      withOverlay={false}
-      centered={false}
-      position={pos ? { x: pos.left, y: pos.top } : { x: 0, y: 0 }}
-      onPositionChange={(newPos) => setPos({ top: newPos.y, left: newPos.x })}
+      onClose={handleClose}
       draggable={true}
-      zIndex={30000}
-      showHeader={true}
-      showFooter={false}
-      padding={true}
-      layer="layer-3"
-      className="opacity-picker-overlay"
-      style={{
-        overflow: 'visible',
-        visibility: pos ? 'visible' : 'hidden'
-      }}
+      className="opacity-picker"
     >
       <div
-        ref={overlayRef}
         style={{ display: 'grid', gap: 8 }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -374,7 +338,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
           )
         })}
       </div>
-    </Modal>
+    </FloatingPalette>
   )
 }
 

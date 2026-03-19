@@ -51,7 +51,7 @@ export function PaletteScaleHeader({
   tokens,
 }: Pick<PaletteScaleProps, 'level' | 'isPrimary' | 'headerLevels' | 'onMouseEnter' | 'onMouseLeave' | 'onSetPrimary' | 'paletteKey' | 'tokens'>) {
   // No fixed width - cells will size naturally with padding
-  const [openPicker, setOpenPicker] = useState<{ tokenName: string; swatchRect: DOMRect } | null>(null)
+  const [openPicker, setOpenPicker] = useState<{ tokenName: string; anchorElement: HTMLElement } | null>(null)
   const { mode: themeMode } = useThemeMode()
   // layer bases removed — use builder functions directly
 
@@ -162,8 +162,7 @@ export function PaletteScaleHeader({
             if (tokenName && tokens && headerRef.current) {
               // Open ColorPickerOverlay
               window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
-              const rect = headerRef.current.getBoundingClientRect()
-              setOpenPicker({ tokenName, swatchRect: rect })
+              setOpenPicker({ tokenName, anchorElement: headerRef.current })
             }
             return
           }
@@ -208,7 +207,7 @@ export function PaletteScaleHeader({
           <ColorPickerOverlay
             tokenName={tokenName}
             currentHex={currentHex}
-            swatchRect={openPicker.swatchRect}
+            anchorElement={openPicker.anchorElement}
             onClose={() => setOpenPicker(null)}
             onNameFromHex={async (fam: string, hex: string) => {
               try {

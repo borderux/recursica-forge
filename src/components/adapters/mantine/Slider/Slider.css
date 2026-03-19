@@ -4,6 +4,15 @@
  * CSS overrides for Mantine Slider component to use UIKit CSS variables.
  */
 
+/* Remove Mantine's default top/bottom padding on the slider root.
+   Mantine reserves this space for the tooltip label area, but we handle
+   labeling externally and don't need the extra vertical breathing room. */
+.mantine-Slider-root {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+
 /* Override Mantine slider track colors - these are set via inline styles in the component */
 /* CSS variables are set on the root element via inline styles */
 

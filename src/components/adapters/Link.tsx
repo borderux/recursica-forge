@@ -211,7 +211,7 @@ export function Link({
         style={{
           ...getLinkStyles(layer, underline, mode),
           display: 'inline-flex',
-          alignItems: 'center',
+          alignItems: 'baseline',
           gap: renderedStartIcon || renderedEndIcon ? `var(${iconGapVar})` : 0,
           cursor: 'pointer',
           ...inlineStyle,
