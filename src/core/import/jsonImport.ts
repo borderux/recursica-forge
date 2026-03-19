@@ -15,6 +15,7 @@ import {
   validateTokensJson,
   validateUIKitJson,
 } from "../utils/validateJsonSchemas";
+import { getDelta } from "../store/cssDelta";
 
 /**
  * Clears CSS variables based on what's being imported
@@ -82,7 +83,6 @@ function stableStringify(value: unknown): string {
 export function detectDirtyData(): boolean {
   try {
     // Fast path: check if the CSS delta has any entries
-    const { getDelta } = require("../store/cssDelta");
     const delta = getDelta();
     if (Object.keys(delta).length > 0) return true;
 

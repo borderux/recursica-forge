@@ -449,7 +449,7 @@ export default function MantineShell({
                       variant='outline'
                       size='small'
                       icon={(() => {
-                        const ShuffleIcon = iconNameToReactComponent("swap");
+                        const ShuffleIcon = iconNameToReactComponent("shuffle");
                         return ShuffleIcon ? (
                           <ShuffleIcon
                             style={{
@@ -470,7 +470,7 @@ export default function MantineShell({
                       size='small'
                       disabled={isValidating}
                       icon={(() => {
-                        const GitDiffIcon = iconNameToReactComponent('git-diff')
+                        const GitDiffIcon = iconNameToReactComponent('exclude')
                         return GitDiffIcon ? (
                           <GitDiffIcon
                             style={{

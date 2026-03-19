@@ -99,16 +99,14 @@ export function updateCssVar(
       // Try to auto-fix if it's a hex color
       const fixed = tryFixBrandVarValue(cssVarName, trimmedValue, tokens)
       if (fixed) {
-
         root.style.setProperty(cssVarName, fixed)
-        // Use shouldBeSilent (which respects UIKit var detection) instead of silent
         if (!shouldBeSilent && !suppressEvents) {
           pendingCssVars.add(cssVarName)
           fireBatchedEvent()
         }
         return true
       } else {
-
+        console.error(`[updateCssVar] Brand CSS variable '${cssVarName}' requires a token reference, but received: '${trimmedValue}'`)
         return false
       }
     }
