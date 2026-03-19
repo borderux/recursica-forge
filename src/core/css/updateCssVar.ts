@@ -99,7 +99,7 @@ export function updateCssVar(
       // Try to auto-fix if it's a hex color
       const fixed = tryFixBrandVarValue(cssVarName, trimmedValue, tokens)
       if (fixed) {
-        console.warn(`Auto-fixed brand CSS variable ${cssVarName}: ${trimmedValue} -> ${fixed}`)
+
         root.style.setProperty(cssVarName, fixed)
         // Use shouldBeSilent (which respects UIKit var detection) instead of silent
         if (!shouldBeSilent && !suppressEvents) {
@@ -108,7 +108,7 @@ export function updateCssVar(
         }
         return true
       } else {
-        console.error(`Cannot update brand CSS variable ${cssVarName}: ${validation.error}`)
+
         return false
       }
     }

@@ -756,6 +756,107 @@ function ensurePaletteDefaults(result: any): void {
 }
 
 /**
+ * Ensures all palette tone/on-tone tokens have the required DTCG $type: "color" property.
+ * The store may not always include $type on palette tokens (especially dynamically created palettes).
+ */
+function ensurePaletteTypes(result: any): void {
+  const themes = result?.themes
+  if (!themes) return
+
+  for (const mode of ['light', 'dark'] as const) {
+    const palettes = themes[mode]?.palettes
+    if (!palettes) continue
+
+    for (const paletteKey of Object.keys(palettes)) {
+      if (paletteKey === 'core-colors') continue // core-colors has a different structure
+      const palette = palettes[paletteKey]
+      if (!palette || typeof palette !== 'object') continue
+
+      for (const stepKey of Object.keys(palette)) {
+        if (stepKey.startsWith('$')) continue // skip $type, $description, etc.
+        const step = palette[stepKey]
+        if (!step || typeof step !== 'object') continue
+
+        const color = step.color
+        if (!color || typeof color !== 'object') continue
+
+        // Ensure color group $type
+        if (!color.$type) {
+          color.$type = 'color'
+        }
+
+        // Ensure tone has $type
+        if (color.tone && typeof color.tone === 'object' && !color.tone.$type) {
+          color.tone.$type = 'color'
+        }
+
+        // Ensure on-tone has $type
+        if (color['on-tone'] && typeof color['on-tone'] === 'object' && !color['on-tone'].$type) {
+          color['on-tone'].$type = 'color'
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Ensures state and text-emphasis token references use the correct format.
+ * The randomizer writes `{tokens.opacity.*}` (singular) but the schema
+ * and source JSON use `{tokens.opacities.*}` (plural). This normalizes
+ * those references and ensures `$type` is present.
+ */
+function ensureStateTokenRefs(result: any): void {
+  const themes = result?.themes
+  if (!themes) return
+
+  for (const mode of ['light', 'dark'] as const) {
+    const modeData = themes[mode]
+    if (!modeData) continue
+
+    // Fix states: disabled, hover, overlay.opacity
+    const states = modeData.states
+    if (states && typeof states === 'object') {
+      for (const stateKey of ['disabled', 'hover'] as const) {
+        const state = states[stateKey]
+        if (state && typeof state === 'object') {
+          if (!state.$type) state.$type = 'number'
+          if (typeof state.$value === 'string') {
+            state.$value = state.$value.replace('{tokens.opacity.', '{tokens.opacities.')
+          }
+        }
+      }
+      // Fix overlay.opacity
+      const overlay = states.overlay
+      if (overlay && typeof overlay === 'object') {
+        if (overlay.opacity && typeof overlay.opacity === 'object') {
+          if (!overlay.opacity.$type) overlay.opacity.$type = 'number'
+          if (typeof overlay.opacity.$value === 'string') {
+            overlay.opacity.$value = overlay.opacity.$value.replace('{tokens.opacity.', '{tokens.opacities.')
+          }
+        }
+        if (overlay.color && typeof overlay.color === 'object') {
+          if (!overlay.color.$type) overlay.color.$type = 'color'
+        }
+      }
+    }
+
+    // Fix text-emphasis: low, high
+    const textEmphasis = modeData['text-emphasis']
+    if (textEmphasis && typeof textEmphasis === 'object') {
+      for (const emphasisKey of ['low', 'high'] as const) {
+        const emphasis = textEmphasis[emphasisKey]
+        if (emphasis && typeof emphasis === 'object') {
+          if (!emphasis.$type) emphasis.$type = 'number'
+          if (typeof emphasis.$value === 'string') {
+            emphasis.$value = emphasis.$value.replace('{tokens.opacity.', '{tokens.opacities.')
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
  * Exports brand.json from the store.
  * Now a direct store dump — brand CSS var changes are synced to the store
  * in real-time via updateBrandValue, so the store is always up-to-date.
@@ -781,6 +882,12 @@ export function exportBrandJson(): object {
   // Ensure each palette has default entries with both tone and on-tone
   ensurePaletteDefaults(result)
 
+  // Ensure all palette tone/on-tone entries have $type: "color" (DTCG compliance)
+  ensurePaletteTypes(result)
+
+  // Ensure state and text-emphasis values use correct token reference format
+  ensureStateTokenRefs(result)
+
   // Normalize all references to use short alias format (no theme paths)
   const normalized = normalizeBrandReferences(result)
 
@@ -796,7 +903,7 @@ export function exportBrandJson(): object {
   try {
     validateBrandJson(exportObject as JsonLike)
   } catch (error) {
-    console.warn('[Export] recursica_brand.json validation failed, but continuing export:', error)
+    // validation failed — error will be re-thrown by handleExport in exportWithCompliance
   }
 
   return exportObject
@@ -883,8 +990,7 @@ export function exportUIKitJson(): object {
   try {
     validateUIKitJson(normalized as JsonLike)
   } catch (error) {
-    console.warn('[Export] recursica_ui-kit.json validation failed, but continuing export:', error)
-    // Don't throw - let the user see the export even if there are validation issues
+    // validation failed — error will be re-thrown by handleExport in exportWithCompliance
   }
 
   return normalized
@@ -1556,7 +1662,7 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
     try {
       validateTokensJson(tokens as JsonLike)
     } catch (error) {
-      console.error('[Export] recursica_tokens.json validation failed:', error)
+
       throw new Error(`Cannot export tokens.json: ${error instanceof Error ? error.message : String(error)}`)
     }
     selectedFiles.push({ content: tokens, filename: EXPORT_FILENAME_TOKENS, isJson: true })
@@ -1568,7 +1674,7 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
     try {
       validateBrandJson(brand as JsonLike)
     } catch (error) {
-      console.error('[Export] recursica_brand.json validation failed:', error)
+
       throw new Error(`Cannot export brand.json: ${error instanceof Error ? error.message : String(error)}`)
     }
     selectedFiles.push({ content: brand, filename: EXPORT_FILENAME_BRAND, isJson: true })
@@ -1580,7 +1686,7 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
     try {
       validateUIKitJson(uikit as JsonLike)
     } catch (error) {
-      console.error('[Export] recursica_ui-kit.json validation failed:', error)
+
       throw new Error(`Cannot export uikit.json: ${error instanceof Error ? error.message : String(error)}`)
     }
     selectedFiles.push({ content: uikit, filename: EXPORT_FILENAME_UIKIT, isJson: true })

@@ -196,7 +196,7 @@ export default function Modal({
         '--modal-content-min-width': effectivePos ? 'auto' : `var(${minWidthVar})`,
         '--modal-content-max-width': effectivePos ? 'auto' : `var(${maxWidthVar})`,
         '--modal-content-min-height': effectivePos ? 'auto' : `var(${minHeightVar})`,
-        '--modal-content-max-height': effectivePos ? 'auto' : `var(${maxHeightVar})`,
+        '--modal-content-max-height': effectivePos ? 'auto' : `var(${maxHeightVar}, 80vh)`,
         '--modal-header-font-family': `var(${headerFontFamilyVar})`,
         '--modal-header-font-size': `var(${headerFontSizeVar})`,
         '--modal-header-font-weight': `var(${headerFontWeightVar})`,
@@ -370,8 +370,6 @@ export default function Modal({
                 style={{
                     backgroundColor: 'transparent',
                     padding: padding ? 'var(--modal-padding-y) var(--modal-padding-x)' : 0,
-                    overflowY: scrollable ? 'auto' : 'visible',
-                    flex: 1,
                     color: 'var(--modal-content-color)',
                     fontFamily: 'var(--modal-content-font-family)',
                     fontSize: 'var(--modal-content-font-size)',

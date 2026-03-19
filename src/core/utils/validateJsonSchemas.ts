@@ -47,7 +47,7 @@ export function validateBrandJson(brandJson: JsonLike): void {
     const criticalErrors = filterCriticalErrors(validate.errors)
 
     if (criticalErrors.length > 0) {
-      console.error('[Schema Validation] recursica_brand.json has critical validation errors:', criticalErrors)
+
       throw new Error(
         `recursica_brand.json validation failed with ${criticalErrors.length} critical error(s). ` +
         `First error: ${JSON.stringify(criticalErrors[0])}`
@@ -67,7 +67,7 @@ export function validateTokensJson(tokensJson: JsonLike): void {
     const criticalErrors = filterCriticalErrors(validate.errors)
 
     if (criticalErrors.length > 0) {
-      console.error('[Schema Validation] recursica_tokens.json has critical validation errors:', criticalErrors)
+
       throw new Error(
         `recursica_tokens.json validation failed with ${criticalErrors.length} critical error(s). ` +
         `First error: ${JSON.stringify(criticalErrors[0])}`
@@ -128,7 +128,7 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
     const criticalErrors = filterCriticalErrors(validate.errors)
 
     if (criticalErrors.length > 0) {
-      console.error('[Schema Validation] recursica_ui-kit.json has critical validation errors:', criticalErrors)
+
       throw new Error(
         `recursica_ui-kit.json validation failed with ${criticalErrors.length} critical error(s). ` +
         `First error: ${JSON.stringify(criticalErrors[0])}`
@@ -144,7 +144,7 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
       `  - ${ref.path}: "${ref.value}"`
     ).join('\n')
 
-    console.error('[Schema Validation] recursica_ui-kit.json contains theme references:', themeRefs)
+
     throw new Error(
       `recursica_ui-kit.json validation failed: Found ${themeRefs.length} theme reference(s). ` +
       `All token references must be theme-agnostic (use {brand.*} instead of {brand.themes.light.*} or {brand.themes.dark.*}).\n` +
@@ -443,7 +443,7 @@ export function validateReferences(
 
   if (errors.length > 0) {
     const summary = `Reference validation failed (${errors.length} invalid reference(s)). DTCG: references must be complete paths to a token ($value), not a group.\n${errors.join('\n')}`
-    console.error('[Schema Validation]', summary)
+
     throw new Error(summary)
   }
 
