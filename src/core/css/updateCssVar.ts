@@ -12,6 +12,8 @@ import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
 import { updateUIKitValue, removeUIKitValue } from './updateUIKitValue'
 import { updateBrandValue } from './updateBrandValue'
+import { trackChange, clearDeltaEntry } from '../store/cssDelta'
+import { getVarsStore } from '../store/varsStore'
 
 // Global flag to suppress events during bulk updates
 let suppressEvents = false
@@ -115,6 +117,9 @@ export function updateCssVar(
   // Apply the update
   root.style.setProperty(cssVarName, trimmedValue)
 
+  // Track this change in the delta serialization system
+  trackChange(cssVarName, trimmedValue)
+
   // CRITICAL FIX: Ensure all UIKit var changes from any slider/picker save to JSON store automatically
   if (isUIKitVar) {
     updateUIKitValue(cssVarName, trimmedValue)
@@ -124,6 +129,8 @@ export function updateCssVar(
   // This ensures AA compliance fixes (and any other brand var changes) persist in the store
   if (isBrandVar(cssVarName)) {
     updateBrandValue(cssVarName, trimmedValue)
+    // Schedule a compliance scan so contrast issues are detected after color changes
+    try { getVarsStore().scheduleComplianceScan() } catch { }
   }
 
   // Dispatch event to notify components of CSS variable updates
@@ -230,6 +237,9 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
 export function removeCssVar(cssVarName: string, silent?: boolean): void {
   const root = document.documentElement
   root.style.removeProperty(cssVarName)
+
+  // Remove from delta so reapplyDelta() won't re-apply a stale value
+  clearDeltaEntry(cssVarName)
 
   // Also remove unprefixed version if it exists
   if (cssVarName.startsWith('--recursica_')) {

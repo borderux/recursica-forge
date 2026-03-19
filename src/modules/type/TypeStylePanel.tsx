@@ -10,7 +10,7 @@ import { Dropdown } from '../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Panel } from '../../components/adapters/Panel'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { tokenFont } from '../../core/css/cssVarBuilder'
+import { tokenFont, parseTokenCssVar, unwrapVar } from '../../core/css/cssVarBuilder'
 import { buildTypographyVars } from '../../core/resolvers/typography'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
@@ -31,13 +31,8 @@ function prefixToCssVarName(prefix: string): string {
 // Helper to extract token name from CSS variable value
 function extractTokenFromCssVar(cssValue: string): string | null {
   if (!cssValue) return null
-  // Match patterns like: var(--recursica_tokens_font_sizes_md)
-  // The separator between category and key is underscore (_), matching cssVarBuilder.tokenFont()
-  const match = cssValue.match(/var\(--recursica_tokens_font_(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)_([^)]+)\)/)
-  if (match) return match[1]
-  // Also match: var(--tokens-font-size-md) (without recursica prefix, legacy format)
-  const match2 = cssValue.match(/var\(--tokens-font-(?:size|sizes|weight|weights|letter-spacing|letter-spacings|line-height|line-heights|styles|decorations|cases)-([^)]+)\)/)
-  if (match2) return match2[1]
+  const parsed = parseTokenCssVar(cssValue)
+  if (parsed && parsed.type === 'font') return parsed.key
   return null
 }
 
@@ -277,10 +272,8 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
     // Read overrides to determine which typefaces actually exist
     // (overrides are the source of truth after add/delete operations)
+    // Overrides are now tracked by the delta system and reflected in tokensJson
     let overrides: Record<string, any> = {}
-    try {
-      overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
-    } catch { }
     const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
     const hasTypefaceOverrides = overrideTypefaceKeys.length > 0
 
@@ -454,11 +447,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         if (seen.has(cssValue)) break
         seen.add(cssValue)
 
-        // Extract token reference - match both singular and plural forms
-        const tokenMatch = cssValue.match(/var\(--recursica_tokens_font_(?:family|families|typeface|typefaces)-([^)]+)\)/)
-        if (tokenMatch) {
-          const tokenName = tokenMatch[1]
-          const option = familyOptions.find((o) => o.short === tokenName)
+        // Extract token reference using central parser
+        const fontParsed = parseTokenCssVar(cssValue)
+        if (fontParsed && fontParsed.type === 'font') {
+          const option = familyOptions.find((o) => o.short === fontParsed.key)
           if (option) return option.value
         }
 
@@ -705,22 +697,21 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         const cssValue = readCssVar(cssVar) || readCssVarResolved(cssVar)
         if (!cssValue) return ''
 
-        // First, try to extract token reference (for backwards compatibility)
-        const tokenMatch = cssValue.match(/var\(--recursica_tokens_font_(?:family|families|typeface|typefaces)-([^)]+)\)/)
-        if (tokenMatch) {
-          return tokenMatch[1]
+        // First, try to extract token reference using central parser
+        const fontParsed = parseTokenCssVar(cssValue)
+        if (fontParsed && fontParsed.type === 'font') {
+          return fontParsed.key
         }
 
         // If it's a var() reference, follow the chain
         if (cssValue.startsWith('var(')) {
-          const varMatch = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
-          if (varMatch) {
-            const innerVar = varMatch[1].trim()
-            const innerValue = readCssVar(innerVar) || readCssVarResolved(innerVar)
+          const innerVarName = unwrapVar(cssValue)
+          if (innerVarName) {
+            const innerValue = readCssVar(innerVarName) || readCssVarResolved(innerVarName)
             if (innerValue) {
-              const innerTokenMatch = innerValue.match(/var\(--recursica_tokens_font_(?:family|families|typeface|typefaces)-([^)]+)\)/)
-              if (innerTokenMatch) {
-                return innerTokenMatch[1]
+              const innerParsed = parseTokenCssVar(innerValue)
+              if (innerParsed && innerParsed.type === 'font') {
+                return innerParsed.key
               }
             }
           }

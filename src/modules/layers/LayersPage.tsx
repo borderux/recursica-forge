@@ -9,7 +9,8 @@ import { Button } from '../../components/adapters/Button'
 import brandDefault from '../../../recursica_brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getVarsStore } from '../../core/store/varsStore'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, layerProperty, layerText } from '../../core/css/cssVarBuilder'
+import { clearDeltaByPrefix } from '../../core/store/cssDelta'
 
 export default function LayersPage() {
   const { theme, setTheme } = useVars()
@@ -38,24 +39,23 @@ export default function LayersPage() {
 
     // Clear CSS variables for all layers so they regenerate from theme defaults
     const rootEl = document.documentElement
+    const allLayerProperties = ['surface', 'border-color', 'padding', 'border-radius', 'border-size', 'elevation']
+    const allTextProperties = ['color', 'high-emphasis', 'low-emphasis']
     allLayers.forEach((lvl) => {
-      const surfaceVar = `--recursica_brand_layer_${lvl}_properties_surface`
-      const borderVar = `--recursica_brand_layer_${lvl}_properties_border-color`
-      const textColorVar = `--recursica_brand_layer_${lvl}_elements_text-color`
-      const paddingVar = `--recursica_brand_layer_${lvl}_properties_padding`
-      const borderRadiusVar = `--recursica_brand_layer_${lvl}_properties_border-radius`
-      const borderThicknessVar = `--recursica_brand_layer_${lvl}_properties_border-size`
-      const elevationVar = `--recursica_brand_layer_${lvl}_properties_elevation`
-
-      rootEl.style.removeProperty(surfaceVar)
-      rootEl.style.removeProperty(textColorVar)
-      rootEl.style.removeProperty(paddingVar)
-      rootEl.style.removeProperty(borderRadiusVar)
-      rootEl.style.removeProperty(borderThicknessVar)
-      rootEl.style.removeProperty(elevationVar)
-      if (lvl > 0) {
-        rootEl.style.removeProperty(borderVar)
-      }
+      // Scoped vars
+      allLayerProperties.forEach((prop) => {
+        rootEl.style.removeProperty(`--recursica_brand_layer_${lvl}_properties_${prop}`)
+      })
+      allTextProperties.forEach((prop) => {
+        rootEl.style.removeProperty(`--recursica_brand_layer_${lvl}_elements_text-${prop}`)
+      })
+      // Themed vars
+      allLayerProperties.forEach((prop) => {
+        rootEl.style.removeProperty(layerProperty(mode, lvl, prop))
+      })
+      allTextProperties.forEach((prop) => {
+        rootEl.style.removeProperty(layerText(mode, lvl, prop))
+      })
     })
 
     // Update theme JSON with defaults for all layers
@@ -86,6 +86,15 @@ export default function LayersPage() {
         }
       })
     }
+
+    // Clear all delta entries for every layer so reapplyDelta() won't
+    // re-apply old user-modified values after recomputeAndApplyAll.
+    allLayers.forEach((lvl) => {
+      // Themed vars: --recursica_brand_themes_{mode}_layers_layer-{N}_...
+      clearDeltaByPrefix(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_`)
+      // Scoped vars: --recursica_brand_layer_{N}_...
+      clearDeltaByPrefix(`--recursica_brand_layer_${lvl}_`)
+    })
 
     setTheme(nextTheme)
   }

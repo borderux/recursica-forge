@@ -9,7 +9,7 @@ import { readCssVar } from '../css/readCssVar'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
-import { TOKEN_PREFIX } from '../css/cssVarBuilder'
+import { TOKEN_PREFIX, unwrapVar, BRAND_PREFIX } from '../css/cssVarBuilder'
 import tokensJson from '../../../recursica_tokens.json'
 import brandJson from '../../../recursica_brand.json'
 import uikitJson from '../../../recursica_ui-kit.json'
@@ -81,11 +81,12 @@ function getAllCssVars(): Record<string, string> {
  * With underscore-delimited names, splitting on '_' gives correct path segments directly.
  */
 function cssVarToTokenRef(cssVar: string): string | null {
-  const varMatch = cssVar.match(/var\s*\(\s*(--recursica_tokens_([^)]+))\s*\)/)
-  if (!varMatch) return null
+  const varName = unwrapVar(cssVar)
+  if (!varName || !varName.startsWith(TOKEN_PREFIX)) return null
 
-  // Split on '_' to get path segments (compound keys like 'scale-02' stay intact)
-  const parts = varMatch[2].split('_')
+  // Remove prefix and split on '_' to get path segments (compound keys like 'scale-02' stay intact)
+  const rest = varName.substring(TOKEN_PREFIX.length)
+  const parts = rest.split('_')
   return `{tokens.${parts.join('.')}}`
 }
 
@@ -94,11 +95,12 @@ function cssVarToTokenRef(cssVar: string): string | null {
  * With underscore-delimited names, splitting on '_' gives correct path segments directly.
  */
 function cssVarToBrandRef(cssVar: string): string | null {
-  const varMatch = cssVar.match(/var\s*\(\s*(--recursica_brand_([^)]+))\s*\)/)
-  if (!varMatch) return null
+  const varName = unwrapVar(cssVar)
+  if (!varName || !varName.startsWith(BRAND_PREFIX)) return null
 
-  // Split on '_' to get path segments (compound keys like 'palette-1', 'on-tone' stay intact)
-  const parts = varMatch[2].split('_')
+  // Remove prefix and split on '_' to get path segments (compound keys like 'palette-1', 'on-tone' stay intact)
+  const rest = varName.substring(BRAND_PREFIX.length)
+  const parts = rest.split('_')
   return `{brand.${parts.join('.')}}`
 }
 
@@ -262,8 +264,13 @@ export function exportTokensJson(): object {
 
       result.tokens.colors[scaleKey] = {}
 
-      // Export alias first if it exists
-      if (scale.alias) {
+      // Export alias: prefer live CSS var (user may have renamed), fall back to in-memory JSON
+      const familyNameCssVar = `--recursica_tokens_colors_${scaleKey}_family-name`
+      const liveFamilyName = vars[familyNameCssVar]
+      if (liveFamilyName) {
+        // Use the CSS var value (lowercase for alias field, as it's a machine-readable identifier)
+        result.tokens.colors[scaleKey].alias = liveFamilyName.toLowerCase().replace(/\s+/g, '-')
+      } else if (scale.alias) {
         result.tokens.colors[scaleKey].alias = scale.alias
       }
 
@@ -286,9 +293,12 @@ export function exportTokensJson(): object {
       sortedLevels.forEach((level) => {
         const colorToken = scale[level]
         if (colorToken && typeof colorToken === 'object' && colorToken.$value != null) {
+          // Prefer live CSS var value (source of truth) over in-memory JSON
+          const cssVarName = `--recursica_tokens_colors_${scaleKey}_${level}`
+          const liveValue = vars[cssVarName]
           result.tokens.colors[scaleKey][level] = {
             $type: 'color',
-            $value: colorToken.$value
+            $value: liveValue || colorToken.$value
           }
         }
       })
@@ -306,8 +316,15 @@ export function exportTokensJson(): object {
 
     const tokenValue = token.$value
     if (tokenValue != null) {
+      // Prefer live CSS var value (source of truth) over in-memory JSON
+      const cssVarName = `--recursica_tokens_opacities_${key}`
+      const liveValue = vars[cssVarName]
+
       let jsonValue: number
-      if (typeof tokenValue === 'number') {
+      if (liveValue != null) {
+        const num = parseFloat(liveValue)
+        jsonValue = Number.isFinite(num) ? (num <= 1 ? num : num / 100) : (typeof tokenValue === 'number' ? tokenValue : Number(tokenValue))
+      } else if (typeof tokenValue === 'number') {
         // Ensure it's normalized 0-1
         jsonValue = tokenValue <= 1 ? tokenValue : tokenValue / 100
       } else if (typeof tokenValue === 'object' && tokenValue.value != null) {

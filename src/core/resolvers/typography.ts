@@ -51,17 +51,10 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
   const vars: Record<string, string> = {}
   const readChoices = choices || {}
 
-  // Read overrides from localStorage if not provided
+  // Read overrides — the delta system now handles persistence via tokensJson
   const readOverrides = (): Record<string, any> => {
     if (overrides) return overrides
-    try {
-      if (typeof window === 'undefined' || !window.localStorage) return {}
-      const raw = localStorage.getItem('token-overrides')
-      if (!raw) return {}
-      return JSON.parse(raw) || {}
-    } catch {
-      return {}
-    }
+    return {}
   }
   const effectiveOverrides = readOverrides()
 
@@ -84,18 +77,8 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
   }
 
   // Emit CSS variables for font tokens so Brand can reference them via var(--recursica_tokens_font_*)
-  // Check for deleted font families to skip creating CSS variables for them
-  const readDeletedFontFamilies = (): Record<string, true> => {
-    try {
-      if (typeof window === 'undefined' || !window.localStorage) return {}
-      const raw = localStorage.getItem('font-families-deleted')
-      if (!raw) return {}
-      const obj = JSON.parse(raw)
-      if (obj && typeof obj === 'object') return obj as Record<string, true>
-    } catch { }
-    return {}
-  }
-  const deletedFamilies = readDeletedFontFamilies()
+  // Deleted font families (no longer persisted — always empty on fresh load)
+  const deletedFamilies: Record<string, true> = {}
 
   try {
     const src: any = (tokens as any)?.tokens?.font || {}

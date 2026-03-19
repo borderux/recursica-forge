@@ -455,6 +455,21 @@ export default function ElevationsPage() {
     revertSelected(new Set([0, 1, 2, 3, 4]))
   }
 
+  // Compute elevation controls with theme defaults as fallback.
+  // When controls are deleted during reset, the sliders need to show the
+  // theme default values (e.g. blur=8, y=4) rather than falling back to 0.
+  const elevationControlsWithDefaults = useMemo(() => {
+    const controls = elevation?.controls[mode] || {}
+    const merged: Record<string, { blur: number; spread: number; offsetX: number; offsetY: number }> = { ...controls }
+    for (let i = 1; i <= 4; i++) {
+      const key = `elevation-${i}`
+      if (!merged[key]) {
+        merged[key] = getThemeDefaults(key)
+      }
+    }
+    return merged
+  }, [elevation, mode, theme])
+
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: `var(${genericLayerProperty(0, 'surface')})`, color: `var(${genericLayerText(0, 'color')})` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
@@ -504,7 +519,7 @@ export default function ElevationsPage() {
         {selectedLevels.size > 0 && elevation && (
           <ElevationStylePanel
             selectedLevels={selectedLevels}
-            elevationControls={elevation.controls[mode] || {}}
+            elevationControls={elevationControlsWithDefaults}
             availableSizeTokens={availableSizeTokens}
             availableOpacityTokens={availableOpacityTokens}
             shadowColorControl={elevation.shadowColorControl}

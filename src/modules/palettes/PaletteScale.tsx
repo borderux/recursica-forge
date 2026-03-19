@@ -11,19 +11,18 @@ import { ColorPickerOverlay } from '../pickers/ColorPickerOverlay'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { genericLayerText, paletteCore } from '../../core/css/cssVarBuilder'
+import { genericLayerText, paletteCore, extractColorToken } from '../../core/css/cssVarBuilder'
+import { updateCssVar } from '../../core/css/updateCssVar'
+import { getAllFamilyNames, setFamilyNameByAlias } from '../../core/utils/familyNames'
 
 
 
 // Helper to extract token name from CSS variable value
 function extractTokenNameFromCssVar(cssVarValue: string | undefined): string | null {
   if (!cssVarValue) return null
-  const match = cssVarValue.match(/--recursica_tokens_color_([a-z0-9-]+)-(\d+|050|000)/)
-  if (match) {
-    const [, family, level] = match
-    return `color/${family}/${level}`
-  }
-  return null
+  const parsed = extractColorToken(cssVarValue)
+  if (!parsed) return null
+  return `color/${parsed.family}/${parsed.level}`
 }
 
 export type PaletteScaleProps = {
@@ -66,13 +65,13 @@ export function PaletteScaleHeader({
   }, [])
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const headerRef = useRef<HTMLTableCellElement>(null)
-  const { updateToken, theme, setTheme } = useVars()
+  const { updateToken, theme } = useVars()
 
-  // Load family names from localStorage
+  // Load family names from CSS vars
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('family-friendly-names')
-      if (raw) setFamilyNames(JSON.parse(raw))
+      const names = getAllFamilyNames()
+      if (Object.keys(names).length > 0) setFamilyNames(names)
     } catch { }
     const onNames = (ev: Event) => {
       try {
@@ -81,8 +80,7 @@ export function PaletteScaleHeader({
           setFamilyNames(detail)
           return
         }
-        const raw = localStorage.getItem('family-friendly-names')
-        setFamilyNames(raw ? JSON.parse(raw) : {})
+        setFamilyNames(getAllFamilyNames())
       } catch {
         setFamilyNames({})
       }
@@ -217,11 +215,7 @@ export function PaletteScaleHeader({
                 const { getFriendlyNamePreferNtc } = await import('../utils/colorNaming')
                 const label = await getFriendlyNamePreferNtc(hex)
                 if (label) {
-                  const raw = localStorage.getItem('family-friendly-names')
-                  const map = raw ? JSON.parse(raw) || {} : {}
-                  map[fam] = label
-                  localStorage.setItem('family-friendly-names', JSON.stringify(map))
-                  try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch { }
+                  setFamilyNameByAlias(fam, label)
                 }
               } catch { }
             }}
@@ -240,7 +234,7 @@ export function PaletteScaleHeader({
               }
 
               // Update on-tone value in theme JSON for AA compliance
-              if (paletteKey && level && theme && setTheme) {
+              if (paletteKey && level && theme) {
                 try {
                   const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -280,7 +274,10 @@ export function PaletteScaleHeader({
                       $value: `{brand.palettes.${chosen}}`
                     }
 
-                    setTheme(themeCopy)
+                    // Set the CSS var directly for immediate visual feedback
+                    const onToneCssVar = `--recursica_brand_themes_${modeKey}_palettes_${paletteKey}_${level}_color_on-tone`
+                    updateCssVar(onToneCssVar, `var(${paletteCore(modeKey, chosen)})`)
+                    getVarsStore().setThemeSilent(themeCopy)
                   }
                 } catch (err) {
                   console.error('Failed to update on-tone in theme JSON:', err)

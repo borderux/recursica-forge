@@ -3,7 +3,7 @@
  *
  * Page for mapping brand dimensions to underlying size tokens.
  */
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
@@ -15,6 +15,8 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import brandDefault from '../../../recursica_brand.json'
 import { getVarsStore } from '../../core/store/varsStore'
 import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { updateCssVar } from '../../core/css/updateCssVar'
+import { clearDeltaEntry } from '../../core/store/cssDelta'
 
 type DimensionEntry = {
   path: string[]
@@ -140,6 +142,13 @@ export default function DimensionsPage() {
   // Local state to track slider values during drag (token indices)
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({})
 
+  // Clear local slider state when the header reset button fires resetAll()
+  useEffect(() => {
+    const handleReset = () => setSliderValues({})
+    window.addEventListener('themeReset', handleReset)
+    return () => window.removeEventListener('themeReset', handleReset)
+  }, [])
+
   // Find the closest size token index for a given pixel value
   const findClosestTokenIndex = (pixelValue: number): number => {
     let closestIndex = 0
@@ -182,9 +191,13 @@ export default function DimensionsPage() {
       $value: tokenRef,
     }
 
-    setTheme(themeCopy)
+    // Set the CSS var directly for immediate visual feedback
+    const cssVarName = `--recursica_brand_dimensions_${path.join('_')}`
+    const tokenCssVar = `var(--recursica_tokens_sizes_${token.name})`
+    updateCssVar(cssVarName, tokenCssVar)
+    // Persist JSON silently (no recompute — CSS var already set)
+    getVarsStore().setThemeSilent(themeCopy)
   }
-
   // Group dimensions by category and sort each group by label (alphabetically)
   const groupedDimensions = useMemo(() => {
     const groups: Record<string, DimensionEntry[]> = {}
@@ -282,6 +295,12 @@ export default function DimensionsPage() {
       }
     })
 
+    // Clear dimension CSS vars from the delta so reapplyDelta() won't
+    // re-apply the old user-modified values after recomputeAndApplyAll.
+    groupedDimensions[category].forEach((entry) => {
+      clearDeltaEntry(entry.cssVar)
+    })
+
     setTheme(themeCopy)
 
     // Clear slider values for this category to force re-computation
@@ -365,7 +384,7 @@ export default function DimensionsPage() {
               </div>
 
               {/* Rows */}
-              <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
+              <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
                 {categoryEntries.map((entry, index) => {
                   const isNone = entry.label.toLowerCase() === 'none'
 

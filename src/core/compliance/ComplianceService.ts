@@ -13,6 +13,7 @@ import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio, blendHexWithOpacity } from '../../modules/theme/contrastUtil'
 import { findColorFamilyAndLevel, getAllFamilyColors, hexToCssVarRef } from './layerColorStepping'
 import { updateCssVar } from '../css/updateCssVar'
+import { parseBrandCssVar, unwrapVar } from '../css/cssVarBuilder'
 import { getVarsStore } from '../store/varsStore'
 
 // ─── Types ───
@@ -1237,16 +1238,16 @@ class ComplianceServiceImpl {
      */
     private cssVarRefToJsonRef(cssVarRef: string, targetCssVar: string): string | null {
         // Extract the mode from the target CSS var
-        const modeMatch = targetCssVar.match(/--recursica_brand_themes_(light|dark)_/)
-        const mode = modeMatch ? modeMatch[1] : 'light'
+        const brandParsed = parseBrandCssVar(targetCssVar)
+        const mode = (brandParsed && 'mode' in brandParsed ? brandParsed.mode : null) || 'light'
 
         if (this.getTokens) {
             const tokens = this.getTokens()
             const tokenIndex = buildTokenIndex(tokens)
 
             // Resolve the CSS var ref to a hex color
-            const varMatch = cssVarRef.match(/var\(([^)]+)\)/)
-            if (varMatch) {
+            const varName = unwrapVar(cssVarRef)
+            if (varName) {
                 const resolvedHex = resolveCssVarToHex(cssVarRef, tokenIndex)
 
                 if (resolvedHex) {

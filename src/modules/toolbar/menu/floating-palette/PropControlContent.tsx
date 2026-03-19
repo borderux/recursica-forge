@@ -29,6 +29,7 @@ import { useCssVar } from '../../../../components/hooks/useCssVar'
 import { Dropdown } from '../../../../components/adapters/Dropdown'
 import type { ComponentLayer } from '../../../../components/registry/types'
 import uikitJson from '../../../../../recursica_ui-kit.json'
+import { parseBrandCssVar } from '../../../../core/css/cssVarBuilder'
 import './PropControl.css'
 
 // Helper to format dimension label from key
@@ -484,10 +485,10 @@ function TypographySliderInline({
       return braceMatch[1].toLowerCase()
     }
 
-    // Check for CSS variable: --recursica_brand_dimensions_text-size_2xs
-    const textSizeMatch = cssVarValue.match(/--recursica_brand_dimensions_text-size_([a-z0-9-]+)/)
-    if (textSizeMatch) {
-      return textSizeMatch[1].toLowerCase()
+    // Check for CSS variable using central parser
+    const parsed = parseBrandCssVar(cssVarValue)
+    if (parsed && parsed.type === 'dimension' && parsed.category === 'text-size') {
+      return parsed.key.toLowerCase()
     }
 
     // Also check resolved value
@@ -497,9 +498,9 @@ function TypographySliderInline({
       if (resolvedBraceMatch) {
         return resolvedBraceMatch[1].toLowerCase()
       }
-      const resolvedTextSizeMatch = resolved.match(/--recursica_brand_dimensions_text-size_([a-z0-9-]+)/)
-      if (resolvedTextSizeMatch) {
-        return resolvedTextSizeMatch[1].toLowerCase()
+      const resolvedParsed = parseBrandCssVar(resolved)
+      if (resolvedParsed && resolvedParsed.type === 'dimension' && resolvedParsed.category === 'text-size') {
+        return resolvedParsed.key.toLowerCase()
       }
     }
 

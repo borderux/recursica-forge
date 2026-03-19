@@ -5,6 +5,7 @@
  */
 
 import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
+import { parseBrandCssVar } from '../../core/css/cssVarBuilder'
 
 /**
  * Typography properties that should be applied from a typography style
@@ -54,32 +55,10 @@ export function extractTypographyStyleName(value: string | null | undefined): st
     }
   }
   
-  // Check if it's a CSS variable reference: var(--recursica_brand_typography_caption-font-size)
-  // Extract the style name from the CSS variable name (matches hyphenated style names like body-small)
-  // Match everything up to the property name (font-size, font-weight, etc.)
-  // Use greedy match to capture full hyphenated names like "body-small"
-  const varMatch = trimmed.match(/var\s*\(\s*--recursica_brand_typography_([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
-  if (varMatch) {
-    return varMatch[1].toLowerCase()
-  }
-  
-  // Fallback: match any characters up to a hyphen (for unknown property names)
-  // This handles cases where the property name might not be in our list
-  const varMatchFallback = trimmed.match(/var\s*\(\s*--recursica_brand_typography_([a-z0-9-]+)-/)
-  if (varMatchFallback) {
-    return varMatchFallback[1].toLowerCase()
-  }
-  
-  // Check if it's just a CSS variable name: --recursica_brand_typography_caption-font-size
-  const cssVarMatch = trimmed.match(/^--recursica_brand_typography_([a-z0-9-]+)-(?:font-size|font-weight|font-family|font-letter-spacing|line-height)/)
-  if (cssVarMatch) {
-    return cssVarMatch[1].toLowerCase()
-  }
-  
-  // Fallback for CSS variable name
-  const cssVarMatchFallback = trimmed.match(/^--recursica_brand_typography_([a-z0-9-]+)-/)
-  if (cssVarMatchFallback) {
-    return cssVarMatchFallback[1].toLowerCase()
+  // Check if it's a CSS variable reference or name — parse using central parser
+  const brandParsed = parseBrandCssVar(trimmed)
+  if (brandParsed && brandParsed.type === 'typography') {
+    return brandParsed.style.toLowerCase()
   }
   
   return null

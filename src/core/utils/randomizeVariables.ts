@@ -1280,24 +1280,14 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
             palette.default.$value = `{brand.palettes.${paletteKey}.${randomDefaultLevel}}`
           }
 
-          // Also set the primary level in localStorage (mode-specific)
-          // This is what the UI uses to determine which level is the "primary" for the palette
-          try {
-            if (typeof window !== 'undefined' && window.localStorage) {
-              localStorage.setItem(`palette-primary-level:${paletteKey}:${mode}`, JSON.stringify(randomDefaultLevel))
-            }
-          } catch (err) {
-            // Ignore localStorage errors
-          }
-
-          // Dispatch event to notify PaletteGrid components to re-read primary level from localStorage
+          // Dispatch event to notify PaletteGrid components of the new primary level
           try {
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
                 detail: { paletteKey, mode, level: randomDefaultLevel }
               }))
             }
-          } catch (err) {
+          } catch {
             // Ignore event dispatch errors
           }
         }
@@ -1349,23 +1339,14 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
               $value: `{brand.palettes.${newPaletteKey}.${randomDefaultLevel}}`
             }
 
-            // Also set the primary level in localStorage (mode-specific)
-            try {
-              if (typeof window !== 'undefined' && window.localStorage) {
-                localStorage.setItem(`palette-primary-level:${newPaletteKey}:${mode}`, JSON.stringify(randomDefaultLevel))
-              }
-            } catch (err) {
-              // Ignore localStorage errors
-            }
-
-            // Dispatch event to notify PaletteGrid components to re-read primary level from localStorage
+            // Dispatch event to notify PaletteGrid components of the new primary level
             try {
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
                   detail: { paletteKey: newPaletteKey, mode, level: randomDefaultLevel }
                 }))
               }
-            } catch (err) {
+            } catch {
               // Ignore event dispatch errors
             }
 
@@ -1433,14 +1414,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
           // Clear elevation state from localStorage - it will be rebuilt from the randomized theme
-          const STORAGE_KEYS = {
-            elevation: 'recursica-elevation-state'
-          }
-          localStorage.removeItem(STORAGE_KEYS.elevation)
-          localStorage.removeItem('elevation-color-tokens')
-          localStorage.removeItem('elevation-alpha-tokens')
-          localStorage.removeItem('elevation-palette-selections')
-          localStorage.removeItem('elevation-directions')
+          // Legacy elevation localStorage keys no longer used
 
           // Access the private initElevationState method to rebuild elevation state from modifiedTheme
           const storeAny = store as any

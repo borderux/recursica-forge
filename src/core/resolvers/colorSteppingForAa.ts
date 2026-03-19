@@ -2,7 +2,7 @@ import { contrastRatio, blendHexWithOpacity } from '../../modules/theme/contrast
 import type { JsonLike } from './tokens'
 import { buildTokenIndex } from './tokens'
 import { readCssVar } from '../css/readCssVar'
-import { tokenColor } from '../css/cssVarBuilder'
+import { tokenColor, extractColorToken, unwrapVar, parseBrandCssVar } from '../css/cssVarBuilder'
 
 
 
@@ -18,9 +18,8 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: { get: (path: string) =>
     }
 
     // If it's a var(), extract the var name and resolve
-    const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
-    if (varMatch) {
-      const varName = varMatch[1]
+    const varName = unwrapVar(trimmed)
+    if (varName) {
       const value = readCssVar(varName)
       if (value) {
         return resolveCssVarToHex(value, tokenIndex, depth + 1)
@@ -28,22 +27,20 @@ function resolveCssVarToHex(cssVar: string, tokenIndex: { get: (path: string) =>
     }
 
     // Try to get from token index if it's a token reference
-    const tokenMatch = trimmed.match(/--recursica_tokens_color_([a-z0-9_-]+)[_-](\d+|050|000)/)
-    if (tokenMatch) {
-      const [, family, level] = tokenMatch
-      const normalizedLevel = level === '000' ? '050' : level
-      const hex = tokenIndex.get(`color/${family}/${normalizedLevel}`)
+    const colorParsed = extractColorToken(trimmed)
+    if (colorParsed) {
+      const normalizedLevel = colorParsed.level === '000' ? '050' : colorParsed.level
+      const hex = tokenIndex.get(`color/${colorParsed.family}/${normalizedLevel}`)
       if (typeof hex === 'string') {
         const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
         return h
       }
     }
 
-    // Try palette var reference
-    const paletteMatch = trimmed.match(/--recursica_brand_light_palettes_([a-z0-9-]+)_(\d+|primary)_(tone|on-tone)/)
-    if (paletteMatch) {
-      const [, paletteKey, level, type] = paletteMatch
-      const paletteVarName = `--recursica_brand_light_palettes_${paletteKey}-${level}-${type}`
+    // Try palette var reference using central parser
+    const brandParsed = parseBrandCssVar(trimmed)
+    if (brandParsed && brandParsed.type === 'palette') {
+      const paletteVarName = `--recursica_brand_themes_${brandParsed.mode}_palettes_${brandParsed.paletteName}_${brandParsed.level}_${brandParsed.prop}`
       const paletteValue = readCssVar(paletteVarName)
       if (paletteValue) {
         return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)

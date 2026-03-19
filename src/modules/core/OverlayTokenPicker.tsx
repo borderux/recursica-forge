@@ -16,7 +16,7 @@ interface OverlayTokenPickerProps {
 }
 
 export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTokenPickerProps) {
-  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
+  const { tokens: tokensJson, theme: themeJson } = useVars()
   const { mode } = useThemeMode()
   const modeLower = mode.toLowerCase()
   
@@ -150,7 +150,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
       updateCssVar(overlayOpacityVar, `var(${opacityCssVar})`)
       
       // Update theme JSON
-      if (setTheme && themeJson) {
+      if (themeJson) {
         try {
           const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -165,7 +165,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
             $value: `{tokens.opacity.${tokenKey}}`
           }
           
-          setTheme(themeCopy)
+          getVarsStore().setThemeSilent(themeCopy)
         } catch (err) {
           console.error('Failed to update theme JSON for overlay opacity:', err)
         }
@@ -287,7 +287,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
       const success = updateCssVar(overlayColorVar, cssVarValue, tokensJson)
       
       // Update theme JSON
-      if (setTheme && themeJson) {
+      if (themeJson) {
         try {
           const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -319,7 +319,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
             }
           }
           
-          setTheme(themeCopy)
+          getVarsStore().setThemeSilent(themeCopy)
         } catch (err) {
           console.error('Failed to update theme JSON for overlay color:', err)
         }
@@ -345,7 +345,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
       updateCssVar(overlayColorVar, `var(${paletteCssVar})`, tokensJson)
       
       // Update theme JSON
-      if (setTheme && themeJson) {
+      if (themeJson) {
         try {
           const themeCopy = getVarsStore().getLatestThemeCopy()
           const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -363,7 +363,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
             $value: `{brand.themes.${modeKey}.palettes.${paletteKey}.${cssLevel}.color.tone}`
           }
           
-          setTheme(themeCopy)
+          getVarsStore().setThemeSilent(themeCopy)
         } catch (err) {
           console.error('Failed to update theme JSON for overlay color:', err)
         }
@@ -481,7 +481,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                 const { removeCssVar } = require('../../core/css/updateCssVar')
                 removeCssVar(overlayColorVar)
                 
-                if (setTheme && themeJson) {
+                if (themeJson) {
                   const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
                   const themes = root?.themes || root
@@ -489,7 +489,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                   
                   if (themes[modeKey]?.states?.overlay) {
                     delete themes[modeKey].states.overlay.color
-                    setTheme(themeCopy)
+                    getVarsStore().setThemeSilent(themeCopy)
                   }
                 }
                 

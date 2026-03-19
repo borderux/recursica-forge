@@ -8,7 +8,7 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { tokenOpacity } from '../../../core/css/cssVarBuilder'
+import { tokenOpacity, parseTokenCssVar } from '../../../core/css/cssVarBuilder'
 import { useVars } from '../../vars/VarsContext'
 import { Slider } from '../../../components/adapters/Slider'
 import { Label } from '../../../components/adapters/Label'
@@ -53,10 +53,9 @@ export default function OpacitySlider({
     const resolvedValue = readCssVarResolved(targetCssVar)
     
     // Check if it's a token reference
-    const tokenMatch = currentValue?.match(/var\(--recursica_tokens_opacities_([^)]+)\)/)
-    if (tokenMatch) {
-      const tokenKey = tokenMatch[1]
-      const index = opacityTokens.findIndex(t => t.key === tokenKey)
+    const parsed = currentValue ? parseTokenCssVar(currentValue) : null
+    if (parsed && parsed.type === 'opacity') {
+      const index = opacityTokens.findIndex(t => t.key === parsed.key)
       if (index >= 0) return index
     }
     
@@ -94,10 +93,9 @@ export default function OpacitySlider({
       const resolvedValue = readCssVarResolved(targetCssVar)
       
       // Check if it's a token reference
-      const tokenMatch = currentValue?.match(/var\(--recursica_tokens_opacities_([^)]+)\)/)
-      if (tokenMatch) {
-        const tokenKey = tokenMatch[1]
-        const index = opacityTokens.findIndex(t => t.key === tokenKey)
+      const parsed = currentValue ? parseTokenCssVar(currentValue) : null
+      if (parsed && parsed.type === 'opacity') {
+        const index = opacityTokens.findIndex(t => t.key === parsed.key)
         if (index >= 0) {
           setSelectedIndex(index)
           return

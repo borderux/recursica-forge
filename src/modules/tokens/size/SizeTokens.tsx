@@ -1,18 +1,19 @@
 import React, { useMemo, useState, useEffect } from 'react'
-import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
-import { readOverrides, setOverride, writeOverrides } from '../../theme/tokenOverrides'
 import tokensImport from '../../../../recursica_tokens.json'
 import { Slider } from '../../../components/adapters/Slider'
 import { Button } from '../../../components/adapters/Button'
 import { Switch } from '../../../components/adapters/Switch'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { genericLayerText } from '../../../core/css/cssVarBuilder'
+import { tokenSize } from '../../../core/css/cssVarBuilder'
+import { readCssVarNumber } from '../../../core/css/readCssVar'
+import { updateCssVar } from '../../../core/css/updateCssVar'
 
 export default function SizeTokens() {
-  const { tokens: tokensJson, resetAll, updateToken, recomputeAndApplyAll } = useVars()
   const { mode } = useThemeMode()
-  // Store original values from JSON import (exclude elevation tokens - those are only in brand, not tokens)
+
+  // Original values from the static JSON import (for reset)
   const originalValues = useMemo(() => {
     const map: Record<string, number> = {}
     try {
@@ -21,161 +22,71 @@ export default function SizeTokens() {
         const raw = src[k]?.$value
         const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
         const num = typeof v === 'number' ? v : Number(v)
-        if (Number.isFinite(num)) map[`size/${k}`] = num
+        if (Number.isFinite(num)) map[k] = num
       })
     } catch { }
     return map
-  }, []) // Only compute once on mount
+  }, [])
 
-  const flattened = useMemo(() => {
-    const list: Array<{ name: string; value: number }> = []
+  // Token keys in their original order
+  const tokenKeys = useMemo(() => {
     try {
-      // Support both plural (sizes) and singular (size) for backwards compatibility
-      // Exclude elevation tokens - those are only in brand, not tokens
-      const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
-        const raw = src[k]?.$value
-        const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
-        const num = typeof v === 'number' ? v : Number(v)
-        if (Number.isFinite(num)) list.push({ name: `size/${k}`, value: num })
-      })
+      const src: any = (tokensImport as any)?.tokens?.sizes || (tokensImport as any)?.tokens?.size || {}
+      return Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-'))
     } catch { }
-    return list
-  }, [tokensJson])
+    return []
+  }, [])
 
-  const [values, setValues] = useState<Record<string, string | number>>(() => {
-    const init: Record<string, string | number> = {}
-    flattened.forEach((it) => { init[it.name] = it.value })
-    const overrides = readOverrides()
-    return { ...init, ...overrides }
-  })
-
-  // Listen for reset events to clear local state
-  useEffect(() => {
-    const handler = (ev: CustomEvent) => {
-      if (ev.detail?.reset) {
-        // On reset, sync with store values (ignore overrides)
-        const init: Record<string, string | number> = {}
-        flattened.forEach((it) => {
-          try {
-            const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-            const rawKey = it.name.replace('size/', '')
-            const rawValue = src[rawKey]?.$value
-            const v = (rawValue && typeof rawValue === 'object' && typeof rawValue.value !== 'undefined') ? rawValue.value : rawValue
-            const num = typeof v === 'number' ? v : Number(v)
-            if (Number.isFinite(num)) {
-              init[it.name] = num
-            } else {
-              init[it.name] = it.value
-            }
-          } catch {
-            init[it.name] = it.value
-          }
-        })
-        setValues(init)
-      }
-    }
-    window.addEventListener('tokenOverridesChanged', handler as any)
-    return () => window.removeEventListener('tokenOverridesChanged', handler as any)
-  }, [flattened, tokensJson])
-
-  // Sync values with store when tokensJson changes
-  useEffect(() => {
-    const init: Record<string, string | number> = {}
-    flattened.forEach((it) => {
-      // Read from store first, then fall back to original value
-      try {
-        const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-        const rawKey = it.name.replace('size/', '')
-        const rawValue = src[rawKey]?.$value
-        const v = (rawValue && typeof rawValue === 'object' && typeof rawValue.value !== 'undefined') ? rawValue.value : rawValue
-        const num = typeof v === 'number' ? v : Number(v)
-        if (Number.isFinite(num)) {
-          init[it.name] = num
-        } else {
-          init[it.name] = it.value
-        }
-      } catch {
-        init[it.name] = it.value
-      }
+  // Read current values from CSS variables
+  const readAllFromCss = (): Record<string, number> => {
+    const map: Record<string, number> = {}
+    tokenKeys.forEach((k) => {
+      map[k] = readCssVarNumber(tokenSize(k), originalValues[k] ?? 0)
     })
-    const overrides = readOverrides()
-    setValues({ ...init, ...overrides })
-  }, [tokensJson, flattened])
+    return map
+  }
 
-  const [scaleByDefault, setScaleByDefault] = useState<boolean>(() => {
-    const v = localStorage.getItem('size-scale-by-default')
-    // Default to true if not set
-    if (v === null) {
-      localStorage.setItem('size-scale-by-default', 'true')
-      return true
+  const [values, setValues] = useState<Record<string, number>>(readAllFromCss)
+
+  // Re-read from CSS vars when cssVarsUpdated fires (e.g., after reset or recompute)
+  useEffect(() => {
+    const handler = () => {
+      setValues(readAllFromCss())
     }
-    return v === 'true'
-  })
+    window.addEventListener('cssVarsUpdated', handler)
+    window.addEventListener('tokenOverridesChanged', handler)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handler)
+      window.removeEventListener('tokenOverridesChanged', handler)
+    }
+  }, [tokenKeys])
 
-  // Local state to track slider values during drag (for smooth UI feedback when auto scale is enabled)
+  const [scaleByDefault, setScaleByDefault] = useState(true)
+
+  // Local state to track slider values during drag (for smooth UI when auto-scale is on)
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({})
-
-  const items = useMemo(() => {
-    // Return items in their original order without sorting
-    return flattened
-  }, [flattened])
 
   function parseMultiplier(raw: string): number {
     if (raw === 'default') return 1
     if (raw === 'none') return 0
-    // Parse multiplier from strings like "1.5x", "1-5x", "2x", etc.
-    // Replace '-' with '.' to handle "1-5x" -> 1.5, then remove 'x'
     const cleaned = raw.replace(/-/g, '.').replace(/x/g, '')
     const n = parseFloat(cleaned)
     return Number.isFinite(n) ? n : 1
   }
 
-  const handleReset = () => {
-    // Clear local slider values
-    setSliderValues({})
-
-    // Restore size values from original values and update tokens in store
-    Object.keys(originalValues).forEach((tokenName) => {
-      const num = originalValues[tokenName]
-      if (Number.isFinite(num)) {
-        // Update token in store (this updates CSS vars)
-        updateToken(tokenName, num)
-        // Also update override for backwards compatibility
-        setOverride(tokenName, num)
-      }
-    })
-
-    // Remove all size overrides that aren't in the original JSON
-    const all = readOverrides()
-    const updated: Record<string, any> = {}
-
-    // Keep all non-size overrides
-    Object.keys(all).forEach((k) => {
-      if (!k.startsWith('size/')) {
-        updated[k] = all[k]
-      }
-    })
-
-    // Add back only the original size values
-    Object.keys(originalValues).forEach((tokenName) => {
-      updated[tokenName] = originalValues[tokenName]
-    })
-
-    writeOverrides(updated)
-
-    // Reset local state
-    const init: Record<string, string | number> = {}
-    flattened.forEach((it) => { init[it.name] = it.value })
-    setValues({ ...init, ...updated })
-
-    try {
-      window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: updated, reset: true } }))
-    } catch { }
-
-    recomputeAndApplyAll()
+  // Write a size value to the CSS var (and delta)
+  const writeSizeCssVar = (key: string, num: number) => {
+    updateCssVar(tokenSize(key), `${num}px`)
   }
-  const interactiveColor = `--recursica_brand_palettes_core_interactive`
+
+  const handleReset = () => {
+    setSliderValues({})
+    // Restore all sizes to original JSON values
+    Object.keys(originalValues).forEach((key) => {
+      writeSizeCssVar(key, originalValues[key])
+    })
+    setValues({ ...originalValues })
+  }
 
   return (
     <div style={{ display: 'grid', gap: 0 }}>
@@ -222,39 +133,18 @@ export default function SizeTokens() {
               checked={scaleByDefault}
               onChange={(checked) => {
                 setScaleByDefault(checked)
-                localStorage.setItem('size-scale-by-default', String(checked))
-
                 if (checked) {
-                  // When enabling auto scale, compute and update all scaled sizes
-                  const defaultItem = items.find((i) => i.name === 'size/default')
-                  if (defaultItem) {
-                    // Get default value from store
-                    let defaultValue: number
-                    try {
-                      const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-                      const defaultRaw = src['default']?.$value
-                      const defaultV = (defaultRaw && typeof defaultRaw === 'object' && typeof defaultRaw.value !== 'undefined') ? defaultRaw.value : defaultRaw
-                      const defaultNum = typeof defaultV === 'number' ? defaultV : Number(defaultV)
-                      defaultValue = Number.isFinite(defaultNum) ? defaultNum : Number((values['size/default'] as any) ?? defaultItem.value ?? 0)
-                    } catch {
-                      defaultValue = Number((values['size/default'] as any) ?? defaultItem.value ?? 0)
+                  // When enabling auto-scale, recalculate all scaled sizes from the current default
+                  const defaultValue = values['default'] ?? originalValues['default'] ?? 0
+                  tokenKeys.forEach((key) => {
+                    if (key !== 'none' && key !== 'default') {
+                      const mul = parseMultiplier(key)
+                      const computed = Math.round(defaultValue * mul)
+                      writeSizeCssVar(key, computed)
                     }
-
-                    items.forEach((it) => {
-                      const rawKey = it.name.replace('size/', '')
-                      const isNone = rawKey === 'none'
-                      const isDefault = rawKey === 'default'
-                      if (!isNone && !isDefault) {
-                        const mul = parseMultiplier(rawKey)
-                        const computed = Math.round(defaultValue * mul)
-                        updateToken(it.name, computed)
-                        setOverride(it.name, computed)
-                      }
-                    })
-                    recomputeAndApplyAll()
-                  }
+                  })
+                  setValues(readAllFromCss())
                 }
-                // When disabling, values will be read from store/overrides which have the original values
               }}
               layer="layer-0"
             />
@@ -263,58 +153,35 @@ export default function SizeTokens() {
       </div>
 
       {/* Rows */}
-      <div style={{ display: 'grid', gap: 0 }}>
-        {items.map((it, index) => {
-          const rawKey = it.name.replace('size/', '')
+      <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
+        {tokenKeys.map((rawKey, index) => {
           const label = (rawKey === 'default' || rawKey === 'none') ? rawKey.charAt(0).toUpperCase() + rawKey.slice(1) : rawKey
           const isNone = rawKey === 'none'
           const isDefault = rawKey === 'default'
 
-          // Read current value from store (tokensJson) first, then fall back to local state, then original value
-          const storeValue = (() => {
-            try {
-              const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-              const rawValue = src[rawKey]?.$value
-              const v = (rawValue && typeof rawValue === 'object' && typeof rawValue.value !== 'undefined') ? rawValue.value : rawValue
-              const num = typeof v === 'number' ? v : Number(v)
-              if (Number.isFinite(num)) return num
-            } catch { }
-            return null
-          })()
-
-          // Get the current default value from store
-          const defaultStoreValue = (() => {
-            try {
-              const src: any = (tokensJson as any)?.tokens?.sizes || (tokensJson as any)?.tokens?.size || {}
-              const defaultRaw = src['default']?.$value
-              const defaultV = (defaultRaw && typeof defaultRaw === 'object' && typeof defaultRaw.value !== 'undefined') ? defaultRaw.value : defaultRaw
-              const defaultNum = typeof defaultV === 'number' ? defaultV : Number(defaultV)
-              if (Number.isFinite(defaultNum)) return defaultNum
-            } catch { }
-            return null
-          })()
-
-          // Get the default value - use local slider value if dragging default with auto scale
-          const defaultSliderValue = sliderValues['size/default']
+          // Get current default value (may be from slider during drag)
+          const defaultSliderValue = sliderValues['default']
           const effectiveDefault = (scaleByDefault && isDefault && defaultSliderValue !== undefined)
             ? defaultSliderValue
-            : (defaultStoreValue ?? (values['size/default'] as any) ?? (items.find((i) => i.name === 'size/default')?.value as any) ?? 0)
-
+            : (values['default'] ?? originalValues['default'] ?? 0)
           const currentDefault = Number(effectiveDefault)
           const mul = parseMultiplier(rawKey)
           const computed = Math.round(currentDefault * mul)
 
-          // Use local slider value if dragging with auto scale enabled, otherwise use store/override value
-          const baseValue = isNone ? 0 : (scaleByDefault && !isDefault) ? computed : (storeValue ?? (values[it.name] as any) ?? (it.value as any))
-          // For default size with auto scale, use slider value if dragging; for non-default with auto scale, computed is already based on default slider value
-          const current: any = (scaleByDefault && isDefault && sliderValues[it.name] !== undefined)
-            ? sliderValues[it.name]
-            : baseValue
+          // Determine displayed value
+          const current: number = isNone
+            ? 0
+            : (scaleByDefault && isDefault && sliderValues[rawKey] !== undefined)
+              ? sliderValues[rawKey]
+              : (scaleByDefault && !isDefault)
+                ? computed
+                : (values[rawKey] ?? originalValues[rawKey] ?? 0)
+
           const disabled = isNone || (scaleByDefault && !isDefault)
-          const isLast = index === items.length - 1
+          const isLast = index === tokenKeys.length - 1
 
           return (
-            <div key={it.name} style={{
+            <div key={rawKey} style={{
               display: 'grid',
               gridTemplateColumns: 'auto 1fr auto auto',
               gap: 'var(--recursica_brand_dimensions_general_md)',
@@ -322,7 +189,7 @@ export default function SizeTokens() {
               paddingTop: 0,
               paddingBottom: isLast ? 0 : 'var(--recursica_brand_dimensions_general_default)',
             }}>
-              <label htmlFor={it.name} style={{
+              <label htmlFor={`size/${rawKey}`} style={{
                 fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
                 color: `var(${genericLayerText(0, 'color')})`,
                 opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
@@ -336,51 +203,35 @@ export default function SizeTokens() {
                   onChange={(val) => {
                     const next = typeof val === 'number' ? val : val[0]
                     if (scaleByDefault && isDefault) {
-                      // When auto scale is enabled and dragging default, update local state for smooth UI
-                      setSliderValues((prev) => ({ ...prev, [it.name]: next }))
-                      // Also update local values for preview
-                      setValues((prev) => ({ ...prev, [it.name]: next }))
+                      // Dragging default with auto-scale: update local slider state for smooth UI
+                      setSliderValues((prev) => ({ ...prev, [rawKey]: next }))
                     } else if (!scaleByDefault) {
-                      // When auto scale is disabled, update immediately
-                      setValues((prev) => ({ ...prev, [it.name]: next }))
-                      updateToken(it.name, next)
-                      setOverride(it.name, next as any)
+                      // No auto-scale: update CSS var immediately
+                      writeSizeCssVar(rawKey, next)
+                      setValues((prev) => ({ ...prev, [rawKey]: next }))
                     }
                   }}
                   onChangeCommitted={(val) => {
                     const next = typeof val === 'number' ? val : val[0]
                     if (scaleByDefault && isDefault) {
-                      // Update default size in store
-                      setValues((prev) => ({ ...prev, [it.name]: next }))
-                      updateToken(it.name, next)
-                      setOverride(it.name, next as any)
-
-                      // Update all scaled sizes
-                      items.forEach((otherIt) => {
-                        const otherRawKey = otherIt.name.replace('size/', '')
-                        const otherIsNone = otherRawKey === 'none'
-                        const otherIsDefault = otherRawKey === 'default'
-                        if (!otherIsNone && !otherIsDefault) {
-                          const mul = parseMultiplier(otherRawKey)
-                          const computed = Math.round(next * mul)
-                          updateToken(otherIt.name, computed)
-                          setOverride(otherIt.name, computed)
+                      // Commit default: update default + all scaled sizes
+                      writeSizeCssVar(rawKey, next)
+                      tokenKeys.forEach((key) => {
+                        if (key !== 'none' && key !== 'default') {
+                          const m = parseMultiplier(key)
+                          const c = Math.round(next * m)
+                          writeSizeCssVar(key, c)
                         }
                       })
-
-                      // Clear local slider values
+                      // Clear slider drag state
                       setSliderValues((prev) => {
-                        const next = { ...prev }
-                        delete next[it.name]
-                        return next
+                        const copy = { ...prev }
+                        delete copy[rawKey]
+                        return copy
                       })
-
-                      recomputeAndApplyAll()
-                    } else if (!scaleByDefault) {
-                      // Already updated in onChange when auto scale is disabled
-                      // But we still need to recalculate CSS variables that reference this size token
-                      recomputeAndApplyAll()
+                      setValues(readAllFromCss())
                     }
+                    // No else needed — non-auto-scale writes happen in onChange
                   }}
                   min={0}
                   max={100}

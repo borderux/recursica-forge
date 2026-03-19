@@ -77,10 +77,16 @@ function stableStringify(value: unknown): string {
 
 /**
  * Detects if there are unexported changes (dirty data)
- * by comparing current store state with original JSON files
+ * by checking the CSS delta and comparing current store state with original JSON files
  */
 export function detectDirtyData(): boolean {
   try {
+    // Fast path: check if the CSS delta has any entries
+    const { getDelta } = require("../store/cssDelta");
+    const delta = getDelta();
+    if (Object.keys(delta).length > 0) return true;
+
+    // Fallback: compare in-memory JSON state to originals
     const store = getVarsStore();
     const currentState = store.getState();
 

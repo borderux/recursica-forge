@@ -14,7 +14,8 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
-import { genericLayerProperty, genericLayerText, layerProperty, layerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, layerProperty, layerText, parseBrandCssVar } from '../../core/css/cssVarBuilder'
+import { clearDeltaByPrefix } from '../../core/store/cssDelta'
 
 // Helper to format dimension label from key
 const formatDimensionLabel = (key: string): string => {
@@ -119,20 +120,15 @@ function BrandDimensionSliderInline({
   const justSetValueRef = useRef<string | null>(null)
   const hasInteractedRef = useRef(false)
 
-  // Re-sync when initialKey or tokens change (handles async token loading and layer switching)
-  // but not after the user has started interacting
+  // Re-sync when initialKey or tokens change (handles async token loading, layer switching, and resets).
+  // Also resets the interaction flag so the slider accepts the new initialKey.
   useEffect(() => {
-    if (hasInteractedRef.current) return
+    hasInteractedRef.current = false
     if (initialKey && tokens.length > 0) {
       const idx = tokens.findIndex(t => t.key === initialKey)
       if (idx >= 0) setSelectedIndex(idx)
     }
   }, [initialKey, tokens])
-
-  // Reset interaction flag when switching to a different layer/control
-  useEffect(() => {
-    hasInteractedRef.current = false
-  }, [initialKey])
 
 
   const readInitialValue = useCallback(() => {
@@ -200,6 +196,21 @@ function BrandDimensionSliderInline({
     const frameId = requestAnimationFrame(() => readInitialValue())
     return () => cancelAnimationFrame(frameId)
   }, [readInitialValue])
+
+  // Re-read from CSS when vars are updated (e.g., after a reset)
+  useEffect(() => {
+    const handleCssVarsUpdated = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars
+      if (!Array.isArray(updatedVars)) return
+      if (updatedVars.some((v: string) => v === targetCssVar || v.includes('layer'))) {
+        hasInteractedRef.current = false
+        requestAnimationFrame(() => readInitialValue())
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleCssVarsUpdated)
+    return () => window.removeEventListener('cssVarsUpdated', handleCssVarsUpdated)
+  }, [targetCssVar, readInitialValue])
   // Derive scoped var for live preview (LayerModule reads scoped vars, not themed)
   // Themed: --recursica_brand_themes_light_layers_layer-1_properties_padding
   // Scoped: --recursica_brand_layer_1_properties_padding
@@ -358,6 +369,19 @@ function ElevationSliderInline({
     return () => cancelAnimationFrame(frameId)
   }, [readInitialValue])
 
+  // Re-read from CSS when vars are updated (e.g., after a reset)
+  useEffect(() => {
+    const handleCssVarsUpdated = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      const updatedVars = detail?.cssVars
+      if (!Array.isArray(updatedVars)) return
+      if (updatedVars.some((v: string) => v === primaryVar || v.includes('layer'))) {
+        requestAnimationFrame(() => readInitialValue())
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleCssVarsUpdated)
+    return () => window.removeEventListener('cssVarsUpdated', handleCssVarsUpdated)
+  }, [primaryVar, readInitialValue])
 
   // Derive the scoped CSS var (read by LayerModule) from the themed primaryVar
   // Themed: --recursica_brand_themes_light_layers_layer-1_properties_elevation
@@ -799,17 +823,32 @@ export default function LayerStylePanel({
         const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
         const levels = selectedLevels.slice()
 
-        // Clear CSS variables for surface, border-color, and text-color so they regenerate from theme defaults
+        // Clear ALL inline CSS variables for these layers so they regenerate from theme defaults
         const rootEl = document.documentElement
+        const allLayerProperties = ['surface', 'border-color', 'padding', 'border-radius', 'border-size', 'elevation']
+        const allTextProperties = ['color', 'high-emphasis', 'low-emphasis']
         levels.forEach((lvl) => {
-          const surfaceVar = `${layerProperty(mode, lvl, 'surface')}`
-          const borderVar = `${layerProperty(mode, lvl, 'border-color')}`
-          const textColorVar = `${layerText(mode, lvl, 'color')}`
-          rootEl.style.removeProperty(surfaceVar)
-          rootEl.style.removeProperty(textColorVar)
-          if (lvl > 0) {
-            rootEl.style.removeProperty(borderVar)
-          }
+          // Themed vars
+          allLayerProperties.forEach((prop) => {
+            rootEl.style.removeProperty(layerProperty(mode, lvl, prop))
+          })
+          allTextProperties.forEach((prop) => {
+            rootEl.style.removeProperty(layerText(mode, lvl, prop))
+          })
+          // Scoped vars (set by slider live preview)
+          allLayerProperties.forEach((prop) => {
+            rootEl.style.removeProperty(`--recursica_brand_layer_${lvl}_properties_${prop}`)
+          })
+          allTextProperties.forEach((prop) => {
+            rootEl.style.removeProperty(`--recursica_brand_layer_${lvl}_elements_text-${prop}`)
+          })
+        })
+
+        // Clear delta entries for selected layers so reapplyDelta() won't
+        // re-apply old user-modified values after recomputeAndApplyAll.
+        levels.forEach((lvl) => {
+          clearDeltaByPrefix(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_`)
+          clearDeltaByPrefix(`--recursica_brand_layer_${lvl}_`)
         })
 
         // Update theme JSON with defaults
@@ -819,6 +858,23 @@ export default function LayerStylePanel({
           if (def) {
             onUpdate(() => JSON.parse(JSON.stringify(def)))
           }
+        })
+
+        // Notify PaletteColorControl and other listeners to refresh after reset
+        requestAnimationFrame(() => {
+          const updatedVars: string[] = []
+          levels.forEach((lvl) => {
+            updatedVars.push(layerProperty(mode, lvl, 'surface'))
+            updatedVars.push(layerProperty(mode, lvl, 'border-color'))
+            updatedVars.push(layerProperty(mode, lvl, 'padding'))
+            updatedVars.push(layerProperty(mode, lvl, 'border-radius'))
+            updatedVars.push(layerProperty(mode, lvl, 'border-size'))
+            updatedVars.push(layerProperty(mode, lvl, 'elevation'))
+            updatedVars.push(layerText(mode, lvl, 'color'))
+          })
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: updatedVars }
+          }))
         })
       }}
       icon={(() => {
@@ -872,9 +928,9 @@ export default function LayerStylePanel({
             dimensionCategory="general"
             layer="layer-1"
             onUpdate={(_cssVar, tokenValue) => {
-              const match = tokenValue.match(/--recursica_brand_dimensions_general_([^)]+)/)
-              if (match) {
-                const tokenRef = `{brand.dimensions.general.${match[1]}}`
+              const parsed = parseBrandCssVar(tokenValue)
+              if (parsed && parsed.type === 'dimension' && parsed.category === 'general') {
+                const tokenRef = `{brand.dimensions.general.${parsed.key}}`
                 onUpdate((layerSpec: any) => {
                   const next = JSON.parse(JSON.stringify(layerSpec || {}))
                   if (!next.properties) next.properties = {}
@@ -893,9 +949,9 @@ export default function LayerStylePanel({
             dimensionCategory="border-radii"
             layer="layer-1"
             onUpdate={(_cssVar, tokenValue) => {
-              const match = tokenValue.match(/--recursica_brand_dimensions_border-radii_([^)]+)/)
-              if (match) {
-                const tokenRef = `{brand.dimensions.border-radii.${match[1]}}`
+              const parsed = parseBrandCssVar(tokenValue)
+              if (parsed && parsed.type === 'dimension' && parsed.category === 'border-radii') {
+                const tokenRef = `{brand.dimensions.border-radii.${parsed.key}}`
                 onUpdate((layerSpec: any) => {
                   const next = JSON.parse(JSON.stringify(layerSpec || {}))
                   if (!next.properties) next.properties = {}
