@@ -87,15 +87,17 @@ export function toSentenceCase(str: string): string {
 }
 
 /**
- * Parses a component's structure from recursica_ui-kit.json
+ * Parses a component's structure from recursica_ui-kit.json.
+ * Pass uikitOverride to use the live store JSON instead of the static import
+ * (required so runtime-created custom variants appear in the dropdown).
  */
-export function parseComponentStructure(componentName: string): ComponentStructure {
+export function parseComponentStructure(componentName: string, uikitOverride?: any): ComponentStructure {
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
   if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
-  const uikitRoot: any = uikitJson
-  const components = uikitRoot?.['ui-kit']?.components || {}
+  const uikitRoot: any = uikitOverride ?? uikitJson
+  const components = uikitRoot?.['ui-kit']?.components || uikitRoot?.components || {}
   const component = components[componentKey]
 
   if (!component) {

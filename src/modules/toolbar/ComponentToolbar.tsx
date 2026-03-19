@@ -30,6 +30,19 @@ import { getComponentTextCssVar, buildComponentCssVarPath } from '../../componen
 import type { ComponentName } from '../../components/registry/types'
 import './ComponentToolbar.css'
 import { layerProperty, layerText } from '../../core/css/cssVarBuilder'
+import { getVarsStore } from '../../core/store/varsStore'
+import {
+  cloneVariantInUIKit,
+  deleteCustomVariant,
+  listCustomVariants,
+  getExistingVariantNames,
+  getExistingAxes,
+  axisToCategoryKey,
+  categoryKeyToAxis,
+} from '../../core/uikit/createVariantInUIKit'
+import { CreateVariantModal } from './modals/CreateVariantModal'
+import { DeleteVariantModal } from './modals/DeleteVariantModal'
+import { Modal } from '../../components/adapters/Modal'
 
 export interface ComponentToolbarProps {
   componentName: ComponentName
@@ -67,8 +80,14 @@ export default function ComponentToolbar({
   const { debugMode, setDebugMode } = useDebugMode()
   const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
 
+  // Custom variant modal state
+  const [createVariantModalOpen, setCreateVariantModalOpen] = useState(false)
+  const [deleteVariantModalOpen, setDeleteVariantModalOpen] = useState(false)
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  const [createVariantAxis, setCreateVariantAxis] = useState<string>('')
+  const [createVariantExistingNames, setCreateVariantExistingNames] = useState<string[]>([])
 
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const structure = useMemo(() => parseComponentStructure(componentName, getVarsStore().getState().uikit), [componentName, uikit])
 
   // Get toolbar config to preserve order
   const toolbarConfig = useMemo(() => {
@@ -100,6 +119,58 @@ export default function ComponentToolbar({
   useEffect(() => {
     setOpenPropControl(new Set())
   }, [componentName])
+
+  // Resolve the component key as used in uikit JSON
+  const componentKey = useMemo(() => {
+    let key = componentName.toLowerCase().replace(/\s+/g, '-')
+    if (key === 'checkbox-group-item') key = 'checkbox-item'
+    if (key === 'radio-button-group-item') key = 'radio-button-item'
+    if (key === 'hover-card-/-popover') key = 'hover-card-popover'
+    return key
+  }, [componentName])
+
+  // List custom variants for this component (re-derived from live uikit store)
+  const customVariants = useMemo(() => {
+    const liveUikit = getVarsStore().getState().uikit
+    return listCustomVariants(liveUikit, componentKey)
+  }, [componentKey, uikit]) // uikit dep causes re-run when store is updated
+
+  // Detect whether this component has zero variant axes
+  const hasNoVariantAxes = visibleVariants.length === 0
+
+  // Handlers
+  const handleOpenCreateVariant = (axisName: string, existingNames: string[]) => {
+    setCreateVariantAxis(axisName)
+    setCreateVariantExistingNames(existingNames)
+    setCreateVariantModalOpen(true)
+  }
+
+  const handleCreateVariant = (axisCategory: string, sourceVariantName: string, newVariantName: string) => {
+    const store = getVarsStore()
+    const liveUikit = store.getState().uikit
+    cloneVariantInUIKit(liveUikit, componentKey, axisCategory, sourceVariantName, newVariantName)
+    // Deep-clone so VarsContext detects reference change and re-renders
+    store.setUiKit(JSON.parse(JSON.stringify(liveUikit)))
+    // Auto-select the new variant
+    const axisName = categoryKeyToAxis(axisCategory)
+    onVariantChange(axisName, newVariantName)
+  }
+
+  const handleDeleteVariant = (axisCategory: string, variantName: string) => {
+    const store = getVarsStore()
+    const liveUikit = store.getState().uikit
+    deleteCustomVariant(liveUikit, componentKey, axisCategory, variantName)
+    // Deep-clone so VarsContext detects reference change and re-renders
+    store.setUiKit(JSON.parse(JSON.stringify(liveUikit)))
+    // If the deleted variant was currently selected, switch to first remaining variant on that axis
+    const axisName = categoryKeyToAxis(axisCategory)
+    if (selectedVariants[axisName] === variantName) {
+      const remaining = getExistingVariantNames(liveUikit, componentKey, axisCategory)
+      if (remaining.length > 0) {
+        onVariantChange(axisName, remaining[0])
+      }
+    }
+  }
 
   // Get all unique props (one icon per prop name, regardless of variants or layers)
   // Show both non-variant props and variant props (both color and size), but only one icon per prop name
@@ -1052,12 +1123,33 @@ export default function ComponentToolbar({
                     onSelect={(variantName) => {
                       onVariantChange(variant.propName, variantName)
                     }}
+                    onCreateVariant={() => {
+                      handleOpenCreateVariant(variant.propName, variant.variants)
+                    }}
                     className="full-width"
                   />
                 )}
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Add Variant button — only visible for components with zero variant axes */}
+      {hasNoVariantAxes && (
+        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
+          <Button
+            onClick={() => handleOpenCreateVariant('', [])}
+            variant="outline"
+            layer="layer-0"
+            style={{ width: '100%' }}
+            icon={(() => {
+              const PlusIcon = iconNameToReactComponent('plus')
+              return PlusIcon ? <PlusIcon style={{ width: 16, height: 16 }} /> : undefined
+            })()}
+          >
+            Add variant
+          </Button>
         </div>
       )}
 
@@ -1146,21 +1238,34 @@ export default function ComponentToolbar({
         ) as React.CSSProperties}
       />
 
-      {/* Reset Button */}
-      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
+      {/* Reset + Delete Variant Buttons */}
+      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})`, display: 'flex', flexDirection: 'row', gap: 'var(--recursica_brand_dimensions_gutters_horizontal)' }}>
         <Button
-          onClick={handleReset}
+          onClick={() => setResetConfirmOpen(true)}
           variant="outline"
+          size="small"
           layer="layer-0"
-          style={{
-            width: '100%',
-          }}
+          style={{ flex: 1 }}
           icon={(() => {
             const ResetIcon = iconNameToReactComponent('arrow-path')
-            return ResetIcon ? <ResetIcon style={{ width: 16, height: 16 }} /> : undefined
+            return ResetIcon ? <ResetIcon style={{ width: 14, height: 14 }} /> : undefined
           })()}
         >
-          Reset to defaults
+          Reset
+        </Button>
+        <Button
+          onClick={() => setDeleteVariantModalOpen(true)}
+          variant="outline"
+          size="small"
+          layer="layer-0"
+          disabled={customVariants.length === 0}
+          style={{ flex: 1 }}
+          icon={(() => {
+            const TrashIcon = iconNameToReactComponent('trash')
+            return TrashIcon ? <TrashIcon style={{ width: 14, height: 14 }} /> : undefined
+          })()}
+        >
+          Delete variant
         </Button>
       </div>
 
@@ -1196,6 +1301,45 @@ export default function ComponentToolbar({
           </label>
         </div>
       </div>
+
+      {/* Create Variant Modal */}
+      <CreateVariantModal
+        isOpen={createVariantModalOpen}
+        onClose={() => setCreateVariantModalOpen(false)}
+        onConfirm={handleCreateVariant}
+        axisName={createVariantAxis}
+        existingVariantNames={createVariantExistingNames}
+        showAxisField={hasNoVariantAxes}
+        existingAxisNames={getExistingAxes(getVarsStore().getState().uikit, componentKey)}
+      />
+
+      {/* Delete Variant Modal */}
+      <DeleteVariantModal
+        isOpen={deleteVariantModalOpen}
+        onClose={() => setDeleteVariantModalOpen(false)}
+        onConfirm={handleDeleteVariant}
+        customVariants={customVariants}
+      />
+
+      {/* Reset Confirmation Modal */}
+      <Modal
+        isOpen={resetConfirmOpen}
+        onClose={() => setResetConfirmOpen(false)}
+        title="Reset to defaults?"
+        size="sm"
+        layer="layer-1"
+        primaryActionLabel="Reset"
+        onPrimaryAction={() => {
+          setResetConfirmOpen(false)
+          handleReset()
+        }}
+        secondaryActionLabel="Cancel"
+        onSecondaryAction={() => setResetConfirmOpen(false)}
+      >
+        <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-small-font-size)', opacity: 0.75 }}>
+          All customisations for {componentName} will be reset to their default token values.
+        </p>
+      </Modal>
     </div>
   )
 }
