@@ -328,23 +328,27 @@ export default function MantineShell({
               <MantineTabs.List>
                 <MantineTabs.Tab value='tokens'>Tokens</MantineTabs.Tab>
                 <MantineTabs.Tab value='theme'>
-                  <Tooltip label={issueCount > 0 ? `${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}` : ''} withinPortal={true} position="bottom" mantine={{ offset: 14 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {issueCount > 0 && (() => {
-                        const WarningIcon = iconNameToReactComponent("warning");
-                        return WarningIcon ? (
-                          <WarningIcon
-                            style={{
-                              width: 14,
-                              height: 14,
-                              color: `var(--recursica_brand_themes_${mode}_palettes_core_alert-tone)`,
-                            }}
-                          />
-                        ) : null;
-                      })()}
-                      Theme
-                    </span>
-                  </Tooltip>
+                  {issueCount > 0 ? (
+                    <Tooltip label={`${issueCount} compliance ${issueCount === 1 ? 'issue' : 'issues'}`} withinPortal={true} position="bottom" mantine={{ offset: 14 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {(() => {
+                          const WarningIcon = iconNameToReactComponent("warning");
+                          return WarningIcon ? (
+                            <WarningIcon
+                              style={{
+                                width: 14,
+                                height: 14,
+                                color: `var(--recursica_brand_themes_${mode}_palettes_core_alert-tone)`,
+                              }}
+                            />
+                          ) : null;
+                        })()}
+                        Theme
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    <span>Theme</span>
+                  )}
                 </MantineTabs.Tab>
                 <MantineTabs.Tab value='components'>Components</MantineTabs.Tab>
               </MantineTabs.List>

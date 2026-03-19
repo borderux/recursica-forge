@@ -222,6 +222,7 @@ export function ColorScale({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          textAlign: 'center',
           gap: 2,
         }}>
           <span style={{
@@ -242,7 +243,7 @@ export function ColorScale({
               <Link
                 key={i}
                 href={href}
-                layer="layer-1"
+                layer="layer-0"
               >
                 {loc.label}
               </Link>
