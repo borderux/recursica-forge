@@ -56,6 +56,7 @@ import {
   getCssAuditAutoRun,
   setCssAuditAutoRun,
 } from "../../../core/utils/cssAuditPreference";
+import { runRoundTripValidation } from "../../../core/dev/exportImportValidator";
 
 export default function MantineShell({
   children,
@@ -74,6 +75,7 @@ export default function MantineShell({
   const [showRandomizeModal, setShowRandomizeModal] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [cssAuditAutoRun, setCssAuditAutoRunState] = useState(() =>
     getCssAuditAutoRun(),
   );
@@ -105,6 +107,16 @@ export default function MantineShell({
     handleCancel: handleDirtyCancel,
     clearSelectedFiles,
   } = useJsonImport();
+  const handleRoundTripValidation = async () => {
+    setIsValidating(true)
+    try {
+      await runRoundTripValidation()
+      navigate('/dev/diff')
+    } finally {
+      setIsValidating(false)
+    }
+  }
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -226,11 +238,14 @@ export default function MantineShell({
     return () => window.removeEventListener("resize", updateHeaderHeight);
   }, [mode]);
 
+  const isDiffRoute = location.pathname === '/dev/diff'
+
   return (
     <MantineProvider>
       <div
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
+        {!isDiffRoute && (
         <header
           ref={headerRef}
           style={{
@@ -434,7 +449,7 @@ export default function MantineShell({
                       variant='outline'
                       size='small'
                       icon={(() => {
-                        const ShuffleIcon = iconNameToReactComponent("swap");
+                        const ShuffleIcon = iconNameToReactComponent("shuffle");
                         return ShuffleIcon ? (
                           <ShuffleIcon
                             style={{
@@ -447,6 +462,26 @@ export default function MantineShell({
                         ) : null;
                       })()}
                       onClick={() => setShowRandomizeModal(true)}
+                    />
+                  </Tooltip>
+                  <Tooltip label='Export/Import validation (dev only)'>
+                    <Button
+                      variant='outline'
+                      size='small'
+                      disabled={isValidating}
+                      icon={(() => {
+                        const GitDiffIcon = iconNameToReactComponent('exclude')
+                        return GitDiffIcon ? (
+                          <GitDiffIcon
+                            style={{
+                              width: 'var(--recursica_brand_dimensions_icons_default)',
+                              height: 'var(--recursica_brand_dimensions_icons_default)',
+                              opacity: isValidating ? 0.5 : 1,
+                            }}
+                          />
+                        ) : null
+                      })()}
+                      onClick={handleRoundTripValidation}
                     />
                   </Tooltip>
                   <Tooltip label='Auto-run CSS audit (dev only)'>
@@ -593,6 +628,10 @@ export default function MantineShell({
             })()}
           </Group>
         </header>
+        )}
+        {isDiffRoute ? (
+          <>{children}</>
+        ) : (
         <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
           {showSidebar && <Sidebar />}
           {showThemeSidebar && <ThemeSidebar />}
@@ -607,6 +646,7 @@ export default function MantineShell({
             {children}
           </main>
         </div>
+        )}
         <ImportModal
           show={isModalOpen}
           onClose={() => {

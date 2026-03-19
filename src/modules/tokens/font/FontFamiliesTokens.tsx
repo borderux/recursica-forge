@@ -261,7 +261,7 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
                 delete fontRoot.fontVariants[cleanFontName.toLowerCase()]
               }
 
-              store.setTokens(tokens)
+              store.setTokensSilent(tokens)
             } catch (err) {
               console.warn('Failed to update variants:', err)
             }
@@ -577,7 +577,7 @@ export default function FontFamiliesTokens() {
         delete fontRoot.fontVariants[cleanFontName]
       }
 
-      store.setTokens(tokens)
+      store.setTokensSilent(tokens)
     } catch (err) {
       console.warn('Failed to set variants by font name:', err)
     }
@@ -652,7 +652,7 @@ export default function FontFamiliesTokens() {
           }
         })
 
-        store.setTokens(tokens)
+        store.setTokensSilent(tokens)
       }
     } catch (err) {
       console.warn('Failed to migrate variants:', err)
@@ -1333,7 +1333,7 @@ export default function FontFamiliesTokens() {
               }
 
               // Save all changes (URL and variants) at once
-              store.setTokens(tokens)
+              store.setTokensSilent(tokens)
 
               // Update fontUrlMap with the new URL
               if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {

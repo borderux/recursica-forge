@@ -270,7 +270,7 @@ export function updateCoreColorInteractiveOnToneForCompliance(
               const tokenRef = `{tokens.colors.${interactiveToneRef.family}.${normalizedLevel}}`
               if (!colorDef.interactive) colorDef.interactive = {}
               colorDef.interactive.$value = tokenRef
-              setTheme(themeCopy)
+              getVarsStore().setThemeSilent(themeCopy)
             }
           } catch (err) {
             console.error('Failed to update interactive in theme JSON:', err)

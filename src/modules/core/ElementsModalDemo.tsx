@@ -12,12 +12,12 @@ import { tokenOpacity, layerProperty, layerText, elevation, state, textEmphasis,
 
 export default function ElementsModalDemo() {
   const { mode } = useThemeMode()
-  const { tokens: tokensJson, theme, setTheme } = useVars()
+  const { tokens: tokensJson, theme } = useVars()
   const modeLower = mode.toLowerCase()
 
   // Helper to persist an opacity token reference to the theme JSON (updates BOTH modes)
   const persistToThemeJson = (path: 'text-emphasis-high' | 'text-emphasis-low' | 'state-disabled', tokenKey: string) => {
-    if (!theme || !setTheme) return
+    if (!theme) return
     try {
       const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -54,7 +54,7 @@ export default function ElementsModalDemo() {
         }
       }
 
-      setTheme(themeCopy)
+      getVarsStore().setThemeSilent(themeCopy)
     } catch (err) {
       console.error('Failed to persist emphasis/state change to theme JSON:', err)
     }

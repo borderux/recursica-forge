@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { getVarsStore } from '../../core/store/varsStore'
 import type { JsonLike } from '../../core/resolvers/tokens'
+import type { StructuralMetadata } from '../../core/store/structuralMetadata'
 import { buildPaletteVars } from '../../core/resolvers/palettes'
 
 // Import PaletteStore type from varsStore to ensure consistency
@@ -31,6 +32,8 @@ type VarsContextValue = {
   elevation: import('../../core/store/varsStore').ElevationState
   setElevation: (next: import('../../core/store/varsStore').ElevationState) => void
   updateElevation: (mutator: (prev: import('../../core/store/varsStore').ElevationState) => import('../../core/store/varsStore').ElevationState) => void
+  /** Read-only structural metadata — what keys/palettes/layers exist */
+  structure: StructuralMetadata | null
   resetAll: () => void
   recomputeAndApplyAll: () => void
 }
@@ -97,6 +100,7 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       elevation: state.elevation,
       setElevation: (next) => store.setElevation(next),
       updateElevation: (mutator) => store.updateElevation(mutator),
+      structure: store.structure,
       resetAll: () => store.resetAll(),
       recomputeAndApplyAll: () => store.recomputeAndApplyAll(),
     }

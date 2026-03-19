@@ -1,5 +1,5 @@
 import { readCssVar } from '../css/readCssVar'
-import { tokenColors } from '../css/cssVarBuilder'
+import { tokenColors, extractColorToken, unwrapVar, parseBrandCssVar } from '../css/cssVarBuilder'
 import { buildTokenIndex, type TokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio } from '../../modules/theme/contrastUtil'
@@ -18,15 +18,15 @@ export function traceToTokenRef(cssVarName: string): { family: string; level: st
   let current = readCssVar(cssVarName)
   let depth = 0
   while (current && depth < 10) {
-    // Check if current value is a token var reference
-    const tokenMatch = current.match(/var\s*\(\s*(--recursica_tokens_colors?[_-]([a-z0-9_-]+)[_-](\d{3,4}|050|000))\s*/)
-    if (tokenMatch) {
-      return { family: tokenMatch[2], level: tokenMatch[3] }
+    // Check if current value is a token color var reference
+    const colorParsed = extractColorToken(current)
+    if (colorParsed) {
+      return { family: colorParsed.family, level: colorParsed.level }
     }
     // Follow nested var() references
-    const varMatch = current.match(/var\s*\(\s*(--[^),]+)/)
-    if (varMatch) {
-      current = readCssVar(varMatch[1])
+    const nextVarName = unwrapVar(current)
+    if (nextVarName) {
+      current = readCssVar(nextVarName)
       depth++
     } else {
       break
@@ -47,23 +47,21 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
       return h.startsWith('#') ? h : `#${h}`
     }
 
-    const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+)\s*\)/)
-    if (varMatch) {
-      const varName = varMatch[1]
+    const varName = unwrapVar(trimmed)
+    if (varName) {
       const value = readCssVar(varName)
       if (value) {
         return resolveCssVarToHex(value, tokenIndex, depth + 1)
       }
     }
 
-    // Support both old format (--recursica_tokens_color_...) and new format (--recursica_tokens_colors_...)
-    const tokenMatch = trimmed.match(/--recursica_tokens_colors?[_-]([a-z0-9_-]+)[_-](\d+|050|000)/)
-    if (tokenMatch) {
-      const [, family, level] = tokenMatch
+    // Extract token color reference using central parser
+    const colorParsed = extractColorToken(trimmed)
+    if (colorParsed) {
       // Try new format first (colors/family/level), then old format (color/family/level) for backwards compatibility
-      let hex = tokenIndex.get(`colors/${family}/${level}`)
+      let hex = tokenIndex.get(`colors/${colorParsed.family}/${colorParsed.level}`)
       if (typeof hex !== 'string') {
-        hex = tokenIndex.get(`color/${family}/${level}`)
+        hex = tokenIndex.get(`color/${colorParsed.family}/${colorParsed.level}`)
       }
       if (typeof hex === 'string') {
         const h = hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
@@ -71,11 +69,10 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
       }
     }
 
-    // Try palette var reference (both light and dark modes)
-    const paletteMatch = trimmed.match(/--recursica_brand_(light|dark)-palettes-([a-z0-9-]+)-(\d+|primary)-(tone|on-tone)/)
-    if (paletteMatch) {
-      const [, paletteMode, paletteKey, level, type] = paletteMatch
-      const paletteVarName = `--recursica_brand_${paletteMode}-palettes-${paletteKey}-${level}-${type}`
+    // Try palette var reference using central parser
+    const brandParsed = parseBrandCssVar(trimmed)
+    if (brandParsed && brandParsed.type === 'palette') {
+      const paletteVarName = `--recursica_brand_themes_${brandParsed.mode}_palettes_${brandParsed.paletteName}_${brandParsed.level}_${brandParsed.prop}`
       const paletteValue = readCssVar(paletteVarName)
       if (paletteValue) {
         return resolveCssVarToHex(paletteValue, tokenIndex, depth + 1)
@@ -327,7 +324,6 @@ function findClosestColorToken(hex: string, tokens: JsonLike): { family: string;
 export function hexToCssVarRef(hex: string, tokens: JsonLike): string | null {
   const found = findColorFamilyAndLevel(hex, tokens)
   if (!found) {
-    console.warn(`[hexToCssVarRef] No exact token match for hex ${hex}`)
     return null
   }
 

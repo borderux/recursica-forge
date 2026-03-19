@@ -3,7 +3,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar, removeCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { tokenFont, token } from '../../core/css/cssVarBuilder'
+import { tokenFont, token, parseBrandCssVar } from '../../core/css/cssVarBuilder'
 import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
@@ -32,19 +32,18 @@ export default function DimensionTokenSelector({
   const getDimensionCategory = useCallback((cssVarValue: string): string | null => {
     if (!cssVarValue) return null
 
-    // Check if it's a brand dimension reference
-    // Pattern: var(--recursica_brand_dimensions_{category}-{size})
-    const brandMatch = cssVarValue.match(/--recursica_brand_dimensions_([^-]+)/)
-    if (brandMatch) {
-      return brandMatch[1] // Returns 'icon', 'general', etc.
+    // Check if it's a brand dimension reference using central parser
+    const parsed = parseBrandCssVar(cssVarValue)
+    if (parsed && parsed.type === 'dimension') {
+      return parsed.category
     }
 
     // Check if it resolves to a brand dimension reference
     const resolved = readCssVarResolved(targetCssVar)
     if (resolved) {
-      const resolvedBrandMatch = resolved.match(/--recursica_brand_dimensions_([^-]+)/)
-      if (resolvedBrandMatch) {
-        return resolvedBrandMatch[1]
+      const resolvedParsed = parseBrandCssVar(resolved)
+      if (resolvedParsed && resolvedParsed.type === 'dimension') {
+        return resolvedParsed.category
       }
     }
 

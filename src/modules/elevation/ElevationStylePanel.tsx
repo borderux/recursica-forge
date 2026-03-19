@@ -8,7 +8,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { readCssVar } from '../../core/css/readCssVar'
-import { token, tokenOpacity } from '../../core/css/cssVarBuilder'
+import { token, tokenOpacity, unwrapVar } from '../../core/css/cssVarBuilder'
 import { tokenToCssVar } from '../../core/css/tokenRefs'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
@@ -320,13 +320,18 @@ export default function ElevationStylePanel({
       if (hasPaletteRef) {
         let paletteVarRef: string | null = null
 
-        const varMatch = existingShadowColor.match(/var\s*\(\s*(--recursica_brand_(?:themes_(?:light|dark)_)?palettes_[^)]+)\s*\)/)
-        if (varMatch) {
-          paletteVarRef = `var(${varMatch[1]})`
+        // Try direct var() extraction using central parser
+        const unwrapped = unwrapVar(existingShadowColor)
+        if (unwrapped && unwrapped.includes('palettes')) {
+          paletteVarRef = `var(${unwrapped})`
         } else {
-          const colorMixMatch = existingShadowColor.match(/color-mix\s*\([^,]+,\s*(var\s*\(\s*--recursica_brand_(?:themes_(?:light|dark)_)?palettes_[^)]+\s*\))/)
-          if (colorMixMatch) {
-            paletteVarRef = colorMixMatch[1]
+          // Try extracting from color-mix() expression
+          const colorMixVarMatch = existingShadowColor.match(/color-mix\s*\([^,]+,\s*(var\s*\([^)]+\))/)
+          if (colorMixVarMatch) {
+            const innerUnwrapped = unwrapVar(colorMixVarMatch[1])
+            if (innerUnwrapped && innerUnwrapped.includes('palettes')) {
+              paletteVarRef = `var(${innerUnwrapped})`
+            }
           }
         }
 

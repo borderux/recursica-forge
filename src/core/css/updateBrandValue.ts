@@ -34,12 +34,16 @@ function cssVarToBrandPath(cssVar: string): string[] | null {
  */
 export function updateBrandValue(cssVar: string, value: string): boolean {
   const store = getVarsStore()
-  const storeState = store.getState()
-  const theme = storeState.theme
-  if (!theme || typeof theme !== 'object') return false
 
   const path = cssVarToBrandPath(cssVar)
   if (!path) return false
+
+  // Use a deep copy to avoid mutating the store's theme reference in-place.
+  // In-place mutation followed by setTheme is dangerous because concurrent
+  // state updates (e.g. interactive color changes) could be lost if another
+  // code path reads the mutated-but-not-yet-saved reference.
+  const themeCopy = store.getLatestThemeCopy()
+  if (!themeCopy || typeof themeCopy !== 'object') return false
 
   // Convert CSS var() references to JSON token references
   let jsonValue = value
@@ -55,7 +59,7 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
 
   // Navigate to the target location in the theme JSON
   // The path includes 'brand' as the first segment
-  let current: any = theme
+  let current: any = themeCopy
   for (let i = 0; i < path.length - 1; i++) {
     const segment = path[i]
     if (!current[segment] || typeof current[segment] !== 'object') {
@@ -75,8 +79,11 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
     return false
   }
 
-  // Persist via the public setTheme API
-  store.setTheme(theme)
+  // Persist via setThemeSilent — JSON persistence only, no recomputeAndApplyAll.
+  // The CSS var is already set by the caller (updateCssVar), so a full recompute
+  // would overwrite other CSS vars that have been changed but not yet persisted to JSON
+  // (this was the root cause of the interactive color reset bug).
+  store.setThemeSilent(themeCopy)
 
   return true
 }

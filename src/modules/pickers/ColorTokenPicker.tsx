@@ -8,11 +8,12 @@ import { updateInteractiveColor, updateCoreColorInteractiveOnTones } from './int
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { parseTokenReference, resolveTokenReferenceToValue, resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { hexToCssVarRef, getSteppedColor, resolveCssVarToHex, findColorFamilyAndLevel } from '../../core/compliance/layerColorStepping'
+import { getAllFamilyNames } from '../../core/utils/familyNames'
 import { pickAAOnTone, contrastRatio } from '../theme/contrastUtil'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { tokenToCssVar } from '../../core/css/tokenRefs'
 import { getVarsStore } from '../../core/store/varsStore'
-import { tokenColors, paletteCore, layerProperty } from '../../core/css/cssVarBuilder'
+import { tokenColors, paletteCore, layerProperty, extractColorToken, colorTokenToPath } from '../../core/css/cssVarBuilder'
 import { updateCoreColorOnTonesForCompliance } from '../../core/compliance/coreColorAaCompliance'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Modal } from '../../components/adapters/Modal'
@@ -41,8 +42,8 @@ export default function ColorTokenPicker() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('family-friendly-names')
-      if (raw) setFamilyNames(JSON.parse(raw))
+      const names = getAllFamilyNames()
+      if (Object.keys(names).length > 0) setFamilyNames(names)
     } catch { }
     const onNames = (ev: Event) => {
       try {
@@ -51,8 +52,7 @@ export default function ColorTokenPicker() {
           setFamilyNames(detail)
           return
         }
-        const raw = localStorage.getItem('family-friendly-names')
-        setFamilyNames(raw ? JSON.parse(raw) : {})
+        setFamilyNames(getAllFamilyNames())
       } catch {
         setFamilyNames({})
       }
@@ -303,7 +303,6 @@ export default function ColorTokenPicker() {
     // Only update if this is a -tone variable, not -on-tone
     // We should always be updating the tone value, never the on-tone value
     if (cssVar.includes('-on-tone')) {
-      console.warn(`updateCoreColorInTheme called with on-tone CSS variable: ${cssVar}. Skipping update - only tone values should be updated.`)
       return
     }
 
@@ -500,11 +499,9 @@ export default function ColorTokenPicker() {
           }
 
           // If it's a CSS var, extract the scale key from the var name
-          // Format: var(--recursica_tokens_colors_scale_XX-level)
-          const cssVarMatch = onToneValue.match(/--recursica_tokens_colors_([^-]+)-(\d+)/)
-          if (cssVarMatch) {
-            const onToneScaleKey = cssVarMatch[1]
-            return onToneScaleKey === oldWhiteScaleKey
+          const colorParsed = extractColorToken(onToneValue)
+          if (colorParsed) {
+            return colorParsed.family === oldWhiteScaleKey
           }
 
           // Also check if it resolves to white by resolving the CSS var to hex and checking
@@ -599,7 +596,7 @@ export default function ColorTokenPicker() {
         })
       }
 
-      setTheme(themeCopy)
+      getVarsStore().setThemeSilent(themeCopy)
 
 
       // Compliance scan runs via scheduleComplianceScan after setTheme → recomputeAndApplyAll
@@ -614,7 +611,6 @@ export default function ColorTokenPicker() {
     // Parse token name: color/{family}/{level} or colors/{family}/{level}
     const tokenParts = tokenName.split('/')
     if (tokenParts.length !== 3 || (tokenParts[0] !== 'color' && tokenParts[0] !== 'colors')) {
-      console.warn('Invalid token name format:', tokenName)
       return
     }
 
@@ -717,19 +713,12 @@ export default function ColorTokenPicker() {
           const defaultOnToneCore = defaultOnTone === '#ffffff' ? 'white' : 'black'
           const hoverOnToneCore = hoverOnTone === '#ffffff' ? 'white' : 'black'
 
-          // Extract token names from CSS var references
+          // Extract token names from CSS var references using central parser
           const extractTokenFromCssVarRef = (cssVarRef: string | null): string | null => {
-            if (!cssVarRef || !cssVarRef.startsWith('var(')) return null
-            // Support both old format (--recursica_tokens_color_...) and new format (--recursica_tokens_colors_...)
-            const match = cssVarRef.match(/var\(--recursica_tokens_colors?-([a-z0-9_-]+)-(\d{3,4})\)/)
-            if (match) {
-              const family = match[1]
-              const level = match[2]
-              const normalizedLevel = level === '000' ? '000' : level === '1000' ? '1000' : String(Number(level))
-              // Return new format (colors/...) for consistency
-              return `colors/${family}/${normalizedLevel}`
-            }
-            return null
+            if (!cssVarRef) return null
+            const parsed = extractColorToken(cssVarRef)
+            if (!parsed) return null
+            return colorTokenToPath(parsed.family, parsed.level)
           }
 
           const defaultToken = extractTokenFromCssVarRef(defaultToneRef)
@@ -932,7 +921,7 @@ export default function ColorTokenPicker() {
 
           // Update theme JSON synchronously - CSS vars were already updated above
           // This includes the updated interactive values for each core color
-          setTheme(themeCopy)
+          getVarsStore().setThemeSilent(themeCopy)
 
           // Update other interactive-related CSS vars (hover, on-tones, etc.)
           // The default-tone CSS var was already updated above, so this won't overwrite it

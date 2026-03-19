@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { contrastRatio, hexToRgb, blendHexWithOpacity } from '../theme/contrastUtil'
+import { getAllFamilyNames, setFamilyNameByAlias } from '../../core/utils/familyNames'
 
 import { readCssVar, readCssVarNumber, readCssVarResolved } from '../../core/css/readCssVar'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -944,8 +945,7 @@ function FamilyDropdown({
   useEffect(() => {
     (async () => {
       try {
-        const raw = localStorage.getItem('family-friendly-names')
-        const map = raw ? JSON.parse(raw || '{}') || {} : {}
+        const map = getAllFamilyNames()
         let changed = false
         for (const fam of families) {
           const { alias, primaryHex } = getFamilyInfo(fam)
@@ -961,8 +961,11 @@ function FamilyDropdown({
           }
         }
         if (changed) {
-          try { localStorage.setItem('family-friendly-names', JSON.stringify(map)) } catch { }
-          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch { }
+          // Persist each changed name to CSS var
+          for (const fam of families) {
+            const { alias } = getFamilyInfo(fam)
+            if (map[alias]) setFamilyNameByAlias(alias, map[alias])
+          }
           setTokenVersion((v) => v + 1)
         }
       } catch { }
@@ -973,14 +976,9 @@ function FamilyDropdown({
 
   const getFriendlyName = (family: string): string => {
     const { alias } = getFamilyInfo(family)
-    try {
-      const raw = localStorage.getItem('family-friendly-names')
-      if (raw) {
-        const map = JSON.parse(raw)
-        const v = map?.[alias]
-        if (typeof v === 'string' && v.trim()) return v
-      }
-    } catch { }
+    const names = getAllFamilyNames()
+    const v = names[alias]
+    if (typeof v === 'string' && v.trim()) return v
     return titleCase(alias)
   }
 

@@ -160,7 +160,7 @@ export default function OpacityTokens() {
         </div>
 
         {/* Rows */}
-        <div style={{ display: 'grid', gap: 0 }}>
+        <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
           {items.map((it, index) => {
             const rawName = it.name.replace('opacity/', '')
             const label = toTitleCase(rawName)

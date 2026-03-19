@@ -10,8 +10,6 @@ const DebugModeContext = createContext<{
 export function useDebugMode() {
   const context = useContext(DebugModeContext)
   if (!context) {
-    // Return default values if context is not available (e.g., during hot reload)
-    console.warn('useDebugMode called outside PreviewPage context, using defaults')
     return { debugMode: false, setDebugMode: () => { } }
   }
   return context

@@ -1,11 +1,9 @@
 /**
  * tokenOverrides.ts
  *
- * Small utility for reading/writing token overrides to localStorage and
- * notifying the app when values change.
- *
- * Storage
- * - Key: 'token-overrides' (JSON object of name -> value)
+ * Thin event-dispatch layer for notifying components when token values change.
+ * Previously used localStorage ('token-overrides') for persistence;
+ * now all persistence is handled by the CSS delta system (rf:css-delta).
  *
  * Events
  * - Dispatches 'tokenOverridesChanged' with detail { name, value, all }
@@ -13,61 +11,34 @@
  */
 import { clearCustomFonts } from '../type/fontUtils'
 
-const STORAGE_KEY = 'token-overrides'
-
 export type TokenOverrides = Record<string, number | string>
 
+/** @deprecated — overrides are no longer persisted separately. Returns empty object. */
 export function readOverrides(): TokenOverrides {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    if (parsed && typeof parsed === 'object') return parsed as TokenOverrides
-  } catch {}
   return {}
 }
 
-export function writeOverrides(next: TokenOverrides) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-  } catch {}
+/** @deprecated — overrides are now tracked by the CSS delta system. No-op. */
+export function writeOverrides(_next: TokenOverrides) {
+  // No-op: persistence handled by delta system
 }
 
+/** @deprecated — use updateToken() which tracks in the CSS delta automatically. Dispatches event only. */
 export function setOverride(name: string, value: number | string) {
-  const current = readOverrides()
-  const updated = { ...current, [name]: value }
-  writeOverrides(updated)
   try {
-    window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { name, value, all: updated } }))
+    window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { name, value, all: {} } }))
   } catch {}
 }
 
 export function clearOverrides(initialAll?: any) {
   try {
-    localStorage.removeItem(STORAGE_KEY)
-  } catch {}
-  try {
     // Clear custom fonts and their @font-face rules
     try {
       clearCustomFonts()
     } catch {}
-    
+
     // Clear other ephemeral client-side state
-    const removeKeys = (
-      Object.keys(localStorage || {}) as Array<string>
-    ).filter((k) => (
-      // keep 'family-friendly-names' intact; it is sourced from recursica_tokens.json
-      k === 'font-families-deleted' ||
-      k === 'effects-scale-by-default' ||
-      k === 'font-letter-scale-by-tight-wide' ||
-      k === 'palette-opacity-bindings' ||
-      k === 'dynamic-palettes' ||
-      k === 'type-token-choices' ||
-      k.startsWith('palette-grid-family:')
-    ))
-    removeKeys.forEach((k) => {
-      try { localStorage.removeItem(k) } catch {}
-    })
+    try { localStorage.removeItem('type-token-choices') } catch {}
 
     let payload: Record<string, any> = {}
     if (initialAll && typeof initialAll === 'object') {
@@ -85,5 +56,3 @@ export function clearOverrides(initialAll?: any) {
     window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: payload, reset: true } }))
   } catch {}
 }
-
-

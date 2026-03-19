@@ -1,7 +1,7 @@
 import { applyCssVars as applyDirect } from '../../modules/theme/varsUtil'
 import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
-import { TOKEN_PREFIX } from './cssVarBuilder'
+import { TOKEN_PREFIX, unwrapVar } from './cssVarBuilder'
 
 export type CssVarMap = Record<string, string>
 
@@ -85,9 +85,9 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
         }
       } else {
         // Valid brand var - check if token reference exists
-        const tokenMatch = trimmedValue.match(/var\(--recursica_tokens_([^)]+)\)/)
-        if (tokenMatch && tokens) {
-          const tokenPath = tokenMatch[1]
+        const tokenVarName = unwrapVar(trimmedValue)
+        if (tokenVarName && tokenVarName.startsWith(TOKEN_PREFIX) && tokens) {
+          const tokenPath = tokenVarName.slice(TOKEN_PREFIX.length)
           // Basic check: ensure token path looks valid
           if (!tokenPath || tokenPath.length === 0) {
             warnings.push({

@@ -71,8 +71,11 @@ import {
   FadersHorizontal,
   FileSvg,
   FileText,
+  Exclude,
   Fire,
+  Flask,
   FrameCorners,
+  GitDiff,
   FunnelSimple,
   GoogleLogo,
   GridFour,
@@ -115,6 +118,7 @@ import {
   Star,
   Stop,
   Sun,
+  Shuffle,
   Swap,
   Sword,
   TextAUnderline,
@@ -411,6 +415,10 @@ const phosphorIconMap: Record<string, IconComponent> = {
 
   // Nature & Objects
   'fire': Fire,
+  'flask': Flask,
+  'exclude': Exclude,
+  'git-diff': GitDiff,
+  'shuffle': Shuffle,
   'tree': Tree,
   'shield': Shield,
   'crown': Crown,
@@ -429,7 +437,6 @@ const phosphorIconMap: Record<string, IconComponent> = {
 export function getIcon(iconName: string): IconComponent | null {
   const IconComponent = phosphorIconMap[iconName]
   if (!IconComponent) {
-    console.warn(`Icon "${iconName}" not found in icon map`)
     return null
   }
 

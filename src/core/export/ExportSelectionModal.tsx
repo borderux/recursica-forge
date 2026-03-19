@@ -7,7 +7,6 @@
 
 import { useState } from 'react'
 import { Modal } from '../../components/adapters/Modal'
-import { Button } from '../../components/adapters/Button'
 import { Checkbox } from '../../components/adapters/Checkbox'
 import {
   EXPORT_FILENAME_TOKENS,
@@ -86,100 +85,83 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
       isOpen={show}
       onClose={onCancel}
       title="Export files"
-      showFooter={false}
+      showFooter={true}
+      scrollable={true}
+      primaryActionLabel="Download"
+      onPrimaryAction={handleExport}
+      primaryActionDisabled={!isAnyFileSelected}
+      secondaryActionLabel="Cancel"
+      onSecondaryAction={onCancel}
       layer="layer-3"
       size="md"
       content={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* JSON Files Group */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {/* JSON Files Group */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Checkbox
+              checked={allJsonSelected}
+              onChange={handleJsonAllChange}
+              label={<span style={{ fontWeight: 'bold' }}>JSON Files</span>}
+              layer="layer-3"
+            />
+            <div style={{ marginLeft: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Checkbox
-                checked={allJsonSelected}
-                onChange={handleJsonAllChange}
-                label={<span style={{ fontWeight: 'bold' }}>JSON Files</span>}
+                checked={selectedFiles.tokens}
+                onChange={(checked) => setSelectedFiles({ ...selectedFiles, tokens: checked })}
+                label={<span><strong>{EXPORT_FILENAME_TOKENS}</strong> - Color, size, opacity, and font tokens</span>}
                 layer="layer-3"
               />
-              <div style={{ marginLeft: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Checkbox
-                  checked={selectedFiles.tokens}
-                  onChange={(checked) => setSelectedFiles({ ...selectedFiles, tokens: checked })}
-                  label={<span><strong>{EXPORT_FILENAME_TOKENS}</strong> - Color, size, opacity, and font tokens</span>}
-                  layer="layer-3"
-                />
-                <Checkbox
-                  checked={selectedFiles.brand}
-                  onChange={(checked) => setSelectedFiles({ ...selectedFiles, brand: checked })}
-                  label={<span><strong>{EXPORT_FILENAME_BRAND}</strong> - Palettes, layers, and theme configurations</span>}
-                  layer="layer-3"
-                />
-                <Checkbox
-                  checked={selectedFiles.uikit}
-                  onChange={(checked) => setSelectedFiles({ ...selectedFiles, uikit: checked })}
-                  label={<span><strong>{EXPORT_FILENAME_UIKIT}</strong> - UI Kit component styles</span>}
-                  layer="layer-3"
-                />
-              </div>
-            </div>
-
-            {/* CSS Variables Group */}
-            <div style={{ paddingTop: '12px', borderTop: '1px solid var(--modal-border-color)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Checkbox
-                checked={allCssSelected}
-                onChange={handleCssAllChange}
-                label={<span style={{ fontWeight: 'bold' }}>CSS Variables</span>}
+                checked={selectedFiles.brand}
+                onChange={(checked) => setSelectedFiles({ ...selectedFiles, brand: checked })}
+                label={<span><strong>{EXPORT_FILENAME_BRAND}</strong> - Palettes, layers, and theme configurations</span>}
                 layer="layer-3"
               />
-              <div style={{ marginLeft: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Checkbox
-                  checked={selectedFiles.cssSpecific}
-                  onChange={(checked) => setSelectedFiles({ ...selectedFiles, cssSpecific: checked })}
-                  label={
-                    <span>
-                      <strong>{EXPORT_FILENAME_CSS_SPECIFIC}</strong><br />
-                      <span style={{ fontSize: '13px', opacity: 0.6 }}>
-                        All CSS variables with theme and layer embedded in variable names.
-                      </span>
-                    </span>
-                  }
-                  layer="layer-3"
-                />
-                <Checkbox
-                  checked={selectedFiles.cssScoped}
-                  onChange={(checked) => setSelectedFiles({ ...selectedFiles, cssScoped: checked })}
-                  label={
-                    <span>
-                      <strong>{EXPORT_FILENAME_CSS_SCOPED}</strong><br />
-                      <span style={{ fontSize: '13px', opacity: 0.6 }}>
-                        CSS variables scoped via data-recursica-theme attributes.
-                      </span>
-                    </span>
-                  }
-                  layer="layer-3"
-                />
-              </div>
+              <Checkbox
+                checked={selectedFiles.uikit}
+                onChange={(checked) => setSelectedFiles({ ...selectedFiles, uikit: checked })}
+                label={<span><strong>{EXPORT_FILENAME_UIKIT}</strong> - UI Kit component styles</span>}
+                layer="layer-3"
+              />
             </div>
           </div>
 
-          <div style={{
-            display: 'flex',
-            gap: '12px',
-            justifyContent: 'flex-end',
-            borderTop: '1px solid var(--modal-border-color)',
-            paddingTop: '16px',
-            marginTop: '8px'
-          }}>
-            <Button variant="text" onClick={onCancel}>Cancel</Button>
-            <Button variant="solid" onClick={handleExport} disabled={!isAnyFileSelected}>Download</Button>
-            {onExportToGithub && (
-              <Button
-                variant="outline"
-                onClick={handleExportToGithub}
-                disabled={!isAnyFileSelected}
-              >
-                Export to GitHub
-              </Button>
-            )}
+          {/* CSS Variables Group */}
+          <div style={{ paddingTop: '12px', borderTop: '1px solid var(--modal-border-color)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Checkbox
+              checked={allCssSelected}
+              onChange={handleCssAllChange}
+              label={<span style={{ fontWeight: 'bold' }}>CSS Variables</span>}
+              layer="layer-3"
+            />
+            <div style={{ marginLeft: '26px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Checkbox
+                checked={selectedFiles.cssSpecific}
+                onChange={(checked) => setSelectedFiles({ ...selectedFiles, cssSpecific: checked })}
+                label={
+                  <span>
+                    <strong>{EXPORT_FILENAME_CSS_SPECIFIC}</strong><br />
+                    <span style={{ fontSize: '13px', opacity: 0.6 }}>
+                      All CSS variables with theme and layer embedded in variable names.
+                    </span>
+                  </span>
+                }
+                layer="layer-3"
+              />
+              <Checkbox
+                checked={selectedFiles.cssScoped}
+                onChange={(checked) => setSelectedFiles({ ...selectedFiles, cssScoped: checked })}
+                label={
+                  <span>
+                    <strong>{EXPORT_FILENAME_CSS_SCOPED}</strong><br />
+                    <span style={{ fontSize: '13px', opacity: 0.6 }}>
+                      CSS variables scoped via data-recursica-theme attributes.
+                    </span>
+                  </span>
+                }
+                layer="layer-3"
+              />
+            </div>
           </div>
         </div>
       }
