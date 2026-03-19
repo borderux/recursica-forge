@@ -101,8 +101,7 @@ export function useJsonExport() {
     
     // Export files (validation already passed)
     downloadJsonFiles(files).catch((error) => {
-      console.error('Export failed:', error)
-      alert(`Export failed: ${error instanceof Error ? error.message : 'Failed to export files. Please check the console for details.'}`)
+      alert(`Export failed: ${error instanceof Error ? error.message : 'Failed to export files.'}`)
     })
   }
   

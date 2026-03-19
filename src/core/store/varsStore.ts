@@ -1,5 +1,5 @@
 import type { JsonLike } from '../resolvers/tokens'
-import { tokenColors, tokenColor, tokenOpacity, tokenFont, tokenSize, token } from '../css/cssVarBuilder'
+import { tokenColors, tokenColor, tokenColorFamilyName, tokenOpacity, tokenFont, tokenSize, token, unwrapVar } from '../css/cssVarBuilder'
 import { buildTokenIndex } from '../resolvers/tokens'
 import { buildPaletteVars } from '../resolvers/palettes'
 import { buildLayerVars } from '../resolvers/layers'
@@ -17,6 +17,9 @@ import { AAComplianceWatcher } from '../compliance/AAComplianceWatcher'
 import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneForCompliance } from '../compliance/coreColorAaCompliance'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
+import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges } from './cssDelta'
+import { syncDeltaToJson } from './deltaToJson'
+import { buildStructuralMetadata, type StructuralMetadata } from './structuralMetadata'
 
 import tokensImport from '../../../recursica_tokens.json'
 import themeImport from '../../../recursica_brand.json'
@@ -56,65 +59,30 @@ export type VarsState = {
 
 const STORAGE_KEYS = {
   version: 'rf:vars:version',
-  tokens: 'rf:tokens',
-  theme: 'rf:theme',
-  uikit: 'rf:uikit',
-  palettes: 'rf:palettes',
-  elevation: 'rf:elevation',
 }
 
 function isLocalStorageAvailable(): boolean {
   try { if (typeof window === 'undefined' || !window.localStorage) return false; const k = '__ls__'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true } catch { return false }
 }
 
-function readLSJson<T>(key: string, fallback: T): T { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback } catch { return fallback } }
-function writeLSJson<T>(key: string, value: T) { try { localStorage.setItem(key, JSON.stringify(value)) } catch { } }
 
 function toTitleCase(label: string): string { return (label || '').replace(/[-_/]+/g, ' ').replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase()).trim() }
 
-function migratePaletteLocalKeys(): PaletteStore {
-  const opacityRaw = readLSJson<Record<string, { token: string; value: number }>>('palette-opacity-bindings', {} as any)
-  const normalizeOpacityBindings = (src?: Record<string, { token: string; value: number }>): PaletteStore['opacity'] => {
-    const def: PaletteStore['opacity'] = {
+function defaultPaletteStore(): PaletteStore {
+  return {
+    opacity: {
       disabled: { token: 'opacity/faint', value: 0.5 },
       overlay: { token: 'opacity/veiled', value: 0.5 },
       'text-high': { token: 'opacity/solid', value: 1 },
       'text-low': { token: 'opacity/veiled', value: 0.5 },
-    }
-    const out: PaletteStore['opacity'] = { ...def }
-    try {
-      Object.entries(src || {}).forEach(([k, v]) => {
-        if (!v || typeof v !== 'object') return
-        if ((k === 'disabled' || k === 'overlay' || k === 'text-high' || k === 'text-low') && typeof v.token === 'string') {
-          const num = typeof v.value === 'number' ? v.value : Number(v.value)
-          out[k] = { token: v.token, value: Number.isFinite(num) ? num : def[k].value }
-        }
-      })
-    } catch { }
-    return out
+    },
+    dynamic: [
+      { key: 'neutral', title: 'Neutral', defaultLevel: 200 },
+      { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
+      { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
+    ],
+    primaryLevels: {}
   }
-  const opacity = normalizeOpacityBindings(opacityRaw)
-  const dynamic = readLSJson<Array<{ key: string; title: string; defaultLevel: number; initialFamily?: string }>>('dynamic-palettes', [
-    { key: 'neutral', title: 'Neutral', defaultLevel: 200 },
-    { key: 'palette-1', title: 'Palette 1', defaultLevel: 500 },
-    { key: 'palette-2', title: 'Palette 2', defaultLevel: 500 },
-  ])
-  const primaryLevels: Record<string, string> = {}
-  try {
-    for (let i = 0; i < localStorage.length; i += 1) {
-      const k = localStorage.key(i) || ''
-      if (k.startsWith('palette-primary-level:')) {
-        // Format is now: palette-primary-level:${paletteKey}:${mode}
-        const parts = k.split(':')
-        if (parts.length >= 2) {
-          const key = parts[1] || ''
-          const v = JSON.parse(localStorage.getItem(k) || 'null')
-          if (typeof v === 'string') primaryLevels[key] = v
-        }
-      }
-    }
-  } catch { }
-  return { opacity, dynamic, primaryLevels }
 }
 
 type Listener = () => void
@@ -209,17 +177,23 @@ class VarsStore {
   private isRecomputing: boolean = false
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
   private hasRunInitialReset: boolean = false
-  private uikitSaveTimeout: ReturnType<typeof setTimeout> | null = null
   private complianceScanTimeout: ReturnType<typeof setTimeout> | null = null
+  /** Read-only structural metadata (what keys/palettes/layers exist) */
+  public structure: StructuralMetadata | null = null
+  /** The allVars map produced by the most recent recomputeAndApplyAll (for snapshotting) */
+  private lastComputedVars: Record<string, string> = {}
 
   constructor() {
-    const tokensRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.tokens, tokensImport as any) : (tokensImport as any)
+    // Always start from fresh JSON imports. User changes are restored via the delta
+    // serialization system (rf:css-delta) AFTER recomputeAndApplyAll generates defaults.
+    // This eliminates the old localStorage JSON dual-write system.
+    const tokensRaw = tokensImport as any
     // Sort font token objects once during initialization to maintain consistent order
     const tokens = sortFontTokenObjects(tokensRaw) || tokensRaw || {}
-    const themeRaw = this.lsAvailable ? readLSJson(STORAGE_KEYS.theme, themeImport as any) : (themeImport as any)
+    const themeRaw = themeImport as any
     const theme = (themeRaw as any)?.brand ? themeRaw : ({ brand: themeRaw } as any)
-    const uikit = this.lsAvailable ? readLSJson(STORAGE_KEYS.uikit, uikitImport as any) : (uikitImport as any)
-    const palettes = this.lsAvailable ? readLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys()) : migratePaletteLocalKeys()
+    const uikit = uikitImport as any
+    const palettes = defaultPaletteStore()
     // Ensure tokens is defined before passing to initElevationState
     // initElevationState will create elevation tokens and add them to the tokens object
     const elevation = this.initElevationState(theme as any, tokens || {})
@@ -227,115 +201,17 @@ class VarsStore {
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
 
-    // Versioning and seeding when bundle changes
+    // Bundle version check: when source JSON files change, clear the CSS delta
+    // to prevent stale user overrides from applying to a new JSON structure.
     if (this.lsAvailable) {
       const bundleVersion = computeBundleVersion(tokensImport, themeImport, uikitImport)
       const storedVersion = localStorage.getItem(STORAGE_KEYS.version)
       if (storedVersion !== bundleVersion) {
-        // Preserve user font customizations from previous state before resetting
-        // Font changes can be stored in EITHER rf:tokens OR token-overrides (or both)
-        let preservedTypefaces: Record<string, any> | null = null
-        try {
-          // Source 1: Check rf:tokens (store persistence)
-          const prevTokens = readLSJson(STORAGE_KEYS.tokens, null)
-          if (prevTokens) {
-            const prevFontRoot = (prevTokens as any)?.tokens?.font || (prevTokens as any)?.font || {}
-            const prevTypefaces = prevFontRoot?.typefaces || prevFontRoot?.typeface || {}
-            const staticFontRoot = (tokensImport as any)?.tokens?.font || (tokensImport as any)?.font || {}
-            const staticTypefaces = staticFontRoot?.typefaces || staticFontRoot?.typeface || {}
+        // Clear CSS delta — stale overrides could reference paths that no longer exist
+        clearDelta()
 
-            const prevKeys = Object.keys(prevTypefaces).filter(k => !k.startsWith('$'))
-            const staticKeys = Object.keys(staticTypefaces).filter(k => !k.startsWith('$'))
-
-            const hasChanges = prevKeys.length !== staticKeys.length || prevKeys.some(k => {
-              const prevVal = prevTypefaces[k]?.$value
-              const staticVal = staticTypefaces[k]?.$value
-              return JSON.stringify(prevVal) !== JSON.stringify(staticVal)
-            })
-
-            if (hasChanges && prevKeys.length > 0) {
-              preservedTypefaces = JSON.parse(JSON.stringify(prevTypefaces))
-            }
-          }
-
-          // Source 2: Check token-overrides (override persistence from font page)
-          // This takes priority over rf:tokens since it reflects the most recent user actions
-          const overrides = JSON.parse(localStorage.getItem('token-overrides') || '{}') || {}
-          const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
-          if (overrideTypefaceKeys.length > 0) {
-            // Build typefaces from overrides — this is the most reliable source
-            preservedTypefaces = {}
-            overrideTypefaceKeys.forEach(k => {
-              const key = k.replace('font/typeface/', '')
-              if (key.startsWith('$')) return
-              const val = String(overrides[k] || '').trim()
-              if (val) {
-                preservedTypefaces![key] = { $value: val }
-              }
-            })
-          }
-        } catch { }
-
-        // Reset tokens to fresh import
-        const freshTokens = JSON.parse(JSON.stringify(tokensImport)) as any
-
-        // Merge preserved font typefaces back in
-        if (preservedTypefaces && Object.keys(preservedTypefaces).length > 0) {
-          const fontRoot = freshTokens?.tokens?.font || freshTokens?.font || {}
-          if (fontRoot.typefaces) {
-            fontRoot.typefaces = preservedTypefaces
-          } else if (fontRoot.typeface) {
-            fontRoot.typeface = preservedTypefaces
-          } else {
-            fontRoot.typefaces = preservedTypefaces
-          }
-        }
-
-        writeLSJson(STORAGE_KEYS.tokens, freshTokens)
-        const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
-        writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
-        writeLSJson(STORAGE_KEYS.uikit, uikitImport)
-        writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
-        try {
-          const tokensRoot: any = (tokensImport as any)?.tokens || {}
-          const names: Record<string, string> = {}
-
-          // Process new colors structure (colors.scale-XX with alias)
-          const colorsRoot = tokensRoot?.colors || {}
-          if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
-            Object.keys(colorsRoot).forEach((scaleKey) => {
-              if (!scaleKey.startsWith('scale-')) return
-              const scale = colorsRoot[scaleKey]
-              if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
-
-              const alias = scale.alias
-              if (alias && typeof alias === 'string') {
-                names[alias] = toTitleCase(alias)
-              }
-            })
-          }
-
-          // Process old color structure for backwards compatibility
-          const oldColors = tokensRoot?.color || {}
-          Object.keys(oldColors).forEach((fam) => {
-            if (fam !== 'translucent') {
-              names[fam] = toTitleCase(fam)
-            }
-          })
-
-          writeLSJson('family-friendly-names', names)
-        } catch { }
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
-        // Sort font token objects when resetting to maintain consistent order
-        const sortedTokens = sortFontTokenObjects(freshTokens as any)
-        this.state = { tokens: sortedTokens, theme: normalizedTheme as any, uikit: uikitImport as any, palettes: migratePaletteLocalKeys(), elevation: this.initElevationState(normalizedTheme as any, sortedTokens), version: (this.state?.version || 0) + 1 }
       }
-      // Ensure keys exist
-      if (!localStorage.getItem(STORAGE_KEYS.tokens)) writeLSJson(STORAGE_KEYS.tokens, this.state.tokens)
-      if (!localStorage.getItem(STORAGE_KEYS.theme)) writeLSJson(STORAGE_KEYS.theme, this.state.theme)
-      if (!localStorage.getItem(STORAGE_KEYS.uikit)) writeLSJson(STORAGE_KEYS.uikit, this.state.uikit)
-      if (!localStorage.getItem(STORAGE_KEYS.palettes)) writeLSJson(STORAGE_KEYS.palettes, this.state.palettes)
-      if (!localStorage.getItem(STORAGE_KEYS.elevation)) writeLSJson(STORAGE_KEYS.elevation, this.state.elevation)
     }
 
     // Populate fontUrlMap synchronously before recomputeAndApplyAll tries to load fonts
@@ -390,8 +266,30 @@ class VarsStore {
     // since the pipeline stage uses it synchronously.
     this.aaWatcher = new AAComplianceWatcher(this.state.tokens, this.state.theme)
 
+    // Build structural metadata once from the JSON files (immutable)
+    this.structure = buildStructuralMetadata(this.state.tokens, this.state.theme, this.state.uikit)
+
     // Initial CSS apply (includes AA compliance pipeline stage)
     this.recomputeAndApplyAll()
+
+    // Delta serialization: snapshot defaults, then restore user changes
+    snapshotDefaults(this.lastComputedVars)
+    const restoredCount = restoreDelta()
+    if (restoredCount > 0) {
+      // Sync delta changes back to in-memory JSON so export/compliance see saved modifications
+      const { structuralAdditions } = syncDeltaToJson(this.state.tokens, this.state.theme)
+      if (structuralAdditions) {
+        // New scales were created from delta — recompute to generate their CSS vars
+        this.recomputeAndApplyAll()
+        // Re-snapshot defaults so the new scale vars are included in the baseline
+        snapshotDefaults(this.lastComputedVars)
+        // Re-apply the delta on top of the new baseline
+        restoreDelta()
+      }
+      // After restoring delta, schedule a compliance scan since CSS vars may have changed
+      this.scheduleComplianceScan()
+    }
+    installBeforeUnloadHandler()
 
     // Connect compliance service to token/theme getters
     const complianceService = getComplianceService()
@@ -414,24 +312,13 @@ class VarsStore {
 
 
   /**
-   * Pure persistence: updates state, writes to localStorage, emits to React subscribers.
+   * Pure persistence: updates in-memory state and emits to React subscribers.
+   * localStorage is NO LONGER used for tokens/theme/uikit/palettes/elevation.
+   * The delta serialization system (rf:css-delta) handles all user CSS var changes.
    * NEVER triggers recomputeAndApplyAll — callers that need full regen must call it explicitly.
    */
   private writeState(next: Partial<VarsState>) {
     this.state = { ...this.state, ...next }
-    if (this.lsAvailable) {
-      if (next.tokens) writeLSJson(STORAGE_KEYS.tokens, this.state.tokens)
-      if (next.theme) writeLSJson(STORAGE_KEYS.theme, this.state.theme)
-      if (next.uikit) {
-        if (this.uikitSaveTimeout) clearTimeout(this.uikitSaveTimeout)
-        const latestUIKit = this.state.uikit
-        this.uikitSaveTimeout = setTimeout(() => {
-          writeLSJson(STORAGE_KEYS.uikit, latestUIKit)
-        }, 300)
-      }
-      if (next.palettes) writeLSJson(STORAGE_KEYS.palettes, this.state.palettes)
-      if (next.elevation) writeLSJson(STORAGE_KEYS.elevation, this.state.elevation)
-    }
 
     // Update AA watcher if tokens or theme changed
     if (this.aaWatcher && (next.tokens || next.theme)) {
@@ -453,6 +340,9 @@ class VarsStore {
     for (const [key, value] of Object.entries(cssVarUpdates)) {
       root.style.setProperty(key, value)
     }
+
+    // Track all changes in the delta serialization system
+    trackChanges(cssVarUpdates)
 
     // Persist theme JSON update if provided
     if (themeUpdate) {
@@ -486,10 +376,21 @@ class VarsStore {
     this.writeState({ tokens: next })
     if (!this.isRecomputing) this.recomputeAndApplyAll()
   }
+  /**
+   * Update tokens JSON in-memory WITHOUT triggering recomputeAndApplyAll.
+   * Use when the CSS var is already set via updateCssVar and you only need JSON sync.
+   */
+  setTokensSilent(next: JsonLike) { this.writeState({ tokens: next }) }
   setTheme(next: JsonLike) {
     this.writeState({ theme: next })
     if (!this.isRecomputing) this.recomputeAndApplyAll()
   }
+  /**
+   * Update theme JSON in-memory WITHOUT triggering recomputeAndApplyAll.
+   * Use when the CSS var is already set via updateCssVar and you only need JSON sync.
+   * This prevents the recompute from overwriting other CSS var changes (e.g. interactive color reset bug).
+   */
+  setThemeSilent(next: JsonLike) { this.writeState({ theme: next }) }
   /**
    * Get a deep clone of the current theme JSON from the store.
    * Always use this instead of cloning React state (themeJson) to ensure
@@ -542,31 +443,24 @@ class VarsStore {
   }
 
   /**
-   * Fetches recursica_ui-kit.json from the server (bypassing bundle cache) and reloads.
-   * Use after editing recursica_ui-kit.json when toolbar colors/defaults aren't updating.
+   * Force-reloads the page with a cache-bust to pick up fresh JSON files.
+   * Since tokens/theme/uikit always load from imports, a simple reload
+   * with cache invalidation is sufficient.
    */
   async reloadFromFile() {
-    if (!this.lsAvailable || typeof window === 'undefined') return
+    if (typeof window === 'undefined') return
     try {
-      // Fetch fresh recursica_ui-kit.json directly from server (bypasses JS bundle cache)
-      const base = ((import.meta as any).env?.BASE_URL as string) ?? '/'
-      const basePath = base.endsWith('/') ? base : base + '/'
-      // Dev: Vite serves root; Prod: copy-uikit plugin copies to dist/
-      const uikitPath = basePath + 'recursica_ui-kit.json'
-      const res = await fetch(uikitPath, { cache: 'no-store' })
-      if (res.ok) {
-        const uikit = await res.json()
-        writeLSJson(STORAGE_KEYS.uikit, uikit)
+      // Clear delta and version to force fresh init
+      clearDelta()
+      if (this.lsAvailable) {
+        localStorage.removeItem(STORAGE_KEYS.version)
       }
-      // Reload to apply; rf:uikit now has fresh content so init will use it
-      window.location.reload()
-    } catch {
-      // Fallback: clear and cache-bust reload
-      localStorage.removeItem(STORAGE_KEYS.uikit)
-      localStorage.removeItem(STORAGE_KEYS.version)
+      // Cache-bust reload
       const url = new URL(window.location.href)
       url.searchParams.set('_cb', String(Date.now()))
       window.location.href = url.toString()
+    } catch {
+      window.location.reload()
     }
   }
   /** Update UIKit without triggering recomputeAndApplyAll. Use when CSS var was already set via updateCssVar (e.g. toolbar color picker). */
@@ -733,6 +627,8 @@ class VarsStore {
         // Only apply the CSS variables that were added for this specific token
         // This prevents accidentally updating other CSS variables
         applyCssVars(varsToUpdate, this.state.tokens)
+        // Track changes in the delta for persistence across page loads
+        trackChanges(varsToUpdate)
       }
     } catch (error) {
       console.error('Failed to update single token CSS var:', tokenName, error)
@@ -907,6 +803,8 @@ class VarsStore {
   resetAll() {
     // Clear all CSS variables first
     clearAllCssVars()
+    // Clear persisted delta so no stale user changes carry over
+    clearDelta()
 
     // Reset state from original JSON imports
     const sortedTokens = sortFontTokenObjects(tokensImport as any)
@@ -914,109 +812,16 @@ class VarsStore {
 
     // Reset localStorage to original values
     if (this.lsAvailable) {
-      // Clear elevation localStorage to ensure clean reset
+      // Dispatch event to notify components of the reset
+      try { window.dispatchEvent(new CustomEvent('familyNamesChanged', {})) } catch { }
+
+      // Dispatch events to notify palette components of reset
       try {
-        localStorage.removeItem(STORAGE_KEYS.elevation)
-        // Also clear legacy elevation localStorage keys
-        localStorage.removeItem('elevation-color-tokens')
-        localStorage.removeItem('elevation-alpha-tokens')
-        localStorage.removeItem('elevation-palette-selections')
-        localStorage.removeItem('elevation-directions')
-      } catch { }
-
-      // Explicitly clear dynamic-palettes and fonts to remove added palettes/fonts
-      try {
-        localStorage.removeItem('dynamic-palettes')
-        localStorage.removeItem('rf:fonts')
-      } catch { }
-
-      // Clear deleted color families and order so all original scales reappear
-      try {
-        localStorage.removeItem('deleted-color-families')
-        localStorage.removeItem('color-family-order')
-      } catch { }
-
-      writeLSJson(STORAGE_KEYS.tokens, tokensImport)
-      writeLSJson(STORAGE_KEYS.theme, normalizedTheme)
-      writeLSJson(STORAGE_KEYS.uikit, uikitImport)
-      // Now migratePaletteLocalKeys() will read the default (no dynamic-palettes in localStorage)
-      writeLSJson(STORAGE_KEYS.palettes, migratePaletteLocalKeys())
-      writeLSJson(STORAGE_KEYS.elevation, this.initElevationState(normalizedTheme as any, sortedTokens))
-
-      // Reset family-friendly-names to use aliases from JSON
-      try {
-        const tokensRoot: any = (tokensImport as any)?.tokens || {}
-        const names: Record<string, string> = {}
-
-        // Process new colors structure (colors.scale-XX with alias)
-        const colorsRoot = tokensRoot?.colors || {}
-        if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
-          Object.keys(colorsRoot).forEach((scaleKey) => {
-            if (!scaleKey.startsWith('scale-')) return
-            const scale = colorsRoot[scaleKey]
-            if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
-
-            const alias = scale.alias
-            if (alias && typeof alias === 'string') {
-              names[alias] = toTitleCase(alias)
-            }
-          })
+        for (const modeKey of ['light', 'dark']) {
+          window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
+            detail: { allPalettes: true, mode: modeKey, reset: true }
+          }))
         }
-
-        // Process old color structure for backwards compatibility
-        const oldColors = tokensRoot?.color || {}
-        Object.keys(oldColors).forEach((fam) => {
-          if (fam !== 'translucent') {
-            names[fam] = toTitleCase(fam)
-          }
-        })
-
-        writeLSJson('family-friendly-names', names)
-        // Dispatch event to notify components of the reset
-        try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names })) } catch { }
-
-        // Reset primary levels and selected families for all palettes
-        try {
-          const allKeys: string[] = []
-          const clearedPalettes = new Set<string>()
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i)
-            if (key && (
-              key.startsWith('palette-primary-level:') ||
-              key.startsWith('palette-grid-family:')
-            )) {
-              allKeys.push(key)
-              // Track which palettes had primary levels cleared
-              if (key.startsWith('palette-primary-level:')) {
-                const parts = key.split(':')
-                if (parts.length >= 2) {
-                  clearedPalettes.add(parts[1]) // paletteKey
-                }
-              }
-            }
-          }
-          allKeys.forEach(key => {
-            try { localStorage.removeItem(key) } catch { }
-          })
-
-          // Dispatch events to notify all PaletteGrid components to re-read primary levels from theme JSON
-          // Dispatch for both modes and all affected palettes
-          for (const modeKey of ['light', 'dark']) {
-            for (const paletteKey of clearedPalettes) {
-              try {
-                window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
-                  detail: { paletteKey, mode: modeKey, level: null, reset: true }
-                }))
-              } catch { }
-            }
-            // Also dispatch a general "all palettes" event for this mode
-            try {
-              window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
-                detail: { allPalettes: true, mode: modeKey, reset: true }
-              }))
-            } catch { }
-          }
-        } catch { }
       } catch { }
     }
 
@@ -1028,7 +833,7 @@ class VarsStore {
       tokens: sortedTokens,
       theme: normalizedTheme as any,
       uikit: uikitImport as any,
-      palettes: migratePaletteLocalKeys(),
+      palettes: defaultPaletteStore(),
       elevation,
       version: (this.state?.version || 0) + 1
     }
@@ -1085,40 +890,7 @@ class VarsStore {
   }
 
   private initElevationState(theme: any, tokens?: any, forceRebuildFromTheme = false): ElevationState {
-    let elevationState: ElevationState | null = null
-
-    // Try consolidated key first (unless we're forcing a rebuild from theme)
-    if (this.lsAvailable && !forceRebuildFromTheme) {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEYS.elevation)
-        if (saved) {
-          const parsed = JSON.parse(saved)
-          // Migrate old elevation state that doesn't have token references
-          if (!parsed.blurTokens || !parsed.spreadTokens || !parsed.offsetXTokens || !parsed.offsetYTokens) {
-            // Initialize token references for existing state
-            const blurTokens: Record<string, string> = {}
-            const spreadTokens: Record<string, string> = {}
-            const offsetXTokens: Record<string, string> = {}
-            const offsetYTokens: Record<string, string> = {}
-
-            for (let i = 0; i <= 4; i++) {
-              const k = `elevation-${i}`
-              blurTokens[k] = `size/elevation-${i}-blur`
-              spreadTokens[k] = `size/elevation-${i}-spread`
-              offsetXTokens[k] = `size/elevation-${i}-offset-x`
-              offsetYTokens[k] = `size/elevation-${i}-offset-y`
-            }
-
-            parsed.blurTokens = blurTokens
-            parsed.spreadTokens = spreadTokens
-            parsed.offsetXTokens = offsetXTokens
-            parsed.offsetYTokens = offsetYTokens
-          }
-          elevationState = parsed
-        }
-      } catch { }
-    }
-    // If we loaded from localStorage, use those controls; otherwise build from theme
+    // Always build from theme JSON — CSS var values persist via the delta system.
     let controls: Record<'light' | 'dark', Record<string, ElevationControl>> = { light: {}, dark: {} }
     let colorTokens: Record<string, string> = {}
     let alphaTokens: Record<'light' | 'dark', Record<string, string>> = { light: {}, dark: {} }
@@ -1128,36 +900,7 @@ class VarsStore {
     let directions: Record<'light' | 'dark', Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>> = { light: {}, dark: {} }
     let shadowColorControl: { colorToken: string; alphaToken: string } = { colorToken: 'color/gray/900', alphaToken: 'opacity/veiled' }
 
-    // Migrate old elevation state format (controls without mode) to new format (controls per mode)
-    if (elevationState && elevationState.controls && !('light' in elevationState.controls)) {
-      // Old format: controls is Record<string, ElevationControl>
-      // Migrate to new format: controls is Record<'light' | 'dark', Record<string, ElevationControl>>
-      const oldControls = elevationState.controls as any as Record<string, ElevationControl>
-      elevationState.controls = {
-        light: { ...oldControls },
-        dark: { ...oldControls }
-      }
-    }
-
-    // Migrate old directions format (single object) to new format (per mode)
-    if (elevationState && elevationState.directions && !('light' in elevationState.directions)) {
-      const oldDirections = elevationState.directions as any as Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>
-      elevationState.directions = {
-        light: { ...oldDirections },
-        dark: { ...oldDirections }
-      }
-    }
-
-    // Migrate old alphaTokens format (single object) to new format (per mode)
-    if (elevationState && elevationState.alphaTokens && !('light' in elevationState.alphaTokens)) {
-      const oldAlphaTokens = elevationState.alphaTokens as any as Record<string, string>
-      elevationState.alphaTokens = {
-        light: { ...oldAlphaTokens },
-        dark: { ...oldAlphaTokens }
-      }
-    }
-
-    if (!elevationState) {
+    {
       // Build defaults from theme for both modes
       const brand: any = (theme as any)?.brand || (theme as any)
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
@@ -1354,45 +1097,7 @@ class VarsStore {
           directions[mode][`elevation-${i}`] = { x: modeXDir, y: modeYDir }
         }
       }
-      // Migrate legacy keys
       paletteSelections = { ...initialPaletteSelections }
-      if (this.lsAvailable) {
-        try { const raw = localStorage.getItem('elevation-color-tokens'); if (raw) colorTokens = JSON.parse(raw) } catch { }
-        try {
-          const raw = localStorage.getItem('elevation-alpha-tokens')
-          if (raw) {
-            const parsed = JSON.parse(raw)
-            // Migrate old format (single object) to new format (per mode)
-            if (parsed && !('light' in parsed)) {
-              alphaTokens = { light: { ...parsed }, dark: { ...parsed } }
-            } else {
-              alphaTokens = parsed
-            }
-          }
-        } catch { }
-        try {
-          const raw = localStorage.getItem('elevation-palette-selections')
-          if (raw) {
-            // Merge localStorage selections with initial selections (localStorage takes precedence)
-            const savedSelections = JSON.parse(raw)
-            paletteSelections = { ...initialPaletteSelections, ...savedSelections }
-          }
-        } catch { }
-        try {
-          const raw = localStorage.getItem('elevation-directions')
-          if (raw) {
-            const parsed = JSON.parse(raw)
-            // Migrate old format (single object) to new format (per mode)
-            if (parsed && !('light' in parsed)) {
-              directions = { light: { ...parsed }, dark: { ...parsed } }
-            } else {
-              directions = parsed
-            }
-          }
-        } catch { }
-        try { const raw = localStorage.getItem('offset-x-direction'); if (raw === 'left' || raw === 'right') (baseXDirection as any) = raw } catch { }
-        try { const raw = localStorage.getItem('offset-y-direction'); if (raw === 'up' || raw === 'down') (baseYDirection as any) = raw } catch { }
-      }
     }
 
     // Initialize token references if not already set
@@ -1408,8 +1113,8 @@ class VarsStore {
       offsetYTokens[k] = `size/elevation-${i}-offset-y`
     }
 
-    // Use elevationState from localStorage if available, otherwise use the one we built
-    const finalState: ElevationState = elevationState || {
+    // Build the elevation state from computed values (always from theme JSON)
+    const finalState: ElevationState = {
       controls,
       colorTokens,
       alphaTokens,
@@ -1424,13 +1129,13 @@ class VarsStore {
       shadowColorControl
     }
 
-    // Ensure mode-specific structures exist even if loaded from localStorage
+    // Ensure mode-specific structures exist
     if (!finalState.alphaTokens.light) finalState.alphaTokens.light = {}
     if (!finalState.alphaTokens.dark) finalState.alphaTokens.dark = {}
     if (!finalState.directions.light) finalState.directions.light = {}
     if (!finalState.directions.dark) finalState.directions.dark = {}
 
-    // Always ensure tokens exist and token references are set (even if loaded from localStorage)
+    // Ensure token references are set
     // Use finalState tokens if available, otherwise use initialized defaults
     if (finalState.blurTokens) Object.assign(blurTokens, finalState.blurTokens)
     if (finalState.spreadTokens) Object.assign(spreadTokens, finalState.spreadTokens)
@@ -1445,7 +1150,7 @@ class VarsStore {
     if (!(tokens as any).tokens.sizes) (tokens as any).tokens.sizes = {}
     const sizeTokens = (tokens as any).tokens.sizes
 
-    // Use controls from finalState (either from localStorage or newly built)
+    // Use controls from finalState
     const finalControls = finalState.controls || {}
     const baseCtrl = (finalControls as Record<string, any>)['elevation-0']
 
@@ -1516,7 +1221,6 @@ class VarsStore {
 
   public recomputeAndApplyAll() {
 
-    // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
     // Prevent recursive calls - if already recomputing, skip to avoid infinite loops
     if (this.isRecomputing) {
       return
@@ -1658,6 +1362,12 @@ class VarsStore {
             if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
 
             const alias = scale.alias // Get the alias (e.g., "cornflower", "gray")
+
+            // Emit family-name CSS var for the display name
+            if (typeof alias === 'string' && alias) {
+              const displayName = alias.charAt(0).toUpperCase() + alias.slice(1)
+              vars[tokenColorFamilyName(scaleKey)] = displayName
+            }
 
             Object.keys(scale).forEach((lvl) => {
               // Skip the alias property
@@ -1884,6 +1594,8 @@ class VarsStore {
         const root: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
         // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
         const themes = root?.themes || root
+
+
 
         const normalizeLevel = (lvl?: string): string | undefined => {
           if (!lvl) return undefined
@@ -2460,15 +2172,17 @@ class VarsStore {
               let paletteVarRef: string | null = null
 
               // If it's a direct var() reference to a palette
-              const varMatch = existingColor.match(/var\s*\(\s*(--recursica_brand_themes_(?:light|dark)_palettes_[^)]+)\s*\)/)
-              if (varMatch) {
-                paletteVarRef = `var(${varMatch[1]})`
+              const unwrapped = unwrapVar(existingColor)
+              if (unwrapped && unwrapped.includes('palettes')) {
+                paletteVarRef = `var(${unwrapped})`
               } else {
                 // If it's a color-mix, extract the palette var from it
-                // Match: color-mix(in srgb, var(--recursica_brand_themes_...-palettes-...) ...)
-                const colorMixMatch = existingColor.match(/color-mix\s*\([^,]+,\s*(var\s*\(\s*--recursica_brand_themes_(?:light|dark)_palettes_[^)]+\s*\))/)
-                if (colorMixMatch) {
-                  paletteVarRef = colorMixMatch[1]
+                const colorMixVarMatch = existingColor.match(/color-mix\s*\([^,]+,\s*(var\s*\([^)]+\))/)
+                if (colorMixVarMatch) {
+                  const innerUnwrapped = unwrapVar(colorMixVarMatch[1])
+                  if (innerUnwrapped && innerUnwrapped.includes('palettes')) {
+                    paletteVarRef = `var(${innerUnwrapped})`
+                  }
                 }
               }
 
@@ -2521,7 +2235,16 @@ class VarsStore {
           this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
           this.aaWatcher.fixLayerElementColorsInMap(allVars)
         }
+
         applyCssVars(allVars, this.state.tokens)
+        // Store computed vars for delta snapshotting
+        this.lastComputedVars = { ...allVars }
+
+        // Re-overlay the in-memory delta so user CSS-var changes survive the recompute.
+        // Without this, any change made via updateCssVar() (e.g. interactive color) that
+        // hasn't been written back to the JSON state would be overwritten by the freshly
+        // generated vars above.
+        reapplyDelta()
 
         // Generate scoped CSS aliases and set theme attribute
         if (typeof document !== 'undefined') {

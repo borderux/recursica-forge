@@ -126,7 +126,7 @@ export default function TypeControls({
     } catch {}
     // include overrides-only additions (font/family/* and font/typeface/*)
     try {
-      const ov = (window && typeof window !== 'undefined') ? ((): Record<string, any> => { try { return JSON.parse(localStorage.getItem('token-overrides') || '{}') } catch { return {} } })() : {}
+      const ov: Record<string, any> = {}
       Object.entries(ov || {}).forEach(([name, val]) => {
         if (typeof name !== 'string') return
         if (!(name.startsWith('font/family/') || name.startsWith('font/typeface/'))) return

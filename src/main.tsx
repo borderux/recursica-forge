@@ -25,6 +25,9 @@ const ElevationsPage = React.lazy(() => import('./modules/elevation/ElevationsPa
 const ThemePage = React.lazy(() => import('./modules/theme/ThemePage'))
 const DimensionsPage = React.lazy(() => import('./modules/dimensions/DimensionsPage'))
 const CompliancePage = React.lazy(() => import('./modules/compliance/CompliancePage'))
+const RoundTripPage = import.meta.env.DEV
+  ? React.lazy(() => import('./core/dev/RoundTripPage').then((m) => ({ default: m.RoundTripPage })))
+  : null
 
 // Initialize component registries
 import './components/registry/mantine'
@@ -98,6 +101,9 @@ const router = createBrowserRouter([
         ],
       },
       { path: '*', element: <NotFoundPage /> },
+      ...(import.meta.env.DEV && RoundTripPage
+        ? [{ path: '/dev/diff', element: <React.Suspense fallback={null}><RoundTripPage /></React.Suspense> }]
+        : []),
     ],
   },
 ], {

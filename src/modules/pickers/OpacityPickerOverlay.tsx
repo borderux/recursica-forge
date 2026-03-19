@@ -31,7 +31,7 @@ export type OpacityPickerOverlayProps = {
 }
 
 export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose, onSelect }: OpacityPickerOverlayProps) {
-  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
+  const { tokens: tokensJson, theme: themeJson } = useVars()
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
   const [selectedTokenName, setSelectedTokenName] = useState<string | undefined>(propTokenName)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
@@ -187,7 +187,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
         const isDisabledOpacity = prefixedTarget.includes('state-disabled')
         const isOverlayOpacity = prefixedTarget.includes('state-overlay-opacity')
 
-        if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && setTheme && themeJson) {
+        if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && themeJson) {
           try {
             const themeCopy = getVarsStore().getLatestThemeCopy()
             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -250,7 +250,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
               }
             }
 
-            setTheme(themeCopy)
+            getVarsStore().setThemeSilent(themeCopy)
           } catch (err) {
             console.error('Failed to update theme JSON for opacity:', err)
           }

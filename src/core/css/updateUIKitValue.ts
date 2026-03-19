@@ -3,6 +3,7 @@
  */
 
 import { getVarsStore } from '../store/varsStore'
+import { unwrapVar, TOKEN_PREFIX, BRAND_PREFIX } from '../css/cssVarBuilder'
 
 /**
  * Converts a UIKit CSS variable name to a JSON path
@@ -96,33 +97,25 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     // With underscore-delimited var names, splitting on '_' gives correct JSON path segments
     // directly (compound segments like 'scale-02', 'layer-0' are intact within a segment)
     let tokenValue = value
-    if (value.startsWith('var(--recursica_brand_themes_')) {
+    const unwrapped = unwrapVar(value)
+    if (unwrapped && unwrapped.startsWith(`${BRAND_PREFIX}themes_`)) {
         // Extract: var(--recursica_brand_themes_light_palettes_palette-1_500_color_tone)
         // Split on '_' gives: ['light', 'palettes', 'palette-1', '500', 'color', 'tone']
         // Convert to: {brand.themes.light.palettes.palette-1.500.color.tone}
-        const varMatch = value.match(/var\(--recursica_brand_themes_(.+)\)/)
-        if (varMatch) {
-            const parts = varMatch[1].split('_')
-            tokenValue = `{brand.themes.${parts.join('.')}}`
-        }
-    } else if (value.startsWith('var(--recursica_tokens_')) {
+        const parts = unwrapped.slice(`${BRAND_PREFIX}themes_`.length).split('_')
+        tokenValue = `{brand.themes.${parts.join('.')}}`
+    } else if (unwrapped && unwrapped.startsWith(TOKEN_PREFIX)) {
         // Extract: var(--recursica_tokens_colors_scale-01_500)
         // Split on '_' gives: ['colors', 'scale-01', '500']
         // Convert to: {tokens.colors.scale-01.500}
-        const varMatch = value.match(/var\(--recursica_tokens_(.+)\)/)
-        if (varMatch) {
-            const parts = varMatch[1].split('_')
-            tokenValue = `{tokens.${parts.join('.')}}`
-        }
-    } else if (value.startsWith('var(--recursica_brand_dimensions_')) {
+        const parts = unwrapped.slice(TOKEN_PREFIX.length).split('_')
+        tokenValue = `{tokens.${parts.join('.')}}`
+    } else if (unwrapped && unwrapped.startsWith(`${BRAND_PREFIX}dimensions_`)) {
         // Extract: var(--recursica_brand_dimensions_border-radii_default)
         // Split on '_' gives: ['border-radii', 'default']
         // Convert to: {brand.dimensions.border-radii.default}
-        const varMatch = value.match(/var\(--recursica_brand_dimensions_(.+)\)/)
-        if (varMatch) {
-            const parts = varMatch[1].split('_')
-            tokenValue = `{brand.dimensions.${parts.join('.')}}`
-        }
+        const parts = unwrapped.slice(`${BRAND_PREFIX}dimensions_`.length).split('_')
+        tokenValue = `{brand.dimensions.${parts.join('.')}}`
     }
 
     // Parse value if it's a pixel dimension

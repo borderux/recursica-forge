@@ -163,13 +163,7 @@ export default function ComponentDetailPage() {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       const themes = root?.themes || root
 
-      // Check base layer elevation
-      // Layer 0 typically doesn't have elevation, layers 1-3 do
-      if (layerNum === '0') {
-        return undefined
-      }
-
-      elevationLevel = layerNum
+      // Read the actual elevation reference for ALL layers (including layer 0)
       const layerSpec: any = themes?.[mode]?.layers?.[`layer-${layerNum}`] || themes?.[mode]?.layer?.[`layer-${layerNum}`] || root?.[mode]?.layers?.[`layer-${layerNum}`] || root?.[mode]?.layer?.[`layer-${layerNum}`] || {}
       const v: any = layerSpec?.properties?.elevation?.$value
       if (typeof v === 'string') {
@@ -183,6 +177,16 @@ export default function ComponentDetailPage() {
             if (m) elevationLevel = m[2]
           }
         }
+        // Also check for direct elevation name format (e.g., "elevation-2")
+        if (elevationLevel === null && /^elevation-\d+$/.test(v.trim())) {
+          const match = v.trim().match(/elevation-(\d+)/)
+          if (match) elevationLevel = match[1]
+        }
+      }
+
+      // Fallback to layer number if no elevation reference found
+      if (elevationLevel === null) {
+        elevationLevel = layerNum
       }
     } catch { }
 
@@ -191,9 +195,14 @@ export default function ComponentDetailPage() {
       return undefined
     }
 
+    // elevation-0 means no shadow
+    if (elevationLevel === '0') {
+      return undefined
+    }
+
     // Build elevation box-shadow from elevation CSS variables
-    // Format: x-axis y-axis blur spread shadow-color
-    return `var(--recursica_brand_elevations_elevation-${elevationLevel}-x-axis, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}-y-axis, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}-blur, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}-spread, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}-shadow-color, rgba(0, 0, 0, 0))`
+    // Uses underscore-delimited format: elevation-{N}_{prop}
+    return `var(--recursica_brand_elevations_elevation-${elevationLevel}_x-axis, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}_y-axis, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}_blur, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}_spread, 0px) var(--recursica_brand_elevations_elevation-${elevationLevel}_shadow-color, rgba(0, 0, 0, 0))`
   }, [mode, layerNum, theme, component])
 
   if (!component) {

@@ -9,7 +9,7 @@ import { tokenOpacity } from '../../core/css/cssVarBuilder'
 import { genericLayerProperty, genericLayerText, genericElevation } from '../../core/css/cssVarBuilder'
 
 export default function OpacityPicker() {
-  const { tokens: tokensJson, theme: themeJson, setTheme } = useVars()
+  const { tokens: tokensJson, theme: themeJson } = useVars()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetCssVar, setTargetCssVar] = useState<string | null>(null)
   const [currentToken, setCurrentToken] = useState<string | null>(null)
@@ -151,7 +151,7 @@ export default function OpacityPicker() {
     const isDisabledOpacity = targetCssVar.includes('state-disabled')
     const isOverlayOpacity = targetCssVar.includes('state-overlay-opacity')
     
-    if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && setTheme && themeJson) {
+    if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && themeJson) {
       try {
         const themeCopy = getVarsStore().getLatestThemeCopy()
         const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -216,16 +216,11 @@ export default function OpacityPicker() {
           }
         }
         
-        // Update theme JSON FIRST - this will trigger recomputeAndApplyAll which will update CSS vars
-        setTheme(themeCopy)
-        
-        // After theme update, the recompute will handle CSS var update, but we can also update it directly
-        // as a fallback in case the recompute doesn't catch it immediately
-        setTimeout(() => {
-          updateCssVar(targetCssVar, `var(${opacityCssVar})`)
-        }, 10)
+        // Update CSS var first for immediate visual feedback
+        updateCssVar(targetCssVar, `var(${opacityCssVar})`)
+        // Persist theme JSON silently (no recompute — CSS var already set)
+        getVarsStore().setThemeSilent(themeCopy)
       } catch (err) {
-        console.error('Failed to update theme JSON for opacity:', err)
         // Fallback: update CSS var directly if theme update fails
         updateCssVar(targetCssVar, `var(${opacityCssVar})`)
       }

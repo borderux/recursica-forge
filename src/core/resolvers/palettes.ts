@@ -443,23 +443,18 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const primaryToneVar = paletteVar(modeLower, pk, 'primary', 'color_tone')
     const primaryOnToneVar = paletteVar(modeLower, pk, 'primary', 'color_on-tone')
 
-    // Always check localStorage first for primary level, even if primary-tone var already exists
-    // This ensures randomization updates are reflected
+    // Check if the primary level is already set in the DOM (e.g., from delta restore or user interaction)
     let primaryLevel: string | null = null
-    try {
-      const raw = localStorage.getItem(`palette-primary-level:${pk}:${modeLower}`)
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (typeof parsed === 'string') {
-          primaryLevel = parsed.padStart(3, '0')
-        }
+    const existingPrimaryTone = readCssVar(primaryToneVar)
+    if (existingPrimaryTone) {
+      // Primary tone already exists in DOM — extract the level from the var() reference
+      const match = existingPrimaryTone.match(/var\(--recursica_brand_\w+_palettes_[^_]+_(\d{3,4})_color_tone\)/)
+      if (match) {
+        primaryLevel = match[1]
       }
-    } catch (err) {
-      // Ignore localStorage errors
     }
 
-    // If we have a primary level from localStorage, use it (even if primary-tone var already exists)
-    // This ensures randomization updates override the JSON default
+    // If we have a primary level from the DOM, use it
     if (primaryLevel) {
       const targetToneVar = paletteVar(modeLower, pk, primaryLevel, 'color_tone')
       const targetOnToneVar = paletteVar(modeLower, pk, primaryLevel, 'color_on-tone')
@@ -470,9 +465,8 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         }
       }
     } else if (!vars[primaryToneVar]) {
-      // Generate primary tone from theme JSON - no DOM preservation
-      // Theme JSON is the single source of truth
-      // If no localStorage value, try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
+      // Generate primary tone from theme JSON
+      // Try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
       const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
       for (const level of fallbackLevels) {
         const fallbackToneVar = paletteVar(modeLower, pk, level, 'color_tone')

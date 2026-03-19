@@ -362,6 +362,63 @@ function generateRandomValue(originalValue: any, index: number, context: {
             const randomScale = (filteredScales.length > 0 ? filteredScales : scales)[Math.floor(Math.random() * (filteredScales.length > 0 ? filteredScales.length : scales.length))]
             return `{tokens.font.decorations.${randomScale}}`
           }
+        } // end typography
+
+        // 4b. Opacity: tokens.opacities.* refs (used directly in component properties)
+        if (parts[0] === 'tokens' && parts[1] === 'opacities') {
+          const scales = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
+          const currentScale = parts[2]
+          const filtered = currentScale ? scales.filter(s => s !== currentScale) : scales
+          return `{tokens.opacities.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+        }
+
+        // 6. Catch-all for brand.dimensions.* — regardless of context.isSize
+        if (parts[0] === 'brand' && parts[1] === 'dimensions') {
+          const sub = parts[2]
+          if (sub === 'border-radii') {
+            const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', 'pill', 'circle']
+            const filtered = scales.filter(s => !originalValue.includes(s))
+            return `{brand.dimensions.border-radii.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+          } else if (sub === 'icons') {
+            const scales = ['xs', 'sm', 'default', 'lg', 'xl']
+            const filtered = scales.filter(s => !originalValue.includes(s))
+            return `{brand.dimensions.icons.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+          } else {
+            const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl']
+            const filtered = scales.filter(s => !originalValue.includes(s))
+            return `{brand.dimensions.general.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+          }
+        }
+
+        // 7. Catch-all for brand.typography.* — route to typography token
+        if (parts[0] === 'brand' && parts[1] === 'typography') {
+          const typefaces = ['primary', 'secondary', 'tertiary']
+          return `{tokens.font.typefaces.${typefaces[Math.floor(Math.random() * typefaces.length)]}}`
+        }
+
+        // 8. Catch-all: if none matched but we have a known namespace, infer type from path keywords
+        if ((parts[0] === 'brand' || parts[0] === 'tokens' || parts[0] === 'ui-kit') && context.randomizeTokenRef) {
+          const ref = originalValue.toLowerCase()
+          // Color-flavored refs
+          if (ref.includes('palette') || ref.includes('color') || ref.includes('core-colors')) {
+            const paletteNames = ['palette-1', 'palette-2', 'palette-3', 'neutral']
+            const levels = ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+            const tones = ['tone', 'on-tone']
+            const p = paletteNames[Math.floor(Math.random() * paletteNames.length)]
+            const l = levels[Math.floor(Math.random() * levels.length)]
+            const t = tones[Math.floor(Math.random() * tones.length)]
+            return `{brand.palettes.${p}.${l}.color.${t}}`
+          }
+          // Size-flavored refs
+          if (ref.includes('dimension') || ref.includes('padding') || ref.includes('radius') || ref.includes('gap') || ref.includes('spacing')) {
+            const scales = ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl']
+            return `{brand.dimensions.general.${scales[Math.floor(Math.random() * scales.length)]}}`
+          }
+          // Elevation refs
+          if (ref.includes('elevation')) {
+            const scales = ['elevation-0', 'elevation-1', 'elevation-2', 'elevation-3', 'elevation-4']
+            return `{brand.elevations.${scales[Math.floor(Math.random() * scales.length)]}}`
+          }
         }
       }
       // Keep references as-is to maintain validity (if not randomizing)
@@ -1280,24 +1337,14 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
             palette.default.$value = `{brand.palettes.${paletteKey}.${randomDefaultLevel}}`
           }
 
-          // Also set the primary level in localStorage (mode-specific)
-          // This is what the UI uses to determine which level is the "primary" for the palette
-          try {
-            if (typeof window !== 'undefined' && window.localStorage) {
-              localStorage.setItem(`palette-primary-level:${paletteKey}:${mode}`, JSON.stringify(randomDefaultLevel))
-            }
-          } catch (err) {
-            // Ignore localStorage errors
-          }
-
-          // Dispatch event to notify PaletteGrid components to re-read primary level from localStorage
+          // Dispatch event to notify PaletteGrid components of the new primary level
           try {
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
                 detail: { paletteKey, mode, level: randomDefaultLevel }
               }))
             }
-          } catch (err) {
+          } catch {
             // Ignore event dispatch errors
           }
         }
@@ -1349,23 +1396,14 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
               $value: `{brand.palettes.${newPaletteKey}.${randomDefaultLevel}}`
             }
 
-            // Also set the primary level in localStorage (mode-specific)
-            try {
-              if (typeof window !== 'undefined' && window.localStorage) {
-                localStorage.setItem(`palette-primary-level:${newPaletteKey}:${mode}`, JSON.stringify(randomDefaultLevel))
-              }
-            } catch (err) {
-              // Ignore localStorage errors
-            }
-
-            // Dispatch event to notify PaletteGrid components to re-read primary level from localStorage
+            // Dispatch event to notify PaletteGrid components of the new primary level
             try {
               if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('palettePrimaryLevelChanged', {
                   detail: { paletteKey: newPaletteKey, mode, level: randomDefaultLevel }
                 }))
               }
-            } catch (err) {
+            } catch {
               // Ignore event dispatch errors
             }
 
@@ -1433,14 +1471,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
           // Clear elevation state from localStorage - it will be rebuilt from the randomized theme
-          const STORAGE_KEYS = {
-            elevation: 'recursica-elevation-state'
-          }
-          localStorage.removeItem(STORAGE_KEYS.elevation)
-          localStorage.removeItem('elevation-color-tokens')
-          localStorage.removeItem('elevation-alpha-tokens')
-          localStorage.removeItem('elevation-palette-selections')
-          localStorage.removeItem('elevation-directions')
+          // Legacy elevation localStorage keys no longer used
 
           // Access the private initElevationState method to rebuild elevation state from modifiedTheme
           const storeAny = store as any

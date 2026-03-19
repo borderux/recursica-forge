@@ -1,6 +1,6 @@
 import { buildTokenIndex, type TokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
-import { tokenColors } from '../css/cssVarBuilder'
+import { tokenColors, parseTokenCssVar, extractColorToken } from '../css/cssVarBuilder'
 import { findAaCompliantColor } from '../resolvers/colorSteppingForAa'
 import { updateCssVar } from '../css/updateCssVar'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../css/readCssVar'
@@ -22,10 +22,9 @@ function getOpacityValue(opacityVar: string | undefined, tokenIndex: { get: (pat
   if (Number.isFinite(num)) {
     return num <= 1 ? num : num / 100
   }
-  const tokenMatch = opacityVar.match(/--recursica_tokens_opacity_([a-z0-9-]+)/)
-  if (tokenMatch) {
-    const [, tokenName] = tokenMatch
-    const tokenValue = tokenIndex.get(`opacity/${tokenName}`)
+  const parsed = parseTokenCssVar(opacityVar)
+  if (parsed && parsed.type === 'opacity') {
+    const tokenValue = tokenIndex.get(`opacity/${parsed.key}`)
     if (typeof tokenValue === 'number') {
       return tokenValue <= 1 ? tokenValue : tokenValue / 100
     }
@@ -818,12 +817,11 @@ export class AAComplianceWatcher {
       }
 
       // Token CSS var name (the key itself, not wrapped in var())
-      const tokenMatch = trimmed.match(/--recursica_tokens_colors?[_-]([a-z0-9_-]+)[_-](\d+|050|000)/)
-      if (tokenMatch) {
-        const [, family, level] = tokenMatch
-        let hex = this.tokenIndex.get(`colors/${family}/${level}`)
+      const colorParsed = extractColorToken(trimmed)
+      if (colorParsed) {
+        let hex = this.tokenIndex.get(`colors/${colorParsed.family}/${colorParsed.level}`)
         if (typeof hex !== 'string') {
-          hex = this.tokenIndex.get(`color/${family}/${level}`)
+          hex = this.tokenIndex.get(`color/${colorParsed.family}/${colorParsed.level}`)
         }
         if (typeof hex === 'string') {
           return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`

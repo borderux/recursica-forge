@@ -9,10 +9,10 @@ import { Modal } from '../../components/adapters/Modal'
 import { Label } from '../../components/adapters/Label'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { getVarsStore } from '../../core/store/varsStore'
-import { tokenOpacity } from '../../core/css/cssVarBuilder'
+import { tokenOpacity, parseBrandCssVar, unwrapVar, parseTokenCssVar } from '../../core/css/cssVarBuilder'
 
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
-  const { palettes, theme: themeJson, tokens: tokensJson, setTheme } = useVars()
+  const { palettes, theme: themeJson, tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
   const modeLower = mode.toLowerCase()
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
@@ -94,8 +94,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     try {
       const rawValue = readCssVar(cssVar)
       if (!rawValue) return null
-      let match = rawValue.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
-      if (match) return match[1]
+      const parsed = parseTokenCssVar(rawValue)
+      if (parsed && parsed.type === 'opacity') return parsed.key
       const resolvedValue = readCssVarResolved(cssVar)
       if (resolvedValue) {
         // Fallback: match by value if direct reference not found
@@ -110,8 +110,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
           }
         }
 
-        match = resolvedValue.match(/var\(--(?:recursica-)?tokens-opacities?-([^)]+)\)/)
-        if (match) return match[1]
+        const resolvedParsed = parseTokenCssVar(resolvedValue)
+        if (resolvedParsed && resolvedParsed.type === 'opacity') return resolvedParsed.key
       }
     } catch { }
     return null
@@ -148,21 +148,21 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     for (let depth = 0; depth < 10 && currentValue; depth++) {
       const trimmed = currentValue.trim()
 
-      // Match palette pattern: palettes_{name}_{level}_color_tone
-      const paletteMatch = trimmed.match(/var\(--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)_(\d+|primary|000|1000)_color_tone\)/)
-      if (paletteMatch) return `${paletteMatch[1]}-${paletteMatch[2]}`
-
-      // Match core color pattern
-      const coreMatch = trimmed.match(/var\(--recursica_brand_themes_(?:light|dark)_palettes_core_([a-z0-9_-]+)\)/i)
-      if (coreMatch) {
-        let key = coreMatch[1]
-        return `core-${key}`
+      // Parse using central brand parser
+      const brandParsed = parseBrandCssVar(trimmed)
+      if (brandParsed) {
+        if (brandParsed.type === 'palette') {
+          return `${brandParsed.paletteName}-${brandParsed.level}`
+        }
+        if (brandParsed.type === 'core-color') {
+          return `core-${brandParsed.path}`
+        }
       }
 
       // Follow chain: extract inner var and resolve
-      const varMatch = trimmed.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
-      if (varMatch) {
-        currentValue = readCssVar(varMatch[1].trim())
+      const innerVarName = unwrapVar(trimmed)
+      if (innerVarName) {
+        currentValue = readCssVar(innerVarName)
       } else {
         break
       }
@@ -185,8 +185,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
     // Tracking match
     if (selectedPaletteSwatch) {
-      const paletteMatch = paletteCssVar.match(/--recursica_brand_themes_(?:light|dark)_palettes_([a-z0-9-]+)_([a-z0-9]+)_color_tone/)
-      if (paletteMatch && selectedPaletteSwatch === `${paletteMatch[1]}-${paletteMatch[2]}`) return true
+      const swatchParsed = parseBrandCssVar(paletteCssVar)
+      if (swatchParsed && swatchParsed.type === 'palette' && selectedPaletteSwatch === `${swatchParsed.paletteName}-${swatchParsed.level}`) return true
     }
 
     // Hex match fallback — but skip if value is color-mix (blended colors don't correspond to a single swatch)
@@ -299,7 +299,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
               const opacityRef = tokenOpacity(val)
               updateCssVar(targetOpacityCssVar, `var(${opacityRef})`, tokensJson)
 
-              if (setTheme && themeJson) {
+              if (themeJson) {
                 try {
                   const themeCopy = getVarsStore().getLatestThemeCopy()
                   const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -315,7 +315,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                     $type: 'number',
                     $value: `{tokens.opacities.${val}}`
                   }
-                  setTheme(themeCopy)
+                  getVarsStore().setThemeSilent(themeCopy)
                 } catch (err) { }
               }
 
@@ -418,7 +418,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         // Update CSS variables for immediate visual feedback
                         cssVarsToUpdate.forEach((v) => updateCssVar(v, paletteVarRef, tokensJson))
 
-                        if (isOverlay && setTheme && themeJson) {
+                        if (isOverlay && themeJson) {
                           try {
                             const themeCopy = getVarsStore().getLatestThemeCopy()
                             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -432,7 +432,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                               $type: 'color',
                               $value: `{brand.themes.${modeKey}.palettes.${pk}.${s.key}.tone}`
                             }
-                            setTheme(themeCopy)
+                            getVarsStore().setThemeSilent(themeCopy)
                           } catch (err) { }
                         }
 

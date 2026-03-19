@@ -10,7 +10,7 @@ import uikitJson from '../../../recursica_ui-kit.json'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { toCssVarName } from '../../components/utils/cssVarNames'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, parseTokenCssVar } from '../../core/css/cssVarBuilder'
 
 /**
  * Extracts all CSS variables for a component from recursica_ui-kit.json
@@ -159,9 +159,8 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
   // Extract token name from CSS var value (e.g., "var(--recursica_tokens_size_md)" -> "size/md")
   const extractTokenFromCssVar = (cssValue: string): string | null => {
     if (!cssValue) return null
-    // Match: var(--recursica_tokens_size_{name})
-    const match = cssValue.match(/var\s*\(\s*--recursica_tokens_size_([^)]+)\s*\)/)
-    if (match) return `size/${match[1]}`
+    const parsed = parseTokenCssVar(cssValue)
+    if (parsed && parsed.type === 'size') return `size/${parsed.key}`
     return null
   }
   

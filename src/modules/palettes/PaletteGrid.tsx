@@ -122,13 +122,6 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
 
   const [selectedFamily, setSelectedFamily] = useState<string>(() => {
     if (typeof initialFamily === 'string' && initialFamily) return initialFamily
-    // Try to detect from theme first (but themeIndex isn't available in initializer, so we'll update via useEffect)
-    // Fall back to localStorage
-    try {
-      const raw = localStorage.getItem(`palette-grid-family:${paletteKey}`)
-      if (raw) return JSON.parse(raw)
-    } catch { }
-    // Fall back to defaults
     if (paletteKey === 'neutral') return 'gray'
     return families[0] || ''
   })
@@ -149,7 +142,6 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     }
   }, [detectFamilyFromTheme])
   useEffect(() => {
-    try { localStorage.setItem(`palette-grid-family:${paletteKey}`, JSON.stringify(selectedFamily)) } catch { }
     try { window.dispatchEvent(new CustomEvent('paletteFamilyChanged', { detail: { key: paletteKey, family: selectedFamily } })) } catch { }
   }, [paletteKey, selectedFamily])
   const [, forceVersion] = useState(0)
@@ -233,59 +225,30 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     }
     return defaultLevelStr
   }, [paletteKey, themeIndex, defaultLevelStr, mode])
-  const [primaryLevelStr, setPrimaryLevelStr] = useState<string>(() => {
-    try {
-      // Use mode-specific localStorage key
-      const raw = localStorage.getItem(`palette-primary-level:${paletteKey}:${mode}`)
-      if (raw) {
-        const v = JSON.parse(raw)
-        if (typeof v === 'string') return v.padStart(3, '0')
-      }
-    } catch { }
-    return resolveDefaultLevelForPalette
-  })
+  const [primaryLevelStr, setPrimaryLevelStr] = useState<string>(resolveDefaultLevelForPalette)
 
   // Update primary level when mode changes or when palettePrimaryLevelChanged event fires
   useEffect(() => {
-    const updatePrimaryLevel = () => {
-      try {
-        // Use lowercase mode for localStorage key (matching randomization)
-        const modeLower = mode?.toLowerCase() || 'light'
-        const lsKey = `palette-primary-level:${paletteKey}:${modeLower}`
-        const raw = localStorage.getItem(lsKey)
-        if (raw) {
-          const v = JSON.parse(raw)
-          if (typeof v === 'string') {
-            const newLevel = v.padStart(3, '0')
-            setPrimaryLevelStr(newLevel)
-          }
-        } else {
-          // If no mode-specific value exists, use the default
-          setPrimaryLevelStr(resolveDefaultLevelForPalette)
-        }
-      } catch (err) {
-        // Ignore errors
-      }
-    }
-
-    // Update immediately
-    updatePrimaryLevel()
+    // On mode/palette change, reset to the theme default
+    setPrimaryLevelStr(resolveDefaultLevelForPalette)
 
     // Listen for palettePrimaryLevelChanged events
     const handlePrimaryLevelChanged = ((ev: CustomEvent) => {
       const detail = ev.detail
-      // Normalize mode comparison (event uses lowercase, component might use capitalized)
       const eventMode = detail?.mode?.toLowerCase()
       const componentMode = mode?.toLowerCase()
 
-      // Update if it's a specific palette change for this palette, or if it's a general "all palettes" change for this mode
-      // Also update on reset events (when detail.reset is true)
       if (detail && (
         (detail.paletteKey === paletteKey && eventMode === componentMode) ||
         (detail.allPalettes === true && eventMode === componentMode) ||
         (detail.reset === true && eventMode === componentMode)
       )) {
-        updatePrimaryLevel()
+        if (detail.reset) {
+          setPrimaryLevelStr(resolveDefaultLevelForPalette)
+        } else if (detail.level) {
+          const newLevel = String(detail.level).padStart(3, '0')
+          setPrimaryLevelStr(newLevel)
+        }
       }
     }) as EventListener
 
@@ -296,10 +259,6 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, paletteKey]) // Only update when mode or paletteKey changes, not when primaryLevelStr changes
 
-  useEffect(() => {
-    // Store mode-specific primary level
-    try { localStorage.setItem(`palette-primary-level:${paletteKey}:${mode}`, JSON.stringify(primaryLevelStr)) } catch { }
-  }, [paletteKey, primaryLevelStr, mode])
   const [hoverLevelStr, setHoverLevelStr] = useState<string | null>(null)
   const applyThemeMappingsFromJson = (modeLabel: 'Light' | 'Dark') => {
     // Don't run during reset - recomputeAndApplyAll handles everything

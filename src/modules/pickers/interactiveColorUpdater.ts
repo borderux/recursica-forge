@@ -254,7 +254,7 @@ function updateOnToneColors(
         $value: hoverOnToneRef
       }
 
-      setTheme(themeCopy)
+      getVarsStore().setThemeSilent(themeCopy)
     } catch (err) {
       console.error('Failed to update theme JSON for interactive on-tone:', err)
     }
@@ -644,7 +644,7 @@ export function updateCoreColorInteractiveOnTones(
     // Update theme - this will trigger recomputeAndApplyAll which regenerates all CSS vars from theme JSON
     // The resolver will pick up the updated interactive.on-tone values and generate the correct CSS variables
     // This ensures consistency even if the direct update above had any issues
-    setTheme(themeCopy)
+    getVarsStore().setThemeSilent(themeCopy)
 
     // After setTheme triggers recompute, dispatch event to notify UI components to refresh
     // The recompute happens synchronously in writeState, but we add a small delay to ensure
@@ -774,7 +774,7 @@ export function updateCoreColorOnTones(
       updateCssVar(onToneCssVar, `var(${onToneCoreVar})`, tokens)
     }
 
-    setTheme(themeCopy)
+    getVarsStore().setThemeSilent(themeCopy)
   } catch (err) {
     console.error('Failed to update core color on-tones:', err)
   }

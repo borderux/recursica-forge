@@ -14,6 +14,7 @@ import { Button } from '../../../components/adapters/Button'
 import { TextField } from '../../../components/adapters/TextField'
 import { parseTokenReference, type TokenReferenceContext } from '../../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../../core/resolvers/tokens'
+import { getAllFamilyNames, setFamilyNameByAlias, renameFamilyName } from '../../../core/utils/familyNames'
 
 type TokenEntry = {
   name: string
@@ -128,11 +129,8 @@ export function AddColorScaleButton() {
         store.updateToken(aliasTokenName, hex)
       })
 
-      // Update family names map
-      const names: Record<string, string> = JSON.parse(localStorage.getItem('family-friendly-names') || '{}')
-      names[newFamilySlug] = toTitleCase(friendlyName)
-      localStorage.setItem('family-friendly-names', JSON.stringify(names))
-      window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: names }))
+      // Update family names via CSS var
+      setFamilyNameByAlias(newFamilySlug, toTitleCase(friendlyName))
     } catch (error) {
       console.error('Failed to create color scale:', error)
     }
@@ -179,24 +177,12 @@ export default function ColorTokens() {
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
   }, [])
-  // Initialize deletedFamilies synchronously from localStorage to prevent race condition
-  // (previously, a useEffect would briefly overwrite localStorage with {} on mount)
-  const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>(() => {
-    try {
-      const raw = localStorage.getItem('deleted-color-families')
-      return raw ? (JSON.parse(raw) || {}) : {}
-    } catch { return {} }
-  })
+  const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>({})
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
   const [showAddColorModal, setShowAddColorModal] = useState(false)
   const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core_black)')
-
-  // Persist deletedFamilies to localStorage when it changes
-  useEffect(() => {
-    try { localStorage.setItem('deleted-color-families', JSON.stringify(deletedFamilies)) } catch { }
-  }, [deletedFamilies])
 
   // Listen for theme reset to clear deleted families and family order
   useEffect(() => {
@@ -208,14 +194,11 @@ export default function ColorTokens() {
     return () => window.removeEventListener('themeReset', handleReset)
   }, [])
 
-  // Initialize family names from localStorage
+  // Initialize family names from CSS vars
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('family-friendly-names')
-      if (raw) {
-        const parsed = JSON.parse(raw)
-        if (parsed && typeof parsed === 'object') setFamilyNames(parsed)
-      }
+      const names = getAllFamilyNames(tokensJson)
+      if (Object.keys(names).length > 0) setFamilyNames(names)
     } catch { }
     setNamesHydrated(true)
   }, [])
@@ -228,8 +211,7 @@ export default function ColorTokens() {
           setNamesHydrated(true)
           return
         }
-        const raw = localStorage.getItem('family-friendly-names')
-        setFamilyNames(raw ? JSON.parse(raw) : {})
+        setFamilyNames(getAllFamilyNames(tokensJson))
         setNamesHydrated(true)
       } catch {
         setFamilyNames({})
@@ -238,65 +220,14 @@ export default function ColorTokens() {
     window.addEventListener('familyNamesChanged', onNames as any)
     return () => window.removeEventListener('familyNamesChanged', onNames as any)
   }, [])
-  useEffect(() => {
-    if (!namesHydrated) return
-    try { localStorage.setItem('family-friendly-names', JSON.stringify(familyNames)) } catch { }
-    try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: familyNames })) } catch { }
-  }, [familyNames, namesHydrated])
 
-  // Initialize family order from localStorage
+
+
+  // Seed family names from CSS vars (re-read when tokens change)
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('color-family-order')
-      if (raw) setFamilyOrder(JSON.parse(raw))
-    } catch { }
-  }, [])
-  useEffect(() => {
-    try { localStorage.setItem('color-family-order', JSON.stringify(familyOrder)) } catch { }
-  }, [familyOrder])
-
-  // Seed family names from tokens - use alias from JSON for new structure
-  useEffect(() => {
-    try {
-      const t: any = (tokensJson as any)?.tokens || {}
-      const raw = localStorage.getItem('family-friendly-names')
-      const existing = raw ? (JSON.parse(raw) || {}) : {}
-      const next: Record<string, string> = { ...existing }
-      let changed = false
-
-      // Process new colors structure (colors.scale-XX with alias)
-      const colorsRoot = t?.colors || {}
-      if (colorsRoot && typeof colorsRoot === 'object' && !Array.isArray(colorsRoot)) {
-        Object.keys(colorsRoot).forEach((scaleKey) => {
-          if (!scaleKey.startsWith('scale-')) return
-          const scale = colorsRoot[scaleKey]
-          if (!scale || typeof scale !== 'object' || Array.isArray(scale)) return
-
-          const alias = scale.alias
-          // Use alias as the family name key, and alias value as the friendly name
-          if (alias && typeof alias === 'string') {
-            // Check if we should update (on init/reset, use alias; otherwise preserve existing)
-            // If the existing value is empty or matches the old scale key, update it
-            if (!next[alias] || !String(next[alias]).trim() || next[alias] === toTitleCase(scaleKey)) {
-              next[alias] = toTitleCase(alias)
-              changed = true
-            }
-          }
-        })
-      }
-
-      // Process old color structure for backwards compatibility
-      const oldColors = t?.color || {}
-      const oldKeys = Object.keys(oldColors).filter((k) => k !== 'translucent')
-      oldKeys.forEach((fam) => {
-        const desired = toTitleCase(fam)
-        if (!next[fam] || !String(next[fam]).trim()) {
-          next[fam] = desired
-          changed = true
-        }
-      })
-
-      if (changed) setFamilyNames(next)
+      const names = getAllFamilyNames(tokensJson)
+      if (Object.keys(names).length > 0) setFamilyNames(names)
     } catch { }
   }, [tokensJson])
 
@@ -434,8 +365,7 @@ export default function ColorTokens() {
         const byMode = colorFamiliesByMode['Mode 1'] || {}
         Object.keys(byMode).forEach((fam) => { if (fam !== 'translucent') famSet.add(fam) })
         if (!famSet.size) return
-        const raw = localStorage.getItem('family-friendly-names')
-        const existing = raw ? (JSON.parse(raw) || {}) : {}
+        const existing = getAllFamilyNames(tokensJson)
         let changed = false
         const next: Record<string, string> = { ...existing }
         for (const fam of famSet) {
@@ -457,8 +387,12 @@ export default function ColorTokens() {
         }
         if (changed) {
           setFamilyNames(next)
-          try { localStorage.setItem('family-friendly-names', JSON.stringify(next)) } catch { }
-          try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: next })) } catch { }
+          // Persist each changed name to CSS var
+          for (const fam of famSet) {
+            if (next[fam] && next[fam] !== existing[fam]) {
+              setFamilyNameByAlias(fam, next[fam], tokensJson)
+            }
+          }
         }
       } catch { }
     })()
@@ -489,13 +423,7 @@ export default function ColorTokens() {
         if (fiveHex) {
           const label = await getFriendlyNamePreferNtc(fiveHex)
           setFamilyNames((prev) => ({ ...prev, [family]: label }))
-          try {
-            const raw = localStorage.getItem('family-friendly-names')
-            const map = raw ? JSON.parse(raw) || {} : {}
-            map[family] = label
-            localStorage.setItem('family-friendly-names', JSON.stringify(map))
-            try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch { }
-          } catch { }
+          setFamilyNameByAlias(family, label, tokensJson)
         }
       })()
   }
@@ -598,19 +526,11 @@ export default function ColorTokens() {
         return prev
       })
 
-      // Update family names map
+      // Update family names via CSS var
       const updatedFamilyNames = { ...familyNames }
       updatedFamilyNames[newFamilySlug] = toTitleCase(friendlyName)
       setFamilyNames(updatedFamilyNames)
-
-      // Update localStorage
-      try {
-        const raw = localStorage.getItem('family-friendly-names')
-        const map = raw ? JSON.parse(raw) || {} : {}
-        map[newFamilySlug] = toTitleCase(friendlyName)
-        localStorage.setItem('family-friendly-names', JSON.stringify(map))
-        try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch { }
-      } catch { }
+      setFamilyNameByAlias(newFamilySlug, toTitleCase(friendlyName), tokensJson)
     } catch (error) {
       console.error('Failed to create color scale:', error)
     }
@@ -864,12 +784,6 @@ export default function ColorTokens() {
       setDeletedFamilies((prev) => ({ ...prev, [family]: true }))
       setOpenPicker(null)
       setFamilyOrder((prev) => prev.filter((f) => f !== family))
-
-      // Update localStorage for deleted families
-      try {
-        const updatedDeleted = { ...deletedFamilies, [family]: true }
-        localStorage.setItem('deleted-color-families', JSON.stringify(updatedDeleted))
-      } catch { }
     } catch (error) {
       console.error('Failed to delete color family:', error)
     }
@@ -935,15 +849,8 @@ export default function ColorTokens() {
           updatedFamilyNames[newFamilySlug] = v
           setFamilyNames(updatedFamilyNames)
 
-          // Update localStorage
-          try {
-            const raw = localStorage.getItem('family-friendly-names')
-            const map = raw ? JSON.parse(raw) || {} : {}
-            delete map[family]
-            map[newFamilySlug] = v
-            localStorage.setItem('family-friendly-names', JSON.stringify(map))
-            try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch { }
-          } catch { }
+          // Update CSS var
+          renameFamilyName(family, newFamilySlug, v, tokensJson)
 
           // Close picker if open for this family
           if (openPicker && openPicker.tokenName.startsWith(`color/${family}/`)) {
@@ -959,13 +866,7 @@ export default function ColorTokens() {
 
     // If slug matches or rename failed, just update the display name
     setFamilyNames((prev) => ({ ...prev, [family]: v }))
-    try {
-      const raw = localStorage.getItem('family-friendly-names')
-      const map = raw ? JSON.parse(raw) || {} : {}
-      map[family] = v
-      localStorage.setItem('family-friendly-names', JSON.stringify(map))
-      try { window.dispatchEvent(new CustomEvent('familyNamesChanged', { detail: map })) } catch { }
-    } catch { }
+    setFamilyNameByAlias(family, v, tokensJson)
   }
 
   const handleNameFromHex = async (family: string, hex: string) => {

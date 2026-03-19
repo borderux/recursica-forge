@@ -18,32 +18,9 @@ export default function FontPropertiesTokens() {
   const { mode } = useThemeMode()
   const { resetAll, tokens: tokensJson, updateToken } = useVars()
   const [activeTab, setActiveTab] = useState<'size' | 'letter-spacing' | 'line-height'>('size')
-  const [autoScaleSize, setAutoScaleSize] = useState(() => {
-    // Default to false - reset any existing 'true' value to establish new default
-    const v = localStorage.getItem('font-size-auto-scale')
-    if (v === null || v === 'true') {
-      // Reset to false to establish the new default behavior
-      localStorage.setItem('font-size-auto-scale', 'false')
-      return false
-    }
-    // If explicitly set to 'false', respect that
-    return false
-  })
-  const [autoScaleLetterSpacing, setAutoScaleLetterSpacing] = useState(() => {
-    const v = localStorage.getItem('font-letter-scale-by-tight-wide')
-    return v === null ? false : v === 'true'
-  })
-  const [autoScaleLineHeight, setAutoScaleLineHeight] = useState(() => {
-    // Default to false - reset any existing 'true' value to establish new default
-    const v = localStorage.getItem('font-line-scale-by-short-tall')
-    if (v === null || v === 'true') {
-      // Reset to false to establish the new default behavior
-      localStorage.setItem('font-line-scale-by-short-tall', 'false')
-      return false
-    }
-    // If explicitly set to 'false', respect that
-    return false
-  })
+  const [autoScaleSize, setAutoScaleSize] = useState(false)
+  const [autoScaleLetterSpacing, setAutoScaleLetterSpacing] = useState(false)
+  const [autoScaleLineHeight, setAutoScaleLineHeight] = useState(false)
 
   const handleReset = () => {
     // Reset font token values based on active tab
@@ -171,13 +148,10 @@ export default function FontPropertiesTokens() {
                 onChange={(checked) => {
                   if (activeTab === 'size') {
                     setAutoScaleSize(checked)
-                    localStorage.setItem('font-size-auto-scale', String(checked))
                   } else if (activeTab === 'letter-spacing') {
                     setAutoScaleLetterSpacing(checked)
-                    localStorage.setItem('font-letter-scale-by-tight-wide', String(checked))
                   } else {
                     setAutoScaleLineHeight(checked)
-                    localStorage.setItem('font-line-scale-by-short-tall', String(checked))
                   }
                 }}
                 layer="layer-0"

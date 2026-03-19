@@ -12,6 +12,8 @@ import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
 import { updateUIKitValue, removeUIKitValue } from './updateUIKitValue'
 import { updateBrandValue } from './updateBrandValue'
+import { trackChange, clearDeltaEntry } from '../store/cssDelta'
+import { getVarsStore } from '../store/varsStore'
 
 // Global flag to suppress events during bulk updates
 let suppressEvents = false
@@ -97,16 +99,14 @@ export function updateCssVar(
       // Try to auto-fix if it's a hex color
       const fixed = tryFixBrandVarValue(cssVarName, trimmedValue, tokens)
       if (fixed) {
-        console.warn(`Auto-fixed brand CSS variable ${cssVarName}: ${trimmedValue} -> ${fixed}`)
         root.style.setProperty(cssVarName, fixed)
-        // Use shouldBeSilent (which respects UIKit var detection) instead of silent
         if (!shouldBeSilent && !suppressEvents) {
           pendingCssVars.add(cssVarName)
           fireBatchedEvent()
         }
         return true
       } else {
-        console.error(`Cannot update brand CSS variable ${cssVarName}: ${validation.error}`)
+        console.error(`[updateCssVar] Brand CSS variable '${cssVarName}' requires a token reference, but received: '${trimmedValue}'`)
         return false
       }
     }
@@ -114,6 +114,9 @@ export function updateCssVar(
 
   // Apply the update
   root.style.setProperty(cssVarName, trimmedValue)
+
+  // Track this change in the delta serialization system
+  trackChange(cssVarName, trimmedValue)
 
   // CRITICAL FIX: Ensure all UIKit var changes from any slider/picker save to JSON store automatically
   if (isUIKitVar) {
@@ -124,6 +127,8 @@ export function updateCssVar(
   // This ensures AA compliance fixes (and any other brand var changes) persist in the store
   if (isBrandVar(cssVarName)) {
     updateBrandValue(cssVarName, trimmedValue)
+    // Schedule a compliance scan so contrast issues are detected after color changes
+    try { getVarsStore().scheduleComplianceScan() } catch { }
   }
 
   // Dispatch event to notify components of CSS variable updates
@@ -230,6 +235,9 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
 export function removeCssVar(cssVarName: string, silent?: boolean): void {
   const root = document.documentElement
   root.style.removeProperty(cssVarName)
+
+  // Remove from delta so reapplyDelta() won't re-apply a stale value
+  clearDeltaEntry(cssVarName)
 
   // Also remove unprefixed version if it exists
   if (cssVarName.startsWith('--recursica_')) {
