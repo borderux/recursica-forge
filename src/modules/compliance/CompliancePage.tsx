@@ -442,17 +442,37 @@ export default function CompliancePage() {
 
             {/* Empty state */}
             {issues.length === 0 && (
-                <div className="compliance-page__empty" style={{
-                    color: `var(${genericLayerText(0, 'color')})`,
-                    opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
-                }}>
-                    <div className="compliance-page__empty-icon">
-                        {CheckIcon && <CheckIcon style={{ width: 48, height: 48 }} />}
+                <div className="compliance-page__empty">
+                    <div className="compliance-page__empty-icon" style={{
+                        color: `var(--recursica_brand_themes_${mode}_palettes_palette-1_default_color_tone)`,
+                    }}>
+                        {CheckIcon && <CheckIcon style={{
+                            width: 'var(--recursica_brand_dimensions_icons_lg)',
+                            height: 'var(--recursica_brand_dimensions_icons_lg)',
+                        }} />}
                     </div>
-                    <p style={{ fontSize: 'var(--recursica_brand_typography_h3-font-size, 18px)' }}>
+                    <h3 style={{
+                        margin: 0,
+                        fontSize: 'var(--recursica_brand_typography_h3-font-size)',
+                        fontWeight: 'var(--recursica_brand_typography_h3-font-weight)',
+                        fontFamily: 'var(--recursica_brand_typography_h3-font-family)',
+                        letterSpacing: 'var(--recursica_brand_typography_h3-font-letter-spacing)',
+                        lineHeight: 'var(--recursica_brand_typography_h3-line-height)',
+                        color: `var(${genericLayerText(0, 'color')})`,
+                        opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
+                    }}>
                         All clear — no compliance issues!
-                    </p>
-                    <p style={{ fontSize: 'var(--recursica_brand_typography_body-small-font-size)' }}>
+                    </h3>
+                    <p style={{
+                        margin: 0,
+                        fontSize: 'var(--recursica_brand_typography_body-font-size)',
+                        fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
+                        fontFamily: 'var(--recursica_brand_typography_body-font-family)',
+                        letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+                        lineHeight: 'var(--recursica_brand_typography_body-line-height)',
+                        color: `var(${genericLayerText(0, 'color')})`,
+                        opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
+                    }}>
                         Your theme meets WCAG AA contrast requirements.
                     </p>
                 </div>

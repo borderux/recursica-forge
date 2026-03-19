@@ -56,7 +56,7 @@ export function ColorPickerOverlay({
       const overlayW = 300 // fixed width
       const overlayH = overlayRef.current?.offsetHeight || 320
 
-      // Calculate positions relative to the viewport (for Modal's fixed positioning)
+      // Check which candidate fits in the viewport (viewport coords from swatchRect)
       const candidates = [
         { y: swatchRect.bottom + 8, x: swatchRect.left },
         { y: swatchRect.top - overlayH - 8, x: swatchRect.left },
@@ -70,7 +70,8 @@ export function ColorPickerOverlay({
       }
 
       const chosen = candidates.find(fits) || candidates[0]
-      setPos({ top: chosen.y, left: chosen.x })
+      // Convert viewport coordinates to page coordinates so the overlay scrolls with the page
+      setPos({ top: chosen.y + window.scrollY, left: chosen.x + window.scrollX })
     }
 
     // Initial calculation

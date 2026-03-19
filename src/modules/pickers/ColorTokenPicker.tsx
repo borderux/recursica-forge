@@ -179,7 +179,8 @@ export default function ColorTokenPicker() {
         left = Math.max(16, rect.right - estimatedWidth)
       }
 
-      setPos({ top: rect.bottom + 8, left })
+      // Convert viewport coordinates to page coordinates so the overlay scrolls with the page
+      setPos({ top: rect.bottom + 8 + window.scrollY, left: left + window.scrollX })
     }
 
   // Helper: Build CSS variable name for a color token (matches varsStore format)
@@ -1020,6 +1021,7 @@ export default function ColorTokenPicker() {
       padding={true}
       layer="layer-3"
       zIndex={20000}
+      className="color-token-picker-overlay"
       style={{
         overflow: 'visible',
         visibility: pos.top === -9999 ? 'hidden' : 'visible',
