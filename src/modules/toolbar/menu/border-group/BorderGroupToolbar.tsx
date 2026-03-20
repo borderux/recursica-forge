@@ -29,9 +29,10 @@ function getCssVarsForProp(
   propToCheck: ComponentProp,
   componentName: string,
   selectedVariants: Record<string, string>,
-  selectedLayer: string
+  selectedLayer: string,
+  uikit: any
 ): string[] {
-  const structure = parseComponentStructure(componentName)
+  const structure = parseComponentStructure(componentName, uikit)
 
   // Find matching prop based on selected variants and layer
   const matchingProp = structure.props.find(p => {
@@ -128,7 +129,7 @@ export default function BorderGroupToolbar({
   onClose,
 }: BorderGroupToolbarProps) {
   const { mode } = useThemeMode()
-  const { tokens } = useVars()
+  const { tokens, uikit } = useVars()
 
   const {
     includeColor = false,
@@ -140,8 +141,12 @@ export default function BorderGroupToolbar({
   const colorPropName = propNameMapping.color || 'border-color'
   const stylePropName = propNameMapping.style || 'border-style'
 
-  // Find border-related props from component structure
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  // Parse structure from the live uikit so custom variant names are included.
+  // uikit is a reactive dep — the memo recomputes after reset or variant changes.
+  const structure = useMemo(
+    () => parseComponentStructure(componentName, uikit),
+    [componentName, uikit]
+  )
 
   const borderSizeProp = useMemo(() => {
     return structure.props.find(p => {
@@ -245,23 +250,23 @@ export default function BorderGroupToolbar({
   // Use getCssVarsForProp to ensure correct resolution for variant-specific props (like Button border-size, Avatar border-color)
   const borderSizeCssVars = useMemo(() => {
     if (!borderSizeProp) return []
-    return getCssVarsForProp(borderSizeProp, componentName, selectedVariants, selectedLayer)
-  }, [borderSizeProp, componentName, selectedVariants, selectedLayer])
+    return getCssVarsForProp(borderSizeProp, componentName, selectedVariants, selectedLayer, uikit)
+  }, [borderSizeProp, componentName, selectedVariants, selectedLayer, uikit])
 
   const borderRadiusCssVars = useMemo(() => {
     if (!borderRadiusProp) return []
-    return getCssVarsForProp(borderRadiusProp, componentName, selectedVariants, selectedLayer)
-  }, [borderRadiusProp, componentName, selectedVariants, selectedLayer])
+    return getCssVarsForProp(borderRadiusProp, componentName, selectedVariants, selectedLayer, uikit)
+  }, [borderRadiusProp, componentName, selectedVariants, selectedLayer, uikit])
 
   const borderColorCssVars = useMemo(() => {
     if (!borderColorProp) return []
-    return getCssVarsForProp(borderColorProp, componentName, selectedVariants, selectedLayer)
-  }, [borderColorProp, componentName, selectedVariants, selectedLayer])
+    return getCssVarsForProp(borderColorProp, componentName, selectedVariants, selectedLayer, uikit)
+  }, [borderColorProp, componentName, selectedVariants, selectedLayer, uikit])
 
   const borderStyleCssVars = useMemo(() => {
     if (!borderStyleProp) return []
-    return getCssVarsForProp(borderStyleProp, componentName, selectedVariants, selectedLayer)
-  }, [borderStyleProp, componentName, selectedVariants, selectedLayer])
+    return getCssVarsForProp(borderStyleProp, componentName, selectedVariants, selectedLayer, uikit)
+  }, [borderStyleProp, componentName, selectedVariants, selectedLayer, uikit])
 
   const borderSizeVar = borderSizeCssVars[0] || borderSizeProp?.cssVar || ''
   const borderRadiusVar = borderRadiusCssVars[0] || borderRadiusProp?.cssVar || ''

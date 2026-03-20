@@ -23,7 +23,6 @@ import { updateCssVar } from '../../core/css/updateCssVar'
 import { Switch } from '../../components/adapters/Switch'
 import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from '../preview/PreviewPage'
-import uikitJson from '../../../recursica_ui-kit.json'
 import tokensJson from '../../../recursica_tokens.json'
 import brandJson from '../../../recursica_brand.json'
 import { getComponentTextCssVar, buildComponentCssVarPath } from '../../components/utils/cssVarNames'
@@ -87,7 +86,37 @@ export default function ComponentToolbar({
   const [createVariantAxis, setCreateVariantAxis] = useState<string>('')
   const [createVariantExistingNames, setCreateVariantExistingNames] = useState<string[]>([])
 
-  const structure = useMemo(() => parseComponentStructure(componentName, getVarsStore().getState().uikit), [componentName, uikit])
+  // Build a lightweight signature of the custom variant names in the LIVE store.
+  // Only changes when variants are added/deleted — NOT on color edits (setUiKitSilent
+  // uses the same object reference, so VarsContext never re-renders).
+  const liveUikitVariantSignature = useMemo(() => {
+    const liveUikit = getVarsStore().getState().uikit as any
+    const components = liveUikit?.['ui-kit']?.components ?? liveUikit?.components ?? {}
+    let compKey = componentName.toLowerCase().replace(/\s+/g, '-')
+    if (compKey === 'checkbox-group-item') compKey = 'checkbox-item'
+    if (compKey === 'radio-button-group-item') compKey = 'radio-button-item'
+    if (compKey === 'hover-card-/-popover') compKey = 'hover-card-popover'
+    const comp = components[compKey]
+    if (!comp?.variants) return componentName
+    return Object.entries(comp.variants as Record<string, any>)
+      .map(([axis, axisObj]) => {
+        const names = Object.keys(axisObj ?? {}).filter((k: string) => !k.startsWith('$'))
+        return `${axis}:${names.join(',')}`
+      })
+      .join('|')
+  }, [componentName, uikit])
+
+  // Use the static import for base structure so color edits (setUiKitSilent, same object
+  // reference) do not re-run this memo and interrupt in-progress prop control interactions.
+  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+
+  // A separate parse from the LIVE store gives us props for custom variants only.
+  // Keyed on liveUikitVariantSignature so it only recomputes when variants change.
+  const liveStructure = useMemo(
+    () => parseComponentStructure(componentName, getVarsStore().getState().uikit),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [componentName, liveUikitVariantSignature]
+  )
 
   // Get toolbar config to preserve order
   const toolbarConfig = useMemo(() => {
@@ -96,7 +125,7 @@ export default function ComponentToolbar({
 
   // Filter variants to only show those with more than one option AND are in the toolbar config, sorted by config order
   const visibleVariants = useMemo(() => {
-    const filtered = structure.variants.filter(variant => variant.variants.length > 1)
+    const filtered = liveStructure.variants.filter(variant => variant.variants.length > 1)
 
     // Only show variants that are explicitly listed in the toolbar config
     if (toolbarConfig?.variants) {
@@ -114,7 +143,7 @@ export default function ComponentToolbar({
 
     // If no toolbar config, don't show any variants (they should be configured)
     return []
-  }, [structure.variants, toolbarConfig, componentName, selectedVariants])
+  }, [liveStructure.variants, toolbarConfig, componentName, selectedVariants, liveUikitVariantSignature])
 
   useEffect(() => {
     setOpenPropControl(new Set())
@@ -147,25 +176,24 @@ export default function ComponentToolbar({
 
   const handleCreateVariant = (axisCategory: string, sourceVariantName: string, newVariantName: string) => {
     const store = getVarsStore()
-    const liveUikit = store.getState().uikit
-    cloneVariantInUIKit(liveUikit, componentKey, axisCategory, sourceVariantName, newVariantName)
-    // Deep-clone so VarsContext detects reference change and re-renders
-    store.setUiKit(JSON.parse(JSON.stringify(liveUikit)))
-    // Auto-select the new variant
+    // cloneVariantInUIKit returns a fresh deep-clone (never mutates the input)
+    const updated = cloneVariantInUIKit(store.getState().uikit, componentKey, axisCategory, sourceVariantName, newVariantName)
+    store.setUiKit(updated)
+    // Auto-select the new variant (use lowercase key to match the JSON key stored by cloneVariantInUIKit)
     const axisName = categoryKeyToAxis(axisCategory)
-    onVariantChange(axisName, newVariantName)
+    onVariantChange(axisName, newVariantName.toLowerCase())
   }
 
   const handleDeleteVariant = (axisCategory: string, variantName: string) => {
     const store = getVarsStore()
     const liveUikit = store.getState().uikit
-    deleteCustomVariant(liveUikit, componentKey, axisCategory, variantName)
-    // Deep-clone so VarsContext detects reference change and re-renders
-    store.setUiKit(JSON.parse(JSON.stringify(liveUikit)))
+    // deleteCustomVariant returns a fresh deep-clone (never mutates the input)
+    const updated = deleteCustomVariant(liveUikit, componentKey, axisCategory, variantName)
+    store.setUiKit(updated)
     // If the deleted variant was currently selected, switch to first remaining variant on that axis
     const axisName = categoryKeyToAxis(axisCategory)
     if (selectedVariants[axisName] === variantName) {
-      const remaining = getExistingVariantNames(liveUikit, componentKey, axisCategory)
+      const remaining = getExistingVariantNames(updated, componentKey, axisCategory)
       if (remaining.length > 0) {
         onVariantChange(axisName, remaining[0])
       }
@@ -181,7 +209,7 @@ export default function ComponentToolbar({
     const groupedPropsMap = new Map<string, Map<string, ComponentProp>>() // Map of parent prop name -> map of grouped prop names -> props
 
     // First pass: collect all props and identify which ones are grouped
-    structure.props.forEach(prop => {
+    liveStructure.props.forEach(prop => {
       const propNameLower = prop.name.toLowerCase()
 
       // Check if this prop is part of a group in the config (but not if it's the parent prop itself)
@@ -218,7 +246,7 @@ export default function ComponentToolbar({
     })
 
     // Second pass: add props to the map, skipping those that are in groups (they'll be added in the grouping pass)
-    structure.props.forEach(prop => {
+    liveStructure.props.forEach(prop => {
       const propNameLower = prop.name.toLowerCase()
 
       // Skip props that are in a group (they'll be handled in the grouping pass)
@@ -289,11 +317,11 @@ export default function ComponentToolbar({
         // Skip if it's already in propsMap or if it has a group (groups are handled separately)
         if (!propsMap.has(configPropNameLower) && !propConfig.group) {
           // Check if this prop exists in structure but wasn't added (shouldn't happen, but check anyway)
-          let structureProp = structure.props.find(p => p.name.toLowerCase() === configPropNameLower)
+          let structureProp = liveStructure.props.find(p => p.name.toLowerCase() === configPropNameLower)
           // Special case: text-color in toolbar config maps to "text" in UIKit structure (colors category)
           // Must also filter by selected variant for components with variant-specific colors
           if (!structureProp && configPropNameLower === 'text-color') {
-            const textColorProp = structure.props.find(p => {
+            const textColorProp = liveStructure.props.find(p => {
               if (p.name.toLowerCase() !== 'text' || p.category !== 'colors') return false
               // Filter by variant if prop is variant-specific
               if (p.isVariantSpecific && p.variantProp) {
@@ -348,7 +376,7 @@ export default function ComponentToolbar({
           }
 
           // Also check if the parent prop itself is in the structure (it might be in its own group)
-          const parentProp = structure.props.find(p => p.name.toLowerCase() === parentPropName.toLowerCase())
+          const parentProp = liveStructure.props.find(p => p.name.toLowerCase() === parentPropName.toLowerCase())
           if (parentProp && !groupedProps.has(parentPropName.toLowerCase())) {
             groupedProps.set(parentPropName.toLowerCase(), parentProp)
           }
@@ -372,7 +400,7 @@ export default function ComponentToolbar({
               const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'unselected' || parentPropNameLower === 'active' || parentPropNameLower === 'inactive' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item' || parentPropNameLower === 'thumb-selected' || parentPropNameLower === 'thumb-unselected' || parentPropNameLower === 'track-selected' || parentPropNameLower === 'track-unselected'
 
 
-              let groupedProp = structure.props.find(p => {
+              let groupedProp = liveStructure.props.find(p => {
                 const nameMatches = p.name.toLowerCase() === groupedPropKey
                 const pathMatches = p.path.includes(parentPropNameLower)
                 // For color props, also filter by selectedLayer to ensure we get the correct layer
@@ -395,7 +423,7 @@ export default function ComponentToolbar({
               // Special case: placeholder-opacity is a component-level property, not a variant-level color
               // It's in the "colors" group but doesn't have "colors" in its path
               if (!groupedProp && groupedPropKey === 'placeholder-opacity') {
-                groupedProp = structure.props.find(p => {
+                groupedProp = liveStructure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'placeholder-opacity'
                   // Must be component-level (not variant-specific)
                   const isComponentLevel = !p.isVariantSpecific
@@ -404,7 +432,7 @@ export default function ComponentToolbar({
               }
 
               if (!groupedProp && (groupedPropKey === 'label-optional-text-gap' || groupedPropKey === 'edit-icon-gap')) {
-                groupedProp = structure.props.find(p => {
+                groupedProp = liveStructure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === groupedPropKey
                   // Must be component-level (not variant-specific)
                   const isComponentLevel = !p.isVariantSpecific
@@ -415,7 +443,7 @@ export default function ComponentToolbar({
               // Special case: tab-content-alignment is a component-level property for Tabs
               // It's in the "spacing" group but doesn't have "spacing" in its path
               if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
-                groupedProp = structure.props.find(p => {
+                groupedProp = liveStructure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
                   const isComponentLevel = !p.isVariantSpecific
                   return nameMatches && isComponentLevel
@@ -423,7 +451,7 @@ export default function ComponentToolbar({
               }
               // tabs-content-gap is under both style and orientation; match by both
               if (!groupedProp && groupedPropKey === 'tabs-content-gap' && componentName.toLowerCase() === 'tabs') {
-                groupedProp = structure.props.find(p => {
+                groupedProp = liveStructure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'tabs-content-gap'
                   const styleMatches = !selectedVariants.style || pathMatchesVariant(p.path, 'style', selectedVariants.style)
                   const orientationMatches = !selectedVariants.orientation || pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
@@ -435,7 +463,7 @@ export default function ComponentToolbar({
               // Need to find color-category props specifically (not text-group props which also have name "text")
               // and filter by selected variant for components with variant-specific colors (e.g., Button)
               if (!groupedProp && (groupedPropKey === 'text' || groupedPropKey === 'text-hover') && parentPropNameLower === 'text-color') {
-                groupedProp = structure.props.find(p => {
+                groupedProp = liveStructure.props.find(p => {
                   if (p.name.toLowerCase() !== groupedPropKey || p.category !== 'colors' || !p.path.includes('colors')) return false
                   // Filter by layer
                   const layerInPath = p.path.find(part => part.startsWith('layer-'))
@@ -455,7 +483,7 @@ export default function ComponentToolbar({
               // For nested property groups (selected, unselected, etc.), fall back to component-level
               // props that don't have the parent path (e.g., icon-size in a "selected" group)
               if (!groupedProp && isNestedPropertyGroup) {
-                groupedProp = structure.props.find(p => {
+                groupedProp = liveStructure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === groupedPropKey
                   const isComponentLevel = !p.isVariantSpecific
                   // Don't match props that belong to a DIFFERENT nested group
@@ -467,28 +495,34 @@ export default function ComponentToolbar({
 
               // Special case: border-color is stored as "border" in the color category
               if (!groupedProp && groupedPropKey === 'border-color') {
-                groupedProp = structure.props.find(p => {
+                groupedProp = liveStructure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'border-color' || (p.name.toLowerCase() === 'border' && p.category === 'colors')
                   const pathMatches = p.path.includes(parentPropNameLower)
                   // For color props, also filter by selectedLayer
                   const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
                   return nameMatches && pathMatches && layerMatches
                 })
-                // For container/selected props, NEVER fall back to name-only match
-                // Only fall back to name-only match for other grouped props
-                if (!groupedProp && !isNestedPropertyGroup) {
-                  groupedProp = structure.props.find(p => {
-                    const nameMatches = p.name.toLowerCase() === 'border' && p.category === 'colors'
-                    // For color props, also filter by selectedLayer
+                // Variant-aware fallback: find border-color in colors category for the selected variant
+                // (badge and similar components have border-color at colors.layer-0.border-color,
+                //  so path never contains 'border' as a standalone segment)
+                if (!groupedProp) {
+                  groupedProp = liveStructure.props.find(p => {
+                    if ((p.name.toLowerCase() !== 'border-color' && !(p.name.toLowerCase() === 'border' && p.category === 'colors')) || p.category !== 'colors') return false
                     const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
-                    return nameMatches && layerMatches
+                    if (!layerMatches) return false
+                    if (p.isVariantSpecific && p.variantProp) {
+                      const selectedVariant = selectedVariants[p.variantProp]
+                      if (!selectedVariant) return false
+                      if (!pathMatchesVariant(p.path, p.variantProp, selectedVariant)) return false
+                    }
+                    return true
                   })
                 }
               }
               // Special case: interactive-color maps to "interactive" prop under colors.layer-X.interactive
               if (!groupedProp && groupedPropKey === 'interactive-color') {
                 // Find all matching props and ensure we get the interactive one
-                const matchingProps = structure.props.filter(p => {
+                const matchingProps = liveStructure.props.filter(p => {
                   const pathMatches = p.name.toLowerCase() === 'interactive' &&
                     p.category === 'colors' &&
                     !p.isVariantSpecific &&
@@ -507,7 +541,7 @@ export default function ComponentToolbar({
               // Special case: read-only-color maps to "read-only" prop under colors.layer-X.read-only
               if (!groupedProp && groupedPropKey === 'read-only-color') {
                 // Find all matching props and ensure we get the read-only one
-                const matchingProps = structure.props.filter(p => {
+                const matchingProps = liveStructure.props.filter(p => {
                   const pathMatches = p.name.toLowerCase() === 'read-only' &&
                     p.category === 'colors' &&
                     !p.isVariantSpecific &&
@@ -525,7 +559,7 @@ export default function ComponentToolbar({
               }
               // Special case: separator-color maps to "separator-color" prop under colors.layer-X
               if (!groupedProp && groupedPropKey === 'separator-color') {
-                groupedProp = structure.props.find(p =>
+                groupedProp = liveStructure.props.find(p =>
                   p.name.toLowerCase() === 'separator-color' &&
                   p.category === 'colors' &&
                   !p.isVariantSpecific &&
@@ -537,7 +571,7 @@ export default function ComponentToolbar({
               // Special case: text-color maps to "text" prop under colors.layer-X
               // Must also filter by selected variant for components with variant-specific colors (e.g., Button solid/outline/text)
               if (!groupedProp && groupedPropKey === 'text-color') {
-                groupedProp = structure.props.find(p => {
+                groupedProp = liveStructure.props.find(p => {
                   if (p.name.toLowerCase() !== 'text' || p.category !== 'colors' || !p.path.includes('colors')) return false
                   // Filter by layer
                   const layerInPath = p.path.find(part => part.startsWith('layer-'))
@@ -560,7 +594,7 @@ export default function ComponentToolbar({
               // Special handling: if parent prop is "spacing" or "layout", collect props from all layout variants
               if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'layout')) {
                 // Find props that match the name and are variant-specific for layout
-                const layoutProps = structure.props.filter(p =>
+                const layoutProps = liveStructure.props.filter(p =>
                   p.name.toLowerCase() === groupedPropKey &&
                   p.isVariantSpecific &&
                   p.variantProp === 'layout'
@@ -656,8 +690,8 @@ export default function ComponentToolbar({
         // Check if this is a text-group prop that exists in recursica_ui-kit.json but wasn't parsed
         const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
         if (textPropertyGroupNames.includes(propNameLower)) {
-          // Try to find it in structure.props - it should have been parsed
-          const structureProp = structure.props.find(p => p.name.toLowerCase() === propNameLower && p.type === 'text-group')
+          // Try to find it in liveStructure.props - it should have been parsed
+          const structureProp = liveStructure.props.find(p => p.name.toLowerCase() === propNameLower && p.type === 'text-group')
           if (structureProp) {
             // It exists but wasn't added - add it now
             if (!seenProps.has(propNameLower)) {
@@ -902,7 +936,7 @@ export default function ComponentToolbar({
       if (!a.isVariantSpecific && b.isVariantSpecific) return -1
       return a.name.localeCompare(b.name)
     })
-  }, [structure.props, componentName, selectedVariants, selectedLayer, toolbarConfig])
+  }, [liveStructure.props, componentName, selectedVariants, selectedLayer, toolbarConfig, liveUikitVariantSignature])
 
   const handleReset = () => {
     let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
@@ -945,10 +979,12 @@ export default function ComponentToolbar({
       propsToRemove.forEach(prop => style.removeProperty(prop))
     }
 
-    // 2. Build default values from ORIGINAL JSON files (not the current potentially randomized store)
-    // We do this for BOTH light and dark modes to ensure a complete component reset
-    const lightUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, uikitJson as any, 'light')
-    const darkUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, uikitJson as any, 'dark')
+    // 2. Build default values from the PRISTINE uikit (deep-cloned at init, never mutated).
+    // Using uikitJson directly would include any in-place mutations made by updateUIKitValue
+    // (custom variants, color changes), causing reset to restore a modified state.
+    const pristineUikit = getVarsStore().getPristineUikit()
+    const lightUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, pristineUikit, 'light')
+    const darkUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, pristineUikit, 'dark')
 
     const componentDefaults: Record<string, string> = {}
 
@@ -972,18 +1008,44 @@ export default function ComponentToolbar({
     filterAndAdd(lightUIKitVars, 'light')
     filterAndAdd(darkUIKitVars, 'dark')
 
-    // 3. Restore defaults from ORIGINAL JSON by setting them as explicit overrides
-    // This handles the case where the global store itself might have been randomized
+    // 3. Restore defaults from the pristine JSON by setting them as explicit overrides
     Object.entries(componentDefaults).forEach(([cssVar, value]) => {
+      updateCssVar(cssVar, value, tokensJson as any)
+    })
+
+    // 4. Re-apply CSS vars for any CUSTOM VARIANTS that exist in the current live uikit
+    // but not in the pristine uikit. Step 1 removed all component CSS vars from the DOM;
+    // Step 2-3 only restores original variants. Without this step, custom variant controls
+    // would show null swatches. Custom variants keep their current JSON-defined color values.
+    const currentUiKit = getVarsStore().getState().uikit
+    const lightCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'light')
+    const darkCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'dark')
+    const pristineVarKeys = new Set(Object.keys(componentDefaults))
+
+    const customVariantDefaults: Record<string, string> = {}
+    const addCustom = (allVars: Record<string, string>) => {
+      Object.entries(allVars).forEach(([cssVar, value]) => {
+        if (isExactComponentVar(cssVar) && !pristineVarKeys.has(cssVar)) {
+          customVariantDefaults[cssVar] = value
+        }
+      })
+    }
+    addCustom(lightCurrentVars)
+    addCustom(darkCurrentVars)
+
+    Object.entries(customVariantDefaults).forEach(([cssVar, value]) => {
       updateCssVar(cssVar, value, tokensJson as any)
     })
 
     // Force a re-render and notification of reset
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
     window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars: Object.keys(componentDefaults) }
+      detail: { cssVars: [...Object.keys(componentDefaults), ...Object.keys(customVariantDefaults)] }
     }))
   }
+
+
+
 
 
   // Get icon for prop using component-specific toolbar config
@@ -1325,7 +1387,7 @@ export default function ComponentToolbar({
       <Modal
         isOpen={resetConfirmOpen}
         onClose={() => setResetConfirmOpen(false)}
-        title="Reset to defaults?"
+        title="Reset component"
         size="sm"
         layer="layer-1"
         primaryActionLabel="Reset"

@@ -47,8 +47,9 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // Remove leading/trailing dots and split
   const parts = path.replace(/^\.+|\.+$/g, '').split('.').filter(Boolean)
 
-  // Build CSS variable name: escape underscores in segments, join with _
-  const varName = parts.map(escapeSegment).join('_')
+  // Lowercase each segment and escape underscores — lowercasing matches the resolver's
+  // toCssVarName so both functions produce identical var names for the same path.
+  const varName = parts.map(part => escapeSegment(part.replace(/\s+/g, '-').toLowerCase())).join('_')
 
   // Include mode in the name if provided (like the resolver: --recursica_ui-kit_themes_light_...)
   if (mode) {

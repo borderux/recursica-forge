@@ -11,7 +11,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type BadgeProps = {
   children?: React.ReactNode
-  variant?: 'primary-color' | 'warning' | 'success' | 'alert'
+  variant?: string
   size?: 'small' | 'large'
   layer?: ComponentLayer
   elevation?: string

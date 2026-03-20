@@ -4,6 +4,7 @@
 
 import uikitJson from '../../../../recursica_ui-kit.json'
 import { toCssVarName } from '../../../components/utils/cssVarNames'
+import { getVarsStore } from '../../../core/store/varsStore'
 
 export interface ComponentVariant {
   propName: string // e.g., "color", "size"
@@ -96,7 +97,11 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
   if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
-  const uikitRoot: any = uikitOverride ?? uikitJson
+  // Always prefer the live store uikit so custom variants created by cloneVariantInUIKit
+  // (which deep-clones, making state.uikit diverge from the static module singleton) are
+  // visible to all call sites that don't explicitly pass an override.
+  const liveUikit = (() => { try { return getVarsStore().getState().uikit } catch { return null } })()
+  const uikitRoot: any = uikitOverride ?? liveUikit ?? uikitJson
   const components = uikitRoot?.['ui-kit']?.components || uikitRoot?.components || {}
   const component = components[componentKey]
 

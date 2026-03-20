@@ -7,6 +7,7 @@
 
 import { useMemo } from 'react'
 import { ComponentProp, parseComponentStructure } from '../../utils/componentToolbarUtils'
+import { useVars } from '../../../vars/VarsContext'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
 import type { ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import './BackgroundToolbar.css'
@@ -38,8 +39,14 @@ export default function BackgroundToolbar({
     includeTextColor = false,
   } = config
 
-  // Find background-related props from component structure
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const { uikit } = useVars()
+
+  // Parse structure from the live uikit so custom variant names are included.
+  // uikit is a reactive dep — the memo recomputes after reset or variant changes.
+  const structure = useMemo(
+    () => parseComponentStructure(componentName, uikit),
+    [componentName, uikit]
+  )
 
   const backgroundProp = useMemo(() => {
     // Always search for the correct background prop based on selectedVariants and selectedLayer

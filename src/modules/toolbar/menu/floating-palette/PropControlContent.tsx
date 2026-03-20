@@ -1,3 +1,4 @@
+import { getVarsStore } from '../../../../core/store/varsStore'
 // Extract the rendering logic from PropControl for use in accordions
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure, getDimensionPropertyType, pathMatchesVariant } from '../../utils/componentToolbarUtils'

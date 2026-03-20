@@ -133,7 +133,13 @@ export function cloneVariantInUIKit(
   sourceVariantName: string,
   newVariantName: string,
 ): JsonLike {
-  const component = getComponent(uikit, componentKey)
+  // Deep-clone before mutating so the module-import singleton is never dirty.
+  // varsStore initialises state.uikit as the same object reference as the static
+  // import, so mutating it in-place would also corrupt the 'original' used by
+  // jsonExport.ts for the diff view.
+  const cloned: JsonLike = JSON.parse(JSON.stringify(uikit))
+
+  const component = getComponent(cloned, componentKey)
   if (!component) {
     throw new Error(`[cloneVariantInUIKit] Component "${componentKey}" not found in uikit.`)
   }
@@ -154,9 +160,12 @@ export function cloneVariantInUIKit(
   if (!newVariantData.$extensions) newVariantData.$extensions = {}
   newVariantData.$extensions['com.recursica.custom'] = true
 
-  categorized[newVariantName] = newVariantData
+  // Lowercase the key — the resolver's toCssVarName lowercases all path segments,
+  // so the JSON key must match to avoid CSS var name mismatches.
+  const variantKey = newVariantName.toLowerCase()
+  categorized[variantKey] = newVariantData
 
-  return uikit
+  return cloned
 }
 
 /**
@@ -169,7 +178,10 @@ export function deleteCustomVariant(
   axisCategory: string,
   variantName: string,
 ): JsonLike {
-  const component = getComponent(uikit, componentKey)
+  // Deep-clone before mutating to protect the module-import singleton.
+  const cloned: JsonLike = JSON.parse(JSON.stringify(uikit))
+
+  const component = getComponent(cloned, componentKey)
   if (!component) {
     throw new Error(`[deleteCustomVariant] Component "${componentKey}" not found in uikit.`)
   }
@@ -188,7 +200,7 @@ export function deleteCustomVariant(
   }
 
   delete categorized[variantName]
-  return uikit
+  return cloned
 }
 
 /**
