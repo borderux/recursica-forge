@@ -184,15 +184,26 @@ export function getComponentCssVar(
 
   // For size category
   if (category === 'size') {
-    const variantMatch = property.match(/^(default|small|large)-(.+)$/)
-    if (variantMatch) {
-      const [, variantName, propName] = variantMatch
-      return buildComponentCssVarPath(component, 'variants', 'sizes', variantName, 'properties', propName)
-    } else if (/^(default|small|large)$/.test(property)) {
-      return buildComponentCssVarPath(component, 'variants', 'sizes', property, 'properties', 'size')
-    } else {
-      return buildComponentCssVarPath(component, 'properties', property)
+    // Match "{variantName}-{propertyName}" where propertyName is a known size property.
+    // Anchor on known property names (sorted longest→shortest to avoid premature matches)
+    // so custom variant names like 'newsize', 'medium', 'xlarge' are handled correctly.
+    const knownSizeProps = [
+      'icon-text-gap', 'horizontal-padding', 'vertical-padding',
+      'min-width', 'max-width', 'min-height', 'max-height',
+      'height', 'spacing', 'icon', 'size',
+    ]
+    for (const knownProp of knownSizeProps) {
+      if (property === knownProp) {
+        // Direct property without a variant prefix → component-level
+        return buildComponentCssVarPath(component, 'properties', property)
+      }
+      if (property.endsWith('-' + knownProp)) {
+        const variantName = property.slice(0, -(knownProp.length + 1))
+        return buildComponentCssVarPath(component, 'variants', 'sizes', variantName, 'properties', knownProp)
+      }
     }
+    // Fallback: treat as component-level property
+    return buildComponentCssVarPath(component, 'properties', property)
   }
 
   // For colors category

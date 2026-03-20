@@ -37,8 +37,11 @@ export default function Button({
   // Map unified size to Mantine size
   const mantineSize = size === 'small' ? 'xs' : size === 'default' ? 'md' : 'lg'
 
-  // Determine size prefix for CSS variables
-  const sizePrefix = size === 'small' ? 'small' : 'default'
+  // Use the actual size value as the CSS var prefix.
+  // Known sizes ('default', 'small') map to their respective CSS vars;
+  // custom size variants (e.g. 'xlarge', 'compact') use their own CSS var path directly.
+  const sizePrefix = size
+
 
   const cssVarVariant = variant
 
