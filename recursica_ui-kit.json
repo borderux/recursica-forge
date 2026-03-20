@@ -469,6 +469,65 @@
                     "value": "{brand.dimensions.general.default}",
                     "unit": "px"
                   }
+                },
+                "text": {
+                  "font-family": {
+                    "$type": "string",
+                    "$value": "{tokens.font.typefaces.primary}"
+                  },
+                  "font-size": {
+                    "$type": "dimension",
+                    "$value": {
+                      "value": "{tokens.font.sizes.sm}",
+                      "unit": "px"
+                    }
+                  },
+                  "font-weight": {
+                    "$type": "number",
+                    "$value": "{tokens.font.weights.regular}"
+                  },
+                  "letter-spacing": {
+                    "$type": "string",
+                    "$value": "{tokens.font.letter-spacings.default}"
+                  },
+                  "line-height": {
+                    "$type": "number",
+                    "$value": "{tokens.font.line-heights.default}"
+                  },
+                  "text-decoration": {
+                    "$type": "string",
+                    "$value": "none"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "none"
+                  },
+                  "font-style": {
+                    "$type": "string",
+                    "$value": "normal"
+                  }
+                },
+                "border-radius": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.border-radii.xl}",
+                    "unit": "px"
+                  }
+                },
+                "max-width": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 500,
+                    "unit": "px"
+                  }
+                },
+                "hover-color": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.black.tone}"
+                },
+                "hover-opacity": {
+                  "$type": "number",
+                  "$value": "{tokens.opacity.mist}"
                 }
               }
             },
@@ -508,72 +567,71 @@
                     "value": "{brand.dimensions.general.sm}",
                     "unit": "px"
                   }
+                },
+                "text": {
+                  "font-family": {
+                    "$type": "string",
+                    "$value": "{tokens.font.typefaces.primary}"
+                  },
+                  "font-size": {
+                    "$type": "dimension",
+                    "$value": {
+                      "value": "{tokens.font.sizes.sm}",
+                      "unit": "px"
+                    }
+                  },
+                  "font-weight": {
+                    "$type": "number",
+                    "$value": "{tokens.font.weights.regular}"
+                  },
+                  "letter-spacing": {
+                    "$type": "string",
+                    "$value": "{tokens.font.letter-spacings.default}"
+                  },
+                  "line-height": {
+                    "$type": "number",
+                    "$value": "{tokens.font.line-heights.default}"
+                  },
+                  "text-decoration": {
+                    "$type": "string",
+                    "$value": "none"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "none"
+                  },
+                  "font-style": {
+                    "$type": "string",
+                    "$value": "normal"
+                  }
+                },
+                "border-radius": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.border-radii.xl}",
+                    "unit": "px"
+                  }
+                },
+                "max-width": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 500,
+                    "unit": "px"
+                  }
+                },
+                "hover-color": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.black.tone}"
+                },
+                "hover-opacity": {
+                  "$type": "number",
+                  "$value": "{tokens.opacity.mist}"
                 }
               }
             }
           }
         },
-        "properties": {
-          "text": {
-            "font-family": {
-              "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
-            },
-            "font-size": {
-              "$type": "dimension",
-              "$value": {
-                "value": "{tokens.font.sizes.sm}",
-                "unit": "px"
-              }
-            },
-            "font-weight": {
-              "$type": "number",
-              "$value": "{tokens.font.weights.regular}"
-            },
-            "letter-spacing": {
-              "$type": "string",
-              "$value": "{tokens.font.letter-spacings.default}"
-            },
-            "line-height": {
-              "$type": "number",
-              "$value": "{tokens.font.line-heights.default}"
-            },
-            "text-decoration": {
-              "$type": "string",
-              "$value": "none"
-            },
-            "text-transform": {
-              "$type": "string",
-              "$value": "none"
-            },
-            "font-style": {
-              "$type": "string",
-              "$value": "normal"
-            }
-          },
-          "border-radius": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.border-radii.xl}",
-              "unit": "px"
-            }
-          },
-          "max-width": {
-            "$type": "dimension",
-            "$value": {
-              "value": 500,
-              "unit": "px"
-            }
-          },
-          "hover-color": {
-            "$type": "color",
-            "$value": "{brand.palettes.core-colors.black.tone}"
-          },
-          "hover-opacity": {
-            "$type": "number",
-            "$value": "{tokens.opacity.mist}"
-          }
-        }
+        "properties": {}
       },
       "toast": {
         "variants": {

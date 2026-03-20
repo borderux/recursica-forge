@@ -7,7 +7,7 @@
 import { Button as MantineButton } from '@mantine/core'
 import { useState, useEffect, useMemo, Children, isValidElement, cloneElement } from 'react'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
@@ -49,9 +49,9 @@ export default function Button({
   const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
   const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
 
-  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
-  const hoverColorVar = getComponentLevelCssVar('Button', 'hover-color')
-  const hoverOpacityVar = getComponentLevelCssVar('Button', 'hover-opacity')
+  // Get hover color and opacity from the size variant (moved from component level)
+  const hoverColorVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'hover-color')
+  const hoverOpacityVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'hover-opacity')
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
 
@@ -80,18 +80,18 @@ export default function Button({
   const horizontalPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
-  const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
-  const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
+  const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'border-radius')
+  const maxWidthVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'max-width')
 
-  // Get all text properties from component text property group
-  const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
-  const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
-  const fontWeightVar = getComponentTextCssVar('Button', 'text', 'font-weight')
-  const letterSpacingVar = getComponentTextCssVar('Button', 'text', 'letter-spacing')
-  const lineHeightVar = getComponentTextCssVar('Button', 'text', 'line-height')
-  const textDecorationVar = getComponentTextCssVar('Button', 'text', 'text-decoration')
-  const textTransformVar = getComponentTextCssVar('Button', 'text', 'text-transform')
-  const fontStyleVar = getComponentTextCssVar('Button', 'text', 'font-style')
+  // Get all text properties from size-variant text property group
+  const fontFamilyVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'font-family')
+  const fontSizeVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'font-size')
+  const fontWeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'font-weight')
+  const letterSpacingVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'letter-spacing')
+  const lineHeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'line-height')
+  const textDecorationVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'text-decoration')
+  const textTransformVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'text-transform')
+  const fontStyleVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'font-style')
 
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
