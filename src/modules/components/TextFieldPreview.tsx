@@ -18,7 +18,7 @@ export default function TextFieldPreview({
   const { mode } = useThemeMode()
 
   // Extract variants from selectedVariants
-  const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
+  const state = selectedVariants.states || 'default'
 
   // Get form vertical gutter CSS variable
   const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
@@ -28,7 +28,9 @@ export default function TextFieldPreview({
   const HeartIcon = iconNameToReactComponent('warning')
 
   // Show both layouts
-  const layoutsToShow: Array<'stacked' | 'side-by-side'> = ['stacked', 'side-by-side']
+  const layoutsToShow: string[] = selectedVariants.layouts
+    ? [selectedVariants.layouts]
+    : ['stacked', 'side-by-side']
 
   const h2Style = {
     margin: 0,
@@ -124,6 +126,17 @@ export default function TextFieldPreview({
                 placeholder="Enter artifact name..."
                 state="focus"
                 layout={layoutVariant}
+                layer={selectedLayer as any}
+              />
+            )}
+            {/* Custom/unknown state — renders a basic field so styling changes are visible */}
+            {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
+              <TextField
+                label="Forge Name"
+                placeholder="Enter artifact name..."
+                defaultValue="Obsidian Gauntlets of the Northern Keep"
+                state={state as any}
+                layout={layoutVariant as any}
                 layer={selectedLayer as any}
               />
             )}

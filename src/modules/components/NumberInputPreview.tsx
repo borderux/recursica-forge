@@ -18,7 +18,7 @@ export default function NumberInputPreview({
     const { mode } = useThemeMode()
 
     // Extract variants from selectedVariants
-    const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
+    const state = (selectedVariants.states || 'default') 
     const layout = (selectedVariants.layouts || 'stacked') as 'stacked' | 'side-by-side'
 
     // Get form vertical gutter CSS variable
@@ -29,7 +29,7 @@ export default function NumberInputPreview({
     const WarningIcon = iconNameToReactComponent('warning')
 
     // Show both layouts if no specific layout is selected, otherwise show selected layout
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts
+    const layoutsToShow: string[] = selectedVariants.layouts
         ? [layout]
         : ['stacked', 'side-by-side']
 

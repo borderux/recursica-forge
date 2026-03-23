@@ -16,10 +16,12 @@ export default function FileUploadPreview({
 }: FileUploadPreviewProps) {
     const { mode } = useThemeMode()
     // Extract variants
-    const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
+    const state = (selectedVariants.states || 'default') 
 
     // Show both layouts
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = ['stacked', 'side-by-side']
+    const layoutsToShow: string[] = selectedVariants.layouts
+    ? [selectedVariants.layouts]
+    : ['stacked', 'side-by-side']
 
     const [files, setFiles] = useState<FileUploadItem[]>([
         { id: '1', name: 'document.pdf', size: 1024, type: 'application/pdf', status: 'success' },
@@ -122,6 +124,18 @@ export default function FileUploadPreview({
                                 files={[]}
                                 layout={layoutVariant}
                                 state="focus"
+                                layer={selectedLayer as any}
+                            />
+                        )}
+
+                        {/* Custom/unknown state — renders a basic field so styling changes are visible */}
+                        {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
+                            <FileUpload
+                                label="Upload Files"
+                                files={[]}
+                                onUpload={() => {}}
+                                state={state as any}
+                                layout={layoutVariant as any}
                                 layer={selectedLayer as any}
                             />
                         )}

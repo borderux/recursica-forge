@@ -15,7 +15,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 export type ReadOnlyFieldProps = {
     value?: string | number
     label?: string
-    layout?: 'stacked' | 'side-by-side'
+    layout?: string  // accepts custom layout variant names
     layer?: ComponentLayer
     required?: boolean
     optional?: boolean

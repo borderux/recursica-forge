@@ -17,7 +17,7 @@ export default function DatePickerPreview({
     const { mode } = useThemeMode()
 
     // Extract variants from selectedVariants
-    const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
+    const state = (selectedVariants.states || 'default') 
 
     // Get form vertical gutter CSS variable
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
@@ -36,7 +36,9 @@ export default function DatePickerPreview({
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
     // Show both layouts
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = ['stacked', 'side-by-side']
+    const layoutsToShow: string[] = selectedVariants.layouts
+    ? [selectedVariants.layouts]
+    : ['stacked', 'side-by-side']
 
     // Example date for populated fields
     const exampleDate = new Date(2025, 0, 25) // Jan 25, 2025
@@ -119,6 +121,17 @@ export default function DatePickerPreview({
                                 placeholder="MM / DD / YY"
                                 state="focus"
                                 layout={layoutVariant}
+                                layer={selectedLayer as any}
+                            />
+                        )}
+
+                        {/* Custom/unknown state — renders a basic field so styling changes are visible */}
+                        {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
+                            <DatePicker
+                                label="Label"
+                                placeholder="MM / DD / YY"
+                                state={state as any}
+                                layout={layoutVariant as any}
                                 layer={selectedLayer as any}
                             />
                         )}

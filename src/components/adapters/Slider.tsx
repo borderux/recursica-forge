@@ -26,7 +26,7 @@ export type SliderProps = {
   max?: number
   step?: number
   disabled?: boolean
-  layout?: 'stacked' | 'side-by-side'
+  layout?: string  // accepts custom layout variant names
   layer?: ComponentLayer
   label?: React.ReactNode
   showInput?: boolean

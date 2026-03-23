@@ -10,8 +10,9 @@ export default function BadgePreview({
   selectedVariants,
   selectedLayer,
 }: BadgePreviewProps) {
-  // Use 'style' instead of 'color' to match the new toolbar structure
-  const styleVariant = (selectedVariants.style || 'primary-color') as 'primary-color' | 'warning' | 'success' | 'alert'
+  // Pass the selected style variant as-is — this supports both built-in and
+  // custom variants (e.g., 'my-badge') without a hardcoded type restriction.
+  const styleVariant = selectedVariants.style || 'primary-color'
 
   // Show only the selected style variant (primary variant)
   const getVariantLabel = (variant: string) => {

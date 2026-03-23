@@ -1,3 +1,4 @@
+import { getVarsStore } from '../../../../core/store/varsStore'
 /**
  * IconGroupToolbar Component
  * 

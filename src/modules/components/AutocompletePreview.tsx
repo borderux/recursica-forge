@@ -17,7 +17,7 @@ export default function AutocompletePreview({
 }: AutocompletePreviewProps) {
     const { mode } = useThemeMode()
 
-    const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
+    const state = (selectedVariants.states || 'default') 
     const layout = (selectedVariants.layouts || 'stacked') as 'stacked' | 'side-by-side'
 
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
@@ -25,7 +25,7 @@ export default function AutocompletePreview({
     const StarIcon = iconNameToReactComponent('star')
     const SearchIcon = iconNameToReactComponent('search')
 
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts
+    const layoutsToShow: string[] = selectedVariants.layouts
         ? [layout]
         : ['stacked', 'side-by-side']
 

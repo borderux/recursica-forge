@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react'
 import { Badge as MantineBadge } from '@mantine/core'
 import type { BadgeProps as AdapterBadgeProps } from '../../Badge'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -26,10 +26,11 @@ export default function Badge({
 }: AdapterBadgeProps) {
   const { mode } = useThemeMode()
 
-  // Get CSS variables
-  const bgVar = getComponentCssVar('Badge', 'colors', `${variant}-background`, layer)
-  const textVar = getComponentCssVar('Badge', 'colors', `${variant}-text`, layer)
-  const borderColorVar = getComponentCssVar('Badge', 'colors', `${variant}-border-color`, layer)
+  // Get CSS variables — use buildVariantColorCssVar so any variant name (including
+  // custom variants like 'my-badge') maps directly to the correct CSS var path.
+  const bgVar = buildVariantColorCssVar('Badge', variant, 'background', layer as any)
+  const textVar = buildVariantColorCssVar('Badge', variant, 'text', layer as any)
+  const borderColorVar = buildVariantColorCssVar('Badge', variant, 'border-color', layer as any)
 
   // Get text CSS variables
   const fontFamilyVar = getComponentTextCssVar('Badge', 'text', 'font-family')

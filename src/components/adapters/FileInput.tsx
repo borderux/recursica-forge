@@ -27,8 +27,8 @@ export type FileInputProps = {
     errorText?: string
     leadingIcon?: React.ReactNode
     trailingIcon?: React.ReactNode
-    state?: 'default' | 'error' | 'disabled' | 'focus'
-    layout?: 'stacked' | 'side-by-side'
+    state?: string  // accepts custom state variant names
+    layout?: string  // accepts custom layout variant names
     layer?: ComponentLayer
     multiple?: boolean
     accept?: string
