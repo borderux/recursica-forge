@@ -38,7 +38,7 @@ export type LinkProps = {
   /** Library-specific size */
   size?: string
   /** Force a specific visual state for preview (bypasses CSS pseudo-states) */
-  forceState?: 'default' | 'hover' | 'visited' | 'visited-hover'
+  forceState?: string  // accepts custom state variant names
 } & LibrarySpecificProps
 
 export function Link({

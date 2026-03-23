@@ -17,13 +17,15 @@ export default function TextareaPreview({
     const { mode } = useThemeMode()
 
     // Extract variants from selectedVariants
-    const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
+    const state = selectedVariants.states || 'default'
 
     // Get form vertical gutter CSS variable
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
     // Show both layouts
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = ['stacked', 'side-by-side']
+    const layoutsToShow: string[] = selectedVariants.layouts
+        ? [selectedVariants.layouts]
+        : ['stacked', 'side-by-side']
 
     const h2Style = {
         margin: 0,
@@ -115,6 +117,18 @@ export default function TextareaPreview({
                                 placeholder="Describe the enchantment process..."
                                 state="focus"
                                 layout={layoutVariant}
+                                layer={selectedLayer as any}
+                            />
+                        )}
+
+                        {/* Custom/unknown state — renders a basic field so styling changes are visible */}
+                        {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
+                            <Textarea
+                                label="Forge Notes"
+                                placeholder="Describe the enchantment process..."
+                                defaultValue="The obsidian gauntlets require three coats of moonstone lacquer."
+                                state={state as any}
+                                layout={layoutVariant as any}
                                 layer={selectedLayer as any}
                             />
                         )}

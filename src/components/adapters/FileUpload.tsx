@@ -32,8 +32,8 @@ export type FileUploadProps = {
     label?: string
     helpText?: string
     errorText?: string
-    layout?: 'stacked' | 'side-by-side'
-    state?: 'default' | 'error' | 'disabled' | 'focus'
+    layout?: string  // accepts custom layout variant names
+    state?: string  // accepts custom state variant names
     layer?: ComponentLayer
     multiple?: boolean
     accept?: string

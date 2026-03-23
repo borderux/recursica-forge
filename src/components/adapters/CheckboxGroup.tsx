@@ -24,7 +24,7 @@ export type CheckboxGroupProps = {
     padding?: string // CSS var or token
     itemGap?: string // CSS var or token
     orientation?: 'horizontal' | 'vertical'
-    layout?: 'stacked' | 'side-by-side'
+    layout?: string  // accepts custom layout variant names
     layer?: ComponentLayer
     labelAlign?: 'left' | 'right'
     labelSize?: 'default' | 'small'
