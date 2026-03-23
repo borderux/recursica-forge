@@ -25,7 +25,7 @@ interface MantineTransferListProps {
     onChange: (data: TransferListData) => void
     sourceLabel: string
     targetLabel: string
-    state: 'default' | 'error' | 'disabled'
+    state: string
     layer: ComponentLayer
     searchable: boolean
     searchPlaceholder: string
@@ -177,7 +177,7 @@ export default function TransferList({
     const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headingLevel) ? headingLevel : 'h4') as keyof JSX.IntrinsicElements
 
     // Border CSS vars
-    const stateName = state === 'error' ? 'error' : state === 'disabled' ? 'disabled' : 'default'
+    const stateName = state  // Use state name directly so custom variants target their own CSS vars
     const borderRadiusVar = getComponentLevelCssVar('TransferList', 'border-radius')
     const borderSizeVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'border-size')
     const borderColorVar = buildComponentCssVarPath('TransferList', 'variants', 'states', stateName, 'properties', 'colors', layer, 'border-color')
