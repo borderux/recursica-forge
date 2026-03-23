@@ -21,7 +21,9 @@ export default function CheckboxGroupPreview({
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
     // Show both layouts
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = ['stacked', 'side-by-side']
+    const layoutsToShow: string[] = selectedVariants.layouts
+    ? [selectedVariants.layouts]
+    : ['stacked', 'side-by-side']
 
     const h2Style = {
         margin: 0,
@@ -63,7 +65,7 @@ function CheckboxGroupSection({
     formVerticalGutterVar,
     h2Style,
 }: {
-    layout: 'stacked' | 'side-by-side'
+    layout: string  // accepts custom layout variant names
     selectedLayer: string
     formVerticalGutterVar: string
     h2Style: React.CSSProperties

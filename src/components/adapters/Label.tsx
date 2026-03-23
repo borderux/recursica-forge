@@ -19,7 +19,7 @@ export type LabelProps = {
   htmlFor?: string
   variant?: 'default' | 'required' | 'optional'
   size?: 'default' | 'small'
-  layout?: 'stacked' | 'side-by-side'
+  layout?: string  // accepts custom layout variant names
   align?: 'left' | 'right'
   layer?: ComponentLayer
   className?: string

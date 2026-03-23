@@ -59,6 +59,7 @@ export type VarsState = {
 
 const STORAGE_KEYS = {
   version: 'rf:vars:version',
+  uikit: 'rf:vars:uikit',
 }
 
 function isLocalStorageAvailable(): boolean {
@@ -169,6 +170,21 @@ function sortFontTokenObjects(tokens: JsonLike): JsonLike {
   return sorted
 }
 
+/** Returns true if the uikit JSON contains any custom variants (tagged with com.recursica.custom). */
+function hasCustomVariants(uikit: any): boolean {
+  const components = uikit?.['ui-kit']?.components ?? uikit?.components ?? {}
+  for (const comp of Object.values(components) as any[]) {
+    const variantsRoot = comp?.variants ?? {}
+    for (const axisObj of Object.values(variantsRoot) as any[]) {
+      if (!axisObj || typeof axisObj !== 'object') continue
+      for (const variant of Object.values(axisObj) as any[]) {
+        if (variant?.$extensions?.['com.recursica.custom'] === true) return true
+      }
+    }
+  }
+  return false
+}
+
 class VarsStore {
   private state: VarsState
   private listeners: Set<Listener> = new Set()
@@ -182,6 +198,12 @@ class VarsStore {
   public structure: StructuralMetadata | null = null
   /** The allVars map produced by the most recent recomputeAndApplyAll (for snapshotting) */
   private lastComputedVars: Record<string, string> = {}
+  /**
+   * Deep-cloned copy of the original uikit JSON taken at init time, before any in-place
+   * mutations from updateUIKitValue. Used by handleReset to build CSS vars from the truly
+   * pristine file structure regardless of what user changes have accumulated in state.
+   */
+  private readonly pristineUikit: JsonLike = JSON.parse(JSON.stringify(uikitImport))
 
   constructor() {
     // Always start from fresh JSON imports. User changes are restored via the delta
@@ -209,8 +231,19 @@ class VarsStore {
       if (storedVersion !== bundleVersion) {
         // Clear CSS delta — stale overrides could reference paths that no longer exist
         clearDelta()
-
+        // Clear any persisted custom uikit — structure may have changed
+        localStorage.removeItem(STORAGE_KEYS.uikit)
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
+      } else {
+        // Bundle unchanged — restore any user-persisted custom uikit (contains custom variants)
+        const savedUikit = localStorage.getItem(STORAGE_KEYS.uikit)
+        if (savedUikit) {
+          try {
+            this.state.uikit = JSON.parse(savedUikit)
+          } catch {
+            localStorage.removeItem(STORAGE_KEYS.uikit)
+          }
+        }
       }
     }
 
@@ -437,9 +470,21 @@ class VarsStore {
     }
   }
 
+  /** Returns the pristine, unmodified uikit JSON (deep-cloned at init time). */
+  getPristineUikit(): JsonLike { return this.pristineUikit }
+
   setUiKit(next: JsonLike) {
     this.writeState({ uikit: next })
     if (!this.isRecomputing) this.recomputeAndApplyAll()
+    // Persist uikit to localStorage when it contains custom variants so they
+    // survive page refreshes. Normal token edits go through the CSS delta system.
+    if (this.lsAvailable) {
+      if (hasCustomVariants(next)) {
+        try { localStorage.setItem(STORAGE_KEYS.uikit, JSON.stringify(next)) } catch { /* full */ }
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.uikit)
+      }
+    }
   }
 
   /**

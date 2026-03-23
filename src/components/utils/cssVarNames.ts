@@ -47,8 +47,9 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
   // Remove leading/trailing dots and split
   const parts = path.replace(/^\.+|\.+$/g, '').split('.').filter(Boolean)
 
-  // Build CSS variable name: escape underscores in segments, join with _
-  const varName = parts.map(escapeSegment).join('_')
+  // Lowercase each segment and escape underscores — lowercasing matches the resolver's
+  // toCssVarName so both functions produce identical var names for the same path.
+  const varName = parts.map(part => escapeSegment(part.replace(/\s+/g, '-').toLowerCase())).join('_')
 
   // Include mode in the name if provided (like the resolver: --recursica_ui-kit_themes_light_...)
   if (mode) {
@@ -183,15 +184,26 @@ export function getComponentCssVar(
 
   // For size category
   if (category === 'size') {
-    const variantMatch = property.match(/^(default|small|large)-(.+)$/)
-    if (variantMatch) {
-      const [, variantName, propName] = variantMatch
-      return buildComponentCssVarPath(component, 'variants', 'sizes', variantName, 'properties', propName)
-    } else if (/^(default|small|large)$/.test(property)) {
-      return buildComponentCssVarPath(component, 'variants', 'sizes', property, 'properties', 'size')
-    } else {
-      return buildComponentCssVarPath(component, 'properties', property)
+    // Match "{variantName}-{propertyName}" where propertyName is a known size property.
+    // Anchor on known property names (sorted longest→shortest to avoid premature matches)
+    // so custom variant names like 'newsize', 'medium', 'xlarge' are handled correctly.
+    const knownSizeProps = [
+      'icon-text-gap', 'horizontal-padding', 'vertical-padding',
+      'min-width', 'max-width', 'min-height', 'max-height',
+      'height', 'spacing', 'icon', 'size',
+    ]
+    for (const knownProp of knownSizeProps) {
+      if (property === knownProp) {
+        // Direct property without a variant prefix → component-level
+        return buildComponentCssVarPath(component, 'properties', property)
+      }
+      if (property.endsWith('-' + knownProp)) {
+        const variantName = property.slice(0, -(knownProp.length + 1))
+        return buildComponentCssVarPath(component, 'variants', 'sizes', variantName, 'properties', knownProp)
+      }
     }
+    // Fallback: treat as component-level property
+    return buildComponentCssVarPath(component, 'properties', property)
   }
 
   // For colors category

@@ -1,3 +1,4 @@
+import { getVarsStore } from '../../../../core/store/varsStore'
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { ComponentProp, toSentenceCase, parseComponentStructure } from '../../utils/componentToolbarUtils'
 import { getPropLabel, getPropVisible, getGroupedProps, getGroupedPropConfig, getPropConfig } from '../../utils/loadToolbarConfig'

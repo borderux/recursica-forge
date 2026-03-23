@@ -35,12 +35,12 @@ export default function TransferListPreview({
 }: TransferListPreviewProps) {
     const { mode } = useThemeMode()
 
-    // Extract state variant
-    const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled'
+    // Extract state variant — allows custom states
+    const state = selectedVariants.states || 'default'
 
-    // Show both layouts if no specific layout is selected, otherwise show selected layout
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts
-        ? [(selectedVariants.layouts as 'stacked' | 'side-by-side')]
+    // Show the selected layout; fall back to showing both built-in layouts when none selected
+    const layoutsToShow: string[] = selectedVariants.layouts
+        ? [selectedVariants.layouts]
         : ['stacked', 'side-by-side']
 
     const h2Style = {

@@ -12,7 +12,7 @@ export default function LinkPreview({
     selectedLayer,
     componentElevation,
 }: LinkPreviewProps) {
-    const state = (selectedVariants.states || 'default') as 'default' | 'hover' | 'visited' | 'visited-hover'
+    const state = (selectedVariants.states || 'default') 
     const ArrowUpRightIcon = iconNameToReactComponent('arrow-top-right-on-square')
 
     return (

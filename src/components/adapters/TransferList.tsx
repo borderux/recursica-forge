@@ -44,8 +44,8 @@ export type TransferListProps = {
     helpText?: string
     /** Error text displayed below the component */
     errorText?: string
-    /** Component state */
-    state?: 'default' | 'error' | 'disabled'
+    /** Component state — accepts any variant name including custom states */
+    state?: string
     /** Layer for theming */
     layer?: ComponentLayer
     /** Enable search fields (default: true) */
@@ -56,8 +56,8 @@ export type TransferListProps = {
     required?: boolean
     /** Optional indicator */
     optional?: boolean
-    /** Layout for the label */
-    layout?: 'stacked' | 'side-by-side'
+    /** Layout — accepts any variant name including custom layouts */
+    layout?: string
     /** Additional className */
     className?: string
     /** Additional styles */
@@ -228,7 +228,7 @@ export function TransferList({
     const labelElement = label ? (
         <Label
             variant={required ? 'required' : (optional ? 'optional' : 'default')}
-            layout={layout}
+            layout={layout === 'side-by-side' ? 'side-by-side' : 'stacked'}
             align="left"
             layer={layer}
         >

@@ -57,12 +57,28 @@ export default function TextStyleToolbar({
     return !allowedProps || allowedProps.includes(propName)
   }, [allowedProps])
 
-  // Get size variant for variant-specific text properties (e.g., Avatar)
-  // Only use size variants for components that actually have size-specific text properties
-  // Button, Chip, etc. have text properties at the component level, not per size variant
-  const componentsWithSizeSpecificText = ['Avatar'] // Components that have text properties under size variants
-  const hasSizeSpecificText = componentsWithSizeSpecificText.includes(componentName)
+  // Detect whether this component's text prop lives under size variants by checking the live uikit.
+  // Previously this was a hardcoded allowlist ['Avatar']; any component that moves text props into
+  // size variants (like Button) now works automatically without code changes here.
+  const hasSizeSpecificText = useMemo(() => {
+    try {
+      const uikit = getVarsStore().getState().uikit as any
+      const components = uikit?.['ui-kit']?.components || uikit?.components || {}
+      let key = componentName.toLowerCase().replace(/\s+/g, '-')
+      if (key === 'hover-card-/-popover') key = 'hover-card-popover'
+      const comp = components[key]
+      if (!comp) return false
+      // Check if textElementName appears inside any size variant's properties
+      const sizes = comp?.variants?.sizes || {}
+      return Object.values(sizes).some(
+        (sv: any) => sv?.properties?.[textElementName] !== undefined
+      )
+    } catch {
+      return false
+    }
+  }, [componentName, textElementName])
   const sizeVariant = hasSizeSpecificText ? (selectedVariants?.size || selectedVariants?.sizeVariant || undefined) : undefined
+
 
   // Components that have state-variant text properties (font-weight, text-decoration, text-transform, font-style)
   // For these components, the 4 state-dependent props are under variants.states.{state}.properties.text.*

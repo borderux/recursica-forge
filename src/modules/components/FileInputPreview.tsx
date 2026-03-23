@@ -24,7 +24,7 @@ export default function FileInputPreview({
     ], [])
 
     // Extract variants
-    const state = (selectedVariants.states || 'default') as 'default' | 'error' | 'disabled' | 'focus'
+    const state = (selectedVariants.states || 'default') 
 
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
@@ -41,7 +41,9 @@ export default function FileInputPreview({
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = ['stacked', 'side-by-side']
+    const layoutsToShow: string[] = selectedVariants.layouts
+    ? [selectedVariants.layouts]
+    : ['stacked', 'side-by-side']
 
     return (
         <div style={{
@@ -102,6 +104,16 @@ export default function FileInputPreview({
                                 label="Focus State"
                                 state="focus"
                                 layout={layoutVariant}
+                                layer={selectedLayer as any}
+                            />
+                        )}
+
+                        {/* Custom/unknown state — renders a basic field so styling changes are visible */}
+                        {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
+                            <FileInput
+                                label="File Input"
+                                state={state as any}
+                                layout={layoutVariant as any}
                                 layer={selectedLayer as any}
                             />
                         )}
