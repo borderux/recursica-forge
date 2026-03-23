@@ -125,7 +125,7 @@ export default function ComponentToolbar({
 
   // Filter variants to only show those with more than one option AND are in the toolbar config, sorted by config order
   const visibleVariants = useMemo(() => {
-    const filtered = liveStructure.variants.filter(variant => variant.variants.length > 1)
+    const filtered = liveStructure.variants.filter(variant => variant.variants.length >= 1)
 
     // Only show variants that are explicitly listed in the toolbar config
     if (toolbarConfig?.variants) {
@@ -141,8 +141,11 @@ export default function ComponentToolbar({
       })
     }
 
-    // If no toolbar config, don't show any variants (they should be configured)
-    return []
+    // No toolbar config variants section: show any axes that exist in the live uikit.
+    // This is needed for custom variants created on zero-variant components (e.g. breadcrumb)
+    // which have no pre-existing toolbar config for their axis.
+    return filtered
+
   }, [liveStructure.variants, toolbarConfig, componentName, selectedVariants, liveUikitVariantSignature])
 
   useEffect(() => {
@@ -1197,23 +1200,7 @@ export default function ComponentToolbar({
         </div>
       )}
 
-      {/* Add Variant button — only visible for components with zero variant axes */}
-      {hasNoVariantAxes && (
-        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
-          <Button
-            onClick={() => handleOpenCreateVariant('', [])}
-            variant="outline"
-            layer="layer-0"
-            style={{ width: '100%' }}
-            icon={(() => {
-              const PlusIcon = iconNameToReactComponent('plus')
-              return PlusIcon ? <PlusIcon style={{ width: 16, height: 16 }} /> : undefined
-            })()}
-          >
-            Add variant
-          </Button>
-        </div>
-      )}
+
 
       {/* Dynamic Props Section - Accordion Style */}
       <Accordion
