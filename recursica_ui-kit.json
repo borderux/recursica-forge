@@ -4853,14 +4853,14 @@
           "padding": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.general.md}",
+              "value": "{brand.dimensions.general.lg}",
               "unit": "px"
             }
           },
-          "content-padding": {
+          "divider-size": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.general.md}",
+              "value": 1,
               "unit": "px"
             }
           },
@@ -4888,7 +4888,7 @@
           "header-content-gap": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.general.sm}",
+              "value": "{brand.dimensions.general.lg}",
               "unit": "px"
             }
           },

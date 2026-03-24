@@ -63,8 +63,8 @@
           "label": "Background",
           "visible": true
         },
-        "content-padding": {
-          "label": "Padding",
+        "header-content-gap": {
+          "label": "Header-content gap",
           "visible": true
         }
       }
@@ -83,9 +83,10 @@
           "label": "Color",
           "visible": true
         },
-        "header-content-gap": {
-          "label": "Header-content gap",
-          "visible": true
+        "divider-size": {
+          "label": "Divider size",
+          "visible": true,
+          "floatingPaletteLabel": "Divider Size"
         }
       }
     },

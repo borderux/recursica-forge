@@ -137,7 +137,7 @@ export default function Accordion({
   const hoverOpacityVar = getComponentLevelCssVar('AccordionItem', 'hover-opacity')
 
   const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
-  const contentPaddingVar = getComponentLevelCssVar('AccordionItem', 'content-padding')
+  const dividerSizeVar = getComponentLevelCssVar('AccordionItem', 'divider-size')
   const iconSizeVar = getComponentLevelCssVar('AccordionItem', 'icon-size')
   const iconGapVar = getComponentLevelCssVar('AccordionItem', 'icon-gap')
   const borderRadiusVar = getComponentLevelCssVar('AccordionItem', 'border-radius')
@@ -355,7 +355,7 @@ export default function Accordion({
         ['--accordion-item-content-bg' as string]: `var(${contentBgVar})`,
         ['--accordion-item-content-text' as string]: `var(${contentTextVar})`,
         ['--accordion-item-padding' as string]: `var(${itemPaddingVar})`,
-        ['--accordion-item-content-padding' as string]: `var(${contentPaddingVar})`,
+        ['--accordion-item-divider-size' as string]: `var(${dividerSizeVar})`,
         ['--accordion-item-icon-size' as string]: `var(${iconSizeVar})`,
         ['--accordion-item-icon-gap' as string]: `var(${iconGapVar})`,
         ['--accordion-item-border-radius' as string]: `var(${borderRadiusVar})`,

@@ -25,6 +25,7 @@
 
 /* Item styles - remove all borders from items */
 .recursica-accordion.material-accordion .MuiAccordion-root {
+  padding: 0 !important;
   background: var(--accordion-item-header-bg-collapsed) !important;
   border-radius: var(--accordion-item-border-radius) !important;
   box-shadow: var(--accordion-item-elevation-box-shadow, none) !important;
@@ -42,7 +43,7 @@
 }
 
 .recursica-accordion.material-accordion .MuiAccordion-root[data-divider='true'] {
-  border-bottom: 1px solid var(--accordion-item-divider-color) !important;
+  border-bottom: var(--accordion-item-divider-size, 1px) solid var(--accordion-item-divider-color) !important;
   border-top: none !important;
   border-left: none !important;
   border-right: none !important;
@@ -117,8 +118,7 @@
 }
 
 .recursica-accordion.material-accordion .MuiAccordionDetails-root {
-  padding: var(--accordion-item-content-padding) !important;
-  padding-top: calc(var(--accordion-item-header-content-gap, 0px) + var(--accordion-item-content-padding, 0px)) !important;
+  padding: var(--accordion-item-header-content-gap, 0px) var(--accordion-item-padding) var(--accordion-item-padding) !important;
   background: var(--accordion-item-content-bg) !important;
   color: var(--accordion-item-content-text) !important;
   font-family: var(--accordion-item-content-font-family) !important;

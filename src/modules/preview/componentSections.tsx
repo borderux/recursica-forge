@@ -403,7 +403,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
                 {
                   id: 'item-1',
                   title: 'Accordion item',
-                  content: 'This demonstrates AccordionItem properties. The header uses AccordionItem colors, padding, icon-size, and icon-gap. The content uses AccordionItem content-background, content-text, and content-padding.',
+                  content: 'This demonstrates AccordionItem properties. The header uses AccordionItem colors, padding, icon-size, and icon-gap. The content uses AccordionItem content-background and content-text.',
                   open: true,
                   divider: false
                 },
