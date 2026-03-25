@@ -53,7 +53,7 @@
 .recursica-accordion.carbon-accordion .cds--accordion__button {
   background: transparent !important;
   color: var(--accordion-item-header-text) !important;
-  padding: var(--accordion-item-padding) !important;
+  padding: var(--accordion-item-padding-vertical) var(--accordion-item-padding-horizontal) !important;
   font-family: var(--accordion-item-header-font-family) !important;
   font-size: var(--accordion-item-header-font-size) !important;
   font-weight: var(--accordion-item-header-font-weight) !important;
@@ -152,9 +152,9 @@
   line-height: 0 !important;
   transform-origin: center !important;
   transition: transform 150ms ease !important;
-  width: var(--accordion-item-icon-size) !important;
-  height: var(--accordion-item-icon-size) !important;
-  min-width: var(--accordion-item-icon-size) !important;
+  width: var(--accordion-item-icon-right-size) !important;
+  height: var(--accordion-item-icon-right-size) !important;
+  min-width: var(--accordion-item-icon-right-size) !important;
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__arrow svg {
@@ -164,7 +164,7 @@
 }
 
 .recursica-accordion.carbon-accordion .cds--accordion__content {
-  padding: var(--accordion-item-header-content-gap, 0px) var(--accordion-item-padding) var(--accordion-item-padding) !important;
+  padding: var(--accordion-item-header-content-gap, 0px) var(--accordion-item-padding-horizontal) var(--accordion-item-content-bottom-padding) !important;
   background: var(--accordion-item-content-bg) !important;
   color: var(--accordion-item-content-text) !important;
   font-family: var(--accordion-item-content-font-family) !important;

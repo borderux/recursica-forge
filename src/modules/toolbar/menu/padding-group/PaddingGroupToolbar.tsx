@@ -50,6 +50,17 @@ export default function PaddingGroupToolbar({
   const hasVertical = groupedPropsConfig && ('vertical-padding' in groupedPropsConfig || 'padding-vertical' in groupedPropsConfig)
   const isSinglePadding = !hasGroupedProps || (!hasHorizontal && !hasVertical)
 
+  // Standard prop names handled explicitly — anything else is an "extra" prop
+  const standardPropNames = new Set([
+    'padding', 'horizontal-padding', 'padding-horizontal',
+    'vertical-padding', 'padding-vertical', 'top-bottom-margin',
+  ])
+
+  // Extra grouped props: any in groupedPropsConfig that aren't standard
+  const extraPropNames = groupedPropsConfig
+    ? Object.keys(groupedPropsConfig).filter(k => !standardPropNames.has(k) && groupedPropsConfig[k]?.visible !== false)
+    : []
+
   // Find padding-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
 
@@ -193,6 +204,21 @@ export default function PaddingGroupToolbar({
             <BrandDimensionSliderInline
               targetCssVar={marginProp.cssVar}
               label={`Top and bottom margin (${layoutLabel})`}
+              dimensionCategory="general"
+              layer="layer-1"
+            />
+          </div>
+        )
+      })}
+      {extraPropNames.map(propName => {
+        const extraProp = structure.props.find(p => p.name.toLowerCase() === propName.toLowerCase())
+        if (!extraProp?.cssVar) return null
+        const label = groupedPropsConfig?.[propName]?.label || propName
+        return (
+          <div key={extraProp.cssVar} className="padding-group-control">
+            <BrandDimensionSliderInline
+              targetCssVar={extraProp.cssVar}
+              label={label}
               dimensionCategory="general"
               layer="layer-1"
             />

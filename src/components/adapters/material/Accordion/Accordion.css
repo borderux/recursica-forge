@@ -54,7 +54,7 @@
 }
 
 .recursica-accordion.material-accordion .MuiAccordionSummary-root {
-  padding: var(--accordion-item-padding) !important;
+  padding: var(--accordion-item-padding-vertical) var(--accordion-item-padding-horizontal) !important;
   color: var(--accordion-item-header-text) !important;
   font-family: var(--accordion-item-header-font-family) !important;
   font-size: var(--accordion-item-header-font-size) !important;
@@ -106,9 +106,9 @@
   line-height: 0 !important;
   transform-origin: center !important;
   transition: transform 150ms ease !important;
-  width: var(--accordion-item-icon-size) !important;
-  height: var(--accordion-item-icon-size) !important;
-  min-width: var(--accordion-item-icon-size) !important;
+  width: var(--accordion-item-icon-right-size) !important;
+  height: var(--accordion-item-icon-right-size) !important;
+  min-width: var(--accordion-item-icon-right-size) !important;
 }
 
 .recursica-accordion.material-accordion .MuiAccordionSummary-expandIconWrapper svg {
@@ -118,7 +118,7 @@
 }
 
 .recursica-accordion.material-accordion .MuiAccordionDetails-root {
-  padding: var(--accordion-item-header-content-gap, 0px) var(--accordion-item-padding) var(--accordion-item-padding) !important;
+  padding: var(--accordion-item-header-content-gap, 0px) var(--accordion-item-padding-horizontal) var(--accordion-item-content-bottom-padding) !important;
   background: var(--accordion-item-content-bg) !important;
   color: var(--accordion-item-content-text) !important;
   font-family: var(--accordion-item-content-font-family) !important;

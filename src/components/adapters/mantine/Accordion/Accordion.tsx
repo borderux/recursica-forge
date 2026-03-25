@@ -136,12 +136,15 @@ export default function Accordion({
   const hoverColorVar = getComponentLevelCssVar('AccordionItem', 'hover-color')
   const hoverOpacityVar = getComponentLevelCssVar('AccordionItem', 'hover-opacity')
 
-  const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
+  const itemPaddingHVar = getComponentLevelCssVar('AccordionItem', 'padding-horizontal')
+  const itemPaddingVVar = getComponentLevelCssVar('AccordionItem', 'padding-vertical')
   const dividerSizeVar = getComponentLevelCssVar('AccordionItem', 'divider-size')
-  const iconSizeVar = getComponentLevelCssVar('AccordionItem', 'icon-size')
+  const iconLeftSizeVar = getComponentLevelCssVar('AccordionItem', 'icon-left-size')
+  const iconRightSizeVar = getComponentLevelCssVar('AccordionItem', 'icon-right-size')
   const iconGapVar = getComponentLevelCssVar('AccordionItem', 'icon-gap')
   const borderRadiusVar = getComponentLevelCssVar('AccordionItem', 'border-radius')
   const headerContentGapVar = getComponentLevelCssVar('AccordionItem', 'header-content-gap')
+  const contentBottomPaddingVar = getComponentLevelCssVar('AccordionItem', 'content-bottom-padding')
   const formVerticalItemGapVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
   // Item elevation - reactive pattern for toolbar control
@@ -354,12 +357,15 @@ export default function Accordion({
         ['--accordion-item-divider-color' as string]: `var(${dividerColorVar})`,
         ['--accordion-item-content-bg' as string]: `var(${contentBgVar})`,
         ['--accordion-item-content-text' as string]: `var(${contentTextVar})`,
-        ['--accordion-item-padding' as string]: `var(${itemPaddingVar})`,
+        ['--accordion-item-padding-horizontal' as string]: `var(${itemPaddingHVar})`,
+        ['--accordion-item-padding-vertical' as string]: `var(${itemPaddingVVar})`,
         ['--accordion-item-divider-size' as string]: `var(${dividerSizeVar})`,
-        ['--accordion-item-icon-size' as string]: `var(${iconSizeVar})`,
+        ['--accordion-item-icon-left-size' as string]: `var(${iconLeftSizeVar})`,
+        ['--accordion-item-icon-right-size' as string]: `var(${iconRightSizeVar})`,
         ['--accordion-item-icon-gap' as string]: `var(${iconGapVar})`,
         ['--accordion-item-border-radius' as string]: `var(${borderRadiusVar})`,
         ['--accordion-item-header-content-gap' as string]: `var(${headerContentGapVar})`,
+        ['--accordion-item-content-bottom-padding' as string]: `var(${contentBottomPaddingVar})`,
         // Header text properties
         ['--accordion-item-header-font-family' as string]: `var(${headerFontFamilyVar})`,
         ['--accordion-item-header-font-size' as string]: `var(${headerFontSizeVar})`,
@@ -392,8 +398,8 @@ export default function Accordion({
         const ItemIcon = item.icon
         const titleWithIcon = ItemIcon ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--accordion-item-icon-gap, 8px)' }}>
-            <div style={{ flexShrink: 0, color: `var(--accordion-item-icon-color)`, width: 'var(--accordion-item-icon-size, 16px)', height: 'var(--accordion-item-icon-size, 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ItemIcon size={16} />
+            <div style={{ flexShrink: 0, color: `var(--accordion-item-icon-color)`, width: 'var(--accordion-item-icon-left-size, 16px)', height: 'var(--accordion-item-icon-left-size, 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ItemIcon style={{ width: '100%', height: '100%', display: 'block' }} />
             </div>
             <span>{item.title}</span>
           </div>

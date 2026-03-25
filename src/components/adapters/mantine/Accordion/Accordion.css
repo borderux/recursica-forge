@@ -53,7 +53,7 @@
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-control {
-  padding: var(--accordion-item-padding) !important;
+  padding: var(--accordion-item-padding-vertical) var(--accordion-item-padding-horizontal) !important;
   background: transparent !important;
   color: var(--accordion-item-header-text) !important;
   font-family: var(--accordion-item-header-font-family) !important;
@@ -105,8 +105,8 @@
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-chevron {
   color: var(--accordion-item-icon-color) !important;
-  width: var(--accordion-item-icon-size) !important;
-  height: var(--accordion-item-icon-size) !important;
+  width: var(--accordion-item-icon-right-size) !important;
+  height: var(--accordion-item-icon-right-size) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -138,7 +138,7 @@
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-content {
-  padding: 0 var(--accordion-item-padding) var(--accordion-item-padding) !important;
+  padding: 0 var(--accordion-item-padding-horizontal) var(--accordion-item-content-bottom-padding) !important;
   display: flex !important;
   flex-direction: column !important;
   gap: var(--accordion-item-content-gap) !important;

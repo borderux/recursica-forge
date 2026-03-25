@@ -14,10 +14,6 @@
           "label": "Icon",
           "visible": true
         },
-        "padding": {
-          "label": "Padding",
-          "visible": true
-        },
         "icon-gap": {
           "label": "Icon gap",
           "visible": true
@@ -62,9 +58,28 @@
         "content-background": {
           "label": "Background",
           "visible": true
+        }
+      }
+    },
+    "padding": {
+      "icon": "arrows-in",
+      "label": "Padding",
+      "visible": true,
+      "group": {
+        "padding-horizontal": {
+          "label": "Horizontal",
+          "visible": true
+        },
+        "padding-vertical": {
+          "label": "Vertical",
+          "visible": true
         },
         "header-content-gap": {
           "label": "Header-content gap",
+          "visible": true
+        },
+        "content-bottom-padding": {
+          "label": "Content bottom",
           "visible": true
         }
       }
@@ -92,8 +107,18 @@
     },
     "icon-size": {
       "icon": "arrows-up-down",
-      "label": "Icon size",
-      "visible": true
+      "label": "Icon sizes",
+      "visible": true,
+      "group": {
+        "icon-left-size": {
+          "label": "Left icon",
+          "visible": true
+        },
+        "icon-right-size": {
+          "label": "Right icon",
+          "visible": true
+        }
+      }
     },
     "hover": {
       "icon": "cursor-click",
