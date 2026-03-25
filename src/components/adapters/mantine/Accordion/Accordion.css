@@ -30,6 +30,7 @@
 
 /* Item styles - ensure no borders on items */
 .recursica-accordion.mantine-accordion .mantine-Accordion-item {
+  padding: 0 !important;
   background: var(--accordion-item-header-bg-collapsed) !important;
   border-radius: var(--accordion-item-border-radius) !important;
   /* box-shadow is applied via inline style from component */
@@ -41,7 +42,7 @@
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-item[data-divider='true'] {
-  border-bottom: 1px solid var(--accordion-item-divider-color) !important;
+  border-bottom: var(--accordion-item-divider-size, 1px) solid var(--accordion-item-divider-color) !important;
   border-top: none !important;
   border-left: none !important;
   border-right: none !important;
@@ -52,7 +53,7 @@
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-control {
-  padding: var(--accordion-item-padding) !important;
+  padding: var(--accordion-item-padding-vertical) var(--accordion-item-padding-horizontal) !important;
   background: transparent !important;
   color: var(--accordion-item-header-text) !important;
   font-family: var(--accordion-item-header-font-family) !important;
@@ -104,8 +105,8 @@
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-chevron {
   color: var(--accordion-item-icon-color) !important;
-  width: var(--accordion-item-icon-size) !important;
-  height: var(--accordion-item-icon-size) !important;
+  width: var(--accordion-item-icon-right-size) !important;
+  height: var(--accordion-item-icon-right-size) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -123,6 +124,7 @@
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-panel {
   padding: 0 !important;
+  padding-top: var(--accordion-item-header-content-gap, 0px) !important;
   background: var(--accordion-item-content-bg) !important;
   color: var(--accordion-item-content-text) !important;
   font-family: var(--accordion-item-content-font-family) !important;
@@ -136,7 +138,7 @@
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-content {
-  padding: var(--accordion-item-content-padding, 0) !important;
+  padding: 0 var(--accordion-item-padding-horizontal) var(--accordion-item-content-bottom-padding) !important;
   display: flex !important;
   flex-direction: column !important;
   gap: var(--accordion-item-content-gap) !important;

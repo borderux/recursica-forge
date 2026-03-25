@@ -13,7 +13,7 @@ export type AccordionItem = {
   id: string
   title: React.ReactNode
   content: React.ReactNode
-  icon?: React.ComponentType<{ className?: string; size?: number }> | null
+  icon?: React.ComponentType<{ className?: string; size?: number; style?: React.CSSProperties }> | null
   open?: boolean
   divider?: boolean
   disabled?: boolean
@@ -130,7 +130,7 @@ export function Accordion({
           const titleWithIcon = ItemIcon ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <ItemIcon size={16} />
+                <ItemIcon style={{ width: '100%', height: '100%', display: 'block' }} />
               </div>
               <span>{item.title}</span>
             </div>

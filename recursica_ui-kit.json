@@ -4850,21 +4850,35 @@
       },
       "accordion-item": {
         "properties": {
-          "padding": {
+          "padding-horizontal": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.general.md}",
+              "value": "{brand.dimensions.general.lg}",
               "unit": "px"
             }
           },
-          "content-padding": {
+          "padding-vertical": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.general.md}",
+              "value": "{brand.dimensions.general.lg}",
               "unit": "px"
             }
           },
-          "icon-size": {
+          "divider-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
+          "icon-left-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.icons.default}",
+              "unit": "px"
+            }
+          },
+          "icon-right-size": {
             "$type": "dimension",
             "$value": {
               "value": "{brand.dimensions.icons.default}",
@@ -4888,7 +4902,14 @@
           "header-content-gap": {
             "$type": "dimension",
             "$value": {
-              "value": "{brand.dimensions.general.sm}",
+              "value": "{brand.dimensions.general.lg}",
+              "unit": "px"
+            }
+          },
+          "content-bottom-padding": {
+            "$type": "dimension",
+            "$value": {
+              "value": "{brand.dimensions.general.lg}",
               "unit": "px"
             }
           },
