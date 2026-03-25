@@ -5131,7 +5131,7 @@
                 "padding": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.general.default}",
+                    "value": null,
                     "unit": "px"
                   }
                 },
@@ -5344,7 +5344,7 @@
                 "padding": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.general.default}",
+                    "value": null,
                     "unit": "px"
                   }
                 },
@@ -5557,7 +5557,7 @@
                 "padding": {
                   "$type": "dimension",
                   "$value": {
-                    "value": "{brand.dimensions.general.default}",
+                    "value": null,
                     "unit": "px"
                   }
                 },
