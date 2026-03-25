@@ -6,7 +6,7 @@ import { getVarsStore } from '../../../../core/store/varsStore'
  * for component icon groups.
  */
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState, useCallback } from 'react'
 import { ComponentProp, parseComponentStructure } from '../../utils/componentToolbarUtils'
 import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
 import PaletteColorControl from '../../../forms/PaletteColorControl'
@@ -16,9 +16,11 @@ import { SegmentedControl } from '../../../../components/adapters/SegmentedContr
 import { Label } from '../../../../components/adapters/Label'
 import { useCssVar } from '../../../../components/hooks/useCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
+import { readCssVar } from '../../../../core/css/readCssVar'
 import { getComponentLevelCssVar } from '../../../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
 import IconSelector from '../../../components/IconSelector'
+import { Slider } from '../../../../components/adapters/Slider'
 import './IconGroupToolbar.css'
 
 interface IconGroupToolbarProps {
@@ -55,6 +57,21 @@ export default function IconGroupToolbar({
 
   const sizePropName = propNameMapping.size || 'icon-size'
   const gapPropName = propNameMapping.gap || 'icon-text-gap'
+
+  // Standard prop names handled explicitly — anything else in groupedPropsConfig is "extra"
+  const standardIconPropNames = new Set([
+    'icon-size', 'icon', 'close-icon-size',
+    'icon-text-gap', 'spacing',
+    'showIcon', 'iconName', 'iconPosition',
+    'max-width',
+    ...colorProps.map(p => p.toLowerCase()),
+  ])
+
+  const extraPropNames = groupedPropsConfig
+    ? Object.keys(groupedPropsConfig).filter(
+        k => !standardIconPropNames.has(k) && groupedPropsConfig[k]?.visible !== false
+      )
+    : []
 
   // Find icon-related props from component structure
   const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
@@ -149,6 +166,14 @@ export default function IconGroupToolbar({
   const iconSizeVar = iconSizeProp?.cssVar || ''
   const iconGapVar = iconGapProp?.cssVar || ''
   const closeIconSizeVar = closeIconSizeProp?.cssVar || ''
+
+  // Find max-width prop
+  const maxWidthProp = useMemo(() => {
+    return structure.props.find(p => p.name.toLowerCase() === 'max-width')
+  }, [structure])
+  const maxWidthVar = maxWidthProp?.cssVar || ''
+  const maxWidthVisible = groupedPropsConfig?.['max-width']?.visible !== false
+  const maxWidthLabel = groupedPropsConfig?.['max-width']?.label || 'Max width'
 
   // Check visibility from toolbar config
   const iconSizeVisible = groupedPropsConfig?.['icon-size']?.visible !== false ||
@@ -285,6 +310,44 @@ export default function IconGroupToolbar({
     )
   }
   {
+    maxWidthVar && maxWidthVisible && groupedPropsConfig?.['max-width'] && (() => {
+      const MaxWidthSlider = () => {
+        const minValue = 100
+        const maxValue = 500
+        const [value, setValue] = useState(() => {
+          const raw = readCssVar(maxWidthVar)
+          const match = (raw || '').match(/^(\d+(?:\.\d+)?)px$/i)
+          return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 200
+        })
+        const handleChange = useCallback((val: number | [number, number]) => {
+          const num = Math.max(minValue, Math.min(maxValue, Math.round(typeof val === 'number' ? val : val[0])))
+          setValue(num)
+          updateCssVar(maxWidthVar, `${num}px`)
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: [maxWidthVar] } }))
+        }, [maxWidthVar])
+        return (
+          <Slider
+            value={value}
+            onChange={handleChange}
+            onChangeCommitted={handleChange}
+            min={minValue}
+            max={maxValue}
+            step={1}
+            layer="layer-1"
+            layout="stacked"
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(v: number) => `${v}px`}
+            minLabel={`${minValue}px`}
+            maxLabel={`${maxValue}px`}
+            showMinMaxLabels={false}
+            label={<Label layer="layer-1" layout="stacked">{maxWidthLabel}</Label>}
+          />
+        )
+      }
+      return <div className="icon-group-control"><MaxWidthSlider /></div>
+    })()}
+  {
     includeColors && iconColorProps.map((colorProp, index) => {
       const colorPropName = colorProp.name.toLowerCase()
       const colorVisible = groupedPropsConfig?.[colorPropName]?.visible !== false
@@ -297,6 +360,23 @@ export default function IconGroupToolbar({
           />
         </div>
       ) : null
+    })
+  }
+  {
+    extraPropNames.map(propName => {
+      const extraProp = structure.props.find(p => p.name.toLowerCase() === propName.toLowerCase())
+      if (!extraProp?.cssVar) return null
+      const label = groupedPropsConfig?.[propName]?.label || propName
+      return (
+        <div key={extraProp.cssVar} className="icon-group-control">
+          <BrandDimensionSliderInline
+            targetCssVar={extraProp.cssVar}
+            label={label}
+            dimensionCategory="general"
+            layer="layer-1"
+          />
+        </div>
+      )
     })
   }
     </div >

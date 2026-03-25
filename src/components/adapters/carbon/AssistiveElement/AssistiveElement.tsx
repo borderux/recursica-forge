@@ -32,6 +32,7 @@ export default function AssistiveElement({
   const iconSizeVar = getComponentLevelCssVar('AssistiveElement', 'icon-size')
   const iconTextGapVar = getComponentLevelCssVar('AssistiveElement', 'icon-text-gap')
   const topMarginVar = getComponentLevelCssVar('AssistiveElement', 'top-margin')
+  const maxWidthVar = getComponentLevelCssVar('AssistiveElement', 'max-width')
   
   // Get text properties from component text property groups
   const textFontSizeVar = getComponentTextCssVar('AssistiveElement', 'text', 'font-size')
@@ -94,6 +95,7 @@ export default function AssistiveElement({
         alignItems: 'flex-start',
         gap: `var(${iconTextGapVar})`,
         marginTop: `var(${topMarginVar})`,
+        maxWidth: `var(${maxWidthVar})`,
         ...style,
         ...carbon?.style,
       }}
