@@ -49,7 +49,14 @@ export default function Avatar({
   
   // Get level CSS variables (border-size, border-radius, padding)
   const paddingStyleType = colorVariant.split('-')[0]
-  const borderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-size')
+  const styleType = colorVariant.split('-').slice(1).join('-')
+  const borderSizeStyleVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', styleType, 'properties', 'border-size')
+  
+  const sizeBorderColorVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-color')
+  const sizeBorderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-size')
+  
+  const sizeBorderColorRaw = useCssVar(sizeBorderColorVar, '')
+  const sizeBorderSizeRaw = useCssVar(sizeBorderSizeVar, '')
   const borderRadiusVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-radius')
   const paddingVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'padding')
   const iconWidthVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'width')
@@ -130,13 +137,13 @@ export default function Avatar({
       style={{
         // Set CSS custom properties that reference the UIKit CSS vars directly
         '--avatar-bg': `var(${bgVar})`,
-        '--avatar-border': borderColorValue || `var(${borderVar})`,
+        '--avatar-border': sizeBorderColorRaw && sizeBorderColorRaw !== 'transparent' ? `var(${sizeBorderColorVar})` : (borderColorValue || `var(${borderVar})`),
         '--avatar-label': `var(${labelVar})`,
         '--avatar-size': `var(${sizeVar})`,
         '--avatar-width': `var(${iconWidthVar})`,
         '--avatar-height': `var(${iconHeightVar})`,
         '--avatar-icon-size': `var(${iconSizeVar})`,
-        '--avatar-border-size': `var(${borderSizeVar})`,
+        '--avatar-border-size': sizeBorderSizeRaw === '0px' || sizeBorderSizeRaw === '0' || sizeBorderSizeRaw === 'none' ? `var(${borderSizeStyleVar})` : `var(${sizeBorderSizeVar})`,
         // Set the CSS variable - for circle, use 50%, otherwise use the resolved value
         '--avatar-border-radius': borderRadiusForMantine,
         // Also set borderRadius directly to ensure it applies (Mantine might override CSS custom properties)

@@ -49,7 +49,14 @@ export default function Avatar({
   
   // Get level CSS variables (border-size, border-radius, padding)
   const paddingStyleType = colorVariant.split('-')[0]
-  const borderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-size')
+  const styleType = colorVariant.split('-').slice(1).join('-')
+  const borderSizeStyleVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', styleType, 'properties', 'border-size')
+  
+  const sizeBorderColorVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-color')
+  const sizeBorderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-size')
+  
+  const sizeBorderColorRaw = useCssVar(sizeBorderColorVar, '')
+  const sizeBorderSizeRaw = useCssVar(sizeBorderSizeVar, '')
   const borderRadiusVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-radius')
   const paddingVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'padding')
   const widthVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'width')
@@ -131,7 +138,7 @@ export default function Avatar({
         padding: `var(${paddingVar})`,
         backgroundColor: `var(${bgVar})`,
         color: `var(${labelVar})`,
-        border: `var(${borderSizeVar}) solid ${borderColorValue || `var(${borderVar})`}`,
+        border: `var(${sizeBorderSizeRaw === '0px' || sizeBorderSizeRaw === '0' || sizeBorderSizeRaw === 'none' ? borderSizeStyleVar : sizeBorderSizeVar}) solid ${sizeBorderColorRaw && sizeBorderColorRaw !== 'transparent' ? `var(${sizeBorderColorVar})` : (borderColorValue || `var(${borderVar})`)}`,
         borderRadius: borderRadiusForSx,
         fontFamily: `var(${fontFamilyVar})`,
         fontSize: `var(${fontSizeVar})`,
