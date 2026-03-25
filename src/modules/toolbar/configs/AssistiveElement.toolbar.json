@@ -38,13 +38,16 @@
         "icon-text-gap": {
           "label": "Icon-text gap",
           "visible": true
+        },
+        "max-width": {
+          "label": "Max width",
+          "visible": true
+        },
+        "top-margin": {
+          "label": "Top margin",
+          "visible": true
         }
       }
-    },
-    "top-margin": {
-      "icon": "arrow-up",
-      "label": "Top margin",
-      "visible": true
     }
   }
 }

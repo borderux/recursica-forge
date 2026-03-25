@@ -1397,6 +1397,7 @@ export default function PropControlContent({
     const isTextField = normalizedComponentName === 'text-field' || normalizedComponentName === 'text field'
     const isNumberInput = normalizedComponentName === 'number-input' || normalizedComponentName === 'number input'
     const isTooltip = componentName.toLowerCase() === 'tooltip'
+    const isAssistiveElement = normalizedComponentName === 'assistive-element'
 
 
     if (propToRender.type === 'color') {
@@ -3639,6 +3640,9 @@ export default function PropControlContent({
         minPixelValue = 20
         maxPixelValue = 200
       } else if (isAccordion && propNameLower === 'max-width') {
+        minPixelValue = 100
+        maxPixelValue = 500
+      } else if (isAssistiveElement && propNameLower === 'max-width') {
         minPixelValue = 100
         maxPixelValue = 500
       } else if (isLabelWidth) {
