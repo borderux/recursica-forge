@@ -6,7 +6,7 @@
 
 import { Avatar as MaterialAvatar } from '@mui/material'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -48,9 +48,13 @@ export default function Avatar({
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
   
   // Get level CSS variables (border-size, border-radius, padding)
-  const borderSizeVar = getComponentLevelCssVar('Avatar', 'border-size')
-  const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
-  const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
+  const paddingStyleType = colorVariant.split('-')[0]
+  const borderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-size')
+  const borderRadiusVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-radius')
+  const paddingVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'padding')
+  const widthVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'width')
+  const heightVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'height')
+  const iconSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'icon-size')
   
   // Reactively read border-radius to trigger re-renders when it changes
   const borderRadiusValueRaw = useCssVar(borderRadiusVar, '')
@@ -142,6 +146,9 @@ export default function Avatar({
       }}
       className={className}
       style={{
+        '--avatar-width': `var(${widthVar})`,
+        '--avatar-height': `var(${heightVar})`,
+        '--avatar-icon-size': `var(${iconSizeVar})`,
         ...style,
       } as React.CSSProperties}
       {...material}

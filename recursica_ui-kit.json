@@ -5127,6 +5127,29 @@
         "variants": {
           "styles": {
             "text": {
+              "properties": {
+                "padding": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.default}",
+                    "unit": "px"
+                  }
+                },
+                "border-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 1,
+                    "unit": "px"
+                  }
+                },
+                "border-radius": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.border-radii.2xl}",
+                    "unit": "px"
+                  }
+                }
+              },
               "variants": {
                 "solid": {
                   "properties": {
@@ -5189,10 +5212,157 @@
                       }
                     }
                   }
+                },
+                "outline": {
+                  "properties": {
+                    "colors": {
+                      "layer-0": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        }
+                      },
+                      "layer-1": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        }
+                      },
+                      "layer-2": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        }
+                      },
+                      "layer-3": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        }
+                      }
+                    }
+                  }
+                },
+                "ghost": {
+                  "properties": {
+                    "colors": {
+                      "layer-0": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-0.elements.text.color}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": null
+                        }
+                      },
+                      "layer-1": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-1.elements.text.color}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": null
+                        }
+                      },
+                      "layer-2": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-2.elements.text.color}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": null
+                        }
+                      },
+                      "layer-3": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "text-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-3.elements.text.color}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": null
+                        }
+                      }
+                    }
+                  }
                 }
               }
             },
             "icon": {
+              "properties": {
+                "padding": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.default}",
+                    "unit": "px"
+                  }
+                },
+                "border-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 1,
+                    "unit": "px"
+                  }
+                },
+                "border-radius": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.border-radii.2xl}",
+                    "unit": "px"
+                  }
+                }
+              },
               "variants": {
                 "solid": {
                   "properties": {
@@ -5251,6 +5421,130 @@
                         "border-color": {
                           "$type": "color",
                           "$value": "{brand.palettes.core-colors.interactive.default.on-tone}"
+                        }
+                      }
+                    }
+                  }
+                },
+                "outline": {
+                  "properties": {
+                    "colors": {
+                      "layer-0": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        }
+                      },
+                      "layer-1": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        }
+                      },
+                      "layer-2": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        }
+                      },
+                      "layer-3": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": "{brand.palettes.core-colors.interactive.default.tone}"
+                        }
+                      }
+                    }
+                  }
+                },
+                "ghost": {
+                  "properties": {
+                    "colors": {
+                      "layer-0": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-0.elements.text.color}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": null
+                        }
+                      },
+                      "layer-1": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-1.elements.text.color}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": null
+                        }
+                      },
+                      "layer-2": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-2.elements.text.color}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": null
+                        }
+                      },
+                      "layer-3": {
+                        "background": {
+                          "$type": "color",
+                          "$value": null
+                        },
+                        "icon-color": {
+                          "$type": "color",
+                          "$value": "{brand.layers.layer-3.elements.text.color}"
+                        },
+                        "border-color": {
+                          "$type": "color",
+                          "$value": null
                         }
                       }
                     }
@@ -5260,6 +5554,27 @@
             },
             "image": {
               "properties": {
+                "padding": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.general.default}",
+                    "unit": "px"
+                  }
+                },
+                "border-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 1,
+                    "unit": "px"
+                  }
+                },
+                "border-radius": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.border-radii.2xl}",
+                    "unit": "px"
+                  }
+                },
                 "colors": {
                   "layer-0": {
                     "background": {
@@ -5315,6 +5630,27 @@
                     "unit": "px"
                   }
                 },
+                "width": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 32,
+                    "unit": "px"
+                  }
+                },
+                "height": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 32,
+                    "unit": "px"
+                  }
+                },
+                "icon-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.icons.sm}",
+                    "unit": "px"
+                  }
+                },
                 "text": {
                   "font-family": {
                     "$type": "string",
@@ -5360,6 +5696,27 @@
                   "$type": "dimension",
                   "$value": {
                     "value": 40,
+                    "unit": "px"
+                  }
+                },
+                "width": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 40,
+                    "unit": "px"
+                  }
+                },
+                "height": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 40,
+                    "unit": "px"
+                  }
+                },
+                "icon-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.icons.default}",
                     "unit": "px"
                   }
                 },
@@ -5411,6 +5768,27 @@
                     "unit": "px"
                   }
                 },
+                "width": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 64,
+                    "unit": "px"
+                  }
+                },
+                "height": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": 64,
+                    "unit": "px"
+                  }
+                },
+                "icon-size": {
+                  "$type": "dimension",
+                  "$value": {
+                    "value": "{brand.dimensions.icons.lg}",
+                    "unit": "px"
+                  }
+                },
                 "text": {
                   "font-family": {
                     "$type": "string",
@@ -5453,27 +5831,6 @@
           }
         },
         "properties": {
-          "padding": {
-            "$type": "dimension",
-            "$value": {
-              "value": 0,
-              "unit": "px"
-            }
-          },
-          "border-size": {
-            "$type": "dimension",
-            "$value": {
-              "value": 1,
-              "unit": "px"
-            }
-          },
-          "border-radius": {
-            "$type": "dimension",
-            "$value": {
-              "value": "{brand.dimensions.border-radii.2xl}",
-              "unit": "px"
-            }
-          },
           "elevation": {
             "$type": "elevation",
             "$value": "{brand.elevations.elevation-0}"

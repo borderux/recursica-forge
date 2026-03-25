@@ -10,10 +10,11 @@
   background-color: var(--avatar-bg) !important;
   border: var(--avatar-border-size, 1px) solid var(--avatar-border) !important;
   color: var(--avatar-label) !important;
-  width: var(--avatar-size) !important;
-  height: var(--avatar-size) !important;
+  width: var(--avatar-width) !important;
+  height: var(--avatar-height) !important;
   padding: var(--avatar-padding, 0px) !important;
   border-radius: var(--avatar-border-radius, 4px) !important;
+  overflow: hidden !important;
   font-family: var(--avatar-font-family) !important;
   font-size: var(--avatar-font-size) !important;
   font-weight: var(--avatar-font-weight) !important;
@@ -29,6 +30,10 @@
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-  border-radius: inherit !important;
 }
 
+/* Scale icons inside avatar */
+.MuiAvatar-root svg {
+  width: var(--avatar-icon-size) !important;
+  height: var(--avatar-icon-size) !important;
+}

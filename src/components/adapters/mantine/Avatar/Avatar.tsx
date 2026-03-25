@@ -6,7 +6,7 @@
 
 import { Avatar as MantineAvatar } from '@mantine/core'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -48,9 +48,13 @@ export default function Avatar({
   const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
   
   // Get level CSS variables (border-size, border-radius, padding)
-  const borderSizeVar = getComponentLevelCssVar('Avatar', 'border-size')
-  const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
-  const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
+  const paddingStyleType = colorVariant.split('-')[0]
+  const borderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-size')
+  const borderRadiusVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-radius')
+  const paddingVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'padding')
+  const iconWidthVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'width')
+  const iconHeightVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'height')
+  const iconSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'icon-size')
   
   // Reactively read border-radius to trigger re-renders when it changes
   const borderRadiusValueRaw = useCssVar(borderRadiusVar, '')
@@ -129,12 +133,17 @@ export default function Avatar({
         '--avatar-border': borderColorValue || `var(${borderVar})`,
         '--avatar-label': `var(${labelVar})`,
         '--avatar-size': `var(${sizeVar})`,
+        '--avatar-width': `var(${iconWidthVar})`,
+        '--avatar-height': `var(${iconHeightVar})`,
+        '--avatar-icon-size': `var(${iconSizeVar})`,
         '--avatar-border-size': `var(${borderSizeVar})`,
         // Set the CSS variable - for circle, use 50%, otherwise use the resolved value
         '--avatar-border-radius': borderRadiusForMantine,
         // Also set borderRadius directly to ensure it applies (Mantine might override CSS custom properties)
         borderRadius: borderRadiusForMantine,
         '--avatar-padding': `var(${paddingVar})`,
+        '--avatar-icon-width': `var(${iconWidthVar})`,
+        '--avatar-icon-height': `var(${iconHeightVar})`,
         '--avatar-font-family': `var(${fontFamilyVar})`,
         '--avatar-font-size': `var(${fontSizeVar})`,
         '--avatar-font-weight': `var(${fontWeightVar})`,

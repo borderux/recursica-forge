@@ -9,10 +9,11 @@
   box-sizing: content-box !important;
   background-color: var(--avatar-bg) !important;
   border: var(--avatar-border-size, 1px) solid var(--avatar-border) !important;
-  width: var(--avatar-size) !important;
-  height: var(--avatar-size) !important;
+  width: var(--avatar-width) !important;
+  height: var(--avatar-height) !important;
   padding: var(--avatar-padding, 0px) !important;
   border-radius: var(--avatar-border-radius, 4px) !important;
+  overflow: hidden !important;
 }
 
 /* Override avatar image */
@@ -20,7 +21,6 @@
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-  border-radius: inherit !important;
 }
 
 /* Override avatar placeholder/fallback text */
@@ -34,8 +34,13 @@
   text-decoration: var(--avatar-text-decoration) !important;
   text-transform: var(--avatar-text-transform) !important;
   font-style: var(--avatar-font-style) !important;
-  border-radius: inherit !important;
+  border-radius: 0 !important;
   background-color: transparent !important;
   border: none !important;
 }
 
+/* Scale icons inside avatar placeholder */
+.mantine-Avatar-placeholder svg {
+  width: var(--avatar-icon-size) !important;
+  height: var(--avatar-icon-size) !important;
+}

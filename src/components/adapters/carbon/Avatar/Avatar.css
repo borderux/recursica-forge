@@ -6,8 +6,8 @@
 
 .cds--avatar {
   box-sizing: content-box !important;
-  width: var(--avatar-size) !important;
-  height: var(--avatar-size) !important;
+  width: var(--avatar-width) !important;
+  height: var(--avatar-height) !important;
   padding: var(--avatar-padding, 0px) !important;
   border-radius: var(--avatar-border-radius, 4px) !important;
   background-color: var(--avatar-bg) !important;
@@ -23,7 +23,6 @@
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
-  border-radius: inherit !important;
 }
 
 .cds--avatar-fallback {
@@ -41,8 +40,12 @@
   justify-content: center !important;
   width: 100% !important;
   height: 100% !important;
-  border-radius: inherit !important;
   background-color: transparent !important;
   border: none !important;
 }
 
+/* Scale icons inside avatar fallback */
+.cds--avatar-fallback svg {
+  width: var(--avatar-icon-size) !important;
+  height: var(--avatar-icon-size) !important;
+}
