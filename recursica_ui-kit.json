@@ -6672,6 +6672,13 @@
               "value": "{brand.dimensions.general.default}",
               "unit": "px"
             }
+          },
+          "max-width": {
+            "$type": "dimension",
+            "$value": {
+              "value": 200,
+              "unit": "px"
+            }
           }
         }
       },
