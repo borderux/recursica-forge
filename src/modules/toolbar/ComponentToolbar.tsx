@@ -223,7 +223,7 @@ export default function ComponentToolbar({
         for (const [key, propConfig] of Object.entries(toolbarConfig.props)) {
           if (propConfig.group && propConfig.group[propNameLower]) {
             const keyLower = key.toLowerCase()
-            if (prop.path.includes(keyLower)) {
+            if (prop.path.includes(keyLower) || (keyLower === 'color' && prop.path.includes('colors'))) {
               groupedParent = key
               break
             }
@@ -394,7 +394,14 @@ export default function ComponentToolbar({
                 !cachedProp.path.includes(selectedLayer)) ||
               (cachedProp.isVariantSpecific && cachedProp.variantProp &&
                 selectedVariants[cachedProp.variantProp] &&
-                !pathMatchesVariant(cachedProp.path, cachedProp.variantProp, selectedVariants[cachedProp.variantProp]))
+                !pathMatchesVariant(cachedProp.path, cachedProp.variantProp, selectedVariants[cachedProp.variantProp])) ||
+              // Cross-check ALL variant dimensions against the cached prop's path
+              // (e.g., when style changes from 'text' to 'image', a cached 'text.solid.border-size'
+              //  with variantProp='style-secondary' must be invalidated because the 'style' dimension changed)
+              (cachedProp?.isVariantSpecific && Object.entries(selectedVariants).some(([variantProp, variantValue]) => {
+                if (!variantValue || variantProp === cachedProp.variantProp) return false
+                return !pathMatchesVariant(cachedProp.path, variantProp, variantValue)
+              }))
 
             if (!groupedProps.has(groupedPropKey) || needsUpdate) {
               // For nested property groups like "container", "selected", "selected-item", and "unselected-item", match props by name AND path
@@ -405,7 +412,11 @@ export default function ComponentToolbar({
 
               let groupedProp = liveStructure.props.find(p => {
                 const nameMatches = p.name.toLowerCase() === groupedPropKey
-                const pathMatches = p.path.includes(parentPropNameLower)
+                const pathMatches = p.path.includes(parentPropNameLower) ||
+                  (parentPropNameLower === 'color' && p.path.includes('colors')) ||
+                  // Also match when the prop's name starts with the parent group key
+                  // (e.g., 'border-size' prop under 'border' group — the path has 'border-size' but no standalone 'border')
+                  groupedPropKey.startsWith(parentPropNameLower + '-')
                 // For color props, also filter by selectedLayer to ensure we get the correct layer
                 const layerMatches = !p.path.some(part => part.startsWith('layer-')) || p.path.includes(selectedLayer)
                 // For variant-specific props, filter by selected variant (e.g., state variant for TextField border-size)

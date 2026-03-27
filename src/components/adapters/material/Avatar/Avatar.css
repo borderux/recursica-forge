@@ -32,6 +32,21 @@
   object-fit: cover !important;
 }
 
+/* Make image variant border/radius apply strictly to the inner image */
+.MuiAvatar-root[data-avatar-type="image"] {
+  box-sizing: border-box !important;
+  border: var(--avatar-border-size, 1px) solid var(--avatar-border) !important;
+  background-color: var(--avatar-bg) !important;
+  border-radius: var(--avatar-border-radius, 4px) !important;
+  overflow: hidden !important;
+}
+
+.MuiAvatar-root[data-avatar-type="image"] .MuiAvatar-img {
+  border-radius: var(--avatar-border-radius, 4px) !important;
+  border: none !important;
+  background-color: transparent !important;
+}
+
 /* Scale icons inside avatar */
 .MuiAvatar-root svg {
   width: var(--avatar-icon-size) !important;

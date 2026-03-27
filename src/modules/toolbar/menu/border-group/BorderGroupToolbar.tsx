@@ -41,7 +41,7 @@ function getCssVarsForProp(
     }
 
     // Special handling for Avatar with nested variants (style and style-secondary)
-    if (componentName.toLowerCase() === 'avatar' && propToCheck.category === 'colors') {
+    if (componentName.toLowerCase() === 'avatar') {
       const styleVariant = selectedVariants['style']
       const styleSecondaryVariant = selectedVariants['style-secondary']
 
@@ -151,8 +151,18 @@ export default function BorderGroupToolbar({
   const borderSizeProp = useMemo(() => {
     return structure.props.find(p => {
       if (p.name.toLowerCase() !== sizePropName.toLowerCase()) return false
-      // Match variant if prop is variant-specific
-      if (p.isVariantSpecific && p.variantProp) {
+      // Special handling for Avatar with nested variants (style and style-secondary)
+      if (componentName.toLowerCase() === 'avatar') {
+        const styleVariant = selectedVariants['style']
+        const styleSecondaryVariant = selectedVariants['style-secondary']
+        // Must have style variant in path
+        if (styleVariant && !p.path.includes(styleVariant)) return false
+        // For text/icon variants, must also have style-secondary variant in path
+        if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
+          if (!p.path.includes(styleSecondaryVariant)) return false
+        }
+      } else if (p.isVariantSpecific && p.variantProp) {
+        // Match variant if prop is variant-specific
         const selectedVariant = selectedVariants[p.variantProp]
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
@@ -162,12 +172,22 @@ export default function BorderGroupToolbar({
       if (layerInPath && layerInPath !== selectedLayer) return false
       return true
     })
-  }, [structure, sizePropName, selectedVariants, selectedLayer])
+  }, [structure, sizePropName, selectedVariants, selectedLayer, componentName])
 
   const borderRadiusProp = useMemo(() => {
     return structure.props.find(p => {
       if (p.name.toLowerCase() !== radiusPropName.toLowerCase()) return false
-      if (p.isVariantSpecific && p.variantProp) {
+      // Special handling for Avatar with nested variants (style and style-secondary)
+      if (componentName.toLowerCase() === 'avatar') {
+        const styleVariant = selectedVariants['style']
+        const styleSecondaryVariant = selectedVariants['style-secondary']
+        // Must have style variant in path
+        if (styleVariant && !p.path.includes(styleVariant)) return false
+        // For text/icon variants, must also have style-secondary variant in path
+        if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
+          if (!p.path.includes(styleSecondaryVariant)) return false
+        }
+      } else if (p.isVariantSpecific && p.variantProp) {
         const selectedVariant = selectedVariants[p.variantProp]
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
@@ -177,7 +197,7 @@ export default function BorderGroupToolbar({
       if (layerInPath && layerInPath !== selectedLayer) return false
       return true
     })
-  }, [structure, radiusPropName, selectedVariants, selectedLayer])
+  }, [structure, radiusPropName, selectedVariants, selectedLayer, componentName])
 
   const borderStyleProp = useMemo(() => {
     return structure.props.find(p => {

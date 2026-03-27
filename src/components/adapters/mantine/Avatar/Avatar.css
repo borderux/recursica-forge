@@ -23,6 +23,21 @@
   object-fit: cover !important;
 }
 
+/* Make image variant border/radius apply strictly to the inner image */
+.mantine-Avatar-root[data-avatar-type="image"] {
+  box-sizing: border-box !important; /* make border "inside" relative to width/height */
+  border: var(--avatar-border-size, 1px) solid var(--avatar-border) !important;
+  background-color: var(--avatar-bg) !important;
+  border-radius: var(--avatar-border-radius, 4px) !important;
+  overflow: hidden !important;
+}
+
+.mantine-Avatar-root[data-avatar-type="image"] .mantine-Avatar-image {
+  border-radius: var(--avatar-border-radius, 4px) !important;
+  border: none !important;
+  background-color: transparent !important;
+}
+
 /* Override avatar placeholder/fallback text */
 .mantine-Avatar-placeholder {
   color: var(--avatar-label) !important;

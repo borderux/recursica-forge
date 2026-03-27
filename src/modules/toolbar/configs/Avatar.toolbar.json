@@ -64,7 +64,8 @@
         "text-color": {
           "icon": "text-aa",
           "label": "Text color",
-          "visible": true
+          "visible": true,
+          "showForVariants": ["text", "icon"]
         }
       }
     },

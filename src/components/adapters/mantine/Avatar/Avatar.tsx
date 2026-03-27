@@ -6,7 +6,7 @@
 
 import { Avatar as MantineAvatar } from '@mantine/core'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -45,12 +45,16 @@ export default function Avatar({
   const borderColorValue = useCssVar(borderVar, '')
   
   // Get size and other CSS variables
-  const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
+  const sizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'size')
   
   // Get level CSS variables (border-size, border-radius, padding)
   const paddingStyleType = colorVariant.split('-')[0]
   const styleType = colorVariant.split('-').slice(1).join('-')
-  const borderSizeStyleVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', styleType, 'properties', 'border-size')
+  // Image style variant uses a flat path (no secondary solid/outline/ghost nesting)
+  // For text/icon styles, border-size is under styles.{type}.variants.{secondary}.properties.border-size
+  const borderSizeStyleVar = paddingStyleType === 'image'
+    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'border-size')
+    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', styleType, 'properties', 'border-size')
   
   const sizeBorderColorVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-color')
   const sizeBorderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-size')
@@ -129,21 +133,25 @@ export default function Avatar({
   
   return (
     <MantineAvatar
-      src={src}
+      src={src || (paddingStyleType === 'image' ? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' : undefined)}
       alt={alt}
       size={mantineSize}
       className={className}
+      data-avatar-type={paddingStyleType}
       // Don't set radius prop - let our CSS and inline styles handle it
       style={{
         // Set CSS custom properties that reference the UIKit CSS vars directly
         '--avatar-bg': `var(${bgVar})`,
-        '--avatar-border': sizeBorderColorRaw && sizeBorderColorRaw !== 'transparent' ? `var(${sizeBorderColorVar})` : (borderColorValue || `var(${borderVar})`),
-        '--avatar-label': `var(${labelVar})`,
+        backgroundColor: paddingStyleType === 'image' ? `var(${bgVar})` : undefined,
+        '--avatar-border': borderColorValue || `var(${borderVar})`,
+        '--avatar-label': paddingStyleType === 'image' 
+          ? (borderColorValue || `var(${borderVar})`) 
+          : `var(${labelVar})`,
         '--avatar-size': `var(${sizeVar})`,
         '--avatar-width': `var(${iconWidthVar})`,
         '--avatar-height': `var(${iconHeightVar})`,
         '--avatar-icon-size': `var(${iconSizeVar})`,
-        '--avatar-border-size': sizeBorderSizeRaw === '0px' || sizeBorderSizeRaw === '0' || sizeBorderSizeRaw === 'none' ? `var(${borderSizeStyleVar})` : `var(${sizeBorderSizeVar})`,
+        '--avatar-border-size': borderSizeStyleVar ? `var(${borderSizeStyleVar})` : `var(${sizeBorderSizeVar})`,
         // Set the CSS variable - for circle, use 50%, otherwise use the resolved value
         '--avatar-border-radius': borderRadiusForMantine,
         // Also set borderRadius directly to ensure it applies (Mantine might override CSS custom properties)

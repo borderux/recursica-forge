@@ -6,7 +6,7 @@
 
 import { Avatar as MaterialAvatar } from '@mui/material'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -45,12 +45,14 @@ export default function Avatar({
   const borderColorValue = useCssVar(borderVar, '')
   
   // Get size and other CSS variables
-  const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
+  const sizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'size')
   
   // Get level CSS variables (border-size, border-radius, padding)
   const paddingStyleType = colorVariant.split('-')[0]
   const styleType = colorVariant.split('-').slice(1).join('-')
-  const borderSizeStyleVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', styleType, 'properties', 'border-size')
+  const borderSizeStyleVar = paddingStyleType === 'image'
+    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'border-size')
+    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', styleType, 'properties', 'border-size')
   
   const sizeBorderColorVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-color')
   const sizeBorderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-size')
@@ -130,15 +132,18 @@ export default function Avatar({
   
   return (
     <MaterialAvatar
-      src={src}
+      data-avatar-type={paddingStyleType}
+      src={src || (paddingStyleType === 'image' ? 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' : undefined)}
       alt={alt}
       sx={{
         width: materialSize ? undefined : `var(${sizeVar})`,
         height: materialSize ? undefined : `var(${sizeVar})`,
         padding: `var(${paddingVar})`,
-        backgroundColor: `var(${bgVar})`,
-        color: `var(${labelVar})`,
-        border: `var(${sizeBorderSizeRaw === '0px' || sizeBorderSizeRaw === '0' || sizeBorderSizeRaw === 'none' ? borderSizeStyleVar : sizeBorderSizeVar}) solid ${sizeBorderColorRaw && sizeBorderColorRaw !== 'transparent' ? `var(${sizeBorderColorVar})` : (borderColorValue || `var(${borderVar})`)}`,
+        backgroundColor: paddingStyleType === 'image' ? `var(${bgVar})` : `var(${bgVar})`,
+        color: paddingStyleType === 'image' 
+          ? (borderColorValue || `var(${borderVar})`) 
+          : `var(${labelVar})`,
+        border: `var(${borderSizeStyleVar || sizeBorderSizeVar}) solid ${borderColorValue || `var(${borderVar})`}`,
         borderRadius: borderRadiusForSx,
         fontFamily: `var(${fontFamilyVar})`,
         fontSize: `var(${fontSizeVar})`,
