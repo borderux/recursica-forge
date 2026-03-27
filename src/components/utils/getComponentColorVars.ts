@@ -40,8 +40,10 @@ export function getComponentColorVars({
   // recursica_ui-kit.json structure: variants.text.variants.solid.colors.background
   // If variant is just "text" or "icon" (without secondary), default to "solid"
   let variantPath = colorVariant
-  if (colorVariant === 'text' || colorVariant === 'icon') {
-    variantPath = `${colorVariant}-solid`
+  if (colorVariant.startsWith('text') || colorVariant.startsWith('icon')) {
+    variantPath = colorVariant.includes('-') ? colorVariant : `${colorVariant}-solid`
+  } else if (colorVariant.startsWith('image')) {
+    variantPath = 'image' // Override secondary styles since images don't have solid/outline/ghost
   }
   
   const bgVar = getComponentCssVar(componentName, 'colors', `${variantPath}-background`, layer)
@@ -60,7 +62,7 @@ export function getComponentColorVars({
   
   // For images, use the image variant's border-color instead of the current variant's border-color
   let finalBorderVar = borderVar
-  if ((src && !imageError) || colorVariant === 'image') {
+  if ((src && !imageError) || colorVariant.startsWith('image')) {
     finalBorderVar = getComponentCssVar(componentName, 'colors', 'image-border-color', layer)
   }
   

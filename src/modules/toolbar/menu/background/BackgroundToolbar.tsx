@@ -80,14 +80,31 @@ export default function BackgroundToolbar({
     const hasVariantSpecificProps = layerMatchingProps.some(p => p.isVariantSpecific && p.variantProp)
 
     if (hasVariantSpecificProps) {
-      // There are variant-specific props, so we must match the variant
+      // There are variant-specific props, so we must match ALL active variant dimensions.
+      // A prop under text.solid must not match when style='image' just because style-secondary='solid'.
       const variantMatchingProp = layerMatchingProps.find(p => {
         if (!p.isVariantSpecific || !p.variantProp) return false
         const selectedVariant = selectedVariants[p.variantProp]
-        // If no variant is selected for this variantProp, skip this prop
         if (!selectedVariant) return false
-        // Prop path must include the selected variant name
-        return p.path.includes(selectedVariant)
+        if (!p.path.includes(selectedVariant)) return false
+
+        // Verify the prop is consistent with ALL selected variant dimensions.
+        // For each selected variant, if the prop's path contains any value from that
+        // variant dimension's sibling set, it must be the selected value.
+        for (const [variantKey, variantValue] of Object.entries(selectedVariants)) {
+          if (!variantValue || variantKey === p.variantProp) continue
+          // Check if the path contains this variant value
+          if (p.path.includes(variantValue)) continue
+          // If the path doesn't contain the selected variant value but contains a different
+          // value from the same category, this prop belongs to a different variant combination.
+          // For style dimension: if style='image' but path has 'text' (another style), reject.
+          const styleVariants = structure.variants.find(v => v.propName === variantKey)
+          if (styleVariants) {
+            const otherValues = styleVariants.variants.filter(v => v !== variantValue)
+            if (otherValues.some(v => p.path.includes(v))) return false
+          }
+        }
+        return true
       })
 
       // If we found a variant-matching prop, return it
@@ -120,11 +137,21 @@ export default function BackgroundToolbar({
       if (p.category !== 'colors') return false
       const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))
       if (layerInPath && layerInPath !== selectedLayer) return false
-      // Check variant matching
+      // Check variant matching - must match ALL variant dimensions
       if (p.isVariantSpecific && p.variantProp) {
         const selectedVariant = selectedVariants[p.variantProp]
         if (!selectedVariant) return false
-        return p.path.includes(selectedVariant)
+        if (!p.path.includes(selectedVariant)) return false
+        for (const [variantKey, variantValue] of Object.entries(selectedVariants)) {
+          if (!variantValue || variantKey === p.variantProp) continue
+          if (p.path.includes(variantValue)) continue
+          const styleVariants = structure.variants.find(v => v.propName === variantKey)
+          if (styleVariants) {
+            const otherValues = styleVariants.variants.filter(v => v !== variantValue)
+            if (otherValues.some(v => p.path.includes(v))) return false
+          }
+        }
+        return true
       }
       return true
     })

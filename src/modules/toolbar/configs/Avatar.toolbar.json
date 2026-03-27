@@ -14,6 +14,21 @@
     }
   },
   "props": {
+    "dimensions": {
+      "icon": "resize",
+      "label": "Size",
+      "visible": true,
+      "group": {
+        "width": {
+          "label": "Width",
+          "visible": true
+        },
+        "height": {
+          "label": "Height",
+          "visible": true
+        }
+      }
+    },
     "border": {
       "icon": "square",
       "label": "Border",
@@ -46,14 +61,26 @@
           "label": "Background",
           "visible": true
         },
-        "icon-color": {
-          "icon": "frame-corners",
-          "label": "Icon color",
-          "visible": true
-        },
         "text-color": {
           "icon": "text-aa",
           "label": "Text color",
+          "visible": true,
+          "showForVariants": ["text", "icon"]
+        }
+      }
+    },
+    "icon": {
+      "icon": "image-square",
+      "label": "Icon",
+      "visible": true,
+      "showForVariants": ["icon"],
+      "group": {
+        "icon-size": {
+          "label": "Icon size",
+          "visible": true
+        },
+        "icon-color": {
+          "label": "Icon color",
           "visible": true
         }
       }
@@ -61,7 +88,8 @@
     "text": {
       "icon": "text-aa",
       "label": "Text",
-      "visible": true
+      "visible": true,
+      "showForVariants": ["text"]
     },
     "padding": {
       "icon": "square-logo",

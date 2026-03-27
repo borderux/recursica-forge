@@ -222,7 +222,7 @@ export function getComponentCssVar(
   }
 
   // Check for nested variants (e.g., "text-solid-background" for Avatar)
-  const nestedVariantMatch = property.match(/^(text|icon)-(solid|ghost)-(.+)$/)
+  const nestedVariantMatch = property.match(/^(text|icon)-(solid|outline|ghost)-(.+)$/)
   if (nestedVariantMatch) {
     const [, primaryVariant, secondaryVariant, propName] = nestedVariantMatch
     const pathSegments: string[] = ['variants', 'styles', primaryVariant, 'variants', secondaryVariant, 'properties', 'colors']
