@@ -1,5 +1,39 @@
 # recursica-forge
 
+## 0.8.1
+
+### Patch Changes
+
+- ca086a5: AssistiveElement size group and toolbar refinements
+
+  - Added `max-width` dimension token to `assistive-element` properties in `recursica_ui-kit.json` (default `200px`, no token reference)
+  - Moved `top-margin` into the **Size** toolbar group; removed the standalone "Top margin" prop section from `AssistiveElement.toolbar.json`
+  - Updated all three adapters (Mantine, Material, Carbon) to read `max-width` via `getComponentLevelCssVar` and apply it as `maxWidth` on the container element
+  - Added `isAssistiveElement` identity variable to `PropControlContent` with a `max-width` pixel range of 100–500px
+  - Extended `IconGroupToolbar` to render an explicit continuous px `Slider` (100–500px) for `max-width`, bypassing `BrandDimensionSliderInline` so no token options are shown
+  - Extended `IconGroupToolbar` with a generic extra-prop rendering loop (matching the pattern in `PaddingGroupToolbar`) so future non-standard dimension props in icon groups render automatically
+
+- 840d7f9: Accordion item token and toolbar refinements
+
+  - Replaced `padding` with `padding-horizontal` and `padding-vertical` dimension tokens in `accordion-item` properties; applied independently to header controls and content area across all three adapters (Mantine, Material, Carbon)
+  - Replaced `icon-size` with `icon-left-size` (custom title icon) and `icon-right-size` (chevron/expand icon); title icon now fills its container via `style` rather than a hardcoded `size` prop; widened `AccordionItem.icon` type to accept `style?: React.CSSProperties`
+  - Removed `content-padding` token; added `divider-size` (0–10px, default 1px) and `content-bottom-padding` tokens
+  - Added `header-content-gap` token; content area top padding now uses this instead of `padding-vertical`
+  - Toolbar: grouped `padding-horizontal`, `padding-vertical`, `header-content-gap`, and `content-bottom-padding` into a dedicated **Padding** section; grouped `icon-left-size` and `icon-right-size` under **Icon sizes**; added `divider-size` slider to the **Divider** section
+  - Extended `PaddingGroupToolbar` to render any extra dimension props in a padding group config beyond the standard horizontal/vertical/top-bottom-margin set, so new tokens appear automatically without further code changes
+  - Added `AccordionDividerSizeSlider` to `PropControlContent` for live editing of `divider-size`
+  - All three adapter CSS files: zeroed library default padding on item wrappers; divider borders use `var(--accordion-item-divider-size)`
+
+- d73a0e2: Fix Avatar toolbar property resolution for image variant
+
+  - Fixed BorderGroupToolbar to correctly resolve border-size, border-radius, and border-color CSS variables for the Avatar image variant instead of incorrectly targeting text.solid variant properties
+  - Added Avatar-specific nested variant matching to BorderGroupToolbar (borderSizeProp, borderRadiusProp, getCssVarsForProp) that validates both style and style-secondary dimensions
+  - Updated Avatar adapters (Mantine, Carbon, Material) to read border properties from style variant CSS variables
+  - Extended ComponentToolbar cross-variant invalidation to re-resolve grouped props when switching between primary variants
+  - Added border-size token to the image variant in recursica_ui-kit.json
+  - Added showForVariants filter to hide text-color control for image variant in Avatar toolbar config
+  - Fixed BackgroundToolbar to correctly resolve background color for Avatar image variant
+
 ## 0.8.0
 
 ### Minor Changes
