@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -46,12 +46,25 @@ export default function Avatar({
   const borderColorValue = useCssVar(borderVar, '')
   
   // Get size and other CSS variables
-  const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
+  const sizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'size')
   
   // Get level CSS variables (border-size, border-radius, padding)
-  const borderSizeVar = getComponentLevelCssVar('Avatar', 'border-size')
-  const borderRadiusVar = getComponentLevelCssVar('Avatar', 'border-radius')
-  const paddingVar = getComponentLevelCssVar('Avatar', 'padding')
+  const paddingStyleType = colorVariant.split('-')[0]
+  const styleType = colorVariant.split('-').slice(1).join('-')
+  const borderSizeStyleVar = paddingStyleType === 'image'
+    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'border-size')
+    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', styleType, 'properties', 'border-size')
+  
+  const sizeBorderColorVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-color')
+  const sizeBorderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-size')
+  
+  const sizeBorderColorRaw = useCssVar(sizeBorderColorVar, '')
+  const sizeBorderSizeRaw = useCssVar(sizeBorderSizeVar, '')
+  const borderRadiusVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'border-radius')
+  const paddingVar = buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'properties', 'padding')
+  const widthVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'width')
+  const heightVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'height')
+  const iconSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'icon-size')
   
   // Reactively read border-radius to trigger re-renders when it changes
   const borderRadiusValueRaw = useCssVar(borderRadiusVar, '')
@@ -114,14 +127,21 @@ export default function Avatar({
   return (
     <div
       className={`cds--avatar ${className || ''}`}
+      data-avatar-type={paddingStyleType}
       style={{
         // Set CSS custom properties that reference the UIKit CSS vars directly
         // These point to the UIKit vars, allowing CSS to reference them dynamically
         '--avatar-bg': `var(${bgVar})`,
+        backgroundColor: paddingStyleType === 'image' ? `var(${bgVar})` : undefined,
         '--avatar-border': borderColorValue || `var(${borderVar})`,
-        '--avatar-label': `var(${labelVar})`,
+        '--avatar-label': paddingStyleType === 'image' 
+          ? (borderColorValue || `var(${borderVar})`) 
+          : `var(${labelVar})`,
         '--avatar-size': `var(${sizeVar})`,
-        '--avatar-border-size': `var(${borderSizeVar})`,
+        '--avatar-width': `var(${widthVar})`,
+        '--avatar-height': `var(${heightVar})`,
+        '--avatar-icon-size': `var(${iconSizeVar})`,
+        '--avatar-border-size': borderSizeStyleVar ? `var(${borderSizeStyleVar})` : `var(${sizeBorderSizeVar})`,
         // Set the CSS variable - for circle, use 50%, otherwise use the resolved value
         '--avatar-border-radius': shape === 'circle' ? '50%' : (borderRadiusValue || `var(${borderRadiusVar})`),
         '--avatar-padding': `var(${paddingVar})`,
@@ -145,6 +165,12 @@ export default function Avatar({
           src={src}
           alt={alt || ''}
           onError={() => setImageError(true)}
+          className="cds--avatar-image"
+        />
+      ) : paddingStyleType === 'image' ? (
+        <img
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          alt={alt || ''}
           className="cds--avatar-image"
         />
       ) : (

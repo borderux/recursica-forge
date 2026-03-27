@@ -212,7 +212,7 @@ function formatValue(val: unknown, currentPath: string, allVarNames: Set<string>
 
   if (typeof val === 'string') {
     if (/^#[0-9a-fA-F]{3,8}$/.test(val)) return val
-    if (val === 'none' || val === 'normal' || val === 'italic' || val === 'uppercase' || val === 'lowercase') return val
+    if (val === 'none' || val === 'normal' || val === 'italic' || val === 'uppercase' || val === 'lowercase' || val === 'transparent' || val === 'inherit' || val === 'initial' || val === 'unset' || val === 'currentcolor') return val
     if (val.includes('var(')) return val
     return `"${val.replace(/"/g, '\\"')}"`
   }

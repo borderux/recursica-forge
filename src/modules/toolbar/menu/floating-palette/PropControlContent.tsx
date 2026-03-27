@@ -3645,6 +3645,9 @@ export default function PropControlContent({
       } else if (isAssistiveElement && propNameLower === 'max-width') {
         minPixelValue = 100
         maxPixelValue = 500
+      } else if (isAvatar && (propNameLower === 'width' || propNameLower === 'height')) {
+        minPixelValue = 20
+        maxPixelValue = 100
       } else if (isLabelWidth) {
         // Default maxPixelValue for label-width
         maxPixelValue = 500
