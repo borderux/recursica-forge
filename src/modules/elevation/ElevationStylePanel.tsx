@@ -1,19 +1,149 @@
-import React from 'react'
-import PaletteColorControl from '../forms/PaletteColorControl'
+import React, { useRef, useMemo } from 'react'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
 import { Panel } from '../../components/adapters/Panel'
+import { TextField } from '../../components/adapters/TextField'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { readCssVar } from '../../core/css/readCssVar'
-import { token, tokenOpacity, unwrapVar } from '../../core/css/cssVarBuilder'
+import { token, unwrapVar } from '../../core/css/cssVarBuilder'
 import { tokenToCssVar } from '../../core/css/tokenRefs'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
 type SizeToken = { name: string; value: number; label: string }
 type OpacityToken = { name: string; value: number; label: string }
+
+/**
+ * A compact color control for the elevation shadow color.
+ * Reads the token var stored in `targetCssVar`, resolves `scale-XX` to
+ * its friendly alias (e.g. "Gray"), and opens the full ColorTokenPicker
+ * (window.openPicker) so the user picks from actual color-scale swatches.
+ */
+function ShadowColorTokenControl({
+  targetCssVar,
+  targetCssVars,
+  paletteSelection,
+}: {
+  targetCssVar: string
+  targetCssVars: string[]
+  paletteSelection?: { paletteKey: string; level: string } | null
+}) {
+  const { tokens: tokensJson } = useVars()
+  const { mode } = useThemeMode()
+  const modeLower = mode.toLowerCase()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [refreshKey, setRefreshKey] = React.useState(0)
+
+  React.useEffect(() => {
+    const handleUpdate = (e: Event) => {
+      const updatedVars: string[] | undefined = (e as CustomEvent).detail?.cssVars
+      if (!updatedVars || targetCssVars.some(v => updatedVars.includes(v))) {
+        setRefreshKey(k => k + 1)
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleUpdate)
+    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+  }, [targetCssVars])
+
+  // Derive the active palette selection from (in priority order):
+  //  1. Explicit paletteSelection from elevation.paletteSelections state
+  //  2. Palette ref inside the shadow-color CSS var (color-mix with _palettes_ var)
+  //  3. Color token ref inside the shadow-color CSS var — map via tokensJson alias
+  const activePaletteSelection = useMemo(() => {
+    if (paletteSelection) return paletteSelection
+
+    const rawValue = readCssVar(targetCssVar)
+    if (!rawValue || rawValue === 'transparent') return null
+
+    // 2. Direct palette ref (e.g. after recompute uses paletteSelections)
+    const paletteMatch = rawValue.match(/palettes_([a-z0-9-]+)_([0-9]+)_color_tone/)
+    if (paletteMatch) return { paletteKey: paletteMatch[1], level: paletteMatch[2] }
+
+    // 3. Color token var inside a color-mix: --recursica_tokens_colors_{family}_{level}
+    //    Map family → palette key via tokensJson.tokens.colors[family].alias
+    const tokenVarMatch = rawValue.match(/var\(--recursica_tokens_colors_([a-z0-9-]+)_([0-9]+)\)/)
+    if (tokenVarMatch) {
+      const family = tokenVarMatch[1]
+      const level = tokenVarMatch[2]
+      const alias: string | undefined = (tokensJson as any)?.tokens?.colors?.[family]?.alias
+      return { paletteKey: alias || family, level }
+    }
+
+    return null
+  }, [paletteSelection, targetCssVar, tokensJson, refreshKey])
+
+  // Derive label from active selection
+  const displayLabel = useMemo(() => {
+    if (!activePaletteSelection) return 'None'
+    const { paletteKey, level } = activePaletteSelection
+    const friendlyKey = paletteKey.replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())
+    return `${friendlyKey} / ${level}`
+  }, [activePaletteSelection])
+
+  // Swatch: extract the inner color var directly from the shadow-color CSS var value.
+  // This works for palette refs AND color token refs inside color-mix().
+  const swatchColor = useMemo(() => {
+    const rawValue = readCssVar(targetCssVar)
+    if (!rawValue || rawValue === 'transparent') return 'transparent'
+    const innerVarMatch = rawValue.match(/var\((--[^)]+)\)/)
+    return innerVarMatch ? `var(${innerVarMatch[1]})` : 'transparent'
+  }, [targetCssVar, refreshKey])
+
+  const isNone = useMemo(() => {
+    const rawValue = readCssVar(targetCssVar)
+    return !rawValue || rawValue === 'transparent'
+  }, [targetCssVar, refreshKey])
+
+  const swatchBorderColor = `var(--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone)`
+
+  const swatchIcon = (
+    <span
+      aria-hidden
+      style={{
+        width: 14,
+        height: 14,
+        display: 'block',
+        flex: '0 0 auto',
+        boxSizing: 'border-box',
+        border: `1px solid ${swatchBorderColor}`,
+        background: isNone ? 'transparent' : swatchColor,
+        flexShrink: 0,
+        position: 'relative',
+      }}
+    />
+  )
+
+  return (
+    <div ref={containerRef}>
+      <TextField
+        label="Shadow Color"
+        value={displayLabel}
+        leadingIcon={swatchIcon}
+        state="default"
+        readOnly={true}
+        layer="layer-0"
+        style={{ fontSize: 13, cursor: 'pointer' }}
+        onClick={(e) => {
+          e.stopPropagation()
+          const el = containerRef.current
+          if (!el) return
+          const additional = targetCssVars.filter(v => v !== targetCssVar)
+          // Open palette picker — no opacity dropdown (handled by panel slider), no None option (elevation always has a color)
+          ;(window as any).openPalettePicker(
+            el,
+            targetCssVar,
+            additional.length > 0 ? additional : undefined,
+            undefined,
+            false,
+          )
+        }}
+      />
+    </div>
+  )
+}
+
 
 export type ElevationControl = {
   blur: number
@@ -634,14 +764,13 @@ export default function ElevationStylePanel({
           })()}
         </div>
         <div style={{ width: '100%', margin: 0, padding: 0 }}>
-          <PaletteColorControl
-            label="Shadow Color"
+          <ShadowColorTokenControl
             targetCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(0)}
-            targetCssVars={levelsArr.length > 0 ? levelsArr.map(lvl => getShadowColorCssVar(lvl)) : undefined}
-            currentValueCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(0)}
-            swatchSize={14}
-            fontSize={13}
-            onSelect={onShadowColorSelect}
+            targetCssVars={levelsArr.length > 0 ? levelsArr.map(lvl => getShadowColorCssVar(lvl)) : [getShadowColorCssVar(0)]}
+            paletteSelection={(() => {
+              const elevationKey = levelsArr.length > 0 ? `elevation-${levelsArr[0]}` : null
+              return elevationKey ? (elevation?.paletteSelections?.[elevationKey] ?? null) : null
+            })()}
           />
         </div>
       </div>

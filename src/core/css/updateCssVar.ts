@@ -106,7 +106,6 @@ export function updateCssVar(
         }
         return true
       } else {
-        console.error(`[updateCssVar] Brand CSS variable '${cssVarName}' requires a token reference, but received: '${trimmedValue}'`)
         return false
       }
     }
@@ -127,8 +126,7 @@ export function updateCssVar(
   // This ensures AA compliance fixes (and any other brand var changes) persist in the store
   if (isBrandVar(cssVarName)) {
     updateBrandValue(cssVarName, trimmedValue)
-    // Schedule a compliance scan so contrast issues are detected after color changes
-    try { getVarsStore().scheduleComplianceScan() } catch { }
+    getVarsStore().scheduleComplianceScan()
   }
 
   // Dispatch event to notify components of CSS variable updates

@@ -25,6 +25,7 @@ export default function ColorTokenPicker() {
   const modeLower = mode.toLowerCase() as 'light' | 'dark'
   const [anchor, setAnchor] = useState<HTMLElement | null>(null)
   const [targetVar, setTargetVar] = useState<string | null>(null)
+  const [additionalTargetVars, setAdditionalTargetVars] = useState<string[]>([])
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [cssVarUpdateTrigger, setCssVarUpdateTrigger] = useState(0)
 
@@ -33,6 +34,7 @@ export default function ColorTokenPicker() {
     const handleCloseAll = () => {
       setAnchor(null)
       setTargetVar(null)
+      setAdditionalTargetVars([])
     }
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
@@ -160,10 +162,11 @@ export default function ColorTokenPicker() {
   }, [tokensJson])
 
     // Handle opening from global function
-    ; (window as any).openPicker = (el: HTMLElement, cssVar: string) => {
+    ; (window as any).openPicker = (el: HTMLElement, cssVar: string, additionalCssVars?: string[]) => {
       window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
       setAnchor(el)
       setTargetVar(cssVar)
+      setAdditionalTargetVars(additionalCssVars ?? [])
     }
 
   // Helper: Build CSS variable name for a color token (matches varsStore format)
@@ -279,25 +282,26 @@ export default function ColorTokenPicker() {
 
     // Check if this is a core color CSS var for the current mode
     // Use --recursica_brand_themes_ format to match varsStore.ts and palettes.ts
+    // paletteCore() generates `core_` with underscore, not `core-` with hyphen
     const modeLower = mode.toLowerCase()
-    const coreColorPrefix = `--recursica_brand_themes_${modeLower}_palettes_core-`
+    const coreColorPrefix = `--recursica_brand_themes_${modeLower}_palettes_core_`
     if (!cssVar.startsWith(coreColorPrefix)) return // Not a core color
 
     // Extract the color name from the CSS var
     // Only update if this is a -tone variable, not -on-tone
     // We should always be updating the tone value, never the on-tone value
-    if (cssVar.includes('-on-tone')) {
+    if (cssVar.includes('_on-tone') || cssVar.includes('_on_tone')) {
       return
     }
 
-    // Extract color name - handle both -tone suffix and base (for backward compatibility)
+    // Extract color name - remove the prefix, then strip trailing `_tone` suffix
     let colorName = cssVar.replace(coreColorPrefix, '')
-    if (colorName.endsWith('-tone')) {
-      colorName = colorName.replace('-tone', '')
+    if (colorName.endsWith('_tone')) {
+      colorName = colorName.slice(0, -'_tone'.length)
     }
 
-    // If it's the main interactive variable (not interactive-default-tone or interactive-hover-tone), handle it separately
-    if (colorName === 'interactive' && !cssVar.includes('interactive-default-tone') && !cssVar.includes('interactive-hover-tone')) {
+    // If it's the main interactive variable (not interactive_default_tone or interactive_hover_tone), handle it separately
+    if (colorName === 'interactive' && !cssVar.includes('interactive_default_tone') && !cssVar.includes('interactive_hover_tone')) {
       // This is the main interactive var (backward compatibility) - treat as interactive-default
       colorName = 'interactive-default'
     }
@@ -308,15 +312,15 @@ export default function ColorTokenPicker() {
       mapping = {}
     } else if (colorName === 'interactive') {
       mapping = { isInteractive: true }
-    } else if (colorName === 'interactive-default') {
+    } else if (colorName === 'interactive-default' || colorName === 'interactive_default') {
       mapping = { isInteractive: true }
-    } else if (colorName === 'interactive-hover') {
+    } else if (colorName === 'interactive-hover' || colorName === 'interactive_hover') {
       mapping = { isInteractive: true, isHover: true }
     }
 
     if (!mapping) return // Not a recognized core color
 
-    try {
+
       const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const themes = root?.themes || root
@@ -385,7 +389,7 @@ export default function ColorTokenPicker() {
       // Handle interactive colors with nested structure
       if (mapping.isInteractive) {
         // For main interactive var (backward compatibility), it maps to default.tone
-        const isMainInteractive = cssVar === `--recursica_brand_themes_${modeLower}_palettes_core-interactive`
+        const isMainInteractive = cssVar === `--recursica_brand_themes_${modeLower}_palettes_core_interactive`
 
         if (!coreColors.interactive) {
           coreColors.interactive = {
@@ -456,7 +460,7 @@ export default function ColorTokenPicker() {
         const isOnToneUsingWhite = (onToneColorName: string): boolean => {
           if (!oldWhiteScaleKey) return false
 
-          const onToneVar = `--recursica_brand_themes_${modeLower}_palettes_core-${onToneColorName}-on-tone`
+          const onToneVar = `--recursica_brand_themes_${modeLower}_palettes_core_${onToneColorName}_on-tone`
           const onToneValue = readCssVar(onToneVar)
           if (!onToneValue) return false
 
@@ -556,7 +560,7 @@ export default function ColorTokenPicker() {
 
           // Fallback: try to read from CSS var if theme doesn't have it
           if (!otherToneHex || otherToneHex === '#000000') {
-            const otherToneCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-${otherColorName}-tone`
+            const otherToneCssVar = `--recursica_brand_themes_${modeLower}_palettes_core_${otherColorName}_tone`
             const otherToneValue = readCssVarResolved(otherToneCssVar) || readCssVar(otherToneCssVar)
             otherToneHex = otherToneValue
               ? (resolveCssVarToHex(otherToneValue, tokenIndex) || '#000000')
@@ -584,9 +588,7 @@ export default function ColorTokenPicker() {
 
 
       // Compliance scan runs via scheduleComplianceScan after setTheme → recomputeAndApplyAll
-    } catch (err) {
-      console.error('Failed to update core color in theme JSON:', err)
-    }
+
   }
 
   const handleSelect = (tokenName: string) => {
@@ -608,11 +610,11 @@ export default function ColorTokenPicker() {
     // Still try to set it even if variable doesn't exist yet - it might be created dynamically
 
     // Check if this is a core color CSS var
-    const isCoreColor = targetVar.startsWith(`--recursica_brand_themes_${modeLower}_palettes_core-`)
+    const isCoreColor = targetVar.startsWith(`--recursica_brand_themes_${modeLower}_palettes_core_`)
 
     // Check if this is an interactive color change
-    const isInteractiveDefault = targetVar === `--recursica_brand_themes_${modeLower}_palettes_core-interactive-default-tone` ||
-      targetVar === `--recursica_brand_themes_${modeLower}_palettes_core-interactive`
+    const isInteractiveDefault = targetVar === `--recursica_brand_themes_${modeLower}_palettes_core_interactive_default_tone` ||
+      targetVar === `--recursica_brand_themes_${modeLower}_palettes_core_interactive`
 
     if (isInteractiveDefault) {
       // Get the hex value for the selected token from tokens JSON (checking overrides first)
@@ -656,25 +658,10 @@ export default function ColorTokenPicker() {
 
         // Update CSS variable FIRST for immediate visual feedback (before setTheme triggers recompute)
         const tokenCssVar = buildTokenCssVar(family, level)
-        const targetCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-interactive-default-tone`
+        const targetCssVar = `--recursica_brand_themes_${modeLower}_palettes_core_interactive_default_tone`
         updateCssVar(targetCssVar, `var(${tokenCssVar})`, tokensJson)
 
-        // Directly update interactive color with 'keep' option (keep current hover)
-        if (!setTheme || !themeJson || !tokensJson) {
-          // Fallback: just update CSS vars if we can't update theme
-          updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower as 'light' | 'dark', themeJson, setTheme)
-          setAnchor(null)
-          setTargetVar(null)
-          // Trigger AA compliance check for core colors
-          setTimeout(() => {
-            try {
-              window.dispatchEvent(new CustomEvent('recheckCoreColorInteractiveOnTones'))
-            } catch { }
-          }, 10)
-          return
-        }
 
-        try {
           // Build token index to find which token matches the hex
           const tokenIndex = buildTokenIndex(tokensJson)
 
@@ -682,12 +669,12 @@ export default function ColorTokenPicker() {
           const defaultToneRef = hexToCssVarRef(normalizedHex, tokensJson)
 
           // Keep current hover color
-          const currentHover = readCssVar(`--recursica_brand_themes_${modeLower}_palettes_core-interactive-hover-tone`)
+          const currentHover = readCssVar(`--recursica_brand_themes_${modeLower}_palettes_core_interactive_hover_tone`)
           let hoverHex: string
           if (currentHover && !currentHover.startsWith('var(')) {
             hoverHex = currentHover
           } else {
-            hoverHex = resolveCssVarToHex(`var(--recursica_brand_themes_${modeLower}_palettes_core-interactive-hover-tone)`, tokenIndex) || normalizedHex
+            hoverHex = resolveCssVarToHex(`var(--recursica_brand_themes_${modeLower}_palettes_core_interactive_hover_tone)`, tokenIndex) || normalizedHex
           }
           const hoverToneRef = hexToCssVarRef(hoverHex, tokensJson)
 
@@ -895,7 +882,7 @@ export default function ColorTokenPicker() {
               const interactiveRef = colorDef.interactive?.$value
               if (!interactiveRef) return
 
-              const interactiveCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-${colorName}-interactive`
+              const interactiveCssVar = `--recursica_brand_themes_${modeLower}_palettes_core_${colorName}_interactive`
               const cssVarValue = resolveTokenReferenceToCssVar(interactiveRef, contextForCssVar)
               if (cssVarValue) {
                 updateCssVar(interactiveCssVar, cssVarValue, tokensJson)
@@ -919,14 +906,6 @@ export default function ColorTokenPicker() {
           //   updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeCopy, setTheme, mode)
           // }
 
-          // AA compliance is now manual via header button - removed automatic call
-        } catch (err) {
-          console.error('Failed to update interactive color:', err)
-          // Fallback: just update CSS vars (CSS var was already updated above)
-          // updateInteractiveColor will update hover and on-tones, but won't overwrite default-tone
-          updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower as 'light' | 'dark', themeJson, setTheme)
-          // AA compliance is now manual via header button - removed automatic call
-        }
 
         setAnchor(null)
         setTargetVar(null)
@@ -937,10 +916,12 @@ export default function ColorTokenPicker() {
     // Set the CSS variable FIRST for immediate visual feedback
     // For core colors, this will be preserved by recomputeAndApplyAll's preservation logic
     const success = updateCssVar(targetVar, `var(${tokenCssVar})`, tokensJson)
-    if (!success) {
-      console.error(`Failed to update ${targetVar} to var(${tokenCssVar})`)
-      return
-    }
+    if (!success) return
+
+    // Also update any additional target CSS vars (e.g. multiple elevation levels)
+    additionalTargetVars.forEach((v) => {
+      if (v !== targetVar) updateCssVar(v, `var(${tokenCssVar})`, tokensJson)
+    })
 
     // Trigger recalculation of targetResolvedValue to update checkmark
     setCssVarUpdateTrigger((prev) => prev + 1)
@@ -949,23 +930,12 @@ export default function ColorTokenPicker() {
     // This will also check and update on-tone colors for AA compliance
     // The CSS variable we set above will be preserved by recomputeAndApplyAll's preservation logic
     if (isCoreColor) {
-      // Use requestAnimationFrame to ensure CSS variable is set in DOM before setTheme triggers recompute
-      requestAnimationFrame(() => {
-        updateCoreColorInTheme(targetVar, tokenName)
-      })
-
-      // Dispatch cssVarsUpdated event to trigger on-tone updates
-      setTimeout(() => {
-        try {
-          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-            detail: { cssVars: [targetVar] }
-          }))
-        } catch { }
-      }, 0)
+      updateCoreColorInTheme(targetVar, tokenName)
     }
 
     setAnchor(null)
     setTargetVar(null)
+    setAdditionalTargetVars([])
   }
 
 

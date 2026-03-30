@@ -624,13 +624,17 @@ export default function LayerStylePanel({
       Object.keys(neutral || {}).forEach((lvl) => {
         if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `neutral/${lvl}`, value: `{brand.themes.light.palettes.neutral.${lvl}.color.tone}` })
       })
-        ;['palette-1', 'palette-2'].forEach((pk) => {
+      const dynamicPaletteKeys = Object.keys(light).filter(
+          (pk) => pk !== 'neutral' && pk !== 'core' && pk !== 'core-colors' && !pk.startsWith('$')
+        )
+        dynamicPaletteKeys.forEach((pk) => {
           const group: any = light?.[pk] || {}
           Object.keys(group || {}).forEach((lvl) => {
             if (/^\d{2,4}|000$/.test(lvl)) out.push({ label: `${pk}/${lvl}`, value: `{brand.themes.light.palettes.${pk}.${lvl}.color.tone}` })
           })
           if (group?.default?.['$value']) out.push({ label: `${pk}/default`, value: `{brand.themes.light.palettes.${pk}.default.color.tone}` })
         })
+
     } catch { }
     return out
   }, [themeJson])

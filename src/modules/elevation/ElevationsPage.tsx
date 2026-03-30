@@ -4,6 +4,7 @@ import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import ElevationModule from './ElevationModule'
 import ElevationStylePanel from './ElevationStylePanel'
+import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { removeCssVar } from '../../core/css/updateCssVar'
 import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import { Button } from '../../components/adapters/Button'
@@ -16,14 +17,6 @@ export default function ElevationsPage() {
   const [selectedLevels, setSelectedLevels] = useState<Set<number>>(() => new Set<number>())
 
 
-  // Close panels when mode changes
-  useEffect(() => {
-    const handleCloseAll = () => {
-      setSelectedLevels(new Set())
-    }
-    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
-    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
-  }, [])
 
   // Extract token lists for UI (values are resolved via CSS vars)
   const availableSizeTokens = useMemo(() => {
@@ -471,122 +464,121 @@ export default function ElevationsPage() {
   }, [elevation, mode, theme])
 
   return (
-    <div id="body" className="antialiased" style={{ backgroundColor: `var(${genericLayerProperty(0, 'surface')})`, color: `var(${genericLayerText(0, 'color')})` }}>
-      <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
-        <div className="section">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h1 style={{
-              margin: 0,
-              fontFamily: 'var(--recursica_brand_typography_h1-font-family)',
-              fontSize: 'var(--recursica_brand_typography_h1-font-size)',
-              fontWeight: 'var(--recursica_brand_typography_h1-font-weight)',
-              letterSpacing: 'var(--recursica_brand_typography_h1-font-letter-spacing)',
-              lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
-              color: `var(${genericLayerText(0, 'color')})`,
-            }}>Elevations</h1>
-            <Button
-              variant="outline"
-              size="small"
-              onClick={handleResetAll}
-              icon={(() => {
-                const ResetIcon = iconNameToReactComponent('arrow-path')
-                return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
-              })()}
-              layer="layer-1"
-            >
-              Reset all
-            </Button>
-          </div>
-          <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
-            <div className="elevation-grid" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', isolation: 'isolate' }}>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div key={i} style={{ width: '100%', position: 'relative', zIndex: i }}>
-                  <ElevationModule
-                    label={i === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${i}`}
-                    level={i}
-                    isSelected={i === 0 ? false : selectedLevels.has(i)}
-                    onToggle={i === 0 ? undefined : () => {
-                      setSelectedLevels(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next })
-                    }}
-                    selectable={i > 0}
-                    zIndex={i}
-                  />
-                </div>
-              ))}
+    <>
+      <div id="body" className="antialiased" style={{ backgroundColor: `var(${genericLayerProperty(0, 'surface')})`, color: `var(${genericLayerText(0, 'color')})` }}>
+        <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
+          <div className="section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h1 style={{
+                margin: 0,
+                fontFamily: 'var(--recursica_brand_typography_h1-font-family)',
+                fontSize: 'var(--recursica_brand_typography_h1-font-size)',
+                fontWeight: 'var(--recursica_brand_typography_h1-font-weight)',
+                letterSpacing: 'var(--recursica_brand_typography_h1-font-letter-spacing)',
+                lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
+                color: `var(${genericLayerText(0, 'color')})`,
+              }}>Elevations</h1>
+              <Button
+                variant="outline"
+                size="small"
+                onClick={handleResetAll}
+                icon={(() => {
+                  const ResetIcon = iconNameToReactComponent('arrow-path')
+                  return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
+                })()}
+                layer="layer-1"
+              >
+                Reset all
+              </Button>
+            </div>
+            <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
+              <div className="elevation-grid" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', isolation: 'isolate' }}>
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <div key={i} style={{ width: '100%', position: 'relative', zIndex: i }}>
+                    <ElevationModule
+                      label={i === 0 ? 'Elevation 0 (No elevation)' : `Elevation ${i}`}
+                      level={i}
+                      isSelected={i === 0 ? false : selectedLevels.has(i)}
+                      onToggle={i === 0 ? undefined : () => {
+                        setSelectedLevels(prev => { const next = new Set(prev); if (next.has(i)) next.delete(i); else next.add(i); return next })
+                      }}
+                      selectable={i > 0}
+                      zIndex={i}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
+          {selectedLevels.size > 0 && elevation && (
+            <ElevationStylePanel
+              selectedLevels={selectedLevels}
+              elevationControls={elevationControlsWithDefaults}
+              availableSizeTokens={availableSizeTokens}
+              availableOpacityTokens={availableOpacityTokens}
+              shadowColorControl={elevation.shadowColorControl}
+              getAlphaTokenForLevel={(key: string) => {
+                const lvl = Number(key.replace('elevation-', ''))
+                return getAlphaTokenForLevel(lvl)
+              }}
+              setElevationAlphaToken={setElevationAlphaToken}
+              updateElevationControl={updateElevationControl}
+              updateElevationControlsBatch={updateElevationControlsBatch}
+              getDirectionForLevel={(key: string) => ({ x: getXDirForLevel(key), y: getYDirForLevel(key) })}
+              setXDirectionForSelected={(dir: 'left' | 'right') => {
+                updateElevation((prev) => {
+                  const next = { ...prev }
+                  if (!next.directions[mode]) next.directions[mode] = {}
+                  selectedLevels.forEach((lvl) => {
+                    const k = `elevation-${lvl}`
+                    next.directions[mode] = { ...next.directions[mode], [k]: { x: dir, y: getYDirForLevel(k) } }
+                  })
+                  return next
+                })
+              }}
+              setYDirectionForSelected={(dir: 'up' | 'down') => {
+                updateElevation((prev) => {
+                  const next = { ...prev }
+                  if (!next.directions[mode]) next.directions[mode] = {}
+                  selectedLevels.forEach((lvl) => {
+                    const k = `elevation-${lvl}`
+                    next.directions[mode] = { ...next.directions[mode], [k]: { x: getXDirForLevel(k), y: dir } }
+                  })
+                  return next
+                })
+              }}
+              revertSelected={revertSelected}
+              onShadowColorSelect={() => {}}
+              onClose={() => setSelectedLevels(new Set())}
+            />
+          )}
         </div>
-        {selectedLevels.size > 0 && elevation && (
-          <ElevationStylePanel
-            selectedLevels={selectedLevels}
-            elevationControls={elevationControlsWithDefaults}
-            availableSizeTokens={availableSizeTokens}
-            availableOpacityTokens={availableOpacityTokens}
-            shadowColorControl={elevation.shadowColorControl}
-            getAlphaTokenForLevel={(key: string) => {
-              const lvl = Number(key.replace('elevation-', ''))
-              return getAlphaTokenForLevel(lvl)
-            }}
-            setElevationAlphaToken={setElevationAlphaToken}
-            updateElevationControl={updateElevationControl}
-            updateElevationControlsBatch={updateElevationControlsBatch}
-            getDirectionForLevel={(key: string) => ({ x: getXDirForLevel(key), y: getYDirForLevel(key) })}
-            setXDirectionForSelected={(dir: 'left' | 'right') => {
-              updateElevation((prev) => {
-                const next = { ...prev }
-                if (!next.directions[mode]) next.directions[mode] = {}
-                selectedLevels.forEach((lvl) => {
-                  const k = `elevation-${lvl}`
-                  next.directions[mode] = { ...next.directions[mode], [k]: { x: dir, y: getYDirForLevel(k) } }
-                })
-                return next
-              })
-            }}
-            setYDirectionForSelected={(dir: 'up' | 'down') => {
-              updateElevation((prev) => {
-                const next = { ...prev }
-                if (!next.directions[mode]) next.directions[mode] = {}
-                selectedLevels.forEach((lvl) => {
-                  const k = `elevation-${lvl}`
-                  next.directions[mode] = { ...next.directions[mode], [k]: { x: getXDirForLevel(k), y: dir } }
-                })
-                return next
-              })
-            }}
-            revertSelected={revertSelected}
-            onShadowColorSelect={(cssVar) => {
-              // Parse palette key and level from CSS var name
-              // Format: --recursica_brand_themes_light_palettes_{paletteKey}_{level}_color_tone
-              // or:     --recursica_brand_palettes_{paletteKey}_{level}_color_tone
-              const match = cssVar.match(/palettes_([a-z0-9-]+)_(\d+)_color_tone/)
-              if (match) {
-                const paletteKey = match[1]
-                const level = match[2]
-                updateElevation((prev) => {
-                  const next = { ...prev }
-                  next.paletteSelections = { ...next.paletteSelections }
-                  selectedLevels.forEach((lvl) => {
-                    next.paletteSelections[`elevation-${lvl}`] = { paletteKey, level }
-                  })
-                  return next
-                })
-              } else if (cssVar === '') {
-                // "None" was selected — clear palette selections
-                updateElevation((prev) => {
-                  const next = { ...prev }
-                  next.paletteSelections = { ...next.paletteSelections }
-                  selectedLevels.forEach((lvl) => {
-                    const { [`elevation-${lvl}`]: _, ...rest } = next.paletteSelections
-                    next.paletteSelections = rest
-                  })
-                  return next
-                })
-              }
-            }}
-            onClose={() => setSelectedLevels(new Set())}
-          />
-        )}
       </div>
-    </div>
+      <PaletteSwatchPicker onSelect={(cssVar) => {
+        const match = cssVar.match(/palettes_([a-z0-9-]+)_(\d+)_color_tone/)
+        if (match) {
+          const paletteKey = match[1]
+          const level = match[2]
+          updateElevation((prev) => {
+            const next = { ...prev }
+            next.paletteSelections = { ...next.paletteSelections }
+            selectedLevels.forEach((lvl) => {
+              next.paletteSelections[`elevation-${lvl}`] = { paletteKey, level }
+            })
+            return next
+          })
+        } else if (cssVar === '') {
+          updateElevation((prev) => {
+            const next = { ...prev }
+            next.paletteSelections = { ...next.paletteSelections }
+            selectedLevels.forEach((lvl) => {
+              const { [`elevation-${lvl}`]: _, ...rest } = next.paletteSelections
+              next.paletteSelections = rest
+            })
+            return next
+          })
+        }
+      }} />
+    </>
   )
 }

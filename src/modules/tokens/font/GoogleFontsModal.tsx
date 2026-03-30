@@ -12,7 +12,7 @@ import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVar
 export type GoogleFontsModalProps = {
   open: boolean
   onClose: () => void
-  onAccept: (fontName: string, url?: string, variants?: Array<{ weight: string; style: string }>, sequence?: string) => void | Promise<void>
+  onAccept: (fontName: string, url?: string, variants?: Array<{ weight: string; style: string }>, sequence?: string, category?: 'serif' | 'sans-serif' | 'monospace') => void | Promise<void>
   existingFonts?: string[] // Array of existing font family names to prevent duplicates
   availableSequences?: string[] // Available sequence positions (e.g., ['primary', 'secondary', 'tertiary'])
   currentSequence?: string // Current sequence position if editing
@@ -33,6 +33,7 @@ export function GoogleFontsModal({
   const [googleFontsUrl, setGoogleFontsUrl] = useState('')
   const [customFontName, setCustomFontName] = useState('')
   const [customFontFallback, setCustomFontFallback] = useState<'serif' | 'sans-serif'>('sans-serif')
+
   // Default to last position (new position) if no currentSequence is provided
   const defaultSequence = currentSequence || availableSequences[availableSequences.length - 1] || availableSequences[0]
   const [selectedSequence, setSelectedSequence] = useState<string>(defaultSequence)
@@ -397,7 +398,7 @@ export function GoogleFontsModal({
           await onAccept(finalFontName, finalUrl, variants, selectedSequence)
           setGoogleFontsUrl('')
           setCustomFontName('')
-          setCustomFontFallback('sans-serif')
+
           setAvailableFonts([])
           setSelectedFontIndex(0)
           setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
@@ -472,16 +473,16 @@ export function GoogleFontsModal({
           })
         })
 
-        // Format font name with fallback (serif or sans-serif)
-        finalFontName = `${customFontName.trim()}, ${customFontFallback}`
+        finalFontName = customFontName.trim()
 
         // Call onAccept with font name (no URL for custom fonts), variants, and sequence
         setError('')
         try {
-          await onAccept(finalFontName, undefined, variants, selectedSequence)
+          await onAccept(finalFontName, undefined, variants, selectedSequence, customFontFallback)
           setGoogleFontsUrl('')
           setCustomFontName('')
           setCustomFontFallback('sans-serif')
+
           setAvailableFonts([])
           setSelectedFontIndex(0)
           setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
@@ -854,7 +855,7 @@ export function GoogleFontsModal({
 
                   <div>
                     <Dropdown
-                      label="Font Fallback"
+                      label="Font Category"
                       value={customFontFallback}
                       onChange={(val) => {
                         setCustomFontFallback(val as 'serif' | 'sans-serif')

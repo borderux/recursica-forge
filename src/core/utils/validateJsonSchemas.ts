@@ -280,7 +280,7 @@ function resolveRefToToken(
         for (const theme of ['light', 'dark'] as const) {
           const alt = `brand.themes.${theme}.${rest}`
           if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'brand-theme-agnostic→themes.light|dark' }
-          if (allowedWorkarounds.has('palette-default→indirection') && /^palettes\.(palette-1|palette-2|neutral)\.default\.color\.(tone|on-tone)$/.test(rest)) {
+          if (allowedWorkarounds.has('palette-default→indirection') && /^palettes\.([a-z][a-z0-9-]*)\.default\.color\.(tone|on-tone)$/.test(rest)) {
             const defaultTonePath = `brand.themes.${theme}.${rest.replace(/\.(tone|on-tone)$/, '.tone')}`
             const defaultToneToken = getAtPath(combined, defaultTonePath)
             if (isToken(defaultToneToken)) {
@@ -345,7 +345,7 @@ function resolveRefToToken(
   }
 
   if (root === 'brand' && allowedWorkarounds.has('palette-step-group→.color.tone|.color.on-tone')) {
-    const paletteStepMatch = path.match(/^brand\.themes\.(light|dark)\.palettes\.(neutral|palette-1|palette-2)\.(\d{3,4}|default|primary)$/)
+    const paletteStepMatch = path.match(/^brand\.themes\.(light|dark)\.palettes\.([a-z][a-z0-9-]*)\.(\d{3,4}|default|primary)$/)
     if (paletteStepMatch) {
       const [, theme, palette, step] = paletteStepMatch
       const referrerOnTone = referrerLocation.endsWith('on-tone')
@@ -356,7 +356,7 @@ function resolveRefToToken(
   }
 
   if (root === 'brand' && allowedWorkarounds.has('palette-default→indirection')) {
-    const defaultMatch = path.match(/^brand\.themes\.(light|dark)\.palettes\.(neutral|palette-1|palette-2)\.default\.(.*)$/)
+    const defaultMatch = path.match(/^brand\.themes\.(light|dark)\.palettes\.([a-z][a-z0-9-]*)\.default\.(.*)$/)
     if (defaultMatch) {
       const [, theme, palette, rest] = defaultMatch
       const defaultNode = getAtPath(combined, `brand.themes.${theme}.palettes.${palette}.default`)

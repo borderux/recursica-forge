@@ -14,6 +14,8 @@
  * Only CSS vars that differ from the JSON-derived defaults are stored.
  */
 
+import { DELETED_SCALES_KEY } from './varsStore'
+
 const STORAGE_KEY = 'rf:css-delta'
 const SAVE_DEBOUNCE_MS = 500
 
@@ -64,8 +66,39 @@ export function restoreDelta(): number {
     const root = document.documentElement
     let count = 0
 
+    // Read deleted scale keys/aliases so we can skip their CSS vars
+    const deletedScaleKeys = new Set<string>()
+    try {
+      const deletedRaw = localStorage.getItem(DELETED_SCALES_KEY)
+      if (deletedRaw) {
+        const deletedAliases = JSON.parse(deletedRaw) as string[]
+        // Collect scale keys from family-name entries in the saved delta
+        for (const [varName, value] of Object.entries(saved)) {
+          const match = varName.match(/^--recursica_tokens_colors_(scale-\d+)_family-name$/)
+          if (match) {
+            const alias = value.toLowerCase().replace(/\s+/g, '-')
+            if (deletedAliases.includes(alias)) {
+              deletedScaleKeys.add(match[1])
+            }
+          }
+        }
+        // Also add direct alias matches
+        deletedAliases.forEach(a => deletedScaleKeys.add(a))
+      }
+    } catch { }
+
     for (const [varName, value] of Object.entries(saved)) {
       if (!varName.startsWith('--recursica_')) continue
+      // Font typefaces/families are managed exclusively by rf:fonts — never restore from delta
+      if (varName.startsWith('--recursica_tokens_font_typefaces_') || varName.startsWith('--recursica_tokens_font_families_')) continue
+      // Skip CSS vars belonging to deleted color scales
+      if (deletedScaleKeys.size > 0) {
+        const tokenColorMatch = varName.match(/^--recursica_tokens_colors?_([\w-]+)_/)
+        if (tokenColorMatch) {
+          const family = tokenColorMatch[1]
+          if (deletedScaleKeys.has(family)) continue
+        }
+      }
       root.style.setProperty(varName, value)
       delta[varName] = value
       count++
@@ -179,6 +212,8 @@ export function reapplyDelta(): number {
   let count = 0
 
   for (const [varName, value] of Object.entries(delta)) {
+    // Font typefaces/families are managed exclusively by rf:fonts — never overwrite from delta
+    if (varName.startsWith('--recursica_tokens_font_typefaces_') || varName.startsWith('--recursica_tokens_font_families_')) continue
     root.style.setProperty(varName, value)
     count++
   }
