@@ -20,6 +20,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const [targetCssVars, setTargetCssVars] = useState<string[]>([])
   const [targetOpacityCssVar, setTargetOpacityCssVar] = useState<string | null>(null)
   const [showOpacityDropdown, setShowOpacityDropdown] = useState(false)
+  const [showNone, setShowNone] = useState(true)
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const firstHexMatchRef = useRef<string | null>(null)
@@ -38,6 +39,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       setTargetCssVars([])
       setTargetOpacityCssVar(null)
       setShowOpacityDropdown(false)
+      setShowNone(true)
     }
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
@@ -148,6 +150,22 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     for (let depth = 0; depth < 10 && currentValue; depth++) {
       const trimmed = currentValue.trim()
 
+      // Handle color-mix() — extract the first var(--name) inside it and parse the var name directly
+      if (trimmed.startsWith('color-mix(')) {
+        const innerVarNameMatch = trimmed.match(/var\((--[^)]+)\)/)
+        if (innerVarNameMatch) {
+          const innerVarName = innerVarNameMatch[1]
+          const innerParsed = parseBrandCssVar(innerVarName)
+          if (innerParsed?.type === 'palette') {
+            return `${innerParsed.paletteName}-${innerParsed.level}`
+          }
+          // Token ref (e.g. --recursica_tokens_colors_gray_900): resolve to hex for swatch matching
+          const innerHex = readCssVarResolved(innerVarName)
+          if (innerHex) return `hex:${innerHex.toLowerCase().trim()}`
+        }
+        break
+      }
+
       // Parse using central brand parser
       const brandParsed = parseBrandCssVar(trimmed)
       if (brandParsed) {
@@ -185,8 +203,21 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
     // Tracking match
     if (selectedPaletteSwatch) {
-      const swatchParsed = parseBrandCssVar(paletteCssVar)
-      if (swatchParsed && swatchParsed.type === 'palette' && selectedPaletteSwatch === `${swatchParsed.paletteName}-${swatchParsed.level}`) return true
+      if (selectedPaletteSwatch.startsWith('hex:')) {
+        // Hex-based match: inner token var was resolved to hex; compare against each swatch's resolved color
+        const targetHex = selectedPaletteSwatch.slice(4)
+        const paletteHex = readCssVarResolved(paletteCssVar)
+        if (paletteHex && targetHex === paletteHex.toLowerCase().trim()) {
+          if (firstHexMatchRef.current === null) {
+            firstHexMatchRef.current = paletteCssVar
+            return true
+          }
+          return firstHexMatchRef.current === paletteCssVar
+        }
+      } else {
+        const swatchParsed = parseBrandCssVar(paletteCssVar)
+        if (swatchParsed && swatchParsed.type === 'palette' && selectedPaletteSwatch === `${swatchParsed.paletteName}-${swatchParsed.level}`) return true
+      }
     }
 
     // Hex match fallback — but skip if value is color-mix (blended colors don't correspond to a single swatch)
@@ -208,7 +239,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   }
 
   useEffect(() => {
-    (window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[], opacityCssVar?: string) => {
+    (window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[], opacityCssVar?: string, allowNone?: boolean) => {
       // Don't dispatch closeAllPickersAndPanels here - it closes panels too!
       // The picker will close itself if another picker opens since it listens to this event
       // window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
@@ -218,6 +249,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       setTargetCssVars(cssVarsArray && cssVarsArray.length > 0 ? cssVarsArray : [])
       setTargetOpacityCssVar(opacityCssVar || null)
       setShowOpacityDropdown(!!opacityCssVar)
+      setShowNone(allowNone !== false)
 
       if (opacityCssVar) {
         const tokenKey = extractTokenFromCssVar(opacityCssVar)
@@ -329,47 +361,49 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
           />
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
-          <Label size="small">None</Label>
-          <div
-            onClick={(e) => {
-              e.stopPropagation()
-              const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
-              cssVarsToUpdate.forEach((v) => updateCssVar(v, 'transparent', tokensJson))
-              setAnchor(null)
-              onSelect?.('')
-              window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
-            }}
-            style={{
-              width: swatch,
-              height: swatch,
-              cursor: 'pointer',
-              background: 'transparent',
-              border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
-              position: 'relative',
-              padding: isNoneSelected ? '1px' : '0',
-              borderRadius: isNoneSelected ? '5px' : '0',
-              boxSizing: 'border-box',
-            }}
-          >
-            <div style={{
-              width: '100%',
-              height: '100%',
-              borderRadius: isNoneSelected ? '4px' : '0',
-              position: 'relative',
-              background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_surface)`
-            }}>
-              <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
-                <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone)`} strokeWidth="1.5" />
-              </svg>
-              {isNoneSelected && (
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` }} /> : '✓'}
-                </div>
-              )}
+        {showNone && (
+          <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
+            <Label size="small">None</Label>
+            <div
+              onClick={(e) => {
+                e.stopPropagation()
+                const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
+                cssVarsToUpdate.forEach((v) => updateCssVar(v, 'transparent', tokensJson))
+                setAnchor(null)
+                onSelect?.('')
+                window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
+              }}
+              style={{
+                width: swatch,
+                height: swatch,
+                cursor: 'pointer',
+                background: 'transparent',
+                border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                position: 'relative',
+                padding: isNoneSelected ? '1px' : '0',
+                borderRadius: isNoneSelected ? '5px' : '0',
+                boxSizing: 'border-box',
+              }}
+            >
+              <div style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: isNoneSelected ? '4px' : '0',
+                position: 'relative',
+                background: `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_surface)`
+              }}>
+                <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
+                  <line x1="10%" y1="90%" x2="90%" y2="10%" stroke={`var(--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone)`} strokeWidth="1.5" />
+                </svg>
+                {isNoneSelected && (
+                  <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
+                    {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` }} /> : '✓'}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {paletteKeys.map((pk) => {
           const swatches: { key: string; label: string; cssVar: string }[] = []

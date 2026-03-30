@@ -18,6 +18,7 @@ import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneFo
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
 import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges } from './cssDelta'
+import { clearStoredFonts } from './fontStore'
 import { syncDeltaToJson } from './deltaToJson'
 import { buildStructuralMetadata, type StructuralMetadata } from './structuralMetadata'
 
@@ -452,8 +453,10 @@ class VarsStore {
         storedFonts.forEach(font => {
           if (font.id && font.family) {
             const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
-            typefaces[font.id] = { $value: cleanFamily }
-            families[font.id] = { $value: cleanFamily }
+            const genericFallback = font.category || 'sans-serif'
+            const familyWithFallback = `${cleanFamily}, ${genericFallback}`
+            typefaces[font.id] = { $value: familyWithFallback }
+            families[font.id] = { $value: familyWithFallback }
 
             // Restore the extensions for Google Fonts URL
             if (font.url) {
@@ -672,8 +675,17 @@ class VarsStore {
         // Only apply the CSS variables that were added for this specific token
         // This prevents accidentally updating other CSS variables
         applyCssVars(varsToUpdate, this.state.tokens)
-        // Track changes in the delta for persistence across page loads
-        trackChanges(varsToUpdate)
+        // Track changes in the delta for persistence EXCEPT font typefaces/families,
+        // which are managed exclusively by rf:fonts and must never enter the delta.
+        // Stale delta entries for these vars cause reapplyDelta() to overwrite the
+        // correct reordered mapping after every recomputeAndApplyAll.
+        const deltaVars: Record<string, string> = {}
+        for (const [k, v] of Object.entries(varsToUpdate)) {
+          if (!k.startsWith(tokenFont('typefaces', '')) && !k.startsWith(tokenFont('families', ''))) {
+            deltaVars[k] = v
+          }
+        }
+        if (Object.keys(deltaVars).length > 0) trackChanges(deltaVars)
       }
     } catch (error) {
       console.error('Failed to update single token CSS var:', tokenName, error)
@@ -846,10 +858,10 @@ class VarsStore {
   }
 
   resetAll() {
-    // Clear all CSS variables first
+    // Clear all CSS variables, persisted delta, and stored font overrides
     clearAllCssVars()
-    // Clear persisted delta so no stale user changes carry over
     clearDelta()
+    clearStoredFonts()
 
     // Reset state from original JSON imports
     const sortedTokens = sortFontTokenObjects(tokensImport as any)
@@ -898,6 +910,9 @@ class VarsStore {
     try {
       window.dispatchEvent(new CustomEvent('themeReset', {}))
       window.dispatchEvent(new CustomEvent('paletteVarsChanged', {}))
+
+      // Notify font components to rebuild rows from the now-cleared rf:fonts
+      window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: {}, reset: true } }))
 
       // Dispatch palettePrimaryLevelChanged events for all palettes in both modes
       // This ensures all PaletteGrid components re-read primary levels from theme JSON
@@ -1548,8 +1563,10 @@ class VarsStore {
           storedFonts.forEach(font => {
             if (font.id && font.family) {
               const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
-              vars[tokenFont('typefaces', font.id)] = cleanFamily
-              vars[tokenFont('families', font.id)] = cleanFamily
+              const genericFallback = font.category || 'sans-serif'
+              const familyWithFallback = `${cleanFamily}, ${genericFallback}`
+              vars[tokenFont('typefaces', font.id)] = familyWithFallback
+              vars[tokenFont('families', font.id)] = familyWithFallback
             }
           })
         }
@@ -2069,7 +2086,6 @@ class VarsStore {
             // Use modern CSS color-mix so both color and opacity are driven by tokens.
             // Convert 0..1 opacity token to percentage weight for color-mix.
             `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
-          const familyForPalette: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
           const shadowColorForLevel = (level: number, paletteVars?: Record<string, string>): string => {
             const key = `elevation-${level}`
             const sel = this.state.elevation.paletteSelections[key]
@@ -2258,7 +2274,7 @@ class VarsStore {
           }
           Object.assign(allVars, vars)
         } catch (e) {
-          console.error('[VarsStore] Error generating elevation variables:', e)
+          throw e
         }
       }
 
@@ -2272,7 +2288,7 @@ class VarsStore {
           '--recursica_brand_dimensions_general_sm'
         ]
       }
-      try {
+      {
         // Compute layer element colors (text, interactive, status) based on layer surfaces.
         // This is a rendering step, not a compliance auto-fix — it determines the correct
         // text color for each layer by examining the surface background color.
@@ -2295,12 +2311,6 @@ class VarsStore {
         if (typeof document !== 'undefined') {
           updateScopedCss(allVars)
           setThemeAttribute(currentMode === 'dark' ? 'dark' : 'light')
-        }
-      } catch (e) {
-        // Log error but don't let it break the recompute cycle
-        console.error('[VarsStore] Error applying CSS variables:', e)
-        if (e instanceof Error) {
-          console.error('[VarsStore] Error stack:', e.stack)
         }
       }
     } finally {

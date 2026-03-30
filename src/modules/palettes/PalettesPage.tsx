@@ -1,10 +1,9 @@
 import '../theme/index.css'
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import PaletteGrid from './PaletteGrid'
-import { getTokenLevelForMode } from './PaletteColorSelector'
+import { getTokenLevelForMode, pickOnToneWithOpacity } from './PaletteColorSelector'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import ColorTokenPicker from '../pickers/ColorTokenPicker'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { Button } from '../../components/adapters/Button'
@@ -711,7 +710,7 @@ export default function PalettesPage() {
     try {
       const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-      const headerLevels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200']
+      const headerLevels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
       const tokensRoot: any = (tokensJson as any)?.tokens || {}
       const colorsRoot: any = tokensRoot?.colors || {}
 
@@ -843,10 +842,37 @@ export default function PalettesPage() {
             $value: levelTokenRef
           }
 
-          // Set on-tone to reference white (will be updated by PaletteGrid based on contrast)
+          // Determine the correct on-tone by computing AA contrast compliance
+          // Look up the hex value for this level from tokens
+          let onToneValue = '{brand.palettes.white}' // fallback
+          const resolvedScale = scaleKeyForMode || ((): string | undefined => {
+            for (const [sk, sc] of Object.entries(colorsRoot)) {
+              if (!sk.startsWith('scale-')) continue
+              if ((sc as any)?.alias === familyForMode) return sk
+            }
+            return undefined
+          })()
+
+          if (resolvedScale) {
+            const hex = colorsRoot[resolvedScale]?.[tokenLevel]?.$value
+            if (typeof hex === 'string' && /^#?[0-9a-f]{6}$/i.test(hex.trim())) {
+              const normalizedHex = hex.startsWith('#') ? hex : `#${hex}`
+              const onToneCore = pickOnToneWithOpacity(normalizedHex, modeLabel)
+              onToneValue = `{brand.palettes.${onToneCore}}`
+            }
+          } else {
+            // Old color format fallback
+            const hex = tokensRoot?.color?.[familyForMode]?.[tokenLevel]?.$value
+            if (typeof hex === 'string' && /^#?[0-9a-f]{6}$/i.test(hex.trim())) {
+              const normalizedHex = hex.startsWith('#') ? hex : `#${hex}`
+              const onToneCore = pickOnToneWithOpacity(normalizedHex, modeLabel)
+              onToneValue = `{brand.palettes.${onToneCore}}`
+            }
+          }
+
           targetRoot[modeKey].palettes[paletteKey][lvl].color['on-tone'] = {
             $type: 'color',
-            $value: `{brand.palettes.white}`
+            $value: onToneValue
           }
         })
       }
@@ -995,8 +1021,6 @@ export default function PalettesPage() {
             />
           ))}
         </div>
-
-        <ColorTokenPicker />
 
         <PaletteSwatchPicker />
       </div>

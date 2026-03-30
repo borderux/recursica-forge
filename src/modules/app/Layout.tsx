@@ -7,6 +7,7 @@
 import { Suspense, lazy, useMemo } from 'react'
 import { Link, Outlet } from 'react-router-dom'
 import { useUiKit } from '../uikit/UiKitContext'
+import ColorTokenPicker from '../pickers/ColorTokenPicker'
 
 // Create lazy components outside the component to avoid context timing issues
 const MantineShell = lazy(() => import('./shells/MantineShell'))
@@ -29,6 +30,7 @@ export function Layout() {
           <Outlet />
         </Suspense>
       </Shell>
+      <ColorTokenPicker />
     </Suspense>
   )
 }

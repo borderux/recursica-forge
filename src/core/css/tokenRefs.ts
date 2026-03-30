@@ -60,7 +60,6 @@ export function tokenToCssVar(tokenName: string, tokens?: any): string | null {
           // Otherwise, it's an alias - find the scale key from tokens
           // ALWAYS require tokens to resolve aliases - never use alias-based CSS vars
           if (!tokens) {
-            console.warn(`[tokenToCssVar] Cannot resolve alias "${scaleOrFamily}" to scale key without tokens parameter. Token: ${tokenName}`)
             return null
           }
           
@@ -75,7 +74,6 @@ export function tokenToCssVar(tokenName: string, tokens?: any): string | null {
           }) || null
           
           if (!scaleKey) {
-            console.warn(`[tokenToCssVar] Could not find scale key for alias "${scaleOrFamily}". Token: ${tokenName}`)
             return null
           }
           

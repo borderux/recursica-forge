@@ -4,6 +4,7 @@ export interface FontEntry {
     id: string // e.g. "primary", "secondary"
     family: string // e.g. "Lexend"
     url?: string // e.g. "https://fonts.googleapis.com/css2?..."
+    category?: 'sans-serif' | 'serif' | 'monospace' // generic fallback; defaults to 'sans-serif' if absent
 }
 
 const STORAGE_KEY = 'rf:fonts'

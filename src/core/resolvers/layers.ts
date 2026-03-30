@@ -15,8 +15,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     const h = (hex || '').toLowerCase()
     return h === '#ffffff' ? `var(${paletteCore(mode, 'white')})` : `var(${paletteCore(mode, 'black')})`
   }
-  const LEVELS = ['900', '800', '700', '600', '500', '400', '300', '200', '100', '050']
-  const PALETTE_KEYS = ['neutral', 'palette-1', 'palette-2', 'palette-3', 'palette-4']
   const buildPaletteVar = (paletteKey: string, level: string, type: 'tone' | 'on-tone' | 'high-emphasis' | 'low-emphasis'): string => {
     const levelPart = level === 'primary' ? 'primary' : level
     // Tone and on-tone live under the 'color' node in the JSON: palette/{pk}/{level}/color/{tone|on-tone}
@@ -102,10 +100,6 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     return typeof hex === 'string' ? hex : undefined
   }
   // Simplified: just use direct mapping (no CSS var reading during resolution)
-  const findPaletteKeyForFamilyLevel = (family: string, level: string): string | null => {
-    const map: Record<string, string> = { gray: 'neutral', salmon: 'palette-1', mandarin: 'palette-2', cornflower: 'palette-3', greensheen: 'palette-4' }
-    return map[family] || null
-  }
   const parseCoreVarName = (input: any): string | null => {
     try {
       const raw = ((): any => {
