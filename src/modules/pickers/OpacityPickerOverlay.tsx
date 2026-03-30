@@ -54,7 +54,7 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
     try {
       // Support both plural (opacities) and singular (opacity) for backwards compatibility
       const src: any = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
+      Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
         if (Number.isFinite(num)) list.push({ name: `opacity/${k}`, value: num })
