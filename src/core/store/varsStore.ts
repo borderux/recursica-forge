@@ -61,6 +61,7 @@ export type VarsState = {
 const STORAGE_KEYS = {
   version: 'rf:vars:version',
   uikit: 'rf:vars:uikit',
+  deletedScales: 'rf:deleted-scales',
 }
 
 function isLocalStorageAvailable(): boolean {
@@ -217,6 +218,11 @@ class VarsStore {
     const theme = (themeRaw as any)?.brand ? themeRaw : ({ brand: themeRaw } as any)
     const uikit = uikitImport as any
     const palettes = defaultPaletteStore()
+
+    // Strip deleted color scales from tokens before any CSS generation.
+    // This ensures scales the user deleted don't reappear on page refresh.
+    this.applyDeletedScales(tokens)
+
     // Ensure tokens is defined before passing to initElevationState
     // initElevationState will create elevation tokens and add them to the tokens object
     const elevation = this.initElevationState(theme as any, tokens || {})
@@ -405,6 +411,68 @@ class VarsStore {
   }
 
   public bumpVersion() { this.state = { ...this.state, version: (this.state.version || 0) + 1 }; this.emit() }
+
+  /**
+   * Read the deleted-scales list from localStorage.
+   */
+  public getDeletedScales(): string[] {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.deletedScales)
+      if (raw) return JSON.parse(raw) as string[]
+    } catch { }
+    return []
+  }
+
+  /**
+   * Persist a newly-deleted scale alias to localStorage and remove it from in-memory tokens.
+   */
+  public persistDeletedScale(alias: string, scaleKey?: string) {
+    try {
+      const list = this.getDeletedScales()
+      if (!list.includes(alias)) list.push(alias)
+      localStorage.setItem(STORAGE_KEYS.deletedScales, JSON.stringify(list))
+    } catch { }
+
+    // Also strip from in-memory tokens so recomputeAndApplyAll won't regenerate vars
+    const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
+    if (scaleKey && colorsRoot[scaleKey]) {
+      delete colorsRoot[scaleKey]
+    } else {
+      // Find and remove by alias
+      for (const [key, scale] of Object.entries(colorsRoot)) {
+        if (key.startsWith('scale-') && (scale as any)?.alias === alias) {
+          delete colorsRoot[key]
+          break
+        }
+      }
+    }
+  }
+
+  /**
+   * Clear the deleted-scales list (used during resetAll).
+   */
+  private clearDeletedScales() {
+    try { localStorage.removeItem(STORAGE_KEYS.deletedScales) } catch { }
+  }
+
+  /**
+   * Strip deleted color scales from a tokens object.
+   * Called during constructor before any CSS var generation.
+   */
+  private applyDeletedScales(tokens: any) {
+    const deleted = this.getDeletedScales()
+    if (deleted.length === 0) return
+    const tokensRoot = tokens?.tokens || {}
+    const colorsRoot = tokensRoot?.colors || {}
+    for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+      if (!scaleKey.startsWith('scale-')) continue
+      const alias = (scale as any)?.alias
+      if (alias && typeof alias === 'string' && deleted.includes(alias.trim())) {
+        delete colorsRoot[scaleKey]
+      }
+    }
+  }
 
   setTokens(next: JsonLike) {
     this.writeState({ tokens: next })
@@ -861,10 +929,11 @@ class VarsStore {
   }
 
   resetAll() {
-    // Clear all CSS variables, persisted delta, and stored font overrides
+    // Clear all CSS variables, persisted delta, stored font overrides, and deleted scales
     clearAllCssVars()
     clearDelta()
     clearStoredFonts()
+    this.clearDeletedScales()
 
     // Reset state from original JSON imports
     const sortedTokens = sortFontTokenObjects(tokensImport as any)
