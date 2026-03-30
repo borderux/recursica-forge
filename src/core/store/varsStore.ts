@@ -18,6 +18,7 @@ import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneFo
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
 import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges } from './cssDelta'
+import { clearStoredFonts } from './fontStore'
 import { syncDeltaToJson } from './deltaToJson'
 import { buildStructuralMetadata, type StructuralMetadata } from './structuralMetadata'
 
@@ -60,7 +61,11 @@ export type VarsState = {
 const STORAGE_KEYS = {
   version: 'rf:vars:version',
   uikit: 'rf:vars:uikit',
+  deletedScales: 'rf:deleted-scales',
 }
+
+/** Exported for use by cssDelta and deltaToJson modules — the single source of truth for this key. */
+export const DELETED_SCALES_KEY = STORAGE_KEYS.deletedScales
 
 function isLocalStorageAvailable(): boolean {
   try { if (typeof window === 'undefined' || !window.localStorage) return false; const k = '__ls__'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true } catch { return false }
@@ -216,6 +221,11 @@ class VarsStore {
     const theme = (themeRaw as any)?.brand ? themeRaw : ({ brand: themeRaw } as any)
     const uikit = uikitImport as any
     const palettes = defaultPaletteStore()
+
+    // Strip deleted color scales from tokens before any CSS generation.
+    // This ensures scales the user deleted don't reappear on page refresh.
+    this.applyDeletedScales(tokens)
+
     // Ensure tokens is defined before passing to initElevationState
     // initElevationState will create elevation tokens and add them to the tokens object
     const elevation = this.initElevationState(theme as any, tokens || {})
@@ -405,6 +415,68 @@ class VarsStore {
 
   public bumpVersion() { this.state = { ...this.state, version: (this.state.version || 0) + 1 }; this.emit() }
 
+  /**
+   * Read the deleted-scales list from localStorage.
+   */
+  public getDeletedScales(): string[] {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.deletedScales)
+      if (raw) return JSON.parse(raw) as string[]
+    } catch { }
+    return []
+  }
+
+  /**
+   * Persist a newly-deleted scale alias to localStorage and remove it from in-memory tokens.
+   */
+  public persistDeletedScale(alias: string, scaleKey?: string) {
+    try {
+      const list = this.getDeletedScales()
+      if (!list.includes(alias)) list.push(alias)
+      localStorage.setItem(STORAGE_KEYS.deletedScales, JSON.stringify(list))
+    } catch { }
+
+    // Also strip from in-memory tokens so recomputeAndApplyAll won't regenerate vars
+    const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
+    if (scaleKey && colorsRoot[scaleKey]) {
+      delete colorsRoot[scaleKey]
+    } else {
+      // Find and remove by alias
+      for (const [key, scale] of Object.entries(colorsRoot)) {
+        if (key.startsWith('scale-') && (scale as any)?.alias === alias) {
+          delete colorsRoot[key]
+          break
+        }
+      }
+    }
+  }
+
+  /**
+   * Clear the deleted-scales list (used during resetAll).
+   */
+  private clearDeletedScales() {
+    try { localStorage.removeItem(STORAGE_KEYS.deletedScales) } catch { }
+  }
+
+  /**
+   * Strip deleted color scales from a tokens object.
+   * Called during constructor before any CSS var generation.
+   */
+  private applyDeletedScales(tokens: any) {
+    const deleted = this.getDeletedScales()
+    if (deleted.length === 0) return
+    const tokensRoot = tokens?.tokens || {}
+    const colorsRoot = tokensRoot?.colors || {}
+    for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+      if (!scaleKey.startsWith('scale-')) continue
+      const alias = (scale as any)?.alias
+      if (alias && typeof alias === 'string' && deleted.includes(alias.trim())) {
+        delete colorsRoot[scaleKey]
+      }
+    }
+  }
+
   setTokens(next: JsonLike) {
     this.writeState({ tokens: next })
     if (!this.isRecomputing) this.recomputeAndApplyAll()
@@ -451,9 +523,14 @@ class VarsStore {
 
         storedFonts.forEach(font => {
           if (font.id && font.family) {
-            const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
-            typefaces[font.id] = { $value: cleanFamily }
-            families[font.id] = { $value: cleanFamily }
+            let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
+            // Strip any stale baked-in category from the family name itself
+            if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
+            // Build a proper CSS font-family string
+            const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
+            const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
+            typefaces[font.id] = { $value: fontStack }
+            families[font.id] = { $value: fontStack }
 
             // Restore the extensions for Google Fonts URL
             if (font.url) {
@@ -672,8 +749,17 @@ class VarsStore {
         // Only apply the CSS variables that were added for this specific token
         // This prevents accidentally updating other CSS variables
         applyCssVars(varsToUpdate, this.state.tokens)
-        // Track changes in the delta for persistence across page loads
-        trackChanges(varsToUpdate)
+        // Track changes in the delta for persistence EXCEPT font typefaces/families,
+        // which are managed exclusively by rf:fonts and must never enter the delta.
+        // Stale delta entries for these vars cause reapplyDelta() to overwrite the
+        // correct reordered mapping after every recomputeAndApplyAll.
+        const deltaVars: Record<string, string> = {}
+        for (const [k, v] of Object.entries(varsToUpdate)) {
+          if (!k.startsWith(tokenFont('typefaces', '')) && !k.startsWith(tokenFont('families', ''))) {
+            deltaVars[k] = v
+          }
+        }
+        if (Object.keys(deltaVars).length > 0) trackChanges(deltaVars)
       }
     } catch (error) {
       console.error('Failed to update single token CSS var:', tokenName, error)
@@ -846,10 +932,11 @@ class VarsStore {
   }
 
   resetAll() {
-    // Clear all CSS variables first
+    // Clear all CSS variables, persisted delta, stored font overrides, and deleted scales
     clearAllCssVars()
-    // Clear persisted delta so no stale user changes carry over
     clearDelta()
+    clearStoredFonts()
+    this.clearDeletedScales()
 
     // Reset state from original JSON imports
     const sortedTokens = sortFontTokenObjects(tokensImport as any)
@@ -898,6 +985,9 @@ class VarsStore {
     try {
       window.dispatchEvent(new CustomEvent('themeReset', {}))
       window.dispatchEvent(new CustomEvent('paletteVarsChanged', {}))
+
+      // Notify font components to rebuild rows from the now-cleared rf:fonts
+      window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: {}, reset: true } }))
 
       // Dispatch palettePrimaryLevelChanged events for all palettes in both modes
       // This ensures all PaletteGrid components re-read primary levels from theme JSON
@@ -1547,9 +1637,16 @@ class VarsStore {
         if (Array.isArray(storedFonts)) {
           storedFonts.forEach(font => {
             if (font.id && font.family) {
-              const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
-              vars[tokenFont('typefaces', font.id)] = cleanFamily
-              vars[tokenFont('families', font.id)] = cleanFamily
+              let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
+              // Strip any stale baked-in category from the family name itself
+              if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
+              // Build a proper CSS font-family string:
+              // - Quote the font name if it contains spaces
+              // - Append the generic family keyword (unquoted) if available
+              const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
+              const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
+              vars[tokenFont('typefaces', font.id)] = fontStack
+              vars[tokenFont('families', font.id)] = fontStack
             }
           })
         }
@@ -1946,6 +2043,33 @@ class VarsStore {
       // Theme JSON and type choices are the single source of truth
 
       Object.assign(allVars, typeVars)
+
+      // Re-apply rf:fonts font stacks AFTER typography merge.
+      // The typography resolver reads from the base tokens JSON, which may have
+      // stale typeface values. rf:fonts is the source of truth for font assignments,
+      // so its values must overwrite whatever the typography resolver produced.
+      try {
+        let fontsForOverride: any[] = []
+        try {
+          if (typeof localStorage !== 'undefined') {
+            const raw = localStorage.getItem('rf:fonts')
+            if (raw) fontsForOverride = JSON.parse(raw)
+          }
+        } catch { }
+        if (Array.isArray(fontsForOverride) && fontsForOverride.length > 0) {
+          fontsForOverride.forEach((font: any) => {
+            if (font.id && font.family) {
+              let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
+              if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
+              const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
+              const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
+              allVars[tokenFont('typefaces', font.id)] = fontStack
+              allVars[tokenFont('families', font.id)] = fontStack
+            }
+          })
+        }
+      } catch { }
+
       // Load fonts asynchronously - don't wait, don't trigger recomputes
       // CSS variables are already set with font names, fonts will apply when loaded
       // Fonts MUST load (async is fine, but they must load)
@@ -2069,7 +2193,6 @@ class VarsStore {
             // Use modern CSS color-mix so both color and opacity are driven by tokens.
             // Convert 0..1 opacity token to percentage weight for color-mix.
             `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
-          const familyForPalette: Record<string, string> = { neutral: 'gray', 'palette-1': 'salmon', 'palette-2': 'mandarin', 'palette-3': 'cornflower', 'palette-4': 'greensheen' }
           const shadowColorForLevel = (level: number, paletteVars?: Record<string, string>): string => {
             const key = `elevation-${level}`
             const sel = this.state.elevation.paletteSelections[key]
@@ -2258,7 +2381,7 @@ class VarsStore {
           }
           Object.assign(allVars, vars)
         } catch (e) {
-          console.error('[VarsStore] Error generating elevation variables:', e)
+          throw e
         }
       }
 
@@ -2272,7 +2395,7 @@ class VarsStore {
           '--recursica_brand_dimensions_general_sm'
         ]
       }
-      try {
+      {
         // Compute layer element colors (text, interactive, status) based on layer surfaces.
         // This is a rendering step, not a compliance auto-fix — it determines the correct
         // text color for each layer by examining the surface background color.
@@ -2295,12 +2418,6 @@ class VarsStore {
         if (typeof document !== 'undefined') {
           updateScopedCss(allVars)
           setThemeAttribute(currentMode === 'dark' ? 'dark' : 'light')
-        }
-      } catch (e) {
-        // Log error but don't let it break the recompute cycle
-        console.error('[VarsStore] Error applying CSS variables:', e)
-        if (e instanceof Error) {
-          console.error('[VarsStore] Error stack:', e.stack)
         }
       }
     } finally {

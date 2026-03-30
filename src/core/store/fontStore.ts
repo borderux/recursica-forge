@@ -4,6 +4,7 @@ export interface FontEntry {
     id: string // e.g. "primary", "secondary"
     family: string // e.g. "Lexend"
     url?: string // e.g. "https://fonts.googleapis.com/css2?..."
+    category?: 'sans-serif' | 'serif' | 'monospace' // generic fallback; defaults to 'sans-serif' if absent
 }
 
 const STORAGE_KEY = 'rf:fonts'
@@ -12,7 +13,17 @@ export function getStoredFonts(): FontEntry[] {
     try {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
-            return JSON.parse(stored)
+            const fonts: FontEntry[] = JSON.parse(stored)
+            // Migration: strip any stale fallback suffixes from family values
+            let dirty = false
+            fonts.forEach(f => {
+                if (f.family && f.family.includes(',')) {
+                    f.family = f.family.split(',')[0].trim()
+                    dirty = true
+                }
+            })
+            if (dirty) localStorage.setItem(STORAGE_KEY, JSON.stringify(fonts))
+            return fonts
         }
     } catch (err) {
         console.warn('[fontStore] Failed to read rf:fonts from localStorage', err)

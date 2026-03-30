@@ -1,7 +1,6 @@
 import '../theme/index.css'
 import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import ColorTokenPicker from '../pickers/ColorTokenPicker'
 import OpacityPicker from '../pickers/OpacityPicker'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import BaseColorsGrid from './BaseColorsGrid'
@@ -32,8 +31,6 @@ export default function CorePropertiesPage() {
 
           <ElementsModalDemo />
         </div>
-
-        <ColorTokenPicker />
 
         <OpacityPicker />
 

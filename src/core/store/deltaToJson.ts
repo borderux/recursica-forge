@@ -16,6 +16,8 @@
 import { getDelta } from './cssDelta'
 import { parseTokenCssVar, parseBrandCssVar } from '../css/cssVarBuilder'
 import type { JsonLike } from '../resolvers/tokens'
+import baseTokensImport from '../../../recursica_tokens.json'
+import { DELETED_SCALES_KEY } from './varsStore'
 
 /**
  * Apply the current CSS delta back into the in-memory JSON state objects.
@@ -38,6 +40,58 @@ export function syncDeltaToJson(
   let syncedCount = 0
   const tokensRoot: any = (tokens as any)?.tokens || {}
 
+  // Read the list of user-deleted color scale aliases.
+  // Any delta entries for these scales must be skipped to prevent resurrection.
+  const deletedAliases = new Set<string>()
+  try {
+    const raw = localStorage.getItem(DELETED_SCALES_KEY)
+    if (raw) {
+      const list = JSON.parse(raw) as string[]
+      list.forEach(a => deletedAliases.add(a))
+    }
+  } catch { }
+
+  // Build set of deleted scale keys from three sources:
+  // 1. Scales still in the (possibly-stripped) tokens
+  // 2. Family-name entries found in the delta
+  // 3. The original base tokens JSON (for scales that applyDeletedScales already stripped)
+  const deletedScaleKeys = new Set<string>()
+
+  // Source 1: Still-present tokens
+  const colorsRootInit: any = tokensRoot?.colors || {}
+  for (const [scaleKey, scale] of Object.entries(colorsRootInit)) {
+    if (!scaleKey.startsWith('scale-')) continue
+    const alias = (scale as any)?.alias
+    if (alias && typeof alias === 'string' && deletedAliases.has(alias.trim())) {
+      deletedScaleKeys.add(scaleKey)
+    }
+  }
+
+  // Source 2: Family-name CSS vars in the delta (scale may already be removed from tokens)
+  for (const [cssVarName, cssValue] of entries) {
+    const familyMatch = cssVarName.match(/^--recursica_tokens_colors_(scale-\d+)_family-name$/)
+    if (familyMatch) {
+      const alias = cssValue.toLowerCase().replace(/\s+/g, '-')
+      if (deletedAliases.has(alias)) {
+        deletedScaleKeys.add(familyMatch[1])
+      }
+    }
+  }
+
+  // Source 3: Look up scale keys from the original base JSON import for base scales
+  // that were deleted (applyDeletedScales already removed them from the in-memory tokens)
+  try {
+    const baseTokensRoot: any = (baseTokensImport as any)?.tokens || {}
+    const baseColorsRoot: any = baseTokensRoot?.colors || {}
+    for (const [scaleKey, scale] of Object.entries(baseColorsRoot)) {
+      if (!scaleKey.startsWith('scale-')) continue
+      const alias = (scale as any)?.alias
+      if (alias && typeof alias === 'string' && deletedAliases.has(alias.trim())) {
+        deletedScaleKeys.add(scaleKey)
+      }
+    }
+  } catch { }
+
   // ── First pass: collect entries for scales that don't exist in the JSON ──
   // These represent user-added color scales that need structural creation.
   const pendingNewScales: Record<string, Record<string, string>> = {}
@@ -48,6 +102,8 @@ export function syncDeltaToJson(
     const familyNameMatch = cssVarName.match(/^--recursica_tokens_colors_(scale-\d+)_family-name$/)
     if (familyNameMatch) {
       const scaleKey = familyNameMatch[1]
+      // Skip if this scale was deleted by the user
+      if (deletedScaleKeys.has(scaleKey)) continue
       const colorsGroup = tokensRoot.colors
       if (colorsGroup?.[scaleKey]) {
         colorsGroup[scaleKey].alias = cssValue.toLowerCase().replace(/\s+/g, '-')
@@ -64,6 +120,9 @@ export function syncDeltaToJson(
     if (tokenParsed) {
       switch (tokenParsed.type) {
         case 'color': {
+          // Skip CSS var entries for deleted scales
+          if (deletedScaleKeys.has(tokenParsed.family)) break
+          if (deletedAliases.has(tokenParsed.family)) break
           const colorsGroup = tokensRoot.colors || tokensRoot.color
           if (colorsGroup?.[tokenParsed.family]?.[tokenParsed.level]) {
             const existing = colorsGroup[tokenParsed.family][tokenParsed.level]

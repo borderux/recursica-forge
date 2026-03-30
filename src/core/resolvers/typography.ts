@@ -26,18 +26,18 @@ function safeGetCachedFontFamilyName(name: string): string {
   if (getCachedFontFamilyName) {
     return getCachedFontFamilyName(name)
   }
-  // Fallback if not loaded yet - preserve the fallback if present
   if (!name || !name.trim()) return name
   const trimmed = name.trim()
+  // If the value contains a comma, treat as a CSS font stack:
+  // quote the font name part if needed, preserve the generic family keyword
   if (trimmed.includes(',')) {
-    // Has fallback - quote the font name part if it has spaces, keep fallback as-is
-    const [fontPart, ...fallbackParts] = trimmed.split(',').map(s => s.trim())
-    const fallback = fallbackParts.join(',').trim()
-    const quotedFontPart = fontPart.includes(' ') ? `"${fontPart}"` : fontPart
-    return fallback ? `${quotedFontPart}, ${fallback}` : quotedFontPart
+    const [fontPart, ...rest] = trimmed.split(',').map(s => s.trim())
+    const clean = fontPart.replace(/^["']|["']$/g, '')
+    const quotedName = clean.includes(' ') ? `"${clean}"` : clean
+    return `${quotedName}, ${rest.join(', ')}`
   }
-  // No fallback - just add quotes if font name has spaces
-  return trimmed.includes(' ') ? `"${trimmed}"` : trimmed
+  const clean = trimmed.replace(/^["']|["']$/g, '')
+  return clean.includes(' ') ? `"${clean}"` : clean
 }
 
 export type TypographyChoices = Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }>

@@ -3,7 +3,7 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { removeCssVar } from '../../../core/css/updateCssVar'
-import { tokenColor, tokenColors, layerProperty, layerText } from '../../../core/css/cssVarBuilder'
+import { tokenColor, tokenColors, layerProperty, layerText, parseTokenCssVar, unwrapVar, parseBrandCssVar, palette, paletteCore } from '../../../core/css/cssVarBuilder'
 import { ColorScale } from './ColorScale'
 import { clamp, hsvToHex, hexToHsv, toTitleCase, toKebabCase } from './colorUtils'
 import { cascadeColor, computeLevel500Hex, parseLevel, IDX_MAP, LEVELS_ASC } from './colorCascade'
@@ -12,8 +12,7 @@ import { ColorPickerModal } from '../../pickers/ColorPickerModal'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { TextField } from '../../../components/adapters/TextField'
-import { parseTokenReference, type TokenReferenceContext } from '../../../core/utils/tokenReferenceParser'
-import { buildTokenIndex } from '../../../core/resolvers/tokens'
+import { readCssVar } from '../../../core/css/readCssVar'
 import { getAllFamilyNames, setFamilyNameByAlias, renameFamilyName } from '../../../core/utils/familyNames'
 
 type TokenEntry = {
@@ -45,95 +44,88 @@ export function AddColorScaleButton() {
   }
 
   const createColorScale = async (seedHex: string) => {
-    try {
-      // Parse the seed hex to get HSV values for generating the scale
-      const seedHsv = hexToHsv(seedHex)
-      const newHue = seedHsv.h
+    // Parse the seed hex to get HSV values for generating the scale
+    const seedHsv = hexToHsv(seedHex)
+    const newHue = seedHsv.h
 
-      // Get friendly name and convert to slug
-      const friendlyName = await getFriendlyNamePreferNtc(seedHex)
-      const newFamilySlug = toKebabCase(friendlyName)
+    // Get friendly name and convert to slug
+    const friendlyName = await getFriendlyNamePreferNtc(seedHex)
+    const newFamilySlug = toKebabCase(friendlyName)
 
-      // Generate all color levels using the same logic as the main component
-      const seedS = seedHsv.s
-      const seedV = seedHsv.v
-      const endS000 = 0.02
-      const endV000 = 0.98
-      const endS1000 = clamp(seedS * 1.2, 0, 1)
-      const endV1000 = clamp(Math.max(0.03, seedV * 0.08), 0, 1)
-      const lerp = (a: number, b: number, t: number) => a + (b - a) * t
+    // Generate all color levels using the same logic as the main component
+    const seedS = seedHsv.s
+    const seedV = seedHsv.v
+    const endS000 = 0.02
+    const endV000 = 0.98
+    const endS1000 = clamp(seedS * 1.2, 0, 1)
+    const endV1000 = clamp(Math.max(0.03, seedV * 0.08), 0, 1)
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
-      // Store all the hex values we're creating
-      const tokenValues: Record<string, string> = {}
-      LEVELS_ASC.forEach((lvl) => {
-        const idx = IDX_MAP[lvl]
-        if (idx === undefined) return
+    // Store all the hex values we're creating
+    const tokenValues: Record<string, string> = {}
+    LEVELS_ASC.forEach((lvl) => {
+      const idx = IDX_MAP[lvl]
+      if (idx === undefined) return
 
-        let hex: string
-        if (idx === 6) {
-          hex = seedHex
-        } else if (idx < 6) {
-          const t = idx / 6
-          const s = clamp(lerp(endS000, seedS, t), 0, 1)
-          const v = clamp(lerp(endV000, seedV, t), 0, 1)
-          hex = hsvToHex(newHue, s, v)
-        } else {
-          const t = (idx - 6) / (11 - 6)
-          const s = clamp(lerp(seedS, endS1000, t), 0, 1)
-          const v = clamp(lerp(seedV, endV1000, t), 0, 1)
-          hex = hsvToHex(newHue, s, v)
-        }
-        const levelStr = String(lvl).padStart(3, '0')
-        tokenValues[levelStr] = hex
-      })
-
-      // Wait for next tick to ensure any pending updates complete
-      await new Promise(resolve => setTimeout(resolve, 0))
-
-      // Read fresh tokens directly from the store
-      const store = getVarsStore()
-      const currentState = store.getState()
-      const currentTokens = currentState.tokens
-      const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
-      const tokensRoot = nextTokens?.tokens || {}
-
-      // Find the next available scale number
-      const colorsRoot = tokensRoot?.colors || {}
-      let scaleNumber = 1
-      while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
-        scaleNumber++
+      let hex: string
+      if (idx === 6) {
+        hex = seedHex
+      } else if (idx < 6) {
+        const t = idx / 6
+        const s = clamp(lerp(endS000, seedS, t), 0, 1)
+        const v = clamp(lerp(endV000, seedV, t), 0, 1)
+        hex = hsvToHex(newHue, s, v)
+      } else {
+        const t = (idx - 6) / (11 - 6)
+        const s = clamp(lerp(seedS, endS1000, t), 0, 1)
+        const v = clamp(lerp(seedV, endV1000, t), 0, 1)
+        hex = hsvToHex(newHue, s, v)
       }
-      const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
+      const levelStr = String(lvl).padStart(3, '0')
+      tokenValues[levelStr] = hex
+    })
 
-      // Create the new scale in the new format with alias
-      if (!tokensRoot.colors) tokensRoot.colors = {}
-      tokensRoot.colors[scaleKey] = {
-        alias: newFamilySlug,
-        ...Object.fromEntries(
-          Object.entries(tokenValues).map(([level, hex]) => [
-            level,
-            { $type: 'color', $value: hex }
-          ])
-        )
-      }
+    // Read fresh tokens directly from the store
+    const store = getVarsStore()
+    const currentState = store.getState()
+    const currentTokens = currentState.tokens
+    const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
+    const tokensRoot = nextTokens?.tokens || {}
 
-      // Update tokens structure
-      if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
-      setTokens(nextTokens)
-
-      // Create token entries for each level
-      Object.entries(tokenValues).forEach(([level, hex]) => {
-        const aliasTokenName = `colors/${newFamilySlug}/${level}`
-        const scaleTokenName = `colors/${scaleKey}/${level}`
-        store.updateToken(scaleTokenName, hex)
-        store.updateToken(aliasTokenName, hex)
-      })
-
-      // Update family names via CSS var
-      setFamilyNameByAlias(newFamilySlug, toTitleCase(friendlyName))
-    } catch (error) {
-      console.error('Failed to create color scale:', error)
+    // Find the next available scale number
+    const colorsRoot = tokensRoot?.colors || {}
+    let scaleNumber = 1
+    while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
+      scaleNumber++
     }
+    const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
+
+    // Create the new scale in the new format with alias
+    if (!tokensRoot.colors) tokensRoot.colors = {}
+    tokensRoot.colors[scaleKey] = {
+      alias: newFamilySlug,
+      ...Object.fromEntries(
+        Object.entries(tokenValues).map(([level, hex]) => [
+          level,
+          { $type: 'color', $value: hex }
+        ])
+      )
+    }
+
+    // Update tokens structure
+    if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
+    setTokens(nextTokens)
+
+    // Create token entries for each level
+    Object.entries(tokenValues).forEach(([level, hex]) => {
+      const aliasTokenName = `colors/${newFamilySlug}/${level}`
+      const scaleTokenName = `colors/${scaleKey}/${level}`
+      store.updateToken(scaleTokenName, hex)
+      store.updateToken(aliasTokenName, hex)
+    })
+
+    // Update family names via CSS var
+    setFamilyNameByAlias(newFamilySlug, toTitleCase(friendlyName))
   }
 
   return (
@@ -169,6 +161,11 @@ export default function ColorTokens() {
   const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; anchorElement: HTMLElement } | null>(null)
 
+  // Track theme changes via direct store subscription so colorScaleUsageMap
+  // always reflects the freshest theme even when this component was unmounted
+  // during a theme update (e.g. changing warning color on Core Properties page).
+  const [themeVersion, setThemeVersion] = useState(0)
+
   // Close picker when mode changes
   useEffect(() => {
     const handleCloseAll = () => {
@@ -177,7 +174,20 @@ export default function ColorTokens() {
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
   }, [])
-  const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>({})
+
+  // Increment themeVersion whenever the store's theme object changes
+  useEffect(() => {
+    return getVarsStore().subscribe(() => {
+      setThemeVersion(v => v + 1)
+    })
+  }, [])
+  // Hydrate deleted families from localStorage so they persist across refreshes
+  const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>(() => {
+    const deleted = getVarsStore().getDeletedScales()
+    const map: Record<string, true> = {}
+    deleted.forEach(alias => { map[alias] = true })
+    return map
+  })
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
@@ -473,111 +483,129 @@ export default function ColorTokens() {
       tokenValues[levelStr] = hex
     })
 
-    // Wait for next tick to ensure any pending updates complete
-    await new Promise(resolve => setTimeout(resolve, 0))
+    // Read fresh tokens directly from the store
+    const store = getVarsStore()
+    const currentState = store.getState()
+    const currentTokens = currentState.tokens
+    const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
+    const tokensRoot = nextTokens?.tokens || {}
 
-    try {
-      // Read fresh tokens directly from the store
-      const store = getVarsStore()
-      const currentState = store.getState()
-      const currentTokens = currentState.tokens
-      const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
-      const tokensRoot = nextTokens?.tokens || {}
-
-      // Find the next available scale number
-      const colorsRoot = tokensRoot?.colors || {}
-      let scaleNumber = 1
-      while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
-        scaleNumber++
-      }
-      const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
-
-      // Create the new scale in the new format with alias
-      if (!tokensRoot.colors) tokensRoot.colors = {}
-      tokensRoot.colors[scaleKey] = {
-        alias: newFamilySlug,
-        ...Object.fromEntries(
-          Object.entries(tokenValues).map(([level, hex]) => [
-            level,
-            { $type: 'color', $value: hex }
-          ])
-        )
-      }
-
-      // Update tokens structure
-      if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
-      setTokens(nextTokens)
-
-      // Update local values state - use alias-based token names for display
-      const newValues = { ...values }
-      Object.entries(tokenValues).forEach(([level, hex]) => {
-        const aliasTokenName = `colors/${newFamilySlug}/${level}`
-        const scaleTokenName = `colors/${scaleKey}/${level}`
-        newValues[aliasTokenName] = hex
-        newValues[scaleTokenName] = hex
-      })
-      setValues(newValues)
-
-      // Update family order - always append new family to the end
-      setFamilyOrder((prev) => {
-        if (!prev.includes(newFamilySlug)) {
-          return [...prev, newFamilySlug]
-        }
-        return prev
-      })
-
-      // Update family names via CSS var
-      const updatedFamilyNames = { ...familyNames }
-      updatedFamilyNames[newFamilySlug] = toTitleCase(friendlyName)
-      setFamilyNames(updatedFamilyNames)
-      setFamilyNameByAlias(newFamilySlug, toTitleCase(friendlyName), tokensJson)
-    } catch (error) {
-      console.error('Failed to create color scale:', error)
+    // Find the next available scale number
+    const colorsRoot = tokensRoot?.colors || {}
+    let scaleNumber = 1
+    while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
+      scaleNumber++
     }
+    const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
+
+    // Create the new scale in the new format with alias
+    if (!tokensRoot.colors) tokensRoot.colors = {}
+    tokensRoot.colors[scaleKey] = {
+      alias: newFamilySlug,
+      ...Object.fromEntries(
+        Object.entries(tokenValues).map(([level, hex]) => [
+          level,
+          { $type: 'color', $value: hex }
+        ])
+      )
+    }
+
+    // Update tokens structure
+    if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
+    setTokens(nextTokens)
+
+    // Update local values state - use alias-based token names for display
+    const newValues = { ...values }
+    Object.entries(tokenValues).forEach(([level, hex]) => {
+      const aliasTokenName = `colors/${newFamilySlug}/${level}`
+      const scaleTokenName = `colors/${scaleKey}/${level}`
+      newValues[aliasTokenName] = hex
+      newValues[scaleTokenName] = hex
+    })
+    setValues(newValues)
+
+    // Update family order - always append new family to the end
+    setFamilyOrder((prev) => {
+      if (!prev.includes(newFamilySlug)) {
+        return [...prev, newFamilySlug]
+      }
+      return prev
+    })
+
+    // Update family names via CSS var
+    const updatedFamilyNames = { ...familyNames }
+    updatedFamilyNames[newFamilySlug] = toTitleCase(friendlyName)
+    setFamilyNames(updatedFamilyNames)
+    setFamilyNameByAlias(newFamilySlug, toTitleCase(friendlyName), tokensJson)
   }
 
   // Build detailed usage map: family -> Array<{ label, url }>
+  // Reads LIVE CSS variable values from the DOM, not stale theme JSON references.
   const colorScaleUsageMap = useMemo(() => {
+    if (typeof document === 'undefined') return new Map<string, Array<{ label: string; url: string; targetMode?: 'Light' | 'Dark' }>>()
 
-    // Helper to resolve a token reference string to its color family alias
-    const resolveToFamily = (ref: string, mode: 'light' | 'dark'): string | null => {
-      if (!ref.includes('{') || !ref.includes('}')) return null
-      const tokenIndex = buildTokenIndex(tokensJson)
-      const context: TokenReferenceContext = { currentMode: mode, tokenIndex }
-      const parsed = parseTokenReference(ref, context)
-      if (!parsed || parsed.type !== 'token' || parsed.path.length < 2) return null
-      if (parsed.path[0] === 'colors') {
-        const scaleOrAlias = parsed.path[1]
-        if (scaleOrAlias?.startsWith('scale-')) {
-          const tokensRoot: any = (tokensJson as any)?.tokens || {}
-          const colorsRoot: any = tokensRoot?.colors || {}
-          const scale = colorsRoot?.[scaleOrAlias]
-          if (scale?.alias && typeof scale.alias === 'string') return scale.alias.trim() || null
-          return null
-        }
-        return scaleOrAlias?.trim() || null
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
+
+    // Build a map from scale key -> alias (e.g., 'scale-04' -> 'yellow-gold')
+    const scaleToAlias = new Map<string, string>()
+    for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
+      if (!scaleKey.startsWith('scale-')) continue
+      const alias = (scale as any)?.alias
+      if (alias && typeof alias === 'string') {
+        scaleToAlias.set(scaleKey, alias.trim())
       }
-      if (parsed.path[0] === 'color') return parsed.path[1]?.trim() || null
-      return null
     }
 
-    // Recursively extract families from an arbitrary palette object
-    const extractFamiliesFromObj = (obj: any, mode: 'light' | 'dark'): Set<string> => {
-      const families = new Set<string>()
-      if (!obj || typeof obj !== 'object') return families
-      if (Array.isArray(obj)) {
-        obj.forEach((item) => extractFamiliesFromObj(item, mode).forEach((f) => families.add(f)))
-        return families
-      }
-      for (const [, value] of Object.entries(obj)) {
-        if (typeof value === 'string') {
-          const fam = resolveToFamily(value, mode)
-          if (fam) families.add(fam)
-        } else if (value && typeof value === 'object') {
-          extractFamiliesFromObj(value, mode).forEach((f) => families.add(f))
+    // Follow a CSS var value chain to find the color-token family it references.
+    // Returns the color scale alias (e.g., 'yellow-gold') or null.
+    const resolveVarToFamily = (cssVarName: string): string | null => {
+      let value = readCssVar(cssVarName)
+      for (let depth = 0; depth < 10 && value; depth++) {
+        const trimmed = value.trim()
+
+        // Check if this IS a token CSS var name directly
+        const tokenParsed = parseTokenCssVar(trimmed)
+        if (tokenParsed && tokenParsed.type === 'color') {
+          const fam = tokenParsed.family
+          if (fam.startsWith('scale-')) {
+            return scaleToAlias.get(fam) ?? null
+          }
+          return fam
+        }
+
+        // Follow var() reference
+        const innerVarName = unwrapVar(trimmed)
+        if (innerVarName) {
+          // Parse the inner var name as a token
+          const innerTokenParsed = parseTokenCssVar(innerVarName)
+          if (innerTokenParsed && innerTokenParsed.type === 'color') {
+            const fam = innerTokenParsed.family
+            if (fam.startsWith('scale-')) {
+              return scaleToAlias.get(fam) ?? null
+            }
+            return fam
+          }
+
+          // Parse as a brand palette var to follow the chain further
+          const brandParsed = parseBrandCssVar(innerVarName)
+          if (brandParsed && brandParsed.type === 'palette') {
+            // This points to another palette — follow its tone var
+            const toneCssVar = palette(brandParsed.mode, brandParsed.paletteName, brandParsed.level, 'color_tone')
+            const toneVal = readCssVar(toneCssVar)
+            if (toneVal) {
+              value = toneVal
+              continue
+            }
+          }
+
+          // Generic follow
+          value = readCssVar(innerVarName)
+        } else {
+          break
         }
       }
-      return families
+      return null
     }
 
     // Human-readable labels for core color sub-keys
@@ -591,10 +619,9 @@ export default function ColorTokens() {
     }
 
     // Palette key to human label + URL
-    const paletteKeyToInfo = (pk: string, index?: number): { label: string; url: string } => {
+    const paletteKeyToInfo = (pk: string): { label: string; url: string } => {
       if (pk === 'core' || pk === 'core-colors') return { label: 'Core Properties', url: '/theme/core-properties' }
       if (pk === 'neutral') return { label: 'Neutral Palette', url: '/theme/palettes' }
-      // palette-N
       const match = pk.match(/^palette-(\d+)$/)
       if (match) return { label: `Palette ${match[1]}`, url: '/theme/palettes' }
       return { label: pk, url: '/theme/palettes' }
@@ -613,7 +640,8 @@ export default function ColorTokens() {
     }
 
     try {
-      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const liveTheme = getVarsStore().getLatestThemeCopy()
+      const root: any = (liveTheme as any)?.brand ? (liveTheme as any).brand : liveTheme
       const themes = root?.themes || root
 
       for (const mode of ['light', 'dark'] as const) {
@@ -625,35 +653,59 @@ export default function ColorTokens() {
           if (!paletteData || typeof paletteData !== 'object') return
 
           if (pk === 'core' || pk === 'core-colors') {
-            // For core-colors, check each sub-key individually for more granular labels
+            // For core-colors, check each sub-key by reading CSS vars
             Object.keys(paletteData).forEach((subKey) => {
-              // Skip meta keys like $type, $value
               if (subKey.startsWith('$')) return
               const subData = paletteData[subKey]
               if (!subData || typeof subData !== 'object') return
-              const families = extractFamiliesFromObj(subData, mode)
               const subLabel = coreColorLabels[subKey] || subKey
-              families.forEach((fam) => {
+
+              // Introspect the data structure to discover tone CSS var names.
+              // Simple core colors (alert, success, etc.) have a direct `tone` property.
+              // Compound core colors (interactive) have nested sub-objects (default, hover) each with a `tone`.
+              const toneVarNames: string[] = []
+              if ('tone' in subData) {
+                // Simple shape: core.{subKey}.tone
+                toneVarNames.push(paletteCore(mode, subKey, 'tone'))
+              } else {
+                // Compound shape: check each nested state for a tone property
+                Object.keys(subData).forEach(stateKey => {
+                  if (stateKey.startsWith('$')) return
+                  const stateData = subData[stateKey]
+                  if (stateData && typeof stateData === 'object' && 'tone' in stateData) {
+                    toneVarNames.push(paletteCore(mode, subKey, stateKey, 'tone'))
+                  }
+                })
+              }
+
+              toneVarNames.forEach(toneCssVar => {
+                const fam = resolveVarToFamily(toneCssVar)
                 if (fam && fam !== 'translucent') {
                   addRawUsage(fam, `Core: ${subLabel}`, '/theme/core-properties', mode)
                 }
               })
             })
           } else {
-            // Numbered palettes and neutral
-            const families = extractFamiliesFromObj(paletteData, mode)
+            // Numbered palettes and neutral — check each level's tone CSS var
             const info = paletteKeyToInfo(pk)
-            families.forEach((fam) => {
+            const levels = Object.keys(paletteData).filter(k => /^\d+$/.test(k))
+            const uniqueFamilies = new Set<string>()
+
+            levels.forEach(level => {
+              const toneCssVar = palette(mode, pk, level, 'color_tone')
+              const fam = resolveVarToFamily(toneCssVar)
               if (fam && fam !== 'translucent') {
-                addRawUsage(fam, info.label, info.url, mode)
+                uniqueFamilies.add(fam)
               }
+            })
+
+            uniqueFamilies.forEach(fam => {
+              addRawUsage(fam, info.label, info.url, mode)
             })
           }
         })
       }
-    } catch (err) {
-      console.warn('Error checking palette usage:', err)
-    }
+    } catch { }
 
     // Merge: if a usage exists in both modes, list once without suffix.
     // If only in one mode, append "(Light)" or "(Dark)".
@@ -673,7 +725,7 @@ export default function ColorTokens() {
     })
 
     return usageMap
-  }, [theme, tokensJson])
+  }, [themeVersion, tokensJson])
 
   // Helper: get usage locations for a family
   const getUsageLocations = (family: string): Array<{ label: string; url: string; targetMode?: 'Light' | 'Dark' }> => {
@@ -712,8 +764,7 @@ export default function ColorTokens() {
   }, [tokensJson, deletedFamilies])
 
   const handleDeleteFamily = (family: string) => {
-    try {
-      // Deep clone tokens to avoid mutation
+    // Deep clone tokens to avoid mutation
       const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
       const tokensRoot = nextTokens?.tokens || {}
       const oldColorsRoot = tokensRoot?.color || {}
@@ -784,9 +835,10 @@ export default function ColorTokens() {
       setDeletedFamilies((prev) => ({ ...prev, [family]: true }))
       setOpenPicker(null)
       setFamilyOrder((prev) => prev.filter((f) => f !== family))
-    } catch (error) {
-      console.error('Failed to delete color family:', error)
-    }
+
+      // Persist the deletion to localStorage so it survives browser refresh
+      getVarsStore().persistDeletedScale(family, deletedScaleKey || undefined)
+
   }
 
   const handleFamilyNameChange = (family: string, newName: string) => {
@@ -795,7 +847,6 @@ export default function ColorTokens() {
 
     // If the slug differs from the current family key, rename all tokens
     if (newFamilySlug && newFamilySlug !== family && newFamilySlug.length > 0) {
-      try {
         // Deep clone tokens to avoid mutation
         const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
         const tokensRoot = nextTokens?.tokens || {}
@@ -859,9 +910,7 @@ export default function ColorTokens() {
 
           return // Early return since we've handled the rename
         }
-      } catch (error) {
-        console.error('Failed to rename color family:', error)
-      }
+
     }
 
     // If slug matches or rename failed, just update the display name

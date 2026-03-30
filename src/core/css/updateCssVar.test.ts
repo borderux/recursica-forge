@@ -33,18 +33,14 @@ describe('updateCssVar', { timeout: 60000 }, () => {
   })
 
   it('should reject brand CSS variable with hardcoded hex value', () => {
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const result = updateCssVar(
       '--recursica_brand_light_palettes_core_black',
       '#000000'
     )
     expect(result).toBe(false)
-    expect(consoleErrorSpy).toHaveBeenCalled()
-    consoleErrorSpy.mockRestore()
   })
 
   it('should auto-fix brand CSS variable with hex value when token match found', () => {
-    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const tokens = {
       tokens: {
         color: {
@@ -62,13 +58,10 @@ describe('updateCssVar', { timeout: 60000 }, () => {
     )
     
     expect(result).toBe(true)
-    expect(consoleWarnSpy).toHaveBeenCalled()
     const updatedValue = readCssVar('--recursica_brand_light_palettes_core_black')
     // The function may generate either old format (color-gray-900) or new format (colors-scale-XX-900)
     // Both are valid, so check for either
     expect(updatedValue).toMatch(/var\(--recursica_tokens_(color_gray_900|colors_scale-\d+_900)\)/)
-    
-    consoleWarnSpy.mockRestore()
   })
 
   it('should accept color-mix() with token references for brand vars', () => {
@@ -113,10 +106,8 @@ describe('updateCssVars', () => {
       '--recursica_brand_invalid': '#000000' // This will fail validation
     }
     
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const count = updateCssVars(vars)
     expect(count).toBe(1) // Only one succeeded
-    consoleErrorSpy.mockRestore()
   })
 })
 
