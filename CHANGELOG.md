@@ -1,5 +1,62 @@
 # recursica-forge
 
+## 0.8.2
+
+### Patch Changes
+
+- 9167d1a: Fix regression where custom font family names revert to JSON defaults after clicking "Reset all" on the Font Tokens page.
+
+  The `handleReset` function in `FontPropertiesTokens.tsx` unconditionally called `clearStoredFonts()`, which deleted `localStorage['rf:fonts']` — the sole persistence layer for user-selected font families. This happened even when resetting unrelated tokens (font size, letter spacing, line height). On the next recompute, `getStoredFonts()` found no entry in localStorage and fell back to `getDefaultFonts()`, restoring the original JSON typeface names (e.g. Inter) in the font family cards.
+
+  Removed the `clearStoredFonts()` call and its import from `FontPropertiesTokens.tsx`. Resetting typographic scale tokens is independent of the font family selection and should never clear it.
+
+  Files changed:
+
+  - `src/modules/tokens/font/FontPropertiesTokens.tsx`
+
+- 7a8a92e: ### Color Scale Persistence
+
+  - Fixed deleted color scales reappearing after browser refresh by persisting deletions to `localStorage` (`rf:deleted-scales`) and stripping them from tokens during initialization
+  - Added delta sync protection: `restoreDelta` and `syncDeltaToJson` now skip CSS var entries belonging to deleted scales, preventing the delta system from resurrecting them
+  - Added `resetAll` integration to clear the deleted scales list during full theme reset
+
+  ### "Used In" Labels (Color Tokens)
+
+  - Rewrote color scale usage detection to read live CSS variable values from the DOM instead of resolving stale JSON references, fixing labels reverting to defaults after user changes
+  - Replaced hardcoded `'interactive'` core color check with data-driven introspection of the `tone` property structure
+  - Replaced all hardcoded CSS variable name strings with `palette()` and `paletteCore()` builder functions
+
+  ### Font Persistence
+
+  - Fixed custom fonts not loading correctly after browser refresh when reordered into primary/secondary positions
+  - Fixed font family CSS variable construction for custom font names
+
+  ### Palette Initialization
+
+  - Fixed new palettes failing to initialize tone references for `100`, `050`, and `000` levels
+
+  ### Code Quality
+
+  - Exported `DELETED_SCALES_KEY` constant to eliminate hardcoded `'rf:deleted-scales'` strings across modules
+  - Removed `|| fam` fallback patterns in favor of explicit `?? null` returns
+  - Removed stale `console.error`/`console.warn` spy assertions from `updateCssVar` tests
+
+- c90ab12: Fix elevation opacity tokens polluting core property opacity dropdowns.
+
+  When adjusting shadow opacity on the Elevations page, per-elevation unique tokens (e.g. `elevation-light-1`) were written into the shared `tokens.opacities` namespace. Because all opacity pickers and dropdowns read every entry from that namespace, these internal elevation tokens appeared as options in unrelated UI — specifically the High/Low emphasis, Disabled, and Overlay opacity dropdowns on the Core Properties page.
+
+  Added a `!k.startsWith('elevation-')` guard to the token key filter in all opacity picker components so elevation-scoped tokens are excluded from UI option lists while continuing to function correctly for their CSS variable bindings.
+
+  Files changed:
+
+  - `src/modules/pickers/OpacityPicker.tsx`
+  - `src/modules/pickers/OpacityPickerOverlay.tsx`
+  - `src/modules/pickers/PaletteSwatchPicker.tsx`
+  - `src/modules/core/ElementsModalDemo.tsx`
+  - `src/modules/core/OverlayTokenPicker.tsx`
+  - `src/modules/toolbar/utils/OpacitySlider.tsx`
+  - `src/modules/tokens/opacity/OpacityTokens.tsx`
+
 ## 0.8.1
 
 ### Patch Changes
