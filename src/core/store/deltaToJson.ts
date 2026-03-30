@@ -17,6 +17,7 @@ import { getDelta } from './cssDelta'
 import { parseTokenCssVar, parseBrandCssVar } from '../css/cssVarBuilder'
 import type { JsonLike } from '../resolvers/tokens'
 import baseTokensImport from '../../../recursica_tokens.json'
+import { DELETED_SCALES_KEY } from './varsStore'
 
 /**
  * Apply the current CSS delta back into the in-memory JSON state objects.
@@ -43,7 +44,7 @@ export function syncDeltaToJson(
   // Any delta entries for these scales must be skipped to prevent resurrection.
   const deletedAliases = new Set<string>()
   try {
-    const raw = localStorage.getItem('rf:deleted-scales')
+    const raw = localStorage.getItem(DELETED_SCALES_KEY)
     if (raw) {
       const list = JSON.parse(raw) as string[]
       list.forEach(a => deletedAliases.add(a))

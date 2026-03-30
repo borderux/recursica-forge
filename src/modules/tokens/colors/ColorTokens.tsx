@@ -3,7 +3,7 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
 import { removeCssVar } from '../../../core/css/updateCssVar'
-import { tokenColor, tokenColors, layerProperty, layerText, parseTokenCssVar, unwrapVar, parseBrandCssVar } from '../../../core/css/cssVarBuilder'
+import { tokenColor, tokenColors, layerProperty, layerText, parseTokenCssVar, unwrapVar, parseBrandCssVar, palette, paletteCore } from '../../../core/css/cssVarBuilder'
 import { ColorScale } from './ColorScale'
 import { clamp, hsvToHex, hexToHsv, toTitleCase, toKebabCase } from './colorUtils'
 import { cascadeColor, computeLevel500Hex, parseLevel, IDX_MAP, LEVELS_ASC } from './colorCascade'
@@ -569,7 +569,7 @@ export default function ColorTokens() {
         if (tokenParsed && tokenParsed.type === 'color') {
           const fam = tokenParsed.family
           if (fam.startsWith('scale-')) {
-            return scaleToAlias.get(fam) || fam
+            return scaleToAlias.get(fam) ?? null
           }
           return fam
         }
@@ -582,7 +582,7 @@ export default function ColorTokens() {
           if (innerTokenParsed && innerTokenParsed.type === 'color') {
             const fam = innerTokenParsed.family
             if (fam.startsWith('scale-')) {
-              return scaleToAlias.get(fam) || fam
+              return scaleToAlias.get(fam) ?? null
             }
             return fam
           }
@@ -591,7 +591,7 @@ export default function ColorTokens() {
           const brandParsed = parseBrandCssVar(innerVarName)
           if (brandParsed && brandParsed.type === 'palette') {
             // This points to another palette — follow its tone var
-            const toneCssVar = `--recursica_brand_themes_${brandParsed.mode}_palettes_${brandParsed.paletteName}_${brandParsed.level}_color_tone`
+            const toneCssVar = palette(brandParsed.mode, brandParsed.paletteName, brandParsed.level, 'color_tone')
             const toneVal = readCssVar(toneCssVar)
             if (toneVal) {
               value = toneVal
@@ -660,14 +660,22 @@ export default function ColorTokens() {
               if (!subData || typeof subData !== 'object') return
               const subLabel = coreColorLabels[subKey] || subKey
 
-              // Read the tone CSS var from the DOM
-              // Core colors have different shapes: simple (alert.tone) vs nested (interactive.default.tone)
+              // Introspect the data structure to discover tone CSS var names.
+              // Simple core colors (alert, success, etc.) have a direct `tone` property.
+              // Compound core colors (interactive) have nested sub-objects (default, hover) each with a `tone`.
               const toneVarNames: string[] = []
-              if (subKey === 'interactive') {
-                toneVarNames.push(`--recursica_brand_themes_${mode}_palettes_core_interactive_default_tone`)
-                toneVarNames.push(`--recursica_brand_themes_${mode}_palettes_core_interactive_hover_tone`)
+              if ('tone' in subData) {
+                // Simple shape: core.{subKey}.tone
+                toneVarNames.push(paletteCore(mode, subKey, 'tone'))
               } else {
-                toneVarNames.push(`--recursica_brand_themes_${mode}_palettes_core_${subKey}_tone`)
+                // Compound shape: check each nested state for a tone property
+                Object.keys(subData).forEach(stateKey => {
+                  if (stateKey.startsWith('$')) return
+                  const stateData = subData[stateKey]
+                  if (stateData && typeof stateData === 'object' && 'tone' in stateData) {
+                    toneVarNames.push(paletteCore(mode, subKey, stateKey, 'tone'))
+                  }
+                })
               }
 
               toneVarNames.forEach(toneCssVar => {
@@ -684,7 +692,7 @@ export default function ColorTokens() {
             const uniqueFamilies = new Set<string>()
 
             levels.forEach(level => {
-              const toneCssVar = `--recursica_brand_themes_${mode}_palettes_${pk}_${level}_color_tone`
+              const toneCssVar = palette(mode, pk, level, 'color_tone')
               const fam = resolveVarToFamily(toneCssVar)
               if (fam && fam !== 'translucent') {
                 uniqueFamilies.add(fam)

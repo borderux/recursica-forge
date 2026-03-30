@@ -14,6 +14,8 @@
  * Only CSS vars that differ from the JSON-derived defaults are stored.
  */
 
+import { DELETED_SCALES_KEY } from './varsStore'
+
 const STORAGE_KEY = 'rf:css-delta'
 const SAVE_DEBOUNCE_MS = 500
 
@@ -67,7 +69,7 @@ export function restoreDelta(): number {
     // Read deleted scale keys/aliases so we can skip their CSS vars
     const deletedScaleKeys = new Set<string>()
     try {
-      const deletedRaw = localStorage.getItem('rf:deleted-scales')
+      const deletedRaw = localStorage.getItem(DELETED_SCALES_KEY)
       if (deletedRaw) {
         const deletedAliases = JSON.parse(deletedRaw) as string[]
         // Collect scale keys from family-name entries in the saved delta

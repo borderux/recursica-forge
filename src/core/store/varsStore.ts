@@ -64,6 +64,9 @@ const STORAGE_KEYS = {
   deletedScales: 'rf:deleted-scales',
 }
 
+/** Exported for use by cssDelta and deltaToJson modules — the single source of truth for this key. */
+export const DELETED_SCALES_KEY = STORAGE_KEYS.deletedScales
+
 function isLocalStorageAvailable(): boolean {
   try { if (typeof window === 'undefined' || !window.localStorage) return false; const k = '__ls__'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true } catch { return false }
 }
