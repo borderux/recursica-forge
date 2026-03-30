@@ -30,7 +30,7 @@ export default function OpacityPicker() {
     // Support both plural (opacities) and singular (opacity) for backwards compatibility
     const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
     const list: Array<{ name: string; value: number }> = Object.keys(src)
-      .filter((k) => !k.startsWith('$'))
+      .filter((k) => !k.startsWith('$') && !k.startsWith('elevation-'))
       .map((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)

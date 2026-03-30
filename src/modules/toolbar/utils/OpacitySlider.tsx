@@ -33,7 +33,9 @@ export default function OpacitySlider({
   const opacityTokens = useMemo(() => {
     // Try opacities (plural) first, fallback to opacity (singular) for backwards compatibility
     const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
-    const list: Array<{ name: string; value: number; label: string; key: string }> = Object.keys(src).map((k) => {
+    const list: Array<{ name: string; value: number; label: string; key: string }> = Object.keys(src)
+      .filter((k) => !k.startsWith('$') && !k.startsWith('elevation-'))
+      .map((k) => {
       const raw = src[k]?.$value
       const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
       const num = typeof v === 'number' ? v : Number(v)

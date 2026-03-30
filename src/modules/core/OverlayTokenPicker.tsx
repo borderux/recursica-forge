@@ -27,7 +27,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
   const opacityOptions = useMemo(() => {
     const src = (tokensJson as any)?.tokens?.opacities || (tokensJson as any)?.tokens?.opacity || {}
     const list: Array<{ key: string; label: string; tokenName: string }> = Object.keys(src)
-      .filter((k) => !k.startsWith('$'))
+      .filter((k) => !k.startsWith('$') && !k.startsWith('elevation-'))
       .map((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
