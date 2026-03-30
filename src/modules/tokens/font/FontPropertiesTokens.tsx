@@ -10,7 +10,6 @@ import { Button } from '../../../components/adapters/Button'
 import { Switch } from '../../../components/adapters/Switch'
 import { Tabs as TabsAdapter } from '../../../components/adapters/Tabs'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
-import { clearStoredFonts } from '../../../core/store/fontStore'
 import tokensImport from '../../../../recursica_tokens.json'
 import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
 
@@ -72,9 +71,6 @@ export default function FontPropertiesTokens() {
         updated[k] = all[k]
       }
     })
-
-    // Clear rf:fonts local storage
-    clearStoredFonts()
 
     writeOverrides(updated)
 
