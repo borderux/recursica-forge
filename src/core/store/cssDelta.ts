@@ -66,6 +66,8 @@ export function restoreDelta(): number {
 
     for (const [varName, value] of Object.entries(saved)) {
       if (!varName.startsWith('--recursica_')) continue
+      // Font typefaces/families are managed exclusively by rf:fonts — never restore from delta
+      if (varName.startsWith('--recursica_tokens_font_typefaces_') || varName.startsWith('--recursica_tokens_font_families_')) continue
       root.style.setProperty(varName, value)
       delta[varName] = value
       count++
@@ -179,6 +181,8 @@ export function reapplyDelta(): number {
   let count = 0
 
   for (const [varName, value] of Object.entries(delta)) {
+    // Font typefaces/families are managed exclusively by rf:fonts — never overwrite from delta
+    if (varName.startsWith('--recursica_tokens_font_typefaces_') || varName.startsWith('--recursica_tokens_font_families_')) continue
     root.style.setProperty(varName, value)
     count++
   }

@@ -176,7 +176,7 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
       existingFonts={getExistingFonts()}
       availableSequences={availableSequences}
       currentSequence={defaultSequence}
-      onAccept={async (fontName, url, variants, sequence) => {
+      onAccept={async (fontName, url, variants, sequence, category) => {
         try {
           const fonts = getStoredFonts()
 
@@ -221,12 +221,14 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
             sequentialName = nextAvailableSequence
           }
 
-          const cleanFontName = fontName.trim().replace(/^["']|["']$/g, '')
+          let cleanFontName = fontName.trim().replace(/^["']|["']$/g, '')
+          if (cleanFontName.includes(',')) cleanFontName = cleanFontName.split(',')[0].trim()
 
           fonts.push({
             id: sequentialName,
             family: cleanFontName,
-            url: url || undefined
+            url: url || undefined,
+            category: category || undefined
           })
 
           // Re-sort the fonts based on ORDER
@@ -240,7 +242,10 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           })
 
           saveStoredFonts(fonts)
-          updateToken(`font/typeface/${sequentialName}`, cleanFontName)
+          // Build proper CSS font-family string for the token value
+          const quotedName = cleanFontName.includes(' ') ? `"${cleanFontName}"` : cleanFontName
+          const fontStack = category ? `${quotedName}, ${category}` : quotedName
+          updateToken(`font/typeface/${sequentialName}`, fontStack)
 
           // Update variants in tokensJson (not part of rf:fonts yet)
           // Variants are handled at the root font level
@@ -373,10 +378,13 @@ export default function FontFamiliesTokens() {
 
   const [rows, setRows] = useState<FamilyRow[]>(() => buildRows())
 
-  // Update rows when tokensJson changes
+  // Update rows when tokensJson changes, but only if the font data actually changed
   useEffect(() => {
     const newRows = buildRows()
-    setRows(newRows)
+    const changed = newRows.length !== rows.length || newRows.some((r, i) => r.name !== rows[i]?.name || r.value !== rows[i]?.value)
+    if (changed) {
+      setRows(newRows)
+    }
   }, [tokensJson])
 
   useEffect(() => {
@@ -393,13 +401,18 @@ export default function FontFamiliesTokens() {
   }, [rows.length])
 
   // Ensure fonts are loaded when rows change
+  // Only load fonts that aren't already loaded in the browser
   useEffect(() => {
     if (rows.length > 0) {
       rows.forEach((row) => {
         if (row.value && row.value.trim()) {
           const fontName = row.value.trim().replace(/^["']|["']$/g, '')
           if (fontName) {
-            ensureFontLoaded(fontName).catch(() => { })
+            // Check if font is already loaded before triggering async load
+            const isLoaded = document.fonts.check(`16px "${fontName}"`)
+            if (!isLoaded) {
+              ensureFontLoaded(fontName).catch(() => { })
+            }
           }
         }
       })
@@ -758,21 +771,8 @@ export default function FontFamiliesTokens() {
     saveStoredFonts(updatedFonts)
 
     // Purge any stale delta entries for font typefaces/families.
-    // These were written when fonts were first added via updateToken, but
-    // reapplyDelta() would overwrite the newly reordered CSS vars after recompute.
     clearDeltaByPrefix(tokenFont('typefaces', ''))
     clearDeltaByPrefix(tokenFont('families', ''))
-
-    const store = getVarsStore()
-    const freshTokens = JSON.parse(JSON.stringify(store.getState().tokens)) as any
-    const freshFontRoot = freshTokens?.tokens?.font || freshTokens?.font || {}
-    const typefaces = freshFontRoot.typefaces || freshFontRoot.typeface || {}
-
-    // Reconstruct typefaces in the new order so typography resolver sees the correct mapping
-    updatedFonts.forEach((row) => {
-      if (!typefaces[row.id]) typefaces[row.id] = {}
-      typefaces[row.id].$value = row.family
-    })
 
     // Clear typography font-family CSS vars so they are regenerated with the new mapping
     const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
@@ -781,13 +781,13 @@ export default function FontFamiliesTokens() {
       if (typeof document !== 'undefined') document.documentElement.style.removeProperty(cssVar)
     })
 
-    store.setTokens(freshTokens)
-
+    // Update rows immediately so the UI reflects the new order without waiting for store round-trip
     setRows(buildRows())
     setDraggedIndex(null)
 
-    window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { skipRebuild: true } }))
-    window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: {} }))
+    // syncFontsToTokens calls setTokens internally which triggers recomputeAndApplyAll once
+    const store = getVarsStore()
+    store.syncFontsToTokens()
   }
 
   const handleDragEnd = () => {
@@ -825,32 +825,28 @@ export default function FontFamiliesTokens() {
     clearDeltaByPrefix(tokenFont('typefaces', ''))
     clearDeltaByPrefix(tokenFont('families', ''))
 
+    // Clean up fontVariants for the deleted font
     const store = getVarsStore()
     const tokens = JSON.parse(JSON.stringify(store.getState().tokens)) as any
     const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-    const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
-
-    const keptKeys = new Set(updatedFonts.map(r => r.id))
-    const allTypefaceKeys = Object.keys(typefaces).filter(k => !k.startsWith('$'))
-    allTypefaceKeys.forEach(k => {
-      if (!keptKeys.has(k)) {
-        removeCssVar(`--tokens-font-typeface-${k}`)
-        removeCssVar(tokenFont('typefaces', k))
-        delete typefaces[k]
-      }
-    })
-
-    updatedFonts.forEach((row) => {
-      if (!typefaces[row.id]) typefaces[row.id] = {}
-      typefaces[row.id].$value = row.family
-    })
-
     if (fontRoot.fontVariants) {
       const keptFontNames = new Set(updatedFonts.map(r => r.family.trim().replace(/^["']|["']$/g, '').toLowerCase()))
       Object.keys(fontRoot.fontVariants).forEach(name => {
         if (!keptFontNames.has(name)) delete fontRoot.fontVariants[name]
       })
+      store.setTokensSilent(tokens)
     }
+
+    // Remove CSS vars for typeface keys that no longer exist
+    const keptKeys = new Set(updatedFonts.map(r => r.id))
+    const typefaceRoot = fontRoot.typefaces || fontRoot.typeface || {}
+    Object.keys(typefaceRoot).filter(k => !k.startsWith('$')).forEach(k => {
+      if (!keptKeys.has(k)) {
+        removeCssVar(`--tokens-font-typeface-${k}`)
+        removeCssVar(tokenFont('typefaces', k))
+        removeCssVar(tokenFont('families', k))
+      }
+    })
 
     const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
     typographyPrefixes.forEach((prefix) => {
@@ -858,14 +854,10 @@ export default function FontFamiliesTokens() {
       if (typeof document !== 'undefined') document.documentElement.style.removeProperty(cssVar)
     })
 
-    store.setTokens(tokens)
-    store.syncFontsToTokens()
-
     setRows(buildRows())
 
-    window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { skipRebuild: true } }))
-    window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: {} }))
-    store.recomputeAndApplyAll()
+    // syncFontsToTokens calls setTokens internally which triggers recomputeAndApplyAll once
+    store.syncFontsToTokens()
   }
   const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const interactiveColor = `--recursica_brand_${mode}-palettes-core-interactive`

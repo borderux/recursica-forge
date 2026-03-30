@@ -13,7 +13,17 @@ export function getStoredFonts(): FontEntry[] {
     try {
         const stored = localStorage.getItem(STORAGE_KEY)
         if (stored) {
-            return JSON.parse(stored)
+            const fonts: FontEntry[] = JSON.parse(stored)
+            // Migration: strip any stale fallback suffixes from family values
+            let dirty = false
+            fonts.forEach(f => {
+                if (f.family && f.family.includes(',')) {
+                    f.family = f.family.split(',')[0].trim()
+                    dirty = true
+                }
+            })
+            if (dirty) localStorage.setItem(STORAGE_KEY, JSON.stringify(fonts))
+            return fonts
         }
     } catch (err) {
         console.warn('[fontStore] Failed to read rf:fonts from localStorage', err)

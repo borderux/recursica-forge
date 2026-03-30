@@ -452,11 +452,14 @@ class VarsStore {
 
         storedFonts.forEach(font => {
           if (font.id && font.family) {
-            const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
-            const genericFallback = font.category || 'sans-serif'
-            const familyWithFallback = `${cleanFamily}, ${genericFallback}`
-            typefaces[font.id] = { $value: familyWithFallback }
-            families[font.id] = { $value: familyWithFallback }
+            let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
+            // Strip any stale baked-in category from the family name itself
+            if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
+            // Build a proper CSS font-family string
+            const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
+            const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
+            typefaces[font.id] = { $value: fontStack }
+            families[font.id] = { $value: fontStack }
 
             // Restore the extensions for Google Fonts URL
             if (font.url) {
@@ -1562,11 +1565,16 @@ class VarsStore {
         if (Array.isArray(storedFonts)) {
           storedFonts.forEach(font => {
             if (font.id && font.family) {
-              const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
-              const genericFallback = font.category || 'sans-serif'
-              const familyWithFallback = `${cleanFamily}, ${genericFallback}`
-              vars[tokenFont('typefaces', font.id)] = familyWithFallback
-              vars[tokenFont('families', font.id)] = familyWithFallback
+              let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
+              // Strip any stale baked-in category from the family name itself
+              if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
+              // Build a proper CSS font-family string:
+              // - Quote the font name if it contains spaces
+              // - Append the generic family keyword (unquoted) if available
+              const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
+              const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
+              vars[tokenFont('typefaces', font.id)] = fontStack
+              vars[tokenFont('families', font.id)] = fontStack
             }
           })
         }
@@ -1963,6 +1971,33 @@ class VarsStore {
       // Theme JSON and type choices are the single source of truth
 
       Object.assign(allVars, typeVars)
+
+      // Re-apply rf:fonts font stacks AFTER typography merge.
+      // The typography resolver reads from the base tokens JSON, which may have
+      // stale typeface values. rf:fonts is the source of truth for font assignments,
+      // so its values must overwrite whatever the typography resolver produced.
+      try {
+        let fontsForOverride: any[] = []
+        try {
+          if (typeof localStorage !== 'undefined') {
+            const raw = localStorage.getItem('rf:fonts')
+            if (raw) fontsForOverride = JSON.parse(raw)
+          }
+        } catch { }
+        if (Array.isArray(fontsForOverride) && fontsForOverride.length > 0) {
+          fontsForOverride.forEach((font: any) => {
+            if (font.id && font.family) {
+              let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
+              if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
+              const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
+              const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
+              allVars[tokenFont('typefaces', font.id)] = fontStack
+              allVars[tokenFont('families', font.id)] = fontStack
+            }
+          })
+        }
+      } catch { }
+
       // Load fonts asynchronously - don't wait, don't trigger recomputes
       // CSS variables are already set with font names, fonts will apply when loaded
       // Fonts MUST load (async is fine, but they must load)
