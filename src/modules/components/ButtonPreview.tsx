@@ -1,6 +1,5 @@
 import { Button } from '../../components/adapters/Button'
-import { readCssVar } from '../../core/css/readCssVar'
-import { getComponentCssVar } from '../../components/utils/cssVarNames'
+import { getComponentCssVar, buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
 import './ButtonPreview.css'
 
@@ -27,6 +26,23 @@ export default function ButtonPreview({
   const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
   const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
 
+  // Content variant horizontal padding CSS vars (cross-variant: content × size)
+  const labelPaddingVar = buildComponentCssVarPath(
+    'Button', 'variants', 'content', 'label', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
+  )
+  const iconOnlyPaddingVar = buildComponentCssVarPath(
+    'Button', 'variants', 'content', 'icon-only', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
+  )
+
+  // Style overrides for each content mode
+  const labelPaddingStyle: React.CSSProperties = {
+    paddingLeft: `var(${labelPaddingVar})`,
+    paddingRight: `var(${labelPaddingVar})`,
+  }
+  const iconOnlyPaddingStyle: React.CSSProperties = {
+    paddingLeft: `var(${iconOnlyPaddingVar})`,
+    paddingRight: `var(${iconOnlyPaddingVar})`,
+  }
 
   // Phosphor icon elements
   const SwordIcon = iconNameToReactComponent('sword')
@@ -59,67 +75,94 @@ export default function ButtonPreview({
     </span>
   )
 
+  const contentVariant = selectedVariants.content || 'label'
+
   return (
     <div className="button-preview">
       <div className="button-preview-row">
-        {/* Button with text */}
-        <Button
-          variant={styleVariant as any}
-          size={sizeVariant as any}
-          layer={actualLayer}
-          elevation={componentElevation}
-        >
-          Enter Forge
-        </Button>
+        {contentVariant === 'icon-only' ? (
+          <>
+            {/* Icon-only button */}
+            <Button
+              variant={styleVariant as any}
+              size={sizeVariant as any}
+              layer={actualLayer}
+              elevation={componentElevation}
+              icon={leadingIcon}
+              style={iconOnlyPaddingStyle}
+            />
 
-        {/* Button with icon on left */}
-        <Button
-          variant={styleVariant as any}
-          size={sizeVariant as any}
-          layer={actualLayer}
-          elevation={componentElevation}
-          icon={leadingIcon}
-        >
-          Draw Sword
-        </Button>
+            {/* Disabled icon-only button */}
+            <Button
+              variant={styleVariant as any}
+              size={sizeVariant as any}
+              layer={actualLayer}
+              elevation={componentElevation}
+              icon={leadingIcon}
+              disabled
+              style={iconOnlyPaddingStyle}
+            />
+          </>
+        ) : (
+          <>
+            {/* Button with text */}
+            <Button
+              variant={styleVariant as any}
+              size={sizeVariant as any}
+              layer={actualLayer}
+              elevation={componentElevation}
+              style={labelPaddingStyle}
+            >
+              Enter Forge
+            </Button>
 
-        {/* Icon-only button */}
-        <Button
-          variant={styleVariant as any}
-          size={sizeVariant as any}
-          layer={actualLayer}
-          elevation={componentElevation}
-          icon={leadingIcon}
-        />
+            {/* Button with icon on left */}
+            <Button
+              variant={styleVariant as any}
+              size={sizeVariant as any}
+              layer={actualLayer}
+              elevation={componentElevation}
+              icon={leadingIcon}
+              style={labelPaddingStyle}
+            >
+              Draw Sword
+            </Button>
 
-        {/* Button with icon on right */}
-        <Button
-          variant={styleVariant as any}
-          size={sizeVariant as any}
-          layer={actualLayer}
-          elevation={componentElevation}
-          material={{
-            endIcon: trailingIconElement
-          }}
-          mantine={{
-            rightSection: trailingIconElement
-          }}
-        >
-          Forge Hammer
-          {/* Only add rightIconElement for Carbon - Mantine uses rightSection prop, Material uses endIcon */}
-          {rightIconElement}
-        </Button>
+            {/* Button with icon on right */}
+            <Button
+              variant={styleVariant as any}
+              size={sizeVariant as any}
+              layer={actualLayer}
+              elevation={componentElevation}
+              material={{
+                endIcon: trailingIconElement
+              }}
+              mantine={{
+                rightSection: trailingIconElement
+              }}
+              style={{
+                ...labelPaddingStyle,
+                '--button-icon-text-gap': `var(${iconGapVar})`,
+                '--button-icon-size': `var(${iconSizeVar})`,
+              } as React.CSSProperties}
+            >
+              Forge Hammer
+              {rightIconElement}
+            </Button>
 
-        {/* Disabled button */}
-        <Button
-          variant={styleVariant as any}
-          size={sizeVariant as any}
-          layer={actualLayer}
-          elevation={componentElevation}
-          disabled
-        >
-          Sealed Gate
-        </Button>
+            {/* Disabled button */}
+            <Button
+              variant={styleVariant as any}
+              size={sizeVariant as any}
+              layer={actualLayer}
+              elevation={componentElevation}
+              disabled
+              style={labelPaddingStyle}
+            >
+              Sealed Gate
+            </Button>
+          </>
+        )}
       </div>
     </div>
   )

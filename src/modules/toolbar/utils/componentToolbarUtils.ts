@@ -46,6 +46,7 @@ export const VARIANT_PROP_TO_CATEGORY: Record<string, string> = {
   'types': 'types',
   'states': 'states',
   'orientation': 'orientation',
+  'content': 'content',
   'style-secondary': 'styles', // nested variant under styles
   'color': 'styles', // legacy mapping
 }
@@ -134,7 +135,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
 
       // Check if this key is a category container (styles, sizes, layouts, orientation, fill-width, types, states) when traversing nested variants
       // This handles cases like variants.layouts.stacked.variants.sizes where we traverse directly into the nested variants object
-      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width' || key === 'types' || key === 'states') &&
+      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width' || key === 'types' || key === 'states' || key === 'content') &&
         typeof value === 'object' &&
         value !== null &&
         !('$value' in value) &&
@@ -154,7 +155,8 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                   : categoryKey === 'fill-width' ? 'fill-width'
                     : categoryKey === 'types' ? 'types'
                       : categoryKey === 'states' ? 'states'
-                        : categoryKey
+                        : categoryKey === 'content' ? 'content'
+                          : categoryKey
           const isNestedSize = finalPropName === 'size' && variantProp === 'layout'
           const shouldAdd = isNestedSize || !seenVariants.has(finalPropName)
 
@@ -184,7 +186,8 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                 : categoryKey === 'fill-width' ? 'fill-width'
                   : categoryKey === 'types' ? 'types'
                     : categoryKey === 'states' ? 'states'
-                      : categoryKey
+                      : categoryKey === 'content' ? 'content'
+                        : categoryKey
         traverse(categoryObj, currentPath, variantPropName)
         return
       }
@@ -194,7 +197,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // Check if this variants object contains category containers (styles, sizes, layouts, types, states)
         // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left or variants.types.help or variants.states.default
         // Also handles nested: variants.layouts.side-by-side.variants.sizes.default
-        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states' || k === 'orientation' || k === 'fill-width'))
+        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states' || k === 'orientation' || k === 'fill-width' || k === 'content'))
 
         if (categoryKeys.length > 0) {
           // NEW STRUCTURE: variants.styles, variants.sizes, and variants.layouts are category containers
@@ -214,7 +217,8 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                         : categoryKey === 'fill-width' ? 'fill-width'
                           : categoryKey === 'types' ? 'types'
                             : categoryKey === 'states' ? 'states'
-                              : categoryKey
+                              : categoryKey === 'content' ? 'content'
+                                : categoryKey
 
                 // For nested variants (e.g., size inside layout), check if we should add it
                 // If we're already inside a layout variant, and this is a size category, add it
@@ -253,7 +257,8 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                 : categoryKey === 'layouts' ? 'layout'
                   : categoryKey === 'types' ? 'types'
                     : categoryKey === 'states' ? 'states'
-                      : categoryKey
+                      : categoryKey === 'content' ? 'content'
+                        : categoryKey
             if (categoryObj && typeof categoryObj === 'object') {
               // Traverse each variant within the category
               Object.keys(categoryObj).forEach(variantKey => {
@@ -268,7 +273,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                     const nestedVariantsObj = variantObj.variants
 
                     // Check if nested variants contain category containers (sizes, layouts, styles)
-                    const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts'))
+                    const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'content'))
 
                     if (nestedCategoryKeys.length > 0) {
                       // Nested variants with category containers: variants.layouts.side-by-side.variants.sizes
@@ -322,7 +327,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
           })
 
           // Also traverse any other keys that aren't styles/sizes/layouts (for backward compatibility)
-          const otherKeys = Object.keys(value).filter(k => !k.startsWith('$') && k !== 'styles' && k !== 'sizes' && k !== 'layouts' && k !== 'orientation' && k !== 'fill-width' && k !== 'types' && k !== 'states')
+          const otherKeys = Object.keys(value).filter(k => !k.startsWith('$') && k !== 'styles' && k !== 'sizes' && k !== 'layouts' && k !== 'orientation' && k !== 'fill-width' && k !== 'types' && k !== 'states' && k !== 'content')
           otherKeys.forEach(otherKey => {
             const otherObj = (value as any)[otherKey]
             if (otherObj && typeof otherObj === 'object') {
@@ -741,13 +746,14 @@ export function getDimensionPropertyType(
       }
 
       // Handle variant paths - if we encounter a variant category, use selected variant
-      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation') {
+      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content') {
         const variantKey = pathPart === 'styles' ? 'style' :
           pathPart === 'sizes' ? 'size' :
             pathPart === 'layouts' ? 'layout' :
               pathPart === 'states' ? 'state' :
                 pathPart === 'types' ? 'type' :
-                  pathPart === 'orientation' ? 'orientation' : pathPart
+                  pathPart === 'orientation' ? 'orientation' :
+                    pathPart === 'content' ? 'content' : pathPart
         const selectedVariant = selectedVariants[variantKey] || (pathPart === 'orientation' ? 'horizontal' : 'default')
         current = current[pathPart]?.[selectedVariant]
         // Skip next path part if it's the variant value we just resolved (e.g. path has orientation, horizontal)

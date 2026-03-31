@@ -180,6 +180,10 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.on-tone-hover}"
                     },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.on-tone}"
+                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone}"
@@ -197,6 +201,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.on-tone-hover}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -216,6 +224,10 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.on-tone-hover}"
                     },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.on-tone}"
+                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.properties.border-color}"
@@ -233,6 +245,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.on-tone-hover}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.on-tone}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -269,6 +285,10 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
                     },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
                     "border-color": {
                       "$type": "color",
                       "$value": null
@@ -286,6 +306,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -305,6 +329,10 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
                     },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    },
                     "border-color": {
                       "$type": "color",
                       "$value": null
@@ -322,6 +350,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -358,6 +390,10 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone-hover}"
                     },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone}"
@@ -375,6 +411,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone-hover}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -394,6 +434,10 @@
                       "$type": "color",
                       "$value": "{brand.layers.layer-2.elements.interactive.tone-hover}"
                     },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone}"
@@ -411,6 +455,10 @@
                     "text-hover": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.elements.interactive.tone-hover}"
+                    },
+                    "icon-color": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
                     },
                     "border-color": {
                       "$type": "color",
@@ -514,7 +562,7 @@
                     "unit": "px"
                   }
                 },
-                "max-width": {
+                "max-label-width": {
                   "$type": "dimension",
                   "$value": {
                     "value": 500,
@@ -612,7 +660,7 @@
                     "unit": "px"
                   }
                 },
-                "max-width": {
+                "max-label-width": {
                   "$type": "dimension",
                   "$value": {
                     "value": 500,
@@ -626,6 +674,60 @@
                 "hover-opacity": {
                   "$type": "number",
                   "$value": "{tokens.opacity.mist}"
+                }
+              }
+            }
+          },
+          "content": {
+            "label": {
+              "sizes": {
+                "default": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.general.lg}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                },
+                "small": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.general.md}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "icon-only": {
+              "sizes": {
+                "default": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.general.default}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                },
+                "small": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.general.sm}",
+                        "unit": "px"
+                      }
+                    }
+                  }
                 }
               }
             }

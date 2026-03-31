@@ -54,6 +54,7 @@ export default function Button({
   const hoverOpacityVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'hover-opacity')
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
+  const iconColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color')
 
   // Get the correct CSS variable reference for button color (used for text and border)
   const buttonColorRef = `var(${buttonColorVar})`
@@ -81,7 +82,7 @@ export default function Button({
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'border-radius')
-  const maxWidthVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'max-width')
+  const maxWidthVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'max-label-width')
 
   // Get all text properties from size-variant text property group
   const fontFamilyVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'font-family')
@@ -226,11 +227,11 @@ export default function Button({
     styles: {
       root: {
         // Ensure button root uses flex layout for all buttons with content
-        // Use space-around to center content when button is wider than content
+        // Center the content group within the button when min-width > content
         ...(children || icon ? {
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-around',
+          justifyContent: 'center',
         } : {}),
         // CRITICAL: Set border color for solid and outline variants to override Mantine's CSS-in-JS
         // Note: CSS file will also set border with !important, but this helps ensure it's applied
@@ -310,6 +311,8 @@ export default function Button({
         '--button-icon-size': icon || mantine?.rightSection
           ? `var(${iconSizeVar})`
           : '0px',
+        // Set icon color CSS variable for CSS file override
+        '--button-icon-color': `var(${iconColorVar})`,
         // Set content max width CSS variable for CSS file override
         '--button-max-width': `var(${maxWidthVar})`,
         // Use actual CSS border instead of box-shadow
@@ -344,11 +347,11 @@ export default function Button({
         lineHeight: `var(${lineHeightVar})`,
         textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') as any : 'none',
         textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') as any : 'none',
-        // For icon-only buttons, ensure flex centering with space-around
+        // For icon-only buttons, ensure flex centering
         ...(isIconOnly && {
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-around',
+          justifyContent: 'center',
         }),
         // Use brand disabled opacity when disabled - don't change colors, just apply opacity
         ...(disabled && {

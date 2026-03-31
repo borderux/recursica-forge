@@ -6,6 +6,7 @@
   max-width: 100% !important;
   max-height: 100% !important;
   flex-shrink: 0;
+  color: var(--button-icon-color, inherit) !important;
 }
 
 /* Size and space Carbon button icons */
@@ -35,25 +36,30 @@
 /* Use Recursica CSS variables with Carbon variables as fallbacks */
 .cds--btn {
   /* Set max-width on button root to constrain content */
-  max-width: calc(var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max_width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  max-width: calc(var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max-label-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
   /* Use Recursica CSS vars with Carbon vars as fallbacks - don't modify Carbon vars directly */
   background-color: var(--button-bg, var(--recursica_ui-kit_components_button_color_layer-0_variant_solid_background, var(--cds-button-primary))) !important;
   color: var(--button-color, var(--recursica_ui-kit_components_button_color_layer-0_variant_solid_text, var(--cds-button-text-primary))) !important;
 }
 
 /* Target text content for truncation */
-.cds--btn>*:not(svg) {
+.cds--btn>*:not(svg):not(.recursica-button-trailing-icon) {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   flex: 1 !important;
   min-width: 0 !important;
+  text-align: left !important;
 }
 
-/* For text-only buttons (no icon), use full content max width and center */
-.cds--btn:not(:has(> svg)) {
-  max-width: var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max_width)) !important;
-  justify-content: center !important;
+/* For text-only buttons (no icon), use full content max width and left-align */
+.cds--btn:not(:has(> svg)):not(:has(.recursica-button-trailing-icon)) {
+  max-width: var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max-label-width)) !important;
+}
+
+/* Trailing icon containers also get icon color */
+.cds--btn .recursica-button-trailing-icon {
+  color: var(--button-icon-color, inherit) !important;
 }
 
 .cds--btn:not(:has(> svg))>* {

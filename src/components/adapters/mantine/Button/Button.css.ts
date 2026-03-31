@@ -167,10 +167,10 @@ globalStyle('.recursica-layer-3 .mantine-Button-root[data-variant="subtle"]:hove
   color: 'var(--button-text-hover, var(--button-color)) !important',
 } as any)
 
-/* Override Mantine Button leftSection margin to use intermediate CSS variables */
+/* Override Mantine Button section[left] margin to use intermediate CSS variables */
 /* These variables are set on the button element and can be overridden via propOverrides */
 globalStyle(
-  '.recursica-button-left-section, .mantine-Button-root .recursica-button-left-section, [class*="m_a74036a"].recursica-button-left-section, [class*="m_a74036a"][data-position="left"], .mantine-Button-root .mantine-Button-leftSection, .mantine-Button-root[data-position="left"], .mantine-Button-leftSection[data-position="left"], [class*="mantine-Button-leftSection"][data-position="left"]',
+  ".recursica-button-left-section, .mantine-Button-root .recursica-button-left-section, [class*='m_a74036a'].recursica-button-left-section, [class*='m_a74036a'][data-position='left'], .mantine-Button-root .mantine-Button-section[data-position='left'], .mantine-Button-root[data-position='left'], .mantine-Button-section[data-position='left']",
   {
     marginInlineEnd: 'var(--button-icon-gap)',
     width: 'var(--button-icon-size)',
@@ -183,7 +183,7 @@ globalStyle(
 )
 
 /* Ensure SVG icons scale to fill their container in leftSection */
-globalStyle('.mantine-Button-root .mantine-Button-leftSection svg', {
+globalStyle(".mantine-Button-root .mantine-Button-section[data-position='left'] svg", {
   width: '100%',
   height: '100%',
   maxWidth: '100%',
@@ -217,23 +217,15 @@ globalStyle('.mantine-Button-root .mantine-Button-label', {
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
   display: 'block',
-  maxWidth: 'calc(var(--button-max-width, 500px) - var(--button-icon-size, 0px) - var(--button-icon-gap, 0px))',
-})
-
-/* When icon exists, we need to center the icon+text group, not expand the label */
-globalStyle('.mantine-Button-root:has(.mantine-Button-leftSection) .mantine-Button-label', {
-  flex: 'none',
+  textAlign: 'left',
+  flex: '1 1 0',
   minWidth: 0,
-})
-
-/* For text-only buttons (no icon), don't use flex: 1 to allow centering */
-globalStyle('.mantine-Button-root:not(:has(.mantine-Button-leftSection)) .mantine-Button-label', {
-  flex: 'none',
+  maxWidth: 'calc(var(--button-max-width, 500px) - var(--button-icon-size, 0px) - var(--button-icon-gap, 0px))',
 })
 
 /* For icon-only buttons, set the span (or container) around the SVG to display: flex */
 globalStyle(
-  '.mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) > span, .mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) > *:has(svg), .mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-leftSection)) span:has(svg)',
+  ".mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-section[data-position='left'])) > span, .mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-section[data-position='left'])) > *:has(svg), .mantine-Button-root:not(:has(.mantine-Button-label)):not(:has(.mantine-Button-section[data-position='left'])) span:has(svg)",
   {
     display: 'flex',
     alignItems: 'center',
@@ -243,7 +235,7 @@ globalStyle(
 
 /* When there is no text and only an icon, the span with class mantine-Button-label needs to be display: flex */
 globalStyle(
-  '.mantine-Button-root:not(:has(.mantine-Button-leftSection)) .mantine-Button-label:empty, .mantine-Button-root:not(:has(.mantine-Button-leftSection)) .mantine-Button-label:not(:has(text)), .mantine-Button-root:not(:has(.mantine-Button-leftSection)) .mantine-Button-label:not(:has(*:not(svg)))',
+  ".mantine-Button-root:not(:has(.mantine-Button-section[data-position='left'])) .mantine-Button-label:empty, .mantine-Button-root:not(:has(.mantine-Button-section[data-position='left'])):not(:has(.mantine-Button-section[data-position='right'])) .mantine-Button-label:has(> svg)",
   {
     display: 'flex',
     alignItems: 'center',

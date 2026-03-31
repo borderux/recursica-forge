@@ -27,6 +27,7 @@ const AXIS_TO_CATEGORY: Record<string, string> = {
   types: 'types',
   states: 'states',
   orientation: 'orientation',
+  content: 'content',
 }
 
 /** Maps arbitrary axis category keys (as stored in uikit JSON) back to toolbar prop names. */
@@ -37,6 +38,7 @@ const CATEGORY_TO_AXIS: Record<string, string> = {
   types: 'types',
   states: 'states',
   orientation: 'orientation',
+  content: 'content',
 }
 
 /** Returns the JSON category key for a toolbar axis prop name. */

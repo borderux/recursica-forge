@@ -6,6 +6,7 @@
   max-width: 100% !important;
   max-height: 100% !important;
   flex-shrink: 0;
+  color: var(--button-icon-color, inherit) !important;
 }
 
 /* Ensure right-side icons (spans containing SVGs) are visible */
@@ -58,6 +59,7 @@
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  color: var(--button-icon-color, inherit) !important;
 }
 
 /* Size and space Material's endIcon */
@@ -72,26 +74,21 @@
   justify-content: center !important;
   visibility: visible !important;
   opacity: 1 !important;
+  color: var(--button-icon-color, inherit) !important;
 }
 
 /* Material UI buttons render text as direct children or in the button's text content */
 /* Apply truncation to the button's content area */
 .MuiButton-root {
   /* The button itself handles truncation when max-width is set on the root */
-  max-width: calc(var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max_width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  max-width: calc(var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max-label-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
   /* Always have relative positioning for hover overlay */
   position: relative;
 }
 
-/* For buttons with icons, ensure text area can truncate */
-.MuiButton-root:has(.MuiButton-startIcon) {
-  /* Text will truncate within the available space */
-}
-
-/* For text-only buttons (no icon), use full content max width and center */
-.MuiButton-root:not(:has(.MuiButton-startIcon)) {
-  max-width: var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max_width)) !important;
-  justify-content: center !important;
+/* For text-only buttons (no icon), use full content max width and left-align */
+.MuiButton-root:not(:has(.MuiButton-startIcon)):not(:has(.MuiButton-endIcon)) {
+  max-width: var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max-label-width)) !important;
 }
 
 /* Ensure solid and outline variants have borders with the correct color */
