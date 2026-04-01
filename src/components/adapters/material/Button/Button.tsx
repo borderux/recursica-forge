@@ -47,6 +47,7 @@ export default function Button({
   const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
+  const iconColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color')
 
   // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
   const hoverColorVar = getComponentLevelCssVar('Button', 'hover-color')
@@ -59,7 +60,7 @@ export default function Button({
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
-  const maxWidthVar = getComponentCssVar('Button', 'size', 'max-width', undefined)
+  const maxWidthVar = getComponentCssVar('Button', 'size', 'max-label-width', undefined)
 
   // Get all text properties from component text property group
   const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
@@ -226,6 +227,7 @@ export default function Button({
       }),
       // Set CSS custom properties for CSS file overrides
       // Set icon size even when icon is in endIcon prop (Material UI's endIcon)
+      '--button-icon-color': `var(${iconColorVar})`,
       '--button-icon-size': icon || materialEndIcon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': (icon && children) || (materialEndIcon && children) ? `var(${iconGapVar})` : '0px',
       '--button-max-width': `var(${maxWidthVar})`,

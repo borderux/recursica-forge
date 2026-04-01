@@ -7,6 +7,10 @@
     "size": {
       "icon": "resize",
       "label": "Size"
+    },
+    "content": {
+      "icon": "text-columns",
+      "label": "Content"
     }
   },
   "props": {
@@ -59,44 +63,49 @@
         }
       }
     },
-    "height": {
-      "icon": "arrows-up-down",
-      "label": "Height",
-      "visible": true
-    },
-    "width": {
-      "icon": "arrows-left-right",
-      "label": "Width",
+    "dimensions": {
+      "icon": "split-horizontal",
+      "label": "Dimensions",
       "visible": true,
       "group": {
+        "height": {
+          "icon": "arrows-up-down",
+          "label": "Height",
+          "visible": true
+        },
         "min-width": {
           "icon": "arrows-in-line-horizontal",
           "label": "Min width",
           "visible": true
         },
-        "max-width": {
+        "max-label-width": {
           "icon": "arrows-out-line-horizontal",
-          "label": "Max content width",
+          "label": "Max label width",
+          "visible": true
+        },
+        "horizontal-padding": {
+          "label": "Horizontal padding",
+          "visible": true
+        },
+        "icon-text-gap": {
+          "label": "Gap between icon and text",
           "visible": true
         }
       }
     },
     "icon": {
       "icon": "diamond",
-      "label": "Icon size",
-      "visible": true
-    },
-    "spacing": {
-      "icon": "split-horizontal",
-      "label": "Spacing",
+      "label": "Icon",
       "visible": true,
       "group": {
-        "icon-text-gap": {
-          "label": "Gap between icon and text",
+        "icon": {
+          "icon": "resize",
+          "label": "Size",
           "visible": true
         },
-        "horizontal-padding": {
-          "label": "Horizontal padding",
+        "icon-color": {
+          "icon": "paint-bucket",
+          "label": "Color",
           "visible": true
         }
       }
