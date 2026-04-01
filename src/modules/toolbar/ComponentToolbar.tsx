@@ -605,8 +605,8 @@ export default function ComponentToolbar({
               }
 
 
-              // Special handling: if parent prop is "spacing" or "layout", collect props from all layout variants
-              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'layout')) {
+              // Special handling: if parent prop is "spacing", "dimensions", or "layout", collect props from all layout variants
+              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'dimensions' || parentPropName.toLowerCase() === 'layout')) {
                 // Find props that match the name and are variant-specific for layout
                 const layoutProps = liveStructure.props.filter(p =>
                   p.name.toLowerCase() === groupedPropKey &&
@@ -616,6 +616,22 @@ export default function ComponentToolbar({
                 // Use the first one found (they should all have the same name, just different variant paths)
                 if (layoutProps.length > 0) {
                   groupedProp = layoutProps[0]
+                }
+              }
+
+              // Button: horizontal-padding is owned by the content variant (content × size)
+              // Build a virtual prop that points to the correct CSS variable for the selected content and size
+              if (!groupedProp && componentName.toLowerCase() === 'button' && groupedPropKey === 'horizontal-padding') {
+                const contentVariant = selectedVariants.content || 'label'
+                const sizeVariant = selectedVariants.size || 'default'
+                groupedProp = {
+                  name: 'horizontal-padding',
+                  category: 'size',
+                  type: 'dimension',
+                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'horizontal-padding'),
+                  path: ['variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'horizontal-padding'],
+                  isVariantSpecific: true,
+                  variantProp: 'content',
                 }
               }
               // Virtual prop fallback: if config has options (dropdown/segmented), create a virtual prop
