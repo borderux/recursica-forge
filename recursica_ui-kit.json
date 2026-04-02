@@ -576,6 +576,10 @@
                 "hover-opacity": {
                   "$type": "number",
                   "$value": "{tokens.opacity.mist}"
+                },
+                "disabled-opacity": {
+                  "$type": "number",
+                  "$value": "{brand.states.disabled}"
                 }
               }
             },
@@ -674,6 +678,10 @@
                 "hover-opacity": {
                   "$type": "number",
                   "$value": "{tokens.opacity.mist}"
+                },
+                "disabled-opacity": {
+                  "$type": "number",
+                  "$value": "{brand.states.disabled}"
                 }
               }
             }

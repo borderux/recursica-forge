@@ -110,17 +110,21 @@
         }
       }
     },
-    "hover": {
+    "states": {
       "icon": "cursor-click",
-      "label": "Hover",
+      "label": "States",
       "visible": true,
       "group": {
         "hover-color": {
-          "label": "Color",
+          "label": "Hover color",
           "visible": true
         },
         "hover-opacity": {
-          "label": "Opacity",
+          "label": "Hover opacity",
+          "visible": true
+        },
+        "disabled-opacity": {
+          "label": "Disabled opacity",
           "visible": true
         }
       }

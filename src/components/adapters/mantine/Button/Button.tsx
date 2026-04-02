@@ -8,7 +8,7 @@ import { Button as MantineButton } from '@mantine/core'
 import { useState, useEffect, useMemo, Children, isValidElement, cloneElement } from 'react'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { getComponentCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
+import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
@@ -353,9 +353,9 @@ export default function Button({
           alignItems: 'center',
           justifyContent: 'center',
         }),
-        // Use brand disabled opacity when disabled - don't change colors, just apply opacity
+        // Use component-level disabled-opacity token when disabled - don't change colors, just apply opacity
         ...(disabled && {
-          opacity: `var(${getBrandStateCssVar(mode, 'disabled')})`,
+          opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')})`,
         }),
         minWidth: `var(${minWidthVar})`,
         borderRadius: `var(${borderRadiusVar})`,
