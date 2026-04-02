@@ -102,6 +102,7 @@ import {
   Pencil,
   PencilLine,
   Plus,
+  Prohibit,
   Queue,
   Resize,
   Rows,
@@ -429,6 +430,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'hammer': Hammer,
   'wrench': Wrench,
   'image-square': ImageSquare,
+  'prohibit': Prohibit,
 }
 
 /**

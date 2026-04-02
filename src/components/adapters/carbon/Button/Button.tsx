@@ -8,7 +8,7 @@ import { Button as CarbonButton } from '@carbon/react'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { useState, useEffect } from 'react'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
+import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
@@ -225,10 +225,10 @@ export default function Button({
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': icon || children ? `var(${iconGapVar})` : '0px',
       '--button-max-width': `var(${maxWidthVar})`,
-      // Use brand disabled opacity when disabled - don't change colors, just apply opacity
+      // Use component-level disabled-opacity token when disabled - don't change colors, just apply opacity
       // Override Carbon's default disabled styles to keep colors unchanged
       ...(disabled && {
-        opacity: `var(${getBrandStateCssVar(mode, 'disabled')})`,
+        opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')})`,
         backgroundColor: `var(${buttonBgVar}) !important`,
         color: `var(${buttonColorVar}) !important`,
         ...((variant === 'solid' || variant === 'outline') && {

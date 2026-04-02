@@ -11,7 +11,7 @@ import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, 
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
-import { getBrandStateCssVar, getElevationBoxShadow } from '../../../utils/brandCssVars'
+import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import './Button.css'
 
 export default function Button({
@@ -231,10 +231,10 @@ export default function Button({
       '--button-icon-size': icon || materialEndIcon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': (icon && children) || (materialEndIcon && children) ? `var(${iconGapVar})` : '0px',
       '--button-max-width': `var(${maxWidthVar})`,
-      // Use brand disabled opacity when disabled - don't change colors, just apply opacity
+      // Use component-level disabled-opacity token when disabled - don't change colors, just apply opacity
       // Override Material UI's default disabled styles to keep colors unchanged
       ...(disabled && {
-        opacity: `var(${getBrandStateCssVar(mode, 'disabled')})`,
+        opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')})`,
         backgroundColor: `var(${buttonBgVar}) !important`,
         color: `var(${buttonColorVar}) !important`,
         ...((variant === 'solid' || variant === 'outline') && {

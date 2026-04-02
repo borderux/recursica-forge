@@ -576,6 +576,10 @@
                 "hover-opacity": {
                   "$type": "number",
                   "$value": "{tokens.opacity.mist}"
+                },
+                "disabled-opacity": {
+                  "$type": "number",
+                  "$value": "{brand.states.disabled}"
                 }
               }
             },
@@ -674,6 +678,64 @@
                 "hover-opacity": {
                   "$type": "number",
                   "$value": "{tokens.opacity.mist}"
+                },
+                "disabled-opacity": {
+                  "$type": "number",
+                  "$value": "{brand.states.disabled}"
+                }
+              }
+            }
+          },
+          "content": {
+            "label": {
+              "sizes": {
+                "default": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.general.lg}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                },
+                "small": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.general.md}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "icon-only": {
+              "sizes": {
+                "default": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.general.default}",
+                        "unit": "px"
+                      }
+                    }
+                  }
+                },
+                "small": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": "{brand.dimensions.general.sm}",
+                        "unit": "px"
+                      }
+                    }
+                  }
                 }
               }
             }
