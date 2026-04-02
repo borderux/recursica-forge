@@ -6,6 +6,8 @@
  */
 
 import { getVarsStore } from '../store/varsStore'
+import { trackChanges } from '../store/cssDelta'
+import { buildUIKitVars } from '../resolvers/uikit'
 import type { JsonLike } from '../resolvers/tokens'
 import type { RandomizeOptions } from './RandomizeOptionsModal'
 import uikitJson from '../../../recursica_ui-kit.json'
@@ -296,10 +298,11 @@ function generateRandomValue(originalValue: any, index: number, context: {
 
         // 4. Opacity Randomization Logic
         if (context.isOpacity || parts[0] === 'brand' && (parts[1] === 'text-emphasis' || parts[1] === 'states')) {
-          if (parts[0] === 'tokens' && parts[1] === 'opacities') {
+          if (parts[0] === 'tokens' && (parts[1] === 'opacities' || parts[1] === 'opacity')) {
             const scales = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
             const randomScale = scales[Math.floor(Math.random() * scales.length)]
-            return `{tokens.opacities.${randomScale}}`
+            // Always use singular 'opacity' for token references in UI kit
+            return `{tokens.opacity.${randomScale}}`
           }
           if (parts[0] === 'brand' && parts[1] === 'text-emphasis') {
             const scales = ['low', 'medium', 'high']
@@ -307,6 +310,12 @@ function generateRandomValue(originalValue: any, index: number, context: {
             return `{brand.text-emphasis.${randomScale}}`
           }
           if (parts[0] === 'brand' && parts[1] === 'states') {
+            if (context.isOpacity) {
+              // If we're randomizing an opacity property, return a random opacity instead of keeping the state tie
+              const scales = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
+              const randomScale = scales[Math.floor(Math.random() * scales.length)]
+              return `{tokens.opacity.${randomScale}}`
+            }
             const scales = ['disabled']
             return `{brand.states.disabled}`
           }
@@ -364,12 +373,12 @@ function generateRandomValue(originalValue: any, index: number, context: {
           }
         } // end typography
 
-        // 4b. Opacity: tokens.opacities.* refs (used directly in component properties)
-        if (parts[0] === 'tokens' && parts[1] === 'opacities') {
+        // 4b. Opacity: tokens.opacity.* refs (used directly in component properties)
+        if (parts[0] === 'tokens' && (parts[1] === 'opacities' || parts[1] === 'opacity')) {
           const scales = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
           const currentScale = parts[2]
           const filtered = currentScale ? scales.filter(s => s !== currentScale) : scales
-          return `{tokens.opacities.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+          return `{tokens.opacity.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
         }
 
         // 6. Catch-all for brand.dimensions.* — regardless of context.isSize
@@ -1593,7 +1602,10 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       const isBorder = pathStr.includes('border-size') || pathStr.includes('border-width') || pathStr.includes('divider-size') || pathStr.includes('thickness') || pathStr.includes('border-size')
       const isRadius = pathStr.includes('radius') || pathStr.includes('corner')
       const isGap = pathStr.includes('gap') || pathStr.includes('gutter') || pathStr.includes('spacing')
-      const isIconSize = pathStr.includes('icon-size') || pathStr.includes('icon.size') || (pathStr.includes('icon') && !pathStr.includes('color'))
+      
+      const propIdx = path.lastIndexOf('properties')
+      const propertyName = propIdx >= 0 && propIdx + 1 < path.length ? String(path[propIdx + 1]) : path[path.length - 1]
+      const isIconSize = String(propertyName).includes('icon-size') || String(propertyName).includes('icon.size') || String(propertyName) === 'icon-text-gap' || (pathStr.includes('icon') && !pathStr.includes('color') && !pathStr.includes('width') && !pathStr.includes('height') && !pathStr.includes('padding') && !isBorder && !isRadius && !isGap)
       const isPadding = pathStr.includes('padding') || pathStr.includes('margin')
       const isElevation = pathStr.includes('elevation') || pathStr.includes('shadow')
       const isOpacity = pathStr.includes('opacity') || pathStr.includes('disabled') || pathStr.includes('emphasis')
@@ -1641,6 +1653,26 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       })
       modifyValueAtPath(modifiedUiKit, path, newValue)
     })
+
+    // Track any UIKit variations via the delta system to persist them across refreshes
+    const uikitVarsLightBefore = buildUIKitVars(initialTokens, initialTheme, initialUiKit, 'light')
+    const uikitVarsDarkBefore = buildUIKitVars(initialTokens, initialTheme, initialUiKit, 'dark')
+    const uikitVarsLightAfter = buildUIKitVars(opts.tokens, opts.theme, modifiedUiKit, 'light')
+    const uikitVarsDarkAfter = buildUIKitVars(opts.tokens, opts.theme, modifiedUiKit, 'dark')
+
+    const diffVars: Record<string, string> = {}
+    const beforeVars = { ...uikitVarsLightBefore, ...uikitVarsDarkBefore }
+    const afterVars = { ...uikitVarsLightAfter, ...uikitVarsDarkAfter }
+
+    for (const [key, value] of Object.entries(afterVars)) {
+      if (beforeVars[key] !== value) {
+        diffVars[key] = value
+      }
+    }
+
+    if (Object.keys(diffVars).length > 0) {
+      trackChanges(diffVars)
+    }
 
     // Update store with modified uikit
     // setUiKit will trigger recomputeAndApplyAll() internally

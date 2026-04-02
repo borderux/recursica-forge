@@ -86,10 +86,6 @@
         "horizontal-padding": {
           "label": "Horizontal padding",
           "visible": true
-        },
-        "icon-text-gap": {
-          "label": "Gap between icon and text",
-          "visible": true
         }
       }
     },
@@ -106,6 +102,10 @@
         "icon-color": {
           "icon": "paint-bucket",
           "label": "Color",
+          "visible": true
+        },
+        "icon-text-gap": {
+          "label": "Gap between icon and text",
           "visible": true
         }
       }
