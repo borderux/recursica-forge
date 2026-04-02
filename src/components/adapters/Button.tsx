@@ -8,7 +8,7 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
-import { getBrandStateCssVar, getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
+import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import { useCssVar } from '../hooks/useCssVar'
@@ -263,9 +263,10 @@ function getButtonStyles(
   styles.textDecoration = (textDecorationValue || 'none') as any
   styles.textTransform = (textTransformValue || 'none') as any
   
-  // Apply disabled styles - use brand disabled opacity, don't change colors
+  // Apply disabled styles - use component-level disabled-opacity token
   if (disabled) {
-    styles.opacity = `var(${getBrandStateCssVar(mode, 'disabled')})`
+    const disabledOpacityVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')
+    styles.opacity = `var(${disabledOpacityVar})`
     styles.cursor = 'not-allowed'
   } else {
     styles.cursor = 'pointer'
