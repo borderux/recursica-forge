@@ -302,7 +302,7 @@ function generateRandomValue(originalValue: any, index: number, context: {
             const scales = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
             const randomScale = scales[Math.floor(Math.random() * scales.length)]
             // Always use singular 'opacity' for token references in UI kit
-            return `{tokens.opacity.${randomScale}}`
+            return `{tokens.opacities.${randomScale}}`
           }
           if (parts[0] === 'brand' && parts[1] === 'text-emphasis') {
             const scales = ['low', 'medium', 'high']
@@ -314,7 +314,7 @@ function generateRandomValue(originalValue: any, index: number, context: {
               // If we're randomizing an opacity property, return a random opacity instead of keeping the state tie
               const scales = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
               const randomScale = scales[Math.floor(Math.random() * scales.length)]
-              return `{tokens.opacity.${randomScale}}`
+              return `{tokens.opacities.${randomScale}}`
             }
             const scales = ['disabled']
             return `{brand.states.disabled}`
@@ -373,12 +373,12 @@ function generateRandomValue(originalValue: any, index: number, context: {
           }
         } // end typography
 
-        // 4b. Opacity: tokens.opacity.* refs (used directly in component properties)
+        // 4b. Opacity: tokens.opacities.* refs (used directly in component properties)
         if (parts[0] === 'tokens' && (parts[1] === 'opacities' || parts[1] === 'opacity')) {
           const scales = ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
           const currentScale = parts[2]
           const filtered = currentScale ? scales.filter(s => s !== currentScale) : scales
-          return `{tokens.opacity.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
+          return `{tokens.opacities.${(filtered.length > 0 ? filtered : scales)[Math.floor(Math.random() * (filtered.length > 0 ? filtered.length : scales.length))]}}`
         }
 
         // 6. Catch-all for brand.dimensions.* — regardless of context.isSize
@@ -863,7 +863,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
         const randomOpacityToken = availableTokens.length > 0
           ? availableTokens[Math.floor(Math.random() * availableTokens.length)]
           : opacityTokens[Math.floor(Math.random() * opacityTokens.length)]
-        newValue = `{tokens.opacity.${randomOpacityToken}}`
+        newValue = `{tokens.opacities.${randomOpacityToken}}`
       } else if (isOverlayColor && typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
         // Pick a random palette reference for overlay color
         // Determine the current mode from the path
