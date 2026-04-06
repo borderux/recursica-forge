@@ -3,7 +3,7 @@
  */
 
 import { getVarsStore } from '../store/varsStore'
-import { BRAND_PREFIX, cssVarToRef } from '../css/cssVarBuilder'
+import { cssVarToRef } from '../css/cssVarBuilder'
 
 /**
  * Converts a UIKit CSS variable name to a JSON path
