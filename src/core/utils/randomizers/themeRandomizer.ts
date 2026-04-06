@@ -54,13 +54,12 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
                 }
             }
         }
-        if (oldVal !== dimObj.value) {
-            let displayOld = oldVal;
-            if (dimObj.unit === 'percentage' && typeof oldVal === 'number' && oldVal > 1) {
-                displayOld = Number((oldVal / 100).toFixed(2));
-            }
-            diffs.push({ path: 'theme.' + path.join('.'), before: displayOld, after: dimObj.value });
+        let displayOld = oldVal;
+        if (dimObj.unit === 'percentage' && typeof oldVal === 'number' && oldVal > 1) {
+            displayOld = Number((oldVal / 100).toFixed(2));
         }
+        const hasChanged = oldVal !== dimObj.value;
+        diffs.push({ path: 'theme.' + path.join('.'), before: displayOld, after: dimObj.value, changed: hasChanged });
         return;
     }
 
@@ -82,14 +81,15 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
               newVal = randomizeNumberValue(oldVal);
           }
        }
-       if (newVal !== oldVal) {
-          node.$value = newVal;
-          let displayOld = oldVal;
-          if (path.includes('opacity') && typeof oldVal === 'number' && oldVal > 1) {
-              displayOld = Number((oldVal / 100).toFixed(2));
-          }
-          diffs.push({ path: 'theme.' + path.join('.'), before: displayOld, after: newVal });
+       let displayOld = oldVal;
+       if (path.includes('opacity') && typeof oldVal === 'number' && oldVal > 1) {
+           displayOld = Number((oldVal / 100).toFixed(2));
        }
+       const hasChanged = newVal !== oldVal;
+       if (hasChanged) {
+          node.$value = newVal;
+       }
+       diffs.push({ path: 'theme.' + path.join('.'), before: displayOld, after: newVal, changed: hasChanged });
        return;
     }
 
@@ -100,10 +100,11 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
              const oldVal = tv[key];
              if (typeof oldVal === 'string' && oldVal.startsWith('{')) {
                 const newVal = randomizeTokenReference(oldVal);
-                if (newVal !== oldVal) {
+                const hasChanged = newVal !== oldVal;
+                if (hasChanged) {
                    tv[key] = newVal;
-                   diffs.push({ path: 'theme.' + path.join('.') + '.$value.' + key, before: oldVal, after: newVal });
                 }
+                diffs.push({ path: 'theme.' + path.join('.') + '.$value.' + key, before: oldVal, after: newVal, changed: hasChanged });
              }
           }
        }

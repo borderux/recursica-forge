@@ -138,6 +138,40 @@ export function RandomizerResults() {
           componentsMap[compName].push(d);
       }
   });
+  // Group theme diffs dynamically by section
+  const themeGroupsMap: Record<string, Diff[]> = {
+    'Core Properties': [],
+    'Type': [],
+    'Palettes': [],
+    'Elevations': [],
+    'Layers': [],
+    'Dimensions': [],
+    'Other': []
+  };
+
+  themeDiffs.forEach(d => {
+      const p = d.path;
+      if (p.includes('.dimensions.')) {
+          themeGroupsMap['Dimensions'].push(d);
+      } else if (p.includes('.typography.')) {
+          themeGroupsMap['Type'].push(d);
+      } else if (p.includes('.palettes.core') || p.includes('.elements.interactive.') || p.includes('.text-emphasis.') || p.includes('.states.')) {
+          themeGroupsMap['Core Properties'].push(d);
+      } else if (p.includes('.palettes.')) {
+          themeGroupsMap['Palettes'].push(d);
+      } else if (p.includes('.elevations.')) {
+          themeGroupsMap['Elevations'].push(d);
+      } else if (p.includes('.layers.')) {
+          // Check for layer-0 elements and properties surface - treated as core
+          if (p.includes('layer-0') && (p.includes('.elements.') || p.includes('.properties.surface') || p.includes('.properties.border-color'))) {
+              themeGroupsMap['Core Properties'].push(d);
+          } else {
+              themeGroupsMap['Layers'].push(d);
+          }
+      } else {
+          themeGroupsMap['Other'].push(d);
+      }
+  });
   
   // Sort diffs alphabetally by path key
   Object.keys(tokenGroupsMap).forEach(key => {
@@ -146,7 +180,9 @@ export function RandomizerResults() {
   Object.keys(componentsMap).forEach(key => {
       componentsMap[key].sort((a, b) => a.path.localeCompare(b.path));
   });
-  themeDiffs.sort((a, b) => a.path.localeCompare(b.path));
+  Object.keys(themeGroupsMap).forEach(key => {
+      themeGroupsMap[key].sort((a, b) => a.path.localeCompare(b.path));
+  });
 
   const formatPath = (path: string) => {
     let clean = path;
@@ -203,7 +239,14 @@ export function RandomizerResults() {
           <Accordion variant="separated">
             {Object.keys(tokenGroupsMap).map(groupName => (
                 <Accordion.Item value={`tokens-${groupName}`} key={`tokens-${groupName}`}>
-                    <Accordion.Control>Tokens: {groupName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} ({tokenGroupsMap[groupName].length} changes)</Accordion.Control>
+                    <Accordion.Control>
+                        <Group>
+                            <Text>Tokens: {groupName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
+                            <Badge color={tokenGroupsMap[groupName].filter(d => d.changed !== false).length === tokenGroupsMap[groupName].length ? "green" : "orange"}>
+                                {tokenGroupsMap[groupName].filter(d => d.changed !== false).length} / {tokenGroupsMap[groupName].length} randomized
+                            </Badge>
+                        </Group>
+                    </Accordion.Control>
                     <Accordion.Panel>
                         <Table striped highlightOnHover withTableBorder withColumnBorders>
                           <Table.Thead>
@@ -214,28 +257,26 @@ export function RandomizerResults() {
                             </Table.Tr>
                           </Table.Thead>
                           <Table.Tbody>
-                            {tokenGroupsMap[groupName].map(d => (
-                                <Table.Tr key={d.path}>
-                                    <Table.Td>
-                                        <Text size="sm">{d.path.replace('tokens.', '').replace(/\.\$value$/, '')}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Code>{renderFormattedDiff(d.before, d.after).beforeFormatted}</Code>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Code>{renderFormattedDiff(d.before, d.after).afterFormatted}</Code>
-                                    </Table.Td>
-                                </Table.Tr>
-                            ))}
+                            {tokenGroupsMap[groupName].map(d => {
+                                const keyPath = d.path.replace('tokens.', '').replace(/\.\$value$/, '');
+                                return renderDiffLine({ ...d, path: keyPath });
+                            })}
                           </Table.Tbody>
                         </Table>
                     </Accordion.Panel>
                 </Accordion.Item>
             ))}
 
-            {themeDiffs.length > 0 && (
-                <Accordion.Item value="theme">
-                    <Accordion.Control>Theme ({themeDiffs.length} changes)</Accordion.Control>
+            {Object.keys(themeGroupsMap).filter(k => themeGroupsMap[k].length > 0).map(groupName => (
+                <Accordion.Item value={`theme-${groupName}`} key={`theme-${groupName}`}>
+                    <Accordion.Control>
+                        <Group>
+                            <Text>Theme: {groupName}</Text>
+                            <Badge color={themeGroupsMap[groupName].filter(d => d.changed !== false).length === themeGroupsMap[groupName].length ? "green" : "orange"}>
+                                {themeGroupsMap[groupName].filter(d => d.changed !== false).length} / {themeGroupsMap[groupName].length} randomized
+                            </Badge>
+                        </Group>
+                    </Accordion.Control>
                     <Accordion.Panel>
                         <Table striped highlightOnHover withTableBorder withColumnBorders>
                           <Table.Thead>
@@ -246,7 +287,7 @@ export function RandomizerResults() {
                             </Table.Tr>
                           </Table.Thead>
                           <Table.Tbody>
-                            {themeDiffs.map(d => {
+                            {themeGroupsMap[groupName].map(d => {
                                 let keyPath = d.path.replace('theme.', '').replace(/\.\$value$/, '');
                                 if (filterMode === 'light') keyPath = keyPath.replace('brand.themes.light.', '');
                                 if (filterMode === 'dark') keyPath = keyPath.replace('brand.themes.dark.', '');
@@ -268,7 +309,7 @@ export function RandomizerResults() {
                         </Table>
                     </Accordion.Panel>
                 </Accordion.Item>
-            )}
+            ))}
 
             {Object.keys(componentsMap).map(compName => (
                 <Accordion.Item value={compName} key={compName}>

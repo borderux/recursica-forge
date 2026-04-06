@@ -33,9 +33,8 @@ export function randomizeTokens(initialTokens: JsonLike, options: any, diffs: an
              }
          }
       }
-      if (node.value !== oldVal) {
-          diffs.push({ path: 'tokens.' + prefix.join('.'), before: oldVal, after: node.value });
-      }
+      const hasChanged = node.value !== oldVal;
+      diffs.push({ path: 'tokens.' + prefix.join('.'), before: oldVal, after: node.value, changed: hasChanged });
       return;
     }
     
@@ -57,9 +56,8 @@ export function randomizeTokens(initialTokens: JsonLike, options: any, diffs: an
        } else if ((prefix.includes('line-heights') || prefix.includes('line-height')) && tokensOpts.lineHeights) {
           if (typeof val === 'number') node.$value = shiftNumber(val, 1.0, 2.0, 2, 0.1);
        }
-       if (node.$value !== val) {
-           diffs.push({ path: 'tokens.' + prefix.join('.'), before: val, after: node.$value });
-       }
+       const hasChanged = node.$value !== val;
+       diffs.push({ path: 'tokens.' + prefix.join('.'), before: val, after: node.$value, changed: hasChanged });
        return;
     }
     
