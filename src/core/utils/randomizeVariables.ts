@@ -46,10 +46,11 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
 
   // Update Tokens
   if (shouldRandomizeTokens) {
-     const modifiedTokens: any = randomizeTokens(initialTokens, opts);
+     const modifiedTokens: any = randomizeTokens(initialTokens, opts, diffs);
      store.setTokens(modifiedTokens);
-     // Note: we're not currently generating detailed diffs for tokens here (done in component if handled differently or we can add token diffs if needed)
-     // Actually I should add diff tracking to token randomizer, but let's just let it run.
+     if (opts.tokens.sizes || opts.tokens.fontSizes) {
+         window.dispatchEvent(new CustomEvent('disableAutoScale'));
+     }
   }
 
   // Update Theme
@@ -157,6 +158,11 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
      sessionStorage.setItem('randomizer_ratios', JSON.stringify(uikitModifiedKeysCount));
   } catch (e) {
      console.error("Failed to save diffs to sessionStorage", e);
+  }
+
+  // Force global style recomputation cascade for any caching listeners (e.g. SizeTokens, Toolbar configs)
+  if (typeof window !== 'undefined') {
+     window.dispatchEvent(new CustomEvent('cssVarsUpdated'));
   }
 
   // Open the results tab

@@ -21,13 +21,25 @@ export function shiftValue<T>(current: T, options: T[], maxSteps: number = 2): T
   return rangeOptions[Math.floor(Math.random() * rangeOptions.length)];
 }
 
-export function shiftNumber(current: number, min: number, max: number, maxSteps: number = 2): number {
-    const stepSize = Math.max(1, (max - min) / 10);
-    const shiftAmount = (Math.floor(Math.random() * (maxSteps * 2 + 1)) - maxSteps) * stepSize;
-    let newValue = current + shiftAmount;
+export function shiftNumber(current: number, min: number, max: number, maxSteps: number = 2, step: number = 1): number {
+    if (maxSteps <= 0) return current;
+
+    let shiftMultiplier = 0;
+    while (shiftMultiplier === 0) {
+        shiftMultiplier = Math.floor(Math.random() * (maxSteps * 2 + 1)) - maxSteps;
+    }
+    
+    let newValue = current + (shiftMultiplier * step);
     if (newValue < min) newValue = min;
     if (newValue > max) newValue = max;
-    return newValue;
+    
+    if (newValue === current) {
+         if (current + step <= max) newValue = current + step;
+         else if (current - step >= min) newValue = current - step;
+    }
+    
+    // Ensure decimal precision avoids floating-point binary artifacts
+    return Number(newValue.toFixed(3));
 }
 
 // ---- TOKEN REFERENCE CONSTANTS ----

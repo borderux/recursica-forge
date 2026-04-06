@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Tabs as MantineTabs } from '@mantine/core'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import FontSizeTokens from './FontSizeTokens'
@@ -20,6 +20,17 @@ export default function FontPropertiesTokens() {
   const [autoScaleSize, setAutoScaleSize] = useState(false)
   const [autoScaleLetterSpacing, setAutoScaleLetterSpacing] = useState(false)
   const [autoScaleLineHeight, setAutoScaleLineHeight] = useState(false)
+
+  // Listen for the randomizer event to gracefully toggle off structural scaling
+  useEffect(() => {
+    const disableScaleHandler = () => {
+      setAutoScaleSize(false);
+      setAutoScaleLetterSpacing(false);
+      setAutoScaleLineHeight(false);
+    };
+    window.addEventListener('disableAutoScale', disableScaleHandler);
+    return () => window.removeEventListener('disableAutoScale', disableScaleHandler);
+  }, []);
 
   const handleReset = () => {
     // Reset font token values based on active tab

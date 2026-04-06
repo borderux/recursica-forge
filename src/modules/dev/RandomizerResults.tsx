@@ -101,9 +101,10 @@ export function RandomizerResults() {
     return () => window.removeEventListener('themeReset', loadState);
   }, []);
 
-  // Group diffs by top level category: theme vs uikit
+  // Group diffs by top level category: theme vs uikit vs tokens
   const themeDiffs = diffs.filter(d => d.path.startsWith('theme.'));
   const uikitDiffs = diffs.filter(d => d.path.startsWith('uikit.'));
+  const tokenDiffs = diffs.filter(d => d.path.startsWith('tokens.'));
 
   // Group uikit diffs by component
   const componentsMap: Record<string, Diff[]> = {};
@@ -122,6 +123,7 @@ export function RandomizerResults() {
       componentsMap[key].sort((a, b) => a.path.localeCompare(b.path));
   });
   themeDiffs.sort((a, b) => a.path.localeCompare(b.path));
+  tokenDiffs.sort((a, b) => a.path.localeCompare(b.path));
 
   const formatPath = (path: string) => {
     let clean = path;
@@ -165,6 +167,38 @@ export function RandomizerResults() {
         <Paper shadow="sm" p="md" withBorder>
           <Text fw={700} mb="md">Total Changed Properties: {diffs.length}</Text>
           <Accordion variant="separated">
+            {tokenDiffs.length > 0 && (
+                <Accordion.Item value="tokens">
+                    <Accordion.Control>Tokens ({tokenDiffs.length} changes)</Accordion.Control>
+                    <Accordion.Panel>
+                        <Table striped highlightOnHover withTableBorder withColumnBorders>
+                          <Table.Thead>
+                            <Table.Tr>
+                              <Table.Th style={{ width: '40%' }}>Key</Table.Th>
+                              <Table.Th style={{ width: '30%' }}>Before</Table.Th>
+                              <Table.Th style={{ width: '30%' }}>After</Table.Th>
+                            </Table.Tr>
+                          </Table.Thead>
+                          <Table.Tbody>
+                            {tokenDiffs.map(d => (
+                                <Table.Tr key={d.path}>
+                                    <Table.Td>
+                                        <Text size="sm">{d.path.replace('tokens.', '').replace(/\.\$value$/, '')}</Text>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Code>{renderFormattedDiff(d.before, d.after).beforeFormatted}</Code>
+                                    </Table.Td>
+                                    <Table.Td>
+                                        <Code>{renderFormattedDiff(d.before, d.after).afterFormatted}</Code>
+                                    </Table.Td>
+                                </Table.Tr>
+                            ))}
+                          </Table.Tbody>
+                        </Table>
+                    </Accordion.Panel>
+                </Accordion.Item>
+            )}
+
             {themeDiffs.length > 0 && (
                 <Accordion.Item value="theme">
                     <Accordion.Control>Theme ({themeDiffs.length} changes)</Accordion.Control>
