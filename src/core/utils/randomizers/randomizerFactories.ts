@@ -60,7 +60,7 @@ export function getConstants() {
     textStyles: ['normal', 'italic'],
     textCases: ['original', 'uppercase', 'titlecase'],
     textDecorations: ['none', 'underline', 'strikethrough'],
-    borderRadii: ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', 'pill', 'circle'],
+    borderRadii: ['none', 'sm', 'default', 'lg', 'xl', '2xl'],
     dimensionGeneral: ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl'],
     iconSizes: ['xs', 'sm', 'default', 'lg', 'xl'],
     elevations: ['elevation-0', 'elevation-1', 'elevation-2', 'elevation-3', 'elevation-4'],
@@ -149,13 +149,13 @@ export function randomizeTokenReference(tokenRef: string): string {
     // Text heights: {tokens.font.line-heights.tall}
     const heightMatch = content.match(/^tokens\.font\.line-heights?\.([a-z0-9-]+)$/);
     if (heightMatch) {
-        return `{tokens.font.line-heights.${shiftValue(heightMatch[1], ['none', 'tight', 'default', 'tall', 'relax'])}}`;
+        return `{tokens.font.line-heights.${shiftValue(heightMatch[1], ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest'])}}`;
     }
 
     // Text spacings: {tokens.font.letter-spacings.wide}
     const spacingsMatch = content.match(/^tokens\.font\.letter-spacings?\.([a-z0-9-]+)$/);
     if (spacingsMatch) {
-        return `{tokens.font.letter-spacings.${shiftValue(spacingsMatch[1], ['tight', 'default', 'wide', 'widest'])}}`;
+        return `{tokens.font.letter-spacings.${shiftValue(spacingsMatch[1], ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest'])}}`;
     }
     
     // Brand Color Palette: {brand.themes.light.palettes.neutral.100.color.tone}
@@ -172,12 +172,10 @@ export function randomizeTokenReference(tokenRef: string): string {
     // Core Colors: {brand.themes.light.palettes.core-colors.interactive.default.tone}
     const coreColorMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?palettes\.core-colors\.([a-z-]+)(?:\.([a-z-]+))?(?:\.tone|(?:\.on-tone(?:-hover)?))?$/);
     if (coreColorMatch) {
-        const [, type] = coreColorMatch;
-        const newType = shiftValue(type, CONSTANTS.coreColors);
-        if (newType === 'interactive') {
-            return `{brand.palettes.core-colors.interactive.default.tone}`;
-        }
-        return `{brand.palettes.core-colors.${newType}.tone}`;
+        const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
+        const randomPalette = palettes[Math.floor(Math.random() * palettes.length)];
+        const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
+        return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
     }
 
     // Text Emphasis: {brand.text-emphasis.low} or {brand.themes.light.text-emphasis.low}
@@ -199,7 +197,8 @@ export function randomizeTokenReference(tokenRef: string): string {
     // States: {brand.states.disabled}
     const stateMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?states\.([a-z0-9-]+)$/);
     if (stateMatch) {
-        return `{brand.states.${shiftValue(stateMatch[1], ['hover', 'pressed', 'focused', 'disabled'])}}`;
+        const randomOpacity = CONSTANTS.opacities[Math.floor(Math.random() * CONSTANTS.opacities.length)];
+        return `{tokens.opacities.${randomOpacity}}`;
     }
 
     return tokenRef;

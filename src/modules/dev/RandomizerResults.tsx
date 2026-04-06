@@ -129,7 +129,7 @@ export function RandomizerResults() {
       return (
       <Table.Tr key={diff.path}>
           <Table.Td>
-              <Text size="sm" fw={600}>{formatPath(diff.path)}</Text>
+              <Text size="sm">{formatPath(diff.path)}</Text>
           </Table.Td>
           <Table.Td>
               <Code>{beforeFormatted}</Code>
@@ -171,7 +171,7 @@ export function RandomizerResults() {
                             {themeDiffs.map(d => (
                                 <Table.Tr key={d.path}>
                                     <Table.Td>
-                                        <Text size="sm" fw={600}>{d.path.replace('theme.', '').replace(/\.\$value$/, '')}</Text>
+                                        <Text size="sm">{d.path.replace('theme.', '').replace(/\.\$value$/, '')}</Text>
                                     </Table.Td>
                                     <Table.Td>
                                         <Code>{renderFormattedDiff(d.before, d.after).beforeFormatted}</Code>
