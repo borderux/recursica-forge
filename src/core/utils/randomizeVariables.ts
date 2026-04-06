@@ -114,6 +114,34 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
          }
       }
 
+      // If the user requested Layers to be randomized, purge localized overlay manual settings
+      if (opts.theme.layers) {
+         if (typeof document !== 'undefined') {
+             for (let lvl = 0; lvl <= 3; lvl++) {
+                 // Clear generic themed layer properties and text elements
+                 const allLayerProperties = ['surface', 'border-color', 'padding', 'border-radius', 'border-size', 'elevation'];
+                 const allTextProperties = ['color', 'high-emphasis', 'low-emphasis'];
+
+                 for (const mode of ['light', 'dark']) {
+                    allLayerProperties.forEach(prop => removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_properties_${prop}`));
+                    allTextProperties.forEach(prop => removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_text-${prop}`));
+                    // Interactive tones
+                    removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_interactive_tone`);
+                    removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_interactive_tone-hover`);
+                    removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_interactive_on-tone`);
+                    removeCssVar(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_elements_interactive_on-tone-hover`);
+                 }
+                 // Clear scoped properties
+                 allLayerProperties.forEach(prop => removeCssVar(`--recursica_brand_layer_${lvl}_properties_${prop}`));
+                 allTextProperties.forEach(prop => removeCssVar(`--recursica_brand_layer_${lvl}_elements_text-${prop}`));
+                 removeCssVar(`--recursica_brand_layer_${lvl}_elements_interactive_tone`);
+                 removeCssVar(`--recursica_brand_layer_${lvl}_elements_interactive_tone-hover`);
+                 removeCssVar(`--recursica_brand_layer_${lvl}_elements_interactive_on-tone`);
+                 removeCssVar(`--recursica_brand_layer_${lvl}_elements_interactive_on-tone-hover`);
+             }
+         }
+      }
+
       store.setTheme(modifiedTheme);
   }
 

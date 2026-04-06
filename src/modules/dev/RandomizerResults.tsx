@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Title, Container, Paper, Text, Group, Box, Badge, Code, Accordion, Table } from '@mantine/core';
+import { Title, Container, Paper, Text, Group, Box, Badge, Code, Accordion, Table, SegmentedControl } from '@mantine/core';
 
 interface Diff {
   path: string;
@@ -101,10 +101,18 @@ export function RandomizerResults() {
     return () => window.removeEventListener('themeReset', loadState);
   }, []);
 
+  const [filterMode, setFilterMode] = useState<string>('all');
+
+  const filteredDiffs = diffs.filter(d => {
+      if (filterMode === 'light' && d.path.includes('.dark.')) return false;
+      if (filterMode === 'dark' && d.path.includes('.light.')) return false;
+      return true;
+  });
+
   // Group diffs by top level category: theme vs uikit vs tokens
-  const themeDiffs = diffs.filter(d => d.path.startsWith('theme.'));
-  const uikitDiffs = diffs.filter(d => d.path.startsWith('uikit.'));
-  const tokenDiffs = diffs.filter(d => d.path.startsWith('tokens.'));
+  const themeDiffs = filteredDiffs.filter(d => d.path.startsWith('theme.'));
+  const uikitDiffs = filteredDiffs.filter(d => d.path.startsWith('uikit.'));
+  const tokenDiffs = filteredDiffs.filter(d => d.path.startsWith('tokens.'));
 
   // Group token diffs dynamically by section (e.g. Size, Font Sizes, Colors)
   const tokenGroupsMap: Record<string, Diff[]> = {};
@@ -173,14 +181,25 @@ export function RandomizerResults() {
   };
 
   return (
-    <Container fluid py="xl">
-      <Title order={2} mb="lg">Randomizer Results</Title>
+    <Box p="xl" w="100%">
+      <Group justify="space-between" mb="lg">
+        <Title order={2}>Randomizer Results</Title>
+        <SegmentedControl
+          value={filterMode}
+          onChange={setFilterMode}
+          data={[
+            { label: 'All', value: 'all' },
+            { label: 'Light', value: 'light' },
+            { label: 'Dark', value: 'dark' },
+          ]}
+        />
+      </Group>
       
-      {diffs.length === 0 ? (
+      {filteredDiffs.length === 0 ? (
         <Text c="dimmed">No changes detected or session expired.</Text>
       ) : (
         <Paper shadow="sm" p="md" withBorder>
-          <Text fw={700} mb="md">Total Changed Properties: {diffs.length}</Text>
+          <Text fw={700} mb="md">Total Changed Properties: {filteredDiffs.length}</Text>
           <Accordion variant="separated">
             {Object.keys(tokenGroupsMap).map(groupName => (
                 <Accordion.Item value={`tokens-${groupName}`} key={`tokens-${groupName}`}>
@@ -227,10 +246,14 @@ export function RandomizerResults() {
                             </Table.Tr>
                           </Table.Thead>
                           <Table.Tbody>
-                            {themeDiffs.map(d => (
+                            {themeDiffs.map(d => {
+                                let keyPath = d.path.replace('theme.', '').replace(/\.\$value$/, '');
+                                if (filterMode === 'light') keyPath = keyPath.replace('brand.themes.light.', '');
+                                if (filterMode === 'dark') keyPath = keyPath.replace('brand.themes.dark.', '');
+                                return (
                                 <Table.Tr key={d.path}>
                                     <Table.Td>
-                                        <Text size="sm">{d.path.replace('theme.', '').replace(/\.\$value$/, '')}</Text>
+                                        <Text size="sm">{keyPath}</Text>
                                     </Table.Td>
                                     <Table.Td>
                                         <Code>{renderFormattedDiff(d.before, d.after).beforeFormatted}</Code>
@@ -239,7 +262,8 @@ export function RandomizerResults() {
                                         <Code>{renderFormattedDiff(d.before, d.after).afterFormatted}</Code>
                                     </Table.Td>
                                 </Table.Tr>
-                            ))}
+                                );
+                            })}
                           </Table.Tbody>
                         </Table>
                     </Accordion.Panel>
@@ -275,6 +299,6 @@ export function RandomizerResults() {
           </Accordion>
         </Paper>
       )}
-    </Container>
+    </Box>
   );
 }

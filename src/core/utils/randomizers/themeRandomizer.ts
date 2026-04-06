@@ -16,7 +16,7 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
     const isPalettes = path.includes('palettes') && !isCoreProps;
     const isElevations = path.includes('elevations');
     const isDimensions = path.includes('dimensions');
-    const isLayers = path.includes('layer') && (path.includes('properties') || path.includes('elements'));
+    const isLayers = path.includes('layers') && (path.includes('properties') || path.includes('elements'));
 
     let shouldRandomize = false;
     if (isCoreProps && themeOpts.coreProperties) shouldRandomize = true;
@@ -29,31 +29,37 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
     if (isLayers && themeOpts.layers) shouldRandomize = true;
 
     // Check if dimension object
-    const isDimension = 'value' in node && 'unit' in node;
-    if (isDimension) {
+    let dimObj = null;
+    if ('value' in node && 'unit' in node) {
+        dimObj = node;
+    } else if ('$value' in node && typeof node.$value === 'object' && node.$value !== null && 'value' in node.$value && 'unit' in node.$value) {
+        dimObj = node.$value;
+    }
+
+    if (dimObj) {
         if (!shouldRandomize) return;
-        const oldVal = node.value;
+        const oldVal = dimObj.value;
         if (typeof oldVal === 'string' && oldVal.startsWith('{')) {
-            node.value = randomizeTokenReference(oldVal, path.join('.'));
+            dimObj.value = randomizeTokenReference(oldVal, path.join('.'));
         } else {
             const parsed = typeof oldVal === 'number' ? oldVal : parseFloat(oldVal);
             if (!Number.isNaN(parsed)) {
-                if (node.unit === 'percentage') {
+                if (dimObj.unit === 'percentage') {
                     const asFloat = parsed <= 1 ? parsed : parsed / 100;
                     const shift = (Math.floor(Math.random() * 5) - 2) * 0.05;
                     const result = Math.max(0, Math.min(1, asFloat + shift));
-                    node.value = Number(result.toFixed(2));
+                    dimObj.value = Number(result.toFixed(2));
                 } else {
-                    node.value = randomizeNumberValue(parsed);
+                    dimObj.value = randomizeNumberValue(parsed);
                 }
             }
         }
-        if (oldVal !== node.value) {
+        if (oldVal !== dimObj.value) {
             let displayOld = oldVal;
-            if (node.unit === 'percentage' && typeof oldVal === 'number' && oldVal > 1) {
+            if (dimObj.unit === 'percentage' && typeof oldVal === 'number' && oldVal > 1) {
                 displayOld = Number((oldVal / 100).toFixed(2));
             }
-            diffs.push({ path: 'theme.' + path.join('.'), before: displayOld, after: node.value });
+            diffs.push({ path: 'theme.' + path.join('.'), before: displayOld, after: dimObj.value });
         }
         return;
     }

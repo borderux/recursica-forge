@@ -65,10 +65,7 @@
               },
               "border-size": {
                 "$type": "number",
-                "$value": {
-                  "value": 0,
-                  "unit": "px"
-                }
+                "$value": 0
               }
             }
           },
@@ -165,10 +162,7 @@
               },
               "border-size": {
                 "$type": "number",
-                "$value": {
-                  "value": 0,
-                  "unit": "px"
-                }
+                "$value": 0
               }
             },
             "elements": {
@@ -272,10 +266,7 @@
               },
               "border-size": {
                 "$type": "number",
-                "$value": {
-                  "value": 0,
-                  "unit": "px"
-                }
+                "$value": 0
               }
             }
           }
@@ -1195,10 +1186,7 @@
               },
               "border-size": {
                 "$type": "number",
-                "$value": {
-                  "value": 0,
-                  "unit": "px"
-                }
+                "$value": 0
               }
             }
           },
@@ -1287,10 +1275,7 @@
               },
               "border-size": {
                 "$type": "number",
-                "$value": {
-                  "value": 0,
-                  "unit": "px"
-                }
+                "$value": 0
               }
             },
             "elements": {
@@ -1378,10 +1363,7 @@
               },
               "border-size": {
                 "$type": "number",
-                "$value": {
-                  "value": 0,
-                  "unit": "px"
-                }
+                "$value": 0
               }
             }
           }

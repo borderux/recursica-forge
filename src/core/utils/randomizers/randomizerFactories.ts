@@ -92,10 +92,10 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const CONSTANTS = getConstants();
     const content = tokenRef.slice(1, -1);
     
-    // Size tokens: {tokens.size.2x}
-    const sizeMatch = content.match(/^tokens\.size\.([a-z0-9-]+)$/);
+    // Size tokens: {tokens.size.2x} or {tokens.sizes.2x}
+    const sizeMatch = content.match(/^tokens\.sizes?\.([a-z0-9-]+)$/);
     if (sizeMatch) {
-       return `{tokens.size.${shiftValue(sizeMatch[1], CONSTANTS.sizeTokens)}}`;
+       return `{tokens.sizes.${shiftValue(sizeMatch[1], CONSTANTS.sizeTokens)}}`;
     }
 
     // Font size tokens: {tokens.font.sizes.md}
