@@ -77,18 +77,28 @@ export function RandomizerResults() {
   const [ratios, setRatios] = useState<Record<string, { total: number, changed: number }>>({});
 
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem('randomizer_diffs');
-      if (stored) {
-        setDiffs(JSON.parse(stored));
+    const loadState = () => {
+      try {
+        const stored = sessionStorage.getItem('randomizer_diffs');
+        if (stored) {
+          setDiffs(JSON.parse(stored));
+        } else {
+          setDiffs([]);
+        }
+        const storedRatios = sessionStorage.getItem('randomizer_ratios');
+        if (storedRatios) {
+          setRatios(JSON.parse(storedRatios));
+        } else {
+          setRatios({});
+        }
+      } catch (e) {
+        console.error('Failed to parse randomizer diffs', e);
       }
-      const storedRatios = sessionStorage.getItem('randomizer_ratios');
-      if (storedRatios) {
-        setRatios(JSON.parse(storedRatios));
-      }
-    } catch (e) {
-      console.error('Failed to parse randomizer diffs', e);
-    }
+    };
+
+    loadState();
+    window.addEventListener('themeReset', loadState);
+    return () => window.removeEventListener('themeReset', loadState);
   }, []);
 
   // Group diffs by top level category: theme vs uikit

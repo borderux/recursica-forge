@@ -938,6 +938,12 @@ class VarsStore {
     clearStoredFonts()
     this.clearDeletedScales()
 
+    // Clear session storage for randomizer states
+    try {
+      sessionStorage.removeItem('randomizer_diffs')
+      sessionStorage.removeItem('randomizer_ratios')
+    } catch { }
+
     // Reset state from original JSON imports
     const sortedTokens = sortFontTokenObjects(tokensImport as any)
     const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
