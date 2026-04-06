@@ -188,16 +188,17 @@ function getAtPath(root: unknown, path: string): unknown {
   return current
 }
 
-/** Collect all reference strings and their location (path in JSON) from an object. */
+/** Collect all reference strings and raw CSS variable leaks, along with their location (path in JSON), from an object. */
 function collectRefs(
   obj: unknown,
   jsonPath: string[] = [],
-  out: Array<{ ref: string; location: string }> = []
-): Array<{ ref: string; location: string }> {
+  out: Array<{ ref: string; location: string; isCssVar?: boolean }> = []
+): Array<{ ref: string; location: string; isCssVar?: boolean }> {
   if (obj === null || obj === undefined) return out
 
   if (typeof obj === 'string') {
     if (isReferenceString(obj)) out.push({ ref: obj, location: jsonPath.join('.') })
+    else if ((obj as string).includes('var(--')) out.push({ ref: obj, location: jsonPath.join('.'), isCssVar: true })
     return out
   }
 
@@ -419,7 +420,13 @@ export function validateReferences(
   const results: RefValidationResult[] = []
   const errors: string[] = []
 
-  for (const { ref, location } of refs) {
+  for (const { ref, location, isCssVar } of refs) {
+    if (isCssVar) {
+      results.push({ ref, location, valid: false, message: 'Invalid exported value: Found CSS variable leaky state.' })
+      errors.push(`  ${location}: ${ref} (CSS variable leak detected)`)
+      continue
+    }
+
     const path = extractRefPath(ref)
     if (!path) {
       results.push({ ref, location, valid: false, message: 'Empty or invalid reference path' })
@@ -442,7 +449,7 @@ export function validateReferences(
   }
 
   if (errors.length > 0) {
-    const summary = `Reference validation failed (${errors.length} invalid reference(s)). DTCG: references must be complete paths to a token ($value), not a group.\n${errors.join('\n')}`
+    const summary = `Validation failed (${errors.length} invalid item(s)). DTCG: references must be complete paths to a token ($value), and raw CSS variables are forbidden.\n${errors.join('\n')}`
 
     throw new Error(summary)
   }

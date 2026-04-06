@@ -14,7 +14,7 @@ import {
 } from './EXPORT_FILENAMES'
 
 export interface ValidationError {
-  file: 'tokens' | 'brand' | 'uikit' | 'css-specific' | 'css-scoped'
+  file: 'tokens' | 'brand' | 'uikit' | 'css-specific' | 'css-scoped' | 'references'
   message: string
 }
 
@@ -42,6 +42,7 @@ export function ValidationErrorModal({ show, errors, onClose }: ValidationErrorM
     'uikit': EXPORT_FILENAME_UIKIT,
     'css-specific': EXPORT_FILENAME_CSS_SPECIFIC,
     'css-scoped': EXPORT_FILENAME_CSS_SCOPED,
+    'references': 'Cross-file References',
   }
 
   return (

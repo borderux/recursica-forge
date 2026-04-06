@@ -12,7 +12,7 @@ import { ExportSelectionModal } from './ExportSelectionModal'
 import { ValidationErrorModal, ValidationError } from './ValidationErrorModal'
 import { downloadJsonFiles } from './jsonExport'
 import { exportTokensJson, exportBrandJson, exportUIKitJson } from './jsonExport'
-import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
+import { validateTokensJson, validateBrandJson, validateUIKitJson, validateReferences } from '../utils/validateJsonSchemas'
 import { validateCssExport } from './validateCss'
 import { GitHubExportModal } from './GitHubExportModal'
 import type { JsonLike } from '../resolvers/tokens'
@@ -60,6 +60,19 @@ export function useJsonExport() {
         file: 'uikit',
         message: error instanceof Error ? error.message : String(error)
       })
+    }
+    
+    // Cross-validate refs
+    try {
+       const uikit = exportUIKitJson()
+       const brand = exportBrandJson()
+       const tokens = exportTokensJson()
+       validateReferences(brand as JsonLike, tokens as JsonLike, uikit as JsonLike)
+    } catch (error) {
+       errors.push({
+         file: 'references',
+         message: error instanceof Error ? error.message : String(error)
+       })
     }
     
     // Validate CSS files (always validate both)

@@ -8,6 +8,7 @@
 
 import { getVarsStore } from '../store/varsStore'
 import { exportedNameToPath } from '../export/exportedCssVarNames'
+import { cssVarToRef } from './cssVarBuilder'
 
 /**
  * Converts a brand CSS variable name to a JSON navigation path.
@@ -47,14 +48,16 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
 
   // Convert CSS var() references to JSON token references
   let jsonValue = value
-  if (value.startsWith('var(--recursica_')) {
-    // Extract the var name from var() wrapper
-    const varMatch = value.match(/var\(--recursica_(.+)\)/)
-    if (varMatch) {
-      // Convert underscore-delimited segments to dot-separated JSON path
-      const refParts = varMatch[1].split('_')
-      jsonValue = `{${refParts.join('.')}}`
-    }
+  const resolvedRef = cssVarToRef(value)
+  
+  if (resolvedRef) {
+    jsonValue = resolvedRef
+  } else if (value.includes('var(')) {
+    // ARCHITECTURAL DECISION:
+    // Drop unrecognized var() strings here instead of storing them to maintain DTCG purity.
+    // The UI must pass real CSS for 60FPS DOM updates, but the JSON store enforces strict serialization.
+    console.warn(`[updateBrandValue] Rejected unmapped CSS variable from entering JSON store: ${value}`)
+    return false
   }
 
   // Navigate to the target location in the theme JSON
