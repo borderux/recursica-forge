@@ -998,7 +998,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 10,
+                  "value": 84,
                   "unit": "percentage"
                 },
                 "$type": "number"
@@ -1042,7 +1042,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 10,
+                  "value": 84,
                   "unit": "percentage"
                 },
                 "$type": "number"
@@ -1086,7 +1086,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 10,
+                  "value": 84,
                   "unit": "percentage"
                 },
                 "$type": "number"
@@ -1130,7 +1130,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 10,
+                  "value": 84,
                   "unit": "percentage"
                 },
                 "$type": "number"
@@ -2060,7 +2060,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 10,
+                  "value": 0,
                   "unit": "percentage"
                 },
                 "$type": "number"
@@ -2104,7 +2104,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 10,
+                  "value": 84,
                   "unit": "percentage"
                 },
                 "$type": "number"
@@ -2148,7 +2148,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 10,
+                  "value": 84,
                   "unit": "percentage"
                 },
                 "$type": "number"
@@ -2192,7 +2192,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 10,
+                  "value": 84,
                   "unit": "percentage"
                 },
                 "$type": "number"
@@ -2236,7 +2236,7 @@
               },
               "opacity": {
                 "$value": {
-                  "value": 10,
+                  "value": 84,
                   "unit": "percentage"
                 },
                 "$type": "number"

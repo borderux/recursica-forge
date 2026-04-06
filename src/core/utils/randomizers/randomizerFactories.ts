@@ -176,8 +176,8 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{tokens.font.letter-spacings.${shiftValue(spacingsMatch[1], ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest'])}}`;
     }
     
-    // Brand Color Palette: {brand.themes.light.palettes.neutral.100.color.tone}
-    const paletteMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?palettes\.([a-z0-9-]+)\.([0-9]+)\.color\.(tone|on-tone)$/);
+    // Brand Color Palette: {brand.themes.light.palettes.neutral.100.color.tone} or ...neutral.default.color.tone
+    const paletteMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?palettes\.([a-z0-9-]+)\.([a-z0-9-]+)\.color\.(tone|on-tone)$/);
     if (paletteMatch) {
         const [, palette, level, tone] = paletteMatch;
         // Shift level slightly

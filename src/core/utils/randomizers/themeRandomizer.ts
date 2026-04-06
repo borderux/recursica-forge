@@ -38,11 +38,22 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
         } else {
             const parsed = typeof oldVal === 'number' ? oldVal : parseFloat(oldVal);
             if (!Number.isNaN(parsed)) {
-                node.value = randomizeNumberValue(parsed);
+                if (node.unit === 'percentage') {
+                    const asFloat = parsed <= 1 ? parsed : parsed / 100;
+                    const shift = (Math.floor(Math.random() * 5) - 2) * 0.05;
+                    const result = Math.max(0, Math.min(1, asFloat + shift));
+                    node.value = Number(result.toFixed(2));
+                } else {
+                    node.value = randomizeNumberValue(parsed);
+                }
             }
         }
         if (oldVal !== node.value) {
-            diffs.push({ path: 'theme.' + path.join('.'), before: oldVal, after: node.value });
+            let displayOld = oldVal;
+            if (node.unit === 'percentage' && typeof oldVal === 'number' && oldVal > 1) {
+                displayOld = Number((oldVal / 100).toFixed(2));
+            }
+            diffs.push({ path: 'theme.' + path.join('.'), before: displayOld, after: node.value });
         }
         return;
     }
@@ -56,11 +67,22 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
        } else if (typeof oldVal === 'string' && /^#[0-9a-fA-F]{6}$/.test(oldVal)) {
           newVal = randomizeRawColor(oldVal);
        } else if (typeof oldVal === 'number') {
-          newVal = randomizeNumberValue(oldVal);
+          if (path.includes('opacity')) {
+              const asFloat = oldVal <= 1 ? oldVal : oldVal / 100;
+              const shift = (Math.floor(Math.random() * 5) - 2) * 0.05;
+              const result = Math.max(0, Math.min(1, asFloat + shift));
+              newVal = Number(result.toFixed(2));
+          } else {
+              newVal = randomizeNumberValue(oldVal);
+          }
        }
        if (newVal !== oldVal) {
           node.$value = newVal;
-          diffs.push({ path: 'theme.' + path.join('.'), before: oldVal, after: newVal });
+          let displayOld = oldVal;
+          if (path.includes('opacity') && typeof oldVal === 'number' && oldVal > 1) {
+              displayOld = Number((oldVal / 100).toFixed(2));
+          }
+          diffs.push({ path: 'theme.' + path.join('.'), before: displayOld, after: newVal });
        }
        return;
     }

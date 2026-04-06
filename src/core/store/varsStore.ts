@@ -1392,6 +1392,7 @@ class VarsStore {
     let uikitVars: Record<string, string> = {}
     // Track which UIKit vars actually changed to avoid unnecessary re-renders
     const changedUikitVars = new Set<string>()
+    let actuallyChangedVars: string[] = []
 
     try {
 
@@ -2199,36 +2200,7 @@ class VarsStore {
             // Use modern CSS color-mix so both color and opacity are driven by tokens.
             // Convert 0..1 opacity token to percentage weight for color-mix.
             `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
-          const shadowColorForLevel = (level: number, paletteVars?: Record<string, string>): string => {
-            const key = `elevation-${level}`
-            const sel = this.state.elevation.paletteSelections[key]
-            if (sel) {
-              // Use palette CSS variable instead of token CSS variable
-              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}_color_tone`
-              // Check if palette var exists in paletteVars (during initialization) or use var() reference
-              const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
-              const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
-              const alphaTok = modeAlphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
-              // Use tokenToCssVar to properly convert opacity token names to CSS vars
-              const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-              return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
-            }
-            const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
-            const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
-            const alphaTok = modeAlphaTokens[key] || this.state.elevation.shadowColorControl.alphaToken
-            // Use tokenToCssVar to properly convert opacity token names to CSS vars
-            const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-            // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
-            // Pass tokens to resolve aliases to scale keys
-            const colorVarRef = tokenToCssVar(tok, this.state.tokens) || `var(--recursica_tokens_${tok.replace(/\//g, '-')})`
-            return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
-          }
-          const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
-            const key = `elevation-${level}`
-            const modeDirections = this.state.elevation.directions[mode] || {}
-            const dir = modeDirections[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
-            return dir
-          }
+
           // Helper to read elevation values directly from recursica_brand.json for the current mode
           const toNumeric = (ref?: any): number => {
             // Handle new structure: { $value: { value: number, unit: "px" }, $type: "number" }
@@ -2251,6 +2223,63 @@ class VarsStore {
               return Number.isFinite(num) ? num : 0
             }
             return 0
+          }
+
+          const shadowColorForLevel = (level: number, paletteVars?: Record<string, string>): string => {
+            const key = `elevation-${level}`
+            const sel = this.state.elevation.paletteSelections[key]
+            if (sel) {
+              // Use palette CSS variable instead of token CSS variable
+              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}_color_tone`
+              // Check if palette var exists in paletteVars (during initialization) or use var() reference
+              const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
+              const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
+              let alphaTok = modeAlphaTokens[key]
+              let alphaVarRef = ''
+              if (!alphaTok) {
+                  const elevNode: any = modeElevations?.[key]?.['$value'] || baseElevationNode
+                  const opRaw = elevNode?.opacity
+                  if (opRaw && typeof opRaw === 'object' && opRaw.$value !== undefined) {
+                      const opVal = toNumeric(opRaw)
+                      const norm = opVal <= 1 ? Number(opVal.toFixed(2)) : Number((opVal / 100).toFixed(2))
+                      alphaVarRef = String(norm)
+                  } else {
+                      alphaTok = this.state.elevation.shadowColorControl.alphaToken
+                      alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+                  }
+              } else {
+                  alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+              }
+              return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+            }
+            const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
+            const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
+            let alphaTok = modeAlphaTokens[key]
+            let alphaVarRef = ''
+            if (!alphaTok) {
+                const elevNode: any = modeElevations?.[key]?.['$value'] || baseElevationNode
+                const opRaw = elevNode?.opacity
+                if (opRaw && typeof opRaw === 'object' && opRaw.$value !== undefined) {
+                    const opVal = toNumeric(opRaw)
+                    const norm = opVal <= 1 ? Number(opVal.toFixed(2)) : Number((opVal / 100).toFixed(2))
+                    alphaVarRef = String(norm)
+                } else {
+                    alphaTok = this.state.elevation.shadowColorControl.alphaToken
+                    alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+                }
+            } else {
+                alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+            }
+            // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
+            // Pass tokens to resolve aliases to scale keys
+            const colorVarRef = tokenToCssVar(tok, this.state.tokens) || `var(--recursica_tokens_${tok.replace(/\//g, '-')})`
+            return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
+          }
+          const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
+            const key = `elevation-${level}`
+            const modeDirections = this.state.elevation.directions[mode] || {}
+            const dir = modeDirections[key] || { x: this.state.elevation.baseXDirection, y: this.state.elevation.baseYDirection }
+            return dir
           }
           // Read elevation values from recursica_brand.json for the current mode
           const brand: any = (this.state.theme as any)?.brand || (this.state.theme as any)
@@ -2331,9 +2360,21 @@ class VarsStore {
             // Check if there's already a palette CSS variable set (preserve user selections)
             const existingColor = readCssVar(`${prefixedScope}_shadow-color`)
             const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
-            const alphaTok = modeAlphaTokens[k] || this.state.elevation.shadowColorControl.alphaToken
-            // Use tokenToCssVar to properly convert opacity token names to CSS vars (use original state tokens for non-elevation tokens)
-            const alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+            let alphaTok = modeAlphaTokens[k]
+            let alphaVarRef = ''
+            if (!alphaTok) {
+                const opRaw = elevNode?.opacity
+                if (opRaw && typeof opRaw === 'object' && opRaw.$value !== undefined) {
+                    const opVal = toNumeric(opRaw)
+                    const norm = opVal <= 1 ? Number(opVal.toFixed(2)) : Number((opVal / 100).toFixed(2))
+                    alphaVarRef = String(norm)
+                } else {
+                    alphaTok = this.state.elevation.shadowColorControl.alphaToken
+                    alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+                }
+            } else {
+                alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
+            }
 
             // Check if existing color contains a palette reference (could be var() or color-mix())
             const hasPaletteRef = existingColor && (
@@ -2412,6 +2453,7 @@ class VarsStore {
 
         applyCssVars(allVars, this.state.tokens)
         // Store computed vars for delta snapshotting
+        actuallyChangedVars = Object.keys(allVars).filter(k => this.lastComputedVars[k] !== allVars[k])
         this.lastComputedVars = { ...allVars }
 
         // Re-overlay the in-memory delta so user CSS-var changes survive the recompute.
@@ -2435,7 +2477,8 @@ class VarsStore {
       // Use requestAnimationFrame to ensure DOM updates are complete
       // Only dispatch vars that actually changed (not preserved) to prevent unnecessary re-renders
       // CRITICAL: Filter out UIKit vars - they're silent and don't need component re-renders
-      const nonUIKitChangedVars = Array.from(changedUikitVars).filter(v =>
+      const mergedChangedVars = new Set([...changedUikitVars, ...actuallyChangedVars])
+      const nonUIKitChangedVars = Array.from(mergedChangedVars).filter(v =>
         !v.startsWith('--recursica_ui-kit_components_') &&
         !v.startsWith('--recursica_ui-kit_globals_')
       )

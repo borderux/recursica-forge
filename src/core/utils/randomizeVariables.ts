@@ -12,12 +12,12 @@ import type { RandomizeOptions } from './RandomizeOptionsModal'
 import { randomizeTokens } from './randomizers/tokenRandomizer'
 import { randomizeTheme } from './randomizers/themeRandomizer'
 import * as ComponentRandomizers from './randomizers/components'
-import { updateCssVars } from '../css/updateCssVar'
+import { updateCssVars, removeCssVar } from '../css/updateCssVar'
 
 export function randomizeAllVariables(options?: RandomizeOptions): void {
-  const opts = options || {
+  const opts: RandomizeOptions = options || {
     tokens: { colors: true, sizes: true, opacities: true, fontSizes: true, fontWeights: true, letterSpacing: true, lineHeights: true },
-    theme: { coreProperties: true, type: true, palettes: true, elevations: true, dimensions: true, layers: true },
+    theme: { coreProperties: true, corePropertyElements: true, overlay: true, type: true, palettes: true, elevations: true, dimensions: true, layers: true },
     uikit: { components: {} as Record<string, boolean> },
   }
 
@@ -56,6 +56,64 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
   // Update Theme
   if (shouldRandomizeTheme) {
       const modifiedTheme = randomizeTheme(initialTheme, opts, diffs);
+      // If the user requested Elevations to be randomized, purge any localized manual Elevation
+      // overrides that pre-existed in the App state logic to ensure the new structurally 
+      // randomized values actually map cleanly into the DOM variables via recomputeAndApplyAll().
+      if (opts.theme.elevations) {
+         // Extract the new values from modifiedTheme to prepopulate the UI dropdowns
+         const newPaletteSelections: Record<string, any> = {};
+         const newColorTokens: Record<string, string> = {};
+         
+         if (modifiedTheme?.brand?.themes) {
+            for (const mode of ['light', 'dark']) {
+               const els = modifiedTheme.brand.themes[mode]?.elevations || {};
+               for (let i = 1; i <= 4; i++) {
+                  const key = `elevation-${i}`;
+                  const colorRef = els[key]?.$value?.color?.$value;
+                  if (typeof colorRef === 'string') {
+                     const match = colorRef.match(/palettes\.([a-z0-9-]+)\.(\d+)\.color\.tone/);
+                     if (match) {
+                         newPaletteSelections[key] = { paletteKey: match[1], level: match[2] };
+                     } else {
+                         const match2 = colorRef.match(/tokens\.colors\.(scale-\d{2})\.(\d+)/);
+                         if (match2) {
+                             newColorTokens[key] = `colors/${match2[1]}/${match2[2]}`;
+                         }
+                     }
+                  }
+               }
+            }
+         }
+
+         store.updateElevation(prev => ({
+             ...prev,
+             controls: { light: {}, dark: {} },
+             directions: { light: {}, dark: {} },
+             paletteSelections: newPaletteSelections,
+             colorTokens: newColorTokens,
+             alphaTokens: { light: {}, dark: {} }
+         }));
+         
+         if (typeof document !== 'undefined') {
+             for (let lvl = 1; lvl <= 4; lvl++) {
+                 // Clear generic themed variables
+                 for (const mode of ['light', 'dark']) {
+                    removeCssVar(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_shadow-color`);
+                    const propNames = ['blur', 'spread', 'x-axis', 'y-axis'] as const;
+                    propNames.forEach((prop) => {
+                      removeCssVar(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_${prop}`);
+                    });
+                 }
+                 // Clear scoped overlay parameters
+                 removeCssVar(`--recursica_brand_elevations_elevation-${lvl}_shadow-color`);
+                 const propNames = ['blur', 'spread', 'x-axis', 'y-axis'] as const;
+                 propNames.forEach((prop) => {
+                   removeCssVar(`--recursica_brand_elevations_elevation-${lvl}_${prop}`);
+                 });
+             }
+         }
+      }
+
       store.setTheme(modifiedTheme);
   }
 
