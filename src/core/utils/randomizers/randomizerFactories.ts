@@ -57,7 +57,13 @@ export function getConstants() {
   const typefacesRoot = state.tokens?.tokens?.font?.typefaces || state.tokens?.font?.typefaces || { primary: {} };
   const typefaces = Object.keys(typefacesRoot).filter(k => !k.startsWith('$'));
 
+  // Extract available color scales dynamically
+  const colorsRoot = state.tokens?.tokens?.colors || state.tokens?.colors || {};
+  let colorScales = Object.keys(colorsRoot).filter(k => k.startsWith('scale-'));
+  if (colorScales.length === 0) colorScales = ['scale-01', 'scale-02', 'scale-03', 'scale-04', 'scale-05', 'scale-06'];
+
   return {
+    colorScales,
     paletteNames: Array.from(new Set(paletteNames)),
     paletteLevels: ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000'],
     tones: ['tone', 'on-tone'],
@@ -80,7 +86,7 @@ export function getConstants() {
   };
 }
 
-export function randomizeTokenReference(tokenRef: string): string {
+export function randomizeTokenReference(tokenRef: string, originPath?: string): string {
     if (!tokenRef.startsWith('{') || !tokenRef.endsWith('}')) return tokenRef;
     
     const CONSTANTS = getConstants();
@@ -184,10 +190,30 @@ export function randomizeTokenReference(tokenRef: string): string {
     // Core Colors: {brand.themes.light.palettes.core-colors.interactive.default.tone}
     const coreColorMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?palettes\.core-colors\.([a-z-]+)(?:\.([a-z-]+))?(?:\.tone|(?:\.on-tone(?:-hover)?))?$/);
     if (coreColorMatch) {
-        const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
-        const randomPalette = palettes[Math.floor(Math.random() * palettes.length)];
+        if (originPath?.includes('overlay')) {
+           const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
+           const randomPalette = palettes[Math.floor(Math.random() * palettes.length)];
+           const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
+           return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
+        }
+        const randomScale = CONSTANTS.colorScales[Math.floor(Math.random() * CONSTANTS.colorScales.length)];
         const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
-        return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
+        return `{tokens.colors.${randomScale}.${randomLevel}}`;
+    }
+
+    // Color Tokens: {tokens.colors.scale-02.1000}
+    const colorTokenMatch = content.match(/^tokens\.colors\.(scale-[0-9]{2})\.([0-9]+)$/);
+    if (colorTokenMatch) {
+        if (originPath?.includes('overlay')) {
+           const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
+           const randomPalette = palettes[Math.floor(Math.random() * palettes.length)];
+           const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
+           return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
+        }
+        const [, scale, level] = colorTokenMatch;
+        const newScale = shiftValue(scale, CONSTANTS.colorScales);
+        const newLevel = shiftValue(level, CONSTANTS.paletteLevels);
+        return `{tokens.colors.${newScale}.${newLevel}}`;
     }
 
     // Text Emphasis: {brand.text-emphasis.low} or {brand.themes.light.text-emphasis.low}

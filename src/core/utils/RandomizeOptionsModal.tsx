@@ -22,11 +22,13 @@ export interface RandomizeOptions {
   }
   theme: {
     coreProperties: boolean
+    corePropertyElements: boolean
     type: boolean
     palettes: boolean
     elevations: boolean
     dimensions: boolean
     layers: boolean
+    overlay: boolean
   }
   uikit: {
     components: Record<string, boolean>
@@ -65,7 +67,9 @@ const OPTIONS_STRUCTURE: CheckboxItem[] = [
     key: 'theme',
     label: 'Theme',
     children: [
-      { key: 'coreProperties', label: 'Core Properties' },
+      { key: 'coreProperties', label: 'Core Colors' },
+      { key: 'corePropertyElements', label: 'Elements' },
+      { key: 'overlay', label: 'Overlay' },
       { key: 'type', label: 'Type' },
       { key: 'palettes', label: 'Palettes' },
       { key: 'elevations', label: 'Elevations' },
@@ -105,11 +109,13 @@ function getDefaultOptions(): RandomizeOptions {
     },
     theme: {
       coreProperties: true,
+      corePropertyElements: true,
       type: true,
       palettes: true,
       elevations: true,
       dimensions: true,
       layers: true,
+      overlay: true,
     },
     uikit: {
       components: defaultComponents,
@@ -359,7 +365,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
                   const newComps: any = {}; ALL_UIKIT_KEYS.forEach(k => newComps[k] = true)
                   setOptions({
                     tokens: { colors: true, sizes: true, opacities: true, fontSizes: true, fontWeights: true, letterSpacing: true, lineHeights: true },
-                    theme: { coreProperties: true, type: true, palettes: true, elevations: true, dimensions: true, layers: true },
+                    theme: { coreProperties: true, corePropertyElements: true, type: true, palettes: true, elevations: true, dimensions: true, layers: true, overlay: true },
                     uikit: { components: newComps }
                   })
                 }}
@@ -373,7 +379,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
                   const newComps: any = {}; ALL_UIKIT_KEYS.forEach(k => newComps[k] = false)
                   setOptions({
                     tokens: { colors: false, sizes: false, opacities: false, fontSizes: false, fontWeights: false, letterSpacing: false, lineHeights: false },
-                    theme: { coreProperties: false, type: false, palettes: false, elevations: false, dimensions: false, layers: false },
+                    theme: { coreProperties: false, corePropertyElements: false, type: false, palettes: false, elevations: false, dimensions: false, layers: false, overlay: false },
                     uikit: { components: newComps }
                   })
                 }}

@@ -106,6 +106,19 @@ export function RandomizerResults() {
   const uikitDiffs = diffs.filter(d => d.path.startsWith('uikit.'));
   const tokenDiffs = diffs.filter(d => d.path.startsWith('tokens.'));
 
+  // Group token diffs dynamically by section (e.g. Size, Font Sizes, Colors)
+  const tokenGroupsMap: Record<string, Diff[]> = {};
+  tokenDiffs.forEach(d => {
+      const cleanPath = d.path.replace('tokens.', '').replace(/\.\$value$/, '');
+      const parts = cleanPath.split('.');
+      let groupName = parts[0]; 
+      if (groupName === 'font' && parts.length > 1) {
+          groupName = `font-${parts[1]}`;
+      }
+      if (!tokenGroupsMap[groupName]) tokenGroupsMap[groupName] = [];
+      tokenGroupsMap[groupName].push(d);
+  });
+
   // Group uikit diffs by component
   const componentsMap: Record<string, Diff[]> = {};
   uikitDiffs.forEach(d => {
@@ -119,11 +132,13 @@ export function RandomizerResults() {
   });
   
   // Sort diffs alphabetally by path key
+  Object.keys(tokenGroupsMap).forEach(key => {
+      tokenGroupsMap[key].sort((a, b) => a.path.localeCompare(b.path));
+  });
   Object.keys(componentsMap).forEach(key => {
       componentsMap[key].sort((a, b) => a.path.localeCompare(b.path));
   });
   themeDiffs.sort((a, b) => a.path.localeCompare(b.path));
-  tokenDiffs.sort((a, b) => a.path.localeCompare(b.path));
 
   const formatPath = (path: string) => {
     let clean = path;
@@ -167,9 +182,9 @@ export function RandomizerResults() {
         <Paper shadow="sm" p="md" withBorder>
           <Text fw={700} mb="md">Total Changed Properties: {diffs.length}</Text>
           <Accordion variant="separated">
-            {tokenDiffs.length > 0 && (
-                <Accordion.Item value="tokens">
-                    <Accordion.Control>Tokens ({tokenDiffs.length} changes)</Accordion.Control>
+            {Object.keys(tokenGroupsMap).map(groupName => (
+                <Accordion.Item value={`tokens-${groupName}`} key={`tokens-${groupName}`}>
+                    <Accordion.Control>Tokens: {groupName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} ({tokenGroupsMap[groupName].length} changes)</Accordion.Control>
                     <Accordion.Panel>
                         <Table striped highlightOnHover withTableBorder withColumnBorders>
                           <Table.Thead>
@@ -180,7 +195,7 @@ export function RandomizerResults() {
                             </Table.Tr>
                           </Table.Thead>
                           <Table.Tbody>
-                            {tokenDiffs.map(d => (
+                            {tokenGroupsMap[groupName].map(d => (
                                 <Table.Tr key={d.path}>
                                     <Table.Td>
                                         <Text size="sm">{d.path.replace('tokens.', '').replace(/\.\$value$/, '')}</Text>
@@ -197,7 +212,7 @@ export function RandomizerResults() {
                         </Table>
                     </Accordion.Panel>
                 </Accordion.Item>
-            )}
+            ))}
 
             {themeDiffs.length > 0 && (
                 <Accordion.Item value="theme">

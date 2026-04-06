@@ -10,6 +10,8 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
     
     // Check if we should randomize this path based on options
     const isCoreProps = path.includes('core-colors');
+    const isCorePropElements = path.includes('text-emphasis') || (path.includes('states') && !path.includes('overlay'));
+    const isOverlay = path.includes('states') && path.includes('overlay');
     const isType = path.includes('typography');
     const isPalettes = path.includes('palettes') && !isCoreProps;
     const isElevations = path.includes('elevations');
@@ -18,6 +20,8 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
 
     let shouldRandomize = false;
     if (isCoreProps && themeOpts.coreProperties) shouldRandomize = true;
+    if (isCorePropElements && themeOpts.corePropertyElements) shouldRandomize = true;
+    if (isOverlay && themeOpts.overlay) shouldRandomize = true;
     if (isType && themeOpts.type) shouldRandomize = true;
     if (isPalettes && themeOpts.palettes) shouldRandomize = true;
     if (isElevations && themeOpts.elevations) shouldRandomize = true;
@@ -30,7 +34,7 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
         if (!shouldRandomize) return;
         const oldVal = node.value;
         if (typeof oldVal === 'string' && oldVal.startsWith('{')) {
-            node.value = randomizeTokenReference(oldVal);
+            node.value = randomizeTokenReference(oldVal, path.join('.'));
         } else {
             const parsed = typeof oldVal === 'number' ? oldVal : parseFloat(oldVal);
             if (!Number.isNaN(parsed)) {
@@ -48,7 +52,7 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
        const oldVal = node.$value;
        let newVal = oldVal;
        if (typeof oldVal === 'string' && oldVal.startsWith('{')) {
-          newVal = randomizeTokenReference(oldVal);
+          newVal = randomizeTokenReference(oldVal, path.join('.'));
        } else if (typeof oldVal === 'string' && /^#[0-9a-fA-F]{6}$/.test(oldVal)) {
           newVal = randomizeRawColor(oldVal);
        } else if (typeof oldVal === 'number') {
