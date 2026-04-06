@@ -52,6 +52,10 @@ export function randomizeTokens(initialTokens: JsonLike, options: any, diffs: an
           if (typeof val === 'number') node.$value = shiftNumber(val, 0, 1, 2, 0.1);
        } else if (prefix.includes('font') && prefix.includes('weights') && tokensOpts.fontWeights) {
           // weights usually strings or numbers? Keep it unchanged for now, standard randomized by tokens
+       } else if (prefix.includes('letter-spacings') && tokensOpts.letterSpacing) {
+          if (typeof val === 'number') node.$value = shiftNumber(val, -0.1, 0.5, 2, 0.05);
+       } else if ((prefix.includes('line-heights') || prefix.includes('line-height')) && tokensOpts.lineHeights) {
+          if (typeof val === 'number') node.$value = shiftNumber(val, 1.0, 2.0, 2, 0.1);
        }
        if (node.$value !== val) {
            diffs.push({ path: 'tokens.' + prefix.join('.'), before: val, after: node.$value });

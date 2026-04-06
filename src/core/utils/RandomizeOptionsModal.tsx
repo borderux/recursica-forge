@@ -57,7 +57,6 @@ const OPTIONS_STRUCTURE: CheckboxItem[] = [
       { key: 'sizes', label: 'Sizes' },
       { key: 'opacities', label: 'Opacities' },
       { key: 'fontSizes', label: 'Font Sizes' },
-      { key: 'fontWeights', label: 'Font Weights' },
       { key: 'letterSpacing', label: 'Letter Spacing' },
       { key: 'lineHeights', label: 'Line Heights' },
     ],

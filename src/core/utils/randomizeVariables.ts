@@ -48,7 +48,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
   if (shouldRandomizeTokens) {
      const modifiedTokens: any = randomizeTokens(initialTokens, opts, diffs);
      store.setTokens(modifiedTokens);
-     if (opts.tokens.sizes || opts.tokens.fontSizes) {
+     if (opts.tokens.sizes || opts.tokens.fontSizes || opts.tokens.letterSpacing || opts.tokens.lineHeights) {
          window.dispatchEvent(new CustomEvent('disableAutoScale'));
      }
   }
