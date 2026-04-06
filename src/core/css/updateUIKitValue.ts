@@ -96,8 +96,19 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     // If it's a CSS variable reference, resolve it to its DTCG JSON path representation.
     let tokenValue = value
     const resolvedRef = cssVarToRef(value)
+    
     if (resolvedRef) {
         tokenValue = resolvedRef
+    } else if (value.includes('var(')) {
+        // ARCHITECTURAL DECISION:
+        // Why we drop unrecognized var() strings here instead of storing them:
+        // The GUI sends var(...) because it must execute updateCssVar() to mutate the live DOM
+        // for 60FPS realtime responsiveness (sliders, pickers). But it is semantically incorrect
+        // to serialize a CSS declaration into the DTCG JSON store. If cssVarToRef fails to
+        // securely translate it back to a {reference}, we must hard-reject it at the entry gate 
+        // to prevent corrupting the JSON payload and failing the export validator later.
+        console.warn(`[updateUIKitValue] Rejected unmapped CSS variable from entering JSON store: ${value}`)
+        return false
     }
 
     // Parse value if it's a pixel dimension
