@@ -3,7 +3,7 @@
  */
 
 import { getVarsStore } from '../store/varsStore'
-import { unwrapVar, TOKEN_PREFIX, BRAND_PREFIX } from '../css/cssVarBuilder'
+import { BRAND_PREFIX, cssVarToRef } from '../css/cssVarBuilder'
 
 /**
  * Converts a UIKit CSS variable name to a JSON path
@@ -93,29 +93,22 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     const finalKey = path[path.length - 1]
 
     // Convert the value to the proper format
-    // If it's a var() reference, extract the token path
-    // With underscore-delimited var names, splitting on '_' gives correct JSON path segments
-    // directly (compound segments like 'scale-02', 'layer-0' are intact within a segment)
+    // If it's a CSS variable reference, resolve it to its DTCG JSON path representation.
     let tokenValue = value
-    const unwrapped = unwrapVar(value)
-    if (unwrapped && unwrapped.startsWith(`${BRAND_PREFIX}themes_`)) {
-        // Extract: var(--recursica_brand_themes_light_palettes_palette-1_500_color_tone)
-        // Split on '_' gives: ['light', 'palettes', 'palette-1', '500', 'color', 'tone']
-        // Convert to: {brand.themes.light.palettes.palette-1.500.color.tone}
-        const parts = unwrapped.slice(`${BRAND_PREFIX}themes_`.length).split('_')
-        tokenValue = `{brand.themes.${parts.join('.')}}`
-    } else if (unwrapped && unwrapped.startsWith(TOKEN_PREFIX)) {
-        // Extract: var(--recursica_tokens_colors_scale-01_500)
-        // Split on '_' gives: ['colors', 'scale-01', '500']
-        // Convert to: {tokens.colors.scale-01.500}
-        const parts = unwrapped.slice(TOKEN_PREFIX.length).split('_')
-        tokenValue = `{tokens.${parts.join('.')}}`
-    } else if (unwrapped && unwrapped.startsWith(`${BRAND_PREFIX}dimensions_`)) {
-        // Extract: var(--recursica_brand_dimensions_border-radii_default)
-        // Split on '_' gives: ['border-radii', 'default']
-        // Convert to: {brand.dimensions.border-radii.default}
-        const parts = unwrapped.slice(`${BRAND_PREFIX}dimensions_`.length).split('_')
-        tokenValue = `{brand.dimensions.${parts.join('.')}}`
+    const resolvedRef = cssVarToRef(value)
+    
+    if (resolvedRef) {
+        tokenValue = resolvedRef
+    } else if (value.includes('var(')) {
+        // ARCHITECTURAL DECISION:
+        // Why we drop unrecognized var() strings here instead of storing them:
+        // The GUI sends var(...) because it must execute updateCssVar() to mutate the live DOM
+        // for 60FPS realtime responsiveness (sliders, pickers). But it is semantically incorrect
+        // to serialize a CSS declaration into the DTCG JSON store. If cssVarToRef fails to
+        // securely translate it back to a {reference}, we must hard-reject it at the entry gate 
+        // to prevent corrupting the JSON payload and failing the export validator later.
+        console.warn(`[updateUIKitValue] Rejected unmapped CSS variable from entering JSON store: ${value}`)
+        return false
     }
 
     // Parse value if it's a pixel dimension

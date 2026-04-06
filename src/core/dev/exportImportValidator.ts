@@ -15,7 +15,7 @@
 import { getVarsStore } from '../store/varsStore'
 import { exportTokensJson, exportBrandJson, exportUIKitJson } from '../export/jsonExport'
 import { importJsonFiles } from '../import/jsonImport'
-import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
+import { validateTokensJson, validateBrandJson, validateUIKitJson, validateReferences } from '../utils/validateJsonSchemas'
 import type { JsonLike } from '../resolvers/tokens'
 
 const SESSION_STORAGE_KEY = '__recursica_roundtrip__'
@@ -31,7 +31,7 @@ export interface DiffEntry {
 }
 
 export interface SchemaError {
-  file: 'tokens' | 'brand' | 'uikit'
+  file: 'tokens' | 'brand' | 'uikit' | 'references'
   phase: 'export' | 'import'
   message: string
 }
@@ -77,6 +77,20 @@ function safeValidate(
     else validateUIKitJson(data as JsonLike)
   } catch (e) {
     errors.push({ file, phase, message: e instanceof Error ? e.message : String(e) })
+  }
+}
+
+function safeValidateReferences(
+  phase: 'export' | 'import',
+  brand: object,
+  tokens: object,
+  uikit: object,
+  errors: SchemaError[]
+): void {
+  try {
+    validateReferences(brand as JsonLike, tokens as JsonLike, uikit as JsonLike)
+  } catch (e) {
+    errors.push({ file: 'references', phase, message: e instanceof Error ? e.message : String(e) })
   }
 }
 
@@ -172,9 +186,11 @@ export async function runRoundTripValidation(): Promise<RoundTripResult> {
   safeValidate('tokens', 'export', exportTokens, schemaErrors)
   safeValidate('brand', 'export', exportBrand, schemaErrors)
   safeValidate('uikit', 'export', exportUikit, schemaErrors)
+  safeValidateReferences('export', exportBrand, exportTokens, exportUikit, schemaErrors)
   safeValidate('tokens', 'import', importTokens, schemaErrors)
   safeValidate('brand', 'import', importBrand, schemaErrors)
   safeValidate('uikit', 'import', importUikit, schemaErrors)
+  safeValidateReferences('import', importBrand, importTokens, importUikit, schemaErrors)
 
   // 6. Deep-diff export vs import snapshots
   const diffs: DiffEntry[] = [

@@ -271,6 +271,34 @@ export function unwrapVar(value: string): string | null {
   return m ? m[1].trim() : null
 }
 
+/**
+ * Resolves a CSS variable string back into its JSON DTCG reference format.
+ * Dynamically handles any recursica namespace structure.
+ * 
+ * @example cssVarToRef('var(--recursica_brand_palettes_palette-2_500_color_tone)')
+ *   → '{brand.palettes.palette-2.500.color.tone}'
+ * @example cssVarToRef('--recursica_tokens_colors_scale-05_500')
+ *   → '{tokens.colors.scale-05.500}'
+ */
+export function cssVarToRef(value: string): string | null {
+  if (!value) return null
+  
+  let unwrapped = value.trim()
+  if (unwrapped.startsWith('var(') || unwrapped.startsWith('var (')) {
+    const extracted = unwrapVar(unwrapped)
+    if (!extracted) return null
+    unwrapped = extracted
+  }
+
+  if (unwrapped.startsWith(P)) {
+    const stripped = unwrapped.slice(P.length)
+    const parts = stripped.split('_')
+    return `{${parts.join('.')}}`
+  }
+
+  return null
+}
+
 // ─── Token CSS var parsers ──────────────────────────────────────────────────
 
 export interface ParsedTokenColor {
