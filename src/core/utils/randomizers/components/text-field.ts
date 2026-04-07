@@ -1,5 +1,5 @@
 import { JsonLike } from '../../../resolvers/tokens';
-import { randomizeTokenReference, randomizeRawColor, randomizeNumberValue } from '../randomizerFactories';
+import { randomizeTokenReference, randomizeRawColor, randomizeNumberValue, randomizeStringValue } from '../randomizerFactories';
 
 export function randomizeTextField(componentNode: any, options: any, diffs: any[], pathPrefix: string): void {
     const uikitOpts = options.uikit?.components || {};
@@ -58,17 +58,7 @@ export function randomizeTextField(componentNode: any, options: any, diffs: any[
             } else if (typeof oldVal === 'number') {
                 newVal = randomizeNumberValue(oldVal);
             } else if (typeof oldVal === 'string') {
-                const propName = path[path.length - 1];
-                if (propName === 'text-decoration') {
-                    const opts = ['none', 'underline', 'line-through'];
-                    newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
-                } else if (propName === 'text-transform') {
-                    const opts = ['none', 'uppercase', 'lowercase', 'capitalize'];
-                    newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
-                } else if (propName === 'font-style') {
-                    const opts = ['normal', 'italic'];
-                    newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
-                }
+                newVal = randomizeStringValue(path[path.length - 1], oldVal);
             }
 
             if (newVal !== oldVal) { node.$value = newVal; diffs.push({ path: pathPrefix + '.' + path.join('.'), before: oldVal, after: newVal, changed: true }); } else { diffs.push({ path: pathPrefix + '.' + path.join('.'), before: oldVal, after: newVal, changed: false }); }

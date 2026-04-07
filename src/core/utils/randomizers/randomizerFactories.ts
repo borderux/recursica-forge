@@ -266,10 +266,22 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     }
 
     // UI Kit Global Property References: {ui-kit.globals.form.properties.label-field-gap-horizontal}
-    const globalPropMatch = content.match(/^ui-kit\.globals\.([a-z0-9-]+)\.properties\.([a-z0-9-.]+)$/);
+    // and {ui-kit.globals.form.field.colors.border} or {ui-kit.globals.form.field.size.horizontal-padding}
+    const globalPropMatch = content.match(/^ui-kit\.globals\.([a-z0-9-]+)\.(properties|field)\.([a-z0-9-.]+)(?:\.([a-z0-9-.]+))?$/);
     if (globalPropMatch) {
-       const [, globalGroup, propPath] = globalPropMatch;
-       if (propPath.includes('gap') || propPath.includes('padding') || propPath.includes('margin') || propPath.includes('spacing')) {
+       const [, globalGroup, subgroup, part1, part2] = globalPropMatch;
+       const fullPropPath = part2 ? `${part1}.${part2}` : part1;
+       
+       // Handle colors
+       if (part1 === 'colors' || fullPropPath.includes('color') || fullPropPath.includes('background') || fullPropPath.includes('icon') || fullPropPath.includes('surface') || fullPropPath.includes('text')) {
+           const palettes = CONSTANTS.paletteNames.filter(p => !['core-colors', 'system'].includes(p));
+           const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
+           const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
+           return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
+       }
+       
+       // Handle dimensions/sizes
+       if (part1 === 'size' || fullPropPath.includes('gap') || fullPropPath.includes('padding') || fullPropPath.includes('margin') || fullPropPath.includes('spacing') || fullPropPath.includes('radius') || fullPropPath.includes('width') || fullPropPath.includes('height')) {
            const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
            return `{brand.dimensions.general.${randomGeneral}}`;
        }
@@ -314,6 +326,28 @@ export function randomizeRawColor(color: string): string {
         return `#${shiftHex(r)}${shiftHex(g)}${shiftHex(b)}`;
     }
     return color;
+}
+
+export function randomizeStringValue(propName: string, oldVal: string): string {
+    const stringOptions: Record<string, string[]> = {
+        'text-decoration': ['none', 'underline', 'line-through'],
+        'text-transform': ['none', 'uppercase', 'lowercase', 'capitalize'],
+        'font-style': ['normal', 'italic'],
+        'display': ['icon', 'text', 'icon+text'],
+        'orientation': ['horizontal', 'vertical'],
+        'heading-level': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+        'position': ['top', 'bottom', 'left', 'right'],
+        'alignment': ['start', 'center', 'end'],
+        'search-icon-position': ['left', 'right'],
+        'avatar-size': ['small', 'default', 'large'],
+        'border-style': ['solid', 'dashed', 'dotted']
+    };
+
+    const opts = stringOptions[propName];
+    if (opts) {
+        return opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
+    }
+    return oldVal;
 }
 
 export function randomizeNumberValue(val: number, assumedMin: number = 0, assumedMax?: number): number {
