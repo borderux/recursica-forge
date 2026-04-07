@@ -58,8 +58,8 @@ describe('recursicaJsonTransform (Specific)', () => {
   it('percentage unit outputs as % not literal "percentage"', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
-    expect(css).not.toMatch(/10percentage/)
-    expect(css).toMatch(/10%/)
+    expect(css).not.toMatch(/percentage/)
+    expect(css).toMatch(/\d+%/)
   })
 
   it('handles minimal input without throwing', () => {
