@@ -68,6 +68,9 @@ export function randomizeTimelineBullet(componentNode: any, options: any, diffs:
                 } else if (propName === 'font-style') {
                     const opts = ['normal', 'italic'];
                     newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
+                } else if (propName === 'avatar-size') {
+                    const opts = ['small', 'default', 'large'];
+                    newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
                 }
             }
 

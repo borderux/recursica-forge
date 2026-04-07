@@ -265,6 +265,29 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
        }
     }
 
+    // UI Kit Global Property References: {ui-kit.globals.form.properties.label-field-gap-horizontal}
+    const globalPropMatch = content.match(/^ui-kit\.globals\.([a-z0-9-]+)\.properties\.([a-z0-9-.]+)$/);
+    if (globalPropMatch) {
+       const [, globalGroup, propPath] = globalPropMatch;
+       if (propPath.includes('gap') || propPath.includes('padding') || propPath.includes('margin') || propPath.includes('spacing')) {
+           const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
+           return `{brand.dimensions.general.${randomGeneral}}`;
+       }
+    }
+
+    // UI Kit Component Variant References: {ui-kit.components.button.variants.styles.solid} or {ui-kit.components.button.variants.sizes.small}
+    const componentVariantMatch = content.match(/^ui-kit\.components\.([a-z0-9-]+)\.variants\.(styles|sizes|appearances)\.([a-z0-9-]+)$/);
+    if (componentVariantMatch) {
+       const [, comp, category, value] = componentVariantMatch;
+       if (category === 'styles') {
+           return `{ui-kit.components.${comp}.variants.styles.${shiftValue(value, ['solid', 'text', 'outline', 'transparent', 'subtle'])}}`;
+       } else if (category === 'sizes') {
+           return `{ui-kit.components.${comp}.variants.sizes.${shiftValue(value, ['default', 'small', 'large', 'icon', 'icon-small', 'icon-large'])}}`;
+       } else if (category === 'appearances') {
+           return `{ui-kit.components.${comp}.variants.appearances.${shiftValue(value, ['solid', 'text', 'outline', 'transparent', 'subtle'])}}`;
+       }
+    }
+
     // Typography references: {brand.typography.h3.fontFamily}
     const typographyMatch = content.match(/^brand\.typography\.([a-z0-9-]+)\.([a-zA-Z]+)$/);
     if (typographyMatch) {

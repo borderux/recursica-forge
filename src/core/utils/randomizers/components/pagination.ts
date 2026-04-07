@@ -68,6 +68,9 @@ export function randomizePagination(componentNode: any, options: any, diffs: any
                 } else if (propName === 'font-style') {
                     const opts = ['normal', 'italic'];
                     newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
+                } else if (propName === 'display') {
+                    const opts = ['icon', 'text', 'icon+text'];
+                    newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
                 }
             }
 

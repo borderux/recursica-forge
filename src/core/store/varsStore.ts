@@ -989,6 +989,9 @@ class VarsStore {
 
     // Dispatch events to notify components of the reset
     try {
+      // Unconditionally trigger CSS variable update flush across the app
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { reset: true } }))
+      
       window.dispatchEvent(new CustomEvent('themeReset', {}))
       window.dispatchEvent(new CustomEvent('paletteVarsChanged', {}))
 
