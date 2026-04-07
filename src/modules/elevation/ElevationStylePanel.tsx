@@ -180,14 +180,14 @@ export default function ElevationStylePanel({
   setXDirectionForSelected: (dir: 'left' | 'right') => void
   setYDirectionForSelected: (dir: 'up' | 'down') => void
   revertSelected: (levels: Set<number>) => void
-  getAlphaTokenForLevel: (elevationKey: string) => string
+  getAlphaTokenForLevel: (elevationKey: string) => string | undefined
   setElevationAlphaToken: (elevationKey: string, token: string) => void
   onShadowColorSelect?: (cssVar: string) => void
   onClose: () => void
 }) {
   const levelsArr = React.useMemo(() => Array.from(selectedLevels), [selectedLevels])
   const { mode } = useThemeMode()
-  const { tokens: tokensJson, updateToken, elevation } = useVars()
+  const { theme, tokens: tokensJson, updateToken, elevation } = useVars()
 
   // Local state for slider values during drag (prevents prop mismatch)
   const [localBlur, setLocalBlur] = React.useState<number | null>(null)
@@ -322,16 +322,29 @@ export default function ElevationStylePanel({
   const getCurrentOpacityValue = React.useCallback((elevationKey: string): number => {
     // Pass elevationKey as string - getAlphaTokenForLevel expects a string and will convert internally
     const alphaTokenName = getAlphaTokenForLevel(elevationKey)
-    if (!alphaTokenName) return 0
-
-    // Extract token key from "opacity/veiled" or "opacity/elevation-light-1" format
-    const tokenKey = alphaTokenName.replace('opacity/', '')
 
     // Read token value from tokens.json
     try {
-      const tokensRoot: any = (tokensJson as any)?.tokens || {}
-      const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
-      const tokenValue = opacityRoot[tokenKey]?.$value
+      let tokenValue = null
+      
+      if (alphaTokenName) {
+         // Extract token key from "opacity/veiled" or "opacity/elevation-light-1" format
+         const tokenKey = alphaTokenName.replace('opacity/', '')
+         const tokensRoot: any = (tokensJson as any)?.tokens || {}
+         const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
+         tokenValue = opacityRoot[tokenKey]?.$value
+      }
+
+      // If token value is missing, check direct numerical overrides mapped into the JSON theme tree
+      if (tokenValue == null) {
+          const brandThemeRaw: any = (theme as any)?.brand || (theme as any)
+          const modeElevations = brandThemeRaw?.themes?.[mode]?.elevations || {}
+          const elevNode = modeElevations[elevationKey]?.$value
+          if (elevNode?.opacity && elevNode.opacity.$value !== undefined) {
+             const nestedOpa = elevNode.opacity.$value
+             tokenValue = typeof nestedOpa === 'object' ? nestedOpa.value : nestedOpa
+          }
+      }
 
       if (tokenValue != null) {
         const num = typeof tokenValue === 'number' ? tokenValue : Number(tokenValue)
@@ -344,7 +357,7 @@ export default function ElevationStylePanel({
     } catch { }
 
     return 0
-  }, [tokensJson, getAlphaTokenForLevel, mode])
+  }, [tokensJson, getAlphaTokenForLevel, mode, theme])
 
   // Track local slider value for immediate UI feedback
   const [localOpacityValue, setLocalOpacityValue] = React.useState<number | null>(null)

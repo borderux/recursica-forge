@@ -75,8 +75,10 @@ export default function Switch({
   const trackWidthVar = getComponentCssVar('Switch', 'size', 'track-width', undefined)
   const trackInnerPaddingVar = getComponentCssVar('Switch', 'size', 'track-inner-padding', undefined)
   const thumbIconSizeVar = getComponentCssVar('Switch', 'size', 'thumb-icon-size', undefined)
-  const thumbIconSelectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-selected', undefined)
-  const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
+  // Hardcode checkmark and x-mark for switch thumb state (as requested by user)
+  const ThumbIconSelected = iconNameToReactComponent('check')
+  const ThumbIconUnselected = iconNameToReactComponent('x-mark')
+
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
   
@@ -85,12 +87,6 @@ export default function Switch({
   const thumbUnselectedColor = `var(${thumbUnselectedVar})`
   const trackSelectedColor = `var(${trackSelectedVar})`
   const trackUnselectedColor = `var(${trackUnselectedVar})`
-  
-  // Get icon names from CSS variables
-  const thumbIconSelectedName = readCssVar(thumbIconSelectedVar) || ''
-  const thumbIconUnselectedName = readCssVar(thumbIconUnselectedVar) || ''
-  const ThumbIconSelected = thumbIconSelectedName ? iconNameToReactComponent(thumbIconSelectedName) : null
-  const ThumbIconUnselected = thumbIconUnselectedName ? iconNameToReactComponent(thumbIconUnselectedName) : null
   
   // Reactively read thumb and track elevation from CSS variables
   const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
@@ -163,8 +159,8 @@ export default function Switch({
       onChange={(e) => onChange(e.target.checked)}
       disabled={disabled}
       className={className}
-      icon={ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})` }} /> : undefined}
-      checkedIcon={ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})` }} /> : undefined}
+      icon={ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${trackUnselectedVar})` }} /> : undefined}
+      checkedIcon={ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${trackSelectedVar})` }} /> : undefined}
       sx={{
         width: `var(${trackWidthVar})`,
         '& .MuiSwitch-switchBase': {
@@ -212,6 +208,7 @@ export default function Switch({
           padding: `var(${trackInnerPaddingVar})`,
           ...(trackElevationBoxShadow ? { boxShadow: trackElevationBoxShadow } : {}),
         },
+        '--recursica-switch-thumb-icon-size': `var(${thumbIconSizeVar})`,
         ...style,
       }}
       {...(() => {

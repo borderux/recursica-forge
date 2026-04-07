@@ -501,11 +501,13 @@ function BorderSizeSlider({
   initialValue,
   updateValue,
   tokensJson,
+  layer,
 }: {
   borderSizeCssVar: string
   initialValue: number
   updateValue: (path: string[], raw: string) => void
   tokensJson: any
+  layer?: "layer-0" | "layer-1" | "layer-2" | "layer-3"
 }) {
   const [localValue, setLocalValue] = useState(initialValue)
 
@@ -544,13 +546,13 @@ function BorderSizeSlider({
       min={0}
       max={20}
       step={1}
-      layer="layer-3"
+      layer={layer}
       layout="stacked"
       showInput={false}
       showValueLabel={true}
       showMinMaxLabels={false}
       valueLabel={(val) => `${val}px`}
-      label={<Label layer="layer-3" layout="stacked">Border Size</Label>}
+      label={<Label layer={layer} layout="stacked">Border Size</Label>}
     />
   )
 }
@@ -900,7 +902,7 @@ export default function LayerStylePanel({
       footer={panelFooter}
       width="400px"
       zIndex={10000}
-      layer="layer-0"
+      layer={(layerKey || 'layer-0') as any}
       style={{
         transform: open ? 'translateX(0)' : 'translateX(100%)',
         transition: 'transform 200ms ease',
@@ -921,7 +923,7 @@ export default function LayerStylePanel({
               elevationOptions={elevationOptions}
               mode={mode}
               onUpdate={updateValue}
-              layer="layer-2"
+              layer={(layerKey || 'layer-0') as any}
             />
           )
         })()}
@@ -930,7 +932,7 @@ export default function LayerStylePanel({
             targetCssVar={paddingCssVar}
             label="Padding"
             dimensionCategory="general"
-            layer="layer-1"
+            layer={(layerKey || 'layer-0') as any}
             onUpdate={(_cssVar, tokenValue) => {
               const parsed = parseBrandCssVar(tokenValue)
               if (parsed && parsed.type === 'dimension' && parsed.category === 'general') {
@@ -951,7 +953,7 @@ export default function LayerStylePanel({
             targetCssVar={borderRadiusCssVar}
             label="Border Radius"
             dimensionCategory="border-radii"
-            layer="layer-1"
+            layer={(layerKey || 'layer-0') as any}
             onUpdate={(_cssVar, tokenValue) => {
               const parsed = parseBrandCssVar(tokenValue)
               if (parsed && parsed.type === 'dimension' && parsed.category === 'border-radii') {
@@ -974,6 +976,7 @@ export default function LayerStylePanel({
               initialValue={typeof (spec as any)?.properties?.['border-size']?.$value === 'number' ? (spec as any).properties['border-size'].$value : 0}
               updateValue={updateValue}
               tokensJson={tokensJson}
+              layer={(layerKey || 'layer-0') as any}
             />
           )
         })()}

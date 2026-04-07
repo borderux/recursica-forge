@@ -73,8 +73,10 @@ export default function Switch({
   const trackWidthVar = getComponentCssVar('Switch', 'size', 'track-width', undefined)
   const trackInnerPaddingVar = getComponentCssVar('Switch', 'size', 'track-inner-padding', undefined)
   const thumbIconSizeVar = getComponentCssVar('Switch', 'size', 'thumb-icon-size', undefined)
-  const thumbIconSelectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-selected', undefined)
-  const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
+  // Hardcode checkmark and x-mark for switch thumb state (as requested by user)
+  const ThumbIconSelected = iconNameToReactComponent('check')
+  const ThumbIconUnselected = iconNameToReactComponent('x-mark')
+
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
   
@@ -84,12 +86,6 @@ export default function Switch({
   const trackSelectedColor = `var(${trackSelectedVar})`
   const trackUnselectedColor = `var(${trackUnselectedVar})`
   const trackBorderRadiusValue = `var(${trackBorderRadiusVar})`
-  
-  // Get icon names from CSS variables
-  const thumbIconSelectedName = readCssVar(thumbIconSelectedVar) || ''
-  const thumbIconUnselectedName = readCssVar(thumbIconUnselectedVar) || ''
-  const ThumbIconSelected = thumbIconSelectedName ? iconNameToReactComponent(thumbIconSelectedName) : null
-  const ThumbIconUnselected = thumbIconUnselectedName ? iconNameToReactComponent(thumbIconUnselectedName) : null
   
   // Reactively read thumb and track elevation from CSS variables
   const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
@@ -213,6 +209,7 @@ export default function Switch({
         ['--recursica_ui-kit_components_switch_track_height' as string]: trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
         ['--recursica_ui-kit_components_switch_thumb_elevation' as string]: thumbElevationBoxShadow || 'none',
         ['--recursica_ui-kit_components_switch_track_elevation' as string]: trackElevationBoxShadow || 'none',
+        ['--recursica-switch-thumb-icon-size' as string]: `var(${thumbIconSizeVar})`,
         width: `var(${trackWidthVar})`,
         ...style,
       } as React.CSSProperties}
@@ -228,6 +225,24 @@ export default function Switch({
         {...carbon}
         {...props}
       />
+      <div 
+        className="recursica-carbon-toggle-icon-overlay" 
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: checked ? 'auto' : `var(${trackInnerPaddingVar})`,
+          right: checked ? `var(${trackInnerPaddingVar})` : 'auto',
+          width: `var(${thumbWidthVar})`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+          zIndex: 2,
+        }}
+      >
+        {checked ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${trackSelectedVar})` }} /> : null) : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${trackUnselectedVar})` }} /> : null)}
+      </div>
     </div>
   )
 }
