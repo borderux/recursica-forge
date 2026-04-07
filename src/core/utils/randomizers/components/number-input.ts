@@ -1,5 +1,5 @@
 import { JsonLike } from '../../../resolvers/tokens';
-import { randomizeTokenReference, randomizeRawColor, randomizeNumberValue, randomizeStringValue } from '../randomizerFactories';
+import { randomizeTokenReference, randomizeRawColor, randomizeNumberValue, randomizeStringValue, randomizeNullValue } from '../randomizerFactories';
 
 export function randomizeNumberInput(componentNode: any, options: any, diffs: any[], pathPrefix: string): void {
     const uikitOpts = options.uikit?.components || {};
@@ -48,10 +48,13 @@ export function randomizeNumberInput(componentNode: any, options: any, diffs: an
         }
 
         // Direct token or value object
-        if ('$value' in node && typeof node.$value !== 'object') {
+        if ('$value' in node && (typeof node.$value !== 'object' || node.$value === null)) {
             const oldVal = node.$value;
             let newVal = oldVal;
-            if (typeof oldVal === 'string' && oldVal.startsWith('{')) {
+            
+            if (oldVal === null) {
+                newVal = randomizeNullValue(node.$type || '', path[path.length - 1]);
+            } else if (typeof oldVal === 'string' && oldVal.startsWith('{')) {
                 newVal = randomizeTokenReference(oldVal);
             } else if (typeof oldVal === 'string' && /^#[0-9a-fA-F]{6}$/.test(oldVal)) {
                 newVal = randomizeRawColor(oldVal);

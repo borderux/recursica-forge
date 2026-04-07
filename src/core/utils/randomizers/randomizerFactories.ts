@@ -340,7 +340,9 @@ export function randomizeStringValue(propName: string, oldVal: string): string {
         'alignment': ['start', 'center', 'end'],
         'search-icon-position': ['left', 'right'],
         'avatar-size': ['small', 'default', 'large'],
-        'border-style': ['solid', 'dashed', 'dotted']
+        'border-style': ['solid', 'dashed', 'dotted'],
+        'header-style': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+        'tab-content-alignment': ['left', 'center', 'right']
     };
 
     const opts = stringOptions[propName];
@@ -348,6 +350,32 @@ export function randomizeStringValue(propName: string, oldVal: string): string {
         return opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
     }
     return oldVal;
+}
+
+export function randomizeNullValue(type: string, propName: string): any {
+    const CONSTANTS = getConstants();
+    
+    if (type === 'color') {
+        const palettes = CONSTANTS.paletteNames.filter(p => !['core-colors', 'system'].includes(p));
+        const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
+        const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
+        return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
+    }
+    
+    if (type === 'dimension') {
+        const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
+        return `{brand.dimensions.general.${randomGeneral}}`;
+    }
+    
+    if (type === 'number') {
+        return Math.floor(Math.random() * 20); // Arbitrary small number
+    }
+    
+    if (type === 'string') {
+        return randomizeStringValue(propName, '');
+    }
+    
+    return null;
 }
 
 export function randomizeNumberValue(val: number, assumedMin: number = 0, assumedMax?: number): number {
