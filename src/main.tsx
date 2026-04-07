@@ -28,6 +28,9 @@ const CompliancePage = React.lazy(() => import('./modules/compliance/ComplianceP
 const RoundTripPage = import.meta.env.DEV
   ? React.lazy(() => import('./core/dev/RoundTripPage').then((m) => ({ default: m.RoundTripPage })))
   : null
+const RandomizerResultsPage = import.meta.env.DEV
+  ? React.lazy(() => import('./modules/dev/RandomizerResults').then((m) => ({ default: m.RandomizerResults })))
+  : null
 
 // Initialize component registries
 import './components/registry/mantine'
@@ -103,6 +106,9 @@ const router = createBrowserRouter([
       { path: '*', element: <NotFoundPage /> },
       ...(import.meta.env.DEV && RoundTripPage
         ? [{ path: '/dev/diff', element: <React.Suspense fallback={null}><RoundTripPage /></React.Suspense> }]
+        : []),
+      ...(import.meta.env.DEV && RandomizerResultsPage
+        ? [{ path: '/dev/random', element: <React.Suspense fallback={null}><RandomizerResultsPage /></React.Suspense> }]
         : []),
     ],
   },

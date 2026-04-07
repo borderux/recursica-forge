@@ -238,14 +238,14 @@ export default function MantineShell({
     return () => window.removeEventListener("resize", updateHeaderHeight);
   }, [mode]);
 
-  const isDiffRoute = location.pathname === '/dev/diff'
+  const isDevRoute = location.pathname === '/dev/diff' || location.pathname === '/dev/random';
 
   return (
     <MantineProvider>
       <div
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
       >
-        {!isDiffRoute && (
+        {!isDevRoute && (
         <header
           ref={headerRef}
           style={{
@@ -633,7 +633,7 @@ export default function MantineShell({
           </Group>
         </header>
         )}
-        {isDiffRoute ? (
+        {isDevRoute ? (
           <>{children}</>
         ) : (
         <div style={{ display: "flex", flex: 1, minHeight: 0 }}>

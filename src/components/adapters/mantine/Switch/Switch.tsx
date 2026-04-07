@@ -71,16 +71,12 @@ export default function Switch({
   const trackWidthVar = getComponentCssVar('Switch', 'size', 'track-width', undefined)
   const trackInnerPaddingVar = getComponentCssVar('Switch', 'size', 'track-inner-padding', undefined)
   const thumbIconSizeVar = getComponentCssVar('Switch', 'size', 'thumb-icon-size', undefined)
-  const thumbIconSelectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-selected', undefined)
-  const thumbIconUnselectedVar = getComponentCssVar('Switch', 'size', 'thumb-icon-unselected', undefined)
+  // Hardcode checkmark and x-mark for switch thumb state (as requested by user)
+  const ThumbIconSelected = iconNameToReactComponent('check')
+  const ThumbIconUnselected = iconNameToReactComponent('x-mark')
+  
   const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
   const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
-  
-  // Get icon names from CSS variables
-  const thumbIconSelectedName = readCssVar(thumbIconSelectedVar) || ''
-  const thumbIconUnselectedName = readCssVar(thumbIconUnselectedVar) || ''
-  const ThumbIconSelected = thumbIconSelectedName ? iconNameToReactComponent(thumbIconSelectedName) : null
-  const ThumbIconUnselected = thumbIconUnselectedName ? iconNameToReactComponent(thumbIconUnselectedName) : null
   
   // Reactively read thumb and track elevation from CSS variables
   const [thumbElevationFromVar, setThumbElevationFromVar] = useState<string | undefined>(() => {
@@ -154,7 +150,7 @@ export default function Switch({
       checked={checked}
       onChange={(e) => onChange(e.currentTarget.checked)}
       disabled={disabled}
-      thumbIcon={checked ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})` }} /> : null) : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})` }} /> : null)}
+      thumbIcon={checked ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${trackSelectedVar})` }} /> : null) : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${trackUnselectedVar})` }} /> : null)}
       className={className}
       style={{
         // Set Mantine's internal CSS variables to reference UIKit variables directly
@@ -168,6 +164,7 @@ export default function Switch({
         '--recursica_ui-kit_components_switch_thumb_bg_unselected': `var(${thumbUnselectedVar})`,
         '--recursica_ui-kit_components_switch_track_checked': `var(${trackSelectedVar})`,
         '--recursica_ui-kit_components_switch_track_unchecked': `var(${trackUnselectedVar})`,
+        '--recursica-switch-thumb-icon-size': `var(${thumbIconSizeVar})`,
         '--recursica_ui-kit_components_switch_track_height': trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
         '--recursica_ui-kit_components_switch_thumb_elevation': thumbElevationBoxShadow || 'none',
         '--recursica_ui-kit_components_switch_track_elevation': trackElevationBoxShadow || 'none',

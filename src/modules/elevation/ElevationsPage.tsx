@@ -277,10 +277,10 @@ export default function ElevationsPage() {
     return modeDirections[elevationKey]?.y ?? elevation?.baseYDirection ?? 'down'
   }
 
-  const getAlphaTokenForLevel = (level: number): string => {
+  const getAlphaTokenForLevel = (level: number): string | undefined => {
     const key = `elevation-${level}`
     const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
-    return modeAlphaTokens[key] || elevation?.shadowColorControl?.alphaToken || 'opacity/veiled'
+    return modeAlphaTokens[key]
   }
 
   // Revert selected levels to theme defaults
