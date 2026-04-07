@@ -43,7 +43,7 @@ export function randomizeTransferList(componentNode: any, options: any, diffs: a
                     node.value = randomizeNumberValue(parsed);
                 }
             }
-            if (oldVal !== node.value) { diffs.push({ path: pathPrefix + '.' + path.join('.'), before: oldVal, after: node.value, changed: true }); } else { diffs.push({ path: pathPrefix + '.' + path.join('.'), before: oldVal, after: node.value, changed: false }); }
+            if (oldVal !== node.value) { diffs.push({ path: pathPrefix + '.' + path.join('.'), before: oldVal, after: node.value, changed: true }); }
             return;
         }
 
@@ -64,7 +64,7 @@ export function randomizeTransferList(componentNode: any, options: any, diffs: a
                 newVal = randomizeStringValue(path[path.length - 1], oldVal);
             }
 
-            if (newVal !== oldVal) { node.$value = newVal; diffs.push({ path: pathPrefix + '.' + path.join('.'), before: oldVal, after: newVal, changed: true }); } else { diffs.push({ path: pathPrefix + '.' + path.join('.'), before: oldVal, after: newVal, changed: false }); }
+            if (newVal !== oldVal) { node.$value = newVal; diffs.push({ path: pathPrefix + '.' + path.join('.'), before: oldVal, after: newVal, changed: true }); }
             return;
         }
 

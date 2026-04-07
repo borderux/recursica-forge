@@ -183,7 +183,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
               
               uikitModifiedKeysCount[compKey] = {
                  changed: diffs.slice(startDiffCount).filter(d => d.changed !== false).length,
-                 total: totalProps
+                 total: endDiffCount - startDiffCount
               };
           }
       }
