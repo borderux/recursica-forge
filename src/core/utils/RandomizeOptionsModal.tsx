@@ -17,6 +17,10 @@ export interface RandomizeOptions {
     opacities: boolean
     fontSizes: boolean
     fontWeights: boolean
+    fontTypefaces: boolean
+    fontCases: boolean
+    fontDecorations: boolean
+    fontStyles: boolean
     letterSpacing: boolean
     lineHeights: boolean
   }
@@ -59,6 +63,11 @@ const OPTIONS_STRUCTURE: CheckboxItem[] = [
       { key: 'sizes', label: 'Sizes' },
       { key: 'opacities', label: 'Opacities' },
       { key: 'fontSizes', label: 'Font Sizes' },
+      { key: 'fontWeights', label: 'Font Weights' },
+      { key: 'fontTypefaces', label: 'Font Typefaces' },
+      { key: 'fontCases', label: 'Font Cases' },
+      { key: 'fontDecorations', label: 'Font Decorations' },
+      { key: 'fontStyles', label: 'Font Styles' },
       { key: 'letterSpacing', label: 'Letter Spacing' },
       { key: 'lineHeights', label: 'Line Heights' },
     ],
@@ -104,6 +113,10 @@ function getDefaultOptions(): RandomizeOptions {
       opacities: true,
       fontSizes: true,
       fontWeights: true,
+      fontTypefaces: true,
+      fontCases: true,
+      fontDecorations: true,
+      fontStyles: true,
       letterSpacing: true,
       lineHeights: true,
     },
@@ -364,7 +377,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
                 onClick={() => {
                   const newComps: any = {}; ALL_UIKIT_KEYS.forEach(k => newComps[k] = true)
                   setOptions({
-                    tokens: { colors: true, sizes: true, opacities: true, fontSizes: true, fontWeights: true, letterSpacing: true, lineHeights: true },
+                    tokens: { colors: true, sizes: true, opacities: true, fontSizes: true, fontWeights: true, fontTypefaces: true, fontCases: true, fontDecorations: true, fontStyles: true, letterSpacing: true, lineHeights: true },
                     theme: { coreProperties: true, corePropertyElements: true, type: true, palettes: true, elevations: true, dimensions: true, layers: true, overlay: true },
                     uikit: { components: newComps }
                   })
@@ -378,7 +391,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
                 onClick={() => {
                   const newComps: any = {}; ALL_UIKIT_KEYS.forEach(k => newComps[k] = false)
                   setOptions({
-                    tokens: { colors: false, sizes: false, opacities: false, fontSizes: false, fontWeights: false, letterSpacing: false, lineHeights: false },
+                    tokens: { colors: false, sizes: false, opacities: false, fontSizes: false, fontWeights: false, fontTypefaces: false, fontCases: false, fontDecorations: false, fontStyles: false, letterSpacing: false, lineHeights: false },
                     theme: { coreProperties: false, corePropertyElements: false, type: false, palettes: false, elevations: false, dimensions: false, layers: false, overlay: false },
                     uikit: { components: newComps }
                   })

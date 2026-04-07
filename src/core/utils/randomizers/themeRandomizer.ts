@@ -1,5 +1,5 @@
 import { JsonLike } from '../../resolvers/tokens';
-import { randomizeTokenReference, randomizeRawColor, randomizeNumberValue, randomizeStringValue } from './randomizerFactories';
+import { randomizeTokenReference, randomizeRawColor, randomizeNumberValue, randomizeStringValue, randomizeNullValue } from './randomizerFactories';
 
 export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[]): JsonLike {
   const modifiedTheme = JSON.parse(JSON.stringify(initialTheme)) as any;
@@ -63,7 +63,7 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
         return;
     }
 
-    if ('$value' in node && typeof node.$value !== 'object') {
+    if ('$value' in node && (typeof node.$value !== 'object' || node.$value === null || Array.isArray(node.$value))) {
        if (!shouldRandomize) return;
        const oldVal = node.$value;
        let newVal = oldVal;
@@ -86,6 +86,11 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
           } else {
               newVal = randomizeNumberValue(oldVal);
           }
+       } else if (typeof oldVal === 'string') {
+          newVal = randomizeStringValue(path[path.length - 1], oldVal);
+       } else if (oldVal === null) {
+          const type = node.$type || 'string';
+          newVal = randomizeNullValue(type, path[path.length - 1]);
        }
        let displayOld = oldVal;
        if (path.includes('opacity') && typeof oldVal === 'number' && oldVal > 1) {

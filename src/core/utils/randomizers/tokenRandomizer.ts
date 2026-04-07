@@ -1,5 +1,5 @@
 import { JsonLike } from '../../resolvers/tokens';
-import { shiftValue, shiftNumber, randomizeTokenReference } from './randomizerFactories';
+import { shiftValue, shiftNumber, randomizeTokenReference, randomizeStringValue, randomizeNullValue } from './randomizerFactories';
 
 export function randomizeTokens(initialTokens: JsonLike, options: any, diffs: any[]): JsonLike {
   const modifiedTokens = JSON.parse(JSON.stringify(initialTokens)) as any;
@@ -39,7 +39,7 @@ export function randomizeTokens(initialTokens: JsonLike, options: any, diffs: an
     }
     
     // Direct token object
-    if ('$value' in node && typeof node.$value !== 'object') {
+    if ('$value' in node && (typeof node.$value !== 'object' || node.$value === null || Array.isArray(node.$value))) {
        const val = node.$value;
        if (typeof val === 'string' && val.startsWith('{')) {
           node.$value = randomizeTokenReference(val);
@@ -50,7 +50,27 @@ export function randomizeTokens(initialTokens: JsonLike, options: any, diffs: an
        } else if ((prefix.includes('opacities') || prefix.includes('opacity')) && tokensOpts.opacities) {
           if (typeof val === 'number') node.$value = shiftNumber(val, 0, 1, 2, 0.1);
        } else if (prefix.includes('font') && prefix.includes('weights') && tokensOpts.fontWeights) {
-          // weights usually strings or numbers? Keep it unchanged for now, standard randomized by tokens
+          if (typeof val === 'number') {
+             const weights = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+             node.$value = shiftValue(val, weights);
+          }
+       } else if (prefix.includes('font') && prefix.includes('cases') && tokensOpts.fontCases) {
+          if (typeof val === 'string') node.$value = randomizeStringValue('text-transform', val);
+          else if (val === null) node.$value = randomizeNullValue('string', 'text-transform');
+       } else if (prefix.includes('font') && prefix.includes('decorations') && tokensOpts.fontDecorations) {
+          if (typeof val === 'string') node.$value = randomizeStringValue('text-decoration', val);
+          else if (val === null) node.$value = randomizeNullValue('string', 'text-decoration');
+       } else if (prefix.includes('font') && prefix.includes('styles') && tokensOpts.fontStyles) {
+          if (typeof val === 'string') node.$value = randomizeStringValue('font-style', val);
+       } else if (prefix.includes('font') && prefix.includes('typefaces') && tokensOpts.fontTypefaces) {
+          if (typeof val === 'string') {
+             const faces = ['Lexend', 'Bellota Text', 'Quattrocento'];
+             node.$value = shiftValue(val, faces);
+          } else if (Array.isArray(val) && val.length > 0) {
+             const faces = ['Lexend', 'Bellota Text', 'Quattrocento'];
+             const newVal = shiftValue(val[0], faces);
+             node.$value = [newVal, ...val.slice(1)];
+          }
        } else if (prefix.includes('letter-spacings') && tokensOpts.letterSpacing) {
           if (typeof val === 'number') node.$value = shiftNumber(val, -0.1, 0.5, 2, 0.05);
        } else if ((prefix.includes('line-heights') || prefix.includes('line-height')) && tokensOpts.lineHeights) {

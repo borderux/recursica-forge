@@ -16,7 +16,19 @@ import { updateCssVars, removeCssVar } from '../css/updateCssVar'
 
 export function randomizeAllVariables(options?: RandomizeOptions): void {
   const opts: RandomizeOptions = options || {
-    tokens: { colors: true, sizes: true, opacities: true, fontSizes: true, fontWeights: true, letterSpacing: true, lineHeights: true },
+    tokens: { 
+      colors: true, 
+      sizes: true, 
+      opacities: true, 
+      fontSizes: true, 
+      fontWeights: true, 
+      fontTypefaces: true,
+      fontCases: true,
+      fontDecorations: true,
+      fontStyles: true,
+      letterSpacing: true, 
+      lineHeights: true 
+    },
     theme: { coreProperties: true, corePropertyElements: true, overlay: true, type: true, palettes: true, elevations: true, dimensions: true, layers: true },
     uikit: { components: {} as Record<string, boolean> },
   }
