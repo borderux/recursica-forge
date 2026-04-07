@@ -2189,14 +2189,6 @@
               "unit": "px"
             }
           },
-          "thumb-icon-selected": {
-            "$type": "string",
-            "$value": "check"
-          },
-          "thumb-icon-unselected": {
-            "$type": "string",
-            "$value": "x-mark"
-          },
           "thumb-elevation": {
             "$type": "elevation",
             "$value": "{brand.elevations.elevation-0}"

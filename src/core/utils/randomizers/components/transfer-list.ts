@@ -68,6 +68,9 @@ export function randomizeTransferList(componentNode: any, options: any, diffs: a
                 } else if (propName === 'font-style') {
                     const opts = ['normal', 'italic'];
                     newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
+                } else if (propName === 'heading-level') {
+                    const opts = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+                    newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
                 }
             }
 

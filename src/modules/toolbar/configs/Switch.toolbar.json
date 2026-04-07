@@ -24,6 +24,10 @@
         "thumb-border-radius": {
           "label": "Thumb corner radius",
           "visible": true
+        },
+        "thumb-icon-size": {
+          "label": "Icon Size",
+          "visible": true
         }
       }
     },
@@ -64,25 +68,7 @@
       "label": "Label text style",
       "visible": true
     },
-    "thumb-icon": {
-      "icon": "diamond",
-      "label": "Thumb icon",
-      "visible": false,
-      "group": {
-        "thumb-icon-size": {
-          "label": "Size",
-          "visible": true
-        },
-        "thumb-icon-selected": {
-          "label": "Selected",
-          "visible": true
-        },
-        "thumb-icon-unselected": {
-          "label": "Unselected",
-          "visible": true
-        }
-      }
-    },
+
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",

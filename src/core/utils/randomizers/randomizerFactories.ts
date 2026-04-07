@@ -71,6 +71,7 @@ export function getConstants() {
     coreColorLevels: ['default', 'hover'],
     sizeTokens: ['none', '0-5x', '1x', '1-5x', '2x', '3x', '4x', '5x', '6x'],
     fontSizes: ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
+    textSizes: ['2xs', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
     fontWeights: ['thin', 'extra-light', 'light', 'regular', 'medium', 'semi-bold', 'bold', 'extra-bold', 'black'],
     letterSpacings: ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest'],
     lineHeights: ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest'],
@@ -164,6 +165,12 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{brand.dimensions.general.${shiftValue(dimMatch[1], CONSTANTS.dimensionGeneral)}}`;
     }
 
+    // Brand Dimension Text Size: {brand.dimensions.text-size.md}
+    const textDimMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?dimensions\.text-size\.([a-z0-9-]+)$/);
+    if (textDimMatch) {
+        return `{brand.dimensions.text-size.${shiftValue(textDimMatch[1], CONSTANTS.textSizes)}}`;
+    }
+
     // Text heights: {tokens.font.line-heights.tall}
     const heightMatch = content.match(/^tokens\.font\.line-heights?\.([a-z0-9-]+)$/);
     if (heightMatch) {
@@ -237,6 +244,27 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     if (stateMatch) {
         const randomOpacity = CONSTANTS.opacities[Math.floor(Math.random() * CONSTANTS.opacities.length)];
         return `{tokens.opacities.${randomOpacity}}`;
+    }
+    
+    // UI Kit Component Property References: {ui-kit.components.chip.properties.colors.error.icon-color}
+    const componentPropMatch = content.match(/^ui-kit\.components\.([a-z0-9-]+)\.properties\.([a-z0-9-.]+)$/);
+    if (componentPropMatch) {
+       const [, comp, propPath] = componentPropMatch;
+       if (propPath.includes('color') || propPath.includes('background') || propPath.includes('icon') || propPath.includes('surface') || propPath.includes('text')) {
+           const palettes = CONSTANTS.paletteNames.filter(p => !['core-colors', 'system'].includes(p));
+           const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
+           const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
+           return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
+       }
+    }
+
+    // Typography references: {brand.typography.h3.fontFamily}
+    const typographyMatch = content.match(/^brand\.typography\.([a-z0-9-]+)\.([a-zA-Z]+)$/);
+    if (typographyMatch) {
+       const [, level, prop] = typographyMatch;
+       const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'label', 'caption', 'code', 'small'];
+       const newLevel = shiftValue(level, levels);
+       return `{brand.typography.${newLevel}.${prop}}`;
     }
 
     return tokenRef;

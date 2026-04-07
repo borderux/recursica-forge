@@ -68,6 +68,9 @@ export function randomizeTabs(componentNode: any, options: any, diffs: any[], pa
                 } else if (propName === 'font-style') {
                     const opts = ['normal', 'italic'];
                     newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
+                } else if (propName === 'tab-content-alignment') {
+                    const opts = ['flex-start', 'center', 'flex-end'];
+                    newVal = opts.filter(o => o !== oldVal)[Math.floor(Math.random() * (opts.length - 1))] || opts[0];
                 }
             }
 
