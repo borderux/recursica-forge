@@ -21,11 +21,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       sizes: true, 
       opacities: true, 
       fontSizes: true, 
-      fontWeights: true, 
       fontTypefaces: true,
-      fontCases: true,
-      fontDecorations: true,
-      fontStyles: true,
       letterSpacing: true, 
       lineHeights: true 
     },

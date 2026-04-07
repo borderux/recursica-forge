@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Title, Container, Paper, Text, Group, Box, Badge, Code, Accordion, Table, SegmentedControl } from '@mantine/core';
+import { useState, useMemo } from 'react'
+import { Box, Title, Text, Group, Paper, Accordion, Badge, Table, Code, SegmentedControl } from '@mantine/core'
 
 interface Diff {
   path: string;
@@ -8,113 +8,80 @@ interface Diff {
   changed?: boolean;
 }
 
-function formatDiffValue(val: any): string {
-    if (typeof val === 'string') return val;
-    return JSON.stringify(val);
-}
+// Helper to determine if a diff is effectively unchanged
+const isDiffUnchanged = (diff: Diff) => {
+    return diff.changed === false || JSON.stringify(diff.before) === JSON.stringify(diff.after);
+};
 
-function renderFormattedDiff(beforeVal: any, afterVal: any) {
-    const beforeStr = formatDiffValue(beforeVal);
-    const afterStr = formatDiffValue(afterVal);
-    
-    if (beforeStr === afterStr) {
-        return { 
-           beforeFormatted: beforeStr, 
-           afterFormatted: afterStr 
-        };
+// Helper to count changed items in a group
+const getChangedCount = (diffs: Diff[]) => {
+    return diffs.filter(d => !isDiffUnchanged(d)).length;
+};
+
+// Formatting helper to highlight differences from the first point of divergence
+const renderHighlightedValue = (val: any, other: any) => {
+    const s = val === null ? 'null' : String(val);
+    const o = other === null ? 'null' : String(other);
+
+    // If identical, just return plain
+    if (s === o) {
+        return <Text span size="xs" inherit>{s === '' ? '""' : s}</Text>;
     }
-    
-    // Only apply segment-by-segment comparison for token references
-    if (beforeStr.startsWith('{') && beforeStr.endsWith('}') && afterStr.startsWith('{') && afterStr.endsWith('}')) {
-        const beforeInner = beforeStr.slice(1, -1);
-        const afterInner = afterStr.slice(1, -1);
-        
-        const beforeParts = beforeInner.split('.');
-        const afterParts = afterInner.split('.');
-        
-        const beforeElems: any[] = [];
-        const afterElems: any[] = [];
-        
-        const len = Math.max(beforeParts.length, afterParts.length);
-        for (let i = 0; i < len; i++) {
-            const b = beforeParts[i];
-            const a = afterParts[i];
-            
-            if (b === a) {
-                if (b !== undefined) beforeElems.push(b);
-                if (a !== undefined) afterElems.push(a);
-            } else {
-                if (b !== undefined) beforeElems.push(<strong key={i}>{b}</strong>);
-                if (a !== undefined) afterElems.push(<strong key={i}>{a}</strong>);
+
+    // Reference token highlighting: bold from the first difference to the end
+    if (s.startsWith('{') && s.endsWith('}') && o.startsWith('{') && o.endsWith('}')) {
+        const pathS = s.slice(1, -1);
+        const pathO = o.slice(1, -1);
+        const partsS = pathS.split('.');
+        const partsO = pathO.split('.');
+
+        let firstDiffIdx = -1;
+        for (let i = 0; i < Math.max(partsS.length, partsO.length); i++) {
+            if (partsS[i] !== partsO[i]) {
+                firstDiffIdx = i;
+                break;
             }
         }
-        
-        // Re-join with dots, wrapped in braces
-        const intersperseDots = (arr: any[]) => {
-            if (arr.length === 0) return [];
-            const result: any[] = [arr[0]];
-            for (let i = 1; i < arr.length; i++) {
-                result.push('.', arr[i]);
-            }
-            return result;
-        };
-        
-        return {
-           beforeFormatted: <>{'{'}{intersperseDots(beforeElems)}{'}'}</>,
-           afterFormatted: <>{'{'}{intersperseDots(afterElems)}{'}'}</>
-        };
+
+        if (firstDiffIdx !== -1) {
+            const prefix = partsS.slice(0, firstDiffIdx).join('.');
+            const diff = partsS.slice(firstDiffIdx).join('.');
+            return (
+                <Text span size="xs" inherit>
+                    {'{'}{prefix}{prefix ? '.' : ''}<Text span fw={700} inherit>{diff}</Text>{'}'}
+                </Text>
+            );
+        }
     }
-    
-    // For non-token references (colors, numbers), fallback to bolding the differing string directly
-    return {
-       beforeFormatted: beforeStr,
-       afterFormatted: <strong>{afterStr}</strong>
-    };
-}
+
+    // For non-references, bold the whole thing if changed
+    return <Text span size="xs" fw={700} inherit>{s === '' ? '""' : s}</Text>;
+};
 
 export function RandomizerResults() {
-  const [diffs, setDiffs] = useState<Diff[]>([]);
-  const [ratios, setRatios] = useState<Record<string, { total: number, changed: number }>>({});
-
-  useEffect(() => {
-    const loadState = () => {
-      try {
-        const stored = sessionStorage.getItem('randomizer_diffs');
-        if (stored) {
-          setDiffs(JSON.parse(stored));
-        } else {
-          setDiffs([]);
-        }
-        const storedRatios = sessionStorage.getItem('randomizer_ratios');
-        if (storedRatios) {
-          setRatios(JSON.parse(storedRatios));
-        } else {
-          setRatios({});
-        }
-      } catch (e) {
-        console.error('Failed to parse randomizer diffs', e);
-      }
-    };
-
-    loadState();
-    window.addEventListener('themeReset', loadState);
-    return () => window.removeEventListener('themeReset', loadState);
+  const [filterMode, setFilterMode] = useState<string>('all');
+  
+  const allDiffs: Diff[] = useMemo(() => {
+    try {
+      const stored = sessionStorage.getItem('randomizer_diffs');
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
   }, []);
 
-  const [filterMode, setFilterMode] = useState<string>('all');
+  const filteredDiffs = useMemo(() => {
+    if (filterMode === 'all') return allDiffs;
+    if (filterMode === 'light') return allDiffs.filter(d => !d.path.includes('.themes.dark.'));
+    if (filterMode === 'dark') return allDiffs.filter(d => !d.path.includes('.themes.light.'));
+    return allDiffs;
+  }, [allDiffs, filterMode]);
 
-  const filteredDiffs = diffs.filter(d => {
-      if (filterMode === 'light' && d.path.includes('.dark.')) return false;
-      if (filterMode === 'dark' && d.path.includes('.light.')) return false;
-      return true;
-  });
-
-  // Group diffs by top level category: theme vs uikit vs tokens
+  const tokenDiffs = filteredDiffs.filter(d => d.path.startsWith('tokens.'));
   const themeDiffs = filteredDiffs.filter(d => d.path.startsWith('theme.'));
   const uikitDiffs = filteredDiffs.filter(d => d.path.startsWith('uikit.'));
-  const tokenDiffs = filteredDiffs.filter(d => d.path.startsWith('tokens.'));
 
-  // Group token diffs dynamically by section (e.g. Size, Font Sizes, Colors)
+  // Group tokens by category
   const tokenGroupsMap: Record<string, Diff[]> = {};
   tokenDiffs.forEach(d => {
       const cleanPath = d.path.replace('tokens.', '').replace(/\.\$value$/, '');
@@ -130,7 +97,6 @@ export function RandomizerResults() {
   // Group uikit diffs by component
   const componentsMap: Record<string, Diff[]> = {};
   uikitDiffs.forEach(d => {
-      // Path format: uikit.components.button.properties...
       const parts = d.path.split('.');
       if (parts.length > 2 && parts[0] === 'uikit' && parts[1] === 'components') {
           const compName = parts[2];
@@ -138,6 +104,7 @@ export function RandomizerResults() {
           componentsMap[compName].push(d);
       }
   });
+
   // Group theme diffs dynamically by section
   const themeGroupsMap: Record<string, Diff[]> = {
     'Core Properties': [],
@@ -162,7 +129,6 @@ export function RandomizerResults() {
       } else if (p.includes('.elevations.')) {
           themeGroupsMap['Elevations'].push(d);
       } else if (p.includes('.layers.')) {
-          // Check for layer-0 elements and properties surface - treated as core
           if (p.includes('layer-0') && (p.includes('.elements.') || p.includes('.properties.surface') || p.includes('.properties.border-color'))) {
               themeGroupsMap['Core Properties'].push(d);
           } else {
@@ -173,48 +139,52 @@ export function RandomizerResults() {
       }
   });
   
-  // Sort diffs alphabetally by path key
-  Object.keys(tokenGroupsMap).forEach(key => {
-      tokenGroupsMap[key].sort((a, b) => a.path.localeCompare(b.path));
-  });
-  Object.keys(componentsMap).forEach(key => {
-      componentsMap[key].sort((a, b) => a.path.localeCompare(b.path));
-  });
-  Object.keys(themeGroupsMap).forEach(key => {
-      themeGroupsMap[key].sort((a, b) => a.path.localeCompare(b.path));
+  // Sort diffs alphabetally
+  [tokenGroupsMap, componentsMap, themeGroupsMap].forEach(map => {
+      Object.keys(map).forEach(key => map[key].sort((a, b) => a.path.localeCompare(b.path)));
   });
 
   const formatPath = (path: string) => {
-    let clean = path;
-    if (clean.endsWith('.$value')) clean = clean.slice(0, -7);
-    const parts = clean.split('.');
-    return parts.slice(3).join('.') || clean; // removes uikit.components.button
+    let clean = path.replace(/\.\$value$/, '');
+    if (clean.startsWith('theme.brand.themes.')) {
+        const parts = clean.split('.');
+        // parts[3] is light/dark
+        if (filterMode === 'all') {
+            return parts.slice(3).join('.'); // light.palettes...
+        } else {
+            return parts.slice(4).join('.'); // palettes...
+        }
+    }
+    if (clean.startsWith('tokens.')) return clean.replace('tokens.', '');
+    if (clean.startsWith('uikit.components.')) return clean.replace('uikit.components.', '');
+    return clean;
   };
 
   const renderDiffLine = (diff: Diff) => {
-      // If diff.changed explicitly set to false, or before stringifies exactly to after
-      const isUnchanged = diff.changed === false || JSON.stringify(diff.before) === JSON.stringify(diff.after);
-      
-      const { beforeFormatted, afterFormatted } = renderFormattedDiff(diff.before, diff.after);
+      const isUnchanged = isDiffUnchanged(diff);
+      const beforeFormatted = renderHighlightedValue(diff.before, diff.after);
+      const afterFormatted = renderHighlightedValue(diff.after, diff.before);
       
       return (
-      <Table.Tr key={diff.path}>
-          <Table.Td>
-              <Text size="sm">{formatPath(diff.path)}</Text>
-          </Table.Td>
-          <Table.Td>
-              <Code>{beforeFormatted}</Code>
-          </Table.Td>
-          <Table.Td>
-              {!isUnchanged ? (
-                <Code>{afterFormatted}</Code>
-              ) : (
-                <Badge color="yellow" variant="light">Unchanged</Badge>
-              )}
-          </Table.Td>
-      </Table.Tr>
+        <Table.Tr key={diff.path}>
+            <Table.Td>
+                <Text size="sm">{formatPath(diff.path)}</Text>
+            </Table.Td>
+            <Table.Td>
+                {beforeFormatted}
+            </Table.Td>
+            <Table.Td>
+                {!isUnchanged ? (
+                   afterFormatted
+                ) : (
+                  <Badge color="yellow" variant="light">Unchanged</Badge>
+                )}
+            </Table.Td>
+        </Table.Tr>
       );
   };
+
+  const totalChanged = filteredDiffs.filter(d => !isDiffUnchanged(d)).length;
 
   return (
     <Box p="xl" w="100%">
@@ -235,15 +205,15 @@ export function RandomizerResults() {
         <Text c="dimmed">No changes detected or session expired.</Text>
       ) : (
         <Paper shadow="sm" p="md" withBorder>
-          <Text fw={700} mb="md">Total Changed Properties: {filteredDiffs.length}</Text>
+          <Text fw={700} mb="md">Total Changed Properties: {totalChanged} / {filteredDiffs.length}</Text>
           <Accordion variant="separated">
             {Object.keys(tokenGroupsMap).map(groupName => (
                 <Accordion.Item value={`tokens-${groupName}`} key={`tokens-${groupName}`}>
                     <Accordion.Control>
                         <Group>
                             <Text>Tokens: {groupName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
-                            <Badge color={tokenGroupsMap[groupName].filter(d => d.changed !== false).length === tokenGroupsMap[groupName].length ? "green" : "orange"}>
-                                {tokenGroupsMap[groupName].filter(d => d.changed !== false).length} / {tokenGroupsMap[groupName].length} randomized
+                            <Badge color={getChangedCount(tokenGroupsMap[groupName]) === tokenGroupsMap[groupName].length ? "green" : "orange"}>
+                                {getChangedCount(tokenGroupsMap[groupName])} / {tokenGroupsMap[groupName].length} randomized
                             </Badge>
                         </Group>
                     </Accordion.Control>
@@ -258,8 +228,7 @@ export function RandomizerResults() {
                           </Table.Thead>
                           <Table.Tbody>
                             {tokenGroupsMap[groupName].map(d => {
-                                const keyPath = d.path.replace('tokens.', '').replace(/\.\$value$/, '');
-                                return renderDiffLine({ ...d, path: keyPath });
+                                return renderDiffLine(d);
                             })}
                           </Table.Tbody>
                         </Table>
@@ -272,8 +241,8 @@ export function RandomizerResults() {
                     <Accordion.Control>
                         <Group>
                             <Text>Theme: {groupName}</Text>
-                            <Badge color={themeGroupsMap[groupName].filter(d => d.changed !== false).length === themeGroupsMap[groupName].length ? "green" : "orange"}>
-                                {themeGroupsMap[groupName].filter(d => d.changed !== false).length} / {themeGroupsMap[groupName].length} randomized
+                            <Badge color={getChangedCount(themeGroupsMap[groupName]) === themeGroupsMap[groupName].length ? "green" : "orange"}>
+                                {getChangedCount(themeGroupsMap[groupName])} / {themeGroupsMap[groupName].length} randomized
                             </Badge>
                         </Group>
                     </Accordion.Control>
@@ -288,10 +257,7 @@ export function RandomizerResults() {
                           </Table.Thead>
                           <Table.Tbody>
                             {themeGroupsMap[groupName].map(d => {
-                                let keyPath = d.path.replace('theme.', '').replace(/\.\$value$/, '');
-                                if (filterMode === 'light') keyPath = keyPath.replace('brand.themes.light.', '');
-                                if (filterMode === 'dark') keyPath = keyPath.replace('brand.themes.dark.', '');
-                                return renderDiffLine({ ...d, path: keyPath });
+                                return renderDiffLine(d);
                             })}
                           </Table.Tbody>
                         </Table>
@@ -300,34 +266,36 @@ export function RandomizerResults() {
             ))}
 
             {Object.keys(componentsMap).map(compName => (
-                <Accordion.Item value={compName} key={compName}>
-                    <Accordion.Control>
-                        <Group>
-                            <Text>{compName.charAt(0).toUpperCase() + compName.slice(1)}</Text>
-                            <Badge color={ratios[compName] && ratios[compName].changed === ratios[compName].total ? "green" : "orange"}>
-                                {ratios[compName] ? `${ratios[compName].changed} / ${ratios[compName].total}` : componentsMap[compName].filter(d => d.changed !== false).length} randomized
-                            </Badge>
-                        </Group>
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                        <Table striped highlightOnHover withTableBorder withColumnBorders>
-                          <Table.Thead>
-                            <Table.Tr>
-                              <Table.Th style={{ width: '40%' }}>Key</Table.Th>
-                              <Table.Th style={{ width: '30%' }}>Before</Table.Th>
-                              <Table.Th style={{ width: '30%' }}>After</Table.Th>
-                            </Table.Tr>
-                          </Table.Thead>
-                          <Table.Tbody>
-                            {componentsMap[compName].map(renderDiffLine)}
-                          </Table.Tbody>
-                        </Table>
-                    </Accordion.Panel>
-                </Accordion.Item>
+              <Accordion.Item value={compName} key={compName}>
+                <Accordion.Control>
+                  <Group>
+                    <Text>Component: {compName.charAt(0).toUpperCase() + compName.slice(1)}</Text>
+                    <Badge color={getChangedCount(componentsMap[compName]) === componentsMap[compName].length ? "green" : "orange"}>
+                        {getChangedCount(componentsMap[compName])} / {componentsMap[compName].length} randomized
+                    </Badge>
+                  </Group>
+                </Accordion.Control>
+                <Accordion.Panel>
+                  <Table striped highlightOnHover withTableBorder withColumnBorders>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th style={{ width: '40%' }}>Key</Table.Th>
+                        <Table.Th style={{ width: '30%' }}>Before</Table.Th>
+                        <Table.Th style={{ width: '30%' }}>After</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                    {componentsMap[compName].map(d => {
+                          return renderDiffLine(d);
+                      })}
+                    </Table.Tbody>
+                  </Table>
+                </Accordion.Panel>
+              </Accordion.Item>
             ))}
           </Accordion>
         </Paper>
       )}
     </Box>
-  );
+  )
 }

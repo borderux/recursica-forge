@@ -46,9 +46,16 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
             if (!Number.isNaN(parsed)) {
                 if (dimObj.unit === 'percentage') {
                     const asFloat = parsed <= 1 ? parsed : parsed / 100;
-                    const shift = (Math.floor(Math.random() * 5) - 2) * 0.05;
+                    // Ensure a non-zero shift by picking from (-0.1, -0.05, 0.05, 0.1)
+                    const options = [-0.1, -0.05, 0.05, 0.1];
+                    const shift = options[Math.floor(Math.random() * options.length)];
                     const result = Math.max(0, Math.min(1, asFloat + shift));
-                    dimObj.value = Number(result.toFixed(2));
+                    let newVal = Number(result.toFixed(2));
+                    // Ensure we actually moved from oldVal
+                    if (newVal === asFloat) {
+                        newVal = asFloat > 0.5 ? Number((asFloat - 0.1).toFixed(2)) : Number((asFloat + 0.1).toFixed(2));
+                    }
+                    dimObj.value = newVal;
                 } else {
                     dimObj.value = randomizeNumberValue(parsed);
                 }
