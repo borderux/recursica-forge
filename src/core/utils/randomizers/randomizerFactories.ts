@@ -72,13 +72,9 @@ export function getConstants() {
     sizeTokens: ['none', '0-5x', '1x', '1-5x', '2x', '3x', '4x', '5x', '6x'],
     fontSizes: ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
     textSizes: ['2xs', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
-    fontWeights: ['thin', 'extra-light', 'light', 'regular', 'medium', 'semi-bold', 'bold', 'extra-bold', 'black'],
     letterSpacings: ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest'],
     lineHeights: ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest'],
     typefaces: typefaces.length > 0 ? typefaces : ['primary'],
-    textStyles: ['normal', 'italic'],
-    textCases: ['original', 'uppercase', 'titlecase'],
-    textDecorations: ['none', 'underline', 'strikethrough'],
     borderRadii: ['none', 'sm', 'default', 'lg', 'xl', '2xl'],
     dimensionGeneral: ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl'],
     iconSizes: ['xs', 'sm', 'default', 'lg', 'xl'],
@@ -111,34 +107,10 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{tokens.${opacityMatch[1]}.${shiftValue(opacityMatch[2], CONSTANTS.opacities)}}`;
     }
 
-    // Font weights: {tokens.font.weights.regular}
-    const fontWeightMatch = content.match(/^tokens\.font\.weights\.([a-z0-9-]+)$/);
-    if (fontWeightMatch) {
-        return `{tokens.font.weights.${shiftValue(fontWeightMatch[1], CONSTANTS.fontWeights)}}`;
-    }
-
-    // Font styles: {tokens.font.styles.italic}
-    const fontStyleMatch = content.match(/^tokens\.font\.styles\.([a-z0-9-]+)$/);
-    if (fontStyleMatch) {
-        return `{tokens.font.styles.${shiftValue(fontStyleMatch[1], CONSTANTS.textStyles)}}`;
-    }
-    
     // Typefaces: {tokens.font.typefaces.primary}
     const typefaceMatch = content.match(/^tokens\.font\.typefaces\.([a-z0-9-]+)$/);
     if (typefaceMatch) {
         return `{tokens.font.typefaces.${shiftValue(typefaceMatch[1], CONSTANTS.typefaces)}}`;
-    }
-    
-    // Text cases: {tokens.font.cases.original}
-    const casesMatch = content.match(/^tokens\.font\.cases\.([a-z0-9-]+)$/);
-    if (casesMatch) {
-        return `{tokens.font.cases.${shiftValue(casesMatch[1], CONSTANTS.textCases)}}`;
-    }
-
-    // Text decoration: {tokens.font.decorations.none}
-    const decorationsMatch = content.match(/^tokens\.font\.decorations\.([a-z0-9-]+)$/);
-    if (decorationsMatch) {
-        return `{tokens.font.decorations.${shiftValue(decorationsMatch[1], CONSTANTS.textDecorations)}}`;
     }
     
     // Brand Elevatons: {brand.elevations.elevation-1} or {brand.themes.light.elevations.elevation-1}
@@ -330,9 +302,6 @@ export function randomizeRawColor(color: string): string {
 
 export function randomizeStringValue(propName: string, oldVal: string): string {
     const stringOptions: Record<string, string[]> = {
-        'text-decoration': ['none', 'underline', 'line-through'],
-        'text-transform': ['none', 'uppercase', 'lowercase', 'capitalize'],
-        'font-style': ['normal', 'italic'],
         'display': ['icon', 'text', 'icon+text'],
         'orientation': ['horizontal', 'vertical'],
         'heading-level': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
