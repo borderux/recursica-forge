@@ -165,6 +165,13 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{brand.dimensions.general.${shiftValue(dimMatch[1], CONSTANTS.dimensionGeneral)}}`;
     }
 
+    // Brand Dimension Gutters: {brand.dimensions.gutters.vertical} -> map to general
+    const gutterMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?dimensions\.gutters\.([a-z0-9-]+)$/);
+    if (gutterMatch) {
+        const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
+        return `{brand.dimensions.general.${randomGeneral}}`;
+    }
+
     // Brand Dimension Text Size: {brand.dimensions.text-size.md}
     const textDimMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?dimensions\.text-size\.([a-z0-9-]+)$/);
     if (textDimMatch) {

@@ -167,7 +167,7 @@ export default function Link({
 
             // Flex styles for icons
             display: 'inline-flex',
-            alignItems: 'baseline',
+            alignItems: 'center',
             gap: startIcon || endIcon ? `var(${iconGapVar})` : 0,
 
             // Set CSS vars for CSS override
