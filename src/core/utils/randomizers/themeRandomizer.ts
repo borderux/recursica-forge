@@ -1,5 +1,5 @@
 import { JsonLike } from '../../resolvers/tokens';
-import { randomizeTokenReference, randomizeRawColor, randomizeNumberValue } from './randomizerFactories';
+import { randomizeTokenReference, randomizeRawColor, randomizeNumberValue, randomizeStringValue } from './randomizerFactories';
 
 export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[]): JsonLike {
   const modifiedTheme = JSON.parse(JSON.stringify(initialTheme)) as any;
@@ -74,9 +74,15 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
        } else if (typeof oldVal === 'number') {
           if (path.includes('opacity')) {
               const asFloat = oldVal <= 1 ? oldVal : oldVal / 100;
-              const shift = (Math.floor(Math.random() * 5) - 2) * 0.05;
+              // Ensure a non-zero shift by picking from (-0.1, -0.05, 0.05, 0.1)
+              const options = [-0.1, -0.05, 0.05, 0.1];
+              const shift = options[Math.floor(Math.random() * options.length)];
               const result = Math.max(0, Math.min(1, asFloat + shift));
               newVal = Number(result.toFixed(2));
+              // Ensure we actually moved from oldVal
+              if (newVal === asFloat) {
+                  newVal = asFloat > 0.5 ? Number((asFloat - 0.1).toFixed(2)) : Number((asFloat + 0.1).toFixed(2));
+              }
           } else {
               newVal = randomizeNumberValue(oldVal);
           }
@@ -98,17 +104,37 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
        if (tv && typeof tv === 'object') {
           for (const key of Object.keys(tv)) {
              const oldVal = tv[key];
+             const fullPathStr = path.join('.') + '.$value.' + key;
+             let newVal = oldVal;
+             
              if (typeof oldVal === 'string' && oldVal.startsWith('{')) {
-                const newVal = randomizeTokenReference(oldVal);
-                const hasChanged = newVal !== oldVal;
-                if (hasChanged) {
-                   tv[key] = newVal;
-                }
-                diffs.push({ path: 'theme.' + path.join('.') + '.$value.' + key, before: oldVal, after: newVal, changed: hasChanged });
+                newVal = randomizeTokenReference(oldVal, fullPathStr);
+             } else if (typeof oldVal === 'string') {
+                newVal = randomizeStringValue(key, oldVal);
+             } else if (typeof oldVal === 'number') {
+                newVal = randomizeNumberValue(oldVal);
              }
+             
+             const hasChanged = newVal !== oldVal;
+             if (hasChanged) {
+                tv[key] = newVal;
+             }
+             diffs.push({ path: 'theme.' + fullPathStr, before: oldVal, after: newVal, changed: hasChanged });
           }
        }
        return;
+    }
+    
+    // Add support for generic leaf nodes that might be strings (e.g. border-style)
+    if ('$value' in node && typeof node.$value === 'string' && !node.$value.startsWith('{') && !/^#[0-9a-fA-F]{6}$/.test(node.$value) && shouldRandomize) {
+        const oldVal = node.$value;
+        const newVal = randomizeStringValue(path[path.length - 1], oldVal);
+        const hasChanged = newVal !== oldVal;
+        if (hasChanged) {
+            node.$value = newVal;
+        }
+        diffs.push({ path: 'theme.' + path.join('.'), before: oldVal, after: newVal, changed: hasChanged });
+        return;
     }
 
     for (const key of Object.keys(node)) {

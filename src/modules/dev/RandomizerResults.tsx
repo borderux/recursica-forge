@@ -155,7 +155,7 @@ export function RandomizerResults() {
           themeGroupsMap['Dimensions'].push(d);
       } else if (p.includes('.typography.')) {
           themeGroupsMap['Type'].push(d);
-      } else if (p.includes('.palettes.core') || p.includes('.elements.interactive.') || p.includes('.text-emphasis.') || p.includes('.states.')) {
+      } else if (p.includes('.palettes.core') || p.includes('.core-colors.') || p.includes('.elements.interactive.') || p.includes('.text-emphasis.') || p.includes('.states.')) {
           themeGroupsMap['Core Properties'].push(d);
       } else if (p.includes('.palettes.')) {
           themeGroupsMap['Palettes'].push(d);
@@ -291,19 +291,7 @@ export function RandomizerResults() {
                                 let keyPath = d.path.replace('theme.', '').replace(/\.\$value$/, '');
                                 if (filterMode === 'light') keyPath = keyPath.replace('brand.themes.light.', '');
                                 if (filterMode === 'dark') keyPath = keyPath.replace('brand.themes.dark.', '');
-                                return (
-                                <Table.Tr key={d.path}>
-                                    <Table.Td>
-                                        <Text size="sm">{keyPath}</Text>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Code>{renderFormattedDiff(d.before, d.after).beforeFormatted}</Code>
-                                    </Table.Td>
-                                    <Table.Td>
-                                        <Code>{renderFormattedDiff(d.before, d.after).afterFormatted}</Code>
-                                    </Table.Td>
-                                </Table.Tr>
-                                );
+                                return renderDiffLine({ ...d, path: keyPath });
                             })}
                           </Table.Tbody>
                         </Table>

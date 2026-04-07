@@ -214,12 +214,13 @@ class VarsStore {
     // Always start from fresh JSON imports. User changes are restored via the delta
     // serialization system (rf:css-delta) AFTER recomputeAndApplyAll generates defaults.
     // This eliminates the old localStorage JSON dual-write system.
-    const tokensRaw = tokensImport as any
+    // Use deep-cloned JSON imports to ensure we don't mutate the singleton imports
+    const tokensRaw = JSON.parse(JSON.stringify(tokensImport as any))
     // Sort font token objects once during initialization to maintain consistent order
     const tokens = sortFontTokenObjects(tokensRaw) || tokensRaw || {}
-    const themeRaw = themeImport as any
-    const theme = (themeRaw as any)?.brand ? themeRaw : ({ brand: themeRaw } as any)
-    const uikit = uikitImport as any
+    const themeImportRaw = JSON.parse(JSON.stringify(themeImport as any))
+    const theme = themeImportRaw?.brand ? themeImportRaw : { brand: themeImportRaw }
+    const uikit = JSON.parse(JSON.stringify(uikitImport as any))
     const palettes = defaultPaletteStore()
 
     // Strip deleted color scales from tokens before any CSS generation.
@@ -944,9 +945,12 @@ class VarsStore {
       sessionStorage.removeItem('randomizer_ratios')
     } catch { }
 
-    // Reset state from original JSON imports
-    const sortedTokens = sortFontTokenObjects(tokensImport as any)
-    const normalizedTheme = (themeImport as any)?.brand ? themeImport : ({ brand: themeImport } as any)
+    // Reset state from deep-cloned original JSON imports
+    // This ensures we have fresh objects that haven't been mutated in-memory
+    const tokens = JSON.parse(JSON.stringify(tokensImport))
+    const sortedTokens = sortFontTokenObjects(tokens as any)
+    const normalizedTheme = JSON.parse(JSON.stringify(themeImport?.brand ? themeImport : { brand: themeImport }))
+    const uikit = JSON.parse(JSON.stringify(this.pristineUikit))
 
     // Reset localStorage to original values
     if (this.lsAvailable) {
@@ -966,11 +970,11 @@ class VarsStore {
     // Initialize elevation state (this will create elevation tokens in sortedTokens)
     const elevation = this.initElevationState(normalizedTheme as any, sortedTokens)
 
-    // Reset state (elevation tokens are now in sortedTokens from initElevationState)
+    // Reset state
     this.state = {
       tokens: sortedTokens,
       theme: normalizedTheme as any,
-      uikit: uikitImport as any,
+      uikit: uikit as any,
       palettes: defaultPaletteStore(),
       elevation,
       version: (this.state?.version || 0) + 1
@@ -980,6 +984,9 @@ class VarsStore {
     // Reset the recomputing flag first since we're doing a full reset
     this.isRecomputing = false
     this.recomputeAndApplyAll()
+
+    // Snapshot new defaults (clean JSON) so delta system has the correct baseline
+    snapshotDefaults(this.lastComputedVars)
 
     // Compliance scan will run automatically via debounced scheduleComplianceScan
     // triggered at the end of recomputeAndApplyAll().
