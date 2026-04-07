@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.9.1
+
+### Patch Changes
+
+- 478c118: fix for randomization tokens being invalid
+
 ## 0.9.0
 
 ### Minor Changes
