@@ -9,8 +9,8 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { RoundTripResult, DiffEntry, DiffStatus } from './exportImportValidator'
-import { SESSION_STORAGE_KEY } from './exportImportValidator'
+import type { RoundTripResult, DiffEntry } from './exportImportValidator'
+import { LOCAL_STORAGE_KEY } from './exportImportValidator'
 
 // ─── Theme palettes ───────────────────────────────────────────────────────────
 
@@ -204,13 +204,14 @@ function makeStyles(p: Palette) {
       wordBreak: 'break-all' as const,
       color: p.textMono,
     },
-    statusChip: (status: DiffStatus) => {
-      const config: Record<DiffStatus, { bg: string }> = {
-        match: { bg: '#166534' },
-        mismatch: { bg: '#92400e' },
-        missing: { bg: '#7c2d12' },
-        extra: { bg: '#4c1d95' },
+    statusChip: (status: string) => {
+      const config: Record<string, { bg: string; color: string }> = {
+        'modified': { bg: '#4c1d95', color: '#fff' }, // Purple (User changed, import kept)
+        'mismatch': { bg: '#92400e', color: '#fff' }, // Orange (All 3 differ)
+        'reverted': { bg: '#991b1b', color: '#fca5a5' }, // Red (Reverted to original)
+        'import-bug': { bg: '#7c2d12', color: '#fff' }, // Dark Red (Original == Export, but Import broke it)
       }
+      const style = config[status] || { bg: '#333', color: '#fff' }
       return {
         padding: '1px 6px',
         borderRadius: 4,
@@ -218,8 +219,8 @@ function makeStyles(p: Palette) {
         fontWeight: 700,
         letterSpacing: '0.05em',
         textTransform: 'uppercase' as const,
-        background: config[status].bg,
-        color: '#fff',
+        background: style.bg,
+        color: style.color,
         flexShrink: 0,
       }
     },
@@ -285,7 +286,7 @@ function JsonPanel({
   p,
 }: {
   data: object
-  fileKey: 'tokens' | 'brand' | 'uikit' | 'all'
+  fileKey: 'tokens' | 'brand' | 'uikit' | 'css' | 'all'
   styles: Styles
   p: Palette
 }) {
@@ -379,7 +380,7 @@ function ValueCell({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-type FileTab = 'tokens' | 'brand' | 'uikit'
+type FileTab = 'tokens' | 'brand' | 'uikit' | 'css'
 type ViewMode = 'diff' | 'json'
 
 export function RoundTripPage() {
@@ -399,11 +400,22 @@ export function RoundTripPage() {
     return savedMode === 'dark' ? darkPalette : lightPalette
   }, [])
 
-  // Read + cleanup sessionStorage on mount
+  // Read + cleanup localStorage on mount
   useEffect(() => {
-    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY)
+    // 1. Try window.opener first (unlimited size, synchronous pointer)
+    const openerData = typeof window !== 'undefined' && window.opener 
+      ? window.opener.__RECURSICA_ROUNDTRIP_DATA__ 
+      : null
+
+    if (openerData) {
+      setResult(openerData)
+      return
+    }
+
+    // 2. Try localStorage fallback
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY)
     if (raw) {
-      sessionStorage.removeItem(SESSION_STORAGE_KEY)
+      localStorage.removeItem(LOCAL_STORAGE_KEY)
       try {
         setResult(JSON.parse(raw) as RoundTripResult)
       } catch { /* corrupt data, handled by empty state */ }
@@ -426,6 +438,7 @@ export function RoundTripPage() {
       tokens: result.diffs.filter((d) => d.file === 'tokens').length,
       brand: result.diffs.filter((d) => d.file === 'brand').length,
       uikit: result.diffs.filter((d) => d.file === 'uikit').length,
+      css: result.diffs.filter((d) => d.file === 'css').length,
     } as Record<string, number>
   }, [result])
 
@@ -458,12 +471,12 @@ export function RoundTripPage() {
 
   // Get the snapshot object for a given panel + file filter
   const getSnapshot = (key: keyof RoundTripResult) => {
-    return result[key] as { tokens: object; brand: object; uikit: object }
+    return result[key] as { tokens: object; brand: object; uikit: object; css: object }
   }
 
   // Get value for a diff path from a given snapshot
   const resolveValue = (
-    snapshot: { tokens: object; brand: object; uikit: object },
+    snapshot: { tokens: object; brand: object; uikit: object; css: object },
     diff: DiffEntry
   ): unknown => {
     const file = snapshot[diff.file] as Record<string, unknown>
@@ -480,25 +493,6 @@ export function RoundTripPage() {
     <div style={styles.root}>
       {/* ── Top bar ── */}
       <div style={styles.topBar}>
-        {/* Back to Forge */}
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            padding: '4px 12px',
-            borderRadius: 6,
-            fontSize: 12,
-            fontWeight: 500,
-            cursor: 'pointer',
-            background: 'transparent',
-            color: palette.textSecondary,
-            border: `1px solid ${palette.border}`,
-            transition: 'all 0.15s',
-            flexShrink: 0,
-          }}
-        >
-          ← Back to Forge
-        </button>
-
         <span style={styles.title}>Round-Trip Validation</span>
 
         {/* View mode toggle */}
@@ -526,8 +520,8 @@ export function RoundTripPage() {
 
         {/* File filter tabs */}
         <div style={{ ...styles.fileTabsWrap, gap: 2 }}>
-          {(['tokens', 'brand', 'uikit'] as FileTab[]).map((tab) => {
-            const label = tab === 'uikit' ? 'UI Kit' : tab.charAt(0).toUpperCase() + tab.slice(1)
+          {(['tokens', 'brand', 'uikit', 'css'] as FileTab[]).map((tab) => {
+            const label = tab === 'uikit' ? 'UI Kit' : tab === 'css' ? 'CSS' : tab.charAt(0).toUpperCase() + tab.slice(1)
             return (
             <button
               key={tab}
@@ -574,7 +568,7 @@ export function RoundTripPage() {
             /* JSON view: three columns side by side */
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', flex: 1 }}>
               {panels.map(({ key }, i) => {
-                const snap = result[key] as { tokens: object; brand: object; uikit: object }
+                const snap = result[key] as { tokens: object; brand: object; uikit: object; css: object }
                 return (
                   <div key={key} style={{ borderRight: i < panels.length - 1 ? `1px solid ${palette.border}` : 'none' }}>
                     <JsonPanel data={snap} fileKey={fileTab} styles={styles} p={palette} />
@@ -589,20 +583,36 @@ export function RoundTripPage() {
           ) : (
             /* Diff view: one row per diff path, three value columns */
             filteredDiffs.map((diff, rowIdx) => {
-              const snaps = panels.map(({ key }) => result[key] as { tokens: object; brand: object; uikit: object })
+              const snaps = panels.map(({ key }) => result[key] as { tokens: object; brand: object; uikit: object; css: object })
+              const origVal = resolveValue(snaps[0], diff)
               const exportVal = resolveValue(snaps[1], diff)
+              const importVal = resolveValue(snaps[2], diff)
+              
+              const origStr = origVal === undefined ? undefined : JSON.stringify(origVal)
+              const expStr = exportVal === undefined ? undefined : JSON.stringify(exportVal)
+              const impStr = importVal === undefined ? undefined : JSON.stringify(importVal)
+              
+              let status = 'mismatch'
+              if (expStr === impStr) {
+                  status = 'modified' // Successfully tracked modification
+              } else if (origStr === expStr) {
+                  status = 'import-bug' // Import threw away the data or mutated it unnecessarily
+              } else if (origStr === impStr) {
+                  status = 'reverted' // Import threw away the user modification
+              }
+
               return (
                 <div key={`${diff.file}-${diff.path}`}>
                   {/* Full-width path row */}
                   <div style={{ ...styles.pathRow, display: 'grid', gridTemplateColumns: '1fr auto' }}>
                     <span style={styles.pathLabel}>{diff.file} › {diff.path}</span>
-                    <span style={styles.statusChip(diff.status)}>{diff.status}</span>
+                    <span style={styles.statusChip(status)}>{status}</span>
                   </div>
                   {/* Three-column value row */}
                   <div style={styles.diffRow(rowIdx % 2 === 1)}>
                     {snaps.map((snap, panelIdx) => {
                       const val = resolveValue(snap, diff)
-                      const highlight = panelIdx !== 1 && JSON.stringify(val) !== JSON.stringify(exportVal)
+                      const highlight = (panelIdx === 1 && expStr !== origStr) || (panelIdx === 2 && impStr !== expStr)
                       return (
                         <div key={panelIdx} style={styles.diffCell(panelIdx === snaps.length - 1)}>
                           <div style={styles.valueRow(false)}>

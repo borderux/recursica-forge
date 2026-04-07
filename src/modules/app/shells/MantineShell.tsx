@@ -108,10 +108,29 @@ export default function MantineShell({
     clearSelectedFiles,
   } = useJsonImport();
   const handleRoundTripValidation = async () => {
+    // Open window synchronously to bypass popup blockers
+    const diffWindow = window.open('', '_blank')
+    if (diffWindow) {
+      diffWindow.document.write('<div style="font-family:sans-serif;padding:40px;text-align:center;">Running validation, please wait...</div>')
+    }
+    
     setIsValidating(true)
     try {
       await runRoundTripValidation()
-      navigate('/dev/diff')
+      if (diffWindow) {
+        diffWindow.location.href = '/dev/diff'
+      }
+    } catch (e) {
+      if (diffWindow) {
+        diffWindow.document.body.innerHTML = `
+          <div style="font-family:sans-serif;padding:40px;color:#ef4444;background:#111827;height:100vh;">
+            <h2>Diagnostic Engine Crashed</h2>
+            <p>The validation pipeline threw an unhandled exception before the diff could be rendered.</p>
+            <pre style="background:#000;padding:16px;overflow-x:auto;">${e instanceof Error ? e.stack || e.message : String(e)}</pre>
+          </div>
+        `
+      }
+      console.error(e)
     } finally {
       setIsValidating(false)
     }

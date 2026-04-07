@@ -10,12 +10,8 @@ import tokensJson from "../../../recursica_tokens.json";
 import brandJson from "../../../recursica_brand.json";
 import uikitJson from "../../../recursica_ui-kit.json";
 import type { JsonLike } from "../resolvers/tokens";
-import {
-  validateBrandJson,
-  validateTokensJson,
-  validateUIKitJson,
-} from "../utils/validateJsonSchemas";
-import { getDelta } from "../store/cssDelta";
+import { validateBrandJson, validateTokensJson, validateUIKitJson } from "../utils/validateJsonSchemas";
+import { getDelta, clearDeltaByPrefix } from "../store/cssDelta";
 
 /**
  * Clears CSS variables based on what's being imported
@@ -204,20 +200,19 @@ export function importJsonFiles(files: {
   brand?: object;
   uikit?: object;
 }): void {
-  // Clear CSS variables for the files being imported (start clean)
+  const store = getVarsStore();
+
+  // Clear running CSS variables for the files being imported
   clearCssVarsForImport(files);
 
-  // Import files in order: tokens first, then brand, then uikit
-  // This ensures dependencies are resolved correctly
-  if (files.tokens) {
-    importTokensJson(files.tokens);
-  }
+  // Clear persistent delta for these namespaces so stale overrides don't resurrect themselves
+  if (files.tokens) clearDeltaByPrefix("--recursica_tokens_");
+  if (files.brand) clearDeltaByPrefix("--recursica_brand_");
+  if (files.uikit) clearDeltaByPrefix("--recursica_ui-kit_");
 
-  if (files.brand) {
-    importBrandJson(files.brand);
-  }
-
-  if (files.uikit) {
-    importUIKitJson(files.uikit);
-  }
+  // Import files in order (this also triggers recomputeAndApplyAll, 
+  // which now natively translates the changes into the persistent CSS delta tracks).
+  if (files.tokens) importTokensJson(files.tokens);
+  if (files.brand) importBrandJson(files.brand);
+  if (files.uikit) importUIKitJson(files.uikit);
 }

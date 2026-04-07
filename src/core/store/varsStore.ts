@@ -414,6 +414,23 @@ class VarsStore {
     }, 500)
   }
 
+  /**
+   * Translates the current computed variables into the CSS Delta.
+   * Used after bulk JSON operations (like importing files or randomizing) 
+   * to ensure the current state persists across refreshes.
+   */
+  public trackCurrentStateAsDelta(prefixFilter?: string) {
+    const changes: Record<string, string> = {}
+    for (const [key, value] of Object.entries(this.lastComputedVars)) {
+      if (!prefixFilter || key.startsWith(prefixFilter)) {
+         changes[key] = value
+      }
+    }
+    if (Object.keys(changes).length > 0) {
+      trackChanges(changes)
+    }
+  }
+
   public bumpVersion() { this.state = { ...this.state, version: (this.state.version || 0) + 1 }; this.emit() }
 
   /**
@@ -480,7 +497,10 @@ class VarsStore {
 
   setTokens(next: JsonLike) {
     this.writeState({ tokens: next })
-    if (!this.isRecomputing) this.recomputeAndApplyAll()
+    if (!this.isRecomputing) {
+      this.recomputeAndApplyAll()
+      this.trackCurrentStateAsDelta('--recursica_tokens_')
+    }
   }
   /**
    * Update tokens JSON in-memory WITHOUT triggering recomputeAndApplyAll.
@@ -489,7 +509,10 @@ class VarsStore {
   setTokensSilent(next: JsonLike) { this.writeState({ tokens: next }) }
   setTheme(next: JsonLike) {
     this.writeState({ theme: next })
-    if (!this.isRecomputing) this.recomputeAndApplyAll()
+    if (!this.isRecomputing) {
+      this.recomputeAndApplyAll()
+      this.trackCurrentStateAsDelta('--recursica_brand_')
+    }
   }
   /**
    * Update theme JSON in-memory WITHOUT triggering recomputeAndApplyAll.
@@ -553,7 +576,10 @@ class VarsStore {
 
   setUiKit(next: JsonLike) {
     this.writeState({ uikit: next })
-    if (!this.isRecomputing) this.recomputeAndApplyAll()
+    if (!this.isRecomputing) {
+      this.recomputeAndApplyAll()
+      this.trackCurrentStateAsDelta('--recursica_ui-kit_')
+    }
     // Persist uikit to localStorage when it contains custom variants so they
     // survive page refreshes. Normal token edits go through the CSS delta system.
     if (this.lsAvailable) {
