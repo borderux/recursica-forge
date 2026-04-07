@@ -69,17 +69,18 @@ export function getConstants() {
     tones: ['tone', 'on-tone'],
     coreColors: ['interactive', 'warning', 'success', 'alert', 'black', 'white'],
     coreColorLevels: ['default', 'hover'],
-    sizeTokens: ['none', '0-5x', '1x', '1-5x', '2x', '3x', '4x', '5x', '6x'],
+    sizeTokens: ['none', '0-5x', 'default', '1-5x', '2x', '3x', '4x', '5x', '6x'],
     fontSizes: ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
     textSizes: ['2xs', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
     letterSpacings: ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest'],
     lineHeights: ['shortest', 'shorter', 'short', 'default', 'tall', 'taller', 'tallest'],
     typefaces: typefaces.length > 0 ? typefaces : ['primary'],
     borderRadii: ['none', 'sm', 'default', 'lg', 'xl', '2xl'],
-    dimensionGeneral: ['none', 'xs', 'sm', 'default', 'md', 'lg', 'xl', '2xl', '3xl'],
-    iconSizes: ['xs', 'sm', 'default', 'lg', 'xl'],
+    dimensionGeneral: ['none', 'sm', 'md', 'default', 'lg', 'xl', '2xl'],
+    iconSizes: ['xs', 'sm', 'default', 'lg'],
     elevations: ['elevation-0', 'elevation-1', 'elevation-2', 'elevation-3', 'elevation-4'],
-    opacities: ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid']
+    opacities: ['invisible', 'mist', 'ghost', 'faint', 'veiled', 'smoky', 'solid'],
+    uikit: state.uikit?.['ui-kit'] || state.uikit || {}
   };
 }
 
@@ -205,7 +206,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     // Text Emphasis: {brand.text-emphasis.low} or {brand.themes.light.text-emphasis.low}
     const emphasisMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?text-emphasis\.([a-z0-9-]+)$/);
     if (emphasisMatch) {
-        return `{brand.text-emphasis.${shiftValue(emphasisMatch[1], ['low', 'medium', 'high'])}}`;
+        return `{brand.text-emphasis.${shiftValue(emphasisMatch[1], ['low', 'high'])}}`;
     }
 
     // Layers: {brand.themes.light.layers.layer-1.elements.interactive.tone} or {brand.layers.layer-1.properties.border-color}
@@ -263,6 +264,16 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const componentVariantMatch = content.match(/^ui-kit\.components\.([a-z0-9-]+)\.variants\.(styles|sizes|appearances)\.([a-z0-9-]+)$/);
     if (componentVariantMatch) {
        const [, comp, category, value] = componentVariantMatch;
+       // Attempt to find actual available variants for this component category
+       const componentDef = CONSTANTS.uikit?.components?.[comp];
+       if (componentDef && componentDef.variants && componentDef.variants[category]) {
+           const availableVariants = Object.keys(componentDef.variants[category]).filter(k => !k.startsWith('$'));
+           if (availableVariants.length > 0) {
+               return `{ui-kit.components.${comp}.variants.${category}.${shiftValue(value, availableVariants)}}`;
+           }
+       }
+       
+       // Fallback to basic lists if we couldn't find the component definition
        if (category === 'styles') {
            return `{ui-kit.components.${comp}.variants.styles.${shiftValue(value, ['solid', 'text', 'outline', 'transparent', 'subtle'])}}`;
        } else if (category === 'sizes') {
@@ -276,7 +287,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const typographyMatch = content.match(/^brand\.typography\.([a-z0-9-]+)\.([a-zA-Z]+)$/);
     if (typographyMatch) {
        const [, level, prop] = typographyMatch;
-       const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'body', 'label', 'caption', 'code', 'small'];
+       const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline'];
        const newLevel = shiftValue(level, levels);
        return `{brand.typography.${newLevel}.${prop}}`;
     }
