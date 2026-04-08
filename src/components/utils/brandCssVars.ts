@@ -78,7 +78,7 @@ export function getElevationBoxShadow(
  * @returns Parsed elevation level (e.g., "elevation-1") or undefined
  */
 export function parseElevationValue(elevationValue: string | undefined): string | undefined {
-  if (!elevationValue) {
+  if (!elevationValue || elevationValue === 'none') {
     return undefined
   }
 
