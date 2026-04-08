@@ -380,13 +380,13 @@ function ValueCell({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-type FileTab = 'tokens' | 'brand' | 'uikit' | 'css'
-type ViewMode = 'diff' | 'json'
+type FileTab = 'all' | 'tokens' | 'brand' | 'uikit' | 'css'
+type ViewMode = 'diff' | 'mismatches' | 'json'
 
 export function RoundTripPage() {
   const navigate = useNavigate()
   const [result, setResult] = useState<RoundTripResult | null>(null)
-  const [fileTab, setFileTab] = useState<FileTab>('tokens')
+  const [fileTab, setFileTab] = useState<FileTab>('all')
   const [viewMode, setViewMode] = useState<ViewMode>('diff')
 
   const styles = useMemo<Styles>(() => {
@@ -403,9 +403,14 @@ export function RoundTripPage() {
   // Read + cleanup localStorage on mount
   useEffect(() => {
     // 1. Try window.opener first (unlimited size, synchronous pointer)
-    const openerData = typeof window !== 'undefined' && window.opener 
-      ? window.opener.__RECURSICA_ROUNDTRIP_DATA__ 
-      : null
+    let openerData = null
+    try {
+      openerData = typeof window !== 'undefined' && window.opener 
+        ? window.opener.__RECURSICA_ROUNDTRIP_DATA__ 
+        : null
+    } catch (e) {
+      // Ignore cross-origin errors if any
+    }
 
     if (openerData) {
       setResult(openerData)
@@ -424,13 +429,19 @@ export function RoundTripPage() {
 
   const filteredDiffs = useMemo<DiffEntry[]>(() => {
     if (!result) return []
-    return result.diffs.filter((d) => d.file === fileTab)
-  }, [result, fileTab])
-
-  const filteredSchema = useMemo(() => {
-    if (!result) return []
-    return result.schemaErrors.filter((e) => e.file === fileTab)
-  }, [result, fileTab])
+    let diffs = result.diffs
+    if (fileTab !== 'all') {
+      diffs = diffs.filter((d) => d.file === fileTab)
+    }
+    if (viewMode === 'mismatches') {
+      diffs = diffs.filter((d) => {
+        const expStr = d.exportValue === undefined ? undefined : JSON.stringify(d.exportValue)
+        const impStr = d.importValue === undefined ? undefined : JSON.stringify(d.importValue)
+        return expStr !== impStr
+      })
+    }
+    return diffs
+  }, [result, fileTab, viewMode])
 
   const fileCounts = useMemo(() => {
     if (!result) return { tokens: 0, brand: 0, uikit: 0 } as Record<string, number>
@@ -451,17 +462,18 @@ export function RoundTripPage() {
         </div>
         <div style={styles.emptyState}>
           <div style={{ fontSize: 48, opacity: 0.3 }}>⚗️</div>
-          <div style={{ fontSize: 16, fontWeight: 600 }}>No validation data found</div>
-          <div style={{ fontSize: 13, textAlign: 'center', maxWidth: 360, opacity: 0.6 }}>
-            Click the flask button in the Recursica Forge header to run the validation.
+          <div style={{ fontSize: 16, fontWeight: 600 }}>No diff data found</div>
+          <div style={{ fontSize: 13, textAlign: 'center', maxWidth: 400, opacity: 0.6, lineHeight: 1.6 }}>
+            Click the <strong>Diff</strong> button (⊘) in the Recursica Forge header.<br/>
+            It will download a zip, reset the app, and open the import modal.<br/>
+            Drop the zip in the import modal — this tab will update automatically.
           </div>
         </div>
       </div>
     )
   }
 
-  const allClean = result.diffs.length === 0 && result.schemaErrors.length === 0
-  const hasErrors = filteredSchema.length > 0
+  const allClean = result.diffs.length === 0
 
   const panels = [
     { label: 'Original', key: 'originalSnapshot' as const },
@@ -495,13 +507,23 @@ export function RoundTripPage() {
       <div style={styles.topBar}>
         <span style={styles.title}>Round-Trip Validation</span>
 
-        {/* View mode toggle */}
-        <button style={styles.viewToggle(viewMode === 'diff')} onClick={() => setViewMode('diff')}>
-          Diff
-        </button>
-        <button style={styles.viewToggle(viewMode === 'json')} onClick={() => setViewMode('json')}>
-          JSON
-        </button>
+        {/* File filter tabs */}
+        <div style={{ display: 'flex', gap: 2, flex: 1 }}>
+          {(['tokens', 'brand', 'uikit', 'css', 'all'] as FileTab[]).map((tab) => {
+            const label = tab === 'uikit' ? 'UI Kit' : tab === 'css' ? 'CSS' : tab.charAt(0).toUpperCase() + tab.slice(1)
+            return (
+            <button
+              key={tab}
+              style={styles.viewToggle(fileTab === tab)}
+              onClick={() => setFileTab(tab)}
+            >
+              {label}
+              {tab !== 'all' && fileCounts[tab] !== undefined ? (
+                <span style={{ marginLeft: 4, opacity: 0.6 }}>({fileCounts[tab]})</span>
+              ) : null}
+            </button>
+          )})}
+        </div>
 
         {/* Summary badges */}
         <span style={styles.badge(allClean ? '#166534' : '#1d4ed8')}>
@@ -512,48 +534,30 @@ export function RoundTripPage() {
             {result.mismatches} mismatch{result.mismatches !== 1 ? 'es' : ''}
           </span>
         )}
-        {result.schemaErrors.length > 0 && (
-          <span style={styles.badge('#991b1b')}>
-            {result.schemaErrors.length} schema error{result.schemaErrors.length !== 1 ? 's' : ''}
-          </span>
-        )}
-
-        {/* File filter tabs */}
-        <div style={{ ...styles.fileTabsWrap, gap: 2 }}>
-          {(['tokens', 'brand', 'uikit', 'css'] as FileTab[]).map((tab) => {
-            const label = tab === 'uikit' ? 'UI Kit' : tab === 'css' ? 'CSS' : tab.charAt(0).toUpperCase() + tab.slice(1)
-            return (
-            <button
-              key={tab}
-              style={styles.viewToggle(fileTab === tab)}
-              onClick={() => setFileTab(tab)}
-            >
-              {label}
-              {fileCounts[tab] ? (
-                <span style={{ marginLeft: 4, opacity: 0.6 }}>({fileCounts[tab]})</span>
-              ) : null}
-            </button>
-          )})}
-        </div>
       </div>
 
-      {/* Banners */}
+      {/* ── Sub bar for view modes ── */}
+      <div style={{...styles.topBar, borderTop: 'none', background: palette.bgRow, paddingTop: 4, paddingBottom: 4}}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: palette.textSecondary, marginRight: 8, textTransform: 'uppercase' }}>View Mode:</span>
+        <button style={styles.viewToggle(viewMode === 'diff')} onClick={() => setViewMode('diff')}>
+          Diff
+        </button>
+        <button style={styles.viewToggle(viewMode === 'mismatches')} onClick={() => setViewMode('mismatches')}>
+          Mismatches
+        </button>
+        <button style={styles.viewToggle(viewMode === 'json')} onClick={() => setViewMode('json')}>
+          JSON
+        </button>
+      </div>
+
       {allClean && (
         <div style={styles.matchBanner}>
-          ✓ Export and import are perfectly consistent — no diffs, no schema errors.
-        </div>
-      )}
-      {hasErrors && (
-        <div style={styles.errorBanner}>
-          {filteredSchema.map((e, i) => (
-            <div key={i} style={styles.errorItem}>
-              [{e.file}/{e.phase}] {e.message}
-            </div>
-          ))}
+          ✓ Import is perfectly consistent — no diffs detected.
         </div>
       )}
 
       {/* ── Body: sticky column headers + single scroll area ── */}
+
       <div style={styles.body}>
         {/* Sticky panel header row */}
         <div style={styles.panelHeaderRow}>
@@ -576,7 +580,7 @@ export function RoundTripPage() {
                 )
               })}
             </div>
-          ) : filteredDiffs.length === 0 && !hasErrors ? (
+          ) : filteredDiffs.length === 0 ? (
             <div style={{ padding: 32, textAlign: 'center', fontSize: 13, opacity: 0.5 }}>
               No diffs in {fileTab === 'uikit' ? 'UI Kit' : fileTab}.
             </div>

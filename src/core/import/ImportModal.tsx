@@ -288,8 +288,8 @@ export function ImportModal({
           <div style={{ marginTop: "8px" }}>
             <FileUpload
               label='JSON File(s)'
-              helpText='recursica_tokens.json, recursica_brand.json, and/or recursica_ui-kit.json only'
-              accept='application/json,.json'
+              helpText='Drop recursica-export.zip, or individual .json files (tokens, brand, ui-kit)'
+              accept='application/json,.json,application/zip,.zip'
               multiple
               layer='layer-1'
               layout='stacked'

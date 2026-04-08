@@ -56,7 +56,9 @@ import {
   getCssAuditAutoRun,
   setCssAuditAutoRun,
 } from "../../../core/utils/cssAuditPreference";
-import { runRoundTripValidation } from "../../../core/dev/exportImportValidator";
+import { captureCurrentSnapshot } from '../../../core/dev/exportImportValidator';
+import { startDiffSession } from '../../../core/dev/diffSession';
+import { downloadJsonFiles } from '../../../core/export/jsonExport';
 
 export default function MantineShell({
   children,
@@ -108,29 +110,25 @@ export default function MantineShell({
     clearSelectedFiles,
   } = useJsonImport();
   const handleRoundTripValidation = async () => {
-    // Open window synchronously to bypass popup blockers
-    const diffWindow = window.open('', '_blank')
-    if (diffWindow) {
-      diffWindow.document.write('<div style="font-family:sans-serif;padding:40px;text-align:center;">Running validation, please wait...</div>')
-    }
-    
     setIsValidating(true)
     try {
-      await runRoundTripValidation()
-      if (diffWindow) {
-        diffWindow.location.href = '/dev/diff'
-      }
+      // 1. Capture the current state as the "original" snapshot before anything changes
+      const snapshot = captureCurrentSnapshot()
+      startDiffSession({
+        originalJson: { tokens: snapshot.tokens, brand: snapshot.brand, uikit: snapshot.uikit },
+        originalCss: snapshot.css,
+      })
+
+      // 2. Download a zip with all 3 JSON files so the user can re-import them
+      await downloadJsonFiles({ tokens: true, brand: true, uikit: true })
+
+      // 3. Reset the app to a clean slate
+      resetAll()
+
+      // 4. Open the import modal so the user can drop in the downloaded zip
+      setIsModalOpen(true)
     } catch (e) {
-      if (diffWindow) {
-        diffWindow.document.body.innerHTML = `
-          <div style="font-family:sans-serif;padding:40px;color:#ef4444;background:#111827;height:100vh;">
-            <h2>Diagnostic Engine Crashed</h2>
-            <p>The validation pipeline threw an unhandled exception before the diff could be rendered.</p>
-            <pre style="background:#000;padding:16px;overflow-x:auto;">${e instanceof Error ? e.stack || e.message : String(e)}</pre>
-          </div>
-        `
-      }
-      console.error(e)
+      console.error('[Diff] Failed to start diff session:', e)
     } finally {
       setIsValidating(false)
     }

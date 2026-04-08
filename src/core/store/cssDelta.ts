@@ -91,6 +91,8 @@ export function restoreDelta(): number {
       if (!varName.startsWith('--recursica_')) continue
       // Font typefaces/families are managed exclusively by rf:fonts — never restore from delta
       if (varName.startsWith('--recursica_tokens_font_typefaces_') || varName.startsWith('--recursica_tokens_font_families_')) continue
+      // Dimension brand vars always resolve to token var() references — never user-editable
+      if (varName.startsWith('--recursica_brand_dimensions_')) continue
       // Skip CSS vars belonging to deleted color scales
       if (deletedScaleKeys.size > 0) {
         const tokenColorMatch = varName.match(/^--recursica_tokens_colors?_([\w-]+)_/)
@@ -121,6 +123,8 @@ export function restoreDelta(): number {
 export function trackChange(cssVarName: string, value: string): void {
   if (!initialised) return
   if (!cssVarName.startsWith('--recursica_')) return
+  // Dimension brand vars are always token var() references — never track in delta
+  if (cssVarName.startsWith('--recursica_brand_dimensions_')) return
 
   const defaultValue = defaults[cssVarName]
 
@@ -142,6 +146,8 @@ export function trackChanges(changes: Record<string, string>): void {
 
   for (const [varName, value] of Object.entries(changes)) {
     if (!varName.startsWith('--recursica_')) continue
+    // Dimension brand vars are always token var() references — never track in delta
+    if (varName.startsWith('--recursica_brand_dimensions_')) continue
     const defaultValue = defaults[varName]
     if (value === defaultValue) {
       delete delta[varName]
