@@ -21,7 +21,9 @@ vi.mock("../utils/validateJsonSchemas", () => ({
 const mockStore = {
   setTokens: vi.fn(),
   setTheme: vi.fn(),
+  importTheme: vi.fn(),
   setUiKit: vi.fn(),
+  bulkImport: vi.fn(),
   getState: vi.fn(() => ({
     tokens: {},
     theme: {},
@@ -180,7 +182,7 @@ describe("importBrandJson", () => {
     importBrandJson(brand);
 
     expect(validateSchemasModule.validateBrandJson).toHaveBeenCalledWith(brand);
-    expect(mockStore.setTheme).toHaveBeenCalledWith(brand);
+    expect(mockStore.importTheme).toHaveBeenCalledWith(brand);
   });
 
   it("should normalize brand structure", () => {
@@ -191,7 +193,7 @@ describe("importBrandJson", () => {
     expect(validateSchemasModule.validateBrandJson).toHaveBeenCalledWith({
       brand,
     });
-    expect(mockStore.setTheme).toHaveBeenCalledWith({ brand });
+    expect(mockStore.importTheme).toHaveBeenCalledWith({ brand });
   });
 
   it("should throw on validation failure", () => {
@@ -282,9 +284,11 @@ describe("importJsonFiles", () => {
     expect(validateSchemasModule.validateTokensJson).toHaveBeenCalled();
     expect(validateSchemasModule.validateBrandJson).toHaveBeenCalled();
     expect(validateSchemasModule.validateUIKitJson).toHaveBeenCalled();
-    expect(mockStore.setTokens).toHaveBeenCalled();
-    expect(mockStore.setTheme).toHaveBeenCalled();
-    expect(mockStore.setUiKit).toHaveBeenCalled();
+    expect(mockStore.bulkImport).toHaveBeenCalledWith({
+      tokens: { tokens: {} },
+      brand: { brand: {} },
+      uikit: { "ui-kit": {} },
+    });
   });
 
   it("should import only tokens when provided", () => {
@@ -306,19 +310,13 @@ describe("importJsonFiles", () => {
       uikit: { "ui-kit": {} },
     };
 
-    const callOrder: string[] = [];
-    vi.mocked(mockStore.setTokens).mockImplementation(() =>
-      callOrder.push("tokens"),
-    );
-    vi.mocked(mockStore.setTheme).mockImplementation(() =>
-      callOrder.push("brand"),
-    );
-    vi.mocked(mockStore.setUiKit).mockImplementation(() =>
-      callOrder.push("uikit"),
-    );
-
     importJsonFiles(files);
 
-    expect(callOrder).toEqual(["tokens", "brand", "uikit"]);
+    // Multi-file import uses bulkImport which handles ordering atomically
+    expect(mockStore.bulkImport).toHaveBeenCalledWith({
+      tokens: { tokens: {} },
+      brand: { brand: {} },
+      uikit: { "ui-kit": {} },
+    });
   });
 });
