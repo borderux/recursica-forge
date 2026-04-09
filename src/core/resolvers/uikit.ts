@@ -226,35 +226,50 @@ function traverseUIKit(
         } else {
           vars[cssVarName] = trimmed
         }
-      } else if (type === 'elevation' && typeof val === 'string') {
+      } else if (type === 'elevation') {
         // Handle elevation type: extract elevation name from reference
+        // e.g., {brand.elevations.elevation-0} -> elevation-0
         // e.g., {brand.themes.light.elevations.elevation-0} -> elevation-0
-        const trimmed = val.trim()
-        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-          const inner = trimmed.slice(1, -1).trim()
-          // Normalize spaces to dots
-          const normalized = inner
-            .replace(/\s*\.\s*/g, '.')
-            .replace(/\s+/g, '.')
-            .replace(/\.+/g, '.')
-            .replace(/^\.|\.$/g, '')
 
-          // Extract elevation name from pattern: brand.themes.light.elevations.elevation-0
-          const elevationMatch = /elevations?\.(elevation-\d+)$/i.exec(normalized)
-          if (elevationMatch) {
-            vars[cssVarName] = elevationMatch[1] // Just the elevation name like "elevation-0"
-          } else {
-            // Try to resolve as a regular token reference
-            const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
-            if (resolved) {
-              vars[cssVarName] = resolved
+        // Handle null values for elevations — means no elevation
+        if (val === null || val === undefined) {
+          vars[cssVarName] = 'none'
+          return
+        }
+
+        if (typeof val === 'string') {
+          const trimmed = val.trim()
+          if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            const inner = trimmed.slice(1, -1).trim()
+            // Normalize spaces to dots
+            const normalized = inner
+              .replace(/\s*\.\s*/g, '.')
+              .replace(/\s+/g, '.')
+              .replace(/\.+/g, '.')
+              .replace(/^\.|\.$/g, '')
+
+            // Extract elevation name from both themed and non-themed patterns:
+            // brand.elevations.elevation-0
+            // brand.themes.light.elevations.elevation-0
+            const elevationMatch = /elevations?\.(elevation-\d+)$/i.exec(normalized)
+            if (elevationMatch) {
+              vars[cssVarName] = elevationMatch[1] // Just the elevation name like "elevation-0"
             } else {
-              vars[cssVarName] = val.trim()
+              // Try to resolve as a regular token reference
+              const resolved = resolveTokenRef(val, tokenIndex, theme, uikit, 0, vars, mode)
+              if (resolved) {
+                vars[cssVarName] = resolved
+              } else {
+                vars[cssVarName] = val.trim()
+              }
             }
+          } else {
+            // Not a brace reference, use as-is (e.g. already "elevation-0" or "none")
+            vars[cssVarName] = trimmed
           }
         } else {
-          // Not a brace reference, use as-is
-          vars[cssVarName] = trimmed
+          // Non-string, non-null value — convert to string
+          vars[cssVarName] = String(val)
         }
       } else {
         // Handle other types (number, string, color, etc.)
@@ -270,6 +285,12 @@ function traverseUIKit(
         // This ensures CSS variables are always generated, allowing components to use "none" option
         if (type === 'dimension' && (val === null || val === undefined)) {
           vars[cssVarName] = '0px'
+          return
+        }
+
+        // For number type, null values should be interpreted as 0
+        if (type === 'number' && (val === null || val === undefined)) {
+          vars[cssVarName] = '0'
           return
         }
 

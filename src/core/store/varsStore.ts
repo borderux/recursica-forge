@@ -203,6 +203,8 @@ class VarsStore {
   public structure: StructuralMetadata | null = null
   /** The allVars map produced by the most recent recomputeAndApplyAll (for snapshotting) */
   private lastComputedVars: Record<string, string> = {}
+  /** Exposes the pre-delta computed vars for clean CSS snapshotting (no stale delta pollution). */
+  public getComputedCssVars(): Record<string, string> { return { ...this.lastComputedVars } }
   /**
    * Deep-cloned copy of the original uikit JSON taken at init time, before any in-place
    * mutations from updateUIKitValue. Used by handleReset to build CSS vars from the truly
@@ -414,6 +416,23 @@ class VarsStore {
     }, 500)
   }
 
+  /**
+   * Translates the current computed variables into the CSS Delta.
+   * Used after bulk JSON operations (like importing files or randomizing) 
+   * to ensure the current state persists across refreshes.
+   */
+  public trackCurrentStateAsDelta(prefixFilter?: string) {
+    const changes: Record<string, string> = {}
+    for (const [key, value] of Object.entries(this.lastComputedVars)) {
+      if (!prefixFilter || key.startsWith(prefixFilter)) {
+         changes[key] = value
+      }
+    }
+    if (Object.keys(changes).length > 0) {
+      trackChanges(changes)
+    }
+  }
+
   public bumpVersion() { this.state = { ...this.state, version: (this.state.version || 0) + 1 }; this.emit() }
 
   /**
@@ -480,7 +499,11 @@ class VarsStore {
 
   setTokens(next: JsonLike) {
     this.writeState({ tokens: next })
-    if (!this.isRecomputing) this.recomputeAndApplyAll()
+    if (!this.isRecomputing) {
+      this.recomputeAndApplyAll()
+      this.trackCurrentStateAsDelta('--recursica_tokens_')
+      this.trackCurrentStateAsDelta('--recursica_ui-kit_')
+    }
   }
   /**
    * Update tokens JSON in-memory WITHOUT triggering recomputeAndApplyAll.
@@ -489,7 +512,60 @@ class VarsStore {
   setTokensSilent(next: JsonLike) { this.writeState({ tokens: next }) }
   setTheme(next: JsonLike) {
     this.writeState({ theme: next })
-    if (!this.isRecomputing) this.recomputeAndApplyAll()
+    if (!this.isRecomputing) {
+      this.recomputeAndApplyAll()
+      this.trackCurrentStateAsDelta('--recursica_brand_')
+      this.trackCurrentStateAsDelta('--recursica_ui-kit_')
+    }
+  }
+  /**
+   * Import a brand JSON file, rebuilding elevation state from it before recomputing.
+   *
+   * Mirrors the state produced by `randomizeVariables` after elevations are randomized:
+   * controls are cleared so CSS generation reads blur/spread/x/y directly from the brand
+   * JSON. paletteSelections are re-parsed from the imported JSON's elevation color refs.
+   */
+  importTheme(next: JsonLike) {
+    const brand: any = (next as any)?.brand || next
+    const themes = brand?.themes || brand
+
+    const newPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+    const newColorTokens: Record<string, string> = {}
+
+    for (const mode of ['light', 'dark']) {
+      const els: any = themes?.[mode]?.elevations || {}
+      for (let i = 1; i <= 4; i++) {
+        const key = `elevation-${i}`
+        const colorRef = els[key]?.$value?.color?.$value
+        if (typeof colorRef === 'string') {
+          const palMatch = colorRef.match(/palettes\.([a-z0-9-]+)\.(\d+)\.color\.tone/)
+          if (palMatch) {
+            newPaletteSelections[key] = { paletteKey: palMatch[1], level: palMatch[2] }
+          } else {
+            const tokMatch = colorRef.match(/tokens\.colors\.(scale-\d{2})\.(\d+)/)
+            if (tokMatch) {
+              newColorTokens[key] = `colors/${tokMatch[1]}/${tokMatch[2]}`
+            }
+          }
+        }
+      }
+    }
+
+    const elevation: ElevationState = {
+      ...this.state.elevation,
+      controls: { light: {}, dark: {} },
+      directions: { light: {}, dark: {} },
+      paletteSelections: newPaletteSelections,
+      colorTokens: newColorTokens,
+      alphaTokens: { light: {}, dark: {} },
+    }
+
+    this.writeState({ theme: next, elevation })
+    if (!this.isRecomputing) {
+      this.recomputeAndApplyAll()
+      this.trackCurrentStateAsDelta('--recursica_brand_')
+      this.trackCurrentStateAsDelta('--recursica_ui-kit_')
+    }
   }
   /**
    * Update theme JSON in-memory WITHOUT triggering recomputeAndApplyAll.
@@ -543,17 +619,96 @@ class VarsStore {
 
         this.setTokens(tokens)
       }
-    } catch (e) {
-      console.warn('Failed to sync fonts to tokens', e)
+    } catch {
+      // Font sync failed
     }
   }
 
   /** Returns the pristine, unmodified uikit JSON (deep-cloned at init time). */
   getPristineUikit(): JsonLike { return this.pristineUikit }
 
+  /**
+   * Atomically import all three JSON stores (tokens, brand, uikit) and
+   * trigger a single recomputeAndApplyAll.
+   *
+   * This avoids the race condition where sequential setTokens → importTheme →
+   * setUiKit each trigger recomputeAndApplyAll individually, causing
+   * intermediate UIKit CSS vars (computed from a mix of old/new data) to be
+   * incorrectly preserved by the DOM preservation logic.
+   */
+  bulkImport(files: { tokens?: JsonLike; brand?: JsonLike; uikit?: JsonLike }) {
+    // Update all stores without triggering individual recomputes
+    if (files.tokens) {
+      this.writeState({ tokens: files.tokens })
+    }
+
+    if (files.brand) {
+      // Rebuild elevation state from the imported brand JSON
+      const brand: any = (files.brand as any)?.brand || files.brand
+      const themes = brand?.themes || brand
+
+      const newPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+      const newColorTokens: Record<string, string> = {}
+
+      for (const mode of ['light', 'dark']) {
+        const els: any = themes?.[mode]?.elevations || {}
+        for (let i = 1; i <= 4; i++) {
+          const key = `elevation-${i}`
+          const colorRef = els[key]?.$value?.color?.$value
+          if (typeof colorRef === 'string') {
+            const palMatch = colorRef.match(/palettes\.([a-z0-9-]+)\.(\d+)\.color\.tone/)
+            if (palMatch) {
+              newPaletteSelections[key] = { paletteKey: palMatch[1], level: palMatch[2] }
+            } else {
+              const tokMatch = colorRef.match(/tokens\.colors\.(scale-\d{2})\.(\d+)/)
+              if (tokMatch) {
+                newColorTokens[key] = `colors/${tokMatch[1]}/${tokMatch[2]}`
+              }
+            }
+          }
+        }
+      }
+
+      const elevation: ElevationState = {
+        ...this.state.elevation,
+        controls: { light: {}, dark: {} },
+        directions: { light: {}, dark: {} },
+        paletteSelections: newPaletteSelections,
+        colorTokens: newColorTokens,
+        alphaTokens: { light: {}, dark: {} },
+      }
+
+      this.writeState({ theme: files.brand, elevation })
+    }
+
+    if (files.uikit) {
+      this.writeState({ uikit: files.uikit })
+    }
+
+    // Single recompute with all stores updated
+    this.recomputeAndApplyAll()
+
+    // Track delta for all imported namespaces
+    if (files.tokens) this.trackCurrentStateAsDelta('--recursica_tokens_')
+    if (files.brand)  this.trackCurrentStateAsDelta('--recursica_brand_')
+    if (files.uikit)  this.trackCurrentStateAsDelta('--recursica_ui-kit_')
+
+    // Persist uikit to localStorage if it contains custom variants
+    if (files.uikit && this.lsAvailable) {
+      if (hasCustomVariants(files.uikit)) {
+        try { localStorage.setItem(STORAGE_KEYS.uikit, JSON.stringify(files.uikit)) } catch { /* full */ }
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.uikit)
+      }
+    }
+  }
+
   setUiKit(next: JsonLike) {
     this.writeState({ uikit: next })
-    if (!this.isRecomputing) this.recomputeAndApplyAll()
+    if (!this.isRecomputing) {
+      this.recomputeAndApplyAll()
+      this.trackCurrentStateAsDelta('--recursica_ui-kit_')
+    }
     // Persist uikit to localStorage when it contains custom variants so they
     // survive page refreshes. Normal token edits go through the CSS delta system.
     if (this.lsAvailable) {
@@ -762,9 +917,7 @@ class VarsStore {
         }
         if (Object.keys(deltaVars).length > 0) trackChanges(deltaVars)
       }
-    } catch (error) {
-      console.error('Failed to update single token CSS var:', tokenName, error)
-    }
+    } catch { }
   }
 
   /**
@@ -927,9 +1080,7 @@ class VarsStore {
           this.scheduleComplianceScan()
         }
       }
-    } catch (error) {
-      console.error('Failed to update token:', tokenName, error)
-    }
+    } catch { }
   }
 
   resetAll() {
@@ -1454,9 +1605,7 @@ class VarsStore {
           })
           Object.assign(allVars, vars)
         }
-      } catch (e) {
-        console.error('[VarsStore] Error generating size token CSS variables:', e)
-      }
+      } catch { }
       // Tokens: expose opacity tokens as CSS vars under --recursica_tokens_opacities_<key> (normalized 0..1)
       try {
         const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
@@ -1495,9 +1644,7 @@ class VarsStore {
           })
           Object.assign(allVars, vars)
         }
-      } catch (e) {
-        console.error('[VarsStore] Error generating opacity token CSS variables:', e)
-      }
+      } catch { }
       // Tokens: expose color tokens as CSS vars under --recursica_tokens_colors_<scale>_<level>
       // New structure: tokens.colors.scale-XX.XXX with alias property
       try {
@@ -1573,9 +1720,7 @@ class VarsStore {
         }
 
         Object.assign(allVars, vars)
-      } catch (e) {
-        console.error('[VarsStore] Error generating color token CSS variables:', e)
-      }
+      } catch { }
       // Tokens: expose font cases and decorations as CSS vars under --recursica_tokens_font_cases_<key> and --recursica_tokens_font_decorations_<key>
       try {
         const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
@@ -1618,9 +1763,7 @@ class VarsStore {
           })
           Object.assign(allVars, vars)
         }
-      } catch (e) {
-        console.error('[VarsStore] Error generating font cases/decorations CSS variables:', e)
-      }
+      } catch { }
       // Tokens: expose ALL font token categories as CSS vars
       // This ensures font CSS variables are available on every page, not just the font tokens page
       try {
@@ -1744,9 +1887,7 @@ class VarsStore {
         }
 
         Object.assign(allVars, vars)
-      } catch (e) {
-        console.error('[VarsStore] Error generating font token CSS variables:', e)
-      }
+      } catch { }
       // Core palette colors (black/white/alert/warning/success/interactive) - read directly from theme JSON
       // Generate for both light and dark modes
       try {
@@ -1944,9 +2085,7 @@ class VarsStore {
         const dimensionVarsDark = buildDimensionVars(this.state.tokens, this.state.theme, 'dark')
         Object.assign(allVars, dimensionVarsLight)
         Object.assign(allVars, dimensionVarsDark)
-      } catch (e) {
-        console.error('[VarsStore] Error generating dimension variables:', e)
-      }
+      } catch { }
 
       // ─── Compliance is read-only ───
       // Compliance no longer modifies vars in the pipeline.
@@ -1967,6 +2106,23 @@ class VarsStore {
           const uikitVarsLight = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, 'light')
           const uikitVarsDark = buildUIKitVars(this.state.tokens, this.state.theme, this.state.uikit, 'dark')
           uikitVars = { ...uikitVarsLight, ...uikitVarsDark }
+
+          // Also emit non-themed component vars (--recursica_ui-kit_components_*) derived from the
+          // current color mode's themed vars. Component adapters read these non-themed vars at
+          // render time. Without them, adapters fall back to blank/default values which causes
+          // components to lose their palette colors after reset+import (since the old non-themed
+          // vars lived only in the cleared delta). reapplyDelta() will override these base values
+          // with any user customizations, so this acts as the correct default baseline.
+          const currentMode = this.getCurrentMode()
+          const currentModePrefix = `--recursica_ui-kit_themes_${currentMode}_`
+          const nonThemedPrefix = '--recursica_ui-kit_'
+          const currentModeVars = currentMode === 'light' ? uikitVarsLight : uikitVarsDark
+          for (const [themedKey, value] of Object.entries(currentModeVars)) {
+            if (themedKey.startsWith(currentModePrefix)) {
+              const nonThemedKey = nonThemedPrefix + themedKey.slice(currentModePrefix.length)
+              uikitVars[nonThemedKey] = value
+            }
+          }
 
           // Preserve manually set mode-independent UIKit variables when switching modes
           // Mode-independent properties (like padding, border-size, border-radius, elevation) should
@@ -2098,15 +2254,9 @@ class VarsStore {
             if (!trimmed) return
             // Load font (async is fine, but it must load)
             const { ensureFontLoaded } = await import('../../modules/type/fontUtils')
-            await ensureFontLoaded(trimmed).catch((error) => {
-              console.warn(`Failed to load font "${trimmed}" during recompute:`, error)
-            })
-          } catch (error) {
-            console.warn(`Failed to load font:`, error)
-          }
-        })).catch((error) => {
-          console.warn('Failed to load some fonts during recompute:', error)
-        })
+            await ensureFontLoaded(trimmed).catch(() => {})
+          } catch { }
+        })).catch(() => {})
       }
 
       // Elevation CSS variables (apply for levels 0..4) - generate for both modes
@@ -2360,11 +2510,22 @@ class VarsStore {
             const hasControlsInAnyMode = elevationsWithControls.has(k)
             if (!hasControlsInAnyMode && mode === 'dark') {
               // Update tokens with dark mode defaults (for backwards compatibility)
-              // These tokens won't be used for CSS variables, but may be referenced elsewhere
               sizeTokens[`elevation-${i}-blur`] = { $type: 'number', $value: blurValue }
               sizeTokens[`elevation-${i}-spread`] = { $type: 'number', $value: spreadValue }
               sizeTokens[`elevation-${i}-offset-x`] = { $type: 'number', $value: xValue }
               sizeTokens[`elevation-${i}-offset-y`] = { $type: 'number', $value: yValue }
+
+              // Emit the token CSS vars now (the token section already ran with stale values).
+              // Overwriting here ensures the DOM always reflects the correct computed values
+              // and eliminates false-positive mismatches in the round-trip diff tool.
+              vars[tokenSize(`elevation-${i}-blur`)] = `${blurValue}px`
+              vars[token('size', `elevation-${i}-blur`)] = `${blurValue}px`
+              vars[tokenSize(`elevation-${i}-spread`)] = `${spreadValue}px`
+              vars[token('size', `elevation-${i}-spread`)] = `${spreadValue}px`
+              vars[tokenSize(`elevation-${i}-offset-x`)] = `${xValue}px`
+              vars[token('size', `elevation-${i}-offset-x`)] = `${xValue}px`
+              vars[tokenSize(`elevation-${i}-offset-y`)] = `${yValue}px`
+              vars[token('size', `elevation-${i}-offset-y`)] = `${yValue}px`
             }
 
             // Check if there's already a palette CSS variable set (preserve user selections)
@@ -2602,9 +2763,7 @@ class VarsStore {
           }
         })
       }
-    } catch (err) {
-      console.error('Error finding palettes using color:', err)
-    }
+    } catch { }
     return result
   }
 
@@ -2706,9 +2865,7 @@ class VarsStore {
           )
         }
       }
-    } catch (err) {
-      console.error('Failed to update core color on-tones:', err)
-    }
+    } catch { }
   }
 
   /**

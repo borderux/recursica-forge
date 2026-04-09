@@ -190,9 +190,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     vars[stateVar(modeLower, 'hover')] = hover
     vars[stateVar(modeLower, 'overlay', 'opacity')] = overlayOpacity
     vars[stateVar(modeLower, 'overlay', 'color')] = overlayColor
-  } catch (err) {
-    // If state vars fail to generate, provide fallback defaults
-    console.error('[PaletteResolver] Failed to generate state variables:', err)
+  } catch {
     vars[stateVar(modeLower, 'disabled')] = `var(${tokenOpacity('solid')})`
     vars[stateVar(modeLower, 'hover')] = `var(${tokenOpacity('solid')})`
     vars[stateVar(modeLower, 'overlay', 'opacity')] = `var(${tokenOpacity('solid')})`
@@ -286,21 +284,26 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       // Parse tone from JSON - use centralized resolver to handle both old and new formats
       let toneVar: string | null = null
       if (toneRaw && typeof toneRaw === 'string') {
-        // Use resolveTokenReferenceToCssVar to handle both:
-        // - Old format: {tokens.color.family.level} -> --recursica_tokens_color_{family}-{level}
-        // - New format: {tokens.colors.scale-XX.level} -> --recursica_tokens_colors_{scale_XX}-{level}
-        toneVar = resolveTokenReferenceToCssVar(toneRaw, context)
+        // Fast path: if the value is already a resolved CSS var() reference, use it directly.
+        // This occurs when the brand JSON originates from an exported zip where palette tone
+        // $value fields were serialised as var(--...) strings rather than DTCG brace refs.
+        if (/^\s*var\(--/.test(toneRaw)) {
+          toneVar = toneRaw.trim()
+        } else {
+          // Use resolveTokenReferenceToCssVar to handle both:
+          // - Old format: {tokens.color.family.level} -> --recursica_tokens_color_{family}-{level}
+          // - New format: {tokens.colors.scale-XX.level} -> --recursica_tokens_colors_{scale_XX}-{level}
+          toneVar = resolveTokenReferenceToCssVar(toneRaw, context)
 
-        // If that didn't work, try resolving to see if it's a valid reference that just resolved to a hex
-        if (!toneVar) {
-          try {
-            const resolvedValue = resolveTokenReferenceToValue(toneRaw, context)
-            if (resolvedValue && typeof resolvedValue === 'string' && resolvedValue.startsWith('#')) {
-              // If it resolved to a hex color, we can't generate a CSS variable from it
-              // This is a fallback case - the reference should be in token format
-              console.error(`[PaletteResolver] Tone reference resolved to hex color instead of token: ${toneRaw} -> ${resolvedValue}`)
-            }
-          } catch { }
+          // If that didn't work, check whether the raw value resolved to a hex (unrecoverable)
+          if (!toneVar) {
+            try {
+              const resolvedHex = resolveTokenReferenceToValue(toneRaw, context)
+              if (resolvedHex && typeof resolvedHex === 'string' && resolvedHex.startsWith('#')) {
+                // Tone reference resolved to hex color instead of token — unrecoverable
+              }
+            } catch { }
+          }
         }
       }
 
@@ -316,8 +319,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       if (toneVar) {
         vars[toneKey] = toneVar
       } else if (toneRaw && typeof toneRaw === 'string') {
-        // Parsing failed - log an error but don't emit erroneous variables
-        console.error(`[PaletteResolver] Failed to parse tone reference for ${toneKey}:`, toneRaw)
+        // Parsing failed — variable not emitted
       }
 
       // Always process on-tone, even if tone wasn't found (some levels might only have on-tone defined)
