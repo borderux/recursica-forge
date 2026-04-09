@@ -14,7 +14,7 @@
  */
 
 import { getDelta } from './cssDelta'
-import { parseTokenCssVar, parseBrandCssVar } from '../css/cssVarBuilder'
+import { parseTokenCssVar, parseBrandCssVar, cssVarToRef } from '../css/cssVarBuilder'
 import type { JsonLike } from '../resolvers/tokens'
 import baseTokensImport from '../../../recursica_tokens.json'
 import { DELETED_SCALES_KEY } from './varsStore'
@@ -97,7 +97,9 @@ export function syncDeltaToJson(
   const pendingNewScales: Record<string, Record<string, string>> = {}
   const pendingFamilyNames: Record<string, string> = {}
 
-  for (const [cssVarName, cssValue] of entries) {
+  for (const [cssVarName, rawCssValue] of entries) {
+    const cssValue = cssVarToRef(rawCssValue) || rawCssValue
+
     // ── Family-name CSS vars (special case — not parsed by parseTokenCssVar) ──
     const familyNameMatch = cssVarName.match(/^--recursica_tokens_colors_(scale-\d+)_family-name$/)
     if (familyNameMatch) {
@@ -270,13 +272,9 @@ export function syncDeltaToJson(
         break
       }
       case 'dimension': {
-        const dimGroup = brandRoot?.dimensions?.[brandParsed.category]
-        if (!dimGroup) break
-
-        if (dimGroup[brandParsed.key] && typeof dimGroup[brandParsed.key] === 'object' && '$value' in dimGroup[brandParsed.key]) {
-          dimGroup[brandParsed.key].$value = cssValue
-          syncedCount++
-        }
+        // Dimension $values are always DTCG token references (e.g. {tokens.sizes.none}).
+        // Writing a resolved pixel string back would corrupt the JSON and fail schema validation.
+        // Dimension CSS vars update automatically when the referenced token value changes.
         break
       }
       case 'typography': {

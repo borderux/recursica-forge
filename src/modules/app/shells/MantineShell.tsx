@@ -56,7 +56,9 @@ import {
   getCssAuditAutoRun,
   setCssAuditAutoRun,
 } from "../../../core/utils/cssAuditPreference";
-import { runRoundTripValidation } from "../../../core/dev/exportImportValidator";
+import { captureCurrentSnapshot } from '../../../core/dev/exportImportValidator';
+import { startDiffSession } from '../../../core/dev/diffSession';
+import { downloadJsonFiles } from '../../../core/export/jsonExport';
 
 export default function MantineShell({
   children,
@@ -110,8 +112,23 @@ export default function MantineShell({
   const handleRoundTripValidation = async () => {
     setIsValidating(true)
     try {
-      await runRoundTripValidation()
-      navigate('/dev/diff')
+      // 1. Capture the current state as the "original" snapshot before anything changes
+      const snapshot = captureCurrentSnapshot()
+      startDiffSession({
+        originalJson: { tokens: snapshot.tokens, brand: snapshot.brand, uikit: snapshot.uikit },
+        originalCss: snapshot.css,
+      })
+
+      // 2. Download a zip with all 3 JSON files so the user can re-import them
+      await downloadJsonFiles({ tokens: true, brand: true, uikit: true })
+
+      // 3. Reset the app to a clean slate
+      resetAll()
+
+      // 4. Open the import modal so the user can drop in the downloaded zip
+      setIsModalOpen(true)
+    } catch (e) {
+      console.error('[Diff] Failed to start diff session:', e)
     } finally {
       setIsValidating(false)
     }

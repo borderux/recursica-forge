@@ -1,4 +1,26 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+
+// Mock varsStore to prevent full VarsStore initialization (heavy DOM work that hangs tests)
+vi.mock('../store/varsStore', () => ({
+  getVarsStore: vi.fn(() => ({
+    scheduleComplianceScan: vi.fn(),
+    getState: vi.fn(() => ({ tokens: {}, theme: {}, uikit: {} })),
+    getLatestThemeCopy: vi.fn(() => ({})),
+    setThemeSilent: vi.fn(),
+    setUiKitSilent: vi.fn(),
+  })),
+}))
+
+// Mock updateBrandValue and updateUIKitValue to avoid transitive varsStore calls
+vi.mock('./updateBrandValue', () => ({
+  updateBrandValue: vi.fn(() => true),
+}))
+
+vi.mock('./updateUIKitValue', () => ({
+  updateUIKitValue: vi.fn(() => true),
+  removeUIKitValue: vi.fn(() => true),
+}))
+
 import { updateCssVar, updateCssVars, removeCssVar } from './updateCssVar'
 import { readCssVar } from './readCssVar'
 

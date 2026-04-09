@@ -1,58 +1,79 @@
 /**
- * Export/Import Round-Trip Validator (dev only)
+ * Export/Import Round-Trip Validator — Diff Engine
  *
- * Orchestrates the full validation flow:
- *   1. Export current state
- *   2. Reset forge to baseline
- *   3. Import the export
- *   4. Re-export to capture what actually loaded
- *   5. Schema-validate both snapshots
- *   6. Deep-diff export vs import snapshots
- *   7. Reset forge again (restore baseline)
- *   8. Store result in sessionStorage
+ * Provides:
+ *  - captureCssVars()   — snapshot of current DOM CSS custom properties
+ *  - computeDiff()      — 3-way diff between original, export and import snapshots
+ *
+ * The orchestration (download → reset → import → open tab) lives in MantineShell.
+ * This module is pure diff logic with no side-effects on the store or DOM.
  */
 
-import { getVarsStore } from '../store/varsStore'
 import { exportTokensJson, exportBrandJson, exportUIKitJson } from '../export/jsonExport'
-import { importJsonFiles } from '../import/jsonImport'
-import { validateTokensJson, validateBrandJson, validateUIKitJson, validateReferences } from '../utils/validateJsonSchemas'
-import type { JsonLike } from '../resolvers/tokens'
-
-const SESSION_STORAGE_KEY = '__recursica_roundtrip__'
-
-export type DiffStatus = 'match' | 'mismatch' | 'missing' | 'extra'
 
 export interface DiffEntry {
   path: string
-  file: 'tokens' | 'brand' | 'uikit'
+  file: 'tokens' | 'brand' | 'uikit' | 'css'
+  originalValue: unknown
   exportValue: unknown
   importValue: unknown
-  status: DiffStatus
-}
-
-export interface SchemaError {
-  file: 'tokens' | 'brand' | 'uikit' | 'references'
-  phase: 'export' | 'import'
-  message: string
 }
 
 export interface RoundTripResult {
-  originalSnapshot: { tokens: object; brand: object; uikit: object }
-  exportSnapshot: { tokens: object; brand: object; uikit: object }
-  importSnapshot: { tokens: object; brand: object; uikit: object }
-  schemaErrors: SchemaError[]
+  originalSnapshot: { tokens: object; brand: object; uikit: object; css: object }
+  exportSnapshot:   { tokens: object; brand: object; uikit: object; css: object }
+  importSnapshot:   { tokens: object; brand: object; uikit: object; css: object }
   diffs: DiffEntry[]
   mismatches: number
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── CSS snapshot ────────────────────────────────────────────────────────────
 
-/** Recursively walk an object collecting all leaf paths and values. */
-function collectLeaves(
-  obj: unknown,
-  prefix: string,
-  out: Map<string, unknown>
-): void {
+/**
+ * CSS variable prefixes that are excluded from the round-trip CSS diff.
+ *
+ * `--recursica_ui-kit_themes_` vars are derived/cached and updated only by a full
+ * recomputeAndApplyAll(). After toolbar changes, setUiKitSilent() skips the recompute
+ * so they are stale in the EXPORT snapshot but fresh in IMPORT. Excluding them keeps
+ * the diff focused on the non-themed vars that actually drive rendering.
+ */
+const EXCLUDED_CSS_PREFIXES = [
+  '--recursica_ui-kit_themes_light_',
+  '--recursica_ui-kit_themes_dark_',
+]
+
+/** Snapshot all --recursica_ custom properties currently on the root element. */
+export function captureCssVars(): Record<string, string> {
+  const out: Record<string, string> = {}
+  if (typeof document === 'undefined') return out
+  const style = document.documentElement.style
+  for (let i = 0; i < style.length; i++) {
+    const prop = style[i]
+    if (
+      prop.startsWith('--recursica_') &&
+      !EXCLUDED_CSS_PREFIXES.some(p => prop.startsWith(p))
+    ) {
+      out[prop] = style.getPropertyValue(prop).trim()
+    }
+  }
+  return out
+}
+
+
+
+/** Capture the current store state as a JSON + CSS snapshot. */
+export function captureCurrentSnapshot() {
+  return {
+    tokens: exportTokensJson() as object,
+    brand:  exportBrandJson()  as object,
+    uikit:  exportUIKitJson()  as object,
+    css:    captureCssVars(),
+  }
+}
+
+// ─── Diff engine ─────────────────────────────────────────────────────────────
+
+function collectLeaves(obj: unknown, prefix: string, out: Map<string, unknown>): void {
   if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
     out.set(prefix, obj)
     return
@@ -63,159 +84,75 @@ function collectLeaves(
   }
 }
 
-// ─── Schema validation runner (non-throwing) ────────────────────────────────
-
-function safeValidate(
-  file: 'tokens' | 'brand' | 'uikit',
-  phase: 'export' | 'import',
-  data: object,
-  errors: SchemaError[]
-): void {
-  try {
-    if (file === 'tokens') validateTokensJson(data as JsonLike)
-    else if (file === 'brand') validateBrandJson(data as JsonLike)
-    else validateUIKitJson(data as JsonLike)
-  } catch (e) {
-    errors.push({ file, phase, message: e instanceof Error ? e.message : String(e) })
-  }
-}
-
-function safeValidateReferences(
-  phase: 'export' | 'import',
-  brand: object,
-  tokens: object,
-  uikit: object,
-  errors: SchemaError[]
-): void {
-  try {
-    validateReferences(brand as JsonLike, tokens as JsonLike, uikit as JsonLike)
-  } catch (e) {
-    errors.push({ file: 'references', phase, message: e instanceof Error ? e.message : String(e) })
-  }
-}
-
-// ─── Diff engine ────────────────────────────────────────────────────────────
-
-/**
- * Diffs two JSON snapshots of the same file, returning only non-matching entries.
- * Skips $metadata paths (timestamps differ by design).
- */
-function diffSnapshot(
-  file: 'tokens' | 'brand' | 'uikit',
+function diffSnapshotTriple(
+  file: 'tokens' | 'brand' | 'uikit' | 'css',
+  origObj: object,
   exportObj: object,
-  importObj: object
+  importObj: object,
 ): DiffEntry[] {
+  const origLeaves   = new Map<string, unknown>()
   const exportLeaves = new Map<string, unknown>()
   const importLeaves = new Map<string, unknown>()
+
+  collectLeaves(origObj,   '', origLeaves)
   collectLeaves(exportObj, '', exportLeaves)
   collectLeaves(importObj, '', importLeaves)
 
-  const allPaths = new Set([...exportLeaves.keys(), ...importLeaves.keys()])
+  const allPaths = new Set([...origLeaves.keys(), ...exportLeaves.keys(), ...importLeaves.keys()])
   const entries: DiffEntry[] = []
 
   for (const path of allPaths) {
-    // Skip metadata paths — timestamps always differ by design
     if (path.startsWith('$metadata.')) continue
 
-    const inExport = exportLeaves.has(path)
-    const inImport = importLeaves.has(path)
+    const origVal   = origLeaves.get(path)
+    const exportVal = exportLeaves.get(path)
+    const importVal = importLeaves.get(path)
 
-    let status: DiffStatus
+    const oStr = origVal   === undefined ? undefined : JSON.stringify(origVal)
+    const eStr = exportVal === undefined ? undefined : JSON.stringify(exportVal)
+    const iStr = importVal === undefined ? undefined : JSON.stringify(importVal)
 
-    if (!inExport) {
-      status = 'extra'
-    } else if (!inImport) {
-      status = 'missing'
-    } else {
-      const exportStr = JSON.stringify(exportLeaves.get(path))
-      const importStr = JSON.stringify(importLeaves.get(path))
-      status = exportStr === importStr ? 'match' : 'mismatch'
-    }
-
-    if (status !== 'match') {
-      entries.push({
-        path,
-        file,
-        exportValue: exportLeaves.get(path),
-        importValue: importLeaves.get(path),
-        status,
-      })
+    if (oStr !== eStr || eStr !== iStr) {
+      entries.push({ path, file, originalValue: origVal, exportValue: exportVal, importValue: importVal })
     }
   }
 
-  return entries
+  return entries.sort((a, b) => a.path.localeCompare(b.path))
 }
 
-// ─── Main orchestrator ───────────────────────────────────────────────────────
-
-export async function runRoundTripValidation(): Promise<RoundTripResult> {
-  const store = getVarsStore()
-
-  // 1. Capture export snapshot
-  const exportTokens = exportTokensJson() as object
-  const exportBrand = exportBrandJson() as object
-  const exportUikit = exportUIKitJson() as object
-  const exportSnapshot = { tokens: exportTokens, brand: exportBrand, uikit: exportUikit }
-
-  // 2. Reset forge to baseline (clean slate)
-  store.resetAll()
-
-  // Allow one microtask tick for store listeners to settle
-  await new Promise<void>((r) => setTimeout(r, 50))
-
-  // 2b. Capture the clean baseline BEFORE importing (this is the "Original" panel)
-  const originalTokens = exportTokensJson() as object
-  const originalBrand = exportBrandJson() as object
-  const originalUikit = exportUIKitJson() as object
-  const originalSnapshot = { tokens: originalTokens, brand: originalBrand, uikit: originalUikit }
-
-  // 3. Import the export (bypasses dirty-data modal — we control the data)
-  importJsonFiles({ tokens: exportTokens, brand: exportBrand, uikit: exportUikit })
-
-  // Allow resolvers to apply
-  await new Promise<void>((r) => setTimeout(r, 100))
-
-  // 4. Re-export to capture what actually loaded
-  const importTokens = exportTokensJson() as object
-  const importBrand = exportBrandJson() as object
-  const importUikit = exportUIKitJson() as object
-  const importSnapshot = { tokens: importTokens, brand: importBrand, uikit: importUikit }
-
-  // 5. Validate schemas on both snapshots
-  const schemaErrors: SchemaError[] = []
-  safeValidate('tokens', 'export', exportTokens, schemaErrors)
-  safeValidate('brand', 'export', exportBrand, schemaErrors)
-  safeValidate('uikit', 'export', exportUikit, schemaErrors)
-  safeValidateReferences('export', exportBrand, exportTokens, exportUikit, schemaErrors)
-  safeValidate('tokens', 'import', importTokens, schemaErrors)
-  safeValidate('brand', 'import', importBrand, schemaErrors)
-  safeValidate('uikit', 'import', importUikit, schemaErrors)
-  safeValidateReferences('import', importBrand, importTokens, importUikit, schemaErrors)
-
-  // 6. Deep-diff export vs import snapshots
+/**
+ * Compute a 3-way diff given three snapshots.
+ *
+ * @param original  State captured before reset (ground truth)
+ * @param exported  State captured after randomisation / just before reset (what was exported)
+ * @param imported  State captured after import (what the importer produced)
+ */
+export function computeDiff(
+  original: { tokens: object; brand: object; uikit: object; css: object },
+  exported: { tokens: object; brand: object; uikit: object; css: object },
+  imported: { tokens: object; brand: object; uikit: object; css: object },
+): RoundTripResult {
   const diffs: DiffEntry[] = [
-    ...diffSnapshot('tokens', exportTokens, importTokens),
-    ...diffSnapshot('brand', exportBrand, importBrand),
-    ...diffSnapshot('uikit', exportUikit, importUikit),
+    ...diffSnapshotTriple('tokens', original.tokens, exported.tokens, imported.tokens),
+    ...diffSnapshotTriple('brand',  original.brand,  exported.brand,  imported.brand),
+    ...diffSnapshotTriple('uikit',  original.uikit,  exported.uikit,  imported.uikit),
+    ...diffSnapshotTriple('css',    original.css,    exported.css,    imported.css),
   ]
 
-  // (No second reset — we navigate in-tab to /dev/diff so the imported state persists for the diff view)
+  const mismatches = diffs.filter((d) => {
+    const eStr = d.exportValue === undefined ? undefined : JSON.stringify(d.exportValue)
+    const iStr = d.importValue === undefined ? undefined : JSON.stringify(d.importValue)
+    return eStr !== iStr
+  }).length
 
-  const mismatches = diffs.filter((d) => d.status === 'mismatch').length
-
-  const result: RoundTripResult = {
-    originalSnapshot,
-    exportSnapshot,
-    importSnapshot,
-    schemaErrors,
+  return {
+    originalSnapshot: original,
+    exportSnapshot:   exported,
+    importSnapshot:   imported,
     diffs,
     mismatches,
   }
-
-  // 8. Store in sessionStorage — consumed and immediately removed by RoundTripPage
-  sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(result))
-
-  return result
 }
 
-export { SESSION_STORAGE_KEY }
+export { LOCAL_STORAGE_KEY }
+const LOCAL_STORAGE_KEY = '__recursica_roundtrip__'

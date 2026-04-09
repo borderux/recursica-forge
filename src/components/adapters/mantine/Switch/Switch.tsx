@@ -14,28 +14,6 @@ import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Switch.css'
 
-// Initialize Switch wrapper CSS variables on :root so they're always available
-// These are used by Switch.css even when no Switch component is rendered
-if (typeof window !== 'undefined') {
-  const root = document.documentElement
-  // Initialize with default values - will be overridden by component instances
-  // Use UIKit variable references for track colors (default layer-0, default variant)
-  const trackSelectedVar = getComponentCssVar('Switch', 'colors', 'default-track-selected', 'layer-0')
-  const trackUnselectedVar = getComponentCssVar('Switch', 'colors', 'default-track-unselected', 'layer-0')
-  
-  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_thumb_elevation')) {
-    root.style.setProperty('--recursica_ui-kit_components_switch_thumb_elevation', 'none')
-  }
-  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_elevation')) {
-    root.style.setProperty('--recursica_ui-kit_components_switch_track_elevation', 'none')
-  }
-  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_checked')) {
-    root.style.setProperty('--recursica_ui-kit_components_switch_track_checked', `var(${trackSelectedVar})`)
-  }
-  if (!root.style.getPropertyValue('--recursica_ui-kit_components_switch_track_unchecked')) {
-    root.style.setProperty('--recursica_ui-kit_components_switch_track_unchecked', `var(${trackUnselectedVar})`)
-  }
-}
 
 export default function Switch({
   checked,

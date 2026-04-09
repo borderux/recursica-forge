@@ -9,8 +9,8 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { RoundTripResult, DiffEntry, DiffStatus } from './exportImportValidator'
-import { SESSION_STORAGE_KEY } from './exportImportValidator'
+import type { RoundTripResult, DiffEntry } from './exportImportValidator'
+import { LOCAL_STORAGE_KEY } from './exportImportValidator'
 
 // ─── Theme palettes ───────────────────────────────────────────────────────────
 
@@ -204,13 +204,14 @@ function makeStyles(p: Palette) {
       wordBreak: 'break-all' as const,
       color: p.textMono,
     },
-    statusChip: (status: DiffStatus) => {
-      const config: Record<DiffStatus, { bg: string }> = {
-        match: { bg: '#166534' },
-        mismatch: { bg: '#92400e' },
-        missing: { bg: '#7c2d12' },
-        extra: { bg: '#4c1d95' },
+    statusChip: (status: string) => {
+      const config: Record<string, { bg: string; color: string }> = {
+        'modified': { bg: '#4c1d95', color: '#fff' }, // Purple (User changed, import kept)
+        'mismatch': { bg: '#92400e', color: '#fff' }, // Orange (All 3 differ)
+        'reverted': { bg: '#991b1b', color: '#fca5a5' }, // Red (Reverted to original)
+        'import-bug': { bg: '#7c2d12', color: '#fff' }, // Dark Red (Original == Export, but Import broke it)
       }
+      const style = config[status] || { bg: '#333', color: '#fff' }
       return {
         padding: '1px 6px',
         borderRadius: 4,
@@ -218,8 +219,8 @@ function makeStyles(p: Palette) {
         fontWeight: 700,
         letterSpacing: '0.05em',
         textTransform: 'uppercase' as const,
-        background: config[status].bg,
-        color: '#fff',
+        background: style.bg,
+        color: style.color,
         flexShrink: 0,
       }
     },
@@ -285,7 +286,7 @@ function JsonPanel({
   p,
 }: {
   data: object
-  fileKey: 'tokens' | 'brand' | 'uikit' | 'all'
+  fileKey: 'tokens' | 'brand' | 'uikit' | 'css' | 'all'
   styles: Styles
   p: Palette
 }) {
@@ -379,13 +380,13 @@ function ValueCell({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-type FileTab = 'tokens' | 'brand' | 'uikit'
-type ViewMode = 'diff' | 'json'
+type FileTab = 'all' | 'tokens' | 'brand' | 'uikit' | 'css'
+type ViewMode = 'diff' | 'mismatches' | 'json'
 
 export function RoundTripPage() {
   const navigate = useNavigate()
   const [result, setResult] = useState<RoundTripResult | null>(null)
-  const [fileTab, setFileTab] = useState<FileTab>('tokens')
+  const [fileTab, setFileTab] = useState<FileTab>('all')
   const [viewMode, setViewMode] = useState<ViewMode>('diff')
 
   const styles = useMemo<Styles>(() => {
@@ -399,11 +400,27 @@ export function RoundTripPage() {
     return savedMode === 'dark' ? darkPalette : lightPalette
   }, [])
 
-  // Read + cleanup sessionStorage on mount
+  // Read + cleanup localStorage on mount
   useEffect(() => {
-    const raw = sessionStorage.getItem(SESSION_STORAGE_KEY)
+    // 1. Try window.opener first (unlimited size, synchronous pointer)
+    let openerData = null
+    try {
+      openerData = typeof window !== 'undefined' && window.opener 
+        ? window.opener.__RECURSICA_ROUNDTRIP_DATA__ 
+        : null
+    } catch (e) {
+      // Ignore cross-origin errors if any
+    }
+
+    if (openerData) {
+      setResult(openerData)
+      return
+    }
+
+    // 2. Try localStorage fallback
+    const raw = localStorage.getItem(LOCAL_STORAGE_KEY)
     if (raw) {
-      sessionStorage.removeItem(SESSION_STORAGE_KEY)
+      localStorage.removeItem(LOCAL_STORAGE_KEY)
       try {
         setResult(JSON.parse(raw) as RoundTripResult)
       } catch { /* corrupt data, handled by empty state */ }
@@ -412,13 +429,19 @@ export function RoundTripPage() {
 
   const filteredDiffs = useMemo<DiffEntry[]>(() => {
     if (!result) return []
-    return result.diffs.filter((d) => d.file === fileTab)
-  }, [result, fileTab])
-
-  const filteredSchema = useMemo(() => {
-    if (!result) return []
-    return result.schemaErrors.filter((e) => e.file === fileTab)
-  }, [result, fileTab])
+    let diffs = result.diffs
+    if (fileTab !== 'all') {
+      diffs = diffs.filter((d) => d.file === fileTab)
+    }
+    if (viewMode === 'mismatches') {
+      diffs = diffs.filter((d) => {
+        const expStr = d.exportValue === undefined ? undefined : JSON.stringify(d.exportValue)
+        const impStr = d.importValue === undefined ? undefined : JSON.stringify(d.importValue)
+        return expStr !== impStr
+      })
+    }
+    return diffs
+  }, [result, fileTab, viewMode])
 
   const fileCounts = useMemo(() => {
     if (!result) return { tokens: 0, brand: 0, uikit: 0 } as Record<string, number>
@@ -426,6 +449,7 @@ export function RoundTripPage() {
       tokens: result.diffs.filter((d) => d.file === 'tokens').length,
       brand: result.diffs.filter((d) => d.file === 'brand').length,
       uikit: result.diffs.filter((d) => d.file === 'uikit').length,
+      css: result.diffs.filter((d) => d.file === 'css').length,
     } as Record<string, number>
   }, [result])
 
@@ -438,17 +462,18 @@ export function RoundTripPage() {
         </div>
         <div style={styles.emptyState}>
           <div style={{ fontSize: 48, opacity: 0.3 }}>⚗️</div>
-          <div style={{ fontSize: 16, fontWeight: 600 }}>No validation data found</div>
-          <div style={{ fontSize: 13, textAlign: 'center', maxWidth: 360, opacity: 0.6 }}>
-            Click the flask button in the Recursica Forge header to run the validation.
+          <div style={{ fontSize: 16, fontWeight: 600 }}>No diff data found</div>
+          <div style={{ fontSize: 13, textAlign: 'center', maxWidth: 400, opacity: 0.6, lineHeight: 1.6 }}>
+            Click the <strong>Diff</strong> button (⊘) in the Recursica Forge header.<br/>
+            It will download a zip, reset the app, and open the import modal.<br/>
+            Drop the zip in the import modal — this tab will update automatically.
           </div>
         </div>
       </div>
     )
   }
 
-  const allClean = result.diffs.length === 0 && result.schemaErrors.length === 0
-  const hasErrors = filteredSchema.length > 0
+  const allClean = result.diffs.length === 0
 
   const panels = [
     { label: 'Original', key: 'originalSnapshot' as const },
@@ -458,12 +483,12 @@ export function RoundTripPage() {
 
   // Get the snapshot object for a given panel + file filter
   const getSnapshot = (key: keyof RoundTripResult) => {
-    return result[key] as { tokens: object; brand: object; uikit: object }
+    return result[key] as { tokens: object; brand: object; uikit: object; css: object }
   }
 
   // Get value for a diff path from a given snapshot
   const resolveValue = (
-    snapshot: { tokens: object; brand: object; uikit: object },
+    snapshot: { tokens: object; brand: object; uikit: object; css: object },
     diff: DiffEntry
   ): unknown => {
     const file = snapshot[diff.file] as Record<string, unknown>
@@ -480,34 +505,25 @@ export function RoundTripPage() {
     <div style={styles.root}>
       {/* ── Top bar ── */}
       <div style={styles.topBar}>
-        {/* Back to Forge */}
-        <button
-          onClick={() => navigate(-1)}
-          style={{
-            padding: '4px 12px',
-            borderRadius: 6,
-            fontSize: 12,
-            fontWeight: 500,
-            cursor: 'pointer',
-            background: 'transparent',
-            color: palette.textSecondary,
-            border: `1px solid ${palette.border}`,
-            transition: 'all 0.15s',
-            flexShrink: 0,
-          }}
-        >
-          ← Back to Forge
-        </button>
-
         <span style={styles.title}>Round-Trip Validation</span>
 
-        {/* View mode toggle */}
-        <button style={styles.viewToggle(viewMode === 'diff')} onClick={() => setViewMode('diff')}>
-          Diff
-        </button>
-        <button style={styles.viewToggle(viewMode === 'json')} onClick={() => setViewMode('json')}>
-          JSON
-        </button>
+        {/* File filter tabs */}
+        <div style={{ display: 'flex', gap: 2, flex: 1 }}>
+          {(['tokens', 'brand', 'uikit', 'css', 'all'] as FileTab[]).map((tab) => {
+            const label = tab === 'uikit' ? 'UI Kit' : tab === 'css' ? 'CSS' : tab.charAt(0).toUpperCase() + tab.slice(1)
+            return (
+            <button
+              key={tab}
+              style={styles.viewToggle(fileTab === tab)}
+              onClick={() => setFileTab(tab)}
+            >
+              {label}
+              {tab !== 'all' && fileCounts[tab] !== undefined ? (
+                <span style={{ marginLeft: 4, opacity: 0.6 }}>({fileCounts[tab]})</span>
+              ) : null}
+            </button>
+          )})}
+        </div>
 
         {/* Summary badges */}
         <span style={styles.badge(allClean ? '#166534' : '#1d4ed8')}>
@@ -518,48 +534,30 @@ export function RoundTripPage() {
             {result.mismatches} mismatch{result.mismatches !== 1 ? 'es' : ''}
           </span>
         )}
-        {result.schemaErrors.length > 0 && (
-          <span style={styles.badge('#991b1b')}>
-            {result.schemaErrors.length} schema error{result.schemaErrors.length !== 1 ? 's' : ''}
-          </span>
-        )}
-
-        {/* File filter tabs */}
-        <div style={{ ...styles.fileTabsWrap, gap: 2 }}>
-          {(['tokens', 'brand', 'uikit'] as FileTab[]).map((tab) => {
-            const label = tab === 'uikit' ? 'UI Kit' : tab.charAt(0).toUpperCase() + tab.slice(1)
-            return (
-            <button
-              key={tab}
-              style={styles.viewToggle(fileTab === tab)}
-              onClick={() => setFileTab(tab)}
-            >
-              {label}
-              {fileCounts[tab] ? (
-                <span style={{ marginLeft: 4, opacity: 0.6 }}>({fileCounts[tab]})</span>
-              ) : null}
-            </button>
-          )})}
-        </div>
       </div>
 
-      {/* Banners */}
+      {/* ── Sub bar for view modes ── */}
+      <div style={{...styles.topBar, borderTop: 'none', background: palette.bgRow, paddingTop: 4, paddingBottom: 4}}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: palette.textSecondary, marginRight: 8, textTransform: 'uppercase' }}>View Mode:</span>
+        <button style={styles.viewToggle(viewMode === 'diff')} onClick={() => setViewMode('diff')}>
+          Diff
+        </button>
+        <button style={styles.viewToggle(viewMode === 'mismatches')} onClick={() => setViewMode('mismatches')}>
+          Mismatches
+        </button>
+        <button style={styles.viewToggle(viewMode === 'json')} onClick={() => setViewMode('json')}>
+          JSON
+        </button>
+      </div>
+
       {allClean && (
         <div style={styles.matchBanner}>
-          ✓ Export and import are perfectly consistent — no diffs, no schema errors.
-        </div>
-      )}
-      {hasErrors && (
-        <div style={styles.errorBanner}>
-          {filteredSchema.map((e, i) => (
-            <div key={i} style={styles.errorItem}>
-              [{e.file}/{e.phase}] {e.message}
-            </div>
-          ))}
+          ✓ Import is perfectly consistent — no diffs detected.
         </div>
       )}
 
       {/* ── Body: sticky column headers + single scroll area ── */}
+
       <div style={styles.body}>
         {/* Sticky panel header row */}
         <div style={styles.panelHeaderRow}>
@@ -574,7 +572,7 @@ export function RoundTripPage() {
             /* JSON view: three columns side by side */
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', flex: 1 }}>
               {panels.map(({ key }, i) => {
-                const snap = result[key] as { tokens: object; brand: object; uikit: object }
+                const snap = result[key] as { tokens: object; brand: object; uikit: object; css: object }
                 return (
                   <div key={key} style={{ borderRight: i < panels.length - 1 ? `1px solid ${palette.border}` : 'none' }}>
                     <JsonPanel data={snap} fileKey={fileTab} styles={styles} p={palette} />
@@ -582,27 +580,43 @@ export function RoundTripPage() {
                 )
               })}
             </div>
-          ) : filteredDiffs.length === 0 && !hasErrors ? (
+          ) : filteredDiffs.length === 0 ? (
             <div style={{ padding: 32, textAlign: 'center', fontSize: 13, opacity: 0.5 }}>
               No diffs in {fileTab === 'uikit' ? 'UI Kit' : fileTab}.
             </div>
           ) : (
             /* Diff view: one row per diff path, three value columns */
             filteredDiffs.map((diff, rowIdx) => {
-              const snaps = panels.map(({ key }) => result[key] as { tokens: object; brand: object; uikit: object })
+              const snaps = panels.map(({ key }) => result[key] as { tokens: object; brand: object; uikit: object; css: object })
+              const origVal = resolveValue(snaps[0], diff)
               const exportVal = resolveValue(snaps[1], diff)
+              const importVal = resolveValue(snaps[2], diff)
+              
+              const origStr = origVal === undefined ? undefined : JSON.stringify(origVal)
+              const expStr = exportVal === undefined ? undefined : JSON.stringify(exportVal)
+              const impStr = importVal === undefined ? undefined : JSON.stringify(importVal)
+              
+              let status = 'mismatch'
+              if (expStr === impStr) {
+                  status = 'modified' // Successfully tracked modification
+              } else if (origStr === expStr) {
+                  status = 'import-bug' // Import threw away the data or mutated it unnecessarily
+              } else if (origStr === impStr) {
+                  status = 'reverted' // Import threw away the user modification
+              }
+
               return (
                 <div key={`${diff.file}-${diff.path}`}>
                   {/* Full-width path row */}
                   <div style={{ ...styles.pathRow, display: 'grid', gridTemplateColumns: '1fr auto' }}>
                     <span style={styles.pathLabel}>{diff.file} › {diff.path}</span>
-                    <span style={styles.statusChip(diff.status)}>{diff.status}</span>
+                    <span style={styles.statusChip(status)}>{status}</span>
                   </div>
                   {/* Three-column value row */}
                   <div style={styles.diffRow(rowIdx % 2 === 1)}>
                     {snaps.map((snap, panelIdx) => {
                       const val = resolveValue(snap, diff)
-                      const highlight = panelIdx !== 1 && JSON.stringify(val) !== JSON.stringify(exportVal)
+                      const highlight = (panelIdx === 1 && expStr !== origStr) || (panelIdx === 2 && impStr !== expStr)
                       return (
                         <div key={panelIdx} style={styles.diffCell(panelIdx === snaps.length - 1)}>
                           <div style={styles.valueRow(false)}>
