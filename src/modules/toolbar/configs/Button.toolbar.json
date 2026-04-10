@@ -132,7 +132,17 @@
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",
-      "visible": true
+      "visible": true,
+      "group": {
+        "elevation": {
+          "label": "Elevation",
+          "visible": true
+        },
+        "hover-elevation": {
+          "label": "Hover elevation",
+          "visible": true
+        }
+      }
     }
   }
 }

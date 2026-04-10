@@ -118,8 +118,8 @@ export function Button({
   if (!Component) {
     // Fallback to native button if component not available
     const sizePrefix = size === 'small' ? 'small' : 'default'
-    const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
-    const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
+    const iconSizeVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon')
+    const iconGapVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon-text-gap')
     
     return (
       <button
@@ -240,10 +240,11 @@ function getButtonStyles(
     // Use actual CSS border instead of box-shadow
     styles.border = `${borderSizeValue || '1px'} solid var(${borderColorVar || textVar})`
   } else {
-    // text variant
+    // text variant — use CSS variable-driven border so toolbar changes apply.
+    // When border-color is null (default for layers 0-2), the border is effectively invisible.
     styles.backgroundColor = `var(${bgVar})`
     styles.color = `var(${textVar})`
-    styles.border = 'none'
+    styles.border = `${borderSizeValue || '1px'} solid var(${borderColorVar || textVar})`
   }
   
   // Apply size styles using CSS variable references directly

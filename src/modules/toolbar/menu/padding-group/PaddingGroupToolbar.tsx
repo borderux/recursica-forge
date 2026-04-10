@@ -75,7 +75,11 @@ export default function PaddingGroupToolbar({
     return structure.props.find(p => {
       if (p.name.toLowerCase() !== 'padding') return false
       if (p.isVariantSpecific && p.variantProp) {
-        const selectedVariant = selectedVariants[p.variantProp]
+        // Map JSON structure key to toolbar variant key
+        const variantKey = p.variantProp === 'sizes' ? 'size' :
+                           p.variantProp === 'styles' ? 'style' :
+                           p.variantProp === 'layouts' ? 'layout' : p.variantProp
+        const selectedVariant = selectedVariants[variantKey]
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
       }
@@ -95,7 +99,11 @@ export default function PaddingGroupToolbar({
         return false
       }
       if (p.isVariantSpecific && p.variantProp) {
-        const selectedVariant = selectedVariants[p.variantProp]
+        // Map JSON structure key to toolbar variant key
+        const variantKey = p.variantProp === 'sizes' ? 'size' :
+                           p.variantProp === 'styles' ? 'style' :
+                           p.variantProp === 'layouts' ? 'layout' : p.variantProp
+        const selectedVariant = selectedVariants[variantKey]
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
       }
@@ -115,7 +123,11 @@ export default function PaddingGroupToolbar({
         return false
       }
       if (p.isVariantSpecific && p.variantProp) {
-        const selectedVariant = selectedVariants[p.variantProp]
+        // Map JSON structure key to toolbar variant key
+        const variantKey = p.variantProp === 'sizes' ? 'size' :
+                           p.variantProp === 'styles' ? 'style' :
+                           p.variantProp === 'layouts' ? 'layout' : p.variantProp
+        const selectedVariant = selectedVariants[variantKey]
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
       }

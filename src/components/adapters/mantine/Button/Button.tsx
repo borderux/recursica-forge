@@ -75,10 +75,14 @@ export default function Button({
       ? buttonBorderColorRef
       : undefined
 
-  // Get icon size and gap CSS variables
-  const iconSizeVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon`, undefined)
-  const iconGapVar = getComponentCssVar('Button', 'size', `${sizePrefix}-icon-text-gap`, undefined)
-  const horizontalPaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
+  // Get icon size and gap CSS variables — use full path matching JSON structure
+  const iconSizeVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon')
+  const iconGapVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon-text-gap')
+  // Detect icon-only button (icon exists but no children) — needed early for padding var
+  const isIconOnly = icon && !children
+  // Use content-variant-specific horizontal-padding: label vs icon-only have separate tokens
+  const contentVariant = isIconOnly ? 'icon-only' : 'label'
+  const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizePrefix, 'properties', 'horizontal-padding')
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'border-radius')
@@ -105,6 +109,11 @@ export default function Button({
   const elevationValueRaw = useCssVar(elevationVar, 'elevation-0')
   // Use prop override if provided, otherwise use CSS var value
   const resolvedElevation = elevation || elevationValueRaw || 'elevation-0'
+
+  // Get hover-elevation CSS variable (variant-specific property)
+  const hoverElevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'hover-elevation')
+  const hoverElevationValueRaw = useCssVar(hoverElevationVar, 'elevation-0')
+  const resolvedHoverElevation = hoverElevationValueRaw || 'elevation-0'
   // Resolve the border-size value to get actual pixel value (handles var() references)
   const [borderSizeValue, setBorderSizeValue] = useState(() => {
     const resolved = readCssVarResolved(borderSizeVar, 10, '1px')
@@ -202,9 +211,6 @@ export default function Button({
     }
   }, [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar])
 
-  // Detect icon-only button (icon exists but no children)
-  const isIconOnly = icon && !children
-
   // Merge library-specific props
   const mantineProps = {
     variant: mantineVariant,
@@ -246,9 +252,10 @@ export default function Button({
           borderColor: buttonBorderColor,
           border: `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
         } : {}),
-        // For text variant, explicitly remove border
+        // For text variant, use CSS variable-driven border (border-color null = invisible)
         ...(variant === 'text' && {
-          border: 'none !important',
+          borderColor: buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : undefined,
+          border: `${borderSizeValue || '1px'} solid ${buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : 'transparent'}`,
         }),
         // Override disabled state to keep colors unchanged, only apply opacity
         // Note: CSS file handles disabled state with !important
@@ -260,7 +267,8 @@ export default function Button({
             border: `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
           }),
           ...(variant === 'text' && {
-            border: 'none',
+            borderColor: buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : undefined,
+            border: `${borderSizeValue || '1px'} solid ${buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : 'transparent'}`,
           }),
         }),
       },
@@ -288,6 +296,7 @@ export default function Button({
         }),
         '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
         '--button-hover-color': `var(${hoverColorVar}, #000000)`, // Hover color
+        '--button-hover-box-shadow': getElevationBoxShadow(mode, resolvedHoverElevation) || 'none', // Hover elevation
         // Set button color without fallback to Mantine colors
         '--button-color': buttonColorRef,
         // Set button border color CSS variable for CSS file override
@@ -322,9 +331,9 @@ export default function Button({
         ...((variant === 'solid' || variant === 'outline') && buttonBorderColor ? {
           '--button-bd': `${borderSizeValue || '1px'} solid ${variant === 'outline' && buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : buttonBorderColor}`,
         } : {}),
-        // For text variant, explicitly remove border
+        // For text variant, use border from CSS variables (null border-color = transparent)
         ...(variant === 'text' ? {
-          '--button-bd': 'none',
+          '--button-bd': `${borderSizeValue || '1px'} solid ${buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : 'transparent'}`,
         } : {}),
         '--button-height': `var(${heightVar})`,
         '--button-min-width': `var(${minWidthVar})`,

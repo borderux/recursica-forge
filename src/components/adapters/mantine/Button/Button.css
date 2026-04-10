@@ -48,7 +48,7 @@
 /* Note: leftSection SVGs use 100% to fill their container (see rule above) - that rule is more specific so it will override */
 /* Note: Size-specific rules below will override this for buttons with data-size attribute */
 /* Apply to all SVGs regardless of visibility state, including those with inline width/height attributes or width/height="0" */
-/* Use recursica CSS variables first, then fall back to --button-icon-size */
+/* Use --button-icon-size first (set reactively by adapter), then fall back to static recursica CSS variables */
 .mantine-Button-root svg,
 .mantine-Button-root svg[width],
 .mantine-Button-root svg[height],
@@ -62,12 +62,12 @@
 .mantine-Button-root svg[style*="height:0"],
 .mantine-Button-root .mantine-Button-label svg,
 .mantine-Button-root>svg {
-  width: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  height: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  min-width: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  min-height: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  max-width: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  max-height: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
+  width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  height: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  min-width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  min-height: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  max-width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  max-height: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -75,7 +75,7 @@
   color: var(--button-icon-color, inherit) !important;
 }
 
-/* Small buttons (xs) use small-icon variant - use recursica CSS var directly, fall back to --button-icon-size */
+/* Small buttons (xs) use small-icon variant - use --button-icon-size first (reactive), fall back to static recursica var */
 .mantine-Button-root[data-size='xs'] svg,
 .mantine-Button-root[data-size='xs'] svg[width],
 .mantine-Button-root[data-size='xs'] svg[height],
@@ -89,15 +89,15 @@
 .mantine-Button-root[data-size='xs'] svg[style*="height:0"],
 .mantine-Button-root[data-size='xs'] .mantine-Button-label svg,
 .mantine-Button-root[data-size='xs']>svg {
-  width: var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon, var(--button-icon-size)) !important;
-  height: var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon, var(--button-icon-size)) !important;
-  min-width: var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon, var(--button-icon-size)) !important;
-  min-height: var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon, var(--button-icon-size)) !important;
-  max-width: var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon, var(--button-icon-size)) !important;
-  max-height: var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon, var(--button-icon-size)) !important;
+  width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon)) !important;
+  height: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon)) !important;
+  min-width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon)) !important;
+  min-height: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon)) !important;
+  max-width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon)) !important;
+  max-height: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_small_properties_icon)) !important;
 }
 
-/* Default and large buttons (md, lg) use default-icon variant - use recursica CSS var directly, fall back to --button-icon-size */
+/* Default and large buttons (md, lg) use default-icon variant - use --button-icon-size first (reactive), fall back to static recursica var */
 .mantine-Button-root[data-size='md'] svg,
 .mantine-Button-root[data-size='md'] svg[width],
 .mantine-Button-root[data-size='md'] svg[height],
@@ -124,12 +124,12 @@
 .mantine-Button-root[data-size='lg'] svg[style*="height:0"],
 .mantine-Button-root[data-size='lg'] .mantine-Button-label svg,
 .mantine-Button-root[data-size='lg']>svg {
-  width: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  height: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  min-width: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  min-height: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  max-width: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
-  max-height: var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon, var(--button-icon-size)) !important;
+  width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  height: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  min-width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  min-height: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  max-width: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
+  max-height: var(--button-icon-size, var(--recursica_ui-kit_components_button_variants_sizes_default_properties_icon)) !important;
 }
 
 
@@ -234,9 +234,9 @@
   border-color: var(--button-border-color) !important;
 }
 
-/* Ensure text variant (subtle) has no border */
+/* Text variant (subtle) uses border from CSS variables — border-color null means transparent */
 .mantine-Button-root[data-variant='subtle'] {
-  border: none !important;
+  border: var(--button-bd, 1px solid transparent) !important;
 }
 
 /* Always have relative positioning for hover overlay */
@@ -265,8 +265,8 @@
 .recursica-layer-3 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled) {
   /* Prevent background color change on hover - override Mantine's CSS-in-JS */
   background-color: var(--button-bg) !important;
-  /* Remove all box-shadow and inner shadow effects */
-  box-shadow: none !important;
+  /* Apply hover-elevation box-shadow if set, otherwise remove shadow */
+  box-shadow: var(--button-hover-box-shadow, none) !important;
   /* Prevent any gradient or filter effects */
   filter: none !important;
   backdrop-filter: none !important;
