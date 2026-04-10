@@ -21,6 +21,7 @@ import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandle
 import { clearStoredFonts } from './fontStore'
 import { syncDeltaToJson } from './deltaToJson'
 import { buildStructuralMetadata, type StructuralMetadata } from './structuralMetadata'
+import { clearGlobalRefPreference } from '../css/globalRefInterceptor'
 
 import tokensImport from '../../../recursica_tokens.json'
 import themeImport from '../../../recursica_brand.json'
@@ -1089,6 +1090,9 @@ class VarsStore {
     clearDelta()
     clearStoredFonts()
     this.clearDeletedScales()
+
+    // Clear global ref preference so users are prompted again after a reset
+    clearGlobalRefPreference()
 
     // Clear session storage for randomizer states
     try {
