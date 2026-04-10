@@ -86,13 +86,19 @@ export default function IconGroupToolbar({
         !propNameLower.includes('icon-size')) {
         return false
       }
-      // Prefer exact match, but also accept any icon-size variant
-      if (propNameLower === sizePropName.toLowerCase() || propNameLower === 'icon-size') {
+      // Prefer exact match, but also accept any icon-size or bare "icon" variant
+      if (propNameLower === sizePropName.toLowerCase() || propNameLower === 'icon-size' || propNameLower === 'icon') {
         if (p.isVariantSpecific && p.variantProp) {
-          const selectedVariant = selectedVariants[p.variantProp]
+          // Map JSON structure key to toolbar variant key
+          const variantKey = p.variantProp === 'sizes' ? 'size' :
+                             p.variantProp === 'styles' ? 'style' :
+                             p.variantProp === 'layouts' ? 'layout' : p.variantProp
+          const selectedVariant = selectedVariants[variantKey]
           if (!selectedVariant) return false
           if (!p.path.includes(selectedVariant)) return false
         }
+        // Ensure the prop is a dimension type (not a color, etc.)
+        if (p.category !== 'size') return false
         return true
       }
       return false
@@ -109,7 +115,11 @@ export default function IconGroupToolbar({
         return false
       }
       if (p.isVariantSpecific && p.variantProp) {
-        const selectedVariant = selectedVariants[p.variantProp]
+        // Map JSON structure key to toolbar variant key
+        const variantKey = p.variantProp === 'sizes' ? 'size' :
+                           p.variantProp === 'styles' ? 'style' :
+                           p.variantProp === 'layouts' ? 'layout' : p.variantProp
+        const selectedVariant = selectedVariants[variantKey]
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
       }

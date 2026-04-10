@@ -239,6 +239,10 @@
                 "elevation": {
                   "$type": "elevation",
                   "$value": "{brand.elevations.elevation-0}"
+                },
+                "hover-elevation": {
+                  "$type": "elevation",
+                  "$value": "{brand.elevations.elevation-0}"
                 }
               }
             },
@@ -344,6 +348,10 @@
                 "elevation": {
                   "$type": "elevation",
                   "$value": "{brand.elevations.elevation-0}"
+                },
+                "hover-elevation": {
+                  "$type": "elevation",
+                  "$value": "{brand.elevations.elevation-0}"
                 }
               }
             },
@@ -447,6 +455,10 @@
                   }
                 },
                 "elevation": {
+                  "$type": "elevation",
+                  "$value": "{brand.elevations.elevation-0}"
+                },
+                "hover-elevation": {
                   "$type": "elevation",
                   "$value": "{brand.elevations.elevation-0}"
                 }

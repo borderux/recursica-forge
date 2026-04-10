@@ -950,6 +950,31 @@ export default function PropControlContent({
       }
     }
 
+    // If a content variant is selected (e.g., "label" or "icon-only"), prefer the
+    // content-variant-specific prop over the sizes-level one. This ensures the toolbar
+    // writes to the same CSS var that the preview component reads from.
+    const selectedContent = selectedVariants.content
+    if (selectedContent && matchingProp) {
+      // Check if a more specific content-variant prop exists
+      const contentSpecificProp = structure.props.find(p => {
+        if (p.name !== matchingProp!.name || p.category !== matchingProp!.category) return false
+        // Must have 'content' in the path with the selected content variant value
+        if (!p.path.includes('content') || !p.path.includes(selectedContent)) return false
+        // Must also match the selected size variant if applicable
+        if (p.isVariantSpecific && p.variantProp) {
+          const variantKey = p.variantProp === 'sizes' ? 'size' :
+                             p.variantProp === 'styles' ? 'style' :
+                             p.variantProp === 'layouts' ? 'layout' : p.variantProp
+          const selectedVariant = selectedVariants[variantKey]
+          if (selectedVariant && !p.path.includes(selectedVariant)) return false
+        }
+        return true
+      })
+      if (contentSpecificProp) {
+        matchingProp = contentSpecificProp
+      }
+    }
+
     return matchingProp ? [matchingProp.cssVar] : [propToCheck.cssVar]
   }
 
