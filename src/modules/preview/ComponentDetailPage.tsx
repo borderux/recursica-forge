@@ -100,11 +100,32 @@ export default function ComponentDetailPage() {
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
   const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
 
-  // Reset variants to first option when component changes
+  // Reset variants to first option when component changes, then apply URL query overrides
   useEffect(() => {
-    setSelectedVariants(getInitialVariants)
+    const initial = { ...getInitialVariants }
+    let layer = 'layer-0'
+
+    // Apply query param overrides for deep linking (e.g., ?layer=layer-2&states=error&style=solid)
+    const params = new URLSearchParams(location.search)
+    const layerParam = params.get('layer')
+    if (layerParam && /^layer-\d+$/.test(layerParam)) {
+      layer = layerParam
+    }
+
+    // Apply variant overrides from query params
+    if (componentStructure) {
+      for (const variant of componentStructure.variants) {
+        const paramValue = params.get(variant.propName)
+        if (paramValue && variant.variants.includes(paramValue)) {
+          initial[variant.propName] = paramValue
+        }
+      }
+    }
+
+    setSelectedVariants(initial)
+    setSelectedLayer(layer)
     setOpenPropControl(new Set())
-  }, [componentName, location.pathname, getInitialVariants])
+  }, [componentName, location.pathname, location.search, getInitialVariants, componentStructure])
 
   // Get layer label for display
   const layerLabel = useMemo(() => {

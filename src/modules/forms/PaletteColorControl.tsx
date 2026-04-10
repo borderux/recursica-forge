@@ -954,14 +954,19 @@ export default function PaletteColorControl({
 
   // Create trailing icon with contrast warning if needed
   const trailingIcon = contrastWarning ? (
-    <span
-      className="palette-color-control-warning"
-      title={`Poor contrast: ${contrastWarning.ratio}:1 (WCAG AA requires 4.5:1)`}
+    <a
+      href={`/theme/compliance`}
+      onClick={(e) => {
+        e.stopPropagation()
+        e.preventDefault()
+        window.location.href = '/theme/compliance'
+      }}
+      className="palette-color-control-compliance-link"
+      title={`Poor contrast: ${contrastWarning.ratio}:1 (WCAG AA requires 4.5:1). Click to view compliance details.`}
       aria-label={`Poor contrast warning: ${contrastWarning.ratio}:1 ratio`}
-      style={{ fontSize: fontSize }}
     >
-      ⚠
-    </span>
+      {contrastWarning.ratio}:1
+    </a>
   ) : undefined
 
   return (

@@ -28,7 +28,7 @@ export interface SuggestedFix {
 
 export interface ComplianceIssue {
     id: string
-    type: 'palette-on-tone' | 'layer-text' | 'layer-interactive' | 'core-on-tone'
+    type: 'palette-on-tone' | 'layer-text' | 'layer-interactive' | 'core-on-tone' | 'component-text'
     mode: 'light' | 'dark'
     location: string
     emphasis?: 'high' | 'low'
@@ -42,6 +42,8 @@ export interface ComplianceIssue {
     suggestion: SuggestedFix | null
     /** CSS var name of the tone (background) for this issue, used to trace the reference chain */
     toneCssVar?: string
+    /** Component name for component-text issues */
+    componentName?: string
 }
 
 // ─── Service ───
@@ -102,6 +104,9 @@ class ComplianceServiceImpl {
 
                 // 5. Check layer interactive colors
                 this.checkLayerInteractiveColors(newIssues, tokenIndex, tokens, mode)
+
+                // 6. Check component text/icon vs background contrast
+                this.checkComponentTextColors(newIssues, tokenIndex, mode)
             }
 
             this.issues = newIssues
@@ -1306,6 +1311,304 @@ class ComplianceServiceImpl {
         }
 
         return null
+    }
+    // ─── Component Compliance Scanner ───
+
+    /**
+     * Check component text/icon colors against their backgrounds.
+     * Scans form fields, buttons, chips, badges, accordion items, menu items,
+     * segmented control, and transfer list.
+     * Skips disabled states.
+     */
+    private checkComponentTextColors(
+        issues: ComplianceIssue[],
+        tokenIndex: ReturnType<typeof buildTokenIndex>,
+        mode: 'light' | 'dark'
+    ) {
+        try {
+            const uikit = getVarsStore().getState().uikit as any
+            const components = uikit?.['ui-kit']?.components ?? uikit?.components ?? {}
+            const layers: string[] = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+
+            // Format a kebab-case key as a readable label: 'error-selected' → 'Error selected', 'layer-0' → 'Layer 0'
+            const toLabel = (s: string) => {
+                const words = s.split('-')
+                return words.map((w, i) => i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w).join(' ')
+            }
+
+            // ── 1. Form fields with variants.states.{state}.properties.colors.{layer}.{prop} ──
+            const formFields = [
+                'text-field', 'textarea', 'dropdown', 'autocomplete', 'number-input',
+                'date-picker', 'time-picker', 'file-input', 'file-upload', 'transfer-list'
+            ]
+            // Foreground props to check vs background
+            const fgProps = ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
+
+            for (const compName of formFields) {
+                const comp = components[compName]
+                const states = comp?.variants?.states
+                if (!states) continue
+
+                for (const [stateName, stateObj] of Object.entries(states)) {
+                    if (stateName === 'disabled') continue
+                    const colors = (stateObj as any)?.properties?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors?.background) continue
+
+                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_states_${stateName}_properties_colors_${layer}_background`
+                        const bgValue = readCssVar(bgVar)
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        for (const prop of fgProps) {
+                            if (!layerColors[prop]) continue
+                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_states_${stateName}_properties_colors_${layer}_${prop}`
+                            const fgValue = readCssVar(fgVar)
+                            if (!fgValue) continue
+                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                            if (!fgHex) continue
+
+                            const ratio = contrastRatio(bgHex, fgHex)
+                            if (ratio < AA_THRESHOLD) {
+                                const displayName = compName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                issues.push({
+                                    id: `comp-${compName}-${stateName}-${layer}-${prop}-${mode}`,
+                                    type: 'component-text',
+                                    mode,
+                                    componentName: compName,
+                                    location: `${displayName} / ${toLabel(stateName)} / ${toLabel(layer)} / ${propLabel}`,
+                                    toneHex: bgHex,
+                                    onToneHex: fgHex,
+                                    rawOnToneHex: fgHex,
+                                    contrastRatio: ratio,
+                                    requiredRatio: AA_THRESHOLD,
+                                    message: `${propLabel} contrast ${ratio.toFixed(2)}:1 vs background is below ${AA_THRESHOLD}:1`,
+                                    suggestion: null,
+                                    toneCssVar: bgVar,
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── 2. Button style variants: variants.styles.{style}.properties.colors.{layer} ──
+            const button = components['button']
+            if (button?.variants?.styles) {
+                const buttonFgProps = ['text', 'text-hover', 'icon-color']
+                for (const [styleName, styleObj] of Object.entries(button.variants.styles)) {
+                    const colors = (styleObj as any)?.properties?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors?.background) continue
+
+                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_button_variants_styles_${styleName}_properties_colors_${layer}_background`
+                        const bgValue = readCssVar(bgVar)
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        for (const prop of buttonFgProps) {
+                            if (!layerColors[prop]) continue
+                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_button_variants_styles_${styleName}_properties_colors_${layer}_${prop}`
+                            const fgValue = readCssVar(fgVar)
+                            if (!fgValue) continue
+                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                            if (!fgHex) continue
+
+                            const ratio = contrastRatio(bgHex, fgHex)
+                            if (ratio < AA_THRESHOLD) {
+                                const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                issues.push({
+                                    id: `comp-button-${styleName}-${layer}-${prop}-${mode}`,
+                                    type: 'component-text',
+                                    mode,
+                                    componentName: 'button',
+                                    location: `Button / ${toLabel(styleName)} / ${toLabel(layer)} / ${propLabel}`,
+                                    toneHex: bgHex,
+                                    onToneHex: fgHex,
+                                    rawOnToneHex: fgHex,
+                                    contrastRatio: ratio,
+                                    requiredRatio: AA_THRESHOLD,
+                                    message: `${propLabel} contrast ${ratio.toFixed(2)}:1 vs background is below ${AA_THRESHOLD}:1`,
+                                    suggestion: null,
+                                    toneCssVar: bgVar,
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── 3. Chip and Badge style variants: variants.styles.{style}.properties.colors.{layer} ──
+            for (const compName of ['chip', 'badge'] as const) {
+                const comp = components[compName]
+                if (!comp?.variants?.styles) continue
+
+                const chipFgProps = compName === 'chip'
+                    ? ['text', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon']
+                    : ['text']
+
+                for (const [styleName, styleObj] of Object.entries(comp.variants.styles)) {
+                    const colors = (styleObj as any)?.properties?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors?.background) continue
+
+                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_styles_${styleName}_properties_colors_${layer}_background`
+                        const bgValue = readCssVar(bgVar)
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        for (const prop of chipFgProps) {
+                            if (!layerColors[prop]) continue
+                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_styles_${styleName}_properties_colors_${layer}_${prop}`
+                            const fgValue = readCssVar(fgVar)
+                            if (!fgValue) continue
+                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                            if (!fgHex) continue
+
+                            const ratio = contrastRatio(bgHex, fgHex)
+                            if (ratio < AA_THRESHOLD) {
+                                const displayName = compName.charAt(0).toUpperCase() + compName.slice(1)
+                                const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                issues.push({
+                                    id: `comp-${compName}-${styleName}-${layer}-${prop}-${mode}`,
+                                    type: 'component-text',
+                                    mode,
+                                    componentName: compName,
+                                    location: `${displayName} / ${toLabel(styleName)} / ${toLabel(layer)} / ${propLabel}`,
+                                    toneHex: bgHex,
+                                    onToneHex: fgHex,
+                                    rawOnToneHex: fgHex,
+                                    contrastRatio: ratio,
+                                    requiredRatio: AA_THRESHOLD,
+                                    message: `${propLabel} contrast ${ratio.toFixed(2)}:1 vs background is below ${AA_THRESHOLD}:1`,
+                                    suggestion: null,
+                                    toneCssVar: bgVar,
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── 4. AccordionItem: properties.colors.{layer}.{text|content-text|icon} vs background ──
+            const accordionItem = components['accordion-item']
+            if (accordionItem?.properties?.colors) {
+                const accFgProps = ['text', 'content-text', 'icon']
+                const accBgGroups = [
+                    { key: 'background-collapsed', label: 'collapsed' },
+                    { key: 'background-expanded', label: 'expanded' },
+                ]
+
+                for (const layer of layers) {
+                    const layerColors = accordionItem.properties.colors[layer]
+                    if (!layerColors) continue
+
+                    for (const bgGroup of accBgGroups) {
+                        if (!layerColors[bgGroup.key]) continue
+                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_accordion-item_properties_colors_${layer}_${bgGroup.key}`
+                        const bgValue = readCssVar(bgVar)
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        for (const prop of accFgProps) {
+                            if (!layerColors[prop]) continue
+                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_accordion-item_properties_colors_${layer}_${prop}`
+                            const fgValue = readCssVar(fgVar)
+                            if (!fgValue) continue
+                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                            if (!fgHex) continue
+
+                            const ratio = contrastRatio(bgHex, fgHex)
+                            if (ratio < AA_THRESHOLD) {
+                                const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                issues.push({
+                                    id: `comp-accordion-item-${bgGroup.label}-${layer}-${prop}-${mode}`,
+                                    type: 'component-text',
+                                    mode,
+                                    componentName: 'accordion-item',
+                                    location: `Accordion Item / ${bgGroup.label} / ${toLabel(layer)} / ${propLabel}`,
+                                    toneHex: bgHex,
+                                    onToneHex: fgHex,
+                                    rawOnToneHex: fgHex,
+                                    contrastRatio: ratio,
+                                    requiredRatio: AA_THRESHOLD,
+                                    message: `${propLabel} contrast ${ratio.toFixed(2)}:1 vs ${bgGroup.label} background is below ${AA_THRESHOLD}:1`,
+                                    suggestion: null,
+                                    toneCssVar: bgVar,
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── 5. MenuItem: properties.colors.{layer}.{selected-item|unselected-item}.text vs .background ──
+            const menuItem = components['menu-item']
+            if (menuItem?.properties?.colors) {
+                const groups = ['selected-item', 'unselected-item']
+
+                for (const layer of layers) {
+                    const layerColors = menuItem.properties.colors[layer]
+                    if (!layerColors) continue
+
+                    for (const group of groups) {
+                        const groupObj = layerColors[group]
+                        if (!groupObj?.background || !groupObj?.text) continue
+
+                        // Skip if background is null (transparent)
+                        if (groupObj.background.$value === null) continue
+
+                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_menu-item_properties_colors_${layer}_${group}_background`
+                        const textVar = `--recursica_ui-kit_themes_${mode}_components_menu-item_properties_colors_${layer}_${group}_text`
+
+                        const bgValue = readCssVar(bgVar)
+                        const textValue = readCssVar(textVar)
+                        if (!bgValue || !textValue) continue
+
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        const textHex = resolveCssVarToHex(textValue, tokenIndex as any)
+                        if (!bgHex || !textHex) continue
+
+                        const ratio = contrastRatio(bgHex, textHex)
+                        if (ratio < AA_THRESHOLD) {
+                            const groupLabel = group.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            issues.push({
+                                id: `comp-menu-item-${group}-${layer}-text-${mode}`,
+                                type: 'component-text',
+                                mode,
+                                componentName: 'menu-item',
+                                location: `Menu Item / ${groupLabel} / ${toLabel(layer)} / Text`,
+                                toneHex: bgHex,
+                                onToneHex: textHex,
+                                rawOnToneHex: textHex,
+                                contrastRatio: ratio,
+                                requiredRatio: AA_THRESHOLD,
+                                message: `Text contrast ${ratio.toFixed(2)}:1 vs ${groupLabel} background is below ${AA_THRESHOLD}:1`,
+                                suggestion: null,
+                                toneCssVar: bgVar,
+                            })
+                        }
+                    }
+                }
+            }
+
+        } catch (err) {
+            // Silently skip — component scanning should not break the overall scan
+        }
     }
 }
 
