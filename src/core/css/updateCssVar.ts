@@ -14,6 +14,7 @@ import { updateUIKitValue, removeUIKitValue } from './updateUIKitValue'
 import { updateBrandValue } from './updateBrandValue'
 import { trackChange, clearDeltaEntry } from '../store/cssDelta'
 import { getVarsStore } from '../store/varsStore'
+import { checkForGlobalRef } from './globalRefInterceptor'
 
 // Global flag to suppress events during bulk updates
 let suppressEvents = false
@@ -120,6 +121,13 @@ export function updateCssVar(
   // CRITICAL FIX: Ensure all UIKit var changes from any slider/picker save to JSON store automatically
   if (isUIKitVar) {
     updateUIKitValue(cssVarName, trimmedValue)
+
+    // Check if this component property is backed by a ui-kit.globals.* reference.
+    // If so, debounce a modal asking the user whether to override locally or update
+    // the global. The preview (inline CSS) is already applied above.
+    if (cssVarName.includes('_components_')) {
+      checkForGlobalRef(cssVarName, trimmedValue)
+    }
   }
 
   // Sync brand CSS var changes to the JSON store
