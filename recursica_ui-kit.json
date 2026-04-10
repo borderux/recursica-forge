@@ -10563,7 +10563,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": null
+                  "$value": 1
                 }
               },
               "selected-item": {
@@ -10605,7 +10605,7 @@
                 },
                 "opacity": {
                   "$type": "number",
-                  "$value": null
+                  "$value": 1
                 }
               },
               "selected-item": {
