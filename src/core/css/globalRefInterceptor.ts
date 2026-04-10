@@ -150,10 +150,27 @@ function findGlobalRef(uikit: any, jsonPath: string[]): string | null {
 
   if (!node || typeof node !== 'object') return null
   const val = node.$value
-  if (typeof val !== 'string') return null
-  if (val.trim().startsWith('{ui-kit.globals.') && val.trim().endsWith('}')) {
-    return val.trim()
+
+  // Direct string reference (color, typography, etc.)
+  if (typeof val === 'string') {
+    const trimmed = val.trim()
+    if (trimmed.startsWith('{ui-kit.globals.') && trimmed.endsWith('}')) {
+      return trimmed
+    }
   }
+
+  // Dimension tokens store the reference inside $value.value
+  // e.g. { value: "{ui-kit.globals.form.field.size.border-radius}", unit: "px" }
+  if (val && typeof val === 'object' && 'value' in val) {
+    const inner = val.value
+    if (typeof inner === 'string') {
+      const trimmed = inner.trim()
+      if (trimmed.startsWith('{ui-kit.globals.') && trimmed.endsWith('}')) {
+        return trimmed
+      }
+    }
+  }
+
   return null
 }
 
