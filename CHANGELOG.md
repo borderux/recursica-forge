@@ -1,5 +1,43 @@
 # recursica-forge
 
+## 0.11.0
+
+### Minor Changes
+
+- 0d77e4b: ### Component-level WCAG AA compliance checker
+
+  - Added a data-driven scanner (`checkComponentTextColors`) to `ComplianceService` that validates text and icon foreground colors against their backgrounds for form fields, buttons, chips, badges, accordion items, and menu items across all layers and modes, skipping disabled states
+  - Grouped component compliance issues by component name on the compliance page (e.g., separate sections for Chip, Button, Badge) with per-group issue count badges
+  - Replaced the toolbar `⚠` warning icon with a clickable contrast ratio link (e.g., "3.21:1") styled in the alert color that navigates directly to the compliance page
+  - Added anchor-scroll deep linking: clicking a compliance issue row's location link navigates to the component page with the correct variant and layer pre-selected via query params (`?style=`, `?states=`, `?layer=`)
+  - Added a gold highlight animation on the target compliance row when navigated to via anchor link
+  - Formatted location labels in sentence case without hyphens for readability (e.g., "Error selected / Layer 2" instead of "error-selected / layer-2")
+
+- 87f2caa: ### Global Reference Override System
+
+  Added a centralized mechanism to detect and handle edits to component properties that are backed by shared `{ui-kit.globals.*}` references.
+
+  **New features:**
+
+  - When a user edits a property tied to a global reference (e.g., form field border color), a "Shared Property" modal appears after a 500ms debounce asking whether to update the global (affecting all components) or override just the current component.
+  - "Remember my choice" checkbox allows users to elect always-override or always-update-global, stored in `localStorage`. Preference is cleared on Reset.
+  - Global updates correctly propagate to all components sharing the reference and persist across page reloads via the CSS delta system.
+
+  **New modules:**
+
+  - `globalRefInterceptor.ts` — Core interception logic with debounce, preference management, theme-aware CSS variable resolution, and delta/JSON synchronization.
+  - `GlobalRefModal.tsx` / `GlobalRefModalProvider.tsx` — Modal UI mounted at the app root, using design system typography, layer-1 emphasis colors, and the CheckboxItem adapter.
+
+  **UIKit JSON updates:**
+
+  - Form component `border-size` properties now reference shared globals (`border-size-default`, `border-size-focus`) instead of hardcoded pixel values.
+  - `file-upload` `border-radius` and stacked `top-bottom-margin` for 9 form components now use their respective globals instead of direct brand references.
+  - `transfer-list` decoupled from form field globals — border-color, border-radius, border-size, and background now use direct brand references since transfer-list is not a standard form input.
+
+### Patch Changes
+
+- 0e3c789: Fix invisible MenuItem text in layer-2 and layer-3 contexts (e.g., overlay opacity dropdown). The `unselected-item.opacity` values were `null`, resolving to `0` and making menu items fully transparent. Set to `1` for both layers.
+
 ## 0.10.0
 
 ### Minor Changes
