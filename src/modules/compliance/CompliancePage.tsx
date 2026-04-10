@@ -31,6 +31,7 @@ const typeLabels: Record<string, string> = {
     'layer-text': 'Layer text',
     'layer-interactive': 'Layer interactive',
     'core-on-tone': 'Core color',
+    'component-text': 'Component text',
 }
 
 /**
@@ -99,10 +100,14 @@ function formatOnToneLabel(issue: ComplianceIssue): string {
 }
 
 /**
- * Build an href for an issue's target page, including ?mode= query param.
+ * Build an href for an issue's target page, including query params for
+ * mode, layer, and variant deep linking.
  */
 function getIssueHref(issue: ComplianceIssue): string {
     let path: string
+    const params = new URLSearchParams()
+    params.set('mode', issue.mode)
+
     switch (issue.type) {
         case 'palette-on-tone':
         case 'core-on-tone':
@@ -112,10 +117,48 @@ function getIssueHref(issue: ComplianceIssue): string {
         case 'layer-interactive':
             path = '/theme/layers'
             break
+        case 'component-text': {
+            path = issue.componentName
+                ? `/components/${issue.componentName}`
+                : '/theme/compliance'
+
+            // Extract layer and variant from the issue ID for deep linking.
+            // ID patterns:
+            //   comp-{compName}-{variant}-{layer}-{prop}-{mode}
+            //   comp-{compName}-{bgLabel}-{layer}-{prop}-{mode}   (accordion-item)
+            //   comp-{compName}-{group}-{layer}-{prop}-{mode}     (menu-item)
+            if (issue.componentName) {
+                const layerMatch = issue.id.match(/layer-(\d+)/)
+                if (layerMatch) {
+                    params.set('layer', `layer-${layerMatch[1]}`)
+                }
+
+                // Determine the variant param name and value from the issue ID.
+                // Strip prefix "comp-{componentName}-" and suffix from "-layer-..." to get the variant value.
+                const prefix = `comp-${issue.componentName}-`
+                const afterPrefix = issue.id.startsWith(prefix) ? issue.id.slice(prefix.length) : ''
+                const variantValue = afterPrefix.split('-layer-')[0]
+
+                if (variantValue) {
+                    // Map UIKit variant categories to toolbar prop names
+                    const formFields = [
+                        'text-field', 'textarea', 'dropdown', 'autocomplete', 'number-input',
+                        'date-picker', 'time-picker', 'file-input', 'file-upload', 'transfer-list'
+                    ]
+                    if (formFields.includes(issue.componentName)) {
+                        params.set('states', variantValue)
+                    } else if (issue.componentName === 'button' || issue.componentName === 'chip' || issue.componentName === 'badge') {
+                        params.set('style', variantValue)
+                    }
+                    // accordion-item and menu-item don't have routable toolbar variants
+                }
+            }
+            break
+        }
         default:
             path = '/theme/core-properties'
     }
-    return `${path}?mode=${issue.mode}`
+    return `${path}?${params.toString()}`
 }
 
 export default function CompliancePage() {
@@ -161,11 +204,30 @@ export default function CompliancePage() {
 
     const displayIssues = snapshotRef.current ?? issues
 
+    // Anchor scrolling: scroll to the issue matching the URL hash on mount
+    useEffect(() => {
+        const hash = window.location.hash.replace('#', '')
+        if (!hash) return
+        // Wait for DOM to render
+        const timeout = setTimeout(() => {
+            const el = document.getElementById(hash)
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                el.classList.add('compliance-table__row--highlight')
+                setTimeout(() => el.classList.remove('compliance-table__row--highlight'), 2000)
+            }
+        }, 300)
+        return () => clearTimeout(timeout)
+    }, [])
+
 
     const groupedIssues = useMemo(() => {
         const groups: Record<string, ComplianceIssue[]> = {}
         displayIssues.forEach(issue => {
-            const groupKey = issue.type
+            // Group component-text issues by component name for clarity
+            const groupKey = issue.type === 'component-text' && issue.componentName
+                ? `comp:${issue.componentName}`
+                : issue.type
             if (!groups[groupKey]) groups[groupKey] = []
             groups[groupKey].push(issue)
         })
@@ -494,7 +556,11 @@ export default function CompliancePage() {
                             opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
                         }}
                     >
-                        {typeLabels[type] || type}
+                        {typeLabels[type] || (
+                            type.startsWith('comp:')
+                                ? type.replace('comp:', '').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                : type
+                        )}
                         <Badge variant="alert" size="small">
                             {groupIssues.length} {groupIssues.length === 1 ? 'issue' : 'issues'}
                         </Badge>
@@ -527,6 +593,7 @@ export default function CompliancePage() {
                                     return (
                                         <tr
                                             key={issue.id}
+                                            id={issue.id}
                                             className="compliance-table__row"
                                             style={{
                                                 borderColor: `var(${genericLayerProperty(0, 'border-color')})`,

@@ -80,17 +80,31 @@ html[data-theme-mode="dark"] .palette-color-control-swatch::before {
   flex: 1;
 }
 
-.palette-color-control-warning {
+.palette-color-control-compliance-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: #ff4444;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: bold;
+  white-space: nowrap;
+  font-size: var(--recursica_brand_typography_body-small-font-size, 11px);
+  font-weight: 600;
+  color: var(--recursica_brand_themes_light_palettes_core-colors_alert_color_tone, #d32f2f);
+  text-decoration: none;
+  cursor: pointer;
   margin-left: 4px;
   flex-shrink: 0;
+  padding: 1px 4px;
+  border-radius: 3px;
+  transition: background-color 0.15s, text-decoration 0.15s;
+}
+
+.palette-color-control-compliance-link:hover {
+  text-decoration: underline;
+  background-color: rgba(211, 47, 47, 0.08);
+}
+
+html[data-theme-mode="dark"] .palette-color-control-compliance-link {
+  color: var(--recursica_brand_themes_dark_palettes_core-colors_alert_color_tone, #ef5350);
+}
+
+html[data-theme-mode="dark"] .palette-color-control-compliance-link:hover {
+  background-color: rgba(239, 83, 80, 0.12);
 }
