@@ -2712,8 +2712,8 @@ export default function PropControlContent({
         )
       }
 
-      // Use Slider component for Accordion border-size property
-      if (isAccordion && propNameLower === 'border-size') {
+      // Use Slider component for Accordion border-size properties
+      if (isAccordion && (propNameLower === 'border-size' || propNameLower === 'item-border-size' || propNameLower === 'content-border-size')) {
         const AccordionBorderSizeSlider = () => {
           const minValue = 0
           const maxValue = 10

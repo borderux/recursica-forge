@@ -5,6 +5,7 @@
   background: var(--accordion-bg) !important;
   border: var(--accordion-border-size, 1px) solid var(--accordion-border) !important;
   border-radius: var(--accordion-border-radius) !important;
+  overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
   gap: var(--accordion-item-gap) !important;
@@ -14,7 +15,6 @@
 }
 
 /* Remove borders from Mantine's own accordion sub-elements - only the root container should have border */
-.recursica-accordion.mantine-accordion .mantine-Accordion-item,
 .recursica-accordion.mantine-accordion .mantine-Accordion-control,
 .recursica-accordion.mantine-accordion .mantine-Accordion-label,
 .recursica-accordion.mantine-accordion .mantine-Accordion-panel,
@@ -28,12 +28,12 @@
   outline: none !important;
 }
 
-/* Item styles - ensure no borders on items */
+/* Item styles */
 .recursica-accordion.mantine-accordion .mantine-Accordion-item {
   padding: 0 !important;
   background: var(--accordion-item-header-bg-collapsed) !important;
   border-radius: var(--accordion-item-border-radius) !important;
-  /* box-shadow is applied via inline style from component */
+  border: var(--accordion-item-border-size, 0) solid var(--accordion-item-border-color, transparent) !important;
 }
 
 /* Apply expanded background when accordion item is open */
@@ -41,19 +41,26 @@
   background: var(--accordion-item-header-bg-expanded) !important;
 }
 
-.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-divider='true'] {
-  border-bottom: var(--accordion-item-divider-size, 1px) solid var(--accordion-item-divider-color) !important;
-  border-top: none !important;
-  border-left: none !important;
-  border-right: none !important;
+/* Divider between items - rendered as a line centered in the gap between items */
+.recursica-accordion.mantine-accordion .mantine-Accordion-item {
+  position: relative !important;
 }
 
-.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-divider='false'] {
-  border: none !important;
+.recursica-accordion.mantine-accordion .mantine-Accordion-item + .mantine-Accordion-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--accordion-item-divider-size, 0);
+  background-color: var(--accordion-item-divider-color, transparent);
+  transform: translateY(calc(-50% - var(--accordion-item-gap, 0px) / 2));
+  pointer-events: none;
+  z-index: 1;
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-control {
-  padding: var(--accordion-item-padding-vertical) var(--accordion-item-padding-horizontal) !important;
+  padding: var(--accordion-item-header-padding-vertical) var(--accordion-item-header-padding-horizontal) !important;
   background: transparent !important;
   color: var(--accordion-item-header-text) !important;
   font-family: var(--accordion-item-header-font-family) !important;
@@ -124,7 +131,7 @@
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-panel {
   padding: 0 !important;
-  padding-top: var(--accordion-item-header-content-gap, 0px) !important;
+  padding-top: var(--accordion-item-content-top-padding, 0px) !important;
   background: var(--accordion-item-content-bg) !important;
   color: var(--accordion-item-content-text) !important;
   font-family: var(--accordion-item-content-font-family) !important;
@@ -135,10 +142,13 @@
   line-height: var(--accordion-item-content-line-height) !important;
   text-decoration: var(--accordion-item-content-text-decoration) !important;
   text-transform: var(--accordion-item-content-text-transform) !important;
+  border: var(--accordion-item-content-border-size, 0) solid var(--accordion-item-content-border-color, transparent) !important;
+  border-radius: var(--accordion-item-content-border-radius, 0) !important;
+  margin: var(--accordion-item-content-margin, 0) !important;
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-content {
-  padding: 0 var(--accordion-item-padding-horizontal) var(--accordion-item-content-bottom-padding) !important;
+  padding: 0 var(--accordion-item-content-padding-horizontal) var(--accordion-item-content-bottom-padding) !important;
   display: flex !important;
   flex-direction: column !important;
   gap: var(--accordion-item-content-gap) !important;

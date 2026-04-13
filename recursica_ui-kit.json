@@ -4582,6 +4582,13 @@
             "$type": "elevation",
             "$value": "{brand.elevations.elevation-0}"
           },
+          "divider-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 1,
+              "unit": "px"
+            }
+          },
           "colors": {
             "layer-0": {
               "background": {
@@ -4591,6 +4598,10 @@
               "border-color": {
                 "$type": "color",
                 "$value": null
+              },
+              "divider": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.border-color}"
               }
             },
             "layer-1": {
@@ -4601,6 +4612,10 @@
               "border-color": {
                 "$type": "color",
                 "$value": null
+              },
+              "divider": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
               }
             },
             "layer-2": {
@@ -4611,6 +4626,10 @@
               "border-color": {
                 "$type": "color",
                 "$value": null
+              },
+              "divider": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
               }
             },
             "layer-3": {
@@ -4621,6 +4640,10 @@
               "border-color": {
                 "$type": "color",
                 "$value": null
+              },
+              "divider": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
               }
             }
           }
@@ -4628,20 +4651,17 @@
       },
       "accordion-item": {
         "properties": {
-          "padding-horizontal": {
+          "header-horizontal-padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.lg}"
           },
-          "padding-vertical": {
+          "content-horizontal-padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.lg}"
           },
-          "divider-size": {
+          "header-vertical-padding": {
             "$type": "dimension",
-            "$value": {
-              "value": 1,
-              "unit": "px"
-            }
+            "$value": "{brand.dimensions.general.lg}"
           },
           "icon-left-size": {
             "$type": "dimension",
@@ -4659,7 +4679,7 @@
             "$type": "dimension",
             "$value": "{brand.dimensions.border-radii.none}"
           },
-          "header-content-gap": {
+          "content-top-padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.lg}"
           },
@@ -4667,7 +4687,37 @@
             "$type": "dimension",
             "$value": "{brand.dimensions.general.lg}"
           },
-          "elevation": {
+          "item-border-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 0,
+              "unit": "px"
+            }
+          },
+          "item-border-radius": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.border-radii.none}"
+          },
+          "content-border-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 0,
+              "unit": "px"
+            }
+          },
+          "content-margin": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.none}"
+          },
+          "content-border-radius": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.border-radii.none}"
+          },
+          "elevation-item": {
+            "$type": "elevation",
+            "$value": "{brand.elevations.elevation-0}"
+          },
+          "elevation-content": {
             "$type": "elevation",
             "$value": "{brand.elevations.elevation-0}"
           },
@@ -4689,10 +4739,6 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.elements.text.color}"
               },
-              "divider": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-0.properties.border-color}"
-              },
               "content-background": {
                 "$type": "color",
                 "$value": null
@@ -4700,6 +4746,14 @@
               "content-text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.elements.text.color}"
+              },
+              "item-border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.border-color}"
+              },
+              "content-border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.border-color}"
               }
             },
             "layer-1": {
@@ -4719,10 +4773,6 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.text.color}"
               },
-              "divider": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-1.properties.border-color}"
-              },
               "content-background": {
                 "$type": "color",
                 "$value": null
@@ -4730,6 +4780,14 @@
               "content-text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.text.color}"
+              },
+              "item-border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
+              },
+              "content-border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
               }
             },
             "layer-2": {
@@ -4749,10 +4807,6 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.text.color}"
               },
-              "divider": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-2.properties.border-color}"
-              },
               "content-background": {
                 "$type": "color",
                 "$value": null
@@ -4760,6 +4814,14 @@
               "content-text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.text.color}"
+              },
+              "item-border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
+              },
+              "content-border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
               }
             },
             "layer-3": {
@@ -4779,10 +4841,6 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.elements.text.color}"
               },
-              "divider": {
-                "$type": "color",
-                "$value": "{brand.layers.layer-3.properties.border-color}"
-              },
               "content-background": {
                 "$type": "color",
                 "$value": null
@@ -4790,6 +4848,14 @@
               "content-text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "item-border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              },
+              "content-border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
               }
             }
           },
