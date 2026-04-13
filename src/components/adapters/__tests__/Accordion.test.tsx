@@ -63,15 +63,16 @@ describe('Accordion Component (Adapter)', () => {
     expect(onToggle).toHaveBeenCalledWith('a', true)
   })
 
-  itDom('respects divider visibility per item', async () => {
+  itDom('renders items without per-item divider attributes (dividers are CSS-only)', async () => {
     const items = [
-      { id: 'a', title: 'First', content: 'First content', divider: true },
-      { id: 'b', title: 'Second', content: 'Second content', divider: false },
+      { id: 'a', title: 'First', content: 'First content' },
+      { id: 'b', title: 'Second', content: 'Second content' },
     ]
     const { container } = renderWithProviders(<Accordion items={items} />)
     await waitForAccordion(container)
-    const dividerItems = container.querySelectorAll('[data-divider="true"]')
-    expect(dividerItems.length).toBe(1)
+    // Dividers are now CSS pseudo-elements at the container level, not data attributes
+    const dividerItems = container.querySelectorAll('[data-divider]')
+    expect(dividerItems.length).toBe(0)
   })
 })
 
