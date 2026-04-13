@@ -673,9 +673,29 @@ function normalizeBrandReferences(obj: any): any {
  */
 function normalizeUIKitBrandReferences(obj: any): any {
   if (typeof obj === 'string') {
-    // Remove theme information from brand references
-    // Pattern: {brand.themes.(light|dark).<rest>} -> {brand.<rest>}
-    return obj.replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
+    let normalized = obj
+      // ── Layer element text path: cssVarToRef flattens `text.color` into `text-color` ──
+      // Fix: {brand.layers.layer-N.elements.text-color} → {brand.layers.layer-N.elements.text.color}
+      // Also handles theme-qualified variants that haven't been stripped yet
+      .replace(/{brand(?:\.themes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.text-(color|warning|success|alert)}/g,
+        '{brand.layers.$1.elements.text.$2}')
+      // ── Core palette path: cssVarToRef flattens `core-colors` into `core` ──
+      // Fix: {brand.palettes.core.black.tone} → {brand.palettes.core-colors.black.tone}
+      // Also handles theme-qualified variants
+      .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core\.(black|white|alert|warning|success)(?:\.(tone|on-tone))?}/g,
+        (_, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix ? '.' + suffix : '.tone'}}`)
+      // ── Core-colors toneless: ensure `.tone` suffix ──
+      .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.(black|white|alert|warning|success)}/g,
+        '{brand.palettes.core-colors.$1.tone}')
+      // ── Palette refs missing .color. segment ──
+      .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.tone\}/g,
+        '{brand.palettes.$1.$2.color.tone}')
+      .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.on-tone\}/g,
+        '{brand.palettes.$1.$2.color.on-tone}')
+      // ── Remove theme prefix from all brand references ──
+      .replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
+
+    return normalized
   }
 
   if (Array.isArray(obj)) {
