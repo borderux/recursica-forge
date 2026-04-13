@@ -109,8 +109,13 @@ describe('AccordionItem Toolbar Config', () => {
         }
       })
     }
+    // Props that are structurally present in ui-kit JSON but handled by
+    // differently-named toolbar group entries (e.g. item-border-radius maps
+    // to border-radius inside the "item" group)
+    const handledElsewhere = new Set(['item-border-radius'])
 
     requiredProps.forEach(prop => {
+      if (handledElsewhere.has(prop)) return
       expect(configProps.has(prop), `Required prop ${prop} missing from AccordionItem toolbar config`).toBe(true)
     })
   })

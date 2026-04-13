@@ -29,3 +29,6 @@ debug.log
 
 # Audit files
 *.audit.md
+
+# Export testing
+test-utils/export-testing/

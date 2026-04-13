@@ -125,7 +125,6 @@ export function Accordion({
       <div className={className} style={style}>
         {items.map((item, index) => {
           const isOpen = openItems.includes(item.id)
-          const showDivider = item.divider !== false && index < items.length - 1
           const ItemIcon = item.icon
           const titleWithIcon = ItemIcon ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -136,7 +135,7 @@ export function Accordion({
             </div>
           ) : item.title
           return (
-            <div key={item.id} data-divider={showDivider}>
+            <div key={item.id}>
               <button
                 type="button"
                 onClick={() => handleItemToggle(item.id, !isOpen)}
@@ -146,7 +145,6 @@ export function Accordion({
                 {titleWithIcon}
               </button>
               {isOpen && <div>{item.content}</div>}
-              {showDivider && <div />}
             </div>
           )
         })}
