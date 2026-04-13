@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react'
-import { Box, Title, Text, Group, Paper, Accordion, Badge, Table, Code, SegmentedControl } from '@mantine/core'
+import { Box, Title, Text, Group, Paper, Badge, Table, Code, SegmentedControl } from '@mantine/core'
+import { Accordion } from '../../components/adapters/Accordion'
+import type { AccordionItem } from '../../components/adapters/Accordion'
 
 interface Diff {
   path: string;
@@ -160,29 +162,102 @@ export function RandomizerResults() {
     return clean;
   };
 
-  const renderDiffLine = (diff: Diff) => {
-      const isUnchanged = isDiffUnchanged(diff);
-      const beforeFormatted = renderHighlightedValue(diff.before, diff.after);
-      const afterFormatted = renderHighlightedValue(diff.after, diff.before);
-      
-      return (
-        <Table.Tr key={diff.path}>
-            <Table.Td>
+  const renderDiffTable = (diffs: Diff[]) => (
+    <Table striped highlightOnHover withTableBorder withColumnBorders>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th style={{ width: '40%' }}>Key</Table.Th>
+          <Table.Th style={{ width: '30%' }}>Before</Table.Th>
+          <Table.Th style={{ width: '30%' }}>After</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {diffs.map(diff => {
+          const isUnchanged = isDiffUnchanged(diff);
+          const beforeFormatted = renderHighlightedValue(diff.before, diff.after);
+          const afterFormatted = renderHighlightedValue(diff.after, diff.before);
+          return (
+            <Table.Tr key={diff.path}>
+              <Table.Td>
                 <Text size="sm">{formatPath(diff.path)}</Text>
-            </Table.Td>
-            <Table.Td>
+              </Table.Td>
+              <Table.Td>
                 {beforeFormatted}
-            </Table.Td>
-            <Table.Td>
+              </Table.Td>
+              <Table.Td>
                 {!isUnchanged ? (
-                   afterFormatted
+                  afterFormatted
                 ) : (
                   <Badge color="yellow" variant="light">Unchanged</Badge>
                 )}
-            </Table.Td>
-        </Table.Tr>
-      );
-  };
+              </Table.Td>
+            </Table.Tr>
+          );
+        })}
+      </Table.Tbody>
+    </Table>
+  );
+
+  // Build accordion items from all groups
+  const accordionItems: AccordionItem[] = useMemo(() => {
+    const items: AccordionItem[] = [];
+
+    // Token groups
+    Object.keys(tokenGroupsMap).forEach(groupName => {
+      const diffs = tokenGroupsMap[groupName];
+      const changed = getChangedCount(diffs);
+      items.push({
+        id: `tokens-${groupName}`,
+        title: (
+          <Group>
+            <Text>Tokens: {groupName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
+            <Badge color={changed === diffs.length ? "green" : "orange"}>
+              {changed} / {diffs.length} randomized
+            </Badge>
+          </Group>
+        ),
+        content: renderDiffTable(diffs),
+      });
+    });
+
+    // Theme groups
+    Object.keys(themeGroupsMap).filter(k => themeGroupsMap[k].length > 0).forEach(groupName => {
+      const diffs = themeGroupsMap[groupName];
+      const changed = getChangedCount(diffs);
+      items.push({
+        id: `theme-${groupName}`,
+        title: (
+          <Group>
+            <Text>Theme: {groupName}</Text>
+            <Badge color={changed === diffs.length ? "green" : "orange"}>
+              {changed} / {diffs.length} randomized
+            </Badge>
+          </Group>
+        ),
+        content: renderDiffTable(diffs),
+      });
+    });
+
+    // Component groups
+    Object.keys(componentsMap).forEach(compName => {
+      const diffs = componentsMap[compName];
+      const changed = getChangedCount(diffs);
+      items.push({
+        id: compName,
+        title: (
+          <Group>
+            <Text>Component: {compName.charAt(0).toUpperCase() + compName.slice(1)}</Text>
+            <Badge color={changed === diffs.length ? "green" : "orange"}>
+              {changed} / {diffs.length} randomized
+            </Badge>
+          </Group>
+        ),
+        content: renderDiffTable(diffs),
+      });
+    });
+
+    return items;
+  }, [tokenGroupsMap, themeGroupsMap, componentsMap, filterMode]);
 
   const totalChanged = filteredDiffs.filter(d => !isDiffUnchanged(d)).length;
 
@@ -206,94 +281,11 @@ export function RandomizerResults() {
       ) : (
         <Paper shadow="sm" p="md" withBorder>
           <Text fw={700} mb="md">Total Changed Properties: {totalChanged} / {filteredDiffs.length}</Text>
-          <Accordion variant="separated">
-            {Object.keys(tokenGroupsMap).map(groupName => (
-                <Accordion.Item value={`tokens-${groupName}`} key={`tokens-${groupName}`}>
-                    <Accordion.Control>
-                        <Group>
-                            <Text>Tokens: {groupName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
-                            <Badge color={getChangedCount(tokenGroupsMap[groupName]) === tokenGroupsMap[groupName].length ? "green" : "orange"}>
-                                {getChangedCount(tokenGroupsMap[groupName])} / {tokenGroupsMap[groupName].length} randomized
-                            </Badge>
-                        </Group>
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                        <Table striped highlightOnHover withTableBorder withColumnBorders>
-                          <Table.Thead>
-                            <Table.Tr>
-                              <Table.Th style={{ width: '40%' }}>Key</Table.Th>
-                              <Table.Th style={{ width: '30%' }}>Before</Table.Th>
-                              <Table.Th style={{ width: '30%' }}>After</Table.Th>
-                            </Table.Tr>
-                          </Table.Thead>
-                          <Table.Tbody>
-                            {tokenGroupsMap[groupName].map(d => {
-                                return renderDiffLine(d);
-                            })}
-                          </Table.Tbody>
-                        </Table>
-                    </Accordion.Panel>
-                </Accordion.Item>
-            ))}
-
-            {Object.keys(themeGroupsMap).filter(k => themeGroupsMap[k].length > 0).map(groupName => (
-                <Accordion.Item value={`theme-${groupName}`} key={`theme-${groupName}`}>
-                    <Accordion.Control>
-                        <Group>
-                            <Text>Theme: {groupName}</Text>
-                            <Badge color={getChangedCount(themeGroupsMap[groupName]) === themeGroupsMap[groupName].length ? "green" : "orange"}>
-                                {getChangedCount(themeGroupsMap[groupName])} / {themeGroupsMap[groupName].length} randomized
-                            </Badge>
-                        </Group>
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                        <Table striped highlightOnHover withTableBorder withColumnBorders>
-                          <Table.Thead>
-                            <Table.Tr>
-                              <Table.Th style={{ width: '40%' }}>Key</Table.Th>
-                              <Table.Th style={{ width: '30%' }}>Before</Table.Th>
-                              <Table.Th style={{ width: '30%' }}>After</Table.Th>
-                            </Table.Tr>
-                          </Table.Thead>
-                          <Table.Tbody>
-                            {themeGroupsMap[groupName].map(d => {
-                                return renderDiffLine(d);
-                            })}
-                          </Table.Tbody>
-                        </Table>
-                    </Accordion.Panel>
-                </Accordion.Item>
-            ))}
-
-            {Object.keys(componentsMap).map(compName => (
-              <Accordion.Item value={compName} key={compName}>
-                <Accordion.Control>
-                  <Group>
-                    <Text>Component: {compName.charAt(0).toUpperCase() + compName.slice(1)}</Text>
-                    <Badge color={getChangedCount(componentsMap[compName]) === componentsMap[compName].length ? "green" : "orange"}>
-                        {getChangedCount(componentsMap[compName])} / {componentsMap[compName].length} randomized
-                    </Badge>
-                  </Group>
-                </Accordion.Control>
-                <Accordion.Panel>
-                  <Table striped highlightOnHover withTableBorder withColumnBorders>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th style={{ width: '40%' }}>Key</Table.Th>
-                        <Table.Th style={{ width: '30%' }}>Before</Table.Th>
-                        <Table.Th style={{ width: '30%' }}>After</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                    {componentsMap[compName].map(d => {
-                          return renderDiffLine(d);
-                      })}
-                    </Table.Tbody>
-                  </Table>
-                </Accordion.Panel>
-              </Accordion.Item>
-            ))}
-          </Accordion>
+          <Accordion
+            items={accordionItems}
+            allowMultiple
+            layer="layer-1"
+          />
         </Paper>
       )}
     </Box>

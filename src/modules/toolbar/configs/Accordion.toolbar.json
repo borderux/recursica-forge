@@ -1,11 +1,22 @@
 {
   "variants": {},
   "props": {
-    "background": {
+    "container": {
       "icon": "paint-bucket",
-      "label": "Background",
+      "label": "Container",
       "visible": true,
-      "floatingPaletteLabel": "Background Color"
+      "group": {
+        "background": {
+          "label": "Background",
+          "visible": true,
+          "floatingPaletteLabel": "Background Color"
+        },
+        "padding": {
+          "label": "Padding",
+          "visible": true,
+          "floatingPaletteLabel": "Padding"
+        }
+      }
     },
     "border": {
       "icon": "square",
@@ -34,13 +45,23 @@
       "icon": "split-horizontal",
       "label": "Item gap",
       "visible": true,
-      "floatingPaletteLabel": "Item Gap"
-    },
-    "padding": {
-      "icon": "arrows-in",
-      "label": "Padding",
-      "visible": true,
-      "floatingPaletteLabel": "Padding"
+      "floatingPaletteLabel": "Item Gap",
+      "group": {
+        "item-gap": {
+          "label": "Gap size",
+          "visible": true,
+          "floatingPaletteLabel": "Item Gap"
+        },
+        "divider": {
+          "label": "Divider color",
+          "visible": true
+        },
+        "divider-size": {
+          "label": "Divider size",
+          "visible": true,
+          "floatingPaletteLabel": "Divider Size"
+        }
+      }
     },
     "width": {
       "icon": "arrows-left-right",

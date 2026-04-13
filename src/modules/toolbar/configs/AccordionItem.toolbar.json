@@ -18,15 +18,19 @@
           "label": "Icon gap",
           "visible": true
         },
-        "border-radius": {
-          "label": "Border radius",
+        "header-horizontal-padding": {
+          "label": "Horizontal padding",
+          "visible": true
+        },
+        "header-vertical-padding": {
+          "label": "Vertical padding",
           "visible": true
         }
       }
     },
-    "item-background": {
+    "item": {
       "icon": "paint-bucket",
-      "label": "Item background",
+      "label": "Item",
       "visible": true,
       "group": {
         "background-collapsed": {
@@ -38,6 +42,18 @@
           "label": "Expanded",
           "visible": true,
           "floatingPaletteLabel": "Background Color (Expanded)"
+        },
+        "item-border-size": {
+          "label": "Border size",
+          "visible": true
+        },
+        "item-border-color": {
+          "label": "Border color",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Border radius",
+          "visible": true
         }
       }
     },
@@ -58,29 +74,35 @@
         "content-background": {
           "label": "Background",
           "visible": true
-        }
-      }
-    },
-    "padding": {
-      "icon": "arrows-in",
-      "label": "Padding",
-      "visible": true,
-      "group": {
-        "padding-horizontal": {
-          "label": "Horizontal",
+        },
+        "content-horizontal-padding": {
+          "label": "Horizontal padding",
           "visible": true
         },
-        "padding-vertical": {
-          "label": "Vertical",
-          "visible": true
-        },
-        "header-content-gap": {
-          "label": "Header-content gap",
+        "content-top-padding": {
+          "label": "Top padding",
           "visible": true
         },
         "content-bottom-padding": {
-          "label": "Content bottom",
+          "label": "Bottom padding",
           "visible": true
+        },
+        "content-border-size": {
+          "label": "Border size",
+          "visible": true
+        },
+        "content-border-color": {
+          "label": "Border color",
+          "visible": true
+        },
+        "content-border-radius": {
+          "label": "Border radius",
+          "visible": true
+        },
+        "content-margin": {
+          "label": "Margin",
+          "visible": true,
+          "floatingPaletteLabel": "Content Margin"
         }
       }
     },
@@ -88,22 +110,6 @@
       "icon": "text-aa",
       "label": "Content text style",
       "visible": true
-    },
-    "divider": {
-      "icon": "minus",
-      "label": "Divider",
-      "visible": true,
-      "group": {
-        "divider": {
-          "label": "Color",
-          "visible": true
-        },
-        "divider-size": {
-          "label": "Divider size",
-          "visible": true,
-          "floatingPaletteLabel": "Divider Size"
-        }
-      }
     },
     "icon-size": {
       "icon": "arrows-up-down",
@@ -120,9 +126,9 @@
         }
       }
     },
-    "hover": {
+    "header-hover": {
       "icon": "cursor-click",
-      "label": "Hover",
+      "label": "Header hover",
       "visible": true,
       "group": {
         "hover-color": {
@@ -138,7 +144,17 @@
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",
-      "visible": true
+      "visible": true,
+      "group": {
+        "elevation-item": {
+          "label": "Item",
+          "visible": true
+        },
+        "elevation-content": {
+          "label": "Content",
+          "visible": true
+        }
+      }
     }
   }
 }

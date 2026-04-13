@@ -5,6 +5,7 @@
   background: var(--accordion-bg) !important;
   border: var(--accordion-border-size, 1px) solid var(--accordion-border) !important;
   border-radius: var(--accordion-border-radius) !important;
+  overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
   gap: var(--accordion-item-gap) !important;
@@ -29,7 +30,7 @@
   background: var(--accordion-item-header-bg-collapsed) !important;
   border-radius: var(--accordion-item-border-radius) !important;
   box-shadow: var(--accordion-item-elevation-box-shadow, none) !important;
-  border: none !important;
+  border: var(--accordion-item-border-size, 0) solid var(--accordion-item-border-color, transparent) !important;
   outline: none !important;
 }
 
@@ -42,19 +43,26 @@
   display: none !important;
 }
 
-.recursica-accordion.material-accordion .MuiAccordion-root[data-divider='true'] {
-  border-bottom: var(--accordion-item-divider-size, 1px) solid var(--accordion-item-divider-color) !important;
-  border-top: none !important;
-  border-left: none !important;
-  border-right: none !important;
+/* Divider between items - rendered as a line centered in the gap between items */
+.recursica-accordion.material-accordion .MuiAccordion-root {
+  position: relative !important;
 }
 
-.recursica-accordion.material-accordion .MuiAccordion-root[data-divider='false'] {
-  border: none !important;
+.recursica-accordion.material-accordion .MuiAccordion-root + .MuiAccordion-root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--accordion-item-divider-size, 0);
+  background-color: var(--accordion-item-divider-color, transparent);
+  transform: translateY(calc(-50% - var(--accordion-item-gap, 0px) / 2));
+  pointer-events: none;
+  z-index: 1;
 }
 
 .recursica-accordion.material-accordion .MuiAccordionSummary-root {
-  padding: var(--accordion-item-padding-vertical) var(--accordion-item-padding-horizontal) !important;
+  padding: var(--accordion-item-header-padding-vertical) var(--accordion-item-header-padding-horizontal) !important;
   color: var(--accordion-item-header-text) !important;
   font-family: var(--accordion-item-header-font-family) !important;
   font-size: var(--accordion-item-header-font-size) !important;
@@ -118,7 +126,7 @@
 }
 
 .recursica-accordion.material-accordion .MuiAccordionDetails-root {
-  padding: var(--accordion-item-header-content-gap, 0px) var(--accordion-item-padding-horizontal) var(--accordion-item-content-bottom-padding) !important;
+  padding: var(--accordion-item-content-top-padding, 0px) var(--accordion-item-content-padding-horizontal) var(--accordion-item-content-bottom-padding) !important;
   background: var(--accordion-item-content-bg) !important;
   color: var(--accordion-item-content-text) !important;
   font-family: var(--accordion-item-content-font-family) !important;
@@ -129,6 +137,9 @@
   line-height: var(--accordion-item-content-line-height) !important;
   text-decoration: var(--accordion-item-content-text-decoration) !important;
   text-transform: var(--accordion-item-content-text-transform) !important;
+  border: var(--accordion-item-content-border-size, 0) solid var(--accordion-item-content-border-color, transparent) !important;
+  border-radius: var(--accordion-item-content-border-radius, 0) !important;
+  margin: var(--accordion-item-content-margin, 0) !important;
 }
 
 /* Restore borders for buttons inside accordion content - use Button component CSS variables */
