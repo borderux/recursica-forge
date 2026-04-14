@@ -21,6 +21,10 @@ let suppressEvents = false
 let pendingCssVars: Set<string> = new Set()
 let batchTimeout: ReturnType<typeof setTimeout> | null = null
 
+// Debounce map for CSS properties
+const cssVarDebounceTimers: Record<string, ReturnType<typeof setTimeout>> = {}
+const UPDATE_DEBOUNCE_MS = 300
+
 /**
  * Suppress cssVarsUpdated events during bulk updates
  */
@@ -112,42 +116,47 @@ export function updateCssVar(
     }
   }
 
-  // Apply the update
+  // Clear any existing debounce timer for this specific CSS variable
+  if (cssVarDebounceTimers[cssVarName]) {
+    clearTimeout(cssVarDebounceTimers[cssVarName])
+  }
+
+  // IMMEDIATELY apply the CSS variable to the DOM to ensure 60fps live previews
   root.style.setProperty(cssVarName, trimmedValue)
 
-  // Track this change in the delta serialization system
-  trackChange(cssVarName, trimmedValue)
+  // Debounce the actual state persistence and heavy JSON object mutations
+  cssVarDebounceTimers[cssVarName] = setTimeout(() => {
+    // Track this change in the delta serialization system
+    trackChange(cssVarName, trimmedValue)
 
-  // CRITICAL FIX: Ensure all UIKit var changes from any slider/picker save to JSON store automatically
-  if (isUIKitVar) {
-    updateUIKitValue(cssVarName, trimmedValue)
+    // CRITICAL FIX: Ensure all UIKit var changes from any slider/picker save to JSON store automatically
+    if (isUIKitVar) {
+      updateUIKitValue(cssVarName, trimmedValue)
 
-    // Check if this component property is backed by a ui-kit.globals.* reference.
-    // If so, debounce a modal asking the user whether to override locally or update
-    // the global. The preview (inline CSS) is already applied above.
-    if (cssVarName.includes('_components_')) {
-      checkForGlobalRef(cssVarName, trimmedValue)
+      // Check if this component property is backed by a ui-kit.globals.* reference.
+      if (cssVarName.includes('_components_')) {
+        checkForGlobalRef(cssVarName, trimmedValue)
+      }
     }
-  }
 
-  // Sync brand CSS var changes to the JSON store
-  // This ensures AA compliance fixes (and any other brand var changes) persist in the store
-  if (isBrandVar(cssVarName)) {
-    updateBrandValue(cssVarName, trimmedValue)
-    getVarsStore().scheduleComplianceScan()
-  }
+    // Sync brand CSS var changes to the JSON store
+    // This ensures AA compliance fixes (and any other brand var changes) persist in the store
+    if (isBrandVar(cssVarName)) {
+      updateBrandValue(cssVarName, trimmedValue)
+      getVarsStore().scheduleComplianceScan()
+    }
 
-  // Dispatch event to notify components of CSS variable updates
-  // This allows components to reactively update when CSS vars change
-  // But suppress during bulk updates to prevent infinite loops
-  // CRITICAL: UIKit vars are silent by default - they don't need component re-renders
-  if (!shouldBeSilent && !suppressEvents) {
-    pendingCssVars.add(cssVarName)
-    fireBatchedEvent()
-  } else if (!shouldBeSilent) {
-    // During suppression, just track the var for later batching
-    pendingCssVars.add(cssVarName)
-  }
+    // Dispatch event to notify components of CSS variable updates
+    if (!shouldBeSilent && !suppressEvents) {
+      pendingCssVars.add(cssVarName)
+      fireBatchedEvent()
+    } else if (!shouldBeSilent) {
+      // During suppression, just track the var for later batching
+      pendingCssVars.add(cssVarName)
+    }
+
+    delete cssVarDebounceTimers[cssVarName]
+  }, UPDATE_DEBOUNCE_MS)
 
   return true
 }

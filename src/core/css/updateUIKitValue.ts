@@ -74,17 +74,20 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         return false
     }
 
-    // IMPORTANT: Mutate currentUIKit directly for performance!
-    // Since this runs 60 times a second on slider drags, deep cloning freezes the UI.
-    // VarsStore's writeState method now safely debounces the LocalStorage save.
-    const updatedUIKit = currentUIKit
+    // IMPORTANT: Use path-based shallow cloning (immutable update)
+    // This ensures that React/Zustand detects a state reference change and persists it
+    // seamlessly without the massive CPU penalty of deep-cloning an entire JSON structure.
+    const updatedUIKit = Array.isArray(currentUIKit) ? [...currentUIKit] : { ...currentUIKit }
 
-    // Navigate to the target location
+    // Navigate to the target location, cloning each node along the path
     let current: any = updatedUIKit
     for (let i = 0; i < path.length - 1; i++) {
         const segment = path[i]
         if (!current[segment]) {
             current[segment] = {}
+        } else {
+            // Shallow clone the next segment to break reference equality
+            current[segment] = Array.isArray(current[segment]) ? [...current[segment]] : { ...current[segment] }
         }
         current = current[segment]
     }
