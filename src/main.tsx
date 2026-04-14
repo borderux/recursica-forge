@@ -104,6 +104,7 @@ const router = createBrowserRouter([
           { path: 'compliance', element: <CompliancePage /> },
         ],
       },
+      { path: '/random', element: <Navigate to="/tokens" state={{ showRandom: true }} replace /> },
       { path: '*', element: <NotFoundPage /> },
       ...(import.meta.env.DEV && RoundTripPage
         ? [{ path: '/dev/diff', element: <React.Suspense fallback={null}><RoundTripPage /></React.Suspense> }]
