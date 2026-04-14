@@ -150,7 +150,15 @@ export default function MantineShell({
       const cleanSearch = params.toString();
       navigate(location.pathname + (cleanSearch ? `?${cleanSearch}` : ''), { replace: true });
     }
-  }, [location.search]);
+
+    // Handle hidden /random route trigger from Navigate state
+    if (location.state && (location.state as any).showRandom) {
+      setShowRandomizeModal(true);
+      const newState = { ...location.state } as any;
+      delete newState.showRandom;
+      navigate(location.pathname + location.search, { replace: true, state: Object.keys(newState).length > 0 ? newState : undefined });
+    }
+  }, [location.search, location.state, location.pathname, mode, navigate, setMode]);
 
   // Determine current route for navigation highlighting
   const currentRoute = useMemo(() => {
@@ -707,7 +715,8 @@ export default function MantineShell({
           onAcknowledge={handleAcknowledge}
           onCancel={handleCancel}
         />
-        {process.env.NODE_ENV === "development" && (
+        {/* Render randomize modal if triggered via hidden route or development */}
+        {(process.env.NODE_ENV === "development" || showRandomizeModal) && (
           <RandomizeOptionsModal
             show={showRandomizeModal}
             onRandomize={(options) => {
