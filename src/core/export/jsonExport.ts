@@ -1039,6 +1039,24 @@ export function exportUIKitJson(): object {
   const uikitWithWrapper = (uikit as any)?.['ui-kit'] ? uikit : { 'ui-kit': uikit }
   const result = JSON.parse(JSON.stringify(uikitWithWrapper))
 
+  // Map typography literal strings back to their corresponding token references targeting tokens.json
+  const walkAndConvertFonts = (obj: any) => {
+    if (!obj || typeof obj !== 'object') return
+    for (const key in obj) {
+      if (key === 'text-decoration' && obj[key]?.$value && typeof obj[key].$value === 'string' && !obj[key].$value.startsWith('{')) {
+        obj[key].$value = `{tokens.font.decorations.${obj[key].$value}}`
+      } else if (key === 'text-transform' && obj[key]?.$value && typeof obj[key].$value === 'string' && !obj[key].$value.startsWith('{')) {
+        const val = obj[key].$value === 'none' ? 'original' : obj[key].$value
+        obj[key].$value = `{tokens.font.cases.${val}}`
+      } else if (key === 'font-style' && obj[key]?.$value && typeof obj[key].$value === 'string' && !obj[key].$value.startsWith('{')) {
+        obj[key].$value = `{tokens.font.styles.${obj[key].$value}}`
+      } else if (typeof obj[key] === 'object') {
+        walkAndConvertFonts(obj[key])
+      }
+    }
+  }
+  walkAndConvertFonts(result)
+
   // Normalize brand references to remove theme information (UIKit should be theme-agnostic)
   const normalized = normalizeUIKitBrandReferences(result)
 

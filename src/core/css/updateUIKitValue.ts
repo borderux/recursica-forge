@@ -137,7 +137,11 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
 
         if (existingType === 'dimension' || hasUnitObject) {
             current[finalKey].$type = existingType || 'dimension'
-            current[finalKey].$value = { value: numericValue, unit: 'px' }
+            if (typeof numericValue === 'string' && numericValue.startsWith('{') && numericValue.endsWith('}')) {
+                current[finalKey].$value = numericValue
+            } else {
+                current[finalKey].$value = { value: numericValue, unit: 'px' }
+            }
         } else if (existingType === 'number') {
             current[finalKey].$value = numericValue
         } else {

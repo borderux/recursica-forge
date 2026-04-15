@@ -517,15 +517,15 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.decorations.none}"
                   },
                   "text-transform": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.cases.original}"
                   },
                   "font-style": {
                     "$type": "string",
-                    "$value": "normal"
+                    "$value": "{tokens.font.styles.normal}"
                   }
                 },
                 "border-radius": {
@@ -604,15 +604,15 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.decorations.none}"
                   },
                   "text-transform": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.cases.original}"
                   },
                   "font-style": {
                     "$type": "string",
-                    "$value": "normal"
+                    "$value": "{tokens.font.styles.normal}"
                   }
                 },
                 "border-radius": {
@@ -956,15 +956,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -1110,15 +1110,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -1936,15 +1936,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -2097,15 +2097,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -2250,15 +2250,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "read-only-value": {
@@ -2284,15 +2284,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -2730,15 +2730,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "description-text": {
@@ -2764,15 +2764,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -2973,15 +2973,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "description-text": {
@@ -3007,15 +3007,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "timestamp-text": {
@@ -3041,15 +3041,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -4194,15 +4194,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "inactive-text": {
@@ -4228,15 +4228,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "hover-color": {
@@ -4530,15 +4530,15 @@
             },
             "text-decoration": {
               "$type": "typography",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "typography",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "typography",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -4882,15 +4882,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "content-text": {
@@ -4916,15 +4916,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "hover-color": {
@@ -5495,15 +5495,15 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.decorations.none}"
                   },
                   "text-transform": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.cases.original}"
                   },
                   "font-style": {
                     "$type": "string",
-                    "$value": "normal"
+                    "$value": "{tokens.font.styles.normal}"
                   }
                 },
                 "border-size": {
@@ -5569,15 +5569,15 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.decorations.none}"
                   },
                   "text-transform": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.cases.original}"
                   },
                   "font-style": {
                     "$type": "string",
-                    "$value": "normal"
+                    "$value": "{tokens.font.styles.normal}"
                   }
                 },
                 "border-size": {
@@ -5643,15 +5643,15 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.decorations.none}"
                   },
                   "text-transform": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.cases.original}"
                   },
                   "font-style": {
                     "$type": "string",
-                    "$value": "normal"
+                    "$value": "{tokens.font.styles.normal}"
                   }
                 },
                 "border-size": {
@@ -5953,15 +5953,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "uppercase"
+              "$value": "{tokens.font.cases.uppercase}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "padding-horizontal": {
@@ -6230,15 +6230,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "optional-text": {
@@ -6264,11 +6264,11 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             }
           },
           "stacked": {
@@ -6362,15 +6362,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "min-height": {
@@ -6436,11 +6436,11 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.decorations.none}"
                   },
                   "font-style": {
                     "$type": "string",
-                    "$value": "normal"
+                    "$value": "{tokens.font.styles.normal}"
                   }
                 }
               }
@@ -6496,11 +6496,11 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "underline"
+                    "$value": "{tokens.font.decorations.underline}"
                   },
                   "font-style": {
                     "$type": "string",
-                    "$value": "normal"
+                    "$value": "{tokens.font.styles.normal}"
                   }
                 }
               }
@@ -6556,11 +6556,11 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "none"
+                    "$value": "{tokens.font.decorations.none}"
                   },
                   "font-style": {
                     "$type": "string",
-                    "$value": "normal"
+                    "$value": "{tokens.font.styles.normal}"
                   }
                 }
               }
@@ -6616,11 +6616,11 @@
                   },
                   "text-decoration": {
                     "$type": "string",
-                    "$value": "underline"
+                    "$value": "{tokens.font.decorations.underline}"
                   },
                   "font-style": {
                     "$type": "string",
-                    "$value": "normal"
+                    "$value": "{tokens.font.styles.normal}"
                   }
                 }
               }
@@ -6777,15 +6777,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "icon-size": {
@@ -7286,15 +7286,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "placeholder-opacity": {
@@ -7712,15 +7712,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "placeholder-opacity": {
@@ -8073,15 +8073,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "placeholder-opacity": {
@@ -8567,15 +8567,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "placeholder-opacity": {
@@ -8995,15 +8995,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -9485,15 +9485,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "placeholder-opacity": {
@@ -9979,15 +9979,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           }
         }
@@ -10469,15 +10469,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "placeholder-opacity": {
@@ -10725,15 +10725,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "supporting-text": {
@@ -10759,15 +10759,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "hover-color": {
@@ -11571,7 +11571,7 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
@@ -11605,7 +11605,7 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
@@ -11763,7 +11763,7 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
@@ -12388,15 +12388,15 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "none"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "normal"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "placeholder-opacity": {
