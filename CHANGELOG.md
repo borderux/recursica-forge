@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.11.6
+
+### Patch Changes
+
+- 72f5ad6: Fix for invalid token reference
+
 ## 0.11.5
 
 ### Patch Changes
