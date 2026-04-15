@@ -583,7 +583,7 @@
           "$type": "string",
           "$value": "underline"
         },
-        "strikethrough": {
+        "line-through": {
           "$type": "string",
           "$value": "line-through"
         }
