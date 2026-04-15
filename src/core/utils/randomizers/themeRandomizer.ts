@@ -55,7 +55,7 @@ export function randomizeTheme(initialTheme: JsonLike, options: any, diffs: any[
                     if (newVal === asFloat) {
                         newVal = asFloat > 0.5 ? Number((asFloat - 0.1).toFixed(2)) : Number((asFloat + 0.1).toFixed(2));
                     }
-                    dimObj.value = newVal;
+                    dimObj.value = Math.round(newVal * 100);
                 } else {
                     dimObj.value = randomizeNumberValue(parsed);
                 }
