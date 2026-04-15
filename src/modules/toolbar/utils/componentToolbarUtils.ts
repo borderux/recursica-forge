@@ -61,12 +61,12 @@ export const VARIANT_PROP_TO_CATEGORY: Record<string, string> = {
  */
 export function pathMatchesVariant(path: string[], variantProp: string, variantName: string): boolean {
   const categoryKey = VARIANT_PROP_TO_CATEGORY[variantProp]
-  if (!categoryKey) {
-    // Unknown variant prop — fall back to checking if variantName appears after 'variants' in path
-    const variantsIdx = path.indexOf('variants')
-    if (variantsIdx === -1) return false
-    // Check position right after 'variants' + category
-    return path[variantsIdx + 2] === variantName
+  // 'style-secondary' is a nested variant under styles, so it doesn't have a direct category container
+  // that precedes the variant name in the array (e.g., variants.styles.icon.variants.solid)
+  if (!categoryKey || variantProp === 'style-secondary') {
+    // Unknown variant prop — for deeply nested variants like 'style-secondary',
+    // the safest fallback is just checking if the variantName exists in the path
+    return path.includes(variantName)
   }
   // Find the category key in the path and check if the variant name follows it
   for (let i = 0; i < path.length - 1; i++) {
