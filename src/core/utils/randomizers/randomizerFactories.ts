@@ -231,7 +231,11 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const layerMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?layers\.(layer-[0-3])\.(elements|properties)\.([a-z0-9-]+)(?:\.([a-z0-9-]+(?:\.[a-z0-9-]+)*))?$/);
     if (layerMatch) {
        const [, layerNum, scope, prop] = layerMatch;
-       if (prop.includes('border-size') || prop.includes('size')) {
+       if (prop.includes('icon') && prop.includes('size')) {
+           const randomIconSize = CONSTANTS.iconSizes[Math.floor(Math.random() * CONSTANTS.iconSizes.length)];
+           return `{brand.dimensions.icon-size.${randomIconSize}}`;
+       }
+       if (prop.includes('border-size') || (prop.includes('size') && !prop.includes('icon'))) {
            const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
            return `{brand.dimensions.general.${randomGeneral}}`;
        }
@@ -256,9 +260,13 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const componentPropMatch = content.match(/^ui-kit\.components\.([a-z0-9-]+)\.properties\.([a-z0-9-.]+)$/);
     if (componentPropMatch) {
        const [, comp, propPath] = componentPropMatch;
-       if (propPath.includes('border-size') || propPath.match(/\b(size|gap|padding|margin|width|height)\b/)) {
+       if (propPath.includes('border-size') || (propPath.includes('size') && !propPath.includes('icon')) || propPath.match(/\b(gap|padding|margin|width|height)\b/)) {
            const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
            return `{brand.dimensions.general.${randomGeneral}}`;
+       }
+       if (propPath.includes('icon') && propPath.includes('size')) {
+           const randomIconSize = CONSTANTS.iconSizes[Math.floor(Math.random() * CONSTANTS.iconSizes.length)];
+           return `{brand.dimensions.icon-size.${randomIconSize}}`;
        }
        if (propPath.includes('border-radius') || propPath.includes('radius')) {
            return `{brand.dimensions.border-radii.${shiftValue('default', CONSTANTS.borderRadii)}}`;

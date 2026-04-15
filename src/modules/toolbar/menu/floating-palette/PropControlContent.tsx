@@ -1496,9 +1496,9 @@ export default function PropControlContent({
 
         if (propNameLower.includes('border-radius') || propNameLower.includes('corner-radius')) {
           dimensionCategory = 'border-radii'
-        } else if (propNameLower.includes('icon-size') || propNameLower === 'icon') {
+        } else if (propNameLower.includes('icon-size') || (propNameLower.includes('icon') && propNameLower.includes('size'))) {
           dimensionCategory = 'icons'
-        } else if (propNameLower === 'text-size' || propNameLower === 'font-size') {
+        } else if (propNameLower.includes('text-size') || propNameLower.includes('font-size')) {
           dimensionCategory = 'text-size'
         }
         // Default to 'general' for padding, gap, spacing (including tabs-content-gap)
