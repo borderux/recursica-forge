@@ -209,9 +209,35 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{brand.text-emphasis.${shiftValue(emphasisMatch[1], ['low', 'high'])}}`;
     }
 
+    // Font decorations
+    const decorationMatch = content.match(/^tokens\.font\.decorations\.([a-z0-9-]+)$/);
+    if (decorationMatch) {
+        return `{tokens.font.decorations.${shiftValue(decorationMatch[1], ['none', 'underline'])}}`;
+    }
+
+    // Font cases
+    const caseMatch = content.match(/^tokens\.font\.cases\.([a-z0-9-]+)$/);
+    if (caseMatch) {
+        return `{tokens.font.cases.${shiftValue(caseMatch[1], ['original', 'uppercase', 'lowercase', 'capitalize'])}}`;
+    }
+
+    // Font styles
+    const styleMatch = content.match(/^tokens\.font\.styles\.([a-z0-9-]+)$/);
+    if (styleMatch) {
+        return `{tokens.font.styles.${shiftValue(styleMatch[1], ['normal', 'italic'])}}`;
+    }
+
     // Layers: {brand.themes.light.layers.layer-1.elements.interactive.tone} or {brand.layers.layer-1.properties.border-color}
     const layerMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?layers\.(layer-[0-3])\.(elements|properties)\.([a-z0-9-]+)(?:\.([a-z0-9-]+(?:\.[a-z0-9-]+)*))?$/);
     if (layerMatch) {
+       const [, layerNum, scope, prop] = layerMatch;
+       if (prop.includes('border-size') || prop.includes('size')) {
+           const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
+           return `{brand.dimensions.general.${randomGeneral}}`;
+       }
+       if (prop.includes('border-radius') || prop.includes('radius')) {
+           return `{brand.dimensions.border-radii.${shiftValue('default', CONSTANTS.borderRadii)}}`;
+       }
        // Per user requirement, do not assign another layer color. Always swap it out for a random palette color.
        const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
        const randomPalette = palettes[Math.floor(Math.random() * palettes.length)];
@@ -230,6 +256,13 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const componentPropMatch = content.match(/^ui-kit\.components\.([a-z0-9-]+)\.properties\.([a-z0-9-.]+)$/);
     if (componentPropMatch) {
        const [, comp, propPath] = componentPropMatch;
+       if (propPath.includes('border-size') || propPath.match(/\b(size|gap|padding|margin|width|height)\b/)) {
+           const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
+           return `{brand.dimensions.general.${randomGeneral}}`;
+       }
+       if (propPath.includes('border-radius') || propPath.includes('radius')) {
+           return `{brand.dimensions.border-radii.${shiftValue('default', CONSTANTS.borderRadii)}}`;
+       }
        if (propPath.includes('color') || propPath.includes('background') || propPath.includes('icon') || propPath.includes('surface') || propPath.includes('text')) {
            const palettes = CONSTANTS.paletteNames.filter(p => !['core-colors', 'system'].includes(p));
            const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
@@ -322,7 +355,10 @@ export function randomizeStringValue(propName: string, oldVal: string): string {
         'avatar-size': ['small', 'default', 'large'],
         'border-style': ['solid', 'dashed', 'dotted'],
         'header-style': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
-        'tab-content-alignment': ['left', 'center', 'right']
+        'tab-content-alignment': ['left', 'center', 'right'],
+        'text-decoration': ['none', 'underline'],
+        'text-transform': ['none', 'uppercase', 'lowercase', 'capitalize'],
+        'font-style': ['normal', 'italic']
     };
 
     const opts = stringOptions[propName];

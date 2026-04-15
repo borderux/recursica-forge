@@ -98,7 +98,7 @@ export function syncDeltaToJson(
   const pendingFamilyNames: Record<string, string> = {}
 
   for (const [cssVarName, rawCssValue] of entries) {
-    const cssValue = cssVarToRef(rawCssValue) || rawCssValue
+    let cssValue = cssVarToRef(rawCssValue) || rawCssValue
 
     // ── Family-name CSS vars (special case — not parsed by parseTokenCssVar) ──
     const familyNameMatch = cssVarName.match(/^--recursica_tokens_colors_(scale-\d+)_family-name$/)
@@ -203,6 +203,13 @@ export function syncDeltaToJson(
     // ── Brand CSS vars ──
     const brandParsed = parseBrandCssVar(cssVarName)
     if (!brandParsed) continue
+
+    // Automatically inject `.themes.light.` or `.themes.dark.` context scoping into
+    // root-level '{brand.xxx}' references if the target JSON destination path belongs to a theme.
+    // The CSS delta engine works globally without themes, so they must be reattached here.
+    if (typeof cssValue === 'string' && cssValue.startsWith('{brand.') && !cssValue.startsWith('{brand.themes.') && 'mode' in brandParsed) {
+      cssValue = cssValue.replace('{brand.', `{brand.themes.${brandParsed.mode}.`)
+    }
 
     const brandRoot: any = (theme as any)?.brand ? (theme as any).brand : theme
     const themes: any = brandRoot?.themes || brandRoot

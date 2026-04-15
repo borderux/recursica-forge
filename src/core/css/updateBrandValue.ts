@@ -47,11 +47,21 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
   if (!themeCopy || typeof themeCopy !== 'object') return false
 
   // Convert CSS var() references to JSON token references
-  let jsonValue = value
+  let jsonValue: any = value
   const resolvedRef = cssVarToRef(value)
   
   if (resolvedRef) {
     jsonValue = resolvedRef
+    
+    // Automatically inject `.themes.light.` or `.themes.dark.` context scoping into 
+    // root-level '{brand.xxx}' references if the target JSON destination path belongs to a theme.
+    // The CSS delta engine works globally without themes, so they must be reattached here.
+    if (path.length > 2 && path[0] === 'brand' && path[1] === 'themes' && (path[2] === 'light' || path[2] === 'dark')) {
+      const mode = path[2]
+      if (typeof jsonValue === 'string' && jsonValue.startsWith('{brand.') && !jsonValue.startsWith('{brand.themes.')) {
+        jsonValue = jsonValue.replace('{brand.', `{brand.themes.${mode}.`)
+      }
+    }
   } else if (value.includes('var(')) {
     // ARCHITECTURAL DECISION:
     // Drop unrecognized var() strings here instead of storing them to maintain DTCG purity.
@@ -75,7 +85,21 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
 
   // Update the value, preserving $type if it exists
   if (current[finalKey] && typeof current[finalKey] === 'object' && '$value' in current[finalKey]) {
-    current[finalKey].$value = jsonValue
+    const hasUnitObject = current[finalKey].$value && typeof current[finalKey].$value === 'object' && 'unit' in current[finalKey].$value
+
+    if (hasUnitObject && typeof jsonValue === 'string') {
+      const match = jsonValue.trim().match(/^(-?\d+(?:\.\d+)?)(px|rem|em|%)?$/)
+      if (match) {
+        current[finalKey].$value = {
+          value: parseFloat(match[1]),
+          unit: match[2] || 'px'
+        }
+      } else {
+        current[finalKey].$value = jsonValue // e.g. ref {tokens.something}
+      }
+    } else {
+      current[finalKey].$value = jsonValue
+    }
   } else {
     // If the key doesn't exist or isn't a token object, don't create it
     // Brand values should always be pre-existing in the schema

@@ -599,7 +599,7 @@ export default function MaterialShell({
                   onClick={() => createBugReport()}
                 />
               </Tooltip>
-              {process.env.NODE_ENV === "development" && (
+              {import.meta.env.DEV && (
                 <>
                   <Tooltip label='Randomize all variables (dev only)'>
                     <Button
@@ -865,7 +865,7 @@ export default function MaterialShell({
           onCancel={handleCancel}
         />
         {/* Render randomize modal if triggered via hidden route or development */}
-        {(process.env.NODE_ENV === "development" || showRandomizeModal) && (
+        {(import.meta.env.DEV || showRandomizeModal) && (
           <RandomizeOptionsModal
             show={showRandomizeModal}
             onRandomize={(options) => {

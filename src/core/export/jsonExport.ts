@@ -612,21 +612,12 @@ export function exportTokensJson(): object {
  * Normalizes brand references to use short alias format (no theme paths)
  * Converts {brand.themes.light.palettes.core-colors.black} -> {brand.palettes.black}
  */
-function normalizeBrandReferences(obj: any): any {
+function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
   if (typeof obj === 'string') {
     // Normalize reference strings - convert theme paths to short aliases
     // Also fix malformed references that may have been created incorrectly
 
     let normalized = obj
-      // Core-colors: normalize to theme-agnostic token paths (.tone)
-      .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix || '.tone'}}`)
-      .replace(/{brand\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix || '.tone'}}`)
-      // Core-black/core-white: normalize to token path (core-colors.black.tone / core-colors.white.tone)
-      .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
-      .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
-      // Already short form: {brand.palettes.core-black} / core-white -> token path
-      .replace(/\{brand\.palettes\.core-black\}/g, '{brand.palettes.core-colors.black.tone}')
-      .replace(/\{brand\.palettes\.core-white\}/g, '{brand.palettes.core-colors.white.tone}')
       // Fix malformed: {brand.palettes.core.white} / core.black -> token path (not core-white/core-black)
       .replace(/\{brand\.palettes\.core\.white\}/g, '{brand.palettes.core-colors.white.tone}')
       .replace(/\{brand\.palettes\.core\.black\}/g, '{brand.palettes.core-colors.black.tone}')
@@ -638,24 +629,37 @@ function normalizeBrandReferences(obj: any): any {
       .replace(/\{brand\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.on-tone\}/g, '{brand.palettes.$1.$2.color.on-tone}')
       // Fix malformed token references: {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
       .replace(/{tokens\.colors\.scale\.(\d+)-(\d{3,4})}/g, '{tokens.colors.scale-$1.$2}')
-      // Remove theme from all other palette references
-      .replace(/{brand\.themes\.(light|dark)\.palettes\./g, '{brand.palettes.')
-      .replace(/{brand\.(light|dark)\.palettes\./g, '{brand.palettes.')
-      // Remove theme from other brand references
-      .replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
-      .replace(/{brand\.(light|dark)\./g, '{brand.')
+      
+    if (stripThemes) {
+      normalized = normalized
+        // Core-colors: normalize to theme-agnostic token paths (.tone)
+        .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix || '.tone'}}`)
+        .replace(/{brand\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix || '.tone'}}`)
+        // Core-black/core-white: normalize to token path (core-colors.black.tone / core-colors.white.tone)
+        .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
+        .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
+        // Already short form: {brand.palettes.core-black} / core-white -> token path
+        .replace(/\{brand\.palettes\.core-black\}/g, '{brand.palettes.core-colors.black.tone}')
+        .replace(/\{brand\.palettes\.core-white\}/g, '{brand.palettes.core-colors.white.tone}')
+        // Remove theme from all other palette references
+        .replace(/{brand\.themes\.(light|dark)\.palettes\./g, '{brand.palettes.')
+        .replace(/{brand\.(light|dark)\.palettes\./g, '{brand.palettes.')
+        // Remove theme from other brand references
+        .replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
+        .replace(/{brand\.(light|dark)\./g, '{brand.')
+    }
 
     return normalized
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(normalizeBrandReferences)
+    return obj.map((item) => normalizeBrandReferences(item, stripThemes))
   }
 
   if (obj && typeof obj === 'object') {
     const normalized: any = {}
     for (const key in obj) {
-      normalized[key] = normalizeBrandReferences(obj[key])
+      normalized[key] = normalizeBrandReferences(obj[key], stripThemes)
     }
     return normalized
   }
@@ -745,6 +749,7 @@ function ensurePaletteDefaults(result: any): void {
       if (!palette.default) {
         palette.default = {
           color: {
+            $type: 'color',
             tone: { $type: 'color', $value: toneRef },
             'on-tone': { $type: 'color', $value: onToneRef },
           },
@@ -754,7 +759,7 @@ function ensurePaletteDefaults(result: any): void {
 
       const color = palette.default?.color
       if (!color || typeof color !== 'object') {
-        palette.default = { color: { tone: { $type: 'color', $value: toneRef }, 'on-tone': { $type: 'color', $value: onToneRef } } }
+        palette.default = { color: { $type: 'color', tone: { $type: 'color', $value: toneRef }, 'on-tone': { $type: 'color', $value: onToneRef } } }
         continue
       }
 
@@ -908,8 +913,45 @@ export function exportBrandJson(): object {
   // Ensure state and text-emphasis values use correct token reference format
   ensureStateTokenRefs(result)
 
-  // Normalize all references to use short alias format (no theme paths)
-  const normalized = normalizeBrandReferences(result)
+  // Systematically recover corrupted/missing theme prefixes from dirty data states
+  // by recursively assigning the mode based on the object's parent path.
+  const restoreMissingThemes = (obj: any) => {
+    if (!obj || typeof obj !== 'object') return
+    const themesBlock = obj.themes || obj
+    if (!themesBlock || typeof themesBlock !== 'object') return
+    
+    const walkAndInjectTheme = (node: any, mode: string) => {
+      if (!node || typeof node !== 'object') return
+      for (const key in node) {
+        const val = node[key]
+        if (typeof val === 'string') {
+          if (val.startsWith('{brand.') && !val.startsWith('{brand.themes.')) {
+            node[key] = val.replace('{brand.', `{brand.themes.${mode}.`)
+          }
+        } else if (typeof val === 'object') {
+          // Recover float-corrupted percentage dimensions (e.g. 0.89 -> 89)
+          if ('unit' in val && val.unit === 'percentage' && 'value' in val) {
+            const v = val.value
+            if (typeof v === 'number' && v > 0 && v <= 1) {
+              val.value = Math.round(v * 100)
+            }
+          }
+          walkAndInjectTheme(val, mode)
+        }
+      }
+    }
+    
+    for (const mode of ['light', 'dark']) {
+      if (themesBlock[mode]) {
+        walkAndInjectTheme(themesBlock[mode], mode)
+      }
+    }
+  }
+
+  restoreMissingThemes(result)
+
+  // Normalize all references to fix malformed keys, but PRESERVE theme paths
+  const normalized = normalizeBrandReferences(result, false)
 
   const exportObject = {
     brand: normalized,
@@ -996,6 +1038,24 @@ export function exportUIKitJson(): object {
   // Ensure it has the 'ui-kit' wrapper if it doesn't already
   const uikitWithWrapper = (uikit as any)?.['ui-kit'] ? uikit : { 'ui-kit': uikit }
   const result = JSON.parse(JSON.stringify(uikitWithWrapper))
+
+  // Map typography literal strings back to their corresponding token references targeting tokens.json
+  const walkAndConvertFonts = (obj: any) => {
+    if (!obj || typeof obj !== 'object') return
+    for (const key in obj) {
+      if (key === 'text-decoration' && obj[key]?.$value && typeof obj[key].$value === 'string' && !obj[key].$value.startsWith('{')) {
+        obj[key].$value = `{tokens.font.decorations.${obj[key].$value}}`
+      } else if (key === 'text-transform' && obj[key]?.$value && typeof obj[key].$value === 'string' && !obj[key].$value.startsWith('{')) {
+        const val = obj[key].$value === 'none' ? 'original' : obj[key].$value
+        obj[key].$value = `{tokens.font.cases.${val}}`
+      } else if (key === 'font-style' && obj[key]?.$value && typeof obj[key].$value === 'string' && !obj[key].$value.startsWith('{')) {
+        obj[key].$value = `{tokens.font.styles.${obj[key].$value}}`
+      } else if (typeof obj[key] === 'object') {
+        walkAndConvertFonts(obj[key])
+      }
+    }
+  }
+  walkAndConvertFonts(result)
 
   // Normalize brand references to remove theme information (UIKit should be theme-agnostic)
   const normalized = normalizeUIKitBrandReferences(result)
@@ -1716,8 +1776,8 @@ export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boole
   if (files.cssSpecific || files.cssScoped) {
     const json = {
       tokens: exportTokensJson(),
-      brand: normalizeBrandReferences(exportBrandJson()),
-      uikit: normalizeBrandReferences(exportUIKitJson())
+      brand: exportBrandJson(), // exportBrandJson already normalizes and preserves themes
+      uikit: exportUIKitJson()  // exportUIKitJson already normalizes and strips themes
     } as Parameters<typeof recursicaJsonTransformSpecific>[0]
     if (files.cssSpecific) {
       const [file] = recursicaJsonTransformSpecific(json)
