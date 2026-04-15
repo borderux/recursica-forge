@@ -212,7 +212,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     // Font decorations
     const decorationMatch = content.match(/^tokens\.font\.decorations\.([a-z0-9-]+)$/);
     if (decorationMatch) {
-        return `{tokens.font.decorations.${shiftValue(decorationMatch[1], ['none', 'underline'])}}`;
+        return `{tokens.font.decorations.${shiftValue(decorationMatch[1], ['none', 'underline', 'line-through'])}}`;
     }
 
     // Font cases
@@ -356,7 +356,7 @@ export function randomizeStringValue(propName: string, oldVal: string): string {
         'border-style': ['solid', 'dashed', 'dotted'],
         'header-style': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
         'tab-content-alignment': ['left', 'center', 'right'],
-        'text-decoration': ['none', 'underline'],
+        'text-decoration': ['none', 'underline', 'line-through'],
         'text-transform': ['none', 'uppercase', 'lowercase', 'capitalize'],
         'font-style': ['normal', 'italic']
     };
