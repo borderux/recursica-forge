@@ -149,7 +149,6 @@ export default function Accordion({
   const contentTopPaddingVar = getComponentLevelCssVar('AccordionItem', 'content-top-padding')
   const contentBottomPaddingVar = getComponentLevelCssVar('AccordionItem', 'content-bottom-padding')
   const itemBorderSizeVar = getComponentLevelCssVar('AccordionItem', 'item-border-size')
-  const itemBorderRadiusVar = getComponentLevelCssVar('AccordionItem', 'item-border-radius')
   const contentBorderSizeVar = getComponentLevelCssVar('AccordionItem', 'content-border-size')
   const contentBorderRadiusVar = getComponentLevelCssVar('AccordionItem', 'content-border-radius')
   const contentMarginVar = getComponentLevelCssVar('AccordionItem', 'content-margin')
@@ -419,7 +418,6 @@ export default function Accordion({
         ['--accordion-item-content-bottom-padding' as string]: `var(${contentBottomPaddingVar})`,
         ['--accordion-item-border-size' as string]: `var(${itemBorderSizeVar})`,
         ['--accordion-item-border-color' as string]: `var(${itemBorderColorVar})`,
-        ['--accordion-item-border-radius-item' as string]: `var(${itemBorderRadiusVar})`,
         ['--accordion-item-content-border-size' as string]: `var(${contentBorderSizeVar})`,
         ['--accordion-item-content-border-color' as string]: `var(${contentBorderColorVar})`,
         ['--accordion-item-content-border-radius' as string]: `var(${contentBorderRadiusVar})`,

@@ -4694,10 +4694,6 @@
               "unit": "px"
             }
           },
-          "item-border-radius": {
-            "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.none}"
-          },
           "content-border-size": {
             "$type": "dimension",
             "$value": {
