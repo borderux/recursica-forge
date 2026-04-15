@@ -351,11 +351,11 @@ export default function Button({
         fontFamily: `var(${fontFamilyVar})`,
         fontSize: `var(${fontSizeVar})`,
         fontWeight: `var(${fontWeightVar})`,
-        fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal',
+        fontStyle: fontStyleVar ? `var(${fontStyleVar})` as any : 'normal',
         letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
         lineHeight: `var(${lineHeightVar})`,
-        textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') as any : 'none',
-        textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') as any : 'none',
+        textDecoration: textDecorationVar ? `var(${textDecorationVar})` as any : 'none',
+        textTransform: textTransformVar ? `var(${textTransformVar})` as any : 'none',
         // For icon-only buttons, ensure flex centering
         ...(isIconOnly && {
           display: 'flex',

@@ -280,9 +280,9 @@ export default function SegmentedControl({
         '--segmented-control-font-weight': `var(${fontWeightVar})`,
         '--segmented-control-letter-spacing': letterSpacingVar ? `var(${letterSpacingVar})` : 'normal',
         '--segmented-control-line-height': `var(${lineHeightVar})`,
-        '--segmented-control-text-decoration': textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
-        '--segmented-control-text-transform': textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
-        '--segmented-control-font-style': fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
+        '--segmented-control-text-decoration': textDecorationVar ? `var(${textDecorationVar})` : 'none',
+        '--segmented-control-text-transform': textTransformVar ? `var(${textTransformVar})` : 'none',
+        '--segmented-control-font-style': fontStyleVar ? `var(${fontStyleVar})` : 'normal',
         // Ensure root element doesn't become block-level when fullWidth is false
         display: isVertical ? (fullWidth ? 'flex' : 'inline-flex') : (fullWidth ? 'flex' : 'inline-flex'),
         width: fullWidth ? '100%' : 'auto',

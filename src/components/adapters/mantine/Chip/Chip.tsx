@@ -279,9 +279,9 @@ export default function Chip({
     fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
     letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
     lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
-    textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
-    textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
-    fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
+    textDecoration: textDecorationVar ? `var(${textDecorationVar})` : 'none',
+    textTransform: textTransformVar ? `var(${textTransformVar})` : 'none',
+    fontStyle: fontStyleVar ? `var(${fontStyleVar})` : 'normal',
 
     backgroundColor: `var(${chipBgVar})`,
     color: chipColorVar ? `var(${chipColorVar})` : undefined,

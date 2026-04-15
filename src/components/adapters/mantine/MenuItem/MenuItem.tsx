@@ -156,9 +156,9 @@ export default function MenuItem({
           fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
           letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
           lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
-          textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
-          textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
-          fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
+          textDecoration: textDecorationVar ? `var(${textDecorationVar})` : 'none',
+          textTransform: textTransformVar ? `var(${textTransformVar})` : 'none',
+          fontStyle: fontStyleVar ? `var(${fontStyleVar})` : 'normal',
         } as React.CSSProperties}
         {...mantine}
         {...props}
@@ -185,9 +185,9 @@ export default function MenuItem({
                 fontWeight: supportingFontWeightVar ? `var(${supportingFontWeightVar})` : undefined,
                 letterSpacing: supportingLetterSpacingVar ? `var(${supportingLetterSpacingVar})` : undefined,
                 lineHeight: supportingLineHeightVar ? `var(${supportingLineHeightVar})` : undefined,
-                textDecoration: supportingTextDecorationVar ? (readCssVar(supportingTextDecorationVar) || 'none') : 'none',
-                textTransform: supportingTextTransformVar ? (readCssVar(supportingTextTransformVar) || 'none') : 'none',
-                fontStyle: supportingFontStyleVar ? (readCssVar(supportingFontStyleVar) || 'normal') : 'normal',
+                textDecoration: supportingTextDecorationVar ? `var(${supportingTextDecorationVar})` : 'none',
+                textTransform: supportingTextTransformVar ? `var(${supportingTextTransformVar})` : 'none',
+                fontStyle: supportingFontStyleVar ? `var(${supportingFontStyleVar})` : 'normal',
               } as React.CSSProperties}
             >
               {supportingText}

@@ -256,13 +256,11 @@ function getButtonStyles(
   styles.fontFamily = `var(${fontFamilyVar})`
   styles.fontSize = `var(${fontSizeVar})`
   styles.fontWeight = `var(${fontWeightVar})`
-  styles.fontStyle = fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal'
+  styles.fontStyle = fontStyleVar ? `var(${fontStyleVar})` as any : 'normal'
   styles.letterSpacing = letterSpacingVar ? `var(${letterSpacingVar})` : undefined
   styles.lineHeight = `var(${lineHeightVar})`
-  const textDecorationValue = textDecorationVar ? readCssVar(textDecorationVar) : 'none'
-  const textTransformValue = textTransformVar ? readCssVar(textTransformVar) : 'none'
-  styles.textDecoration = (textDecorationValue || 'none') as any
-  styles.textTransform = (textTransformValue || 'none') as any
+  styles.textDecoration = textDecorationVar ? `var(${textDecorationVar})` as any : 'none'
+  styles.textTransform = textTransformVar ? `var(${textTransformVar})` as any : 'none'
   
   // Apply disabled styles - use component-level disabled-opacity token
   if (disabled) {

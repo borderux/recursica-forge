@@ -44,49 +44,6 @@ export default function AssistiveElement({
   const textTextTransformVar = getComponentTextCssVar('AssistiveElement', 'text', 'text-transform')
   const textFontStyleVar = getComponentTextCssVar('AssistiveElement', 'text', 'font-style')
   
-  // State to force re-renders when CSS vars change (needed for text properties)
-  const [, setUpdateKey] = useState(0)
-  
-  // Listen for CSS variable updates from the toolbar
-  useEffect(() => {
-    const textCssVars = [
-      textFontSizeVar, textFontFamilyVar, textFontWeightVar, textLetterSpacingVar,
-      textLineHeightVar, textTextDecorationVar, textTextTransformVar, textFontStyleVar
-    ]
-    
-    const handleCssVarUpdate = (e: Event) => {
-      const detail = (e as CustomEvent).detail
-      const updatedVars = detail?.cssVars || []
-      // Update if any text CSS var was updated, or if no specific vars were mentioned (global update)
-      const shouldUpdate = updatedVars.length === 0 || updatedVars.some((cssVar: string) => textCssVars.includes(cssVar))
-      
-      if (shouldUpdate) {
-        // Force re-render by updating state
-        setUpdateKey(prev => prev + 1)
-      }
-    }
-    
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    
-    // Also watch for direct style changes using MutationObserver
-    const observer = new MutationObserver(() => {
-      // Force re-render for text vars
-      setUpdateKey(prev => prev + 1)
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style'],
-    })
-    
-    return () => {
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
-      observer.disconnect()
-    }
-  }, [
-    textFontSizeVar, textFontFamilyVar, textFontWeightVar, textLetterSpacingVar,
-    textLineHeightVar, textTextDecorationVar, textTextTransformVar, textFontStyleVar
-  ])
-  
   return (
     <div
       className={className}
@@ -127,11 +84,11 @@ export default function AssistiveElement({
           fontSize: `var(${textFontSizeVar})`,
           fontFamily: `var(${textFontFamilyVar})`,
           fontWeight: `var(${textFontWeightVar})`,
-          fontStyle: textFontStyleVar ? (readCssVar(textFontStyleVar) || 'normal') as any : 'normal',
+          fontStyle: textFontStyleVar ? `var(${textFontStyleVar})` as any : 'normal',
           letterSpacing: textLetterSpacingVar ? `var(${textLetterSpacingVar})` : undefined,
           lineHeight: `var(${textLineHeightVar})`,
-          textDecoration: (readCssVar(textTextDecorationVar) || 'none') as any,
-          textTransform: (readCssVar(textTextTransformVar) || 'none') as any,
+          textDecoration: textTextDecorationVar ? `var(${textTextDecorationVar})` as any : 'none',
+          textTransform: textTextTransformVar ? `var(${textTextTransformVar})` as any : 'none',
           minWidth: 0,
           flex: '1 1 0%',
           minHeight: `var(${iconSizeVar})`,

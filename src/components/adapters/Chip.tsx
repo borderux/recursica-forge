@@ -312,9 +312,9 @@ function getChipStyles(
   styles.fontWeight = fontWeightVar ? `var(${fontWeightVar})` : undefined
   styles.letterSpacing = letterSpacingVar ? `var(${letterSpacingVar})` : undefined
   styles.lineHeight = lineHeightVar ? `var(${lineHeightVar})` : undefined
-  styles.textDecoration = textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none'
-  styles.textTransform = textTransformVar ? (readCssVar(textTransformVar) || 'none') as React.CSSProperties['textTransform'] : 'none'
-  styles.fontStyle = fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal'
+  styles.textDecoration = textDecorationVar ? `var(${textDecorationVar})` as any : 'none'
+  styles.textTransform = textTransformVar ? `var(${textTransformVar})` as any : 'none'
+  styles.fontStyle = fontStyleVar ? `var(${fontStyleVar})` as any : 'normal'
 
   // Apply size styles - height and width are derived from content and padding
   styles.paddingLeft = `var(${horizontalPaddingVar})`
