@@ -143,13 +143,7 @@
         "placeholder-opacity": {
             "icon": "eye",
             "label": "Placeholder opacity",
-            "visible": true,
-            "propertyType": "slider",
-            "range": [
-                0,
-                1
-            ],
-            "step": 0.05
+            "visible": true
         }
     }
 }
