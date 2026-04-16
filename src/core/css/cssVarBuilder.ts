@@ -502,6 +502,15 @@ export function parseBrandCssVar(input: string): ParsedBrand | null {
     return { type: 'dimension', category: segments[1], key: segments.slice(2).join('_') }
   }
 
+  // palettes_{pk}_{level}_{prop}   (generic / unthemed form)
+  if (segments[0] === 'palettes' && segments.length >= 4) {
+    const pk = segments[1]
+    if (pk === 'core') {
+      return { type: 'core-color', mode: '', path: segments.slice(2).join('_') }
+    }
+    return { type: 'palette', mode: '', paletteName: pk, level: segments[2], prop: segments.slice(3).join('_') }
+  }
+
   // themes_{mode}_palettes_core_{...path}
   if (segments[0] === 'themes' && segments.length >= 4) {
     const mode = segments[1]

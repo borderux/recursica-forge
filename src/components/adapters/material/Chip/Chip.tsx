@@ -253,9 +253,9 @@ export default function Chip({
       fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
       letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
       lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
-      textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') : 'none',
-      textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') : 'none',
-      fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') : 'normal',
+      textDecoration: textDecorationVar ? `var(${textDecorationVar})` as any : 'none',
+      textTransform: textTransformVar ? `var(${textTransformVar})` as any : 'none',
+      fontStyle: fontStyleVar ? `var(${fontStyleVar})` as any : 'normal',
       // Set CSS custom properties for CSS file
       '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)

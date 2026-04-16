@@ -149,7 +149,7 @@ export default function Link({
             fontFamily: `var(${fontFamilyVar})`,
             fontSize: `var(${fontSizeVar})`,
             fontWeight: `var(${defaultFontWeightVar})`,
-            fontStyle: (readCssVar(defaultFontStyleVar) || 'normal') as any,
+            fontStyle: `var(${defaultFontStyleVar})` as any,
             letterSpacing: `var(${letterSpacingVar})`,
             lineHeight: `var(${lineHeightVar})`,
 
@@ -158,9 +158,9 @@ export default function Link({
                 ? 'underline'
                 : underline === 'none'
                     ? 'none'
-                    : (readCssVar(defaultTextDecorationVar) || 'underline'),
+                    : `var(${defaultTextDecorationVar})`,
 
-            textTransform: (readCssVar(defaultTextTransformVar) || 'none') as any,
+            textTransform: `var(${defaultTextTransformVar})` as any,
 
             // Apply emphasis opacity based on variant
             opacity: variant === 'subtle' ? `var(${lowEmphasisOpacityVar})` : `var(${highEmphasisOpacityVar})`,
@@ -180,20 +180,20 @@ export default function Link({
             '--link-font-weight': `var(${defaultFontWeightVar})`,
             '--link-letter-spacing': `var(${letterSpacingVar})`,
             '--link-line-height': `var(${lineHeightVar})`,
-            '--link-text-decoration': readCssVar(defaultTextDecorationVar) || 'underline',
-            '--link-text-transform': readCssVar(defaultTextTransformVar) || 'none',
-            '--link-font-style': readCssVar(defaultFontStyleVar) || 'normal',
+            '--link-text-decoration': `var(${defaultTextDecorationVar})`,
+            '--link-text-transform': `var(${defaultTextTransformVar})`,
+            '--link-font-style': `var(${defaultFontStyleVar})`,
             '--link-hover-font-weight': `var(${hoverFontWeightVar})`,
-            '--link-hover-text-decoration': readCssVar(hoverTextDecorationVar) || 'underline',
-            '--link-hover-text-transform': readCssVar(hoverTextTransformVar) || 'none',
-            '--link-hover-font-style': readCssVar(hoverFontStyleVar) || 'normal',
+            '--link-hover-text-decoration': `var(${hoverTextDecorationVar})`,
+            '--link-hover-text-transform': `var(${hoverTextTransformVar})`,
+            '--link-hover-font-style': `var(${hoverFontStyleVar})`,
 
             // CSS custom properties for visited state
             '--link-visited-color': `var(${visitedTextColorVar})`,
             '--link-visited-font-weight': `var(${visitedFontWeightVar})`,
-            '--link-visited-text-decoration': readCssVar(visitedTextDecorationVar) || 'underline',
-            '--link-visited-text-transform': readCssVar(visitedTextTransformVar) || 'none',
-            '--link-visited-font-style': readCssVar(visitedFontStyleVar) || 'normal',
+            '--link-visited-text-decoration': `var(${visitedTextDecorationVar})`,
+            '--link-visited-text-transform': `var(${visitedTextTransformVar})`,
+            '--link-visited-font-style': `var(${visitedFontStyleVar})`,
 
             // CSS custom properties for visited-hover state
             '--link-visited-hover-color': `var(${visitedHoverTextColorVar})`,

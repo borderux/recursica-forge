@@ -95,9 +95,12 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
           return { valid: true }
         }
       }
-      // Allow shadow-color values that use color-mix() with palette or brand references
+      // Allow shadow-color values that use color-mix() with palette, brand, or token references
       if (cssVarName.includes('_shadow-color')) {
-        if (trimmed.includes('color-mix') && trimmed.includes('var(--recursica_brand_')) {
+        if (trimmed.includes('color-mix') && (
+          trimmed.includes('var(--recursica_brand_') ||
+          trimmed.includes('var(--recursica_tokens_')
+        )) {
           return { valid: true }
         }
       }

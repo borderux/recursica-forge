@@ -196,18 +196,18 @@ export default function Link({
                     : forceState === 'visited' ? visitedFontWeightVar
                         : forceState === 'visited-hover' ? visitedHoverFontWeightVar
                             : defaultFontWeightVar
-                const activeTextDecoration = forceState === 'hover' ? (readCssVar(hoverTextDecorationVar) || 'underline')
-                    : forceState === 'visited' ? (readCssVar(visitedTextDecorationVar) || 'underline')
-                        : forceState === 'visited-hover' ? (readCssVar(visitedHoverTextDecorationVar) || 'underline')
-                            : (readCssVar(defaultTextDecorationVar) || 'underline')
-                const activeTextTransform = forceState === 'hover' ? (readCssVar(hoverTextTransformVar) || 'none')
-                    : forceState === 'visited' ? (readCssVar(visitedTextTransformVar) || 'none')
-                        : forceState === 'visited-hover' ? (readCssVar(visitedHoverTextTransformVar) || 'none')
-                            : (readCssVar(defaultTextTransformVar) || 'none')
-                const activeFontStyle = forceState === 'hover' ? (readCssVar(hoverFontStyleVar) || 'normal')
-                    : forceState === 'visited' ? (readCssVar(visitedFontStyleVar) || 'normal')
-                        : forceState === 'visited-hover' ? (readCssVar(visitedHoverFontStyleVar) || 'normal')
-                            : (readCssVar(defaultFontStyleVar) || 'normal')
+                const activeTextDecoration = forceState === 'hover' ? `var(${hoverTextDecorationVar})`
+                    : forceState === 'visited' ? `var(${visitedTextDecorationVar})`
+                        : forceState === 'visited-hover' ? `var(${visitedHoverTextDecorationVar})`
+                            : `var(${defaultTextDecorationVar})`
+                const activeTextTransform = forceState === 'hover' ? `var(${hoverTextTransformVar})`
+                    : forceState === 'visited' ? `var(${visitedTextTransformVar})`
+                        : forceState === 'visited-hover' ? `var(${visitedHoverTextTransformVar})`
+                            : `var(${defaultTextTransformVar})`
+                const activeFontStyle = forceState === 'hover' ? `var(${hoverFontStyleVar})`
+                    : forceState === 'visited' ? `var(${visitedFontStyleVar})`
+                        : forceState === 'visited-hover' ? `var(${visitedHoverFontStyleVar})`
+                            : `var(${defaultFontStyleVar})`
 
                 return {
                     color: `var(${activeTextVar})`,

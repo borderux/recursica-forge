@@ -93,6 +93,8 @@ export function restoreDelta(): number {
       if (varName.startsWith('--recursica_tokens_font_typefaces_') || varName.startsWith('--recursica_tokens_font_families_')) continue
       // Dimension brand vars always resolve to token var() references — never user-editable
       if (varName.startsWith('--recursica_brand_dimensions_')) continue
+      // Elevation shadow-color vars are fully recomputed from paletteSelections — never restore
+      if (varName.includes('_elevations_') && varName.endsWith('_shadow-color')) continue
       // Skip CSS vars belonging to deleted color scales
       if (deletedScaleKeys.size > 0) {
         const tokenColorMatch = varName.match(/^--recursica_tokens_colors?_([\w-]+)_/)
@@ -125,6 +127,9 @@ export function trackChange(cssVarName: string, value: string): void {
   if (!cssVarName.startsWith('--recursica_')) return
   // Dimension brand vars are always token var() references — never track in delta
   if (cssVarName.startsWith('--recursica_brand_dimensions_')) return
+  // Elevation shadow-color vars are fully recomputed from paletteSelections state.
+  // Storing them in the delta causes stale picker values to overwrite the factory's color-mix.
+  if (cssVarName.includes('_elevations_') && cssVarName.endsWith('_shadow-color')) return
 
   const defaultValue = defaults[cssVarName]
 
@@ -148,6 +153,8 @@ export function trackChanges(changes: Record<string, string>): void {
     if (!varName.startsWith('--recursica_')) continue
     // Dimension brand vars are always token var() references — never track in delta
     if (varName.startsWith('--recursica_brand_dimensions_')) continue
+    // Elevation shadow-color vars are fully recomputed from paletteSelections state — never track
+    if (varName.includes('_elevations_') && varName.endsWith('_shadow-color')) continue
     const defaultValue = defaults[varName]
     if (value === defaultValue) {
       delete delta[varName]

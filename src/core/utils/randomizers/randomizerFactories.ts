@@ -221,6 +221,12 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{tokens.font.cases.${shiftValue(caseMatch[1], ['original', 'uppercase', 'lowercase', 'capitalize'])}}`;
     }
 
+    // Font weights
+    const weightMatch = content.match(/^tokens\.font\.weights\.([a-z0-9-]+)$/);
+    if (weightMatch) {
+        return `{tokens.font.weights.${shiftValue(weightMatch[1], ['light', 'regular', 'medium', 'semi-bold', 'bold', 'black'])}}`;
+    }
+
     // Font styles
     const styleMatch = content.match(/^tokens\.font\.styles\.([a-z0-9-]+)$/);
     if (styleMatch) {
@@ -231,9 +237,9 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const layerMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?layers\.(layer-[0-3])\.(elements|properties)\.([a-z0-9-]+)(?:\.([a-z0-9-]+(?:\.[a-z0-9-]+)*))?$/);
     if (layerMatch) {
        const [, layerNum, scope, prop] = layerMatch;
-       if (prop.includes('icon') && prop.includes('size')) {
+       if (prop.includes('icon') && prop.includes('size') && !prop.includes('gap')) {
            const randomIconSize = CONSTANTS.iconSizes[Math.floor(Math.random() * CONSTANTS.iconSizes.length)];
-           return `{brand.dimensions.icon-size.${randomIconSize}}`;
+           return `{brand.dimensions.icons.${randomIconSize}}`;
        }
        if (prop.includes('border-size') || (prop.includes('size') && !prop.includes('icon'))) {
            const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
@@ -264,9 +270,9 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
            const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
            return `{brand.dimensions.general.${randomGeneral}}`;
        }
-       if (propPath.includes('icon') && propPath.includes('size')) {
+       if (propPath.includes('icon') && propPath.includes('size') && !propPath.includes('gap')) {
            const randomIconSize = CONSTANTS.iconSizes[Math.floor(Math.random() * CONSTANTS.iconSizes.length)];
-           return `{brand.dimensions.icon-size.${randomIconSize}}`;
+           return `{brand.dimensions.icons.${randomIconSize}}`;
        }
        if (propPath.includes('border-radius') || propPath.includes('radius')) {
            return `{brand.dimensions.border-radii.${shiftValue('default', CONSTANTS.borderRadii)}}`;
@@ -286,18 +292,26 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
        const [, globalGroup, subgroup, part1, part2] = globalPropMatch;
        const fullPropPath = part2 ? `${part1}.${part2}` : part1;
        
+       if (fullPropPath.includes('border-radius') || fullPropPath.includes('radius')) {
+           return `{brand.dimensions.border-radii.${shiftValue('default', CONSTANTS.borderRadii)}}`;
+       }
+       if (fullPropPath.includes('icon') && fullPropPath.includes('size') && !fullPropPath.includes('gap')) {
+           const randomIconSize = CONSTANTS.iconSizes[Math.floor(Math.random() * CONSTANTS.iconSizes.length)];
+           return `{brand.dimensions.icons.${randomIconSize}}`;
+       }
+
+       // Handle dimensions/sizes
+       if (part1 === 'size' || fullPropPath.includes('gap') || fullPropPath.includes('padding') || fullPropPath.includes('margin') || fullPropPath.includes('spacing') || fullPropPath.includes('width') || fullPropPath.includes('height') || fullPropPath.includes('size') || fullPropPath.includes('thickness')) {
+           const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
+           return `{brand.dimensions.general.${randomGeneral}}`;
+       }
+
        // Handle colors
-       if (part1 === 'colors' || fullPropPath.includes('color') || fullPropPath.includes('background') || fullPropPath.includes('icon') || fullPropPath.includes('surface') || fullPropPath.includes('text')) {
+       if (part1 === 'colors' || fullPropPath.includes('color') || fullPropPath.includes('background') || (fullPropPath.includes('icon') && !fullPropPath.includes('size')) || fullPropPath.includes('surface') || fullPropPath.includes('text')) {
            const palettes = CONSTANTS.paletteNames.filter(p => !['core-colors', 'system'].includes(p));
            const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
            const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
            return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
-       }
-       
-       // Handle dimensions/sizes
-       if (part1 === 'size' || fullPropPath.includes('gap') || fullPropPath.includes('padding') || fullPropPath.includes('margin') || fullPropPath.includes('spacing') || fullPropPath.includes('radius') || fullPropPath.includes('width') || fullPropPath.includes('height')) {
-           const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
-           return `{brand.dimensions.general.${randomGeneral}}`;
        }
     }
 

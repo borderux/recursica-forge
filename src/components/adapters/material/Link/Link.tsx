@@ -173,27 +173,27 @@ export default function Link({
             '--link-font-weight': `var(${defaultFontWeightVar})`,
             '--link-letter-spacing': `var(${letterSpacingVar})`,
             '--link-line-height': `var(${lineHeightVar})`,
-            '--link-text-decoration': readCssVar(defaultTextDecorationVar) || 'underline',
-            '--link-text-transform': readCssVar(defaultTextTransformVar) || 'none',
-            '--link-font-style': readCssVar(defaultFontStyleVar) || 'normal',
+            '--link-text-decoration': `var(${defaultTextDecorationVar})`,
+            '--link-text-transform': `var(${defaultTextTransformVar})`,
+            '--link-font-style': `var(${defaultFontStyleVar})`,
             '--link-hover-font-weight': `var(${hoverFontWeightVar})`,
-            '--link-hover-text-decoration': readCssVar(hoverTextDecorationVar) || 'underline',
-            '--link-hover-text-transform': readCssVar(hoverTextTransformVar) || 'none',
-            '--link-hover-font-style': readCssVar(hoverFontStyleVar) || 'normal',
+            '--link-hover-text-decoration': `var(${hoverTextDecorationVar})`,
+            '--link-hover-text-transform': `var(${hoverTextTransformVar})`,
+            '--link-hover-font-style': `var(${hoverFontStyleVar})`,
 
             // CSS custom properties for visited state
             '--link-visited-color': `var(${visitedTextColorVar})`,
             '--link-visited-font-weight': `var(${visitedFontWeightVar})`,
-            '--link-visited-text-decoration': readCssVar(visitedTextDecorationVar) || 'underline',
-            '--link-visited-text-transform': readCssVar(visitedTextTransformVar) || 'none',
-            '--link-visited-font-style': readCssVar(visitedFontStyleVar) || 'normal',
+            '--link-visited-text-decoration': `var(${visitedTextDecorationVar})`,
+            '--link-visited-text-transform': `var(${visitedTextTransformVar})`,
+            '--link-visited-font-style': `var(${visitedFontStyleVar})`,
 
             // CSS custom properties for visited-hover state
             '--link-visited-hover-color': `var(${visitedHoverTextColorVar})`,
             '--link-visited-hover-font-weight': `var(${visitedHoverFontWeightVar})`,
-            '--link-visited-hover-text-decoration': readCssVar(visitedHoverTextDecorationVar) || 'underline',
-            '--link-visited-hover-text-transform': readCssVar(visitedHoverTextTransformVar) || 'none',
-            '--link-visited-hover-font-style': readCssVar(visitedHoverFontStyleVar) || 'normal',
+            '--link-visited-hover-text-decoration': `var(${visitedHoverTextDecorationVar})`,
+            '--link-visited-hover-text-transform': `var(${visitedHoverTextTransformVar})`,
+            '--link-visited-hover-font-style': `var(${visitedHoverFontStyleVar})`,
 
             // CSS custom properties for icon color
             '--link-icon-color': `var(${defaultIconColorVar})`,
@@ -210,21 +210,19 @@ export default function Link({
 
 
     // Read dynamic values for inline style props
-    const fontStyleValue = (readCssVar(defaultFontStyleVar) || 'normal')
-    const textDecorationValue = readCssVar(defaultTextDecorationVar) || null
-    const textTransformValue = (readCssVar(defaultTextTransformVar) || 'none')
+// Removed static computation in favor of native injection
 
     const additionalStyles: React.CSSProperties = {
-        fontStyle: fontStyleValue as any,
-        textTransform: textTransformValue as any,
+        fontStyle: `var(${defaultFontStyleVar})` as any,
+        textTransform: `var(${defaultTextTransformVar})` as any,
     }
 
     if (underline === 'always') {
         additionalStyles.textDecoration = 'underline'
     } else if (underline === 'none') {
         additionalStyles.textDecoration = 'none'
-    } else if (textDecorationValue) {
-        additionalStyles.textDecoration = textDecorationValue
+    } else {
+        additionalStyles.textDecoration = `var(${defaultTextDecorationVar})` as any
     }
 
     return (

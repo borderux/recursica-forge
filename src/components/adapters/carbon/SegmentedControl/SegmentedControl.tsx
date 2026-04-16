@@ -336,9 +336,9 @@ export default function SegmentedControl({
                 fontWeight: `var(${fontWeightVar})`,
                 letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
                 lineHeight: `var(${lineHeightVar})`,
-                textDecoration: textDecorationVar ? (readCssVar(textDecorationVar) || 'none') as any : 'none',
-                textTransform: textTransformVar ? (readCssVar(textTransformVar) || 'none') as any : 'none',
-                fontStyle: fontStyleVar ? (readCssVar(fontStyleVar) || 'normal') as any : 'normal',
+                textDecoration: textDecorationVar ? `var(${textDecorationVar})` as any : 'none',
+                textTransform: textTransformVar ? `var(${textTransformVar})` as any : 'none',
+                fontStyle: fontStyleVar ? `var(${fontStyleVar})` as any : 'normal',
                 flexGrow: 1, // Fill the button area for full clickability
                 flexShrink: fullWidth ? 1 : 0, // Allow shrinking when fullWidth, prevent when auto-width
                 flexBasis: 0, // Start from 0 and grow to fill space

@@ -260,9 +260,9 @@ export default function Autocomplete({
                     fontWeight: `var(${valueFontWeightVar})` as any,
                     letterSpacing: `var(${valueLetterSpacingVar})`,
                     lineHeight: `var(${valueLineHeightVar})`,
-                    textDecoration: valueTextDecorationVar ? (readCssVar(valueTextDecorationVar) || 'none') as any : 'none',
-                    textTransform: valueTextTransformVar ? (readCssVar(valueTextTransformVar) || 'none') as any : 'none',
-                    fontStyle: valueFontStyleVar ? (readCssVar(valueFontStyleVar) || 'normal') as any : 'normal',
+                    textDecoration: valueTextDecorationVar ? `var(${valueTextDecorationVar})` as any : 'none',
+                    textTransform: valueTextTransformVar ? `var(${valueTextTransformVar})` as any : 'none',
+                    fontStyle: valueFontStyleVar ? `var(${valueFontStyleVar})` as any : 'normal',
                     ['--placeholder-opacity' as any]: `var(${placeholderOpacityVar}, 0.5)`,
                 }}
             />

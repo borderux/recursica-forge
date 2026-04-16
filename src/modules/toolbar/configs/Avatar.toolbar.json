@@ -65,7 +65,7 @@
           "icon": "text-aa",
           "label": "Text color",
           "visible": true,
-          "showForVariants": ["text", "icon"]
+          "showForVariants": ["text"]
         }
       }
     },

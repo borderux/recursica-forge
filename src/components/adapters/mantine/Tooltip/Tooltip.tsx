@@ -163,9 +163,9 @@ export default function Tooltip({
         '--tooltip-font-weight': `var(${fontWeightVar})`,
         '--tooltip-letter-spacing': `var(${letterSpacingVar})`,
         '--tooltip-line-height': `var(${lineHeightVar})`,
-        '--tooltip-text-decoration': readCssVar(textDecorationVar) || 'none',
-        '--tooltip-text-transform': readCssVar(textTransformVar) || 'none',
-        '--tooltip-font-style': readCssVar(fontStyleVar) || 'normal',
+        '--tooltip-text-decoration': `var(${textDecorationVar})`,
+        '--tooltip-text-transform': `var(${textTransformVar})`,
+        '--tooltip-font-style': `var(${fontStyleVar})`,
         '--tooltip-box-shadow': getElevationBoxShadow(mode, elevation) || 'none',
         '--tooltip-shadow-params': shadowParams,
 

@@ -853,7 +853,14 @@ export default function PropControlContent({
     const isTextColorMapping = (componentName.toLowerCase() === 'chip' || componentName.toLowerCase() === 'badge') &&
       propToCheck.name.toLowerCase() === 'text-color' &&
       propToCheck.category === 'colors'
-    const targetPropName = isTextColorMapping ? 'text' : propToCheck.name
+      
+    let targetPropName = propToCheck.name
+    if (isTextColorMapping) {
+      targetPropName = 'text'
+    } else if (componentName.toLowerCase() === 'avatar' && propToCheck.name.toLowerCase() === 'text-color' && selectedVariants.style === 'icon') {
+      // For Avatar in icon mode, if the UI still exposes "text-color", forcibly map it to "icon-color" to prevent logic breaking
+      targetPropName = 'icon-color'
+    }
 
     // For state-specific props (like border-size in TextField), prioritize matching the selected state
     // First, try to find a prop that matches the selected state variant
@@ -904,6 +911,14 @@ export default function PropControlContent({
         if (selectedVariants.style && !p.path.includes(selectedVariants.style)) return false
         if (selectedVariants.orientation && !p.path.includes(selectedVariants.orientation)) return false
       }
+      
+      // CRITICAL FIX: Ensure deeply nested variants match their primary container variant.
+      // For Avatar (or similar components), if we're evaluating a nested style-secondary prop (like solid),
+      // we MUST also ensure the primary style (like icon or text) is present in the path.
+      if (selectedVariants.style && stylesIdx >= 0) {
+        if (!p.path.includes(selectedVariants.style)) return false
+      }
+
       // Filter by layer for ANY prop that has layer-X in its path (not just colors)
       // This ensures Card borders (size category under borders.layer-X) are also filtered
       const layerInPath = p.path.find(pathPart => pathPart.startsWith('layer-'))

@@ -69,11 +69,11 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       // randomized values actually map cleanly into the DOM variables via recomputeAndApplyAll().
       if (opts.theme.elevations) {
          // Extract the new values from modifiedTheme to prepopulate the UI dropdowns
-         const newPaletteSelections: Record<string, any> = {};
+         const newPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} };
          const newColorTokens: Record<string, string> = {};
          
          if (modifiedTheme?.brand?.themes) {
-            for (const mode of ['light', 'dark']) {
+            for (const mode of ['light', 'dark'] as const) {
                const els = modifiedTheme.brand.themes[mode]?.elevations || {};
                for (let i = 1; i <= 4; i++) {
                   const key = `elevation-${i}`;
@@ -81,7 +81,7 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
                   if (typeof colorRef === 'string') {
                      const match = colorRef.match(/palettes\.([a-z0-9-]+)\.(\d+)\.color\.tone/);
                      if (match) {
-                         newPaletteSelections[key] = { paletteKey: match[1], level: match[2] };
+                         newPaletteSelections[mode][key] = { paletteKey: match[1], level: match[2] };
                      } else {
                          const match2 = colorRef.match(/tokens\.colors\.(scale-\d{2})\.(\d+)/);
                          if (match2) {
