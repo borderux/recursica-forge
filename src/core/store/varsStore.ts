@@ -34,7 +34,7 @@ type PaletteStore = {
   primaryLevels?: Record<string, string>
 }
 
-type ElevationControl = { blur: number; spread: number; offsetX: number; offsetY: number }
+type ElevationControl = { blur: number; spread: number; offsetX: number; offsetY: number; opacity: number }
 export type ElevationState = {
   controls: Record<'light' | 'dark', Record<string, ElevationControl>>
   colorTokens: Record<string, string>
@@ -63,6 +63,7 @@ const STORAGE_KEYS = {
   version: 'rf:vars:version',
   uikit: 'rf:vars:uikit',
   deletedScales: 'rf:deleted-scales',
+  elevationPaletteSelections: 'rf:elevation-palette-selections',
 }
 
 /** Exported for use by cssDelta and deltaToJson modules — the single source of truth for this key. */
@@ -753,7 +754,14 @@ class VarsStore {
     if (!this.isRecomputing) this.recomputeAndApplyAll()
   }
   updateElevation(mutator: (prev: ElevationState) => ElevationState) {
-    this.writeState({ elevation: mutator(this.state.elevation) })
+    const next = mutator(this.state.elevation)
+    this.writeState({ elevation: next })
+    // Persist paletteSelections so they survive a browser refresh
+    if (isLocalStorageAvailable()) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.elevationPaletteSelections, JSON.stringify(next.paletteSelections))
+      } catch { /* storage full */ }
+    }
     if (!this.isRecomputing) this.recomputeAndApplyAll()
   }
 
@@ -1090,6 +1098,7 @@ class VarsStore {
     clearDelta()
     clearStoredFonts()
     this.clearDeletedScales()
+    try { localStorage.removeItem(STORAGE_KEYS.elevationPaletteSelections) } catch { }
 
     // Clear global ref preference so users are prompted again after a reset
     clearGlobalRefPreference()
@@ -1204,7 +1213,7 @@ class VarsStore {
     let baseXDirection: 'left' | 'right' = 'right'
     let baseYDirection: 'up' | 'down' = 'down'
     let directions: Record<'light' | 'dark', Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>> = { light: {}, dark: {} }
-    let shadowColorControl: { colorToken: string; alphaToken: string } = { colorToken: 'color/gray/900', alphaToken: 'opacity/veiled' }
+    let shadowColorControl: { colorToken: string; alphaToken: string } = { colorToken: '', alphaToken: '' }
 
     {
       // Build defaults from theme for both modes
@@ -1248,46 +1257,31 @@ class VarsStore {
           const spread = toNumeric(spreadRaw)
           const offsetX = toNumeric(xRaw)
           const offsetY = toNumeric(yRaw)
+          const opacityRaw = node?.opacity
+          // Parse opacity: brand JSON stores as percentage { value: 84, unit: 'percentage' } or 0-1 number
+          let opacityNorm = 0.84 // sensible default
+          if (opacityRaw && typeof opacityRaw === 'object' && '$value' in opacityRaw) {
+            const ov = opacityRaw.$value
+            if (ov && typeof ov === 'object' && 'value' in ov) {
+              const raw = typeof ov.value === 'number' ? ov.value : Number(ov.value)
+              opacityNorm = ov.unit === 'percentage' ? raw / 100 : raw
+            } else if (typeof ov === 'number') {
+              opacityNorm = ov > 1 ? ov / 100 : ov
+            }
+          } else if (typeof opacityRaw === 'number') {
+            opacityNorm = opacityRaw > 1 ? opacityRaw / 100 : opacityRaw
+          }
           controls[mode][`elevation-${i}`] = {
             blur,
             spread,
             offsetX,
             offsetY,
+            opacity: Number(opacityNorm.toFixed(4)),
           }
         }
       }
-      const parseOpacity = (s?: string) => {
-        if (!s) return 'opacity/veiled'
-        // Only parse if we have tokens available
-        const tokensToUse = tokens || this.state?.tokens
-        if (!tokensToUse) return 'opacity/veiled'
-        const context: TokenReferenceContext = {
-          tokenIndex: buildTokenIndex(tokensToUse)
-        }
-        const parsed = parseTokenReference(s, context)
-        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && (parsed.path[0] === 'opacity' || parsed.path[0] === 'opacities')) {
-          return `opacity/${parsed.path[1]}`
-        }
-        return 'opacity/veiled'
-      }
-      const parseColorToken = (s?: string) => {
-        if (!s) return 'color/gray/900'
-        // Only parse if we have tokens available
-        const tokensToUse = tokens || this.state?.tokens
-        if (!tokensToUse) return 'color/gray/900'
-        const context: TokenReferenceContext = {
-          tokenIndex: buildTokenIndex(tokensToUse)
-        }
-        const parsed = parseTokenReference(s, context)
-        if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && (parsed.path[0] === 'color' || parsed.path[0] === 'colors')) {
-          // Handle both old format (color/family/level) and new format (colors/scale-XX/level)
-          if (parsed.path[0] === 'colors' && parsed.path.length >= 3) {
-            return `colors/${parsed.path[1]}/${parsed.path[2]}`
-          }
-          return `color/${parsed.path[1]}/${parsed.path[2]}`
-        }
-        return 'color/gray/900'
-      }
+
+
       const parsePaletteSelection = (s?: string): { paletteKey: string; level: string } | null => {
         if (!s) return null
         // Only parse if we have tokens available
@@ -1300,11 +1294,14 @@ class VarsStore {
         }
         const parsed = parseTokenReference(s, context)
         if (parsed && parsed.type === 'brand') {
-          const pathParts = parsed.path
-          // Check if it's a palette reference: palettes.{paletteKey}.{level}.color.tone
-          if (pathParts.length >= 4 && pathParts[0] === 'palettes' && pathParts[2] === 'color' && pathParts[3] === 'tone') {
-            const paletteKey = pathParts[1]
-            let level = pathParts.length >= 5 ? pathParts[4] : undefined
+          const pathStr = parsed.path.join('.')
+          // Target format: palettes.neutral.500.color.tone
+          const paletteFlexMatch = /^palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)\.color\.(tone|on-tone)$/i.exec(pathStr)
+          
+          if (paletteFlexMatch) {
+            const paletteKey = paletteFlexMatch[1]
+            let level = paletteFlexMatch[2]
+            
             // If level is 'default', try to resolve it from the theme
             if (level === 'default' || !level) {
               try {
@@ -1373,7 +1370,7 @@ class VarsStore {
       // Get light mode elevations for shadow color control and palette selections (these are mode-independent settings)
       const lightElevations: any = themes?.light?.elevations || {}
       const elev1: any = lightElevations?.['elevation-1']?.['$value'] || {}
-      shadowColorControl = { colorToken: parseColorToken(elev1?.color?.['$value'] ?? elev1?.color), alphaToken: parseOpacity(elev1?.opacity?.['$value'] ?? elev1?.opacity) }
+      shadowColorControl = { colorToken: '', alphaToken: '' }
 
       // Initialize palette selections from brand.json for each elevation (using light mode as default)
       const initialPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
@@ -1404,6 +1401,18 @@ class VarsStore {
         }
       }
       paletteSelections = { ...initialPaletteSelections }
+      // Overlay user-customized palette selections persisted from previous sessions
+      if (isLocalStorageAvailable()) {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEYS.elevationPaletteSelections)
+          if (saved) {
+            const parsed: Record<string, { paletteKey: string; level: string }> = JSON.parse(saved)
+            if (parsed && typeof parsed === 'object') {
+              Object.assign(paletteSelections, parsed)
+            }
+          }
+        } catch { /* corrupt storage — ignore */ }
+      }
     }
 
     // Initialize token references if not already set
@@ -2391,53 +2400,20 @@ class VarsStore {
 
           const shadowColorForLevel = (level: number, paletteVars?: Record<string, string>): string => {
             const key = `elevation-${level}`
+            const ctrlForLevel = this.state.elevation.controls[mode]?.[key]
+            const opNorm = ctrlForLevel?.opacity ?? 0.84
+            const alphaRef = opNorm.toFixed(4)
+
             const sel = this.state.elevation.paletteSelections[key]
             if (sel) {
-              // Use palette CSS variable instead of token CSS variable
               const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}_color_tone`
-              // Check if palette var exists in paletteVars (during initialization) or use var() reference
               const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
-              const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
-              let alphaTok = modeAlphaTokens[key]
-              let alphaVarRef = ''
-              if (!alphaTok) {
-                  const elevNode: any = modeElevations?.[key]?.['$value'] || baseElevationNode
-                  const opRaw = elevNode?.opacity
-                  if (opRaw && typeof opRaw === 'object' && opRaw.$value !== undefined) {
-                      const opVal = toNumeric(opRaw)
-                      const norm = opVal <= 1 ? Number(opVal.toFixed(2)) : Number((opVal / 100).toFixed(2))
-                      alphaVarRef = String(norm)
-                  } else {
-                      alphaTok = this.state.elevation.shadowColorControl.alphaToken
-                      alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-                  }
-              } else {
-                  alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-              }
-              return colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+              return colorMixWithOpacityVar(paletteVarRef, alphaRef)
             }
-            const tok = this.state.elevation.colorTokens[key] || this.state.elevation.shadowColorControl.colorToken
-            const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
-            let alphaTok = modeAlphaTokens[key]
-            let alphaVarRef = ''
-            if (!alphaTok) {
-                const elevNode: any = modeElevations?.[key]?.['$value'] || baseElevationNode
-                const opRaw = elevNode?.opacity
-                if (opRaw && typeof opRaw === 'object' && opRaw.$value !== undefined) {
-                    const opVal = toNumeric(opRaw)
-                    const norm = opVal <= 1 ? Number(opVal.toFixed(2)) : Number((opVal / 100).toFixed(2))
-                    alphaVarRef = String(norm)
-                } else {
-                    alphaTok = this.state.elevation.shadowColorControl.alphaToken
-                    alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-                }
-            } else {
-                alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-            }
-            // Use tokenToCssVar to properly convert token names to CSS vars (handles old and new formats)
-            // Pass tokens to resolve aliases to scale keys
-            const colorVarRef = tokenToCssVar(tok, this.state.tokens) || `var(--recursica_tokens_${tok.replace(/\//g, '-')})`
-            return colorMixWithOpacityVar(colorVarRef, alphaVarRef)
+            const tok = this.state.elevation.colorTokens[key]
+            if (!tok) return 'transparent'
+            const colorVarRef = tokenToCssVar(tok, this.state.tokens) || `var(--recursica_tokens_${tok.replace(/\//g, '_')})`
+            return colorMixWithOpacityVar(colorVarRef, alphaRef)
           }
           const dirForLevel = (level: number): { x: 'left' | 'right'; y: 'up' | 'down' } => {
             const key = `elevation-${level}`
@@ -2532,61 +2508,47 @@ class VarsStore {
               vars[token('size', `elevation-${i}-offset-y`)] = `${yValue}px`
             }
 
-            // Check if there's already a palette CSS variable set (preserve user selections)
-            const existingColor = readCssVar(`${prefixedScope}_shadow-color`)
-            const modeAlphaTokens = this.state.elevation.alphaTokens[mode] || {}
-            let alphaTok = modeAlphaTokens[k]
-            let alphaVarRef = ''
-            if (!alphaTok) {
-                const opRaw = elevNode?.opacity
-                if (opRaw && typeof opRaw === 'object' && opRaw.$value !== undefined) {
-                    const opVal = toNumeric(opRaw)
-                    const norm = opVal <= 1 ? Number(opVal.toFixed(2)) : Number((opVal / 100).toFixed(2))
-                    alphaVarRef = String(norm)
-                } else {
-                    alphaTok = this.state.elevation.shadowColorControl.alphaToken
-                    alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-                }
+            // Opacity comes directly from the control — no token indirection.
+            const ctrl = this.state.elevation.controls[mode]?.[k]
+            const opacityNorm = ctrl?.opacity ?? 0.84
+            const alphaVarRef = opacityNorm.toFixed(4)
+
+            // Derive shadow-color from paletteSelections state (authoritative),
+            // falling back to a DOM read only when no state selection exists.
+            const statePaletteSel = this.state.elevation.paletteSelections[k]
+            if (statePaletteSel) {
+              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.level}_color_tone`
+              const paletteVarRef = allPaletteVars[paletteVarName] ? allPaletteVars[paletteVarName] : `var(${paletteVarName})`
+              vars[`${prefixedScope}_shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
             } else {
-                alphaVarRef = tokenToCssVar(alphaTok, this.state.tokens) || `var(--recursica_tokens_opacities_${alphaTok.replace('opacity/', '').replace('opacities/', '')})`
-            }
-
-            // Check if existing color contains a palette reference (could be var() or color-mix())
-            const hasPaletteRef = existingColor && (
-              (existingColor.startsWith('var(') && existingColor.includes('palettes')) ||
-              (existingColor.includes('color-mix') && existingColor.includes('palettes'))
-            )
-
-            if (hasPaletteRef) {
-              // Extract the palette var reference from existingColor
-              let paletteVarRef: string | null = null
-
-              // If it's a direct var() reference to a palette
-              const unwrapped = unwrapVar(existingColor)
-              if (unwrapped && unwrapped.includes('palettes')) {
-                paletteVarRef = `var(${unwrapped})`
-              } else {
-                // If it's a color-mix, extract the palette var from it
-                const colorMixVarMatch = existingColor.match(/color-mix\s*\([^,]+,\s*(var\s*\([^)]+\))/)
-                if (colorMixVarMatch) {
-                  const innerUnwrapped = unwrapVar(colorMixVarMatch[1])
-                  if (innerUnwrapped && innerUnwrapped.includes('palettes')) {
-                    paletteVarRef = `var(${innerUnwrapped})`
+              const existingColor = readCssVar(`${prefixedScope}_shadow-color`)
+              const hasPaletteRef = existingColor && (
+                (existingColor.startsWith('var(') && existingColor.includes('palettes')) ||
+                (existingColor.includes('color-mix') && existingColor.includes('palettes'))
+              )
+              if (hasPaletteRef) {
+                let paletteVarRef: string | null = null
+                const unwrapped = unwrapVar(existingColor)
+                if (unwrapped && unwrapped.includes('palettes')) {
+                  paletteVarRef = `var(${unwrapped})`
+                } else {
+                  const colorMixVarMatch = existingColor.match(/color-mix\s*\([^,]+,\s*(var\s*\([^)]+\))/)
+                  if (colorMixVarMatch) {
+                    const innerUnwrapped = unwrapVar(colorMixVarMatch[1])
+                    if (innerUnwrapped && innerUnwrapped.includes('palettes')) {
+                      paletteVarRef = `var(${innerUnwrapped})`
+                    }
                   }
                 }
-              }
-
-              if (paletteVarRef) {
-                // Preserve palette CSS variable and apply current opacity
-                vars[`${prefixedScope}_shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+                if (paletteVarRef) {
+                  vars[`${prefixedScope}_shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
+                } else {
+                  vars[`${prefixedScope}_shadow-color`] = existingColor
+                }
               } else {
-                // Fallback: use existing color as-is (shouldn't happen, but just in case)
-                vars[`${prefixedScope}_shadow-color`] = existingColor
+                const color = shadowColorForLevel(i, allPaletteVars)
+                vars[`${prefixedScope}_shadow-color`] = String(color)
               }
-            } else {
-              // Calculate color from state
-              const color = shadowColorForLevel(i, allPaletteVars)
-              vars[`${prefixedScope}_shadow-color`] = String(color)
             }
 
             // Always set CSS variables directly with pixel values to avoid token conflicts between modes
@@ -2630,6 +2592,9 @@ class VarsStore {
         // Store computed vars for delta snapshotting
         actuallyChangedVars = Object.keys(allVars).filter(k => this.lastComputedVars[k] !== allVars[k])
         this.lastComputedVars = { ...allVars }
+
+
+
 
         // Re-overlay the in-memory delta so user CSS-var changes survive the recompute.
         // Without this, any change made via updateCssVar() (e.g. interactive color) that

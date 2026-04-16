@@ -6,6 +6,7 @@ import ElevationModule from './ElevationModule'
 import ElevationStylePanel from './ElevationStylePanel'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { removeCssVar } from '../../core/css/updateCssVar'
+import { clearDeltaByPrefix } from '../../core/store/cssDelta'
 import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -53,8 +54,7 @@ export default function ElevationsPage() {
     return out.sort((a, b) => a.value - b.value)
   }, [tokensJson])
 
-  // Helper to read theme default values for an elevation level
-  const getThemeDefaults = (elevationKey: string): { blur: number; spread: number; offsetX: number; offsetY: number } => {
+  const getThemeDefaults = (elevationKey: string): { blur: number; spread: number; offsetX: number; offsetY: number; opacity: number } => {
     try {
       const brand: any = (theme as any)?.brand || (theme as any)
       const themes = brand?.themes || brand
@@ -69,12 +69,43 @@ export default function ElevationsPage() {
         if (typeof ref === 'number') return ref
         return 0
       }
-      return { blur: toNum(node?.blur), spread: toNum(node?.spread), offsetX: toNum(node?.x), offsetY: toNum(node?.y) }
-    } catch { return { blur: 0, spread: 0, offsetX: 0, offsetY: 0 } }
+      // Opacity: stored as percentage (0-100) in brand JSON — normalise to 0-1
+      const opRaw = node?.opacity
+      let opacityNorm = 0.84
+      if (opRaw && typeof opRaw === 'object' && '$value' in opRaw) {
+        const ov = opRaw.$value
+        if (ov && typeof ov === 'object' && 'value' in ov) {
+          const raw = typeof ov.value === 'number' ? ov.value : Number(ov.value)
+          opacityNorm = ov.unit === 'percentage' ? raw / 100 : raw
+        } else if (typeof ov === 'number') {
+          opacityNorm = ov > 1 ? ov / 100 : ov
+        }
+      } else if (typeof opRaw === 'number') {
+        opacityNorm = opRaw > 1 ? opRaw / 100 : opRaw
+      }
+      return { blur: toNum(node?.blur), spread: toNum(node?.spread), offsetX: toNum(node?.x), offsetY: toNum(node?.y), opacity: opacityNorm }
+    } catch { return { blur: 0, spread: 0, offsetX: 0, offsetY: 0, opacity: 0.84 } }
   }
 
   // Batched version that updates multiple elevations in a single updateElevation call
-  const updateElevationControlsBatch = (elevationKeys: string[], property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
+  const updateElevationControlsBatch = (elevationKeys: string[], property: 'blur' | 'spread' | 'offsetX' | 'offsetY' | 'opacity', value: number) => {
+    // Opacity has no token — handle it directly without the pre-loop
+    if (property === 'opacity') {
+      updateElevation((prev) => {
+        const next = { ...prev }
+        if (!next.controls.light) next.controls.light = {}
+        if (!next.controls.dark) next.controls.dark = {}
+        next.controls = { light: { ...next.controls.light }, dark: { ...next.controls.dark } }
+        elevationKeys.forEach((elevationKey) => {
+          const existingControl = next.controls[mode][elevationKey]
+          const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
+          next.controls[mode] = { ...next.controls[mode], [elevationKey]: { ...existing, opacity: value } }
+        })
+        return next
+      })
+      return
+    }
+
     // Determine token names and final values BEFORE updating state
     const updates: Array<{ elevationKey: string; tokenName: string; finalValue: number; level: string }> = []
 
@@ -267,6 +298,23 @@ export default function ElevationsPage() {
     })
   }
 
+  // Batch version: sets alpha tokens for multiple elevations in a single updateElevation call
+  // to avoid multiple intermediate recomputes during an opacity commit.
+  const setElevationAlphaTokenBatch = (entries: Array<{ elevationKey: string; token: string }>) => {
+    const validEntries = entries.filter(e => e.elevationKey !== 'elevation-0')
+    if (validEntries.length === 0) return
+    updateElevation((prev) => {
+      const next = { ...prev }
+      if (!next.alphaTokens[mode]) next.alphaTokens[mode] = {}
+      const modeTokens = { ...next.alphaTokens[mode] }
+      for (const { elevationKey, token } of validEntries) {
+        modeTokens[elevationKey] = token
+      }
+      next.alphaTokens[mode] = modeTokens
+      return next
+    })
+  }
+
   const getXDirForLevel = (elevationKey: string): 'left' | 'right' => {
     const modeDirections = elevation?.directions[mode] || {}
     return modeDirections[elevationKey]?.x ?? elevation?.baseXDirection ?? 'right'
@@ -322,15 +370,8 @@ export default function ElevationsPage() {
       return undefined
     }
 
-    const parseOpacityToken = (s?: any): string | undefined => {
-      const v: string | undefined = typeof s === 'string' ? s : (s?.['$value'] as any)
-      if (!v) return undefined
-      const parsed = parseTokenReference(v, {})
-      if (parsed && parsed.type === 'token' && parsed.path[0] === 'opacity' && parsed.path.length >= 2) {
-        return `opacity/${parsed.path[1]}`
-      }
-      return undefined
-    }
+
+
 
     updateElevation((prev) => {
       const next = { ...prev }
@@ -359,10 +400,17 @@ export default function ElevationsPage() {
         const defaultOffsetX = toNumeric(node?.x)
         const defaultOffsetY = toNumeric(node?.y)
 
-        // Remove controls for current mode (revert to recursica_brand.json defaults)
-        // This allows recomputeAndApplyAll to use recursica_brand.json defaults and update tokens
-        const { [key]: _, ...restControls } = next.controls[mode]
-        next.controls[mode] = restControls
+        // Restore control to brand JSON defaults (all 5 properties atomically)
+        next.controls[mode] = {
+          ...next.controls[mode],
+          [key]: {
+            blur: defaultBlur,
+            spread: defaultSpread,
+            offsetX: defaultOffsetX,
+            offsetY: defaultOffsetY,
+            opacity: getThemeDefaults(key).opacity,
+          },
+        }
 
         // Update token values in tokens.json to match theme defaults for this mode
         // Get token names from elevation state (or use defaults)
@@ -386,9 +434,32 @@ export default function ElevationsPage() {
           next.colorTokens = rest
         }
 
-        // Remove palette selections
-        const { [key]: __, ...paletteRest } = next.paletteSelections
-        next.paletteSelections = paletteRest
+        // Restore palette selection from brand JSON (instead of clearing it)
+        // This ensures reset goes back to the original JSON color, not a token fallback
+        const elevForReset: any = light[key]?.['$value'] || {}
+        const colorRefRaw = elevForReset?.color?.['$value'] ?? elevForReset?.color
+        const colorRefStr: string | undefined = typeof colorRefRaw === 'string' ? colorRefRaw : undefined
+        const parsedColorRef = colorRefStr ? parseTokenReference(colorRefStr, {}) : null
+        let restoredPaletteSel: { paletteKey: string; level: string } | null = null
+        if (parsedColorRef?.type === 'brand' && parsedColorRef.path[0] === 'palettes' && parsedColorRef.path.length >= 3) {
+          const paletteKey = parsedColorRef.path[1]
+          const rawLevel = parsedColorRef.path[2]
+          // Resolve 'primary' via palette's primary-level field
+          let level = rawLevel
+          if (level === 'primary' || level === 'default') {
+            const brand: any = (theme as any)?.brand || (theme as any)
+            const themes2 = brand?.themes || brand
+            const primaryLevel = themes2?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
+            level = typeof primaryLevel === 'string' ? primaryLevel : '500'
+          }
+          restoredPaletteSel = { paletteKey, level }
+        }
+        if (restoredPaletteSel) {
+          next.paletteSelections = { ...next.paletteSelections, [key]: restoredPaletteSel }
+        } else {
+          const { [key]: __, ...paletteRest } = next.paletteSelections
+          next.paletteSelections = paletteRest
+        }
 
         // Clear shadow color CSS variables (both scoped and themed) to reset to default
         const scopedShadowColorCssVar = `--recursica_brand_elevations_elevation-${lvl}_shadow-color`
@@ -401,31 +472,16 @@ export default function ElevationsPage() {
           removeCssVar(`--recursica_brand_elevations_elevation-${lvl}_${prop}`)
         })
 
-        // Update alpha tokens (mode-specific)
-        const alphaToken = parseOpacityToken(node?.opacity)
-        if (!next.alphaTokens[mode]) next.alphaTokens[mode] = {}
-        if (alphaToken) {
-          next.alphaTokens[mode] = { ...next.alphaTokens[mode], [key]: alphaToken }
+        // Clear the factory-written shadow-color from the delta so reapplyDelta doesn't
+        // restore the old color after recomputeAndApplyAll runs.
+        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_shadow-color`)
+        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_blur`)
+        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_spread`)
+        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_x-axis`)
+        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_y-axis`)
 
-          // Also revert the opacity token value if it exists
-          try {
-            const tokensRoot: any = (tokensJson as any)?.tokens || {}
-            const opacityRoot: any = tokensRoot?.opacities || tokensRoot?.opacity || {}
-            const tokenKey = alphaToken.replace('opacity/', '')
-            const defaultOpacityValue = opacityRoot[tokenKey]?.$value
-            if (defaultOpacityValue != null) {
-              // If there's a unique elevation opacity token, revert it to the default
-              const uniqueTokenName = `opacity/elevation-${lvl}`
-              const uniqueTokenKey = `elevation-${lvl}`
-              if (opacityRoot[uniqueTokenKey]) {
-                updateToken(uniqueTokenName, defaultOpacityValue)
-              }
-            }
-          } catch { }
-        } else {
-          const { [key]: ___, ...alphaRest } = next.alphaTokens[mode]
-          next.alphaTokens[mode] = alphaRest
-        }
+
+
 
         // Update directions (mode-specific)
         if (!next.directions[mode]) next.directions[mode] = {}
@@ -453,7 +509,7 @@ export default function ElevationsPage() {
   // theme default values (e.g. blur=8, y=4) rather than falling back to 0.
   const elevationControlsWithDefaults = useMemo(() => {
     const controls = elevation?.controls[mode] || {}
-    const merged: Record<string, { blur: number; spread: number; offsetX: number; offsetY: number }> = { ...controls }
+    const merged: Record<string, { blur: number; spread: number; offsetX: number; offsetY: number; opacity: number }> = { ...controls }
     for (let i = 1; i <= 4; i++) {
       const key = `elevation-${i}`
       if (!merged[key]) {
@@ -517,11 +573,6 @@ export default function ElevationsPage() {
               availableSizeTokens={availableSizeTokens}
               availableOpacityTokens={availableOpacityTokens}
               shadowColorControl={elevation.shadowColorControl}
-              getAlphaTokenForLevel={(key: string) => {
-                const lvl = Number(key.replace('elevation-', ''))
-                return getAlphaTokenForLevel(lvl)
-              }}
-              setElevationAlphaToken={setElevationAlphaToken}
               updateElevationControl={updateElevationControl}
               updateElevationControlsBatch={updateElevationControlsBatch}
               getDirectionForLevel={(key: string) => ({ x: getXDirForLevel(key), y: getYDirForLevel(key) })}
@@ -548,7 +599,20 @@ export default function ElevationsPage() {
                 })
               }}
               revertSelected={revertSelected}
-              onShadowColorSelect={() => {}}
+              onShadowColorSelect={(cssVar) => {
+                const match = cssVar.match(/palettes_([a-z0-9-]+)_([\w]+)_color_tone/)
+                if (!match) return
+                const paletteKey = match[1]
+                const level = match[2]
+                updateElevation((prev) => {
+                  const next = { ...prev }
+                  next.paletteSelections = { ...next.paletteSelections }
+                  selectedLevels.forEach((lvl) => {
+                    next.paletteSelections[`elevation-${lvl}`] = { paletteKey, level }
+                  })
+                  return next
+                })
+              }}
               onClose={() => setSelectedLevels(new Set())}
             />
           )}
