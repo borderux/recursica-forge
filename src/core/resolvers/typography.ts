@@ -153,7 +153,7 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     emitCategory('typefaces')         // specific font family name (plural)
     emitCategory('sizes', 'px')       // numeric → px (plural)
     emitCategory('weights')            // numeric or named (plural)
-    emitCategory('letter-spacings', 'em') // (plural)
+    emitCategory('letter-spacings')       // (plural) — unit is carried by the token dimension
     emitCategory('line-heights')      // unitless or string (plural)
     emitCategory('cases')             // text case values
     emitCategory('decorations')       // text decoration values

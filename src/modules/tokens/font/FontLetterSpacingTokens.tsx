@@ -12,12 +12,16 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
   const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
+    const extractNum = (v: any): number => {
+      if (v && typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) return Number((v as any).value)
+      return typeof v === 'number' ? v : Number(v)
+    }
     try {
       // Support both plural (letter-spacings) and singular (letter-spacing) for backwards compatibility
       const src: any = (tokensJson as any)?.tokens?.font?.['letter-spacings'] || (tokensJson as any)?.tokens?.font?.['letter-spacing'] || {}
       Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
-        const num = typeof v === 'number' ? v : Number(v)
+        const num = extractNum(v)
         if (Number.isFinite(num)) list.push({ name: `font/letter-spacing/${k}`, value: num })
       })
     } catch { }
@@ -55,7 +59,9 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
     try {
       const v = (tokensJson as any)?.tokens?.font?.['letter-spacings']?.[actual]?.$value ||
         (tokensJson as any)?.tokens?.font?.['letter-spacing']?.[actual]?.$value
-      const n = typeof v === 'number' ? v : parseFloat(v)
+      // Handle both bare number and { value, unit } dimension object
+      const raw = (v && typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) ? (v as any).value : v
+      const n = typeof raw === 'number' ? raw : parseFloat(raw)
       return Number.isFinite(n) ? n : 0
     } catch {
       return 0
@@ -112,19 +118,19 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
             display: 'grid',
             gridTemplateColumns: 'auto 1fr 350px',
             gap: 0,
-            alignItems: 'stretch',
+            alignItems: 'start',
           }}>
             <label htmlFor={it.name} style={{
               fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
               color: `var(${genericLayerText(0, 'color')})`,
               opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
               minWidth: 80,
-              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               paddingRight: 0,
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
             }}>
               {label}
             </label>
@@ -134,27 +140,25 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               color: `var(${genericLayerText(0, 'color')})`,
               opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
               lineHeight: 1.5,
-              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
-              display: 'flex',
-              alignItems: 'center',
             }}>
               {exampleText}
             </div>
             <div style={{
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               justifyContent: 'center',
               gap: 'var(--recursica_brand_dimensions_general_default)',
               borderLeft: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
-              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               width: '350px',
-              overflow: 'hidden',
+              overflow: 'visible',
             }}>
               <Slider
                 min={-2}
