@@ -830,12 +830,29 @@ class VarsStore {
         // Do NOT rebuild all typography vars - they will be updated on next full recompute
         const formatFontValue = (val: any, category: string): string | undefined => {
           if (category === 'size' || category === 'sizes') {
+            if (val && typeof val === 'object' && Object.prototype.hasOwnProperty.call(val, 'value')) {
+              const num = typeof (val as any).value === 'number' ? (val as any).value : Number((val as any).value)
+              const unit = (val as any).unit || 'px'
+              return Number.isFinite(num) ? `${num}${unit}` : undefined
+            }
             const num = typeof val === 'number' ? val : Number(val)
             return Number.isFinite(num) ? `${num}px` : undefined
           } else if (category === 'letter-spacing' || category === 'letter-spacings') {
+            if (val && typeof val === 'object' && Object.prototype.hasOwnProperty.call(val, 'value')) {
+              const num = typeof (val as any).value === 'number' ? (val as any).value : Number((val as any).value)
+              const unit = (val as any).unit || 'rem'
+              return Number.isFinite(num) ? `${num}${unit}` : undefined
+            }
             const num = typeof val === 'number' ? val : Number(val)
-            return Number.isFinite(num) ? `${num}em` : undefined
-          } else if (category === 'weight' || category === 'weights' || category === 'line-height' || category === 'line-heights') {
+            return Number.isFinite(num) ? `${num}rem` : undefined
+          } else if (category === 'line-height' || category === 'line-heights') {
+            if (val && typeof val === 'object' && Object.prototype.hasOwnProperty.call(val, 'value')) {
+              const num = typeof (val as any).value === 'number' ? (val as any).value : Number((val as any).value)
+              const unit = (val as any).unit || 'rem'
+              return Number.isFinite(num) ? `${num}${unit}` : undefined
+            }
+            return String(val)
+          } else if (category === 'weight' || category === 'weights') {
             return String(val)
           } else if (category === 'family' || category === 'typeface' || category === 'typefaces' || category === 'cases' || category === 'decorations') {
             return String(val)
@@ -1034,7 +1051,12 @@ class VarsStore {
         if (pluralKind === 'sizes' || pluralKind === 'weights' || pluralKind === 'letter-spacings' || pluralKind === 'line-heights') {
           if (!tokensRoot.font[pluralKind]) tokensRoot.font[pluralKind] = {}
           if (!tokensRoot.font[pluralKind][key]) tokensRoot.font[pluralKind][key] = {}
-          tokensRoot.font[pluralKind][key].$value = typeof value === 'number' ? value : String(value)
+          const existing = tokensRoot.font[pluralKind]?.[key]?.$value
+          if (existing && typeof existing === 'object' && Object.prototype.hasOwnProperty.call(existing, 'value') && (pluralKind === 'letter-spacings' || pluralKind === 'line-heights')) {
+            tokensRoot.font[pluralKind][key].$value = { value: typeof value === 'number' ? value : Number(value), unit: (existing as any).unit || 'rem' }
+          } else {
+            tokensRoot.font[pluralKind][key].$value = typeof value === 'number' ? value : String(value)
+          }
         } else if (pluralKind === 'typefaces' || pluralKind === 'cases' || pluralKind === 'decorations') {
           if (!tokensRoot.font[pluralKind]) tokensRoot.font[pluralKind] = {}
           tokensRoot.font[pluralKind][key] = typeof value === 'object' ? value : { $value: String(value) }
@@ -1894,11 +1916,17 @@ class VarsStore {
             const rec = letterSpacings[key]
             const val = rec?.$value
             if (val !== undefined && val !== null) {
-              const num = typeof val === 'number' ? val : Number(val)
-              if (Number.isFinite(num)) {
-                vars[tokenFont('letter-spacings', key)] = `${num}em`
-              } else if (typeof val === 'string') {
-                vars[tokenFont('letter-spacings', key)] = val
+              if (val && typeof val === 'object' && Object.prototype.hasOwnProperty.call(val, 'value')) {
+                const num = typeof (val as any).value === 'number' ? (val as any).value : Number((val as any).value)
+                const unit = (val as any).unit || 'rem'
+                if (Number.isFinite(num)) vars[tokenFont('letter-spacings', key)] = `${num}${unit}`
+              } else {
+                const num = typeof val === 'number' ? val : Number(val)
+                if (Number.isFinite(num)) {
+                  vars[tokenFont('letter-spacings', key)] = `${num}rem`
+                } else if (typeof val === 'string') {
+                  vars[tokenFont('letter-spacings', key)] = val
+                }
               }
             }
           })
@@ -1912,7 +1940,13 @@ class VarsStore {
             const rec = lineHeights[key]
             const val = rec?.$value
             if (val !== undefined && val !== null) {
-              vars[tokenFont('line-heights', key)] = String(val)
+              if (val && typeof val === 'object' && Object.prototype.hasOwnProperty.call(val, 'value')) {
+                const num = typeof (val as any).value === 'number' ? (val as any).value : Number((val as any).value)
+                const unit = (val as any).unit || 'rem'
+                if (Number.isFinite(num)) vars[tokenFont('line-heights', key)] = `${num}${unit}`
+              } else {
+                vars[tokenFont('line-heights', key)] = String(val)
+              }
             }
           })
         }

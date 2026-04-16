@@ -52,7 +52,8 @@ export default function FontPropertiesTokens() {
         const letterSpacings: any = fontRoot?.['letter-spacings'] || fontRoot?.['letter-spacing'] || {}
         Object.keys(letterSpacings).filter((k) => !k.startsWith('$')).forEach((k) => {
           const val = letterSpacings[k]?.$value
-          const num = typeof val === 'number' ? val : Number(val)
+          const raw = (val && typeof val === 'object' && Object.prototype.hasOwnProperty.call(val, 'value')) ? (val as any).value : val
+          const num = typeof raw === 'number' ? raw : Number(raw)
           if (Number.isFinite(num)) {
             updateToken(`font/letter-spacing/${k}`, num === 0 ? "0" : num)
           }
@@ -62,7 +63,8 @@ export default function FontPropertiesTokens() {
         const lineHeights: any = fontRoot?.['line-heights'] || fontRoot?.['line-height'] || {}
         Object.keys(lineHeights).filter((k) => !k.startsWith('$')).forEach((k) => {
           const val = lineHeights[k]?.$value
-          const num = typeof val === 'number' ? val : Number(val)
+          const raw = (val && typeof val === 'object' && Object.prototype.hasOwnProperty.call(val, 'value')) ? (val as any).value : val
+          const num = typeof raw === 'number' ? raw : Number(raw)
           if (Number.isFinite(num)) {
             updateToken(`font/line-height/${k}`, num)
           }
@@ -97,7 +99,6 @@ export default function FontPropertiesTokens() {
       border: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
       borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
       padding: 0,
-      overflow: 'hidden',
     }}>
       <TabsAdapter
         value={activeTab}

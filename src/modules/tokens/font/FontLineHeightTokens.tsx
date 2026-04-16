@@ -12,12 +12,16 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
   const { tokens: tokensJson, updateToken } = useVars()
   const flattened = useMemo(() => {
     const list: Array<{ name: string; value: number }> = []
+    const extractNum = (v: any): number => {
+      if (v && typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) return Number((v as any).value)
+      return typeof v === 'number' ? v : Number(v)
+    }
     try {
       // Support both plural (line-heights) and singular (line-height) for backwards compatibility
       const src: any = (tokensJson as any)?.tokens?.font?.['line-heights'] || (tokensJson as any)?.tokens?.font?.['line-height'] || {}
       Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
         const v = src[k]?.$value
-        const num = typeof v === 'number' ? v : Number(v)
+        const num = extractNum(v)
         if (Number.isFinite(num)) list.push({ name: `font/line-height/${k}`, value: num })
       })
     } catch { }
@@ -35,7 +39,9 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
     try {
       const v = (tokensJson as any)?.tokens?.font?.['line-heights']?.[key]?.$value ||
         (tokensJson as any)?.tokens?.font?.['line-height']?.[key]?.$value
-      const n = typeof v === 'number' ? v : parseFloat(v)
+      // Handle both bare number and { value, unit } dimension object
+      const raw = (v && typeof v === 'object' && Object.prototype.hasOwnProperty.call(v, 'value')) ? (v as any).value : v
+      const n = typeof raw === 'number' ? raw : parseFloat(raw)
       if (Number.isFinite(n)) return n
     } catch { }
     // sensible fallbacks if tokens are missing
@@ -99,19 +105,19 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
             display: 'grid',
             gridTemplateColumns: 'auto 1fr 350px',
             gap: 0,
-            alignItems: 'stretch',
+            alignItems: 'start',
           }}>
             <label htmlFor={name} style={{
               fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
               color: `var(${genericLayerText(0, 'color')})`,
               opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
               minWidth: 80,
-              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               paddingRight: 0,
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
             }}>
               {label}
             </label>
@@ -120,31 +126,29 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
               lineHeight: `var(${lineHeightVar})`,
               color: `var(${genericLayerText(0, 'color')})`,
               opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
-              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
-              display: 'flex',
-              alignItems: 'center',
             }}>
               {exampleText}
             </div>
             <div style={{
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               justifyContent: 'center',
               gap: 'var(--recursica_brand_dimensions_general_default)',
               borderLeft: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
-              paddingTop: index === 0 ? 'var(--recursica_brand_dimensions_gutters_vertical)' : 0,
+              paddingTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
               paddingLeft: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
               width: '350px',
-              overflow: 'hidden',
+              overflow: 'visible',
             }}>
               <Slider
                 min={0.5}
-                max={1.5}
+                max={2}
                 step={0.05}
                 disabled={disabled}
                 value={current}
