@@ -18,6 +18,7 @@ import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneFo
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
 import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges } from './cssDelta'
+import { clearElevationColorMirror } from '../elevation/elevationModeScope'
 import { clearStoredFonts } from './fontStore'
 import { syncDeltaToJson } from './deltaToJson'
 import { buildStructuralMetadata, type StructuralMetadata } from './structuralMetadata'
@@ -43,7 +44,7 @@ export type ElevationState = {
   spreadTokens: Record<string, string>
   offsetXTokens: Record<string, string>
   offsetYTokens: Record<string, string>
-  paletteSelections: Record<string, { paletteKey: string; level: string }>
+  paletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>>
   baseXDirection: 'left' | 'right'
   baseYDirection: 'up' | 'down'
   directions: Record<'light' | 'dark', Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>>
@@ -213,6 +214,7 @@ class VarsStore {
    * pristine file structure regardless of what user changes have accumulated in state.
    */
   private readonly pristineUikit: JsonLike = JSON.parse(JSON.stringify(uikitImport))
+  private readonly pristineBrand: JsonLike = JSON.parse(JSON.stringify(themeImport))
 
   constructor() {
     // Always start from fresh JSON imports. User changes are restored via the delta
@@ -531,10 +533,10 @@ class VarsStore {
     const brand: any = (next as any)?.brand || next
     const themes = brand?.themes || brand
 
-    const newPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+    const newPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
     const newColorTokens: Record<string, string> = {}
 
-    for (const mode of ['light', 'dark']) {
+    for (const mode of ['light', 'dark'] as const) {
       const els: any = themes?.[mode]?.elevations || {}
       for (let i = 1; i <= 4; i++) {
         const key = `elevation-${i}`
@@ -542,7 +544,7 @@ class VarsStore {
         if (typeof colorRef === 'string') {
           const palMatch = colorRef.match(/palettes\.([a-z0-9-]+)\.(\d+)\.color\.tone/)
           if (palMatch) {
-            newPaletteSelections[key] = { paletteKey: palMatch[1], level: palMatch[2] }
+            newPaletteSelections[mode][key] = { paletteKey: palMatch[1], level: palMatch[2] }
           } else {
             const tokMatch = colorRef.match(/tokens\.colors\.(scale-\d{2})\.(\d+)/)
             if (tokMatch) {
@@ -628,6 +630,7 @@ class VarsStore {
 
   /** Returns the pristine, unmodified uikit JSON (deep-cloned at init time). */
   getPristineUikit(): JsonLike { return this.pristineUikit }
+  getPristineBrand(): JsonLike { return this.pristineBrand }
 
   /**
    * Atomically import all three JSON stores (tokens, brand, uikit) and
@@ -649,10 +652,10 @@ class VarsStore {
       const brand: any = (files.brand as any)?.brand || files.brand
       const themes = brand?.themes || brand
 
-      const newPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+      const newPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
       const newColorTokens: Record<string, string> = {}
 
-      for (const mode of ['light', 'dark']) {
+      for (const mode of ['light', 'dark'] as const) {
         const els: any = themes?.[mode]?.elevations || {}
         for (let i = 1; i <= 4; i++) {
           const key = `elevation-${i}`
@@ -660,7 +663,7 @@ class VarsStore {
           if (typeof colorRef === 'string') {
             const palMatch = colorRef.match(/palettes\.([a-z0-9-]+)\.(\d+)\.color\.tone/)
             if (palMatch) {
-              newPaletteSelections[key] = { paletteKey: palMatch[1], level: palMatch[2] }
+              newPaletteSelections[mode][key] = { paletteKey: palMatch[1], level: palMatch[2] }
             } else {
               const tokMatch = colorRef.match(/tokens\.colors\.(scale-\d{2})\.(\d+)/)
               if (tokMatch) {
@@ -758,15 +761,16 @@ class VarsStore {
     this.writeState({ elevation: next })
 
     // Sync paletteSelections back to theme.brand so exportBrandJson captures current color choices.
-    // The export reads directly from theme.brand — if we don't write back, color changes are lost.
+    // Each mode's selections are written only to that mode's brand JSON elevations node.
     try {
       const theme = this.state.theme as any
       const brand = theme?.brand || theme
       const themes = brand?.themes || brand
       if (themes) {
-        for (const [elevKey, sel] of Object.entries(next.paletteSelections)) {
-          const { paletteKey, level } = sel as { paletteKey: string; level: string }
-          for (const m of ['light', 'dark'] as const) {
+        for (const m of ['light', 'dark'] as const) {
+          const modeSelections = next.paletteSelections[m] || {}
+          for (const [elevKey, sel] of Object.entries(modeSelections)) {
+            const { paletteKey, level } = sel
             const elevNode = themes?.[m]?.elevations?.[elevKey]
             if (elevNode?.['$value']) {
               if (!elevNode['$value'].color) elevNode['$value'].color = {}
@@ -1121,6 +1125,7 @@ class VarsStore {
     clearStoredFonts()
     this.clearDeletedScales()
     try { localStorage.removeItem(STORAGE_KEYS.elevationPaletteSelections) } catch { }
+    clearElevationColorMirror()
 
     // Clear global ref preference so users are prompted again after a reset
     clearGlobalRefPreference()
@@ -1231,7 +1236,7 @@ class VarsStore {
     let controls: Record<'light' | 'dark', Record<string, ElevationControl>> = { light: {}, dark: {} }
     let colorTokens: Record<string, string> = {}
     let alphaTokens: Record<'light' | 'dark', Record<string, string>> = { light: {}, dark: {} }
-    let paletteSelections: Record<string, { paletteKey: string; level: string }> = {}
+    let paletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
     let baseXDirection: 'left' | 'right' = 'right'
     let baseYDirection: 'up' | 'down' = 'down'
     let directions: Record<'light' | 'dark', Record<string, { x: 'left' | 'right'; y: 'up' | 'down' }>> = { light: {}, dark: {} }
@@ -1394,14 +1399,17 @@ class VarsStore {
       const elev1: any = lightElevations?.['elevation-1']?.['$value'] || {}
       shadowColorControl = { colorToken: '', alphaToken: '' }
 
-      // Initialize palette selections from brand.json for each elevation (using light mode as default)
-      const initialPaletteSelections: Record<string, { paletteKey: string; level: string }> = {}
-      for (let i = 0; i <= 4; i++) {
-        const elev: any = lightElevations?.[`elevation-${i}`]?.['$value'] || {}
-        const colorRef = elev?.color?.['$value'] ?? elev?.color
-        const paletteSel = parsePaletteSelection(colorRef)
-        if (paletteSel) {
-          initialPaletteSelections[`elevation-${i}`] = paletteSel
+      // Initialize palette selections from brand.json for each elevation, per mode
+      const initialPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
+      for (const m of ['light', 'dark'] as const) {
+        const modeElevations: any = themes?.[m]?.elevations || {}
+        for (let i = 0; i <= 4; i++) {
+          const elev: any = modeElevations?.[`elevation-${i}`]?.['$value'] || {}
+          const colorRef = elev?.color?.['$value'] ?? elev?.color
+          const paletteSel = parsePaletteSelection(colorRef)
+          if (paletteSel) {
+            initialPaletteSelections[m][`elevation-${i}`] = paletteSel
+          }
         }
       }
       const baseX = Number((elev1?.['x-direction']?.['$value'] ?? 1))
@@ -1422,15 +1430,16 @@ class VarsStore {
           directions[mode][`elevation-${i}`] = { x: modeXDir, y: modeYDir }
         }
       }
-      paletteSelections = { ...initialPaletteSelections }
+      paletteSelections = { light: { ...initialPaletteSelections.light }, dark: { ...initialPaletteSelections.dark } }
       // Overlay user-customized palette selections persisted from previous sessions
       if (isLocalStorageAvailable()) {
         try {
           const saved = localStorage.getItem(STORAGE_KEYS.elevationPaletteSelections)
           if (saved) {
-            const parsed: Record<string, { paletteKey: string; level: string }> = JSON.parse(saved)
+            const parsed: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = JSON.parse(saved)
             if (parsed && typeof parsed === 'object') {
-              Object.assign(paletteSelections, parsed)
+              if (parsed.light && typeof parsed.light === 'object') Object.assign(paletteSelections.light, parsed.light)
+              if (parsed.dark && typeof parsed.dark === 'object') Object.assign(paletteSelections.dark, parsed.dark)
             }
           }
         } catch { /* corrupt storage — ignore */ }
@@ -2426,7 +2435,7 @@ class VarsStore {
             const opNorm = ctrlForLevel?.opacity ?? 0.84
             const alphaRef = opNorm.toFixed(4)
 
-            const sel = this.state.elevation.paletteSelections[key]
+            const sel = this.state.elevation.paletteSelections[mode]?.[key]
             if (sel) {
               const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}_color_tone`
               const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
@@ -2537,7 +2546,7 @@ class VarsStore {
 
             // Derive shadow-color from paletteSelections state (authoritative),
             // falling back to a DOM read only when no state selection exists.
-            const statePaletteSel = this.state.elevation.paletteSelections[k]
+            const statePaletteSel = this.state.elevation.paletteSelections[mode]?.[k]
             if (statePaletteSel) {
               const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.level}_color_tone`
               const paletteVarRef = allPaletteVars[paletteVarName] ? allPaletteVars[paletteVarName] : `var(${paletteVarName})`

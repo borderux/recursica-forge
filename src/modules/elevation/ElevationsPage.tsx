@@ -1,5 +1,5 @@
 import '../theme/index.css'
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import ElevationModule from './ElevationModule'
@@ -11,13 +11,22 @@ import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { getElevationColorMirror, setElevationColorMirror } from '../../core/elevation/elevationModeScope'
+import { getVarsStore } from '../../core/store/varsStore'
 
 export default function ElevationsPage() {
   const { tokens: tokensJson, theme, elevation, updateElevation, updateToken } = useVars()
   const { mode } = useThemeMode()
   const [selectedLevels, setSelectedLevels] = useState<Set<number>>(() => new Set<number>())
+  const [colorMirrorEnabled, setColorMirrorEnabled] = useState(() => getElevationColorMirror())
 
-
+  const toggleColorMirror = () => {
+    setColorMirrorEnabled((prev) => {
+      const next = !prev
+      setElevationColorMirror(next)
+      return next
+    })
+  }
 
   // Extract token lists for UI (values are resolved via CSS vars)
   const availableSizeTokens = useMemo(() => {
@@ -73,8 +82,9 @@ export default function ElevationsPage() {
     } catch { return { blur: 0, spread: 0, offsetX: 0, offsetY: 0, opacity: 0.84 } }
   }
 
-  // Batched version that updates multiple elevations in a single updateElevation call
   const updateElevationControlsBatch = (elevationKeys: string[], property: 'blur' | 'spread' | 'offsetX' | 'offsetY' | 'opacity', value: number) => {
+    const otherMode = mode === 'light' ? 'dark' : 'light'
+
     // Opacity has no token — handle it directly without the pre-loop
     if (property === 'opacity') {
       updateElevation((prev) => {
@@ -86,6 +96,11 @@ export default function ElevationsPage() {
           const existingControl = next.controls[mode][elevationKey]
           const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
           next.controls[mode] = { ...next.controls[mode], [elevationKey]: { ...existing, opacity: value } }
+          if (colorMirrorEnabled) {
+            const otherExisting = next.controls[otherMode][elevationKey]
+            const otherBase = otherExisting ? { ...otherExisting } : getThemeDefaults(elevationKey)
+            next.controls[otherMode] = { ...next.controls[otherMode], [elevationKey]: { ...otherBase, opacity: value } }
+          }
         })
         return next
       })
@@ -118,7 +133,6 @@ export default function ElevationsPage() {
     })
 
     // Update ALL elevations in a single updateElevation call (triggers only ONE recomputeAndApplyAll)
-    // Use mode-specific controls
     updateElevation((prev) => {
       const next = { ...prev }
 
@@ -127,60 +141,51 @@ export default function ElevationsPage() {
       if (!next.controls.dark) next.controls.dark = {}
 
       // CRITICAL: Ensure we're working with a copy of the controls object, not a reference
-      // This prevents accidentally modifying the other mode's controls
       next.controls = {
         light: { ...next.controls.light },
         dark: { ...next.controls.dark }
       }
 
-      updates.forEach(({ elevationKey, finalValue: finalVal, level: lvl }) => {
-        if (property === 'offsetX') {
-          const absValue = Math.abs(value)
-          const direction = value >= 0 ? 'right' : 'left'
-          const existingControl = next.controls[mode][elevationKey]
-          const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
-          next.controls[mode] = {
-            ...next.controls[mode],
-            [elevationKey]: { ...existing, offsetX: absValue }
+      const applyToMode = (targetMode: 'light' | 'dark') => {
+        updates.forEach(({ elevationKey }) => {
+          if (property === 'offsetX') {
+            const absValue = Math.abs(value)
+            const direction = value >= 0 ? 'right' : 'left'
+            const existingControl = next.controls[targetMode][elevationKey]
+            const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
+            next.controls[targetMode] = { ...next.controls[targetMode], [elevationKey]: { ...existing, offsetX: absValue } }
+            if (!next.directions[targetMode]) next.directions[targetMode] = {}
+            const currentY = next.directions[targetMode][elevationKey]?.y ?? getYDirForLevel(elevationKey)
+            next.directions[targetMode] = { ...next.directions[targetMode], [elevationKey]: { x: direction, y: currentY } }
+          } else if (property === 'offsetY') {
+            const absValue = Math.abs(value)
+            const direction = value >= 0 ? 'down' : 'up'
+            const existingControl = next.controls[targetMode][elevationKey]
+            const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
+            next.controls[targetMode] = { ...next.controls[targetMode], [elevationKey]: { ...existing, offsetY: absValue } }
+            if (!next.directions[targetMode]) next.directions[targetMode] = {}
+            const currentX = next.directions[targetMode][elevationKey]?.x ?? getXDirForLevel(elevationKey)
+            next.directions[targetMode] = { ...next.directions[targetMode], [elevationKey]: { x: currentX, y: direction } }
+          } else if (property === 'blur') {
+            const existingControl = next.controls[targetMode][elevationKey]
+            const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
+            next.controls[targetMode] = { ...next.controls[targetMode], [elevationKey]: { ...existing, blur: value } }
+          } else if (property === 'spread') {
+            const existingControl = next.controls[targetMode][elevationKey]
+            const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
+            next.controls[targetMode] = { ...next.controls[targetMode], [elevationKey]: { ...existing, spread: value } }
           }
-          if (!next.directions[mode]) next.directions[mode] = {}
-          const currentY = next.directions[mode][elevationKey]?.y ?? getYDirForLevel(elevationKey)
-          next.directions[mode] = { ...next.directions[mode], [elevationKey]: { x: direction, y: currentY } }
-        } else if (property === 'offsetY') {
-          const absValue = Math.abs(value)
-          const direction = value >= 0 ? 'down' : 'up'
-          const existingControl = next.controls[mode][elevationKey]
-          const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
-          next.controls[mode] = {
-            ...next.controls[mode],
-            [elevationKey]: { ...existing, offsetY: absValue }
-          }
-          if (!next.directions[mode]) next.directions[mode] = {}
-          const currentX = next.directions[mode][elevationKey]?.x ?? getXDirForLevel(elevationKey)
-          next.directions[mode] = { ...next.directions[mode], [elevationKey]: { x: currentX, y: direction } }
-        } else if (property === 'blur') {
-          const existingControl = next.controls[mode][elevationKey]
-          const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
-          next.controls[mode] = {
-            ...next.controls[mode],
-            [elevationKey]: { ...existing, blur: value }
-          }
-        } else if (property === 'spread') {
-          const existingControl = next.controls[mode][elevationKey]
-          const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
-          next.controls[mode] = {
-            ...next.controls[mode],
-            [elevationKey]: { ...existing, spread: value }
-          }
-        }
-      })
+        })
+      }
+
+      applyToMode(mode)
+      if (colorMirrorEnabled) applyToMode(otherMode)
 
       return next
     })
 
     // Don't update tokens when controls exist - recomputeAndApplyAll will set CSS variables directly from controls
     // This prevents token conflicts between light and dark modes
-    // Tokens are only updated when reverting to defaults (removing custom controls)
   }
 
 
@@ -198,6 +203,10 @@ export default function ElevationsPage() {
   const revertSelected = (levels: Set<number>) => {
     const brand: any = (theme as any)?.brand || (theme as any)
     const themes = brand?.themes || brand
+    const pristineBrand: any = getVarsStore().getPristineBrand()
+    const pristineThemes = pristineBrand?.brand?.themes || pristineBrand?.themes || pristineBrand
+    // Read the color ref from the PRISTINE brand JSON to avoid reading back user-mutated values
+    const pristineElevations: any = pristineThemes?.[mode]?.elevations || {}
     const light: any = themes?.[mode]?.elevations || brand?.[mode]?.elevations || {}
 
     const toNumeric = (ref?: any): number => {
@@ -297,12 +306,11 @@ export default function ElevationsPage() {
           next.colorTokens = rest
         }
 
-        // Restore palette selection from brand JSON (instead of clearing it)
-        // This ensures reset goes back to the original JSON color, not a token fallback
-        const elevForReset: any = light[key]?.['$value'] || {}
+        // Restore palette selection from PRISTINE brand JSON — avoids reading the user-mutated node
+        const elevForReset: any = pristineElevations[key]?.['$value'] || {}
         const colorRefRaw = elevForReset?.color?.['$value'] ?? elevForReset?.color
         const colorRefStr: string | undefined = typeof colorRefRaw === 'string' ? colorRefRaw : undefined
-        const parsedColorRef = colorRefStr ? parseTokenReference(colorRefStr, {}) : null
+        const parsedColorRef = colorRefStr ? parseTokenReference(colorRefStr, { currentMode: mode }) : null
         let restoredPaletteSel: { paletteKey: string; level: string } | null = null
         if (parsedColorRef?.type === 'brand' && parsedColorRef.path[0] === 'palettes' && parsedColorRef.path.length >= 3) {
           const paletteKey = parsedColorRef.path[1]
@@ -318,10 +326,13 @@ export default function ElevationsPage() {
           restoredPaletteSel = { paletteKey, level }
         }
         if (restoredPaletteSel) {
-          next.paletteSelections = { ...next.paletteSelections, [key]: restoredPaletteSel }
+          next.paletteSelections = {
+            ...next.paletteSelections,
+            [mode]: { ...next.paletteSelections[mode], [key]: restoredPaletteSel }
+          }
         } else {
-          const { [key]: __, ...paletteRest } = next.paletteSelections
-          next.paletteSelections = paletteRest
+          const { [key]: __, ...modeRest } = next.paletteSelections[mode] || {}
+          next.paletteSelections = { ...next.paletteSelections, [mode]: modeRest }
         }
 
         // Clear shadow color CSS variables (both scoped and themed) to reset to default
@@ -358,6 +369,27 @@ export default function ElevationsPage() {
         }
       })
 
+      return next
+    })
+  }
+
+  // ─── Apply palette color to one or both modes ────────────────────────────
+
+  const applyColorToMode = (
+    targetMode: 'light' | 'dark',
+    paletteKey: string,
+    level: string,
+    levels: Set<number>,
+  ) => {
+    updateElevation((prev) => {
+      const next = { ...prev }
+      next.paletteSelections = {
+        ...next.paletteSelections,
+        [targetMode]: { ...(next.paletteSelections[targetMode] || {}) }
+      }
+      levels.forEach((lvl) => {
+        next.paletteSelections[targetMode][`elevation-${lvl}`] = { paletteKey, level }
+      })
       return next
     })
   }
@@ -440,10 +472,15 @@ export default function ElevationsPage() {
               setXDirectionForSelected={(dir: 'left' | 'right') => {
                 updateElevation((prev) => {
                   const next = { ...prev }
+                  const otherMode = mode === 'light' ? 'dark' : 'light'
                   if (!next.directions[mode]) next.directions[mode] = {}
+                  if (colorMirrorEnabled && !next.directions[otherMode]) next.directions[otherMode] = {}
                   selectedLevels.forEach((lvl) => {
                     const k = `elevation-${lvl}`
                     next.directions[mode] = { ...next.directions[mode], [k]: { x: dir, y: getYDirForLevel(k) } }
+                    if (colorMirrorEnabled) {
+                      next.directions[otherMode] = { ...next.directions[otherMode], [k]: { x: dir, y: getYDirForLevel(k) } }
+                    }
                   })
                   return next
                 })
@@ -451,29 +488,32 @@ export default function ElevationsPage() {
               setYDirectionForSelected={(dir: 'up' | 'down') => {
                 updateElevation((prev) => {
                   const next = { ...prev }
+                  const otherMode = mode === 'light' ? 'dark' : 'light'
                   if (!next.directions[mode]) next.directions[mode] = {}
+                  if (colorMirrorEnabled && !next.directions[otherMode]) next.directions[otherMode] = {}
                   selectedLevels.forEach((lvl) => {
                     const k = `elevation-${lvl}`
                     next.directions[mode] = { ...next.directions[mode], [k]: { x: getXDirForLevel(k), y: dir } }
+                    if (colorMirrorEnabled) {
+                      next.directions[otherMode] = { ...next.directions[otherMode], [k]: { x: getXDirForLevel(k), y: dir } }
+                    }
                   })
                   return next
                 })
               }}
               revertSelected={revertSelected}
               onShadowColorSelect={(cssVar) => {
-                const match = cssVar.match(/palettes_([a-z0-9-]+)_([\w]+)_color_tone/)
+                const match = cssVar.match(/palettes_([a-z0-9-]+)_(\w+)_color_tone/)
                 if (!match) return
                 const paletteKey = match[1]
                 const level = match[2]
-                updateElevation((prev) => {
-                  const next = { ...prev }
-                  next.paletteSelections = { ...next.paletteSelections }
-                  selectedLevels.forEach((lvl) => {
-                    next.paletteSelections[`elevation-${lvl}`] = { paletteKey, level }
-                  })
-                  return next
-                })
+                applyColorToMode(mode, paletteKey, level, selectedLevels)
+                if (colorMirrorEnabled) {
+                  applyColorToMode(mode === 'light' ? 'dark' : 'light', paletteKey, level, selectedLevels)
+                }
               }}
+              colorMirrorEnabled={colorMirrorEnabled}
+              onToggleColorMirror={toggleColorMirror}
               onClose={() => setSelectedLevels(new Set())}
             />
           )}
@@ -484,21 +524,17 @@ export default function ElevationsPage() {
         if (match) {
           const paletteKey = match[1]
           const level = match[2]
-          updateElevation((prev) => {
-            const next = { ...prev }
-            next.paletteSelections = { ...next.paletteSelections }
-            selectedLevels.forEach((lvl) => {
-              next.paletteSelections[`elevation-${lvl}`] = { paletteKey, level }
-            })
-            return next
-          })
+          applyColorToMode(mode, paletteKey, level, selectedLevels)
+          if (colorMirrorEnabled) {
+            applyColorToMode(mode === 'light' ? 'dark' : 'light', paletteKey, level, selectedLevels)
+          }
         } else if (cssVar === '') {
           updateElevation((prev) => {
             const next = { ...prev }
             next.paletteSelections = { ...next.paletteSelections }
             selectedLevels.forEach((lvl) => {
-              const { [`elevation-${lvl}`]: _, ...rest } = next.paletteSelections
-              next.paletteSelections = rest
+              const { [`elevation-${lvl}`]: _, ...modeRest } = next.paletteSelections[mode] || {}
+              next.paletteSelections = { ...next.paletteSelections, [mode]: modeRest }
             })
             return next
           })

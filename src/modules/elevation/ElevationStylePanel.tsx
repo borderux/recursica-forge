@@ -2,6 +2,7 @@ import React, { useRef } from 'react'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
+import { Switch } from '../../components/adapters/Switch'
 import { Panel } from '../../components/adapters/Panel'
 import { TextField } from '../../components/adapters/TextField'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -16,10 +17,11 @@ type SizeToken = { name: string; value: number; label: string }
 function usePaletteSelection(
   levelsArr: number[],
   elevation: ReturnType<typeof useVars>['elevation'],
+  mode: 'light' | 'dark',
 ): { paletteKey: string; paletteLevel: string } | null {
   if (!levelsArr.length || !elevation) return null
   const key = `elevation-${levelsArr[0]}`
-  const sel = elevation.paletteSelections?.[key]
+  const sel = elevation.paletteSelections?.[mode]?.[key]
   if (!sel?.paletteKey || !sel?.level) return null
   return { paletteKey: sel.paletteKey, paletteLevel: sel.level }
 }
@@ -129,6 +131,8 @@ export default function ElevationStylePanel({
   setYDirectionForSelected,
   revertSelected,
   onShadowColorSelect,
+  colorMirrorEnabled,
+  onToggleColorMirror,
   onClose,
 }: {
   selectedLevels: Set<number>
@@ -141,6 +145,8 @@ export default function ElevationStylePanel({
   setYDirectionForSelected: (dir: 'up' | 'down') => void
   revertSelected: (levels: Set<number>) => void
   onShadowColorSelect?: (cssVar: string) => void
+  colorMirrorEnabled: boolean
+  onToggleColorMirror: () => void
   onClose: () => void
 }) {
   const levelsArr = React.useMemo(() => Array.from(selectedLevels), [selectedLevels])
@@ -158,7 +164,7 @@ export default function ElevationStylePanel({
   const committedOffsetX = firstDir.x === 'right' ? (firstCtrl?.offsetX ?? 0) : -(firstCtrl?.offsetX ?? 0)
   const committedOffsetY = firstDir.y === 'down' ? (firstCtrl?.offsetY ?? 0) : -(firstCtrl?.offsetY ?? 0)
 
-  const statePaletteSel = usePaletteSelection(levelsArr, elevation)
+  const statePaletteSel = usePaletteSelection(levelsArr, elevation, mode)
   const committedOpacity = useStoredOpacity(levelsArr, elevation, mode)
 
   // ─── Local form state (live during drag) ────────────────────────────────────
@@ -455,13 +461,32 @@ export default function ElevationStylePanel({
           />
         </div>
 
-        {/* Shadow color picker */}
-        <div style={{ width: '100%', margin: 0, padding: 0 }}>
+        {/* Shadow color picker + light/dark mirror toggle */}
+        <div style={{ width: '100%', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
           <ShadowColorTokenControl
             targetCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(1)}
             targetCssVars={levelsArr.length > 0 ? levelsArr.map(lvl => getShadowColorCssVar(lvl)) : [getShadowColorCssVar(1)]}
             paletteSelection={statePaletteSel ? { paletteKey: statePaletteSel.paletteKey, level: statePaletteSel.paletteLevel } : null}
           />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Switch
+              checked={colorMirrorEnabled}
+              onChange={onToggleColorMirror}
+              layer="layer-0"
+            />
+            <label
+              onClick={onToggleColorMirror}
+              style={{
+                color: `var(--recursica_brand_themes_${mode}_layers_layer-0_elements_text-color)`,
+                opacity: `var(--recursica_brand_themes_${mode}_layers_layer-0_elements_text-low-emphasis)`,
+                fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                cursor: 'pointer',
+                flex: 1,
+              }}
+            >
+              Link light/dark mode changes
+            </label>
+          </div>
         </div>
       </div>
     </Panel>
