@@ -11,7 +11,6 @@ import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { applyElevationShadow } from './elevationShadowFactory'
 
 type SizeToken = { name: string; value: number; label: string }
-type OpacityToken = { name: string; value: number; label: string }
 
 /** Reads the palette selection for the first selected elevation from state. */
 function usePaletteSelection(
@@ -123,9 +122,7 @@ export default function ElevationStylePanel({
   selectedLevels,
   elevationControls,
   availableSizeTokens,
-  availableOpacityTokens,
   shadowColorControl,
-  updateElevationControl,
   updateElevationControlsBatch,
   getDirectionForLevel,
   setXDirectionForSelected,
@@ -137,10 +134,8 @@ export default function ElevationStylePanel({
   selectedLevels: Set<number>
   elevationControls: Record<string, ElevationControl>
   availableSizeTokens: SizeToken[]
-  availableOpacityTokens: OpacityToken[]
   shadowColorControl: { alphaToken: string; colorToken: string }
-  updateElevationControl: (elevation: string, property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => void
-  updateElevationControlsBatch?: (elevationKeys: string[], property: 'blur' | 'spread' | 'offsetX' | 'offsetY' | 'opacity', value: number) => void
+  updateElevationControlsBatch: (elevationKeys: string[], property: 'blur' | 'spread' | 'offsetX' | 'offsetY' | 'opacity', value: number) => void
   getDirectionForLevel: (elevationKey: string) => { x: 'left' | 'right'; y: 'up' | 'down' }
   setXDirectionForSelected: (dir: 'left' | 'right') => void
   setYDirectionForSelected: (dir: 'up' | 'down') => void
@@ -251,12 +246,8 @@ export default function ElevationStylePanel({
     setLocalBlur(null)
     applyFactory()
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
-    if (updateElevationControlsBatch) {
-      updateElevationControlsBatch(keys, 'blur', value)
-    } else {
-      levelsArr.forEach(lvl => updateElevationControl(`elevation-${lvl}`, 'blur', value))
-    }
-  }, [levelsArr, applyFactory, updateElevationControl, updateElevationControlsBatch])
+    updateElevationControlsBatch(keys, 'blur', value)
+  }, [levelsArr, applyFactory, updateElevationControlsBatch])
 
   // ─── Spread ──────────────────────────────────────────────────────────────────
 
@@ -271,12 +262,8 @@ export default function ElevationStylePanel({
     setLocalSpread(null)
     applyFactory()
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
-    if (updateElevationControlsBatch) {
-      updateElevationControlsBatch(keys, 'spread', value)
-    } else {
-      levelsArr.forEach(lvl => updateElevationControl(`elevation-${lvl}`, 'spread', value))
-    }
-  }, [levelsArr, applyFactory, updateElevationControl, updateElevationControlsBatch])
+    updateElevationControlsBatch(keys, 'spread', value)
+  }, [levelsArr, applyFactory, updateElevationControlsBatch])
 
   // ─── Offset X ────────────────────────────────────────────────────────────────
 
@@ -291,12 +278,8 @@ export default function ElevationStylePanel({
     setLocalOffsetX(null)
     applyFactory()
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
-    if (updateElevationControlsBatch) {
-      updateElevationControlsBatch(keys, 'offsetX', value)
-    } else {
-      levelsArr.forEach(lvl => updateElevationControl(`elevation-${lvl}`, 'offsetX', value))
-    }
-  }, [levelsArr, applyFactory, updateElevationControl, updateElevationControlsBatch])
+    updateElevationControlsBatch(keys, 'offsetX', value)
+  }, [levelsArr, applyFactory, updateElevationControlsBatch])
 
   // ─── Offset Y ────────────────────────────────────────────────────────────────
 
@@ -311,12 +294,8 @@ export default function ElevationStylePanel({
     setLocalOffsetY(null)
     applyFactory()
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
-    if (updateElevationControlsBatch) {
-      updateElevationControlsBatch(keys, 'offsetY', value)
-    } else {
-      levelsArr.forEach(lvl => updateElevationControl(`elevation-${lvl}`, 'offsetY', value))
-    }
-  }, [levelsArr, applyFactory, updateElevationControl, updateElevationControlsBatch])
+    updateElevationControlsBatch(keys, 'offsetY', value)
+  }, [levelsArr, applyFactory, updateElevationControlsBatch])
 
   // ─── Opacity ─────────────────────────────────────────────────────────────────
 
@@ -331,18 +310,8 @@ export default function ElevationStylePanel({
     setLocalOpacity(null)
     applyFactory()
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
-    const normalizedValue = value / 100
-    if (updateElevationControlsBatch) {
-      updateElevationControlsBatch(keys, 'opacity', normalizedValue)
-    } else {
-      // Fallback: update each elevation control individually via updateElevationControl
-      // (cast needed because single-control updater only handles dimension props)
-      levelsArr.forEach(lvl => {
-        const elevationKey = `elevation-${lvl}`
-        updateElevationControl(elevationKey, 'blur', elevationControls[elevationKey]?.blur ?? 0)
-      })
-    }
-  }, [levelsArr, applyFactory, updateElevationControlsBatch, updateElevationControl, elevationControls])
+    updateElevationControlsBatch(keys, 'opacity', value / 100)
+  }, [levelsArr, applyFactory, updateElevationControlsBatch])
 
   // ─── Shadow color CSS var helpers ────────────────────────────────────────────
 

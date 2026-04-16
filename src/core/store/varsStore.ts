@@ -756,6 +756,28 @@ class VarsStore {
   updateElevation(mutator: (prev: ElevationState) => ElevationState) {
     const next = mutator(this.state.elevation)
     this.writeState({ elevation: next })
+
+    // Sync paletteSelections back to theme.brand so exportBrandJson captures current color choices.
+    // The export reads directly from theme.brand — if we don't write back, color changes are lost.
+    try {
+      const theme = this.state.theme as any
+      const brand = theme?.brand || theme
+      const themes = brand?.themes || brand
+      if (themes) {
+        for (const [elevKey, sel] of Object.entries(next.paletteSelections)) {
+          const { paletteKey, level } = sel as { paletteKey: string; level: string }
+          for (const m of ['light', 'dark'] as const) {
+            const elevNode = themes?.[m]?.elevations?.[elevKey]
+            if (elevNode?.['$value']) {
+              if (!elevNode['$value'].color) elevNode['$value'].color = {}
+              elevNode['$value'].color.$type = 'color'
+              elevNode['$value'].color.$value = `{brand.themes.${m}.palettes.${paletteKey}.${level}.color.tone}`
+            }
+          }
+        }
+      }
+    } catch { /* non-fatal — export will use last good state */ }
+
     // Persist paletteSelections so they survive a browser refresh
     if (isLocalStorageAvailable()) {
       try {

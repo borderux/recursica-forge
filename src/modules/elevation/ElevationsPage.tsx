@@ -38,21 +38,7 @@ export default function ElevationsPage() {
     return tokens.sort((a, b) => a.value - b.value)
   }, [tokensJson])
 
-  const availableOpacityTokens = useMemo(() => {
-    const out: Array<{ name: string; value: number; label: string }> = []
-    try {
-      const src: any = (tokensJson as any)?.tokens?.opacity || {}
-      Object.keys(src).filter((k) => !k.startsWith('$')).forEach((k) => {
-        const raw = src[k]?.$value
-        const v = (raw && typeof raw === 'object' && typeof raw.value !== 'undefined') ? raw.value : raw
-        const num = typeof v === 'number' ? v : Number(v)
-        if (Number.isFinite(num)) {
-          out.push({ name: `opacity/${k}`, value: num, label: k.charAt(0).toUpperCase() + k.slice(1) })
-        }
-      })
-    } catch { }
-    return out.sort((a, b) => a.value - b.value)
-  }, [tokensJson])
+
 
   const getThemeDefaults = (elevationKey: string): { blur: number; spread: number; offsetX: number; offsetY: number; opacity: number } => {
     try {
@@ -197,123 +183,6 @@ export default function ElevationsPage() {
     // Tokens are only updated when reverting to defaults (removing custom controls)
   }
 
-  // Helper functions that update elevation state directly
-  const updateElevationControl = (elevationKey: string, property: 'blur' | 'spread' | 'offsetX' | 'offsetY', value: number) => {
-
-    // Determine token name and final value BEFORE updating state
-    const level = elevationKey.replace('elevation-', '')
-    let tokenName: string | null = null
-    let finalValue = value
-
-    // For offsetX and offsetY, convert signed values to absolute + direction
-    if (property === 'offsetX') {
-      finalValue = Math.abs(value)
-      tokenName = elevation?.offsetXTokens[elevationKey] || `size/elevation-${level}-offset-x`
-    } else if (property === 'offsetY') {
-      finalValue = Math.abs(value)
-      tokenName = elevation?.offsetYTokens[elevationKey] || `size/elevation-${level}-offset-y`
-    } else if (property === 'blur') {
-      tokenName = elevation?.blurTokens[elevationKey] || `size/elevation-${level}-blur`
-    } else if (property === 'spread') {
-      tokenName = elevation?.spreadTokens[elevationKey] || `size/elevation-${level}-spread`
-    }
-
-    // Update elevation state FIRST (synchronously) - use mode-specific controls
-    updateElevation((prev) => {
-      const next = { ...prev }
-
-      // Ensure controls structure exists for both modes (create new objects to avoid reference sharing)
-      if (!next.controls.light) next.controls.light = {}
-      if (!next.controls.dark) next.controls.dark = {}
-
-      // CRITICAL: Ensure we're working with a copy of the controls object, not a reference
-      // This prevents accidentally modifying the other mode's controls
-      next.controls = {
-        light: { ...next.controls.light },
-        dark: { ...next.controls.dark }
-      }
-
-      // For offsetX and offsetY, convert signed values to absolute + direction
-      if (property === 'offsetX') {
-        const absValue = Math.abs(value)
-        const direction = value >= 0 ? 'right' : 'left'
-        const existing = next.controls[mode][elevationKey] || getThemeDefaults(elevationKey)
-        next.controls[mode] = {
-          ...next.controls[mode],
-          [elevationKey]: { ...existing, offsetX: absValue }
-        }
-        // Update direction (mode-specific)
-        if (!next.directions[mode]) next.directions[mode] = {}
-        const currentY = next.directions[mode][elevationKey]?.y ?? getYDirForLevel(elevationKey)
-        next.directions[mode] = { ...next.directions[mode], [elevationKey]: { x: direction, y: currentY } }
-      } else if (property === 'offsetY') {
-        const absValue = Math.abs(value)
-        const direction = value >= 0 ? 'down' : 'up'
-        // Get existing control or create new default - ensure we get a copy, not a reference
-        const existingControl = next.controls[mode][elevationKey]
-        const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
-        const beforeUpdate = JSON.stringify({ light: next.controls.light?.[elevationKey], dark: next.controls.dark?.[elevationKey] })
-        next.controls[mode] = {
-          ...next.controls[mode],
-          [elevationKey]: { ...existing, offsetY: absValue }
-        }
-        const afterUpdate = JSON.stringify({ light: next.controls.light?.[elevationKey], dark: next.controls.dark?.[elevationKey] })
-        // Update direction (mode-specific)
-        if (!next.directions[mode]) next.directions[mode] = {}
-        const currentX = next.directions[mode][elevationKey]?.x ?? getXDirForLevel(elevationKey)
-        next.directions[mode] = { ...next.directions[mode], [elevationKey]: { x: currentX, y: direction } }
-      } else if (property === 'blur') {
-        // Get existing control or create new default - ensure we get a copy, not a reference
-        const existingControl = next.controls[mode][elevationKey]
-        const existing = existingControl ? { ...existingControl } : getThemeDefaults(elevationKey)
-        const beforeUpdate = JSON.stringify({ light: next.controls.light?.[elevationKey], dark: next.controls.dark?.[elevationKey] })
-        next.controls[mode] = {
-          ...next.controls[mode],
-          [elevationKey]: { ...existing, blur: value }
-        }
-        const afterUpdate = JSON.stringify({ light: next.controls.light?.[elevationKey], dark: next.controls.dark?.[elevationKey] })
-      } else if (property === 'spread') {
-        const existing = next.controls[mode][elevationKey] || getThemeDefaults(elevationKey)
-        next.controls[mode] = {
-          ...next.controls[mode],
-          [elevationKey]: { ...existing, spread: value }
-        }
-      }
-
-      return next
-    })
-
-    // Don't update tokens when controls exist - recomputeAndApplyAll will set CSS variables directly from controls
-    // This prevents token conflicts between light and dark modes
-    // Tokens are only updated when reverting to defaults (removing custom controls)
-  }
-
-  const setElevationAlphaToken = (elevationKey: string, token: string) => {
-    if (elevationKey === 'elevation-0') return
-    updateElevation((prev) => {
-      const next = { ...prev }
-      if (!next.alphaTokens[mode]) next.alphaTokens[mode] = {}
-      next.alphaTokens[mode] = { ...next.alphaTokens[mode], [elevationKey]: token }
-      return next
-    })
-  }
-
-  // Batch version: sets alpha tokens for multiple elevations in a single updateElevation call
-  // to avoid multiple intermediate recomputes during an opacity commit.
-  const setElevationAlphaTokenBatch = (entries: Array<{ elevationKey: string; token: string }>) => {
-    const validEntries = entries.filter(e => e.elevationKey !== 'elevation-0')
-    if (validEntries.length === 0) return
-    updateElevation((prev) => {
-      const next = { ...prev }
-      if (!next.alphaTokens[mode]) next.alphaTokens[mode] = {}
-      const modeTokens = { ...next.alphaTokens[mode] }
-      for (const { elevationKey, token } of validEntries) {
-        modeTokens[elevationKey] = token
-      }
-      next.alphaTokens[mode] = modeTokens
-      return next
-    })
-  }
 
   const getXDirForLevel = (elevationKey: string): 'left' | 'right' => {
     const modeDirections = elevation?.directions[mode] || {}
@@ -323,12 +192,6 @@ export default function ElevationsPage() {
   const getYDirForLevel = (elevationKey: string): 'up' | 'down' => {
     const modeDirections = elevation?.directions[mode] || {}
     return modeDirections[elevationKey]?.y ?? elevation?.baseYDirection ?? 'down'
-  }
-
-  const getAlphaTokenForLevel = (level: number): string | undefined => {
-    const key = `elevation-${level}`
-    const modeAlphaTokens = elevation?.alphaTokens[mode] || {}
-    return modeAlphaTokens[key]
   }
 
   // Revert selected levels to theme defaults
@@ -571,9 +434,7 @@ export default function ElevationsPage() {
               selectedLevels={selectedLevels}
               elevationControls={elevationControlsWithDefaults}
               availableSizeTokens={availableSizeTokens}
-              availableOpacityTokens={availableOpacityTokens}
               shadowColorControl={elevation.shadowColorControl}
-              updateElevationControl={updateElevationControl}
               updateElevationControlsBatch={updateElevationControlsBatch}
               getDirectionForLevel={(key: string) => ({ x: getXDirForLevel(key), y: getYDirForLevel(key) })}
               setXDirectionForSelected={(dir: 'left' | 'right') => {
