@@ -399,7 +399,45 @@
             "com.google.fonts": {
               "url": "https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap",
               "opticalSizing": "auto"
-            }
+            },
+            "variants": [
+              {
+                "weight": "{tokens.font.weights.thin}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.extra-light}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.light}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.regular}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.medium}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.semi-bold}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.bold}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.extra-bold}",
+                "style": "{tokens.font.styles.normal}"
+              },
+              {
+                "weight": "{tokens.font.weights.black}",
+                "style": "{tokens.font.styles.normal}"
+              }
+            ]
           }
         },
         "secondary": {
