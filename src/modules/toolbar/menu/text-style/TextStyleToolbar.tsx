@@ -379,9 +379,16 @@ export default function TextStyleToolbar({
         if (key.startsWith('$')) return
 
         const spacingValue = spacings[key]
-        const spacingNum = typeof spacingValue === 'object' && spacingValue?.$value !== undefined
-          ? (typeof spacingValue.$value === 'number' ? spacingValue.$value : Number(spacingValue.$value))
-          : (typeof spacingValue === 'number' ? spacingValue : Number(spacingValue))
+        const rawSpacingVal = spacingValue?.$value
+        const spacingNum = (() => {
+          if (rawSpacingVal !== undefined && rawSpacingVal !== null) {
+            if (typeof rawSpacingVal === 'object' && Object.prototype.hasOwnProperty.call(rawSpacingVal, 'value')) {
+              return typeof rawSpacingVal.value === 'number' ? rawSpacingVal.value : Number(rawSpacingVal.value)
+            }
+            return typeof rawSpacingVal === 'number' ? rawSpacingVal : Number(rawSpacingVal)
+          }
+          return typeof spacingValue === 'number' ? spacingValue : Number(spacingValue)
+        })()
 
         // Include all valid tokens, including 0 (default)
         // Check for NaN explicitly since Number.isFinite(0) is true but we want to ensure it's a valid number
@@ -434,9 +441,16 @@ export default function TextStyleToolbar({
         if (key.startsWith('$')) return
 
         const heightValue = heights[key]
-        const heightNum = typeof heightValue === 'object' && heightValue?.$value
-          ? (typeof heightValue.$value === 'number' ? heightValue.$value : Number(heightValue.$value))
-          : (typeof heightValue === 'number' ? heightValue : Number(heightValue))
+        const rawHeightVal = heightValue?.$value
+        const heightNum = (() => {
+          if (rawHeightVal !== undefined && rawHeightVal !== null) {
+            if (typeof rawHeightVal === 'object' && Object.prototype.hasOwnProperty.call(rawHeightVal, 'value')) {
+              return typeof rawHeightVal.value === 'number' ? rawHeightVal.value : Number(rawHeightVal.value)
+            }
+            return typeof rawHeightVal === 'number' ? rawHeightVal : Number(rawHeightVal)
+          }
+          return typeof heightValue === 'number' ? heightValue : Number(heightValue)
+        })()
 
         if (Number.isFinite(heightNum)) {
           const cssVar = tokenFont('line-heights', key)
