@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.11.10
+
+### Patch Changes
+
+- 6f72c26: Fix toolbar for line height and letter spacing
+
 ## 0.11.9
 
 ### Patch Changes
