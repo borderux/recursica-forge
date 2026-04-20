@@ -40,12 +40,32 @@
     display: flex;
 }
 
-/* ─── Groups ─── */
+/* ─── Sections (Theme / Components h2 wrappers) ─── */
+
+.compliance-page__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--recursica_brand_dimensions_general_lg);
+}
+
+.compliance-page__section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Push the second section (Components) away from the first (Theme) */
+
+.compliance-page__section + .compliance-page__section {
+    margin-top: var(--recursica_brand_dimensions_general_2xl);
+}
+
+/* ─── Groups (h3 sub-sections within a section) ─── */
 
 .compliance-page__group {
     display: flex;
     flex-direction: column;
-    gap: var(--recursica_brand_dimensions_general_default);
+    gap: var(--recursica_brand_dimensions_general_lg);
 }
 
 .compliance-page__group-title {
@@ -61,6 +81,7 @@
     border: 1px solid;
     border-radius: 8px;
     overflow: hidden;
+    margin-bottom: var(--recursica_brand_dimensions_general_xl);
 }
 
 .compliance-table {
