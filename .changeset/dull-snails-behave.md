@@ -1,3 +1,7 @@
+---
+"recursica-forge": patch
+---
+
 ## Compliance: Suggest Tones — fix on-tone evaluation
 
 **`SuggestTonesModal.tsx`** — removed the `issue.rawOnToneHex` pin from the `generateSuggestedTones` call. Passing the failing tone's on-tone hex was forcing every candidate to be evaluated against that fixed color, which always produced "black" as the best on-tone. Candidates are now evaluated independently, allowing the engine to pick the optimal on-tone (black or white) for each suggested tone.
