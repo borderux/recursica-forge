@@ -95,7 +95,6 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
             level,
             emphasis,
             emphasisOpacity,
-            issue.rawOnToneHex,
         )
 
         // Override the failing tone's contrast ratio with the actual value from the issue

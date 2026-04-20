@@ -5,7 +5,7 @@
  * Grouped by type, with inline swatch previews and one-click fix buttons.
  */
 
-import { useState, useMemo, useRef, useEffect } from 'react'
+import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { useCompliance } from '../../core/compliance/ComplianceContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import type { ComplianceIssue } from '../../core/compliance/ComplianceService'
@@ -444,6 +444,207 @@ export default function CompliancePage() {
     const ArrowUpIcon = iconNameToReactComponent('arrow-up')
     const ArrowDownIcon = iconNameToReactComponent('arrow-down')
 
+    // Which groups belong to "Theme" vs "Components"
+    const THEME_TYPES = ['palette-on-tone', 'core-on-tone', 'layer-text', 'layer-interactive']
+    const themeGroupKeys = THEME_TYPES.filter(t => !!groupedIssues[t])
+    const compGroupKeys = Object.keys(groupedIssues).filter(k => k.startsWith('comp:'))
+
+    const sectionHeadingStyle: React.CSSProperties = {
+        fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+        fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+        fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+        letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+        lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+        color: `var(${genericLayerText(0, 'color')})`,
+        opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+        margin: 0,
+    }
+
+    const groupHeadingStyle: React.CSSProperties = {
+        fontSize: 'var(--recursica_brand_typography_h3-font-size)',
+        fontWeight: 'var(--recursica_brand_typography_h3-font-weight)',
+        fontFamily: 'var(--recursica_brand_typography_h3-font-family)',
+        letterSpacing: 'var(--recursica_brand_typography_h3-font-letter-spacing)',
+        lineHeight: 'var(--recursica_brand_typography_h3-line-height)',
+        color: `var(${genericLayerText(0, 'color')})`,
+        opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
+        margin: 0,
+    }
+
+    const renderGroup = (groupKey: string, groupIssues: ComplianceIssue[]) => {
+        const label = typeLabels[groupKey] || (
+            groupKey.startsWith('comp:')
+                ? groupKey.replace('comp:', '').split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                : groupKey
+        )
+        return (
+            <div key={groupKey} className="compliance-page__group">
+                <h3 className="compliance-page__group-title" style={groupHeadingStyle}>
+                    {label}
+                    <Badge variant="alert" size="small">
+                        {groupIssues.length} {groupIssues.length === 1 ? 'issue' : 'issues'}
+                    </Badge>
+                </h3>
+
+                <div
+                    className="compliance-table__wrapper"
+                    data-recursica-layer="1"
+                    style={{
+                        borderColor: `var(${genericLayerProperty(0, 'border-color')})`,
+                        backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+                    }}
+                >
+                    <table className="compliance-table">
+                        <thead>
+                            <tr style={{ borderColor: `var(${genericLayerProperty(0, 'border-color')})` }}>
+                                <th style={{ width: 48 }} className="compliance-table__th-center">Mode</th>
+                                <th style={{ width: 72, textAlign: 'center' }}>Issue</th>
+                                <th style={{ width: 72, textAlign: 'center' }}>Fix</th>
+                                <th></th>
+                                <th style={{ width: 400 }}>Location</th>
+                                <th style={{ width: 170 }}>Contrast ratios</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {groupIssues.map(issue => {
+                                const suggestionPasses = issue.suggestion
+                                    ? issue.suggestion.resultingRatio >= issue.requiredRatio
+                                    : false
+                                return (
+                                    <tr
+                                        key={issue.id}
+                                        id={issue.id}
+                                        className="compliance-table__row"
+                                        style={{
+                                            borderColor: `var(${genericLayerProperty(0, 'border-color')})`,
+                                            opacity: (fixedMap[issue.id] || suggestFixedMap[issue.id]) ? 0.45 : 1,
+                                        }}
+                                    >
+                                        {/* Mode */}
+                                        <td className="compliance-table__td-center">
+                                            {issue.mode === 'light'
+                                                ? SunIcon && <SunIcon style={{ width: 16, height: 16, opacity: 0.6 }} />
+                                                : MoonIcon && <MoonIcon style={{ width: 16, height: 16, opacity: 0.6 }} />
+                                            }
+                                        </td>
+
+                                        {/* Issue swatch (current) */}
+                                        <td>
+                                            <Tooltip label={formatOnToneLabel(issue)}>
+                                                <div
+                                                    className="compliance-table__swatch"
+                                                    style={{ backgroundColor: issue.toneHex }}
+                                                >
+                                                    <span style={{ color: issue.onToneHex }}>Aa</span>
+                                                </div>
+                                            </Tooltip>
+                                        </td>
+
+                                        {/* Fix swatch (suggested) */}
+                                        <td>
+                                            {issue.suggestion && suggestionPasses ? (
+                                                <Tooltip label={formatColorLabel(issue.suggestion.suggestedHex) || issue.suggestion.suggestedHex}>
+                                                    <div
+                                                        className="compliance-table__swatch"
+                                                        style={{ backgroundColor: issue.toneHex }}
+                                                    >
+                                                        <span style={{ color: issue.suggestion.suggestedHex }}>Aa</span>
+                                                    </div>
+                                                </Tooltip>
+                                            ) : (
+                                                <span style={{ opacity: 0.25 }}>—</span>
+                                            )}
+                                        </td>
+
+                                        {/* Fix / Undo / Suggest button */}
+                                        <td>
+                                            {issue.suggestion && suggestionPasses ? (
+                                                fixedMap[issue.id] ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="small"
+                                                        onClick={() => handleUndo(issue)}
+                                                    >
+                                                        Undo
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="small"
+                                                        onClick={() => handleFix(issue)}
+                                                        title={issue.suggestion.description}
+                                                        icon={WrenchIcon ? <WrenchIcon style={{ width: 12, height: 12 }} /> : undefined}
+                                                    >
+                                                        Fix
+                                                    </Button>
+                                                )
+                                            ) : suggestFixedMap[issue.id] ? (
+                                                <Button
+                                                    variant="outline"
+                                                    size="small"
+                                                    onClick={() => handleSuggestUndo(issue)}
+                                                >
+                                                    Undo
+                                                </Button>
+                                            ) : suggestableIssues.has(issue.id) ? (
+                                                <Button
+                                                    variant="outline"
+                                                    size="small"
+                                                    onClick={() => setSuggestIssue(issue)}
+                                                >
+                                                    Suggest tones
+                                                </Button>
+                                            ) : (
+                                                <span style={{ opacity: 0.5, fontSize: 12 }}>
+                                                    Cannot find a compliant on-tone color for this tone
+                                                </span>
+                                            )}
+                                        </td>
+
+                                        {/* Location */}
+                                        <td>
+                                            <Link
+                                                href={getIssueHref(issue)}
+                                                endIcon={
+                                                    issue.emphasis === 'high' && ArrowUpIcon
+                                                        ? <Tooltip label="High emphasis"><ArrowUpIcon style={{ width: 14, height: 14 }} /></Tooltip>
+                                                        : issue.emphasis === 'low' && ArrowDownIcon
+                                                            ? <Tooltip label="Low emphasis"><ArrowDownIcon style={{ width: 14, height: 14 }} /></Tooltip>
+                                                            : undefined
+                                                }
+                                            >
+                                                {issue.location}
+                                            </Link>
+                                        </td>
+
+                                        {/* Contrast ratios */}
+                                        <td>
+                                            <div className="compliance-table__ratios">
+                                                <Badge variant="alert" size="small">
+                                                    {issue.contrastRatio.toFixed(1)}:1
+                                                </Badge>
+                                                {issue.suggestion && suggestionPasses && (
+                                                    <>
+                                                        {ArrowRightIcon && (
+                                                            <ArrowRightIcon style={{ width: 12, height: 12, opacity: 0.4, flexShrink: 0 }} />
+                                                        )}
+                                                        <Badge variant="success" size="small">
+                                                            {issue.suggestion.resultingRatio.toFixed(1)}:1
+                                                        </Badge>
+                                                    </>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div
             className="compliance-page"
@@ -541,188 +742,27 @@ export default function CompliancePage() {
             )}
 
 
-            {/* Issue tables grouped by type — only show when there are active issues */}
-            {issues.length > 0 && Object.entries(groupedIssues).map(([type, groupIssues]) => (
-                <div key={type} className="compliance-page__group">
-                    <h2
-                        className="compliance-page__group-title"
-                        style={{
-                            fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-                            fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-                            fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-                            letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-                            lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-                            color: `var(${genericLayerText(0, 'color')})`,
-                            opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
-                        }}
-                    >
-                        {typeLabels[type] || (
-                            type.startsWith('comp:')
-                                ? type.replace('comp:', '').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                : type
-                        )}
-                        <Badge variant="alert" size="small">
-                            {groupIssues.length} {groupIssues.length === 1 ? 'issue' : 'issues'}
-                        </Badge>
-                    </h2>
-
-                    <div
-                        className="compliance-table__wrapper"
-                        data-recursica-layer="1"
-                        style={{
-                            borderColor: `var(${genericLayerProperty(0, 'border-color')})`,
-                            backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
-                        }}
-                    >
-                        <table className="compliance-table">
-                            <thead>
-                                <tr style={{ borderColor: `var(${genericLayerProperty(0, 'border-color')})` }}>
-                                    <th style={{ width: 48 }} className="compliance-table__th-center">Mode</th>
-                                    <th style={{ width: 72, textAlign: 'center' }}>Issue</th>
-                                    <th style={{ width: 72, textAlign: 'center' }}>Fix</th>
-                                    <th></th>
-                                    <th style={{ width: 400 }}>Location</th>
-                                    <th style={{ width: 170 }}>Contrast ratios</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {groupIssues.map(issue => {
-                                    const suggestionPasses = issue.suggestion
-                                        ? issue.suggestion.resultingRatio >= issue.requiredRatio
-                                        : false
-                                    return (
-                                        <tr
-                                            key={issue.id}
-                                            id={issue.id}
-                                            className="compliance-table__row"
-                                            style={{
-                                                borderColor: `var(${genericLayerProperty(0, 'border-color')})`,
-                                                opacity: (fixedMap[issue.id] || suggestFixedMap[issue.id]) ? 0.45 : 1,
-                                            }}
-                                        >
-                                            {/* Mode */}
-                                            <td className="compliance-table__td-center">
-                                                {issue.mode === 'light'
-                                                    ? SunIcon && <SunIcon style={{ width: 16, height: 16, opacity: 0.6 }} />
-                                                    : MoonIcon && <MoonIcon style={{ width: 16, height: 16, opacity: 0.6 }} />
-                                                }
-                                            </td>
-
-                                            {/* Issue swatch (current) — always show */}
-                                            <td>
-                                                <Tooltip label={formatOnToneLabel(issue)}>
-                                                    <div
-                                                        className="compliance-table__swatch"
-                                                        style={{ backgroundColor: issue.toneHex }}
-                                                    >
-                                                        <span style={{ color: issue.onToneHex }}>Aa</span>
-                                                    </div>
-                                                </Tooltip>
-                                            </td>
-
-                                            {/* Fix swatch (suggested) — only show when there's a valid suggestion */}
-                                            <td>
-                                                {issue.suggestion && suggestionPasses ? (
-                                                    <Tooltip label={formatColorLabel(issue.suggestion.suggestedHex) || issue.suggestion.suggestedHex}>
-                                                        <div
-                                                            className="compliance-table__swatch"
-                                                            style={{ backgroundColor: issue.toneHex }}
-                                                        >
-                                                            <span style={{ color: issue.suggestion.suggestedHex }}>Aa</span>
-                                                        </div>
-                                                    </Tooltip>
-                                                ) : (
-                                                    <span style={{ opacity: 0.25 }}>—</span>
-                                                )}
-                                            </td>
-
-                                            {/* Fix / Undo button or message */}
-                                            <td>
-                                                {issue.suggestion && suggestionPasses ? (
-                                                    fixedMap[issue.id] ? (
-                                                        <Button
-                                                            variant="outline"
-                                                            size="small"
-                                                            onClick={() => handleUndo(issue)}
-                                                        >
-                                                            Undo
-                                                        </Button>
-                                                    ) : (
-                                                        <Button
-                                                            variant="outline"
-                                                            size="small"
-                                                            onClick={() => handleFix(issue)}
-                                                            title={issue.suggestion.description}
-                                                            icon={WrenchIcon ? <WrenchIcon style={{ width: 12, height: 12 }} /> : undefined}
-                                                        >
-                                                            Fix
-                                                        </Button>
-                                                    )
-                                                ) : suggestFixedMap[issue.id] ? (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="small"
-                                                        onClick={() => handleSuggestUndo(issue)}
-                                                    >
-                                                        Undo
-                                                    </Button>
-                                                ) : suggestableIssues.has(issue.id) ? (
-                                                    <Button
-                                                        variant="outline"
-                                                        size="small"
-                                                        onClick={() => setSuggestIssue(issue)}
-                                                    >
-                                                        Suggest tones
-                                                    </Button>
-                                                ) : (
-                                                    <span style={{ opacity: 0.5, fontSize: 12 }}>
-                                                        Cannot find a compliant on-tone color for this tone
-                                                    </span>
-                                                )}
-                                            </td>
-
-                                            {/* Location (link) with emphasis icon */}
-                                            <td>
-                                                <Link
-                                                    href={getIssueHref(issue)}
-                                                    endIcon={
-                                                        issue.emphasis === 'high' && ArrowUpIcon
-                                                            ? <Tooltip label="High emphasis"><ArrowUpIcon style={{ width: 14, height: 14 }} /></Tooltip>
-                                                            : issue.emphasis === 'low' && ArrowDownIcon
-                                                                ? <Tooltip label="Low emphasis"><ArrowDownIcon style={{ width: 14, height: 14 }} /></Tooltip>
-                                                                : undefined
-                                                    }
-                                                >
-                                                    {issue.location}
-                                                </Link>
-                                            </td>
-
-                                            {/* Combined ratios */}
-                                            <td>
-                                                <div className="compliance-table__ratios">
-                                                    <Badge variant="alert" size="small">
-                                                        {issue.contrastRatio.toFixed(1)}:1
-                                                    </Badge>
-                                                    {issue.suggestion && suggestionPasses && (
-                                                        <>
-                                                            {ArrowRightIcon && (
-                                                                <ArrowRightIcon style={{ width: 12, height: 12, opacity: 0.4, flexShrink: 0 }} />
-                                                            )}
-                                                            <Badge variant="success" size="small">
-                                                                {issue.suggestion.resultingRatio.toFixed(1)}:1
-                                                            </Badge>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            ))}
+            {/* Issue tables — Theme h2 and Components h2, each sub-group as h3 */}
+            {issues.length > 0 && (
+                <>
+                    {themeGroupKeys.length > 0 && (
+                        <div className="compliance-page__section">
+                            <h2 className="compliance-page__section-title" style={sectionHeadingStyle}>
+                                Theme
+                            </h2>
+                            {themeGroupKeys.map(type => renderGroup(type, groupedIssues[type]))}
+                        </div>
+                    )}
+                    {compGroupKeys.length > 0 && (
+                        <div className="compliance-page__section">
+                            <h2 className="compliance-page__section-title" style={sectionHeadingStyle}>
+                                Components
+                            </h2>
+                            {compGroupKeys.map(key => renderGroup(key, groupedIssues[key]))}
+                        </div>
+                    )}
+                </>
+            )}
 
             {/* Suggest Tones Modal */}
             {suggestIssue && (
