@@ -261,119 +261,30 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }, [])
   const familyOptions = useMemo(() => {
     const out: Array<{ short: string; label: string; value: string }> = []
-    const seen = new Set<string>()
-    // Helper to check if a value is populated (not empty or whitespace)
-    const isPopulated = (val: string): boolean => {
-      return Boolean(val && val.trim().length > 0)
-    }
-
-    // Token order sequence (from smallest to largest)
     const TOKEN_ORDER = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary']
 
-    // Read overrides to determine which typefaces actually exist
-    // (overrides are the source of truth after add/delete operations)
-    // Overrides are now tracked by the delta system and reflected in tokensJson
-    let overrides: Record<string, any> = {}
-    const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
-    const hasTypefaceOverrides = overrideTypefaceKeys.length > 0
-
-    // Collect typeface tokens first (they take precedence)
-    const typefaceTokens: Array<{ short: string; label: string; value: string; order: number }> = []
     try {
-      // Check both plural and singular forms
-      const typefaces = (tokens as any)?.tokens?.font?.typefaces || (tokens as any)?.tokens?.font?.typeface || {}
-      Object.entries(typefaces).forEach(([short, rec]: [string, any]) => {
-        // Skip $type and other metadata properties
-        if (short === '$type' || short.startsWith('$')) return
-        // If overrides exist for typefaces, only include fonts present in overrides
-        if (hasTypefaceOverrides && !overrides[`font/typeface/${short}`]) return
-        // Use override value if available, otherwise use token value
-        const overrideVal = overrides[`font/typeface/${short}`]
-        const val = (typeof overrideVal === 'string' && overrideVal.trim()) ? overrideVal.trim() : String((rec as any)?.$value || '').trim()
-        if (isPopulated(val) && !seen.has(val)) {
-          seen.add(val)
-          const orderIndex = TOKEN_ORDER.indexOf(short)
-          typefaceTokens.push({
-            short,
-            label: toTitleCase(short),
-            value: val,
-            order: orderIndex >= 0 ? orderIndex : 999 // Put unknown tokens at the end
-          })
-        }
+      const brandRoot: any = (theme as any)?.brand || theme || {}
+      const brandFonts: any = brandRoot?.fonts || {}
+
+      TOKEN_ORDER.forEach(key => {
+        if (!brandFonts[key] || brandFonts[key].$value === undefined) return
+
+        // Resolve the actual CSS font-family string via the live CSS var
+        const cssVar = `--recursica_brand_fonts_${key}`
+        const resolvedValue = readCssVarResolved(cssVar) || readCssVar(cssVar) || ''
+        const cleanFontName = resolvedValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
+
+        const displayLabel = cleanFontName
+          ? `${toTitleCase(key)} (${cleanFontName})`
+          : toTitleCase(key)
+
+        out.push({ short: key, label: displayLabel, value: resolvedValue || cleanFontName })
       })
     } catch { }
 
-    // Also add any override-only typefaces not in tokens
-    if (hasTypefaceOverrides) {
-      overrideTypefaceKeys.forEach(k => {
-        const short = k.replace('font/typeface/', '')
-        if (short.startsWith('$')) return
-        const val = String(overrides[k] || '').trim()
-        if (isPopulated(val) && !seen.has(val) && !typefaceTokens.some(t => t.short === short)) {
-          seen.add(val)
-          const orderIndex = TOKEN_ORDER.indexOf(short)
-          typefaceTokens.push({
-            short,
-            label: toTitleCase(short),
-            value: val,
-            order: orderIndex >= 0 ? orderIndex : 999
-          })
-        }
-      })
-    }
-
-    // Collect family tokens (only if not already in typeface)
-    const familyTokens: Array<{ short: string; label: string; value: string; order: number }> = []
-    try {
-      // Check both plural and singular forms
-      const families = (tokens as any)?.tokens?.font?.families || (tokens as any)?.tokens?.font?.family || {}
-      Object.entries(families).forEach(([short, rec]: [string, any]) => {
-        // Skip $type and other metadata properties
-        if (short === '$type' || short.startsWith('$')) return
-        const val = String((rec as any)?.$value || '').trim()
-        if (isPopulated(val) && !seen.has(val)) {
-          seen.add(val)
-          const orderIndex = TOKEN_ORDER.indexOf(short)
-          familyTokens.push({
-            short,
-            label: toTitleCase(short),
-            value: val,
-            order: orderIndex >= 0 ? orderIndex : 999 // Put unknown tokens at the end
-          })
-        }
-      })
-    } catch { }
-
-    // Combine and sort by order (typeface first, then family, both in token order)
-    const allTokens = [...typefaceTokens, ...familyTokens]
-    allTokens.sort((a, b) => {
-      // First sort by order index
-      if (a.order !== b.order) {
-        return a.order - b.order
-      }
-      // If same order, typeface comes before family
-      const aIsTypeface = typefaceTokens.some(t => t.short === a.short)
-      const bIsTypeface = typefaceTokens.some(t => t.short === b.short)
-      if (aIsTypeface && !bIsTypeface) return -1
-      if (!aIsTypeface && bIsTypeface) return 1
-      // Otherwise maintain stable order
-      return 0
-    })
-
-    // Extract fields and format label with font name in parentheses
-    return allTokens.map(({ short, label, value }) => {
-      // Extract just the primary font name (e.g. "Lexend, sans-serif" -> "Lexend")
-      const cleanFontName = value && value.trim()
-        ? value.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
-        : ''
-
-      // Format: "Primary (Lexend)" or just "Primary" if no value
-      const displayLabel = cleanFontName
-        ? `${label} (${cleanFontName})`
-        : label
-      return { short, label: displayLabel, value }
-    })
-  }, [tokens, updateKey])
+    return out
+  }, [theme, updateKey])
 
   // Helper to get current token name from CSS variable (follows the chain)
   const getCurrentTokenName = (cssVar: string, options: Array<{ short: string }>): string | undefined => {
@@ -487,23 +398,9 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       // Map property to CSS variable name and token reference
       if (property === 'font-family') {
         cssVar = `--recursica_brand_typography_${cssVarName}-font-family`
-        // Check if this token exists in typefaces or families
-        const typefaces = (tokens as any)?.tokens?.font?.typefaces || (tokens as any)?.tokens?.font?.typeface || {}
-        const families = (tokens as any)?.tokens?.font?.families || (tokens as any)?.tokens?.font?.family || {}
-        // Determine which token CSS variable to use
-        let tokenCssVar = ''
-        if (typefaces[tokenShort]) {
-          tokenCssVar = tokenFont('typefaces', tokenShort)
-        } else if (families[tokenShort]) {
-          tokenCssVar = tokenFont('families', tokenShort)
-        } else {
-          // Fallback to typefaces (most common)
-          tokenCssVar = tokenFont('typefaces', tokenShort)
-        }
-        // Resolve the token CSS variable to get the actual font value (with fallbacks)
-        const resolvedValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
-        // Use the resolved value (font name with fallbacks) if available, otherwise fall back to token reference
-        tokenValue = resolvedValue || `var(${tokenCssVar})`
+        // Write a reference to the brand.fonts CSS var (e.g. var(--recursica_brand_fonts_primary))
+        // This follows the two-tier chain: brand.typography → brand.fonts → tokens.font.typefaces
+        tokenValue = `var(--recursica_brand_fonts_${tokenShort})`
       } else if (property === 'font-size') {
         cssVar = `--recursica_brand_typography_${cssVarName}-font-size`
         tokenValue = `var(--recursica_tokens_font_sizes_${tokenShort})`

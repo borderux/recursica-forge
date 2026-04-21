@@ -646,13 +646,23 @@ class VarsStore {
         if (!font.id || !font.family) return
         const slug = font.slug ||
           font.family.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-        let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+        const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
         const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
-        const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
+
+        // Preserve existing generic fallback from the token's array $value if not on font.category
+        const existing = existingBySlug[slug] || {}
+        const existingGeneric = Array.isArray(existing.$value) && existing.$value.length > 1
+          ? existing.$value[existing.$value.length - 1]
+          : null
+        const generic = font.category || existingGeneric || 'sans-serif'
+
+        // DTCG fontFamily $value: array [familyName, genericFallback]
+        const dtcgValue = [cleanFamily, generic]
+        // CSS font-family string for direct CSS var output
+        const cssFontStack = `${quotedName}, ${generic}`
 
         // Write named font entry to tokens.typefaces (preserving all existing metadata)
-        const existing = existingBySlug[slug] || {}
-        const namedEntry: any = { $type: 'fontFamily', ...existing, $value: fontStack }
+        const namedEntry: any = { $type: 'fontFamily', ...existing, $value: dtcgValue }
         if (font.url) {
           namedEntry.$extensions = {
             ...(existing.$extensions || {}),
@@ -663,7 +673,8 @@ class VarsStore {
         }
         typefaces[slug] = namedEntry
         levelsGroup[font.id] = { $type: 'fontFamily', $value: `{tokens.font.typefaces.${slug}}` }
-        families[slug] = { $type: 'fontFamily', $value: fontStack }
+        // families: CSS string $value (direct CSS output, no variants metadata)
+        families[slug] = { $type: 'fontFamily', $value: cssFontStack }
         if (font.url) families[slug].$extensions = { 'com.google.fonts': { url: font.url } }
       })
 

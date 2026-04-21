@@ -108,41 +108,28 @@ export default function TextStyleToolbar({
     : getComponentTextCssVar(componentName as any, textElementName, 'font-style', sizeVariant)
 
 
-  // Get available font families (typefaces)
+  // Get available font families from brand.fonts (primary / secondary / tertiary aliases)
   const fontFamilies = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: string }> = []
 
     try {
-      const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
-      const typefaces = tokensRoot?.font?.typefaces || tokensRoot?.font?.typeface || {}
+      const brandRoot: any = (theme as any)?.brand || theme || {}
+      const brandFonts = brandRoot?.fonts || {}
 
-      // Overrides are now tracked by the delta system and reflected in tokensFromVars
-      const overrides: Record<string, any> = {}
-      const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
-      const hasTypefaceOverrides = overrideTypefaceKeys.length > 0
-
-      Object.keys(typefaces).forEach(key => {
+      Object.keys(brandFonts).forEach(key => {
         if (key.startsWith('$')) return
-        // If overrides exist for typefaces, only include fonts present in overrides
-        if (hasTypefaceOverrides && !overrides[`font/typeface/${key}`]) return
 
-        const cssVar = tokenFont('typefaces', key)
+        const cssVar = `--recursica_brand_fonts_${key}`
         const cssValue = readCssVar(cssVar)
 
         if (cssValue) {
-          // Get the resolved font name to display in parentheses
+          // Resolve through the alias chain to get the actual font name
           const resolvedValue = readCssVarResolved(cssVar)
           let fontName = ''
-
           if (resolvedValue) {
-            // Extract just the primary font name (e.g. "Lexend, sans-serif" -> "Lexend")
-            const cleanFontName = resolvedValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
-            if (cleanFontName) {
-              fontName = cleanFontName
-            }
+            fontName = resolvedValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
           }
 
-          // Build label with font name in parentheses if available
           const sequenceLabel = toSentenceCase(key)
           const label = fontName ? `${sequenceLabel} (${fontName})` : sequenceLabel
 
@@ -158,7 +145,7 @@ export default function TextStyleToolbar({
     }
 
     return options
-  }, [tokensFromVars])
+  }, [theme])
 
   // Get current font family state - declared early so it can be used in useMemo dependencies
   const [currentFontFamily, setCurrentFontFamily] = useState<string>('')

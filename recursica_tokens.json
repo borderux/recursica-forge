@@ -392,7 +392,10 @@
         "$type": "fontFamily",
         "lexend": {
           "$type": "fontFamily",
-          "$value": "Lexend",
+          "$value": [
+            "Lexend",
+            "sans-serif"
+          ],
           "$extensions": {
             "com.google.fonts": {
               "url": "https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap",
@@ -440,7 +443,10 @@
         },
         "bellota-text": {
           "$type": "fontFamily",
-          "$value": "\"Bellota Text\"",
+          "$value": [
+            "Bellota Text",
+            "sans-serif"
+          ],
           "$extensions": {
             "com.google.fonts": {
               "url": "https://fonts.googleapis.com/css2?family=Bellota+Text&display=swap"
@@ -475,7 +481,10 @@
         },
         "quattrocento": {
           "$type": "fontFamily",
-          "$value": "Quattrocento",
+          "$value": [
+            "Quattrocento",
+            "serif"
+          ],
           "$extensions": {
             "com.google.fonts": {
               "url": "https://fonts.googleapis.com/css2?family=Quattrocento&display=swap"

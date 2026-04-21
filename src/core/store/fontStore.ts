@@ -114,11 +114,16 @@ export function getDefaultFonts(): FontEntry[] {
 
             if (!namedEntry) continue
 
-            // Extract family from named entry (or legacy sequence entry)
+            // Extract family and generic fallback from named entry's DTCG array $value
             const entryValue = namedEntry.$value
             let family = ''
+            let category: FontEntry['category'] | undefined
             if (Array.isArray(entryValue) && entryValue.length > 0) {
                 family = typeof entryValue[0] === 'string' ? entryValue[0].trim().replace(/^["']|["']$/g, '').split(',')[0].trim() : ''
+                const generic = entryValue[1]
+                if (generic === 'sans-serif' || generic === 'serif' || generic === 'monospace') {
+                    category = generic
+                }
             } else if (typeof entryValue === 'string') {
                 family = entryValue.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
             }
@@ -126,7 +131,7 @@ export function getDefaultFonts(): FontEntry[] {
             const url = namedEntry.$extensions?.['com.google.fonts']?.url
 
             if (family) {
-                defaultFonts.push({ id: seqKey, family, url, slug: slug || fontFamilyToSlug(family) })
+                defaultFonts.push({ id: seqKey, family, url, slug: slug || fontFamilyToSlug(family), ...(category ? { category } : {}) })
             }
         }
     } catch (err) {
