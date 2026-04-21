@@ -497,7 +497,7 @@
                 "text": {
                   "font-family": {
                     "$type": "string",
-                    "$value": "{tokens.font.typefaces.primary}"
+                    "$value": "{brand.fonts.primary}"
                   },
                   "font-size": {
                     "$type": "dimension",
@@ -584,7 +584,7 @@
                 "text": {
                   "font-family": {
                     "$type": "string",
-                    "$value": "{tokens.font.typefaces.primary}"
+                    "$value": "{brand.fonts.primary}"
                   },
                   "font-size": {
                     "$type": "dimension",
@@ -936,7 +936,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -1090,7 +1090,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -1916,7 +1916,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -2077,7 +2077,7 @@
           "label-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -2230,7 +2230,7 @@
           "min-max-label": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -2264,7 +2264,7 @@
           "read-only-value": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -2710,7 +2710,7 @@
           "label-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -2744,7 +2744,7 @@
           "description-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -2953,7 +2953,7 @@
           "title-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -2987,7 +2987,7 @@
           "description-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -3021,7 +3021,7 @@
           "timestamp-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -4174,7 +4174,7 @@
           "active-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -4208,7 +4208,7 @@
           "inactive-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -4510,7 +4510,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.secondary}"
+              "$value": "{brand.fonts.secondary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -4858,7 +4858,7 @@
           "header-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.secondary}"
+              "$value": "{brand.fonts.secondary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -4892,7 +4892,7 @@
           "content-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.secondary}"
+              "$value": "{brand.fonts.secondary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -5471,7 +5471,7 @@
                 "text": {
                   "font-family": {
                     "$type": "string",
-                    "$value": "{tokens.font.typefaces.primary}"
+                    "$value": "{brand.fonts.primary}"
                   },
                   "font-size": {
                     "$type": "dimension",
@@ -5545,7 +5545,7 @@
                 "text": {
                   "font-family": {
                     "$type": "string",
-                    "$value": "{tokens.font.typefaces.primary}"
+                    "$value": "{brand.fonts.primary}"
                   },
                   "font-size": {
                     "$type": "dimension",
@@ -5619,7 +5619,7 @@
                 "text": {
                   "font-family": {
                     "$type": "string",
-                    "$value": "{tokens.font.typefaces.primary}"
+                    "$value": "{brand.fonts.primary}"
                   },
                   "font-size": {
                     "$type": "dimension",
@@ -5929,7 +5929,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -6206,7 +6206,7 @@
           "label-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.secondary}"
+              "$value": "{brand.fonts.secondary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -6240,7 +6240,7 @@
           "optional-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -6338,7 +6338,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -6627,7 +6627,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -6753,7 +6753,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -7262,7 +7262,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -7688,7 +7688,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -8049,7 +8049,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -8543,7 +8543,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -8971,7 +8971,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -9461,7 +9461,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -9955,7 +9955,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -10445,7 +10445,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -10701,7 +10701,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -10735,7 +10735,7 @@
           "supporting-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -11094,7 +11094,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -11346,7 +11346,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
@@ -12364,7 +12364,7 @@
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{tokens.font.typefaces.primary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
