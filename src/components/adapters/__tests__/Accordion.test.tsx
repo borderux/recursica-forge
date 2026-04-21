@@ -1,15 +1,29 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import { UnifiedThemeProvider } from '../../providers/UnifiedThemeProvider'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { Accordion } from '../Accordion'
+import { preloadComponent } from '../../registry'
+import '../../../components/registry/mantine'
 import { itDom } from '../../../test-utils/conditionalTests'
 
 describe('Accordion Component (Adapter)', () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
+    // Pre-warm all provider module imports so useState initialisers in UnifiedThemeProvider
+    // read from cache synchronously and isLoading starts as false.
+    await Promise.all([
+      import('@mantine/core'),
+      import('@mui/material/styles'),
+      import('@mui/material'),
+      import('@carbon/react'),
+    ])
+    // Eagerly resolve the lazy import so <Suspense> does not suspend during tests.
+    await preloadComponent('mantine', 'Accordion')
+  })
+
+  beforeEach(() => {
     document.documentElement.style.cssText = ''
-    await new Promise(resolve => setTimeout(resolve, 100))
   })
 
   const renderWithProviders = (ui: React.ReactElement) => {
@@ -24,6 +38,8 @@ describe('Accordion Component (Adapter)', () => {
     )
   }
 
+  // Mantine's CSS-in-JS style injection in JSDOM is slow (~30-40s on first cold render).
+  // Use a generous waitFor timeout and pass a per-test timeout to match.
   const waitForAccordion = async (container: HTMLElement) => {
     return await waitFor(() => {
       const el = container.querySelector('.recursica-accordion')
@@ -61,7 +77,7 @@ describe('Accordion Component (Adapter)', () => {
 
     expect(onToggle).toHaveBeenCalled()
     expect(onToggle).toHaveBeenCalledWith('a', true)
-  })
+  }, 60000)
 
   itDom('renders items without per-item divider attributes (dividers are CSS-only)', async () => {
     const items = [
@@ -73,6 +89,5 @@ describe('Accordion Component (Adapter)', () => {
     // Dividers are now CSS pseudo-elements at the container level, not data attributes
     const dividerItems = container.querySelectorAll('[data-divider]')
     expect(dividerItems.length).toBe(0)
-  })
+  }, 60000)
 })
-

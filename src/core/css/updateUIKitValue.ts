@@ -13,7 +13,7 @@ import { cssVarToRef } from '../css/cssVarBuilder'
  * @example
  * cssVarToUIKitPath('--recursica_ui-kit_themes_light_components_chip_variants_styles_unselected_properties_colors_layer-0_background', currentUIKit)
  */
-function cssVarToUIKitPath(cssVar: string, rootObj: any): string[] | null {
+export function cssVarToUIKitPath(cssVar: string, rootObj: any): string[] | null {
     const match = cssVar.match(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?(.+)$/)
     if (!match) return null
 

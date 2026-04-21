@@ -15,6 +15,7 @@ import { exportTokensJson, exportBrandJson, exportUIKitJson } from './jsonExport
 import { validateTokensJson, validateBrandJson, validateUIKitJson, validateReferences } from '../utils/validateJsonSchemas'
 import { validateCssExport } from './validateCss'
 import { GitHubExportModal } from './GitHubExportModal'
+import { getVarsStore } from '../store/varsStore'
 import type { JsonLike } from '../resolvers/tokens'
 
 export function useJsonExport() {
@@ -28,6 +29,10 @@ export function useJsonExport() {
   const [githubExportFiles, setGithubExportFiles] = useState<{ tokens: boolean; brand: boolean; uikit: boolean; css: boolean } | null>(null)
   
   const handleExport = (knownIssueCount?: number) => {
+    // Ensure UIKit in-memory JSON reflects any changes persisted in the CSS delta
+    // (e.g. toolbar edits made in a previous session, restored via restoreDelta on load).
+    getVarsStore().syncUiKitDelta()
+
     // Step 1: Validate all JSON files and CSS
     const errors: ValidationError[] = []
     

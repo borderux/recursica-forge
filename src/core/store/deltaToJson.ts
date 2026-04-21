@@ -15,6 +15,7 @@
 
 import { getDelta } from './cssDelta'
 import { parseTokenCssVar, parseBrandCssVar, cssVarToRef } from '../css/cssVarBuilder'
+import { cssVarToUIKitPath } from '../css/updateUIKitValue'
 import type { JsonLike } from '../resolvers/tokens'
 import baseTokensImport from '../../../recursica_tokens.json'
 import { DELETED_SCALES_KEY } from './varsStore'
@@ -32,6 +33,7 @@ import { DELETED_SCALES_KEY } from './varsStore'
 export function syncDeltaToJson(
   tokens: JsonLike,
   theme: JsonLike,
+  uikit?: JsonLike,
 ): { syncedCount: number; structuralAdditions: boolean } {
   const delta = getDelta()
   const entries = Object.entries(delta)
@@ -311,6 +313,70 @@ export function syncDeltaToJson(
       }
       colorsGroup[scaleKey] = scaleEntry
       syncedCount += Object.keys(levels).length
+    }
+  }
+
+  // ── Third pass: sync UIKit CSS var changes back into the in-memory UIKit JSON ──
+  // restoreDelta() re-applies these vars to the DOM (so the preview looks correct),
+  // but without this pass the in-memory uikit JSON stays pristine and exportUIKitJson()
+  // returns the original file values instead of the user's modifications.
+  if (uikit) {
+    // If the stored uikit already has a 'ui-kit' wrapper use it as-is; otherwise the
+    // object itself IS the 'ui-kit' root. In either case mutations must land on the
+    // original `uikit` reference so the caller sees the changes.
+    const hasWrapper = !!(uikit as any)?.['ui-kit']
+    // The object we navigate with cssVarToUIKitPath — always has a 'ui-kit' key at depth 0.
+    const uikitRoot: any = hasWrapper ? uikit : { 'ui-kit': uikit }
+
+    for (const [cssVarName, rawCssValue] of entries) {
+      if (!cssVarName.startsWith('--recursica_ui-kit_')) continue
+
+      const path = cssVarToUIKitPath(cssVarName, uikitRoot)
+      if (!path || path.length < 2) continue
+
+      // Resolve var() references back to DTCG token refs
+      let tokenValue: string = cssVarToRef(rawCssValue) || rawCssValue
+
+      // Navigate to the parent node along the resolved path, using the original object.
+      // When there is no wrapper, path[0] is 'ui-kit' but the actual root IS `uikit`,
+      // so we skip that first segment and start directly on `uikit`.
+      const startIndex = hasWrapper ? 0 : 1
+      let current: any = hasWrapper ? uikitRoot : uikit
+      let navigated = true
+      for (let i = startIndex; i < path.length - 1; i++) {
+        const segment = path[i]
+        if (!current[segment] || typeof current[segment] !== 'object') {
+          navigated = false
+          break
+        }
+        current = current[segment]
+      }
+      if (!navigated) continue
+
+      const finalKey = path[path.length - 1]
+      const existing = current[finalKey]
+
+      if (existing && typeof existing === 'object' && '$value' in existing) {
+        const existingType = existing.$type
+        const hasUnitObject = existing.$value && typeof existing.$value === 'object' && 'unit' in existing.$value
+
+        if (existingType === 'dimension' || hasUnitObject) {
+          if (typeof tokenValue === 'string' && tokenValue.startsWith('{') && tokenValue.endsWith('}')) {
+            existing.$value = tokenValue
+          } else {
+            const pxMatch = tokenValue.match(/^(-?\d+(?:\.\d+)?)px$/)
+            existing.$value = pxMatch
+              ? { value: parseFloat(pxMatch[1]), unit: 'px' }
+              : { value: parseFloat(tokenValue) || 0, unit: 'px' }
+          }
+        } else if (existingType === 'number') {
+          const num = parseFloat(tokenValue)
+          if (Number.isFinite(num)) existing.$value = num
+        } else {
+          existing.$value = tokenValue
+        }
+        syncedCount++
+      }
     }
   }
 
