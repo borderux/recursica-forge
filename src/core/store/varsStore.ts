@@ -748,6 +748,17 @@ class VarsStore {
   }
   /** Update UIKit without triggering recomputeAndApplyAll. Use when CSS var was already set via updateCssVar (e.g. toolbar color picker). */
   setUiKitSilent(next: JsonLike) { this.writeState({ uikit: next }) }
+  /**
+   * Replay any UIKit CSS var changes stored in the CSS delta back into the
+   * in-memory UIKit JSON.  Call this immediately before exporting so that
+   * exportUIKitJson() sees all in-session modifications, even after a page reload.
+   *
+   * Tokens and brand are always kept in sync via updateBrandValue / setTokensSilent.
+   * UIKit is patched here lazily (on-demand) to avoid redundant work at startup.
+   */
+  public syncUiKitDelta(): void {
+    syncDeltaToJson(this.state.tokens, this.state.theme, this.state.uikit)
+  }
   setPalettes(next: PaletteStore) {
     this.writeState({ palettes: next })
     if (!this.isRecomputing) this.recomputeAndApplyAll()
