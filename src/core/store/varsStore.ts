@@ -1946,7 +1946,7 @@ class VarsStore {
           propsToRemove.forEach(prop => docStyle.removeProperty(prop))
         }
 
-        if (Array.isArray(storedFonts)) {
+        if (Array.isArray(storedFonts) && storedFonts.length > 0) {
           const ORDER_LEVELS = new Set(['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'])
           storedFonts.forEach(font => {
             if (font.id && font.family) {
@@ -1956,15 +1956,50 @@ class VarsStore {
               const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
               const slug = font.slug ||
                 cleanFamily.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-              // Named slug entries carry the actual font stack
+              // Named slug entries carry the actual font stack (raw CSS value)
               vars[tokenFont('typefaces', slug)] = fontStack
               vars[tokenFont('families', slug)] = fontStack
-              // Levels alias CSS vars: path is tokens.font.levels.primary
-              // CSS var name: --recursica_tokens_font_levels_primary → var(--recursica_tokens_font_typefaces_lexend)
+              // brand.fonts.{id} → var(--recursica_tokens_font_typefaces_{slug})
+              // Brand vars must reference token vars, not raw values
               if (ORDER_LEVELS.has(font.id)) {
-                vars[tokenFont('levels', font.id)] = `var(${tokenFont('typefaces', slug)})`
+                vars[`--recursica_brand_fonts_${font.id}`] = `var(${tokenFont('typefaces', slug)})`
               }
             }
+          })
+        } else {
+          // No rf:fonts in localStorage (fresh load / cache cleared):
+          // Emit brand.fonts CSS vars by resolving each brand.fonts.{level} alias
+          // through the token store → tokens.font.typefaces.{slug}.$value
+          const brandRoot: any = (this.state.theme as any)?.brand || this.state.theme
+          const brandFonts: any = brandRoot?.fonts || {}
+          const typefaces: any = tokensRoot?.font?.typefaces || {}
+          const ORDER_LEVELS = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary']
+          ORDER_LEVELS.forEach(level => {
+            const brandFontEntry = brandFonts[level]
+            if (!brandFontEntry?.$value) return
+            // Resolve alias: {tokens.font.typefaces.lexend} → slug → token entry
+            const aliasMatch = String(brandFontEntry.$value).match(/\{tokens\.font\.typefaces\.([^}]+)\}/)
+            if (!aliasMatch) return
+            const slug = aliasMatch[1]
+            const typefaceEntry = typefaces[slug]
+            if (!typefaceEntry) return
+            const raw = typefaceEntry.$value
+            let family = ''
+            let category = 'sans-serif'
+            if (Array.isArray(raw) && raw.length > 0) {
+              family = typeof raw[0] === 'string' ? raw[0].trim().replace(/^["']|["']$/g, '') : ''
+              if (raw[1] === 'serif' || raw[1] === 'monospace') category = raw[1]
+            } else if (typeof raw === 'string') {
+              family = raw.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+            }
+            if (!family) return
+            const quotedName = family.includes(' ') ? `"${family}"` : family
+            const fontStack = `${quotedName}, ${category}`
+            // Token vars hold the raw font stack
+            vars[tokenFont('typefaces', slug)] = fontStack
+            vars[tokenFont('families', slug)] = fontStack
+            // Brand vars reference the token vars
+            vars[`--recursica_brand_fonts_${level}`] = `var(${tokenFont('typefaces', slug)})`
           })
         }
 
@@ -2393,10 +2428,9 @@ class VarsStore {
 
       Object.assign(allVars, typeVars)
 
-      // Re-apply rf:fonts font stacks AFTER typography merge.
+      // Re-apply rf:fonts font stacks AFTER typography merge, keyed by SLUG (not font.id).
       // The typography resolver reads from the base tokens JSON, which may have
-      // stale typeface values. rf:fonts is the source of truth for font assignments,
-      // so its values must overwrite whatever the typography resolver produced.
+      // stale typeface values. rf:fonts is the source of truth for font assignments.
       try {
         let fontsForOverride: any[] = []
         try {
@@ -2412,8 +2446,16 @@ class VarsStore {
               if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
               const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
               const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
-              allVars[tokenFont('typefaces', font.id)] = fontStack
-              allVars[tokenFont('families', font.id)] = fontStack
+              // Use slug as key (matches how tokens are written), NOT font.id (sequence name)
+              const slug = font.slug ||
+                cleanFamily.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+              allVars[tokenFont('typefaces', slug)] = fontStack
+              allVars[tokenFont('families', slug)] = fontStack
+              // Brand vars must reference token vars
+              const ORDER_LEVELS = new Set(['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'])
+              if (ORDER_LEVELS.has(font.id)) {
+                allVars[`--recursica_brand_fonts_${font.id}`] = `var(${tokenFont('typefaces', slug)})`
+              }
             }
           })
         }
@@ -2422,9 +2464,23 @@ class VarsStore {
       // Load fonts asynchronously - don't wait, don't trigger recomputes
       // CSS variables are already set with font names, fonts will apply when loaded
       // Fonts MUST load (async is fine, but they must load)
-      if (familiesToLoad.length > 0 && typeof window !== 'undefined') {
+      // Resolve actual font family names from storedFonts (familiesToLoad may contain var() references)
+      const actualFamiliesToLoad: string[] = []
+      try {
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('rf:fonts') : null
+        const storedForLoad: any[] = raw ? JSON.parse(raw) : []
+        storedForLoad.forEach((font: any) => {
+          if (font.family) {
+            const clean = font.family.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+            if (clean) actualFamiliesToLoad.push(clean)
+          }
+        })
+      } catch { }
+      const familiesToLoadResolved = actualFamiliesToLoad.length > 0 ? actualFamiliesToLoad : familiesToLoad.filter(f => !f.startsWith('var('))
+
+      if (familiesToLoadResolved.length > 0 && typeof window !== 'undefined') {
         // Load fonts in background without blocking or triggering events
-        Promise.all(familiesToLoad.map(async (family) => {
+        Promise.all(familiesToLoadResolved.map(async (family) => {
           try {
             const trimmed = String(family).trim()
             if (!trimmed) return

@@ -142,7 +142,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
             <div
               key={`sample-${it.name}-${updateKey}`}
               style={{
-                fontFamily: 'var(--recursica_tokens_font_typefaces_primary)',
+                fontFamily: 'var(--recursica_brand_fonts_primary)',
                 fontSize: `var(${fontSizeVar})`,
                 color: `var(${genericLayerText(0, 'color')})`,
                 opacity: `var(${genericLayerText(0, 'high-emphasis')})`,

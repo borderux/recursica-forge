@@ -806,17 +806,19 @@ export default function FontFamiliesTokens() {
       const sequentialName = ORDER[newIndex] || `custom-${newIndex + 1}`
       if (f.id !== sequentialName) {
         removeCssVar(`--tokens-font-typeface-${f.id}`)
-        removeCssVar(tokenFont('typefaces', f.id))
-        removeCssVar(tokenFont('families', f.id))
+        const fSlug = f.slug || f.family?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || f.id
+        removeCssVar(tokenFont('typefaces', fSlug))
+        removeCssVar(tokenFont('families', fSlug))
       }
       return { ...f, id: sequentialName }
     })
 
     if (index < fonts.length) {
-      const deletedKey = fonts[index].id
-      removeCssVar(`--tokens-font-typeface-${deletedKey}`)
-      removeCssVar(tokenFont('typefaces', deletedKey))
-      removeCssVar(tokenFont('families', deletedKey))
+      const deletedFont = fonts[index]
+      const deletedSlug = deletedFont.slug || deletedFont.family?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || deletedFont.id
+      removeCssVar(`--tokens-font-typeface-${deletedFont.id}`)
+      removeCssVar(tokenFont('typefaces', deletedSlug))
+      removeCssVar(tokenFont('families', deletedSlug))
     }
 
     saveStoredFonts(updatedFonts)
@@ -876,7 +878,12 @@ export default function FontFamiliesTokens() {
           // Extract the key from the name (e.g., "font/typeface/primary" -> "primary")
           const key = r.name.replace('font/typeface/', '')
           const label = toTitle(key)
-          const fontFamilyVar = tokenFont('typefaces', key)
+          // Derive slug from family name to build the correct CSS var
+          // r.value is the family name (e.g., "Bellota Text"), slug is the kebab-case key
+          const familySlug = r.value
+            ? r.value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+            : key
+          const fontFamilyVar = tokenFont('typefaces', familySlug)
           const selectedWeight = selectedWeights[r.name] || 'regular'
 
           return (

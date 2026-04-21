@@ -154,12 +154,18 @@ export function resolveTokenReferenceToCssVar(
   // Token references → CSS token variables
   if (parsed.type === 'token') {
     const path = parsed.resolvedPath || parsed.path.join('/')
+    const segments = path.split('/')
+
+    // brand.* references live in the brand JSON → --recursica_brand_* CSS vars
+    if (segments[0] === 'brand') {
+      return `var(--recursica_brand_${segments.slice(1).join('_')})`
+    }
+
     // Normalize singular category names to plural to match JSON structure
     const singularToPlural: Record<string, string> = {
       'size': 'sizes',
       'opacity': 'opacities',
     }
-    const segments = path.split('/')
     if (segments.length >= 1 && singularToPlural[segments[0]]) {
       segments[0] = singularToPlural[segments[0]]
     }

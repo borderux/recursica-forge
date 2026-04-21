@@ -122,7 +122,7 @@ export default function FontLineHeightTokens({ autoScale = false }: FontLineHeig
               {label}
             </label>
             <div style={{
-              fontFamily: 'var(--recursica_tokens_font_typefaces_primary)',
+              fontFamily: 'var(--recursica_brand_fonts_primary)',
               lineHeight: `var(${lineHeightVar})`,
               color: `var(${genericLayerText(0, 'color')})`,
               opacity: `var(${genericLayerText(0, 'high-emphasis')})`,

@@ -411,42 +411,53 @@ export function exportTokensJson(): object {
     const originalFont = (originalTokens as any)?.tokens?.font || {}
     const originalTypefaces = originalFont.typefaces || {}
 
-    if (Object.keys(originalTypefaces).length > 0) {
+    if (Object.keys(originalTypefaces).length > 0 || Object.keys(storeTokens.font.typefaces || {}).length > 0) {
       result.tokens.font.typefaces = {
         $type: 'fontFamily'
       }
 
-      // Copy typefaces from original to preserve extensions, but update $value from store if changed
-      Object.keys(originalTypefaces).forEach((key) => {
-        if (key === '$type') return
+      // Union of original and store keys — new fonts added at runtime only exist in the store
+      const allTypefaceKeys = new Set([
+        ...Object.keys(originalTypefaces).filter(k => k !== '$type'),
+        ...Object.keys(storeTokens.font.typefaces || {}).filter(k => k !== '$type'),
+      ])
 
+      allTypefaceKeys.forEach((key) => {
         const originalTypeface = originalTypefaces[key]
         const storeTypeface = storeTokens.font.typefaces?.[key] || storeTokens.font.typeface?.[key]
 
-        // Start with original structure (preserves extensions)
-        const exportedTypeface: any = JSON.parse(JSON.stringify(originalTypeface))
+        // Start with original structure (preserves extensions) or store entry for new fonts
+        const base = originalTypeface ? JSON.parse(JSON.stringify(originalTypeface)) : {}
+        const exportedTypeface: any = { ...base }
 
-        // Update $value from store if it exists and differs
-        if (storeTypeface?.$value != null) {
+        // Always use the store entry as the source of truth ($value, $type, $extensions)
+        if (storeTypeface) {
+          exportedTypeface.$type = storeTypeface.$type || exportedTypeface.$type || 'fontFamily'
           const storeValue = storeTypeface.$value
-          // If store has a string value, extract font name
-          if (typeof storeValue === 'string') {
-            const cleaned = storeValue.replace(/^["']|["']$/g, '').trim()
-            const parts = cleaned.split(',')
-            const fontName = parts[0].trim().replace(/^["']|["']$/g, '')
-            // If original was an array, keep array format; otherwise use string
-            if (Array.isArray(originalTypeface.$value)) {
-              exportedTypeface.$value = [fontName, originalTypeface.$value[1] || 'sans-serif']
+          if (storeValue != null) {
+            if (typeof storeValue === 'string') {
+              const cleaned = storeValue.replace(/^["']|["']$/g, '').trim()
+              const parts = cleaned.split(',')
+              const fontName = parts[0].trim().replace(/^["']|["']$/g, '')
+              // Prefer array format (DTCG); keep original format if it was an array
+              if (Array.isArray(originalTypeface?.$value)) {
+                exportedTypeface.$value = [fontName, originalTypeface.$value[1] || 'sans-serif']
+              } else {
+                exportedTypeface.$value = [fontName, 'sans-serif']
+              }
+            } else if (Array.isArray(storeValue)) {
+              exportedTypeface.$value = storeValue
             } else {
-              exportedTypeface.$value = fontName
+              exportedTypeface.$value = storeValue
             }
-          } else if (Array.isArray(storeValue)) {
-            exportedTypeface.$value = storeValue
-          } else {
-            exportedTypeface.$value = storeValue
+          }
+          // Preserve $extensions from the store (has Google Fonts URL + variants)
+          if (storeTypeface.$extensions) {
+            exportedTypeface.$extensions = storeTypeface.$extensions
           }
         }
 
+        if (!exportedTypeface.$type) exportedTypeface.$type = 'fontFamily'
         result.tokens.font.typefaces[key] = exportedTypeface
       })
     }

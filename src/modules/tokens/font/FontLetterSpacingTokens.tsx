@@ -135,7 +135,7 @@ export default function FontLetterSpacingTokens({ autoScale = false }: FontLette
               {label}
             </label>
             <div style={{
-              fontFamily: 'var(--recursica_tokens_font_typefaces_primary)',
+              fontFamily: 'var(--recursica_brand_fonts_primary)',
               letterSpacing: `var(${letterSpacingVar})`,
               color: `var(${genericLayerText(0, 'color')})`,
               opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
