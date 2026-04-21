@@ -391,10 +391,13 @@ class VarsStore {
       root.style.setProperty(key, value)
     }
 
-    // Track all changes in the delta serialization system
+    // Track all changes in the delta serialization system.
+    // The CSS delta is mode-aware (CSS var names embed themes_light / themes_dark),
+    // so per-mode compliance fixes for components are stored and restored correctly
+    // by reapplyDelta() after every recomputeAndApplyAll (including mode switches).
     trackChanges(cssVarUpdates)
 
-    // Persist theme JSON update if provided
+    // Persist theme JSON update if provided (brand layer/palette fixes supply this)
     if (themeUpdate) {
       this.writeState({ theme: themeUpdate })
     }
@@ -693,7 +696,9 @@ class VarsStore {
     // Single recompute with all stores updated
     this.recomputeAndApplyAll()
 
-    // Track delta for all imported namespaces
+    // Track delta for all imported namespaces.
+    // This snapshots lastComputedVars (base values) into the delta, overwriting any stale
+    // delta entries. Compliance overrides are applied AFTER this step so they land on top.
     if (files.tokens) this.trackCurrentStateAsDelta('--recursica_tokens_')
     if (files.brand)  this.trackCurrentStateAsDelta('--recursica_brand_')
     if (files.uikit)  this.trackCurrentStateAsDelta('--recursica_ui-kit_')
@@ -1034,7 +1039,12 @@ class VarsStore {
         const [key] = rest
         if (!tokensRoot.sizes) tokensRoot.sizes = {}
         if (!tokensRoot.sizes[key]) tokensRoot.sizes[key] = {}
-        tokensRoot.sizes[key].$value = typeof value === 'number' ? value : String(value)
+        const existingSize = tokensRoot.sizes[key]?.$value
+        if (existingSize && typeof existingSize === 'object' && Object.prototype.hasOwnProperty.call(existingSize, 'value')) {
+          tokensRoot.sizes[key].$value = { value: typeof value === 'number' ? value : Number(value), unit: (existingSize as any).unit || 'px' }
+        } else {
+          tokensRoot.sizes[key].$value = typeof value === 'number' ? value : String(value)
+        }
       } else if (category === 'opacity' && rest.length >= 1) {
         const [key] = rest
         if (!tokensRoot.opacities) tokensRoot.opacities = {}
@@ -1063,8 +1073,10 @@ class VarsStore {
           if (!tokensRoot.font[pluralKind]) tokensRoot.font[pluralKind] = {}
           if (!tokensRoot.font[pluralKind][key]) tokensRoot.font[pluralKind][key] = {}
           const existing = tokensRoot.font[pluralKind]?.[key]?.$value
-          if (existing && typeof existing === 'object' && Object.prototype.hasOwnProperty.call(existing, 'value') && (pluralKind === 'letter-spacings' || pluralKind === 'line-heights')) {
-            tokensRoot.font[pluralKind][key].$value = { value: typeof value === 'number' ? value : Number(value), unit: (existing as any).unit || 'rem' }
+          if (existing && typeof existing === 'object' && Object.prototype.hasOwnProperty.call(existing, 'value')) {
+            // Preserve {value, unit} dimension object format for all font token categories that use it
+            const unit = (existing as any).unit || (pluralKind === 'sizes' ? 'px' : 'rem')
+            tokensRoot.font[pluralKind][key].$value = { value: typeof value === 'number' ? value : Number(value), unit }
           } else {
             tokensRoot.font[pluralKind][key].$value = typeof value === 'number' ? value : String(value)
           }
@@ -1909,11 +1921,18 @@ class VarsStore {
             const rec = sizes[key]
             const val = rec?.$value
             if (val !== undefined && val !== null) {
-              const num = typeof val === 'number' ? val : Number(val)
-              if (Number.isFinite(num)) {
-                vars[tokenFont('sizes', key)] = `${num}px`
-              } else if (typeof val === 'string') {
-                vars[tokenFont('sizes', key)] = val
+              // Handle {value, unit} dimension objects (DTCG format)
+              if (val && typeof val === 'object' && Object.prototype.hasOwnProperty.call(val, 'value')) {
+                const num = typeof (val as any).value === 'number' ? (val as any).value : Number((val as any).value)
+                const unit = (val as any).unit || 'px'
+                if (Number.isFinite(num)) vars[tokenFont('sizes', key)] = `${num}${unit}`
+              } else {
+                const num = typeof val === 'number' ? val : Number(val)
+                if (Number.isFinite(num)) {
+                  vars[tokenFont('sizes', key)] = `${num}px`
+                } else if (typeof val === 'string') {
+                  vars[tokenFont('sizes', key)] = val
+                }
               }
             }
           })

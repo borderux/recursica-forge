@@ -16,7 +16,6 @@ export interface RandomizeOptions {
     sizes: boolean
     opacities: boolean
     fontSizes: boolean
-    fontTypefaces: boolean
     letterSpacing: boolean
     lineHeights: boolean
   }
@@ -59,7 +58,6 @@ const OPTIONS_STRUCTURE: CheckboxItem[] = [
       { key: 'sizes', label: 'Sizes' },
       { key: 'opacities', label: 'Opacities' },
       { key: 'fontSizes', label: 'Font Sizes' },
-      { key: 'fontTypefaces', label: 'Font Typefaces' },
       { key: 'letterSpacing', label: 'Letter Spacing' },
       { key: 'lineHeights', label: 'Line Heights' },
     ],
@@ -104,7 +102,6 @@ function getDefaultOptions(): RandomizeOptions {
       sizes: true,
       opacities: true,
       fontSizes: true,
-      fontTypefaces: true,
       letterSpacing: true,
       lineHeights: true,
     },
@@ -365,7 +362,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
                 onClick={() => {
                   const newComps: any = {}; ALL_UIKIT_KEYS.forEach(k => newComps[k] = true)
                   setOptions({
-                    tokens: { colors: true, sizes: true, opacities: true, fontSizes: true, fontTypefaces: true, letterSpacing: true, lineHeights: true },
+                    tokens: { colors: true, sizes: true, opacities: true, fontSizes: true, letterSpacing: true, lineHeights: true },
                     theme: { coreProperties: true, corePropertyElements: true, type: true, palettes: true, elevations: true, dimensions: true, layers: true, overlay: true },
                     uikit: { components: newComps }
                   })
@@ -379,7 +376,7 @@ export function RandomizeOptionsModal({ show, onRandomize, onCancel }: Randomize
                 onClick={() => {
                   const newComps: any = {}; ALL_UIKIT_KEYS.forEach(k => newComps[k] = false)
                   setOptions({
-                    tokens: { colors: false, sizes: false, opacities: false, fontSizes: false, fontTypefaces: false, letterSpacing: false, lineHeights: false },
+                    tokens: { colors: false, sizes: false, opacities: false, fontSizes: false, letterSpacing: false, lineHeights: false },
                     theme: { coreProperties: false, corePropertyElements: false, type: false, palettes: false, elevations: false, dimensions: false, layers: false, overlay: false },
                     uikit: { components: newComps }
                   })

@@ -35,6 +35,34 @@ export function syncDeltaToJson(
   theme: JsonLike,
   uikit?: JsonLike,
 ): { syncedCount: number; structuralAdditions: boolean } {
+/**
+ * Write a CSS value back into a DTCG token node, preserving the existing $value format.
+ * If the existing $value is a {value, unit} dimension object, convert the CSS string accordingly.
+ * Otherwise write the raw string.
+ */
+function writeJsonValue(token: any, cssValue: string): void {
+  const existing = token.$value
+  if (existing !== null && typeof existing === 'object' && 'value' in existing && 'unit' in existing) {
+    // Preserve {value, unit} format — parse the CSS string and keep the existing unit
+    const unit = existing.unit as string
+    const match = cssValue.match(/^(-?\d+(?:\.\d+)?)(px|em|rem|%)?$/)
+    if (match) {
+      token.$value = { value: parseFloat(match[1]), unit: match[2] || unit }
+    } else {
+      const num = parseFloat(cssValue)
+      if (Number.isFinite(num)) {
+        token.$value = { value: num, unit }
+      } else {
+        token.$value = cssValue
+      }
+    }
+  } else {
+    token.$value = cssValue
+  }
+}
+
+
+
   const delta = getDelta()
   const entries = Object.entries(delta)
   if (entries.length === 0) return { syncedCount: 0, structuralAdditions: false }
@@ -183,10 +211,19 @@ export function syncDeltaToJson(
                 } else {
                   existing.$value = cssValue
                 }
-              } else if (tokenParsed.category === 'weights' || tokenParsed.category === 'line-heights' || tokenParsed.category === 'letter-spacings') {
+              } else if (tokenParsed.category === 'weights') {
                 const num = parseFloat(cssValue)
                 if (Number.isFinite(num)) {
                   existing.$value = num
+                } else {
+                  existing.$value = cssValue
+                }
+              } else if (tokenParsed.category === 'line-heights' || tokenParsed.category === 'letter-spacings') {
+                // These tokens use {value, unit:'em'} dimension objects — preserve the unit.
+                const existingUnit = (typeof existing.$value === 'object' && existing.$value?.unit) ? existing.$value.unit : 'em'
+                const emMatch = cssValue.match(/^(-?\d+(?:\.\d+)?)(em)?$/)
+                if (emMatch) {
+                  existing.$value = { value: parseFloat(emMatch[1]), unit: existingUnit }
                 } else {
                   existing.$value = cssValue
                 }
@@ -264,9 +301,28 @@ export function syncDeltaToJson(
         const sectionObj = layerObj[brandParsed.section]
         if (!sectionObj) break
 
+        // The CSS var name flattens a two-level JSON path with a hyphen.
+        // `properties` keys are flat with $value directly (surface, border-color, etc.)
+        // `elements` keys are nested two levels deep (text.color, interactive.tone, etc.)
+        // Strategy: try flat lookup first, then fall back to split-on-first-hyphen navigation.
         if (sectionObj[brandParsed.prop] && typeof sectionObj[brandParsed.prop] === 'object' && '$value' in sectionObj[brandParsed.prop]) {
-          sectionObj[brandParsed.prop].$value = cssValue
+          // Flat key found with $value — covers all `properties` entries and any flat `elements` entries
+          writeJsonValue(sectionObj[brandParsed.prop], cssValue)
           syncedCount++
+          break
+        }
+        // No flat match — try splitting on the first hyphen to navigate nested `elements` structure.
+        // e.g. 'text-color' → elements.text.color.$value
+        //      'interactive-tone-hover' → elements.interactive['tone-hover'].$value
+        const firstHyphen = brandParsed.prop.indexOf('-')
+        if (firstHyphen !== -1) {
+          const groupKey = brandParsed.prop.slice(0, firstHyphen)
+          const leafKey = brandParsed.prop.slice(firstHyphen + 1)
+          const group = sectionObj[groupKey]
+          if (group && typeof group === 'object' && group[leafKey] && typeof group[leafKey] === 'object' && '$value' in group[leafKey]) {
+            writeJsonValue(group[leafKey], cssValue)
+            syncedCount++
+          }
         }
         break
       }
@@ -275,7 +331,7 @@ export function syncDeltaToJson(
         if (!elevObj) break
 
         if (elevObj[brandParsed.prop] && typeof elevObj[brandParsed.prop] === 'object' && '$value' in elevObj[brandParsed.prop]) {
-          elevObj[brandParsed.prop].$value = cssValue
+          writeJsonValue(elevObj[brandParsed.prop], cssValue)
           syncedCount++
         }
         break

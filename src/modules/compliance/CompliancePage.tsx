@@ -165,6 +165,7 @@ export default function CompliancePage() {
     const { issues, applySuggestion, applyAllSuggestions, runScan } = useCompliance()
     const { mode } = useThemeMode()
     const [showConfirmAll, setShowConfirmAll] = useState(false)
+    const [isFixingAll, setIsFixingAll] = useState(false)
     const [suggestIssue, setSuggestIssue] = useState<ComplianceIssue | null>(null)
 
     // Snapshot issues so rows persist after fixing (not removed by auto-rescan)
@@ -193,6 +194,17 @@ export default function CompliancePage() {
         window.addEventListener('complianceReset', handleReset)
         return () => window.removeEventListener('complianceReset', handleReset)
     }, [])
+
+    // When the theme mode changes, reset the snapshot and fixed state so the
+    // compliance page re-initialises from the fresh scan results for the new mode.
+    // Fixes applied in the previous mode are persisted in JSON, so they will not
+    // re-appear in the new scan if persistence is working correctly.
+    useEffect(() => {
+        snapshotRef.current = null
+        resettingRef.current = true
+        setFixedMap({})
+        setSuggestFixedMap({})
+    }, [mode])
 
     // After reset, wait for fresh issues from rescan then re-snapshot
     useEffect(() => {
@@ -267,12 +279,20 @@ export default function CompliancePage() {
     }
 
     const handleFixAll = () => {
-        displayIssues.forEach(issue => {
-            if (issue.suggestion && !fixedMap[issue.id] && issue.suggestion.resultingRatio >= issue.requiredRatio) {
-                handleFix(issue)
-            }
+        // Show the spinning state for one frame so React can paint before the
+        // synchronous batch of DOM writes blocks the thread.
+        setIsFixingAll(true)
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                displayIssues.forEach(issue => {
+                    if (issue.suggestion && !fixedMap[issue.id] && issue.suggestion.resultingRatio >= issue.requiredRatio) {
+                        handleFix(issue)
+                    }
+                })
+                setIsFixingAll(false)
+                setShowConfirmAll(false)
+            }, 0)
         })
-        setShowConfirmAll(false)
     }
 
     const handleRescan = () => {
@@ -690,16 +710,18 @@ export default function CompliancePage() {
             {/* Confirm Fix All dialog */}
             <Modal
                 isOpen={showConfirmAll}
-                onClose={() => setShowConfirmAll(false)}
+                onClose={() => !isFixingAll && setShowConfirmAll(false)}
                 title="Apply all fixes?"
                 layer="layer-1"
                 centered={true}
                 showFooter={true}
                 showSecondaryButton={true}
                 secondaryActionLabel="Cancel"
-                onSecondaryAction={() => setShowConfirmAll(false)}
-                primaryActionLabel="Apply all"
+                onSecondaryAction={() => !isFixingAll && setShowConfirmAll(false)}
+                secondaryActionDisabled={isFixingAll}
+                primaryActionLabel={isFixingAll ? 'Fixing...' : 'Apply all'}
                 onPrimaryAction={handleFixAll}
+                primaryActionDisabled={isFixingAll}
                 content={`This will apply ${unfixedCount} suggested fixes. Some changes may alter your theme's visual design.`}
             />
 

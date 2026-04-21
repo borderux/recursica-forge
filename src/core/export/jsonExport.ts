@@ -531,7 +531,7 @@ export function exportTokensJson(): object {
       }
     })
 
-    // Font letter-spacings: $type: "number" with number value
+    // Font letter-spacings: $type: "dimension" with {value, unit:'em'} object
     const fontLetterSpacings = storeTokens.font['letter-spacings'] || storeTokens.font['letter-spacing'] || {}
     Object.keys(fontLetterSpacings).forEach((key) => {
       const token = fontLetterSpacings[key]
@@ -539,25 +539,30 @@ export function exportTokensJson(): object {
 
       const tokenValue = token.$value
       if (tokenValue != null) {
-        let jsonValue: number
-        if (typeof tokenValue === 'number') {
-          jsonValue = tokenValue
-        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
-          jsonValue = Number(tokenValue.value)
+        let jsonValue: { value: number; unit: string }
+        if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = { value: Number(tokenValue.value), unit: tokenValue.unit || 'em' }
+        } else if (typeof tokenValue === 'number') {
+          jsonValue = { value: tokenValue, unit: 'em' }
+        } else if (typeof tokenValue === 'string') {
+          const emMatch = tokenValue.match(/^(-?\d+(?:\.\d+)?)(em)?$/)
+          jsonValue = emMatch
+            ? { value: parseFloat(emMatch[1]), unit: 'em' }
+            : { value: parseFloat(tokenValue) || 0, unit: 'em' }
         } else {
-          jsonValue = Number(tokenValue)
+          jsonValue = { value: 0, unit: 'em' }
         }
 
-        if (Number.isFinite(jsonValue)) {
+        if (Number.isFinite(jsonValue.value)) {
           result.tokens.font['letter-spacings'][key] = {
-            $type: 'number',
+            $type: 'dimension',
             $value: jsonValue
           }
         }
       }
     })
 
-    // Font line-heights: $type: "number" with number value
+    // Font line-heights: $type: "dimension" with {value, unit:'em'} object
     const fontLineHeights = storeTokens.font['line-heights'] || storeTokens.font['line-height'] || {}
     Object.keys(fontLineHeights).forEach((key) => {
       const token = fontLineHeights[key]
@@ -565,18 +570,23 @@ export function exportTokensJson(): object {
 
       const tokenValue = token.$value
       if (tokenValue != null) {
-        let jsonValue: number
-        if (typeof tokenValue === 'number') {
-          jsonValue = tokenValue
-        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
-          jsonValue = Number(tokenValue.value)
+        let jsonValue: { value: number; unit: string }
+        if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = { value: Number(tokenValue.value), unit: tokenValue.unit || 'em' }
+        } else if (typeof tokenValue === 'number') {
+          jsonValue = { value: tokenValue, unit: 'em' }
+        } else if (typeof tokenValue === 'string') {
+          const emMatch = tokenValue.match(/^(-?\d+(?:\.\d+)?)(em)?$/)
+          jsonValue = emMatch
+            ? { value: parseFloat(emMatch[1]), unit: 'em' }
+            : { value: parseFloat(tokenValue) || 0, unit: 'em' }
         } else {
-          jsonValue = Number(tokenValue)
+          jsonValue = { value: 0, unit: 'em' }
         }
 
-        if (Number.isFinite(jsonValue)) {
+        if (Number.isFinite(jsonValue.value)) {
           result.tokens.font['line-heights'][key] = {
-            $type: 'number',
+            $type: 'dimension',
             $value: jsonValue
           }
         }
@@ -776,9 +786,18 @@ function ensurePaletteDefaults(result: any): void {
           : `{brand.themes.${mode}.palettes.${paletteKey}.${resolvedStep}.color.on-tone}`
         color['on-tone'] = { $type: 'color', $value: baseRef }
       }
+
+      // Ensure $type:'color' is present on the color group and appears first
+      // (rebuild with proper key order: $type, tone, on-tone)
+      if (!color.$type || color.$type !== 'color') {
+        const rebuilt = { $type: 'color', tone: color.tone, 'on-tone': color['on-tone'] }
+        palette.default.color = rebuilt
+      }
     }
   }
 }
+
+
 
 /**
  * Ensures all palette tone/on-tone tokens have the required DTCG $type: "color" property.
@@ -1059,6 +1078,9 @@ export function exportUIKitJson(): object {
 
   // Normalize brand references to remove theme information (UIKit should be theme-agnostic)
   const normalized = normalizeUIKitBrandReferences(result)
+
+
+
 
   // Add metadata with export timestamp
   normalized.$metadata = {
