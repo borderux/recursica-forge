@@ -163,6 +163,13 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{tokens.font.letter-spacings.${shiftValue(spacingsMatch[1], ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest'])}}`;
     }
     
+    // Palette on-tone contrast: {brand.palettes.black} / {brand.palettes.white}
+    // These are the accessibility contrast colors used for on-tone values in palettes.
+    const paletteBlackWhiteMatch = content.match(/^brand\.palettes\.(black|white)$/);
+    if (paletteBlackWhiteMatch) {
+        return Math.random() < 0.5 ? '{brand.palettes.black}' : '{brand.palettes.white}';
+    }
+
     // Brand Color Palette: {brand.themes.light.palettes.neutral.100.color.tone} or ...neutral.default.color.tone
     const paletteMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?palettes\.([a-z0-9-]+)\.([a-z0-9-]+)\.color\.(tone|on-tone)$/);
     if (paletteMatch) {

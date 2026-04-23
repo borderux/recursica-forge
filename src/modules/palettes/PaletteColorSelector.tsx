@@ -373,8 +373,18 @@ export default function PaletteColorSelector({
     return families[0] || ''
   })
 
-  // Sync selectedFamily when theme changes (but don't update CSS vars here)
+  // Track whether the user explicitly picked a family so the sync effect below
+  // does not immediately revert the selection while setTheme is still propagating.
+  const userChangedRef = useRef(false)
+
+  // Sync selectedFamily when the theme changes externally (import, reset, randomize).
+  // Skip the sync for one cycle after a user-initiated dropdown change to prevent
+  // the stale detectFamilyFromTheme value from reverting the new selection.
   useEffect(() => {
+    if (userChangedRef.current) {
+      userChangedRef.current = false
+      return
+    }
     const detected = detectFamilyFromTheme
     if (detected && detected !== selectedFamily) {
       setSelectedFamily(detected)
@@ -837,6 +847,7 @@ export default function PaletteColorSelector({
 
   const handleFamilySelect = (family: string) => {
     if (family !== selectedFamily) {
+      userChangedRef.current = true
       setSelectedFamily(family)
       updatePaletteForFamily(family)
     }
