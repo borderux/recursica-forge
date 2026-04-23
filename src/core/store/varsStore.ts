@@ -19,7 +19,7 @@ import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
 import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges } from './cssDelta'
 import { clearElevationColorMirror } from '../elevation/elevationModeScope'
-import { clearStoredFonts } from './fontStore'
+import { clearStoredFonts, saveStoredFonts, getDefaultFonts } from './fontStore'
 import { syncDeltaToJson } from './deltaToJson'
 import { buildStructuralMetadata, type StructuralMetadata } from './structuralMetadata'
 import { clearGlobalRefPreference } from '../css/globalRefInterceptor'
@@ -1231,6 +1231,11 @@ class VarsStore {
     clearAllCssVars()
     clearDelta()
     clearStoredFonts()
+    // Immediately restore rf:fonts to the canonical defaults so syncFontsToTokens
+    // (called inside recomputeAndApplyAll below) does not return early and correctly
+    // emits font CSS vars for the default font set.  Added fonts and sequence changes
+    // are both wiped because we derive from the static JSON, not from any user session state.
+    saveStoredFonts(getDefaultFonts())
     this.clearDeletedScales()
     try { localStorage.removeItem(STORAGE_KEYS.elevationPaletteSelections) } catch { }
     clearElevationColorMirror()

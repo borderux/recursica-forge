@@ -1159,10 +1159,12 @@ export default function FontFamiliesTokens() {
         currentUrl={(() => {
           if (!editModalRow) return undefined
           try {
-            const key = editModalRow.name.replace('font/typeface/', '')
             const fontRoot: any = (tokensJson as any)?.tokens?.font || (tokensJson as any)?.font || {}
             const typefaces: any = fontRoot?.typefaces || fontRoot?.typeface || {}
-            const typefaceDef = typefaces[key]
+            // Look up by slug derived from family name (typefaces are slug-keyed)
+            const familyName = editModalRow.value?.trim().replace(/^["']|["']$/g, '') || ''
+            const slug = familyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+            const typefaceDef = typefaces[slug]
             return typefaceDef?.$extensions?.['com.google.fonts']?.url
           } catch {
             return undefined
@@ -1195,73 +1197,23 @@ export default function FontFamiliesTokens() {
             const fontRoot = tokens?.tokens?.font || tokens?.font || {}
             const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
 
-            // Handle sequence change if needed
-            if (newKey !== oldKey && typefaces[oldKey]) {
-              const all = readOverrides()
-              const oldName = `font/typeface/${oldKey}`
-              const newName = `font/typeface/${newKey}`
-
-              // Check if new sequence is already taken
-              if (typefaces[newKey]) {
-                // Swap: move existing font at newKey to oldKey
-                const tempTypeface = JSON.parse(JSON.stringify(typefaces[newKey])) // Deep clone with extensions
-                const tempValue = all[newName]
-
-                // Move current font to newKey (with all extensions)
-                typefaces[newKey] = JSON.parse(JSON.stringify(typefaces[oldKey])) // Deep clone with extensions
-                if (all[oldName] !== undefined) {
-                  all[newName] = all[oldName]
-                  updateToken(newName, all[oldName])
-                }
-
-                // Move existing font to oldKey (with all extensions)
-                typefaces[oldKey] = tempTypeface
-                if (tempValue !== undefined) {
-                  all[oldName] = tempValue
-                  updateToken(oldName, tempValue)
-                }
-
-                // Remove old CSS variables
-                removeCssVar(`--tokens-font-typeface-${oldKey}`)
-                removeCssVar(tokenFont('typefaces', oldKey))
-                removeCssVar(`--tokens-font-typeface-${newKey}`)
-                removeCssVar(tokenFont('typefaces', newKey))
-
-                writeOverrides(all)
-              } else {
-                // Move font to new sequence (no conflict)
-                typefaces[newKey] = JSON.parse(JSON.stringify(typefaces[oldKey])) // Deep clone with extensions
-                delete typefaces[oldKey]
-
-                // Update overrides
-                const value = all[oldName]
-                if (value !== undefined) {
-                  delete all[oldName]
-                  all[newName] = value
-                  writeOverrides(all)
-                  updateToken(newName, value)
-
-                  // Remove old CSS variables
-                  removeCssVar(`--tokens-font-typeface-${oldKey}`)
-                  removeCssVar(tokenFont('typefaces', oldKey))
-                }
-              }
-
-              // Update stored fonts (rf:fonts) so the rows array reflects the sequence change
+            // Handle sequence change: sequence is owned by rf:fonts (id field) and brand.fonts.
+            // typefaces are slug-keyed and never need to move — only the id mapping changes.
+            if (newKey !== oldKey) {
               const fonts = getStoredFonts()
               const oldFontIndex = fonts.findIndex(f => f.id === oldKey)
               const newFontIndex = fonts.findIndex(f => f.id === newKey)
 
               if (oldFontIndex !== -1 && newFontIndex !== -1) {
-                // Swap IDs
+                // Swap IDs — both sequences already in use
                 fonts[oldFontIndex].id = newKey
                 fonts[newFontIndex].id = oldKey
               } else if (oldFontIndex !== -1) {
-                // Just change ID
+                // Move to an unoccupied sequence slot
                 fonts[oldFontIndex].id = newKey
               }
 
-              // Re-sort the fonts based on ORDER
+              // Re-sort based on ORDER
               fonts.sort((a, b) => {
                 const aIndex = ORDER.indexOf(a.id)
                 const bIndex = ORDER.indexOf(b.id)
@@ -1272,24 +1224,26 @@ export default function FontFamiliesTokens() {
               })
 
               saveStoredFonts(fonts)
+              // syncFontsToTokens will rebuild brand.fonts with the new id → slug mapping
+              store.syncFontsToTokens(true)
               setRows(buildRows())
-
-              // Update store with resequenced tokens
-              store.setTokens(tokens)
             }
 
             const key = newKey
-            if (typefaces[key]) {
-              if (!typefaces[key].$extensions) {
-                typefaces[key].$extensions = {}
+            // Typefaces are slug-keyed (e.g., "bellota-text"), not sequence-keyed (e.g., "secondary")
+            const familyName = editModalRow?.value?.trim().replace(/^["']|["']$/g, '') || ''
+            const fontSlug = familyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || key
+            if (typefaces[fontSlug]) {
+              if (!typefaces[fontSlug].$extensions) {
+                typefaces[fontSlug].$extensions = {}
               }
 
               // Only update URL if provided (custom fonts don't have URLs)
               if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
-                if (!typefaces[key].$extensions['com.google.fonts']) {
-                  typefaces[key].$extensions['com.google.fonts'] = {}
+                if (!typefaces[fontSlug].$extensions['com.google.fonts']) {
+                  typefaces[fontSlug].$extensions['com.google.fonts'] = {}
                 }
-                typefaces[key].$extensions['com.google.fonts'].url = url
+                typefaces[fontSlug].$extensions['com.google.fonts'].url = url
               }
 
               // Store variants by font name, not sequence

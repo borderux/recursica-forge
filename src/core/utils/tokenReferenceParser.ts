@@ -255,6 +255,16 @@ export function resolveTokenReferenceToCssVar(
         return `var(${textEmphasisVar(mode, level)})`
       }
 
+      if (firstPart === 'fonts' || firstPart === 'font') {
+        // {brand.fonts.primary} → var(--recursica_brand_fonts_primary)
+        // brand.fonts are the sequence-level font aliases owned by brand.json
+        const fontLevel = pathParts[1] || ''
+        if (fontLevel) {
+          return `var(--recursica_brand_fonts_${fontLevel})`
+        }
+        return null
+      }
+
       if (firstPart === 'typography') {
         // Typography CSS variables naming pattern (from typography.ts):
         // - font-size -> --recursica_brand_typography_{style}-font-size

@@ -56,26 +56,22 @@ export default function Link({
     // State-dependent text properties (default state)
     const defaultFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-weight')
     const defaultTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-decoration')
-    const defaultTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'text-transform')
     const defaultFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'text', 'font-style')
 
     // State-dependent text properties (hover state)
     const hoverFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'font-weight')
     const hoverTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'text-decoration')
-    const hoverTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'text-transform')
     const hoverFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'text', 'font-style')
 
     // State-dependent text properties (visited state)
     const visitedFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'font-weight')
     const visitedTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'text-decoration')
-    const visitedTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'text-transform')
     const visitedFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'text', 'font-style')
     const visitedTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'colors', layer, 'text')
 
     // State-dependent text properties (visited-hover state)
     const visitedHoverFontWeightVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'font-weight')
     const visitedHoverTextDecorationVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'text-decoration')
-    const visitedHoverTextTransformVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'text-transform')
     const visitedHoverFontStyleVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'text', 'font-style')
     const visitedHoverTextColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'colors', layer, 'text')
     const visitedHoverIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited-hover', 'properties', 'colors', layer, 'icon')
@@ -87,9 +83,9 @@ export default function Link({
     useEffect(() => {
         const textCssVars = [
             fontFamilyVar, fontSizeVar, letterSpacingVar, lineHeightVar,
-            defaultFontWeightVar, defaultTextDecorationVar, defaultTextTransformVar, defaultFontStyleVar,
-            hoverFontWeightVar, hoverTextDecorationVar, hoverTextTransformVar, hoverFontStyleVar,
-            visitedFontWeightVar, visitedTextDecorationVar, visitedTextTransformVar, visitedFontStyleVar, visitedTextColorVar,
+            defaultFontWeightVar, defaultTextDecorationVar, defaultFontStyleVar,
+            hoverFontWeightVar, hoverTextDecorationVar, hoverFontStyleVar,
+            visitedFontWeightVar, visitedTextDecorationVar, visitedFontStyleVar, visitedTextColorVar,
             defaultIconColorVar, hoverIconColorVar, visitedIconColorVar,
             textVar, textHoverVar, iconGapVar
         ]
@@ -121,10 +117,10 @@ export default function Link({
             observer.disconnect()
         }
     }, [fontFamilyVar, fontSizeVar, letterSpacingVar, lineHeightVar,
-        defaultFontWeightVar, defaultTextDecorationVar, defaultTextTransformVar, defaultFontStyleVar,
-        hoverFontWeightVar, hoverTextDecorationVar, hoverTextTransformVar, hoverFontStyleVar,
-        visitedFontWeightVar, visitedTextDecorationVar, visitedTextTransformVar, visitedFontStyleVar, visitedTextColorVar,
-        visitedHoverFontWeightVar, visitedHoverTextDecorationVar, visitedHoverTextTransformVar, visitedHoverFontStyleVar, visitedHoverTextColorVar, visitedHoverIconColorVar,
+        defaultFontWeightVar, defaultTextDecorationVar, defaultFontStyleVar,
+        hoverFontWeightVar, hoverTextDecorationVar, hoverFontStyleVar,
+        visitedFontWeightVar, visitedTextDecorationVar, visitedFontStyleVar, visitedTextColorVar,
+        visitedHoverFontWeightVar, visitedHoverTextDecorationVar, visitedHoverFontStyleVar, visitedHoverTextColorVar, visitedHoverIconColorVar,
         defaultIconColorVar, hoverIconColorVar, visitedIconColorVar,
         textVar, textHoverVar, iconGapVar])
 
@@ -174,25 +170,21 @@ export default function Link({
             '--link-letter-spacing': `var(${letterSpacingVar})`,
             '--link-line-height': `var(${lineHeightVar})`,
             '--link-text-decoration': `var(${defaultTextDecorationVar})`,
-            '--link-text-transform': `var(${defaultTextTransformVar})`,
             '--link-font-style': `var(${defaultFontStyleVar})`,
             '--link-hover-font-weight': `var(${hoverFontWeightVar})`,
             '--link-hover-text-decoration': `var(${hoverTextDecorationVar})`,
-            '--link-hover-text-transform': `var(${hoverTextTransformVar})`,
             '--link-hover-font-style': `var(${hoverFontStyleVar})`,
 
             // CSS custom properties for visited state
             '--link-visited-color': `var(${visitedTextColorVar})`,
             '--link-visited-font-weight': `var(${visitedFontWeightVar})`,
             '--link-visited-text-decoration': `var(${visitedTextDecorationVar})`,
-            '--link-visited-text-transform': `var(${visitedTextTransformVar})`,
             '--link-visited-font-style': `var(${visitedFontStyleVar})`,
 
             // CSS custom properties for visited-hover state
             '--link-visited-hover-color': `var(${visitedHoverTextColorVar})`,
             '--link-visited-hover-font-weight': `var(${visitedHoverFontWeightVar})`,
             '--link-visited-hover-text-decoration': `var(${visitedHoverTextDecorationVar})`,
-            '--link-visited-hover-text-transform': `var(${visitedHoverTextTransformVar})`,
             '--link-visited-hover-font-style': `var(${visitedHoverFontStyleVar})`,
 
             // CSS custom properties for icon color
@@ -214,7 +206,6 @@ export default function Link({
 
     const additionalStyles: React.CSSProperties = {
         fontStyle: `var(${defaultFontStyleVar})` as any,
-        textTransform: `var(${defaultTextTransformVar})` as any,
     }
 
     if (underline === 'always') {

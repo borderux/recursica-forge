@@ -411,6 +411,11 @@ export function exportTokensJson(): object {
     const originalFont = (originalTokens as any)?.tokens?.font || {}
     const originalTypefaces = originalFont.typefaces || {}
 
+    // fontVariants is the authoritative flat runtime map: { 'bellota-text': [{weight, style}…] }
+    // The store's per-typeface $extensions never contains variants — they are stored separately.
+    // We inject them back at export time so the round-trip is lossless.
+    const fontVariantsMap: Record<string, any[]> = storeTokens.font?.fontVariants || {}
+
     if (Object.keys(originalTypefaces).length > 0 || Object.keys(storeTokens.font.typefaces || {}).length > 0) {
       result.tokens.font.typefaces = {
         $type: 'fontFamily'
@@ -451,10 +456,28 @@ export function exportTokensJson(): object {
               exportedTypeface.$value = storeValue
             }
           }
-          // Preserve $extensions from the store (has Google Fonts URL + variants)
+          // Preserve $extensions from the store (has Google Fonts URL)
           if (storeTypeface.$extensions) {
             exportedTypeface.$extensions = storeTypeface.$extensions
           }
+        }
+
+        // Inject variants from the flat fontVariantsMap — the authoritative runtime source.
+        // Must happen after the storeTypeface block because that block may overwrite $extensions.
+        const fontNameFromValue: string = (() => {
+          const v = exportedTypeface.$value
+          if (Array.isArray(v) && v.length > 0) return String(v[0]).toLowerCase()
+          if (typeof v === 'string') return v.split(',')[0].trim().replace(/^["']|["']$/g, '').toLowerCase()
+          return key.toLowerCase()
+        })()
+        const runtimeVariants = fontVariantsMap[fontNameFromValue] || fontVariantsMap[key.toLowerCase()]
+        if (runtimeVariants && runtimeVariants.length > 0) {
+          if (!exportedTypeface.$extensions) exportedTypeface.$extensions = {}
+          exportedTypeface.$extensions.variants = runtimeVariants
+        } else if (!exportedTypeface.$extensions?.variants && base.$extensions?.variants) {
+          // Fall back to the original JSON variants when the runtime map has no entry
+          if (!exportedTypeface.$extensions) exportedTypeface.$extensions = {}
+          exportedTypeface.$extensions.variants = base.$extensions.variants
         }
 
         if (!exportedTypeface.$type) exportedTypeface.$type = 'fontFamily'

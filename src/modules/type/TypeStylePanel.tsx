@@ -68,12 +68,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   // Re-read values when panel opens or selected prefixes change
   useEffect(() => {
     if (open && selectedPrefixes.length > 0) {
-      // Clear local overrides so sliders re-derive from CSS vars
       setLocalSizeIdx(null)
       setLocalWeightIdx(null)
       setLocalSpacingIdx(null)
       setLocalLineHeightIdx(null)
-      // Force re-read by incrementing updateKey
       const timeoutId = setTimeout(() => {
         setUpdateKey((k) => k + 1)
       }, 100)
@@ -105,91 +103,96 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     } catch { }
     return out
   }, [tokens])
+  // ---------------------------------------------------------------------------
+  // Shared helper: resolve font variants array for a given font-family CSS var.
+  // Returns null when no variant data exists (all weights/styles allowed).
+  // ---------------------------------------------------------------------------
+  const getVariantsForFontCssVar = useCallback((cssVar: string): Array<{ weight: string; style: string }> | null => {
+    try {
+      const fontRoot = (tokens as any)?.tokens?.font || (tokens as any)?.font || {}
+      const fontVariants = fontRoot.fontVariants || {}
+
+      // Fully resolve the CSS variable value to a font-family string
+      let cssValue = readCssVarResolved(cssVar) || readCssVar(cssVar) || ''
+      let depth = 0
+      while (cssValue.startsWith('var(') && depth < 5) {
+        const m = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
+        if (m) cssValue = readCssVarResolved(m[1]) || readCssVar(m[1]) || ''
+        else break
+        depth++
+      }
+
+      const fontNameMatch = cssValue.match(/^["']?([^"',]+)["']?/)
+      if (!fontNameMatch) return null
+      const cleanFontName = fontNameMatch[1].trim().toLowerCase()
+
+      let variants: Array<{ weight: string; style: string }> | null = fontVariants[cleanFontName] || null
+
+      // Fallback to older $extensions structure
+      if (!variants || variants.length === 0) {
+        const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+        for (const [key, typefaceDef] of Object.entries(typefaces)) {
+          if (key.startsWith('$')) continue
+          const typeface = typefaceDef as any
+          const value = typeface?.$value
+          let typefaceFontName = ''
+          if (Array.isArray(value) && value.length > 0) {
+            typefaceFontName = typeof value[0] === 'string' ? value[0].trim().replace(/^["']|["']$/g, '').toLowerCase() : ''
+          } else if (typeof value === 'string') {
+            typefaceFontName = value.trim().replace(/^["']|["']$/g, '').toLowerCase()
+          }
+          if (typefaceFontName === cleanFontName) {
+            const exts = typeface?.$extensions
+            variants = exts?.['com.google.fonts']?.variants || exts?.variants || null
+            break
+          }
+        }
+      }
+
+      return variants && variants.length > 0 ? variants : null
+    } catch {
+      return null
+    }
+  }, [tokens])
+
   const weightOptions = useMemo(() => {
     const out: Array<{ short: string; label: string; value?: number }> = []
     try {
-      // Check both plural and singular forms
       const fontWeights = (tokens as any)?.tokens?.font?.weights || (tokens as any)?.tokens?.font?.weight || {}
 
       let allowedWeightKeys: Set<string> | null = null
 
       if (open && selectedPrefixes.length > 0) {
-        const fontRoot = (tokens as any)?.tokens?.font || (tokens as any)?.font || {}
-        const fontVariants = fontRoot.fontVariants || {}
-
         let hasFontsWithVariants = false
         const intersectingWeights = new Set<string>()
         let isFirstFont = true
 
         selectedPrefixes.forEach((prefix) => {
           const cssVar = `--recursica_brand_typography_${prefixToCssVarName(prefix)}-font-family`
-          let cssValue = readCssVarResolved(cssVar) || readCssVar(cssVar) || ''
+          const variants = getVariantsForFontCssVar(cssVar)
 
-          // Resolve var() chains
-          let depth = 0
-          while (cssValue.startsWith('var(') && depth < 5) {
-            const varMatch = cssValue.match(/var\s*\(\s*(--[^)]+?)\s*\)/)
-            if (varMatch) {
-              cssValue = readCssVarResolved(varMatch[1]) || readCssVar(varMatch[1]) || ''
-            } else break
-            depth++
-          }
-
-          const fontNameMatch = cssValue.match(/^["']?([^"',]+)["']?/)
-          if (fontNameMatch) {
-            const cleanFontName = fontNameMatch[1].trim().toLowerCase()
-            let variants = fontVariants[cleanFontName]
-
-            // Fallback to older $extensions structure if missing
-            if (!variants || variants.length === 0) {
-              const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
-              for (const [key, typefaceDef] of Object.entries(typefaces)) {
-                if (key.startsWith('$')) continue
-                const typeface = typefaceDef as any
-                const value = typeface?.$value
-                let typefaceFontName = ''
-                if (Array.isArray(value) && value.length > 0) {
-                  typefaceFontName = typeof value[0] === 'string' ? value[0].trim().replace(/^["']|["']$/g, '').toLowerCase() : ''
-                } else if (typeof value === 'string') {
-                  typefaceFontName = value.trim().replace(/^["']|["']$/g, '').toLowerCase()
-                }
-                if (typefaceFontName === cleanFontName) {
-                  const exts = typeface?.$extensions
-                  variants = exts?.['com.google.fonts']?.variants || exts?.variants
-                  break
-                }
+          if (variants) {
+            hasFontsWithVariants = true
+            const fontWeightKeys = new Set<string>()
+            variants.forEach((variant) => {
+              if (variant && typeof variant.weight === 'string') {
+                const weightMatch = variant.weight.match(/\{tokens?\.font\.weights?\.([a-z0-9\-_]+)\}/i)
+                if (weightMatch?.[1]) fontWeightKeys.add(weightMatch[1])
               }
-            }
+            })
 
-            if (variants && Array.isArray(variants) && variants.length > 0) {
-              hasFontsWithVariants = true
-              const fontWeightKeys = new Set<string>()
-              variants.forEach((variant: any) => {
-                if (variant && typeof variant === 'object' && typeof variant.weight === 'string') {
-                  const weightMatch = variant.weight.match(/\{tokens?\.font\.weights?\.([a-z0-9\-_]+)\}/i)
-                  if (weightMatch && weightMatch[1]) {
-                    fontWeightKeys.add(weightMatch[1])
-                  }
-                }
-              })
-
-              if (isFirstFont) {
-                fontWeightKeys.forEach((k) => intersectingWeights.add(k))
-                isFirstFont = false
-              } else {
-                const toRemove: string[] = []
-                intersectingWeights.forEach((k) => {
-                  if (!fontWeightKeys.has(k)) toRemove.push(k)
-                })
-                toRemove.forEach((k) => intersectingWeights.delete(k))
-              }
+            if (isFirstFont) {
+              fontWeightKeys.forEach((k) => intersectingWeights.add(k))
+              isFirstFont = false
+            } else {
+              const toRemove: string[] = []
+              intersectingWeights.forEach((k) => { if (!fontWeightKeys.has(k)) toRemove.push(k) })
+              toRemove.forEach((k) => intersectingWeights.delete(k))
             }
           }
         })
 
-        if (hasFontsWithVariants) {
-          allowedWeightKeys = intersectingWeights
-        }
+        if (hasFontsWithVariants) allowedWeightKeys = intersectingWeights
       }
 
       Object.entries(fontWeights).forEach(([k, rec]: [string, any]) => {
@@ -199,7 +202,52 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
       })
     } catch { }
     return out
-  }, [tokens, open, selectedPrefixes, updateKey])
+  }, [tokens, open, selectedPrefixes, updateKey, getVariantsForFontCssVar])
+
+  // ---------------------------------------------------------------------------
+  // Compute the set of available font-style CSS values (e.g. 'normal', 'italic')
+  // across all selected prefixes.  When no variant data exists for a font we
+  // conservatively allow all styles.
+  // ---------------------------------------------------------------------------
+  const availableFontStyles = useMemo((): Set<string> => {
+    if (!open || selectedPrefixes.length === 0) return new Set(['normal', 'italic'])
+    try {
+      const fontRoot = (tokens as any)?.tokens?.font || (tokens as any)?.font || {}
+      const styles: any = fontRoot?.styles || {}
+
+      const stylesSets: Set<string>[] = []
+
+      selectedPrefixes.forEach((prefix) => {
+        const cssVar = `--recursica_brand_typography_${prefixToCssVarName(prefix)}-font-family`
+        const variants = getVariantsForFontCssVar(cssVar)
+        if (!variants) return // no variant data → don't constrain this font
+
+        const fontStyleValues = new Set<string>()
+        variants.forEach((variant) => {
+          if (!variant?.style) return
+          const styleMatch = variant.style.match(/\{tokens?\.font\.styles?\.([a-z0-9\-_]+)\}/i)
+          if (styleMatch?.[1]) {
+            const styleDef = styles[styleMatch[1]]
+            fontStyleValues.add(styleDef?.$value || styleMatch[1])
+          }
+        })
+        if (fontStyleValues.size > 0) stylesSets.push(fontStyleValues)
+      })
+
+      if (stylesSets.length === 0) return new Set(['normal', 'italic'])
+
+      // Intersect across all selected prefixes
+      const result = new Set(stylesSets[0])
+      for (let i = 1; i < stylesSets.length; i++) {
+        for (const s of result) {
+          if (!stylesSets[i].has(s)) result.delete(s)
+        }
+      }
+      return result
+    } catch {
+      return new Set(['normal', 'italic'])
+    }
+  }, [tokens, open, selectedPrefixes, updateKey, getVariantsForFontCssVar])
   const spacingOptions = useMemo(() => {
     const out: Array<{ short: string; label: string; value?: number }> = []
     try {
@@ -224,15 +272,16 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     } catch { }
     return out
   }, [tokens])
-  // Font style segmented control options (icons matching toolbar)
+  // Font style segmented control options — filtered to only what the current font supports
   const fontStyleItems = useMemo(() => {
     const RomanIcon = iconNameToReactComponent('radix-font-roman')
     const ItalicIcon = iconNameToReactComponent('radix-font-italic')
-    return [
+    const all = [
       { value: 'normal', label: 'Normal', icon: RomanIcon ? <RomanIcon size={16} /> : null, tooltip: 'Normal' },
       { value: 'italic', label: 'Italic', icon: ItalicIcon ? <ItalicIcon size={16} /> : null, tooltip: 'Italic' },
     ]
-  }, [])
+    return all.filter((item) => availableFontStyles.has(item.value))
+  }, [availableFontStyles])
 
   // Text decoration segmented control options (icons matching toolbar)
   const textDecorationItems = useMemo(() => {
@@ -594,36 +643,40 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
         const cssValue = readCssVar(cssVar) || readCssVarResolved(cssVar)
         if (!cssValue) return ''
 
-        // First, try to extract token reference using central parser
-        const fontParsed = parseTokenCssVar(cssValue)
-        if (fontParsed && fontParsed.type === 'font') {
-          return fontParsed.key
-        }
-
-        // If it's a var() reference, follow the chain
+        // Typography font-family vars point to var(--recursica_brand_fonts_X).
+        // Extract X directly — it matches familyOptions[].short (e.g. 'primary').
         if (cssValue.startsWith('var(')) {
           const innerVarName = unwrapVar(cssValue)
           if (innerVarName) {
+            const brandFontsMatch = innerVarName.match(/^--recursica_brand_fonts_(.+)$/)
+            if (brandFontsMatch) {
+              return brandFontsMatch[1]
+            }
+
+            // Follow further for other var() chains
             const innerValue = readCssVar(innerVarName) || readCssVarResolved(innerVarName)
             if (innerValue) {
               const innerParsed = parseTokenCssVar(innerValue)
               if (innerParsed && innerParsed.type === 'font') {
-                return innerParsed.key
+                // innerParsed.key is a typeface slug — map back to a sequence key
+                const matchBySlug = familyOptions.find((o) => {
+                  const tokenCssVar = tokenFont('typefaces', o.short)
+                  const tokenValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
+                  return tokenValue && tokenValue.includes(innerParsed.key)
+                })
+                if (matchBySlug) return matchBySlug.short
               }
             }
           }
         }
 
-        // If no token reference found, try to match the actual font value against familyOptions
-        const fontNameMatch = cssValue.match(/^["']?([^"',]+)["']?/)
+        // If no var() chain matched, try to match by resolved font-family string
+        const resolvedValue = readCssVarResolved(cssVar) || cssValue
+        const fontNameMatch = resolvedValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
         if (fontNameMatch) {
-          const fontName = fontNameMatch[1].trim()
           const matchingOption = familyOptions.find((o) => {
-            if (o.value && o.value.trim() === fontName) return true
-            if (o.label && o.label.includes(`(${fontName})`)) return true
-            const tokenCssVar = tokenFont('typefaces', o.short)
-            const tokenValue = readCssVarResolved(tokenCssVar) || readCssVar(tokenCssVar)
-            if (tokenValue && tokenValue.includes(fontName)) return true
+            if (o.value && o.value.split(',')[0].trim().replace(/^['"]|['"]$/g, '') === fontNameMatch) return true
+            if (o.label && o.label.includes(`(${fontNameMatch})`)) return true
             return false
           })
           if (matchingOption) {
@@ -656,8 +709,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
 
   const { mode } = useThemeMode()
 
-  // Pre-compute sorted arrays and callbacks at top level (before early return)
-  // This ensures hooks are always called in the same order
   const sortedSizeTokens = useMemo(() => {
     return [...sizeOptions].sort((a, b) => (a.value || 0) - (b.value || 0))
   }, [sizeOptions])
@@ -694,6 +745,32 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     return token?.label || token?.short || String(value)
   }, [sortedLineHeightTokens])
 
+
+  // When the selected font changes, auto-correct weight and style if the current
+  // values are no longer valid for the new font.
+  useEffect(() => {
+    if (!open || !currentFamilyToken) return
+
+    // Weight: if the currently applied weight isn't in the allowed set, snap to the
+    // first available weight for this font.
+    if (sortedWeightTokens.length > 0 && weightCurrentToken) {
+      const isValid = sortedWeightTokens.some((t) => t.short === weightCurrentToken)
+      if (!isValid) {
+        const firstWeight = sortedWeightTokens[0]
+        if (firstWeight) {
+          setLocalWeightIdx(0)
+          updateCssVarValue('font-weight', firstWeight.short)
+        }
+      }
+    }
+
+    // Style: if current style is italic but the font only supports normal, reset it.
+    if (!availableFontStyles.has(currentFontStyleValue) && availableFontStyles.size > 0) {
+      const fallback = availableFontStyles.has('normal') ? 'normal' : [...availableFontStyles][0]
+      if (fallback) handleFontStyleChange(fallback)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentFamilyToken, open])
 
   if (!open) return null
 
@@ -849,17 +926,19 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 No line height tokens available
               </div>
             )}
-            {/* Font Style */}
-            <div>
-              <Label layer="layer-3" layout="stacked">Style</Label>
-              <SegmentedControl
-                items={fontStyleItems}
-                value={currentFontStyleValue}
-                onChange={(v) => handleFontStyleChange(v)}
-                layer="layer-3"
-                showLabel={false}
-              />
-            </div>
+            {/* Font Style — only rendered when the font has more than one style variant */}
+            {fontStyleItems.length > 1 && (
+              <div>
+                <Label layer="layer-3" layout="stacked">Style</Label>
+                <SegmentedControl
+                  items={fontStyleItems}
+                  value={currentFontStyleValue}
+                  onChange={(v) => handleFontStyleChange(v)}
+                  layer="layer-3"
+                  showLabel={false}
+                />
+              </div>
+            )}
 
             {/* Text Decoration */}
             <div>

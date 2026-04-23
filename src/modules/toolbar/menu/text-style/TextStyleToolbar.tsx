@@ -115,37 +115,44 @@ export default function TextStyleToolbar({
     try {
       const brandRoot: any = (theme as any)?.brand || theme || {}
       const brandFonts = brandRoot?.fonts || {}
+      const tokensRoot: any = (tokensFromVars as any)?.tokens || tokensFromVars || {}
+      const typefaces: any = tokensRoot?.font?.typefaces || {}
 
       Object.keys(brandFonts).forEach(key => {
         if (key.startsWith('$')) return
 
-        const cssVar = `--recursica_brand_fonts_${key}`
-        const cssValue = readCssVar(cssVar)
+        const brandEntry = brandFonts[key]
+        const aliasValue = brandEntry?.$value || brandEntry
+        if (!aliasValue || typeof aliasValue !== 'string') return
 
-        if (cssValue) {
-          // Resolve through the alias chain to get the actual font name
-          const resolvedValue = readCssVarResolved(cssVar)
-          let fontName = ''
-          if (resolvedValue) {
-            fontName = resolvedValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
-          }
+        // Resolve the alias {tokens.font.typefaces.slug} → actual font name
+        const slugMatch = String(aliasValue).match(/\{tokens\.font\.typefaces\.([^}]+)\}/)
+        if (!slugMatch) return
+        const slug = slugMatch[1]
+        const typefaceEntry = typefaces[slug]
+        const raw = typefaceEntry?.$value
 
-          const sequenceLabel = toSentenceCase(key)
-          const label = fontName ? `${sequenceLabel} (${fontName})` : sequenceLabel
-
-          options.push({
-            label,
-            cssVar,
-            value: `var(${cssVar})`,
-          })
+        let fontName = ''
+        if (Array.isArray(raw) && raw.length > 0) {
+          fontName = typeof raw[0] === 'string' ? raw[0].trim().replace(/^['"]+|['"]+$/g, '') : ''
+        } else if (typeof raw === 'string') {
+          fontName = raw.split(',')[0].trim().replace(/^['"]+|['"]+$/g, '')
         }
+
+        if (!fontName) return
+
+        const cssVar = `--recursica_brand_fonts_${key}`
+        const sequenceLabel = toSentenceCase(key)
+        const label = `${sequenceLabel} (${fontName})`
+
+        options.push({ label, cssVar, value: `var(${cssVar})` })
       })
     } catch (error) {
       console.error('Error loading font families:', error)
     }
 
     return options
-  }, [theme])
+  }, [theme, tokensFromVars])
 
   // Get current font family state - declared early so it can be used in useMemo dependencies
   const [currentFontFamily, setCurrentFontFamily] = useState<string>('')
