@@ -436,6 +436,20 @@ export default function FontFamiliesTokens() {
     return () => window.removeEventListener('tokenOverridesChanged', handler)
   }, [tokensJson])
 
+  // After an import the store dispatches 'fontsImported'.  At that point rf:fonts
+  // and window.__fontUrlMap are already updated.  Call loadFontsFromStore() which
+  // iterates over the stored entries and injects the correct <link> stylesheet for
+  // each font (including newly-imported Google Fonts with custom URLs).
+  useEffect(() => {
+    const handler = () => {
+      import('../../type/fontUtils').then(({ loadFontsFromStore }) => {
+        loadFontsFromStore().catch(() => {})
+      })
+    }
+    window.addEventListener('fontsImported', handler)
+    return () => window.removeEventListener('fontsImported', handler)
+  }, [])
+
   useEffect(() => {
     const apiKey = (import.meta as any).env?.VITE_GOOGLE_FONTS_API_KEY as string | undefined
     if (!apiKey) return
@@ -1192,10 +1206,6 @@ export default function FontFamiliesTokens() {
             const oldKey = editModalRow.name.replace('font/typeface/', '')
             const newKey = sequence || oldKey
             const store = getVarsStore()
-            const state = store.getState()
-            const tokens = state.tokens as any
-            const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-            const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
 
             // Handle sequence change: sequence is owned by rf:fonts (id field) and brand.fonts.
             // typefaces are slug-keyed and never need to move — only the id mapping changes.
@@ -1224,12 +1234,19 @@ export default function FontFamiliesTokens() {
               })
 
               saveStoredFonts(fonts)
-              // syncFontsToTokens will rebuild brand.fonts with the new id → slug mapping
-              store.syncFontsToTokens(true)
+              // syncFontsToTokens rebuilds brand.fonts with the new id→slug mapping and
+              // triggers recomputeAndApplyAll so CSS vars update immediately.
+              store.syncFontsToTokens()
               setRows(buildRows())
             }
 
             const key = newKey
+            // Re-read from store: if a sequence swap ran above, syncFontsToTokens() has
+            // already updated this.state.tokens.  We must work from the fresh state so that
+            // setTokensSilent below doesn't revert the sequence change.
+            const tokens = store.getState().tokens as any
+            const fontRoot = tokens?.tokens?.font || tokens?.font || {}
+            const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
             // Typefaces are slug-keyed (e.g., "bellota-text"), not sequence-keyed (e.g., "secondary")
             const familyName = editModalRow?.value?.trim().replace(/^["']|["']$/g, '') || ''
             const fontSlug = familyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || key

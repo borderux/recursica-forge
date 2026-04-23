@@ -19,7 +19,7 @@ import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
 import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges } from './cssDelta'
 import { clearElevationColorMirror } from '../elevation/elevationModeScope'
-import { clearStoredFonts, saveStoredFonts, getDefaultFonts } from './fontStore'
+import { clearStoredFonts, saveStoredFonts, getDefaultFonts, deriveFontsFromJson, populateWindowFontUrlMap } from './fontStore'
 import { syncDeltaToJson } from './deltaToJson'
 import { buildStructuralMetadata, type StructuralMetadata } from './structuralMetadata'
 import { clearGlobalRefPreference } from '../css/globalRefInterceptor'
@@ -573,11 +573,26 @@ class VarsStore {
     }
 
     this.writeState({ theme: next, elevation })
+
+    // Rebuild rf:fonts from the imported brand + current tokens so syncFontsToTokens
+    // picks up new typefaces and changed primary/secondary/tertiary assignments.
+    const importedFonts = deriveFontsFromJson(this.state.tokens, next)
+    if (importedFonts.length > 0) {
+      saveStoredFonts(importedFonts)
+      populateWindowFontUrlMap(importedFonts)
+    }
+
     if (!this.isRecomputing) {
       this.recomputeAndApplyAll()
       this.trackCurrentStateAsDelta('--recursica_brand_')
       this.trackCurrentStateAsDelta('--recursica_ui-kit_')
     }
+
+    // Notify FontFamiliesTokens to rebuild rows and load imported font files
+    try {
+      window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: {}, reset: true } }))
+      window.dispatchEvent(new CustomEvent('fontsImported', {}))
+    } catch { }
   }
   /**
    * Update theme JSON in-memory WITHOUT triggering recomputeAndApplyAll.
@@ -756,6 +771,18 @@ class VarsStore {
       this.writeState({ uikit: files.uikit })
     }
 
+    // Rebuild rf:fonts from the imported data so syncFontsToTokens (called inside
+    // recomputeAndApplyAll below) uses the correct typefaces and sequence assignments
+    // from the imported JSON rather than whatever was previously in localStorage.
+    const importedFonts = deriveFontsFromJson(
+      files.tokens ?? this.state.tokens,
+      files.brand ?? this.state.theme
+    )
+    if (importedFonts.length > 0) {
+      saveStoredFonts(importedFonts)
+      populateWindowFontUrlMap(importedFonts)
+    }
+
     // Single recompute with all stores updated
     this.recomputeAndApplyAll()
 
@@ -773,6 +800,14 @@ class VarsStore {
       } else {
         localStorage.removeItem(STORAGE_KEYS.uikit)
       }
+    }
+
+    // Notify FontFamiliesTokens to rebuild rows and load imported font files
+    if (files.tokens || files.brand) {
+      try {
+        window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: {}, reset: true } }))
+        window.dispatchEvent(new CustomEvent('fontsImported', {}))
+      } catch { }
     }
   }
 

@@ -91,6 +91,9 @@ export function restoreDelta(): number {
       if (!varName.startsWith('--recursica_')) continue
       // Font typefaces/families are managed exclusively by rf:fonts — never restore from delta
       if (varName.startsWith('--recursica_tokens_font_typefaces_') || varName.startsWith('--recursica_tokens_font_families_')) continue
+      // Brand font sequence vars (primary/secondary/tertiary) are re-derived from rf:fonts on every
+      // recompute — restoring a stale import delta would overwrite the correct sequence.
+      if (varName.startsWith('--recursica_brand_fonts_')) continue
       // Dimension brand vars always resolve to token var() references — never user-editable
       if (varName.startsWith('--recursica_brand_dimensions_')) continue
       // Elevation shadow-color vars are fully recomputed from paletteSelections — never restore
@@ -227,6 +230,8 @@ export function reapplyDelta(): number {
   for (const [varName, value] of Object.entries(delta)) {
     // Font typefaces/families are managed exclusively by rf:fonts — never overwrite from delta
     if (varName.startsWith('--recursica_tokens_font_typefaces_') || varName.startsWith('--recursica_tokens_font_families_')) continue
+    // Brand font sequence vars are re-derived on every recompute — never overwrite from delta
+    if (varName.startsWith('--recursica_brand_fonts_')) continue
     root.style.setProperty(varName, value)
     count++
   }
