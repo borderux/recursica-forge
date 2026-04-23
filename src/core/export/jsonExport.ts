@@ -411,42 +411,76 @@ export function exportTokensJson(): object {
     const originalFont = (originalTokens as any)?.tokens?.font || {}
     const originalTypefaces = originalFont.typefaces || {}
 
-    if (Object.keys(originalTypefaces).length > 0) {
+    // fontVariants is the authoritative flat runtime map: { 'bellota-text': [{weight, style}…] }
+    // The store's per-typeface $extensions never contains variants — they are stored separately.
+    // We inject them back at export time so the round-trip is lossless.
+    const fontVariantsMap: Record<string, any[]> = storeTokens.font?.fontVariants || {}
+
+    if (Object.keys(originalTypefaces).length > 0 || Object.keys(storeTokens.font.typefaces || {}).length > 0) {
       result.tokens.font.typefaces = {
         $type: 'fontFamily'
       }
 
-      // Copy typefaces from original to preserve extensions, but update $value from store if changed
-      Object.keys(originalTypefaces).forEach((key) => {
-        if (key === '$type') return
+      // Union of original and store keys — new fonts added at runtime only exist in the store
+      const allTypefaceKeys = new Set([
+        ...Object.keys(originalTypefaces).filter(k => k !== '$type'),
+        ...Object.keys(storeTokens.font.typefaces || {}).filter(k => k !== '$type'),
+      ])
 
+      allTypefaceKeys.forEach((key) => {
         const originalTypeface = originalTypefaces[key]
         const storeTypeface = storeTokens.font.typefaces?.[key] || storeTokens.font.typeface?.[key]
 
-        // Start with original structure (preserves extensions)
-        const exportedTypeface: any = JSON.parse(JSON.stringify(originalTypeface))
+        // Start with original structure (preserves extensions) or store entry for new fonts
+        const base = originalTypeface ? JSON.parse(JSON.stringify(originalTypeface)) : {}
+        const exportedTypeface: any = { ...base }
 
-        // Update $value from store if it exists and differs
-        if (storeTypeface?.$value != null) {
+        // Always use the store entry as the source of truth ($value, $type, $extensions)
+        if (storeTypeface) {
+          exportedTypeface.$type = storeTypeface.$type || exportedTypeface.$type || 'fontFamily'
           const storeValue = storeTypeface.$value
-          // If store has a string value, extract font name
-          if (typeof storeValue === 'string') {
-            const cleaned = storeValue.replace(/^["']|["']$/g, '').trim()
-            const parts = cleaned.split(',')
-            const fontName = parts[0].trim().replace(/^["']|["']$/g, '')
-            // If original was an array, keep array format; otherwise use string
-            if (Array.isArray(originalTypeface.$value)) {
-              exportedTypeface.$value = [fontName, originalTypeface.$value[1] || 'sans-serif']
+          if (storeValue != null) {
+            if (typeof storeValue === 'string') {
+              const cleaned = storeValue.replace(/^["']|["']$/g, '').trim()
+              const parts = cleaned.split(',')
+              const fontName = parts[0].trim().replace(/^["']|["']$/g, '')
+              // Prefer array format (DTCG); keep original format if it was an array
+              if (Array.isArray(originalTypeface?.$value)) {
+                exportedTypeface.$value = [fontName, originalTypeface.$value[1] || 'sans-serif']
+              } else {
+                exportedTypeface.$value = [fontName, 'sans-serif']
+              }
+            } else if (Array.isArray(storeValue)) {
+              exportedTypeface.$value = storeValue
             } else {
-              exportedTypeface.$value = fontName
+              exportedTypeface.$value = storeValue
             }
-          } else if (Array.isArray(storeValue)) {
-            exportedTypeface.$value = storeValue
-          } else {
-            exportedTypeface.$value = storeValue
+          }
+          // Preserve $extensions from the store (has Google Fonts URL)
+          if (storeTypeface.$extensions) {
+            exportedTypeface.$extensions = storeTypeface.$extensions
           }
         }
 
+        // Inject variants from the flat fontVariantsMap — the authoritative runtime source.
+        // Must happen after the storeTypeface block because that block may overwrite $extensions.
+        const fontNameFromValue: string = (() => {
+          const v = exportedTypeface.$value
+          if (Array.isArray(v) && v.length > 0) return String(v[0]).toLowerCase()
+          if (typeof v === 'string') return v.split(',')[0].trim().replace(/^["']|["']$/g, '').toLowerCase()
+          return key.toLowerCase()
+        })()
+        const runtimeVariants = fontVariantsMap[fontNameFromValue] || fontVariantsMap[key.toLowerCase()]
+        if (runtimeVariants && runtimeVariants.length > 0) {
+          if (!exportedTypeface.$extensions) exportedTypeface.$extensions = {}
+          exportedTypeface.$extensions.variants = runtimeVariants
+        } else if (!exportedTypeface.$extensions?.variants && base.$extensions?.variants) {
+          // Fall back to the original JSON variants when the runtime map has no entry
+          if (!exportedTypeface.$extensions) exportedTypeface.$extensions = {}
+          exportedTypeface.$extensions.variants = base.$extensions.variants
+        }
+
+        if (!exportedTypeface.$type) exportedTypeface.$type = 'fontFamily'
         result.tokens.font.typefaces[key] = exportedTypeface
       })
     }
@@ -531,7 +565,7 @@ export function exportTokensJson(): object {
       }
     })
 
-    // Font letter-spacings: $type: "number" with number value
+    // Font letter-spacings: $type: "dimension" with {value, unit:'em'} object
     const fontLetterSpacings = storeTokens.font['letter-spacings'] || storeTokens.font['letter-spacing'] || {}
     Object.keys(fontLetterSpacings).forEach((key) => {
       const token = fontLetterSpacings[key]
@@ -539,25 +573,30 @@ export function exportTokensJson(): object {
 
       const tokenValue = token.$value
       if (tokenValue != null) {
-        let jsonValue: number
-        if (typeof tokenValue === 'number') {
-          jsonValue = tokenValue
-        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
-          jsonValue = Number(tokenValue.value)
+        let jsonValue: { value: number; unit: string }
+        if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = { value: Number(tokenValue.value), unit: tokenValue.unit || 'em' }
+        } else if (typeof tokenValue === 'number') {
+          jsonValue = { value: tokenValue, unit: 'em' }
+        } else if (typeof tokenValue === 'string') {
+          const emMatch = tokenValue.match(/^(-?\d+(?:\.\d+)?)(em)?$/)
+          jsonValue = emMatch
+            ? { value: parseFloat(emMatch[1]), unit: 'em' }
+            : { value: parseFloat(tokenValue) || 0, unit: 'em' }
         } else {
-          jsonValue = Number(tokenValue)
+          jsonValue = { value: 0, unit: 'em' }
         }
 
-        if (Number.isFinite(jsonValue)) {
+        if (Number.isFinite(jsonValue.value)) {
           result.tokens.font['letter-spacings'][key] = {
-            $type: 'number',
+            $type: 'dimension',
             $value: jsonValue
           }
         }
       }
     })
 
-    // Font line-heights: $type: "number" with number value
+    // Font line-heights: $type: "dimension" with {value, unit:'em'} object
     const fontLineHeights = storeTokens.font['line-heights'] || storeTokens.font['line-height'] || {}
     Object.keys(fontLineHeights).forEach((key) => {
       const token = fontLineHeights[key]
@@ -565,18 +604,23 @@ export function exportTokensJson(): object {
 
       const tokenValue = token.$value
       if (tokenValue != null) {
-        let jsonValue: number
-        if (typeof tokenValue === 'number') {
-          jsonValue = tokenValue
-        } else if (typeof tokenValue === 'object' && tokenValue.value != null) {
-          jsonValue = Number(tokenValue.value)
+        let jsonValue: { value: number; unit: string }
+        if (typeof tokenValue === 'object' && tokenValue.value != null) {
+          jsonValue = { value: Number(tokenValue.value), unit: tokenValue.unit || 'em' }
+        } else if (typeof tokenValue === 'number') {
+          jsonValue = { value: tokenValue, unit: 'em' }
+        } else if (typeof tokenValue === 'string') {
+          const emMatch = tokenValue.match(/^(-?\d+(?:\.\d+)?)(em)?$/)
+          jsonValue = emMatch
+            ? { value: parseFloat(emMatch[1]), unit: 'em' }
+            : { value: parseFloat(tokenValue) || 0, unit: 'em' }
         } else {
-          jsonValue = Number(tokenValue)
+          jsonValue = { value: 0, unit: 'em' }
         }
 
-        if (Number.isFinite(jsonValue)) {
+        if (Number.isFinite(jsonValue.value)) {
           result.tokens.font['line-heights'][key] = {
-            $type: 'number',
+            $type: 'dimension',
             $value: jsonValue
           }
         }
@@ -776,9 +820,18 @@ function ensurePaletteDefaults(result: any): void {
           : `{brand.themes.${mode}.palettes.${paletteKey}.${resolvedStep}.color.on-tone}`
         color['on-tone'] = { $type: 'color', $value: baseRef }
       }
+
+      // Ensure $type:'color' is present on the color group and appears first
+      // (rebuild with proper key order: $type, tone, on-tone)
+      if (!color.$type || color.$type !== 'color') {
+        const rebuilt = { $type: 'color', tone: color.tone, 'on-tone': color['on-tone'] }
+        palette.default.color = rebuilt
+      }
     }
   }
 }
+
+
 
 /**
  * Ensures all palette tone/on-tone tokens have the required DTCG $type: "color" property.
@@ -1059,6 +1112,9 @@ export function exportUIKitJson(): object {
 
   // Normalize brand references to remove theme information (UIKit should be theme-agnostic)
   const normalized = normalizeUIKitBrandReferences(result)
+
+
+
 
   // Add metadata with export timestamp
   normalized.$metadata = {

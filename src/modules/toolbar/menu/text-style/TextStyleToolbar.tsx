@@ -108,57 +108,51 @@ export default function TextStyleToolbar({
     : getComponentTextCssVar(componentName as any, textElementName, 'font-style', sizeVariant)
 
 
-  // Get available font families (typefaces)
+  // Get available font families from brand.fonts (primary / secondary / tertiary aliases)
   const fontFamilies = useMemo(() => {
     const options: Array<{ label: string; cssVar: string; value: string }> = []
 
     try {
-      const tokensRoot: any = (tokensFromVars as any)?.tokens || {}
-      const typefaces = tokensRoot?.font?.typefaces || tokensRoot?.font?.typeface || {}
+      const brandRoot: any = (theme as any)?.brand || theme || {}
+      const brandFonts = brandRoot?.fonts || {}
+      const tokensRoot: any = (tokensFromVars as any)?.tokens || tokensFromVars || {}
+      const typefaces: any = tokensRoot?.font?.typefaces || {}
 
-      // Overrides are now tracked by the delta system and reflected in tokensFromVars
-      const overrides: Record<string, any> = {}
-      const overrideTypefaceKeys = Object.keys(overrides).filter(k => k.startsWith('font/typeface/'))
-      const hasTypefaceOverrides = overrideTypefaceKeys.length > 0
-
-      Object.keys(typefaces).forEach(key => {
+      Object.keys(brandFonts).forEach(key => {
         if (key.startsWith('$')) return
-        // If overrides exist for typefaces, only include fonts present in overrides
-        if (hasTypefaceOverrides && !overrides[`font/typeface/${key}`]) return
 
-        const cssVar = tokenFont('typefaces', key)
-        const cssValue = readCssVar(cssVar)
+        const brandEntry = brandFonts[key]
+        const aliasValue = brandEntry?.$value || brandEntry
+        if (!aliasValue || typeof aliasValue !== 'string') return
 
-        if (cssValue) {
-          // Get the resolved font name to display in parentheses
-          const resolvedValue = readCssVarResolved(cssVar)
-          let fontName = ''
+        // Resolve the alias {tokens.font.typefaces.slug} → actual font name
+        const slugMatch = String(aliasValue).match(/\{tokens\.font\.typefaces\.([^}]+)\}/)
+        if (!slugMatch) return
+        const slug = slugMatch[1]
+        const typefaceEntry = typefaces[slug]
+        const raw = typefaceEntry?.$value
 
-          if (resolvedValue) {
-            // Extract just the primary font name (e.g. "Lexend, sans-serif" -> "Lexend")
-            const cleanFontName = resolvedValue.split(',')[0].trim().replace(/^['"]|['"]$/g, '')
-            if (cleanFontName) {
-              fontName = cleanFontName
-            }
-          }
-
-          // Build label with font name in parentheses if available
-          const sequenceLabel = toSentenceCase(key)
-          const label = fontName ? `${sequenceLabel} (${fontName})` : sequenceLabel
-
-          options.push({
-            label,
-            cssVar,
-            value: `var(${cssVar})`,
-          })
+        let fontName = ''
+        if (Array.isArray(raw) && raw.length > 0) {
+          fontName = typeof raw[0] === 'string' ? raw[0].trim().replace(/^['"]+|['"]+$/g, '') : ''
+        } else if (typeof raw === 'string') {
+          fontName = raw.split(',')[0].trim().replace(/^['"]+|['"]+$/g, '')
         }
+
+        if (!fontName) return
+
+        const cssVar = `--recursica_brand_fonts_${key}`
+        const sequenceLabel = toSentenceCase(key)
+        const label = `${sequenceLabel} (${fontName})`
+
+        options.push({ label, cssVar, value: `var(${cssVar})` })
       })
     } catch (error) {
       console.error('Error loading font families:', error)
     }
 
     return options
-  }, [tokensFromVars])
+  }, [theme, tokensFromVars])
 
   // Get current font family state - declared early so it can be used in useMemo dependencies
   const [currentFontFamily, setCurrentFontFamily] = useState<string>('')

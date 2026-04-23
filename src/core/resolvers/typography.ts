@@ -249,11 +249,16 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
     return typeof ov === 'string' && ov.trim() ? ov : undefined
   }
 
-  const extractTokenRef = (ref: any): { category: 'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'; suffix: string } | null => {
+  const extractTokenRef = (ref: any): { category: 'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height' | 'brand-fonts'; suffix: string } | null => {
     try {
       const s = typeof ref === 'string' ? ref.trim() : (ref && typeof ref === 'object') ? String(((ref as any).$value ?? (ref as any).value) || '').trim() : ''
       if (!s) return null
       const inner = extractBraceContent(s) || s
+
+      // Handle brand.fonts.* references (new architecture: brand owns sequencing)
+      const brandFontsMatch = inner.match(/^brand\.fonts\.([a-z0-9\-_]+)$/i)
+      if (brandFontsMatch) return { category: 'brand-fonts', suffix: brandFontsMatch[1] }
+
       // Map of categories to their plural forms for matching
       const catMap: Array<{ singular: 'family' | 'typeface' | 'size' | 'weight' | 'letter-spacing' | 'line-height'; plural: string }> = [
         { singular: 'family', plural: 'families' },
@@ -353,7 +358,14 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
       if (typeof strResolved !== 'undefined') return strResolved
       return undefined
     })()
-    const defaultFamily = (() => getFontToken('typeface/primary') ?? getFontToken('family/primary') ?? undefined)()
+    const defaultFamily = (() => {
+      // New architecture: primary font is at brand.fonts.primary
+      const brandRoot: any = (theme as any)?.brand ? (theme as any).brand : theme
+      const brandFonts: any = brandRoot?.fonts || {}
+      if (brandFonts.primary?.$value) return `var(--recursica_brand_fonts_primary)`
+      // Legacy fallback
+      return getFontToken('typeface/primary') ?? getFontToken('family/primary') ?? undefined
+    })()
     const defaultSize = (() => getFontToken('size/md') ?? 16)()
     const defaultWeight = (() => getFontToken('weight/regular') ?? 400)()
     const defaultSpacing = (() => getFontToken('letter-spacing/default') ?? 0)()
@@ -463,8 +475,13 @@ export function buildTypographyVars(tokens: JsonLike, theme: JsonLike, overrides
 
     let brandVal: string | null = null
     if (familyToken) {
-      const pluralCategory = categoryToPlural[familyToken.category] || familyToken.category
-      brandVal = `var(--recursica_tokens_font_${pluralCategory}_${familyToken.suffix})`
+      if (familyToken.category === 'brand-fonts') {
+        // brand.fonts.primary → var(--recursica_brand_fonts_primary)
+        brandVal = `var(--recursica_brand_fonts_${familyToken.suffix})`
+      } else {
+        const pluralCategory = categoryToPlural[familyToken.category] || familyToken.category
+        brandVal = `var(--recursica_tokens_font_${pluralCategory}_${familyToken.suffix})`
+      }
     } else if (family != null) {
       brandVal = findTokenByValue(family, 'typeface') || findTokenByValue(family, 'family')
     }

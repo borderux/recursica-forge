@@ -65,17 +65,6 @@ export function randomizeTokens(initialTokens: JsonLike, options: any, diffs: an
              node.$value = shiftNumber(val, 0, 1, 2, 0.1);
              randomized = true;
           }
-       } else if (prefix.includes('font') && prefix.includes('typefaces') && tokensOpts.fontTypefaces) {
-          if (typeof val === 'string') {
-             const faces = ['Lexend', 'Bellota Text', 'Quattrocento'];
-             node.$value = shiftValue(val, faces);
-             randomized = true;
-          } else if (Array.isArray(val) && val.length > 0) {
-             const faces = ['Lexend', 'Bellota Text', 'Quattrocento'];
-             const newVal = shiftValue(val[0], faces);
-             node.$value = [newVal, ...val.slice(1)];
-             randomized = true;
-          }
        } else if (prefix.includes('letter-spacings') && tokensOpts.letterSpacing) {
           if (typeof val === 'number') {
              node.$value = shiftNumber(val, -0.1, 0.5, 2, 0.05);
@@ -93,6 +82,32 @@ export function randomizeTokens(initialTokens: JsonLike, options: any, diffs: an
            if (!isBaseline || hasChanged) {
                diffs.push({ path: 'tokens.' + prefix.join('.'), before: val, after: node.$value, changed: hasChanged });
            }
+       }
+       return;
+    }
+
+    // Handle {value, unit} dimension objects for sizes, font.sizes, letter-spacings, and line-heights
+    if ('$value' in node && typeof node.$value === 'object' && node.$value !== null && !Array.isArray(node.$value) && 'value' in node.$value && 'unit' in node.$value) {
+       const val = node.$value;
+       let randomized = false;
+
+       if (prefix.includes('font') && prefix.includes('sizes') && tokensOpts.fontSizes && typeof val.value === 'number') {
+          node.$value = { ...val, value: shiftNumber(val.value, 4, 100, 2, 2) };
+          randomized = true;
+       } else if ((prefix.includes('sizes') || prefix.includes('size')) && !prefix.includes('font') && tokensOpts.sizes && typeof val.value === 'number') {
+          node.$value = { ...val, value: shiftNumber(val.value, 0, 100, 2, 2) };
+          randomized = true;
+       } else if (prefix.includes('letter-spacings') && tokensOpts.letterSpacing && typeof val.value === 'number') {
+          node.$value = { ...val, value: shiftNumber(val.value, -0.1, 0.5, 2, 0.05) };
+          randomized = true;
+       } else if ((prefix.includes('line-heights') || prefix.includes('line-height')) && tokensOpts.lineHeights && typeof val.value === 'number') {
+          node.$value = { ...val, value: shiftNumber(val.value, 0.9, 2.0, 2, 0.1) };
+          randomized = true;
+       }
+
+       if (randomized) {
+           const hasChanged = JSON.stringify(node.$value) !== JSON.stringify(val);
+           diffs.push({ path: 'tokens.' + prefix.join('.'), before: val, after: node.$value, changed: hasChanged });
        }
        return;
     }

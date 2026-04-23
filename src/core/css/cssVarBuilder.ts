@@ -293,11 +293,48 @@ export function cssVarToRef(value: string): string | null {
   if (unwrapped.startsWith(P)) {
     const stripped = unwrapped.slice(P.length)
     const parts = stripped.split('_')
+
+    // Special case: brand.typography CSS vars use a flat format:
+    //   brand_typography_{style}-{prop}  →  brand.typography.{style}.{camelCaseProp}
+    // The style names include hyphens (e.g. body-small, subtitle-small) and the
+    // property names are appended with a hyphen after the style, e.g.:
+    //   brand_typography_h1-font-family          → brand.typography.h1.fontFamily
+    //   brand_typography_body-small-font-size     → brand.typography.body-small.fontSize
+    //   brand_typography_h1-font-letter-spacing   → brand.typography.h1.letterSpacing
+    //   brand_typography_h1-text-transform        → brand.typography.h1.textCase
+    //   brand_typography_h1-line-height           → brand.typography.h1.lineHeight
+    if (parts.length >= 2 && parts[0] === 'brand' && parts[1] === 'typography') {
+      const styleAndProp = parts.slice(2).join('_') // e.g. "h1-font-family" or "body-small-font-size"
+      const knownStyles = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle-small', 'subtitle', 'body-small', 'body', 'caption', 'overline']
+      const matchedStyle = knownStyles.find(s => styleAndProp === s || styleAndProp.startsWith(s + '-'))
+      if (matchedStyle) {
+        const propRaw = styleAndProp.slice(matchedStyle.length + 1) // strip "{style}-"
+        // Map flat kebab CSS prop name → DTCG camelCase property name
+        const propMap: Record<string, string> = {
+          'font-family': 'fontFamily',
+          'font-size': 'fontSize',
+          'font-weight': 'fontWeight',
+          'font-style': 'fontStyle',
+          'font-letter-spacing': 'letterSpacing',
+          'letter-spacing': 'letterSpacing',
+          'line-height': 'lineHeight',
+          'text-transform': 'textCase',
+          'text-case': 'textCase',
+          'text-decoration': 'textDecoration',
+        }
+        const dtcgProp = propMap[propRaw]
+        if (dtcgProp) {
+          return `{brand.typography.${matchedStyle}.${dtcgProp}}`
+        }
+      }
+    }
+
     return `{${parts.join('.')}}`
   }
 
   return null
 }
+
 
 // ─── Token CSS var parsers ──────────────────────────────────────────────────
 

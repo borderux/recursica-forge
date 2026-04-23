@@ -207,8 +207,14 @@ function collectRefs(
     return out
   }
 
+  // DTCG reserved properties that hold token data and should be traversed.
+  // Any other $-prefixed key (e.g. $overrides, $metadata) is non-token metadata and must be skipped
+  // to avoid false "CSS variable leak" errors from raw var() strings stored in those fields.
+  const DTCG_TOKEN_KEYS = new Set(['$value', '$type', '$description', '$extensions', '$deprecated', '$extends'])
+
   if (typeof obj === 'object') {
     for (const [key, value] of Object.entries(obj)) {
+      if (key.startsWith('$') && !DTCG_TOKEN_KEYS.has(key)) continue
       collectRefs(value, [...jsonPath, key], out)
     }
   }

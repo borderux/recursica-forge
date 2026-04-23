@@ -19,7 +19,7 @@ import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
 import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges } from './cssDelta'
 import { clearElevationColorMirror } from '../elevation/elevationModeScope'
-import { clearStoredFonts } from './fontStore'
+import { clearStoredFonts, saveStoredFonts, getDefaultFonts, deriveFontsFromJson, populateWindowFontUrlMap } from './fontStore'
 import { syncDeltaToJson } from './deltaToJson'
 import { buildStructuralMetadata, type StructuralMetadata } from './structuralMetadata'
 import { clearGlobalRefPreference } from '../css/globalRefInterceptor'
@@ -274,8 +274,8 @@ class VarsStore {
         const fontRoot = (this.state.tokens as any)?.tokens?.font || (this.state.tokens as any)?.font || {}
         const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
 
-        // Store URLs in window object so ensureFontLoaded can access them synchronously
-        // This is a workaround until we can make fontUrlMap accessible synchronously
+        // Store URLs in window.__fontUrlMap so ensureFontLoaded can look them up
+        // synchronously before fontUtils' async module-level fontUrlMap is populated.
         if (!(window as any).__fontUrlMap) {
           (window as any).__fontUrlMap = new Map<string, string>()
         }
@@ -318,6 +318,11 @@ class VarsStore {
 
     // Build structural metadata once from the JSON files (immutable)
     this.structure = buildStructuralMetadata(this.state.tokens, this.state.theme, this.state.uikit)
+
+    // Migrate font typefaces to two-tier structure (named slug entries + sequence aliases)
+    // before the first recompute so the in-memory tokens are correct from startup.
+    // Use silent=true so this does not trigger an extra recomputeAndApplyAll.
+    this.syncFontsToTokens(true)
 
     // Initial CSS apply (includes AA compliance pipeline stage)
     this.recomputeAndApplyAll()
@@ -391,10 +396,13 @@ class VarsStore {
       root.style.setProperty(key, value)
     }
 
-    // Track all changes in the delta serialization system
+    // Track all changes in the delta serialization system.
+    // The CSS delta is mode-aware (CSS var names embed themes_light / themes_dark),
+    // so per-mode compliance fixes for components are stored and restored correctly
+    // by reapplyDelta() after every recomputeAndApplyAll (including mode switches).
     trackChanges(cssVarUpdates)
 
-    // Persist theme JSON update if provided
+    // Persist theme JSON update if provided (brand layer/palette fixes supply this)
     if (themeUpdate) {
       this.writeState({ theme: themeUpdate })
     }
@@ -565,11 +573,26 @@ class VarsStore {
     }
 
     this.writeState({ theme: next, elevation })
+
+    // Rebuild rf:fonts from the imported brand + current tokens so syncFontsToTokens
+    // picks up new typefaces and changed primary/secondary/tertiary assignments.
+    const importedFonts = deriveFontsFromJson(this.state.tokens, next)
+    if (importedFonts.length > 0) {
+      saveStoredFonts(importedFonts)
+      populateWindowFontUrlMap(importedFonts)
+    }
+
     if (!this.isRecomputing) {
       this.recomputeAndApplyAll()
       this.trackCurrentStateAsDelta('--recursica_brand_')
       this.trackCurrentStateAsDelta('--recursica_ui-kit_')
     }
+
+    // Notify FontFamiliesTokens to rebuild rows and load imported font files
+    try {
+      window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: {}, reset: true } }))
+      window.dispatchEvent(new CustomEvent('fontsImported', {}))
+    } catch { }
   }
   /**
    * Update theme JSON in-memory WITHOUT triggering recomputeAndApplyAll.
@@ -585,48 +608,106 @@ class VarsStore {
   public getLatestThemeCopy(): any {
     return JSON.parse(JSON.stringify(this.state.theme))
   }
-  public syncFontsToTokens() {
+  public syncFontsToTokens(silent = false) {
     try {
       const storedFontsRaw = localStorage.getItem('rf:fonts')
       if (!storedFontsRaw) return
       const storedFonts = JSON.parse(storedFontsRaw)
-      if (Array.isArray(storedFonts)) {
-        const tokens = JSON.parse(JSON.stringify(this.state.tokens))
-        const fontRoot = tokens?.tokens?.font || tokens?.font || {}
-        if (!fontRoot.typefaces) fontRoot.typefaces = {}
-        if (!fontRoot.families) fontRoot.families = {}
-        const typefaces = fontRoot.typefaces
-        const families = fontRoot.families
+      if (!Array.isArray(storedFonts)) return
 
-        // Keep $ variables but remove all font instances
-        Object.keys(typefaces).forEach(k => { if (!k.startsWith('$')) delete typefaces[k] })
-        Object.keys(families).forEach(k => { if (!k.startsWith('$')) delete families[k] })
+      const ORDER_SET = new Set(['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'])
 
-        storedFonts.forEach(font => {
-          if (font.id && font.family) {
-            let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
-            // Strip any stale baked-in category from the family name itself
-            if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
-            // Build a proper CSS font-family string
-            const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
-            const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
-            typefaces[font.id] = { $value: fontStack }
-            families[font.id] = { $value: fontStack }
+      // ── Tokens: rebuild typefaces + families ────────────────────────────────
+      const tokens = JSON.parse(JSON.stringify(this.state.tokens))
+      const fontRoot = tokens?.tokens?.font || tokens?.font || {}
+      if (!fontRoot.typefaces) fontRoot.typefaces = {}
+      if (!fontRoot.families) fontRoot.families = {}
+      const typefaces = fontRoot.typefaces
+      const families = fontRoot.families
 
-            // Restore the extensions for Google Fonts URL
-            if (font.url) {
-              typefaces[font.id].$extensions = { 'com.google.fonts': { url: font.url } }
-              families[font.id].$extensions = { 'com.google.fonts': { url: font.url } }
-            }
+      // Build lookup from slug → existing named entry to preserve metadata (variants, $type, $extensions)
+      const existingBySlug: Record<string, any> = {}
+      Object.keys(typefaces).filter(k => !k.startsWith('$') && !ORDER_SET.has(k)).forEach(k => {
+        existingBySlug[k] = JSON.parse(JSON.stringify(typefaces[k]))
+      })
+      // Also handle legacy structure: ORDER keys directly on typefaces carrying real values
+      Object.keys(typefaces).filter(k => ORDER_SET.has(k)).forEach(seqKey => {
+        const entry = typefaces[seqKey]
+        if (!entry) return
+        const rawValue = entry.$value
+        if (typeof rawValue === 'string' && rawValue.startsWith('{')) return
+        let familyName = ''
+        if (Array.isArray(rawValue) && rawValue.length > 0) {
+          familyName = typeof rawValue[0] === 'string' ? rawValue[0].trim().replace(/^["']|["']$/g, '').split(',')[0].trim() : ''
+        } else if (typeof rawValue === 'string') {
+          familyName = rawValue.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+        }
+        if (familyName) {
+          const slug = familyName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+          if (!existingBySlug[slug]) existingBySlug[slug] = JSON.parse(JSON.stringify(entry))
+        }
+      })
+
+      // Clear all font entries, keep only $ metadata
+      Object.keys(typefaces).forEach(k => { if (!k.startsWith('$')) delete typefaces[k] })
+      Object.keys(families).forEach(k => { if (!k.startsWith('$')) delete families[k] })
+
+      // ── Brand: rebuild fonts (primary/secondary/tertiary aliases) ────────────
+      const theme = JSON.parse(JSON.stringify(this.state.theme))
+      const brandRoot = (theme as any)?.brand || theme
+      const levelsGroup: any = { $type: 'fontFamily' }
+
+      storedFonts.forEach(font => {
+        if (!font.id || !font.family) return
+        const slug = font.slug ||
+          font.family.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+        const cleanFamily = font.family.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+        const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
+
+        // Preserve existing generic fallback from the token's array $value if not on font.category
+        const existing = existingBySlug[slug] || {}
+        const existingGeneric = Array.isArray(existing.$value) && existing.$value.length > 1
+          ? existing.$value[existing.$value.length - 1]
+          : null
+        const generic = font.category || existingGeneric || 'sans-serif'
+
+        // DTCG fontFamily $value: array [familyName, genericFallback]
+        const dtcgValue = [cleanFamily, generic]
+        // CSS font-family string for direct CSS var output
+        const cssFontStack = `${quotedName}, ${generic}`
+
+        // Write named font entry to tokens.typefaces (preserving all existing metadata)
+        const namedEntry: any = { $type: 'fontFamily', ...existing, $value: dtcgValue }
+        if (font.url) {
+          namedEntry.$extensions = {
+            ...(existing.$extensions || {}),
+            'com.google.fonts': { ...(existing.$extensions?.['com.google.fonts'] || {}), url: font.url }
           }
-        })
+        } else if (existing.$extensions) {
+          namedEntry.$extensions = existing.$extensions
+        }
+        typefaces[slug] = namedEntry
+        levelsGroup[font.id] = { $type: 'fontFamily', $value: `{tokens.font.typefaces.${slug}}` }
+        // families: CSS string $value (direct CSS output, no variants metadata)
+        families[slug] = { $type: 'fontFamily', $value: cssFontStack }
+        if (font.url) families[slug].$extensions = { 'com.google.fonts': { url: font.url } }
+      })
 
-        this.setTokens(tokens)
+      brandRoot.fonts = levelsGroup
+
+      // Commit both states atomically
+      if (silent) {
+        this.writeState({ tokens, theme })
+      } else {
+        this.writeState({ tokens, theme })
+        if (!this.isRecomputing) this.recomputeAndApplyAll()
       }
     } catch {
       // Font sync failed
     }
   }
+
+
 
   /** Returns the pristine, unmodified uikit JSON (deep-cloned at init time). */
   getPristineUikit(): JsonLike { return this.pristineUikit }
@@ -690,10 +771,24 @@ class VarsStore {
       this.writeState({ uikit: files.uikit })
     }
 
+    // Rebuild rf:fonts from the imported data so syncFontsToTokens (called inside
+    // recomputeAndApplyAll below) uses the correct typefaces and sequence assignments
+    // from the imported JSON rather than whatever was previously in localStorage.
+    const importedFonts = deriveFontsFromJson(
+      files.tokens ?? this.state.tokens,
+      files.brand ?? this.state.theme
+    )
+    if (importedFonts.length > 0) {
+      saveStoredFonts(importedFonts)
+      populateWindowFontUrlMap(importedFonts)
+    }
+
     // Single recompute with all stores updated
     this.recomputeAndApplyAll()
 
-    // Track delta for all imported namespaces
+    // Track delta for all imported namespaces.
+    // This snapshots lastComputedVars (base values) into the delta, overwriting any stale
+    // delta entries. Compliance overrides are applied AFTER this step so they land on top.
     if (files.tokens) this.trackCurrentStateAsDelta('--recursica_tokens_')
     if (files.brand)  this.trackCurrentStateAsDelta('--recursica_brand_')
     if (files.uikit)  this.trackCurrentStateAsDelta('--recursica_ui-kit_')
@@ -705,6 +800,14 @@ class VarsStore {
       } else {
         localStorage.removeItem(STORAGE_KEYS.uikit)
       }
+    }
+
+    // Notify FontFamiliesTokens to rebuild rows and load imported font files
+    if (files.tokens || files.brand) {
+      try {
+        window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: {}, reset: true } }))
+        window.dispatchEvent(new CustomEvent('fontsImported', {}))
+      } catch { }
     }
   }
 
@@ -1034,7 +1137,12 @@ class VarsStore {
         const [key] = rest
         if (!tokensRoot.sizes) tokensRoot.sizes = {}
         if (!tokensRoot.sizes[key]) tokensRoot.sizes[key] = {}
-        tokensRoot.sizes[key].$value = typeof value === 'number' ? value : String(value)
+        const existingSize = tokensRoot.sizes[key]?.$value
+        if (existingSize && typeof existingSize === 'object' && Object.prototype.hasOwnProperty.call(existingSize, 'value')) {
+          tokensRoot.sizes[key].$value = { value: typeof value === 'number' ? value : Number(value), unit: (existingSize as any).unit || 'px' }
+        } else {
+          tokensRoot.sizes[key].$value = typeof value === 'number' ? value : String(value)
+        }
       } else if (category === 'opacity' && rest.length >= 1) {
         const [key] = rest
         if (!tokensRoot.opacities) tokensRoot.opacities = {}
@@ -1063,8 +1171,10 @@ class VarsStore {
           if (!tokensRoot.font[pluralKind]) tokensRoot.font[pluralKind] = {}
           if (!tokensRoot.font[pluralKind][key]) tokensRoot.font[pluralKind][key] = {}
           const existing = tokensRoot.font[pluralKind]?.[key]?.$value
-          if (existing && typeof existing === 'object' && Object.prototype.hasOwnProperty.call(existing, 'value') && (pluralKind === 'letter-spacings' || pluralKind === 'line-heights')) {
-            tokensRoot.font[pluralKind][key].$value = { value: typeof value === 'number' ? value : Number(value), unit: (existing as any).unit || 'rem' }
+          if (existing && typeof existing === 'object' && Object.prototype.hasOwnProperty.call(existing, 'value')) {
+            // Preserve {value, unit} dimension object format for all font token categories that use it
+            const unit = (existing as any).unit || (pluralKind === 'sizes' ? 'px' : 'rem')
+            tokensRoot.font[pluralKind][key].$value = { value: typeof value === 'number' ? value : Number(value), unit }
           } else {
             tokensRoot.font[pluralKind][key].$value = typeof value === 'number' ? value : String(value)
           }
@@ -1156,6 +1266,11 @@ class VarsStore {
     clearAllCssVars()
     clearDelta()
     clearStoredFonts()
+    // Immediately restore rf:fonts to the canonical defaults so syncFontsToTokens
+    // (called inside recomputeAndApplyAll below) does not return early and correctly
+    // emits font CSS vars for the default font set.  Added fonts and sequence changes
+    // are both wiped because we derive from the static JSON, not from any user session state.
+    saveStoredFonts(getDefaultFonts())
     this.clearDeletedScales()
     try { localStorage.removeItem(STORAGE_KEYS.elevationPaletteSelections) } catch { }
     clearElevationColorMirror()
@@ -1871,20 +1986,60 @@ class VarsStore {
           propsToRemove.forEach(prop => docStyle.removeProperty(prop))
         }
 
-        if (Array.isArray(storedFonts)) {
+        if (Array.isArray(storedFonts) && storedFonts.length > 0) {
+          const ORDER_LEVELS = new Set(['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'])
           storedFonts.forEach(font => {
             if (font.id && font.family) {
               let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
-              // Strip any stale baked-in category from the family name itself
               if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
-              // Build a proper CSS font-family string:
-              // - Quote the font name if it contains spaces
-              // - Append the generic family keyword (unquoted) if available
               const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
               const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
-              vars[tokenFont('typefaces', font.id)] = fontStack
-              vars[tokenFont('families', font.id)] = fontStack
+              const slug = font.slug ||
+                cleanFamily.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+              // Named slug entries carry the actual font stack (raw CSS value)
+              vars[tokenFont('typefaces', slug)] = fontStack
+              vars[tokenFont('families', slug)] = fontStack
+              // brand.fonts.{id} → var(--recursica_tokens_font_typefaces_{slug})
+              // Brand vars must reference token vars, not raw values
+              if (ORDER_LEVELS.has(font.id)) {
+                vars[`--recursica_brand_fonts_${font.id}`] = `var(${tokenFont('typefaces', slug)})`
+              }
             }
+          })
+        } else {
+          // No rf:fonts in localStorage (fresh load / cache cleared):
+          // Emit brand.fonts CSS vars by resolving each brand.fonts.{level} alias
+          // through the token store → tokens.font.typefaces.{slug}.$value
+          const brandRoot: any = (this.state.theme as any)?.brand || this.state.theme
+          const brandFonts: any = brandRoot?.fonts || {}
+          const typefaces: any = tokensRoot?.font?.typefaces || {}
+          const ORDER_LEVELS = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary']
+          ORDER_LEVELS.forEach(level => {
+            const brandFontEntry = brandFonts[level]
+            if (!brandFontEntry?.$value) return
+            // Resolve alias: {tokens.font.typefaces.lexend} → slug → token entry
+            const aliasMatch = String(brandFontEntry.$value).match(/\{tokens\.font\.typefaces\.([^}]+)\}/)
+            if (!aliasMatch) return
+            const slug = aliasMatch[1]
+            const typefaceEntry = typefaces[slug]
+            if (!typefaceEntry) return
+            const raw = typefaceEntry.$value
+            let family = ''
+            let category = 'sans-serif'
+            if (Array.isArray(raw) && raw.length > 0) {
+              family = typeof raw[0] === 'string' ? raw[0].trim().replace(/^["']|["']$/g, '') : ''
+              if (raw[1] === 'serif' || raw[1] === 'monospace') category = raw[1]
+            } else if (typeof raw === 'string') {
+              family = raw.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+            }
+            if (!family) return
+            const quotedName = family.includes(' ') ? `"${family}"` : family
+            const fontStack = `${quotedName}, ${category}`
+            // Token vars hold the raw font stack
+            vars[tokenFont('typefaces', slug)] = fontStack
+            vars[tokenFont('families', slug)] = fontStack
+            // Brand vars reference the token vars
+            vars[`--recursica_brand_fonts_${level}`] = `var(${tokenFont('typefaces', slug)})`
           })
         }
 
@@ -1909,11 +2064,18 @@ class VarsStore {
             const rec = sizes[key]
             const val = rec?.$value
             if (val !== undefined && val !== null) {
-              const num = typeof val === 'number' ? val : Number(val)
-              if (Number.isFinite(num)) {
-                vars[tokenFont('sizes', key)] = `${num}px`
-              } else if (typeof val === 'string') {
-                vars[tokenFont('sizes', key)] = val
+              // Handle {value, unit} dimension objects (DTCG format)
+              if (val && typeof val === 'object' && Object.prototype.hasOwnProperty.call(val, 'value')) {
+                const num = typeof (val as any).value === 'number' ? (val as any).value : Number((val as any).value)
+                const unit = (val as any).unit || 'px'
+                if (Number.isFinite(num)) vars[tokenFont('sizes', key)] = `${num}${unit}`
+              } else {
+                const num = typeof val === 'number' ? val : Number(val)
+                if (Number.isFinite(num)) {
+                  vars[tokenFont('sizes', key)] = `${num}px`
+                } else if (typeof val === 'string') {
+                  vars[tokenFont('sizes', key)] = val
+                }
               }
             }
           })
@@ -2306,10 +2468,9 @@ class VarsStore {
 
       Object.assign(allVars, typeVars)
 
-      // Re-apply rf:fonts font stacks AFTER typography merge.
+      // Re-apply rf:fonts font stacks AFTER typography merge, keyed by SLUG (not font.id).
       // The typography resolver reads from the base tokens JSON, which may have
-      // stale typeface values. rf:fonts is the source of truth for font assignments,
-      // so its values must overwrite whatever the typography resolver produced.
+      // stale typeface values. rf:fonts is the source of truth for font assignments.
       try {
         let fontsForOverride: any[] = []
         try {
@@ -2325,8 +2486,16 @@ class VarsStore {
               if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
               const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
               const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
-              allVars[tokenFont('typefaces', font.id)] = fontStack
-              allVars[tokenFont('families', font.id)] = fontStack
+              // Use slug as key (matches how tokens are written), NOT font.id (sequence name)
+              const slug = font.slug ||
+                cleanFamily.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+              allVars[tokenFont('typefaces', slug)] = fontStack
+              allVars[tokenFont('families', slug)] = fontStack
+              // Brand vars must reference token vars
+              const ORDER_LEVELS = new Set(['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary'])
+              if (ORDER_LEVELS.has(font.id)) {
+                allVars[`--recursica_brand_fonts_${font.id}`] = `var(${tokenFont('typefaces', slug)})`
+              }
             }
           })
         }
@@ -2335,9 +2504,23 @@ class VarsStore {
       // Load fonts asynchronously - don't wait, don't trigger recomputes
       // CSS variables are already set with font names, fonts will apply when loaded
       // Fonts MUST load (async is fine, but they must load)
-      if (familiesToLoad.length > 0 && typeof window !== 'undefined') {
+      // Resolve actual font family names from storedFonts (familiesToLoad may contain var() references)
+      const actualFamiliesToLoad: string[] = []
+      try {
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('rf:fonts') : null
+        const storedForLoad: any[] = raw ? JSON.parse(raw) : []
+        storedForLoad.forEach((font: any) => {
+          if (font.family) {
+            const clean = font.family.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+            if (clean) actualFamiliesToLoad.push(clean)
+          }
+        })
+      } catch { }
+      const familiesToLoadResolved = actualFamiliesToLoad.length > 0 ? actualFamiliesToLoad : familiesToLoad.filter(f => !f.startsWith('var('))
+
+      if (familiesToLoadResolved.length > 0 && typeof window !== 'undefined') {
         // Load fonts in background without blocking or triggering events
-        Promise.all(familiesToLoad.map(async (family) => {
+        Promise.all(familiesToLoadResolved.map(async (family) => {
           try {
             const trimmed = String(family).trim()
             if (!trimmed) return

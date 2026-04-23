@@ -107,7 +107,7 @@ export default function Loader({
                             {...mantine}
                         />
                     </div>
-                    <span className="recursica-loader-label" style={{ fontSize: 12, opacity: 0.5, textTransform: 'capitalize', fontFamily: 'var(--recursica_tokens_font_typefaces_primary, inherit)' }}>
+                    <span className="recursica-loader-label" style={{ fontSize: 12, opacity: 0.5, textTransform: 'capitalize', fontFamily: 'var(--recursica_brand_fonts_primary, inherit)' }}>
                         {type}
                     </span>
                 </div>

@@ -218,7 +218,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     // Font cases
     const caseMatch = content.match(/^tokens\.font\.cases\.([a-z0-9-]+)$/);
     if (caseMatch) {
-        return `{tokens.font.cases.${shiftValue(caseMatch[1], ['original', 'uppercase', 'lowercase', 'capitalize'])}}`;
+        return `{tokens.font.cases.${shiftValue(caseMatch[1], ['original', 'uppercase', 'lowercase', 'titlecase'])}}`;
     }
 
     // Font weights

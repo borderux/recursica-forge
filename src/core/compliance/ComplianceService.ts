@@ -1337,17 +1337,13 @@ class ComplianceServiceImpl {
                 return words.map((w, i) => i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w).join(' ')
             }
 
-            // If the UIKit fg CSS var chains directly to a brand CSS var, return the brand var.
-            // Targeting the brand var in fix suggestions ensures the change is persisted to the
-            // theme JSON via applyFixToThemeCopy and survives the next recomputeAndApplyAll rebuild.
-            const resolveToBrandVar = (uikitVar: string): string => {
-                const val = readCssVar(uikitVar)
-                if (val) {
-                    const m = val.match(/^var\s*\(\s*(--recursica_brand_[^,)]+?)\s*[,)]/)
-                    if (m) return m[1].trim()
-                }
-                return uikitVar
-            }
+            // Always target the UIKit var directly as the fix destination.
+            // writeCssVarsDirect now calls updateUIKitValue for UIKit vars, so the fix is
+            // immediately written into state.uikit and survives both page reloads (via the
+            // CSS delta) and recomputeAndApplyAll rebuilds (via the updated UIKit JSON).
+            // Targeting the brand upstream var was the old approach and caused fixes to be
+            // lost on UIKit-only export/import cycles because the UIKit JSON was never updated.
+            const resolveTargetVar = (uikitVar: string): string => uikitVar
 
             // ── 1. Form fields with variants.states.{state}.properties.colors.{layer}.{prop} ──
             const formFields = [
@@ -1389,7 +1385,7 @@ class ComplianceServiceImpl {
                             if (ratio < AA_THRESHOLD) {
                                 const displayName = compName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
                                 const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveToBrandVar(fgVar), tokens, mode)
+                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveTargetVar(fgVar), tokens, mode)
                                 issues.push({
                                     id: `comp-${compName}-${stateName}-${layer}-${prop}-${mode}`,
                                     type: 'component-text',
@@ -1440,7 +1436,7 @@ class ComplianceServiceImpl {
                             const ratio = contrastRatio(bgHex, fgHex)
                             if (ratio < AA_THRESHOLD) {
                                 const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveToBrandVar(fgVar), tokens, mode)
+                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveTargetVar(fgVar), tokens, mode)
                                 issues.push({
                                     id: `comp-button-${styleName}-${layer}-${prop}-${mode}`,
                                     type: 'component-text',
@@ -1497,7 +1493,7 @@ class ComplianceServiceImpl {
                             if (ratio < AA_THRESHOLD) {
                                 const displayName = compName.charAt(0).toUpperCase() + compName.slice(1)
                                 const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveToBrandVar(fgVar), tokens, mode)
+                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveTargetVar(fgVar), tokens, mode)
                                 issues.push({
                                     id: `comp-${compName}-${styleName}-${layer}-${prop}-${mode}`,
                                     type: 'component-text',
@@ -1551,7 +1547,7 @@ class ComplianceServiceImpl {
                             const ratio = contrastRatio(bgHex, fgHex)
                             if (ratio < AA_THRESHOLD) {
                                 const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveToBrandVar(fgVar), tokens, mode)
+                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveTargetVar(fgVar), tokens, mode)
                                 issues.push({
                                     id: `comp-accordion-item-${bgGroup.label}-${layer}-${prop}-${mode}`,
                                     type: 'component-text',
@@ -1603,7 +1599,7 @@ class ComplianceServiceImpl {
                         const ratio = contrastRatio(bgHex, textHex)
                         if (ratio < AA_THRESHOLD) {
                             const groupLabel = group.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                            const suggestion = this.generateSteppedColorSuggestion(textHex, bgHex, resolveToBrandVar(textVar), tokens, mode)
+                            const suggestion = this.generateSteppedColorSuggestion(textHex, bgHex, resolveTargetVar(textVar), tokens, mode)
                             issues.push({
                                 id: `comp-menu-item-${group}-${layer}-text-${mode}`,
                                 type: 'component-text',

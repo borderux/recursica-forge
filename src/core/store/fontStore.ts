@@ -1,13 +1,27 @@
 import tokensImport from '../../../recursica_tokens.json'
+import brandImport from '../../../recursica_brand.json'
 
 export interface FontEntry {
-    id: string // e.g. "primary", "secondary"
+    id: string // sequence role: e.g. "primary", "secondary"
     family: string // e.g. "Lexend"
     url?: string // e.g. "https://fonts.googleapis.com/css2?..."
-    category?: 'sans-serif' | 'serif' | 'monospace' // generic fallback; defaults to 'sans-serif' if absent
+    category?: 'sans-serif' | 'serif' | 'monospace' // generic fallback
+    slug?: string  // token key for the named entry, e.g. "lexend"
 }
 
 const STORAGE_KEY = 'rf:fonts'
+
+/**
+ * Convert a font family name to a safe DTCG token key.
+ * e.g. "Playwrite NZ Guides" → "playwrite-nz-guides"
+ */
+export function fontFamilyToSlug(family: string): string {
+    return family
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+}
 
 export function getStoredFonts(): FontEntry[] {
     try {
@@ -19,6 +33,11 @@ export function getStoredFonts(): FontEntry[] {
             fonts.forEach(f => {
                 if (f.family && f.family.includes(',')) {
                     f.family = f.family.split(',')[0].trim()
+                    dirty = true
+                }
+                // Ensure slug is set
+                if (!f.slug) {
+                    f.slug = fontFamilyToSlug(f.family)
                     dirty = true
                 }
             })
@@ -41,6 +60,25 @@ export function saveStoredFonts(fonts: FontEntry[]): void {
     }
 }
 
+/**
+ * Synchronously writes each entry's Google Fonts URL into window.__fontUrlMap so
+ * that ensureFontLoaded (fontUtils.ts) can find the URL without a separate module
+ * import.  Call this immediately after saveStoredFonts during an import.
+ */
+export function populateWindowFontUrlMap(fonts: FontEntry[]): void {
+    if (typeof window === 'undefined') return
+    if (!(window as any).__fontUrlMap) {
+        (window as any).__fontUrlMap = new Map<string, string>()
+    }
+    const map = (window as any).__fontUrlMap as Map<string, string>
+    fonts.forEach(f => {
+        if (!f.url || !f.family) return
+        const clean = f.family.trim().replace(/^["']|["']$/g, '')
+        map.set(clean, f.url)
+        map.set(f.family.trim(), f.url)
+    })
+}
+
 export function clearStoredFonts(): void {
     try {
         localStorage.removeItem(STORAGE_KEY)
@@ -55,56 +93,64 @@ export function getDefaultFonts(): FontEntry[] {
         const fontRoot = (tokensImport as any)?.tokens?.font || (tokensImport as any)?.font || {}
         const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
 
-        // Iterate in the defined order (or keys order)
         const ORDER = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary']
 
-        for (const key of ORDER) {
-            const def = typefaces[key]
-            if (def) {
+        // Font level aliases live at brand.fonts (brand.json owns the primary/secondary/tertiary sequencing).
+        // Fall back through old locations for backward compat.
+        const brandRoot = (brandImport as any)?.brand || brandImport
+        const sequenceGroup: any = brandRoot?.fonts || brandRoot?.font?.levels || fontRoot.levels || typefaces['levels'] || {}
+
+        // Resolve sequence aliases in ORDER
+        for (const seqKey of ORDER) {
+            // Try new structure (font.levels.primary), then legacy (typefaces.primary)
+            const def = sequenceGroup[seqKey] || typefaces[seqKey]
+            if (!def) continue
+
+            const rawValue = def.$value
+            let slug = ''
+            let namedEntry: any = null
+
+            if (typeof rawValue === 'string' && rawValue.startsWith('{')) {
+                // New structure: alias referencing named entry e.g. {tokens.font.typefaces.lexend}
+                const refMatch = rawValue.match(/\{tokens\.font\.typefaces\.([^}]+)\}/)
+                if (refMatch) {
+                    slug = refMatch[1]
+                    namedEntry = typefaces[slug]
+                }
+            } else {
+                // Legacy: value is the font stack directly on the sequence entry
                 let family = ''
-                const rawValue = def.$value
                 if (Array.isArray(rawValue) && rawValue.length > 0) {
                     family = typeof rawValue[0] === 'string' ? rawValue[0].trim().replace(/^["']|["']$/g, '') : ''
                 } else if (typeof rawValue === 'string') {
-                    family = rawValue.trim().replace(/^["']|["']$/g, '')
+                    family = rawValue.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
                 }
-
-                const url = def.$extensions?.['com.google.fonts']?.url
-
                 if (family) {
-                    defaultFonts.push({
-                        id: key,
-                        family,
-                        url
-                    })
+                    slug = fontFamilyToSlug(family)
+                    namedEntry = def // legacy: data is on the sequence entry itself
                 }
             }
-        }
 
-        // Capture any non-standard keys as well
-        const standardKeys = new Set(ORDER)
-        for (const key of Object.keys(typefaces).filter(k => !k.startsWith('$'))) {
-            if (!standardKeys.has(key)) {
-                const def = typefaces[key]
-                if (def) {
-                    let family = ''
-                    const rawValue = def.$value
-                    if (Array.isArray(rawValue) && rawValue.length > 0) {
-                        family = typeof rawValue[0] === 'string' ? rawValue[0].trim().replace(/^["']|["']$/g, '') : ''
-                    } else if (typeof rawValue === 'string') {
-                        family = rawValue.trim().replace(/^["']|["']$/g, '')
-                    }
+            if (!namedEntry) continue
 
-                    const url = def.$extensions?.['com.google.fonts']?.url
-
-                    if (family) {
-                        defaultFonts.push({
-                            id: key,
-                            family,
-                            url
-                        })
-                    }
+            // Extract family and generic fallback from named entry's DTCG array $value
+            const entryValue = namedEntry.$value
+            let family = ''
+            let category: FontEntry['category'] | undefined
+            if (Array.isArray(entryValue) && entryValue.length > 0) {
+                family = typeof entryValue[0] === 'string' ? entryValue[0].trim().replace(/^["']|["']$/g, '').split(',')[0].trim() : ''
+                const generic = entryValue[1]
+                if (generic === 'sans-serif' || generic === 'serif' || generic === 'monospace') {
+                    category = generic
                 }
+            } else if (typeof entryValue === 'string') {
+                family = entryValue.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+            }
+
+            const url = namedEntry.$extensions?.['com.google.fonts']?.url
+
+            if (family) {
+                defaultFonts.push({ id: seqKey, family, url, slug: slug || fontFamilyToSlug(family), ...(category ? { category } : {}) })
             }
         }
     } catch (err) {
@@ -113,3 +159,80 @@ export function getDefaultFonts(): FontEntry[] {
 
     return defaultFonts
 }
+
+/**
+ * Derive the font list from arbitrary imported JSON objects.
+ * Same resolution logic as getDefaultFonts() but uses live data instead of
+ * the static file imports, so import correctly picks up new typefaces and
+ * changed primary/secondary/tertiary assignments.
+ *
+ * @param tokensData - the imported tokens JSON (with or without wrapper `tokens` key)
+ * @param brandData  - the imported brand JSON (with or without wrapper `brand` key)
+ */
+export function deriveFontsFromJson(tokensData: any, brandData: any): FontEntry[] {
+    const derived: FontEntry[] = []
+    try {
+        const tokensRoot = tokensData?.tokens || tokensData || {}
+        const fontRoot = tokensRoot?.font || {}
+        const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
+
+        const ORDER = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary']
+
+        const brandRoot = brandData?.brand || brandData || {}
+        const sequenceGroup: any = brandRoot?.fonts || brandRoot?.font?.levels || fontRoot.levels || {}
+
+        for (const seqKey of ORDER) {
+            const def = sequenceGroup[seqKey] || typefaces[seqKey]
+            if (!def) continue
+
+            const rawValue = def.$value
+            let slug = ''
+            let namedEntry: any = null
+
+            if (typeof rawValue === 'string' && rawValue.startsWith('{')) {
+                const refMatch = rawValue.match(/\{tokens\.font\.typefaces\.([^}]+)\}/)
+                if (refMatch) {
+                    slug = refMatch[1]
+                    namedEntry = typefaces[slug]
+                }
+            } else {
+                let family = ''
+                if (Array.isArray(rawValue) && rawValue.length > 0) {
+                    family = typeof rawValue[0] === 'string' ? rawValue[0].trim().replace(/^["']|["']$/g, '') : ''
+                } else if (typeof rawValue === 'string') {
+                    family = rawValue.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+                }
+                if (family) {
+                    slug = fontFamilyToSlug(family)
+                    namedEntry = def
+                }
+            }
+
+            if (!namedEntry) continue
+
+            const entryValue = namedEntry.$value
+            let family = ''
+            let category: FontEntry['category'] | undefined
+            if (Array.isArray(entryValue) && entryValue.length > 0) {
+                family = typeof entryValue[0] === 'string' ? entryValue[0].trim().replace(/^["']|["']$/g, '').split(',')[0].trim() : ''
+                const generic = entryValue[1]
+                if (generic === 'sans-serif' || generic === 'serif' || generic === 'monospace') {
+                    category = generic
+                }
+            } else if (typeof entryValue === 'string') {
+                family = entryValue.trim().replace(/^["']|["']$/g, '').split(',')[0].trim()
+            }
+
+            const url = namedEntry.$extensions?.['com.google.fonts']?.url
+
+            if (family) {
+                derived.push({ id: seqKey, family, url, slug: slug || fontFamilyToSlug(family), ...(category ? { category } : {}) })
+            }
+        }
+    } catch (err) {
+        console.warn('[fontStore] Failed to derive fonts from imported JSON', err)
+    }
+
+    return derived
+}
+

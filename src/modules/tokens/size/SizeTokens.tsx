@@ -63,12 +63,15 @@ export default function SizeTokens() {
 
   const [scaleByDefault, setScaleByDefault] = useState(true)
 
-  // Listen for the randomizer event to disable auto-scaling
+  // Listen for the randomizer event to disable auto-scaling and immediately re-read values
   useEffect(() => {
-    const disableScaleHandler = () => setScaleByDefault(false);
+    const disableScaleHandler = () => {
+      setScaleByDefault(false);
+      setValues(readAllFromCss());
+    };
     window.addEventListener('disableAutoScale', disableScaleHandler);
     return () => window.removeEventListener('disableAutoScale', disableScaleHandler);
-  }, []);
+  }, [tokenKeys]);
 
   // Local state to track slider values during drag (for smooth UI when auto-scale is on)
   const [sliderValues, setSliderValues] = useState<Record<string, number>>({})
