@@ -274,8 +274,8 @@ class VarsStore {
         const fontRoot = (this.state.tokens as any)?.tokens?.font || (this.state.tokens as any)?.font || {}
         const typefaces = fontRoot.typefaces || fontRoot.typeface || {}
 
-        // Store URLs in window object so ensureFontLoaded can access them synchronously
-        // This is a workaround until we can make fontUrlMap accessible synchronously
+        // Store URLs in window.__fontUrlMap so ensureFontLoaded can look them up
+        // synchronously before fontUtils' async module-level fontUrlMap is populated.
         if (!(window as any).__fontUrlMap) {
           (window as any).__fontUrlMap = new Map<string, string>()
         }

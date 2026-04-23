@@ -273,42 +273,10 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
             }
           }
 
-          // Populate fontUrlMap and window.__fontUrlMap with the URL immediately
-          // so ensureFontLoaded can find it
+          // Register the URL in fontUtils' map so ensureFontLoaded can find it.
           if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
-            try {
-              const { populateFontUrlMapFromTokens, setFontUrl } = await import('../../type/fontUtils')
-
-              // First, directly set the URL in the map for immediate access
-              setFontUrl(cleanFontName, url)
-              setFontUrl(fontName.trim(), url)
-              setFontUrl(`"${cleanFontName}"`, url)
-
-              // Re-populate the map with the updated tokens
-              const store = getVarsStore()
-              populateFontUrlMapFromTokens(store.getState().tokens)
-
-              // Also update window.__fontUrlMap directly for immediate access
-              if (typeof window !== 'undefined') {
-                if (!(window as any).__fontUrlMap) {
-                  (window as any).__fontUrlMap = new Map<string, string>()
-                }
-                const urlMap = (window as any).__fontUrlMap as Map<string, string>
-
-                const fontNameVariations = [
-                  cleanFontName,
-                  `"${cleanFontName}"`,
-                  fontName.trim(),
-                  fontName.trim().replace(/^["']|["']$/g, ''),
-                ]
-                const uniqueVariations = [...new Set(fontNameVariations.filter(v => v))]
-                uniqueVariations.forEach(v => {
-                  urlMap.set(v, url)
-                })
-              }
-            } catch (err) {
-              console.warn('Failed to update token extensions:', err)
-            }
+            const { setFontUrl } = await import('../../type/fontUtils')
+            setFontUrl(cleanFontName, url)
           }
 
           // Remove any existing link for this font before loading with new URL
@@ -1287,28 +1255,6 @@ export default function FontFamiliesTokens() {
               if (url && typeof url === 'string' && url.includes('fonts.googleapis.com')) {
                 const { populateFontUrlMapFromTokens } = await import('../../type/fontUtils')
                 populateFontUrlMapFromTokens(tokens)
-
-                // Also update window.__fontUrlMap directly
-                if (typeof window !== 'undefined') {
-                  if (!(window as any).__fontUrlMap) {
-                    (window as any).__fontUrlMap = new Map<string, string>()
-                  }
-                  const urlMap = (window as any).__fontUrlMap as Map<string, string>
-                  const cleanFontName = editModalRow.value.trim().replace(/^["']|["']$/g, '')
-                  urlMap.set(cleanFontName, url)
-                  // Also set with variations
-                  const fontNameVariations = [
-                    cleanFontName,
-                    `"${cleanFontName}"`,
-                    editModalRow.value.trim(),
-                    editModalRow.value.trim().replace(/^["']|["']$/g, ''),
-                  ]
-                  fontNameVariations.forEach(v => {
-                    if (v && v !== cleanFontName) {
-                      urlMap.set(v, url)
-                    }
-                  })
-                }
               }
 
               // Reload font with new URL (only if URL was provided)
