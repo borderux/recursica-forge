@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useCallback } from 'react'
+import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
@@ -746,10 +746,27 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }, [sortedLineHeightTokens])
 
 
+  // Track the previous computed family token so we can tell a genuine user-initiated
+  // family change from an updateKey-driven recomputation (which transitions '' → 'primary'
+  // on first interaction and must NOT trigger weight/style auto-correction).
+  const prevFamilyTokenRef = useRef<string>('')
+
   // When the selected font changes, auto-correct weight and style if the current
   // values are no longer valid for the new font.
   useEffect(() => {
-    if (!open || !currentFamilyToken) return
+    if (!open || !currentFamilyToken) {
+      prevFamilyTokenRef.current = currentFamilyToken || ''
+      return
+    }
+
+    const prevFamily = prevFamilyTokenRef.current
+    prevFamilyTokenRef.current = currentFamilyToken
+
+    // Only auto-correct when the family genuinely changed from one non-empty value
+    // to a different non-empty value (i.e., the user picked a different font family).
+    // Skip when transitioning from '' to a value — that is an updateKey recomputation
+    // artefact, NOT a user-initiated family switch.
+    if (!prevFamily || prevFamily === currentFamilyToken) return
 
     // Weight: if the currently applied weight isn't in the allowed set, snap to the
     // first available weight for this font.
