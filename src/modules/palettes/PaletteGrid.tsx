@@ -17,6 +17,7 @@ import { readOverrides } from '../theme/tokenOverrides'
 import { parseTokenReference, resolveTokenReferenceToCssVar, resolveTokenReferenceToValue, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { useThemeMode } from '../theme/ThemeModeContext'
+import { getVarsStore } from '../../core/store/varsStore'
 
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
@@ -215,12 +216,26 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     return undefined
   }
   const resolveDefaultLevelForPalette = useMemo(() => {
-    const key = `palette/${paletteKey}/default/tone`
-    const entry = (themeIndex as any)[`${mode}::${key}`]
+    // 1. Check localStorage first — persists across navigation without fragile JSON writes
+    try {
+      const stored = localStorage.getItem(`rf:palette-default:${paletteKey}:${mode}`)
+      if (stored) return stored
+    } catch { }
+
+    // 2. Try both plural ('palettes/') and singular ('palette/') themeIndex prefixes
+    const entry =
+      (themeIndex as any)[`${mode}::palettes/${paletteKey}/default/tone`] ??
+      (themeIndex as any)[`${mode}::palette/${paletteKey}/default/tone`]
     const ref = entry?.value
+    // Figma variable ref: { name: 'palettes/palette-1/400/color/tone' }
     const name: string | undefined = typeof ref === 'object' ? ref?.name : undefined
     if (name && /\/\d{3}\//.test(name)) {
       const m = name.match(/\/(\d{3})\//)
+      if (m) return m[1]
+    }
+    // DTCG string ref: '{brand.themes.light.palettes.palette-1.400.color.tone}'
+    if (typeof ref === 'string') {
+      const m = ref.match(/\.?(\d{3})\.color\.tone/)
       if (m) return m[1]
     }
     return defaultLevelStr
@@ -394,18 +409,24 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     if (lastPrimaryLevel.current === primaryLevelStr && lastMode.current === mode) return
 
     const lvl = primaryLevelStr
+    const modeKey = mode.toLowerCase()
     try {
-      // Reference the level-specific brand vars directly so primary is not hardcoded
+      // 1. Update CSS vars so primary reflects the chosen level immediately
       updateCssVar(
-        palette(mode.toLowerCase(), paletteKey, 'primary', 'color_tone'),
-        `var(${palette(mode.toLowerCase(), paletteKey, lvl, 'color_tone')})`
+        palette(modeKey, paletteKey, 'primary', 'color_tone'),
+        `var(${palette(modeKey, paletteKey, lvl, 'color_tone')})`
       )
       updateCssVar(
-        palette(mode.toLowerCase(), paletteKey, 'primary', 'color_on-tone'),
-        `var(${palette(mode.toLowerCase(), paletteKey, lvl, 'color_on-tone')})`
+        palette(modeKey, paletteKey, 'primary', 'color_on-tone'),
+        `var(${palette(modeKey, paletteKey, lvl, 'color_on-tone')})`
       )
 
-      // Only notify if this is a user-initiated change (primary level or mode changed)
+      // 2. Persist chosen level to localStorage so it survives navigation / remount
+      try {
+        localStorage.setItem(`rf:palette-default:${paletteKey}:${mode}`, lvl)
+      } catch { }
+
+      // Notify dependents only when this is a real user-initiated change
       if (lastPrimaryLevel.current !== null || lastMode.current !== null) {
         try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch { }
       }
@@ -413,7 +434,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
       lastPrimaryLevel.current = primaryLevelStr
       lastMode.current = mode
     } catch { }
-  }, [primaryLevelStr, mode, paletteKey]) // Removed selectedFamily and overrideVersion from dependencies
+  }, [primaryLevelStr, mode, paletteKey])
 
   const { mode: themeMode } = useThemeMode()
   // layer0Base and layer1Base removed — use builder functions directly
