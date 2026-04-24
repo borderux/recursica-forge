@@ -1993,7 +1993,7 @@ class VarsStore {
               let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
               if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
               const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
-              const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
+              const fontStack = `${quotedName}, ${font.category || 'sans-serif'}`
               const slug = font.slug ||
                 cleanFamily.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
               // Named slug entries carry the actual font stack (raw CSS value)
@@ -2485,7 +2485,7 @@ class VarsStore {
               let cleanFamily = font.family.trim().replace(/^["']|["']$/g, '')
               if (cleanFamily.includes(',')) cleanFamily = cleanFamily.split(',')[0].trim()
               const quotedName = cleanFamily.includes(' ') ? `"${cleanFamily}"` : cleanFamily
-              const fontStack = font.category ? `${quotedName}, ${font.category}` : quotedName
+              const fontStack = `${quotedName}, ${font.category || 'sans-serif'}`
               // Use slug as key (matches how tokens are written), NOT font.id (sequence name)
               const slug = font.slug ||
                 cleanFamily.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')

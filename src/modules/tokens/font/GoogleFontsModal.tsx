@@ -352,8 +352,13 @@ export function GoogleFontsModal({
         const weightsArray = [...new Set(selectedComboArray.map(c => c.weight))].sort((a, b) => a - b)
         const stylesArray = [...new Set(selectedComboArray.map(c => c.style))]
 
-        // Build URL with selected weights and styles
-        const finalUrl = buildFontUrl(googleFontsUrl.trim(), fontToLoad, weightsArray, stylesArray)
+        // For variable fonts that use the axis range syntax (e.g. wght@100..900) we keep the
+        // original URL verbatim — rebuilding it with discrete weights changes the font from a
+        // single variable font file to many static files, which changes how the browser handles it.
+        const hasRangeAxis = /[?&]family=[^&]*\d+\.\.\d+/.test(googleFontsUrl.trim())
+        const finalUrl = hasRangeAxis
+          ? googleFontsUrl.trim()
+          : buildFontUrl(googleFontsUrl.trim(), fontToLoad, weightsArray, stylesArray)
 
         // Don't load the font here - let onAccept handle it via ensureFontLoaded
         // This avoids conflicts and ensures the URL is properly stored in token extensions first
@@ -615,8 +620,46 @@ export function GoogleFontsModal({
                           setAvailableFonts(fonts)
                           setSelectedFontIndex(0)
 
-                          // Select all combinations by default
-                          setSelectedCombos(new Set(allWeightStyleCombos.map(c => c.id)))
+                          // Default selection: only the weights present in the URL, normal style only
+                          // (unless the URL explicitly includes ital axis, which means italic is supported)
+                          try {
+                            const urlObj = new URL(url)
+                            const familyParams = urlObj.searchParams.getAll('family')
+                            const firstParam = familyParams[0] || ''
+                            const hasItalicAxis = firstParam.includes('ital')
+
+                            // Extract weights from the URL. Supports both:
+                            //   discrete: wght@400;500;600;700
+                            //   range:    wght@100..900
+                            const wghtMatch = firstParam.match(/wght@([\d;.,]+)/)
+                            let urlWeights: number[] = []
+                            if (wghtMatch) {
+                              const raw = wghtMatch[1]
+                              const rangeMatch = raw.match(/^(\d+)\.\.(\d+)$/)
+                              if (rangeMatch) {
+                                // Range format: include all standard Google Fonts weights in range
+                                const lo = Number(rangeMatch[1])
+                                const hi = Number(rangeMatch[2])
+                                urlWeights = [100,200,300,400,500,600,700,800,900].filter(w => w >= lo && w <= hi)
+                              } else {
+                                urlWeights = raw.split(/[;,]/).map(Number).filter(n => !isNaN(n) && n >= 100 && n <= 900)
+                              }
+                            }
+
+                            if (urlWeights.length > 0) {
+                              const defaultCombos = new Set<string>()
+                              urlWeights.forEach(w => {
+                                defaultCombos.add(`${w}-normal`)
+                                if (hasItalicAxis) defaultCombos.add(`${w}-italic`)
+                              })
+                              setSelectedCombos(defaultCombos)
+                            } else {
+                              // Could not parse weights — default to all normal combos
+                              setSelectedCombos(new Set(allWeightStyleCombos.filter(c => c.style === 'normal').map(c => c.id)))
+                            }
+                          } catch {
+                            setSelectedCombos(new Set(allWeightStyleCombos.filter(c => c.style === 'normal').map(c => c.id)))
+                          }
                         } else {
                           setAvailableFonts([])
                           setSelectedFontIndex(0)
