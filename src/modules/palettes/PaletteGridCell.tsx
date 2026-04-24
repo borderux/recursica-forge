@@ -6,7 +6,6 @@ import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getAllFamilyNames, setFamilyNameByAlias } from '../../core/utils/familyNames'
 import { getVarsStore } from '../../core/store/varsStore'
 import type { JsonLike } from '../../core/resolvers/tokens'
-import { ColorPickerOverlay } from '../pickers/ColorPickerOverlay'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
@@ -15,6 +14,9 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { Chip } from '../../components/adapters/Chip'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { genericLayerProperty, genericLayerText, paletteCore, extractColorToken } from '../../core/css/cssVarBuilder'
+import { useCompliance } from '../../core/compliance/ComplianceContext'
+import { SuggestTonesModal } from '../compliance/SuggestTonesModal'
+import { applySuggestTone } from '../../core/compliance/applySuggestTone'
 
 
 
@@ -61,22 +63,14 @@ export function PaletteEmphasisCell({
 }: PaletteEmphasisCellProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [updateTrigger, setUpdateTrigger] = useState(0)
-  const [openPicker, setOpenPicker] = useState<{ tokenName: string; anchorElement: HTMLElement } | null>(null)
-
-  // Close picker when mode changes
-  useEffect(() => {
-    const handleCloseAll = () => {
-      setOpenPicker(null)
-    }
-    window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
-    return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
-  }, [])
+  const [suggestOpen, setSuggestOpen] = useState(false)
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const cellRef = useRef<HTMLTableCellElement>(null)
   const { updateToken, theme } = useVars()
   const { mode } = useThemeMode()
   const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const AA = 4.5
+  const { issues } = useCompliance()
 
   // Load family names from CSS vars
   useEffect(() => {
@@ -197,6 +191,8 @@ export function PaletteEmphasisCell({
       opacity,
       highFailsAA,
       lowFailsAA,
+      currentHighPasses,
+      currentLowPasses,
     }
   }, [toneCssVar, onToneCssVar, emphasisCssVar, tokens, paletteKey, level, updateTrigger, mode])
 
@@ -210,11 +206,27 @@ export function PaletteEmphasisCell({
     ? (!aaStatus.passesAA && !aaStatus.blackPasses && !aaStatus.whitePasses)
     : false
 
-  // If THIS cell's emphasis level fails AA, show color picker instead of set-primary
+  // If THIS cell's emphasis level fails AA, show suggest-tones modal instead of set-primary
   const shouldOpenColorPicker = aaStatus
     ? (emphasisType === 'high' ? aaStatus.highFailsAA : aaStatus.lowFailsAA)
     : false
 
+  // Always prefer the low-emphasis compliance issue: its lower opacity is the harder
+  // constraint, so any tone that passes at low emphasis automatically passes at high.
+  const matchingIssue = useMemo(() => {
+    const byLow = issues.find(
+      i =>
+        (i.suggestion?.targetCssVar === onToneCssVar || i.toneCssVar === toneCssVar) &&
+        i.emphasis === 'low',
+    )
+    return (
+      byLow ??
+      issues.find(
+        i => i.suggestion?.targetCssVar === onToneCssVar || i.toneCssVar === toneCssVar,
+      ) ??
+      null
+    )
+  }, [issues, onToneCssVar, toneCssVar])
 
   return (
     <td
@@ -256,7 +268,13 @@ export function PaletteEmphasisCell({
         alignContent: isPrimary ? undefined : 'space-around',
         gap: isPrimary ? 'var(--recursica_brand_dimensions_general_md)' : undefined,
       }}
-      title={shouldOpenColorPicker ? 'On-tone color fails contrast' : (isPrimary ? undefined : `Set ${level} as default`)}
+      title={
+        shouldOpenColorPicker
+          ? 'On-tone color fails contrast'
+          : (!isPrimary && aaStatus != null && (!aaStatus.currentLowPasses || !aaStatus.currentHighPasses))
+            ? 'Fix contrast before setting as default'
+            : isPrimary ? undefined : `Set ${level} as default`
+      }
       onMouseEnter={(e) => {
         setIsHovered(true)
         if (!shouldOpenColorPicker) {
@@ -271,33 +289,19 @@ export function PaletteEmphasisCell({
       }}
       ref={cellRef}
       onClick={(e) => {
-        if (shouldOpenColorPicker) {
+        // Non-primary cells: block setting as default when the current on-tone fails AA
+        // at EITHER emphasis level — not just this cell's own level. A tone that passes
+        // at high emphasis (full opacity) may still fail at low emphasis (blended).
+        const currentOnToneFails =
+          !isPrimary && aaStatus != null &&
+          (!aaStatus.currentLowPasses || !aaStatus.currentHighPasses)
+        if (shouldOpenColorPicker || currentOnToneFails) {
           e.preventDefault()
           e.stopPropagation()
-          // Extract token name from the tone CSS variable
-          const toneValue = readCssVar(toneCssVar)
-          const tokenName = extractTokenNameFromCssVar(toneValue)
-
-          if (tokenName && tokens && cellRef.current) {
-            // Get current hex value for the token
-            const overrideMap = readOverrides()
-            const jsonColors: any = (tokens as any)?.tokens?.color || {}
-            const parts = tokenName.split('/')
-            const family = parts[1]
-            const level = parts[2]
-            const overrideValue = (overrideMap as any)[tokenName]
-            const tokenValue = overrideValue ?? jsonColors?.[family]?.[level]?.$value ?? jsonColors?.[family]?.[level]
-            const currentHex = typeof tokenValue === 'string' && /^#?[0-9a-f]{6}$/i.test(tokenValue)
-              ? (tokenValue.startsWith('#') ? tokenValue : `#${tokenValue}`).toLowerCase()
-              : '#000000'
-
-            // Open ColorPickerOverlay
-            window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
-            setOpenPicker({ tokenName, anchorElement: cellRef.current })
-          }
+          setSuggestOpen(true)
           return
         }
-        // Only allow setting primary if tone passes AA
+        // Tone is compliant (or primary already selected) — allow setting as default
         onClick()
       }}
     >
@@ -311,26 +315,43 @@ export function PaletteEmphasisCell({
 
           if (shouldOpenColorPicker) {
             const WarningIcon = iconNameToReactComponent('warning')
-            return (
+            const iconOnToneCssVar = emphasisType === 'high' ? highOnToneCssVar : lowOnToneCssVar
+            const iconEmphasisCssVar = emphasisType === 'high' ? highEmphasisCssVar : lowEmphasisCssVar
+            return emphasisType === 'high' ? (
               <>
                 <div style={{
-                  color: `var(${highOnToneCssVar})`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: `var(${highEmphasisCssVar})`
+                  color: `var(${iconOnToneCssVar})`,
+                  opacity: `var(${iconEmphasisCssVar})`,
+                  fontFamily: 'var(--recursica_brand_typography_body-small-font-family)',
+                  fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+                  fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',
+                  letterSpacing: 'var(--recursica_brand_typography_body-small-font-letter-spacing)',
+                  lineHeight: 'var(--recursica_brand_typography_body-small-line-height)',
                 }}>
-                  {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
+                  {level}
                 </div>
                 <div style={{
-                  color: `var(${lowOnToneCssVar})`,
+                  color: `var(${iconOnToneCssVar})`,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  opacity: `var(${lowEmphasisCssVar})`
+                  opacity: `var(${iconEmphasisCssVar})`
                 }}>
                   {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
                 </div>
+              </>
+            ) : (
+              <>
+                <div style={{
+                  color: `var(${iconOnToneCssVar})`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: `var(${iconEmphasisCssVar})`
+                }}>
+                  {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
+                </div>
+                <Chip variant="unselected" size="small" layer="layer-0">Default</Chip>
               </>
             )
           }
@@ -354,6 +375,8 @@ export function PaletteEmphasisCell({
                     position: 'relative',
                     width: '16px',
                     height: '16px',
+                    borderRadius: '50%',
+                    flexShrink: 0,
                     backgroundColor: `var(${highOnToneCssVar})`,
                     opacity: `var(${highEmphasisCssVar})`
                   }} />
@@ -365,6 +388,8 @@ export function PaletteEmphasisCell({
                     position: 'relative',
                     width: '16px',
                     height: '16px',
+                    borderRadius: '50%',
+                    flexShrink: 0,
                     backgroundColor: `var(${lowOnToneCssVar})`,
                     opacity: `var(${lowEmphasisCssVar})`
                   }} />
@@ -436,7 +461,8 @@ export function PaletteEmphasisCell({
         </div>
       )}
 
-      {!shouldOpenColorPicker && !isPrimary && isHovered && (
+      {!shouldOpenColorPicker && !isPrimary && isHovered &&
+        !(aaStatus != null && (!aaStatus.currentLowPasses || !aaStatus.currentHighPasses)) && (
         <div
           data-recursica-layer="1"
           style={{
@@ -463,112 +489,21 @@ export function PaletteEmphasisCell({
         </div>
       )}
 
-      {/* ColorPickerOverlay for updating token color */}
-      {openPicker && openPicker.tokenName && tokens && (() => {
-        const tokenName = openPicker.tokenName
-        const parts = tokenName.split('/')
-        const family = parts[1]
-        const overrideMap = readOverrides()
-        const jsonColors: any = (tokens as any)?.tokens?.color || {}
-        const overrideValue = (overrideMap as any)[tokenName]
-        const tokenValue = overrideValue ?? jsonColors?.[family]?.[parts[2]]?.$value ?? jsonColors?.[family]?.[parts[2]]
-        const currentHex = typeof tokenValue === 'string' && /^#?[0-9a-f]{6}$/i.test(tokenValue)
-          ? (tokenValue.startsWith('#') ? tokenValue : `#${tokenValue}`).toLowerCase()
-          : '#000000'
-        const displayFamilyName = familyNames[family] || family
-
-        return (
-          <ColorPickerOverlay
-            tokenName={tokenName}
-            currentHex={currentHex}
-            anchorElement={openPicker.anchorElement}
-            onClose={() => setOpenPicker(null)}
-            onNameFromHex={async (fam: string, hex: string) => {
-              // Optional: Update family name from hex
-              try {
-                const { getFriendlyNamePreferNtc } = await import('../utils/colorNaming')
-                const label = await getFriendlyNamePreferNtc(hex)
-                if (label) {
-                  setFamilyNameByAlias(fam, label)
-                }
-              } catch { }
-            }}
-            displayFamilyName={displayFamilyName}
-            onChange={(hex: string, cascadeDown: boolean, cascadeUp: boolean) => {
-              // Update the token value
-              updateToken(tokenName, hex)
-
-              // Handle cascade if needed
-              if (cascadeDown || cascadeUp) {
-                // Import cascade function if needed
-                import('../tokens/colors/colorCascade').then(({ cascadeColor }) => {
-                  cascadeColor(tokenName, hex, cascadeDown, cascadeUp, (name: string, h: string) => {
-                    updateToken(name, h)
-                  })
-                }).catch((err) => {
-                  console.warn('Failed to cascade color:', err)
-                })
-              }
-
-              // Update on-tone value in theme JSON for AA compliance
-              if (paletteKey && level && theme) {
-                try {
-                  const themeCopy = getVarsStore().getLatestThemeCopy()
-                  const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-                  const themes = root?.themes || root
-                  const modeKey = mode.toLowerCase()
-
-                  if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
-                    // Read actual core colors from CSS vars
-                    const coreBlackVar = paletteCore(modeKey, 'black')
-                    const coreWhiteVar = paletteCore(modeKey, 'white')
-                    const black = (readCssVarResolved(coreBlackVar) || '#000000').toLowerCase()
-                    const white = (readCssVarResolved(coreWhiteVar) || '#ffffff').toLowerCase()
-                    const cBlack = contrastRatio(hex, black)
-                    const cWhite = contrastRatio(hex, white)
-                    const AA = 4.5
-
-                    let chosen: 'black' | 'white'
-                    if (cBlack >= AA && cWhite >= AA) {
-                      chosen = cBlack >= cWhite ? 'black' : 'white'
-                    } else if (cBlack >= AA) {
-                      chosen = 'black'
-                    } else if (cWhite >= AA) {
-                      chosen = 'white'
-                    } else {
-                      chosen = cBlack >= cWhite ? 'black' : 'white'
-                    }
-
-                    // Update the on-tone value in theme JSON - use short alias format (no theme path)
-                    if (!themes[modeKey].palettes[paletteKey][level]) {
-                      themes[modeKey].palettes[paletteKey][level] = {}
-                    }
-                    if (!themes[modeKey].palettes[paletteKey][level].color) {
-                      themes[modeKey].palettes[paletteKey][level].color = {}
-                    }
-                    themes[modeKey].palettes[paletteKey][level].color['on-tone'] = {
-                      $type: 'color',
-                      $value: `{brand.palettes.${chosen}}`
-                    }
-
-                    // Set the CSS var directly for immediate visual feedback
-                    const onToneCssVar = `--recursica_brand_themes_${modeKey}_palettes_${paletteKey}_${level}_color_on-tone`
-                    updateCssVar(onToneCssVar, `var(${paletteCore(modeKey, chosen)})`)
-                    getVarsStore().setThemeSilent(themeCopy)
-                  }
-                } catch (err) {
-                  console.error('Failed to update on-tone in theme JSON:', err)
-                }
-              }
-
-              // Trigger AA compliance re-check
-              try {
-                window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
-              } catch { }
+      {/* Stop-propagation wrapper prevents portal click events from bubbling
+          back to the <td> onClick and immediately reopening the modal. */}
+      <div onClick={e => e.stopPropagation()}>
+        {matchingIssue && suggestOpen && (
+          <SuggestTonesModal
+            issue={matchingIssue}
+            isOpen
+            onClose={() => setSuggestOpen(false)}
+            onApply={(iss, newHex, family, level) => {
+              applySuggestTone(iss, newHex, family, level)
+              setSuggestOpen(false)
             }}
           />
-        )
-      })()}
+        )}
+      </div>
     </td>
   )
 }

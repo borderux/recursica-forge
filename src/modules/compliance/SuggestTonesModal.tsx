@@ -7,8 +7,10 @@
  */
 
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Modal } from '../../components/adapters/Modal'
 import { Badge } from '../../components/adapters/Badge'
+import { Button } from '../../components/adapters/Button'
 import { RadioButton } from '../../components/adapters/RadioButton'
 import type { ComplianceIssue } from '../../core/compliance/ComplianceService'
 import { generateSuggestedTones, type SuggestedTone } from './toneInterpolation'
@@ -37,6 +39,7 @@ export interface SuggestTonesModalProps {
 export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTonesModalProps) {
     const [selectedHex, setSelectedHex] = useState<string | null>(null)
     const { mode } = useThemeMode()
+    const navigate = useNavigate()
 
     const WarningIcon = iconNameToReactComponent('warning')
 
@@ -97,12 +100,24 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
             emphasisOpacity,
         )
 
-        // Override the failing tone's contrast ratio with the actual value from the issue
-        // since the issue may have additional context (e.g., opacity blending) that we match
+        // Override the failing tone's values with the actual issue data so the
+        // current-state swatch reflects the real on-tone colour (not the computed best).
         const failingTone = tones.find(t => t.isFailing)
         if (failingTone) {
             failingTone.contrastRatio = issue.contrastRatio
             failingTone.isCompliant = false // It's always failing, that's why we're here
+
+            // Use the raw (unblended) on-tone to determine the icon/dot colour for the
+            // current swatch — issue.onToneHex is blended with opacity, rawOnToneHex is not.
+            const actualHex = issue.rawOnToneHex || issue.onToneHex
+            if (actualHex) {
+                const h = actualHex.replace('#', '')
+                const r = parseInt(h.slice(0, 2), 16) / 255
+                const g = parseInt(h.slice(2, 4), 16) / 255
+                const b = parseInt(h.slice(4, 6), 16) / 255
+                const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+                failingTone.onToneColor = lum > 0.5 ? 'white' : 'black'
+            }
         }
 
         return { tones, family, level, emphasisOpacity }
@@ -185,7 +200,7 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                                 className={rowClass}
                                 onClick={isSelectable ? () => setSelectedHex(tone.hex) : undefined}
                             >
-                                {/* Radio button for selectable rows, empty space for others */}
+                                {/* Radio button for selectable rows; Edit scale for failing row */}
                                 <div className="suggest-tones__radio-cell">
                                     {isSelectable && (
                                         <RadioButton
@@ -193,6 +208,25 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                                             onChange={() => setSelectedHex(tone.hex)}
                                         />
                                     )}
+                                    {tone.isFailing && family && (() => {
+                                        const PencilIcon = iconNameToReactComponent('pencil')
+                                        return (
+                                            <Button
+                                                variant="outline"
+                                                size="small"
+                                                layer="layer-1"
+                                                title="Edit scale"
+                                                icon={PencilIcon ? <PencilIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : undefined}
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    handleClose()
+                                                    navigate('/tokens', {
+                                                        state: { openScale: { family, level } },
+                                                    })
+                                                }}
+                                            />
+                                        )
+                                    })()}
                                 </div>
 
                                 {/* Swatch */}

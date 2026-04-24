@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
@@ -160,6 +161,53 @@ export default function ColorTokens() {
   const [values, setValues] = useState<Record<string, string | number>>({})
   const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; anchorElement: HTMLElement } | null>(null)
+
+  const [pendingOpenScale, setPendingOpenScale] = useState<{ family: string; level: string } | null>(null)
+
+  // Read navigation state from SuggestTonesModal "Edit scale" button
+  const location = useLocation()
+  useEffect(() => {
+    const state = location.state as any
+    if (state?.openScale) {
+      setPendingOpenScale(state.openScale)
+      // Clear state to prevent re-triggering on subsequent renders
+      window.history.replaceState({}, '')
+    }
+  }, [location.state])
+
+  // After pendingOpenScale is set, wait for DOM then scroll to + open picker
+  useEffect(() => {
+    if (!pendingOpenScale) return
+    const { family: rawFamily, level } = pendingOpenScale
+
+    // Resolve scale key (e.g., "scale-05") to its alias (e.g., "mandy")
+    // because data-scale-family uses the alias, not the scale key.
+    let family = rawFamily
+    if (rawFamily.startsWith('scale-')) {
+      const colorsRoot: any = (tokensJson as any)?.tokens?.colors || {}
+      const scale = colorsRoot[rawFamily]
+      if (scale?.alias && typeof scale.alias === 'string') {
+        family = scale.alias
+      }
+    }
+
+    const timer = setTimeout(() => {
+      const wrapper = document.querySelector(
+        `[data-scale-family="${family}"][data-scale-level="${level}"]`
+      ) as HTMLElement | null
+      if (wrapper) {
+        wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const roleBtn = wrapper.querySelector('[role="button"]') as HTMLElement | null
+        if (roleBtn) {
+          // Use alias-based token name — this is what ColorCell's entry.name contains
+          const tokenName = `colors/${family}/${level}`
+          setOpenPicker({ tokenName, anchorElement: roleBtn })
+        }
+      }
+      setPendingOpenScale(null)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [pendingOpenScale, tokensJson])
 
   // Track theme changes via direct store subscription so colorScaleUsageMap
   // always reflects the freshest theme even when this component was unmounted
