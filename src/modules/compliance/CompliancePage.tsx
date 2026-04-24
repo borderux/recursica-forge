@@ -195,22 +195,27 @@ export default function CompliancePage() {
         return () => window.removeEventListener('complianceReset', handleReset)
     }, [])
 
-    // When the theme mode changes, reset the snapshot and fixed state so the
-    // compliance page re-initialises from the fresh scan results for the new mode.
-    // Fixes applied in the previous mode are persisted in JSON, so they will not
-    // re-appear in the new scan if persistence is working correctly.
+    // Track which issues array was current at the moment of the mode-switch reset.
+    // This lets us distinguish "same stale issues" from "new scan completed".
+    const issuesRefAtReset = useRef<ComplianceIssue[] | null>(null)
+
+    // When the theme mode changes, reset the snapshot so the compliance page
+    // re-initialises from the fresh scan results for the new mode.
     useEffect(() => {
         snapshotRef.current = null
         resettingRef.current = true
+        issuesRefAtReset.current = issues // remember what issues looked like at reset time
         setFixedMap({})
         setSuggestFixedMap({})
-    }, [mode])
+    }, [mode]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    // After reset, wait for fresh issues from rescan then re-snapshot
+    // After reset, wait until issues is a DIFFERENT array (new scan completed) before re-snapshotting.
+    // Without this guard the effect fires immediately with the old issues in the same commit.
     useEffect(() => {
-        if (resettingRef.current && issues.length > 0) {
+        if (resettingRef.current && issues !== issuesRefAtReset.current && issues.length > 0) {
             snapshotRef.current = [...issues]
             resettingRef.current = false
+            issuesRefAtReset.current = null
         }
     }, [issues])
 
@@ -726,7 +731,7 @@ export default function CompliancePage() {
             />
 
             {/* Empty state */}
-            {issues.length === 0 && (
+            {displayIssues.length === 0 && (
                 <div className="compliance-page__empty">
                     <div className="compliance-page__empty-icon" style={{
                         color: `var(--recursica_brand_palettes_palette-1_primary_color_tone)`,
@@ -765,7 +770,7 @@ export default function CompliancePage() {
 
 
             {/* Issue tables — Theme h2 and Components h2, each sub-group as h3 */}
-            {issues.length > 0 && (
+            {displayIssues.length > 0 && (
                 <>
                     {themeGroupKeys.length > 0 && (
                         <div className="compliance-page__section">

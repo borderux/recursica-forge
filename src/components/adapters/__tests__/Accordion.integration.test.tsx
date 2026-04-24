@@ -62,29 +62,34 @@ describe('Accordion Integration', () => {
     )
   }
 
-  const waitForAccordion = async (container: HTMLElement) => {
+  // Look for the kit-specific class (.mantine-accordion, .material-accordion, .carbon-accordion)
+  // rather than the generic .recursica-accordion. This avoids a race where waitFor resolves with
+  // the default Mantine element before KitSwitcher's useEffect fires and switches the kit.
+  // Mantine's CSS-in-JS is synchronous/blocking in JSDOM (~70s first cold render),
+  // so the waitFor timeout must exceed that.
+  const waitForAccordion = async (container: HTMLElement, kit: 'mantine' | 'material' | 'carbon') => {
     return await waitFor(() => {
-      const el = container.querySelector('.recursica-accordion')
-      if (!el) throw new Error('Accordion not found')
+      const el = container.querySelector(`.${kit}-accordion`)
+      if (!el) throw new Error(`${kit} Accordion not found`)
       return el
-    }, { timeout: 50000 })
+    }, { timeout: 90000 })
   }
 
   itDom('renders Mantine accordion when Mantine is selected', async () => {
     const { container } = renderWithKit('mantine')
-    const el = await waitForAccordion(container)
+    const el = await waitForAccordion(container, 'mantine')
     expect(el).toBeInTheDocument()
-  }, 60000)
+  }, 120000)
 
   itDom('renders Material accordion when Material is selected', async () => {
     const { container } = renderWithKit('material')
-    const el = await waitForAccordion(container)
+    const el = await waitForAccordion(container, 'material')
     expect(el).toBeInTheDocument()
   }, 60000)
 
   itDom('renders Carbon accordion when Carbon is selected', async () => {
     const { container } = renderWithKit('carbon')
-    const el = await waitForAccordion(container)
+    const el = await waitForAccordion(container, 'carbon')
     expect(el).toBeInTheDocument()
   }, 60000)
 })

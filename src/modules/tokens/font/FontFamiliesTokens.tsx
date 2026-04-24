@@ -244,7 +244,9 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           saveStoredFonts(fonts)
           // Build proper CSS font-family string for the token value
           const quotedName = cleanFontName.includes(' ') ? `"${cleanFontName}"` : cleanFontName
-          const fontStack = category ? `${quotedName}, ${category}` : quotedName
+          // Always include a generic-family fallback so the font-family chain is valid even
+          // while the font file is still downloading. Matches Google's own embed CSS.
+          const fontStack = `${quotedName}, ${category || 'sans-serif'}`
           updateToken(`font/typeface/${sequentialName}`, fontStack)
 
           // Update variants in tokensJson (not part of rf:fonts yet)
@@ -1064,7 +1066,7 @@ export default function FontFamiliesTokens() {
                 flexDirection: 'column',
                 justifyContent: 'space-between',
                 position: 'relative',
-                minHeight: '326px',
+                minHeight: 'unset',
               }}
             >
               {(() => {

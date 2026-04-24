@@ -935,9 +935,9 @@ class ComplianceServiceImpl {
             }
 
             // Parse palette on-tone vars (AFTER core regexes to avoid false matches):
-            // --recursica_brand_themes_{mode}-palettes-{paletteKey}-{level}-on-tone
+            // --recursica_brand_themes_{mode}_palettes_{paletteKey}_{level}_color_on-tone
             const paletteMatch = cssVar.match(
-                /--recursica_brand_themes_(light|dark)_palettes_(.+)-(\d{3,4}|primary|default)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_(.+)_(\d{3,4}|primary|default)_color_on-tone$/
             )
             if (paletteMatch) {
                 const [, mode, paletteKey, level] = paletteMatch
@@ -1116,9 +1116,9 @@ class ComplianceServiceImpl {
             }
 
             // Parse palette on-tone vars (AFTER core regexes to avoid false matches):
-            // --recursica_brand_themes_{mode}-palettes-{paletteKey}-{level}-on-tone
+            // --recursica_brand_themes_{mode}_palettes_{paletteKey}_{level}_color_on-tone
             const paletteMatch = cssVar.match(
-                /--recursica_brand_themes_(light|dark)_palettes_(.+)-(\d{3,4}|primary|default)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_(.+)_(\d{3,4}|primary|default)_color_on-tone$/
             )
             if (paletteMatch) {
                 const [, mode, paletteKey, level] = paletteMatch

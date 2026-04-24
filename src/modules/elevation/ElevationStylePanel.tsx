@@ -226,31 +226,55 @@ export default function ElevationStylePanel({
   // Reads directly from valuesRef.current which every handler writes to
   // synchronously before calling this function, so it is never stale.
 
-  const applyFactory = React.useCallback(() => {
+  const applyFactory = React.useCallback((changedProp: 'blur' | 'spread' | 'offsetX' | 'offsetY' | 'opacity') => {
     const v = valuesRef.current
-    applyElevationShadow(levelsArr, mode, {
-      blur: v.blur,
-      spread: v.spread,
-      offsetX: v.offsetX,
-      offsetY: v.offsetY,
-      opacityNormalized: Math.max(0, Math.min(1, v.opacity / 100)),
-      paletteKey: v.paletteKey,
-      paletteLevel: v.paletteLevel,
-    })
-  }, [levelsArr, mode])
+
+    for (const lvl of levelsArr) {
+      if (lvl === 0) continue
+      const key = `elevation-${lvl}`
+      const ctrl = elevationControls[key]
+      const dir = getDirectionForLevel(key)
+
+      // For each prop, use the changed value from valuesRef; use each elevation's
+      // own committed value for all other props so multi-selection only edits one prop.
+      const blur     = changedProp === 'blur'    ? v.blur    : (ctrl?.blur    ?? 0)
+      const spread   = changedProp === 'spread'  ? v.spread  : (ctrl?.spread  ?? 0)
+      // offsetX/Y are stored as unsigned magnitude; the panel shows a signed value.
+      // The committed signed value is direction-dependent.
+      const rawOffsetX = ctrl?.offsetX ?? 0
+      const rawOffsetY = ctrl?.offsetY ?? 0
+      const committedSignedX = dir.x === 'right' ? rawOffsetX : -rawOffsetX
+      const committedSignedY = dir.y === 'down'  ? rawOffsetY : -rawOffsetY
+      const offsetX  = changedProp === 'offsetX' ? v.offsetX  : committedSignedX
+      const offsetY  = changedProp === 'offsetY' ? v.offsetY  : committedSignedY
+      const opacityNormalized = changedProp === 'opacity'
+        ? Math.max(0, Math.min(1, v.opacity / 100))
+        : Math.max(0, Math.min(1, (ctrl?.opacity ?? 0.84)))
+
+      applyElevationShadow([lvl], mode, {
+        blur,
+        spread,
+        offsetX,
+        offsetY,
+        opacityNormalized,
+        paletteKey:   v.paletteKey,
+        paletteLevel: v.paletteLevel,
+      })
+    }
+  }, [levelsArr, mode, elevationControls, getDirectionForLevel])
 
   // ─── Blur ────────────────────────────────────────────────────────────────────
 
   const handleBlurChange = React.useCallback((value: number) => {
     valuesRef.current.blur = value
     setLocalBlur(value)
-    applyFactory()
+    applyFactory('blur')
   }, [applyFactory])
 
   const handleBlurChangeCommitted = React.useCallback((value: number) => {
     valuesRef.current.blur = value
     setLocalBlur(null)
-    applyFactory()
+    applyFactory('blur')
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
     updateElevationControlsBatch(keys, 'blur', value)
   }, [levelsArr, applyFactory, updateElevationControlsBatch])
@@ -260,13 +284,13 @@ export default function ElevationStylePanel({
   const handleSpreadChange = React.useCallback((value: number) => {
     valuesRef.current.spread = value
     setLocalSpread(value)
-    applyFactory()
+    applyFactory('spread')
   }, [applyFactory])
 
   const handleSpreadChangeCommitted = React.useCallback((value: number) => {
     valuesRef.current.spread = value
     setLocalSpread(null)
-    applyFactory()
+    applyFactory('spread')
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
     updateElevationControlsBatch(keys, 'spread', value)
   }, [levelsArr, applyFactory, updateElevationControlsBatch])
@@ -276,13 +300,13 @@ export default function ElevationStylePanel({
   const handleOffsetXChange = React.useCallback((value: number) => {
     valuesRef.current.offsetX = value
     setLocalOffsetX(value)
-    applyFactory()
+    applyFactory('offsetX')
   }, [applyFactory])
 
   const handleOffsetXChangeCommitted = React.useCallback((value: number) => {
     valuesRef.current.offsetX = value
     setLocalOffsetX(null)
-    applyFactory()
+    applyFactory('offsetX')
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
     updateElevationControlsBatch(keys, 'offsetX', value)
   }, [levelsArr, applyFactory, updateElevationControlsBatch])
@@ -292,13 +316,13 @@ export default function ElevationStylePanel({
   const handleOffsetYChange = React.useCallback((value: number) => {
     valuesRef.current.offsetY = value
     setLocalOffsetY(value)
-    applyFactory()
+    applyFactory('offsetY')
   }, [applyFactory])
 
   const handleOffsetYChangeCommitted = React.useCallback((value: number) => {
     valuesRef.current.offsetY = value
     setLocalOffsetY(null)
-    applyFactory()
+    applyFactory('offsetY')
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
     updateElevationControlsBatch(keys, 'offsetY', value)
   }, [levelsArr, applyFactory, updateElevationControlsBatch])
@@ -308,13 +332,13 @@ export default function ElevationStylePanel({
   const handleOpacityChange = React.useCallback((value: number) => {
     valuesRef.current.opacity = value
     setLocalOpacity(value)
-    applyFactory()
+    applyFactory('opacity')
   }, [applyFactory])
 
   const handleOpacityChangeCommitted = React.useCallback((value: number) => {
     valuesRef.current.opacity = value
     setLocalOpacity(null)
-    applyFactory()
+    applyFactory('opacity')
     const keys = levelsArr.map(lvl => `elevation-${lvl}`)
     updateElevationControlsBatch(keys, 'opacity', value / 100)
   }, [levelsArr, applyFactory, updateElevationControlsBatch])

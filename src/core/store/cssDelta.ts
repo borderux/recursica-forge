@@ -98,6 +98,8 @@ export function restoreDelta(): number {
       if (varName.startsWith('--recursica_brand_dimensions_')) continue
       // Elevation shadow-color vars are fully recomputed from paletteSelections — never restore
       if (varName.includes('_elevations_') && varName.endsWith('_shadow-color')) continue
+      // Palette tone/on-tone vars are always re-derived from brand JSON by buildPaletteVars — never restore
+      if (varName.match(/^--recursica_brand_themes_[a-z]+_palettes_/)) continue
       // Skip CSS vars belonging to deleted color scales
       if (deletedScaleKeys.size > 0) {
         const tokenColorMatch = varName.match(/^--recursica_tokens_colors?_([\w-]+)_/)
@@ -232,6 +234,8 @@ export function reapplyDelta(): number {
     if (varName.startsWith('--recursica_tokens_font_typefaces_') || varName.startsWith('--recursica_tokens_font_families_')) continue
     // Brand font sequence vars are re-derived on every recompute — never overwrite from delta
     if (varName.startsWith('--recursica_brand_fonts_')) continue
+    // Palette tone/on-tone vars are always re-derived from brand JSON by buildPaletteVars — never overwrite
+    if (varName.match(/^--recursica_brand_themes_[a-z]+_palettes_/)) continue
     root.style.setProperty(varName, value)
     count++
   }

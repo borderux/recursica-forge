@@ -67,7 +67,6 @@ export function Label({
   const optionalLineHeightVar = getComponentTextCssVar('Label', 'optional-text', 'line-height')
   const optionalTextDecorationVar = getComponentTextCssVar('Label', 'optional-text', 'text-decoration')
   const optionalTextTransformVar = getComponentTextCssVar('Label', 'optional-text', 'text-transform')
-  const optionalFontStyleVar = getComponentTextCssVar('Label', 'optional-text', 'font-style')
 
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
@@ -86,7 +85,7 @@ export function Label({
       labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
       labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
       optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
-      optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar
+      optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar
     ]
 
     // Include width CSS vars in the update check
@@ -126,7 +125,7 @@ export function Label({
     labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
     labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
     optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
-    optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar,
+    optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar,
     effectiveWidthVar, widthVar, labelWidthVar, effectiveSize, layout
   ])
 
@@ -234,7 +233,7 @@ export function Label({
                 fontSize: `var(${optionalFontSizeVar})`,
                 fontFamily: `var(${optionalFontFamilyVar})`,
                 fontWeight: `var(${optionalFontWeightVar})`,
-                fontStyle: optionalFontStyleVar ? `var(${optionalFontStyleVar})` as any : 'normal',
+                fontStyle: 'normal',
                 letterSpacing: optionalLetterSpacingVar ? `var(${optionalLetterSpacingVar})` : undefined,
                 lineHeight: `var(${optionalLineHeightVar})`,
                 textDecoration: optionalTextDecorationVar ? `var(${optionalTextDecorationVar})` as any : 'none',
