@@ -38,14 +38,14 @@ describe('Accordion Component (Adapter)', () => {
     )
   }
 
-  // Mantine's CSS-in-JS style injection in JSDOM is slow (~30-40s on first cold render).
-  // Use a generous waitFor timeout and pass a per-test timeout to match.
+  // Mantine's CSS-in-JS style injection in JSDOM is synchronous and blocks the event loop
+  // for ~70s on the first cold render. waitFor and per-test timeouts must both exceed that.
   const waitForAccordion = async (container: HTMLElement) => {
     return await waitFor(() => {
       const el = container.querySelector('.recursica-accordion')
       if (!el) throw new Error('Accordion not found')
       return el
-    }, { timeout: 50000 })
+    }, { timeout: 90000 })
   }
 
   itDom('renders accordion items with titles', async () => {
@@ -58,7 +58,7 @@ describe('Accordion Component (Adapter)', () => {
     expect(screen.getByText('First')).toBeInTheDocument()
     expect(screen.getByText('Second')).toBeInTheDocument()
     expect(screen.getByText('Second content')).toBeInTheDocument()
-  }, 60000)
+  }, 120000)
 
   itDom('calls onToggle when an item is toggled', async () => {
     const onToggle = vi.fn()
