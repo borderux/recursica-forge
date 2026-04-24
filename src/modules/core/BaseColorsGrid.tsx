@@ -341,6 +341,16 @@ export default function BaseColorsGrid() {
           $value: defaultColor['on-tone'].$value
         }
       }
+
+      // Reset interactive (the per-color dot shown in the Interactive row of the grid)
+      if (defaultColor.interactive?.$value) {
+        currentCoreColors[colorName].interactive = {
+          $type: 'color',
+          $value: defaultColor.interactive.$value
+        }
+      } else {
+        delete currentCoreColors[colorName].interactive
+      }
     })
 
     // Reset interactive colors (default and hover)

@@ -865,7 +865,10 @@ export default function ColorTokenPicker() {
           // Use the updated themeCopy structure for proper resolution
           const rootForCssVar: any = themeCopy?.brand ? themeCopy.brand : themeCopy
           const themesForCssVar = rootForCssVar?.themes || rootForCssVar
-          const coreColorsPath = themesForCssVar[modeLower]?.palettes?.['core-colors']?.$value
+          // core-colors is NOT wrapped in $value in normal (non-import) usage.
+          // Mirror the same pattern used in palettes.ts: fall back to the raw object.
+          const coreColorsRaw = themesForCssVar[modeLower]?.palettes?.['core-colors']
+          const coreColorsPath = coreColorsRaw?.$value || coreColorsRaw
 
           if (coreColorsPath) {
             const coreColorNames = ['black', 'white', 'alert', 'warning', 'success']
