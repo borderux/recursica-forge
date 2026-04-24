@@ -622,9 +622,9 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   }, [updateCssVarValue])
 
   const handleDecorationChange = useCallback((value: string) => {
-    // Map CSS values to token keys: 'none' -> 'none', 'underline' -> 'underline', 'line-through' -> 'strikethrough'
-    const tokenMap: Record<string, string> = { 'none': 'none', 'underline': 'underline', 'line-through': 'strikethrough' }
-    updateCssVarValue('text-decoration', tokenMap[value] || value)
+    // Token keys in recursica_tokens.json match the CSS values directly:
+    // 'none' -> 'none', 'underline' -> 'underline', 'line-through' -> 'line-through'
+    updateCssVarValue('text-decoration', value)
   }, [updateCssVarValue])
 
   const handleTransformChange = useCallback((value: string) => {
