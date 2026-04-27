@@ -100,11 +100,10 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
   // Read brand-level text emphasis from Brand JSON and emit brand vars
   try {
     const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-    // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
     const themes = root?.themes || root
-    const textEmphasis: any = (mode === 'Light' ? themes?.light?.['text-emphasis'] : themes?.dark?.['text-emphasis']) || {}
-    const high = getOpacityVar(textEmphasis?.high)
-    const low = getOpacityVar(textEmphasis?.low)
+    const text: any = (mode === 'Light' ? themes?.light?.['text-emphasis'] : themes?.dark?.['text-emphasis']) || {}
+    const high = getOpacityVar(text['high'])
+    const low = getOpacityVar(text['low'])
     vars[textEmphasisVar(modeLower, 'high')] = high
     vars[textEmphasisVar(modeLower, 'low')] = low
   } catch { }
@@ -445,47 +444,50 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const primaryToneVar = paletteVar(modeLower, pk, 'primary', 'color_tone')
     const primaryOnToneVar = paletteVar(modeLower, pk, 'primary', 'color_on-tone')
 
-    // Check if the primary level is already set in the DOM (e.g., from delta restore or user interaction)
-    let primaryLevel: string | null = null
-    const existingPrimaryTone = readCssVar(primaryToneVar)
-    if (existingPrimaryTone) {
-      // Primary tone already exists in DOM — extract the level from the var() reference
-      const match = existingPrimaryTone.match(/var\(--recursica_brand_\w+_palettes_[^_]+_(\d{3,4})_color_tone\)/)
-      if (match) {
-        primaryLevel = match[1]
-      }
-    }
-
-    // If we have a primary level from the DOM, use it
-    if (primaryLevel) {
-      const targetToneVar = paletteVar(modeLower, pk, primaryLevel, 'color_tone')
-      const targetOnToneVar = paletteVar(modeLower, pk, primaryLevel, 'color_on-tone')
-      if (vars[targetToneVar]) {
-        vars[primaryToneVar] = `var(${targetToneVar})`
-        if (vars[targetOnToneVar]) {
-          vars[primaryOnToneVar] = `var(${targetOnToneVar})`
-        }
-      }
-    } else if (!vars[primaryToneVar]) {
-      // Generate primary tone from theme JSON
-      // Try to find a suitable fallback level (prefer 500, then 400, then 600, then first available)
-      const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
-      for (const level of fallbackLevels) {
-        const fallbackToneVar = paletteVar(modeLower, pk, level, 'color_tone')
-        if (vars[fallbackToneVar]) {
-          primaryLevel = level
-          break
+    // Only consult the DOM if the JSON's 'default' level entry has NOT already populated
+    // vars[primaryToneVar]. When the JSON has a 'default' entry (which maps to 'primary' in CSS),
+    // it was just resolved above and must take precedence over whatever stale value is in the DOM
+    // (especially during bulkImport, where the DOM still reflects the pre-import state).
+    if (!vars[primaryToneVar]) {
+      let primaryLevel: string | null = null
+      const existingPrimaryTone = readCssVar(primaryToneVar)
+      if (existingPrimaryTone) {
+        // Primary tone already exists in DOM — extract the level from the var() reference
+        const match = existingPrimaryTone.match(/var\(--recursica_brand_\w+_palettes_[^_]+_(\d{3,4})_color_tone\)/)
+        if (match) {
+          primaryLevel = match[1]
         }
       }
 
-      // If we found a primary level (from fallback), create primary-tone and primary-on-tone by referencing it
       if (primaryLevel) {
+        // Use the level from the DOM (e.g. from delta restore or a user-initiated change
+        // that hasn't yet been persisted to the brand JSON).
         const targetToneVar = paletteVar(modeLower, pk, primaryLevel, 'color_tone')
         const targetOnToneVar = paletteVar(modeLower, pk, primaryLevel, 'color_on-tone')
         if (vars[targetToneVar]) {
           vars[primaryToneVar] = `var(${targetToneVar})`
           if (vars[targetOnToneVar]) {
             vars[primaryOnToneVar] = `var(${targetOnToneVar})`
+          }
+        }
+      } else {
+        // No DOM value — fall back to the first available numeric level from the JSON.
+        const fallbackLevels = ['500', '400', '600', '300', '700', '200', '800', '100', '900', '050']
+        for (const level of fallbackLevels) {
+          const fallbackToneVar = paletteVar(modeLower, pk, level, 'color_tone')
+          if (vars[fallbackToneVar]) {
+            primaryLevel = level
+            break
+          }
+        }
+        if (primaryLevel) {
+          const targetToneVar = paletteVar(modeLower, pk, primaryLevel, 'color_tone')
+          const targetOnToneVar = paletteVar(modeLower, pk, primaryLevel, 'color_on-tone')
+          if (vars[targetToneVar]) {
+            vars[primaryToneVar] = `var(${targetToneVar})`
+            if (vars[targetOnToneVar]) {
+              vars[primaryOnToneVar] = `var(${targetOnToneVar})`
+            }
           }
         }
       }

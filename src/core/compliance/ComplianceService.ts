@@ -153,19 +153,7 @@ class ComplianceServiceImpl {
         if (!issue || !issue.suggestion) return false
 
         const { targetCssVar, suggestedValue } = issue.suggestion
-
-        // Build CSS var update
-        const cssVarUpdates: Record<string, string> = { [targetCssVar]: suggestedValue }
-
-        // Build theme JSON update
-        let themeUpdate: JsonLike | undefined
-        if (this.setTheme && this.getTheme) {
-            themeUpdate = this.buildThemeJsonUpdate(targetCssVar, suggestedValue)
-        }
-
-        // Write directly — no recompute trigger
-        getVarsStore().writeCssVarsDirect(cssVarUpdates, themeUpdate)
-
+        getVarsStore().writeCssVarsDirect({ [targetCssVar]: suggestedValue })
         return true
     }
 
@@ -174,12 +162,7 @@ class ComplianceServiceImpl {
      * Called from CompliancePage when the user undoes a fix.
      */
     persistUndo(cssVar: string, originalValue: string) {
-        const cssVarUpdates: Record<string, string> = { [cssVar]: originalValue }
-        let themeUpdate: JsonLike | undefined
-        if (this.setTheme && this.getTheme) {
-            themeUpdate = this.buildThemeJsonUpdate(cssVar, originalValue)
-        }
-        getVarsStore().writeCssVarsDirect(cssVarUpdates, themeUpdate)
+        getVarsStore().writeCssVarsDirect({ [cssVar]: originalValue })
     }
 
     /**
@@ -198,39 +181,10 @@ class ComplianceServiceImpl {
         }
 
         if (applied > 0) {
-            // Build a single theme JSON update with all fixes
-            let themeUpdate: JsonLike | undefined
-            if (this.setTheme && this.getTheme) {
-                themeUpdate = this.buildBatchThemeJsonUpdate(cssVarUpdates)
-            }
-
-            // Write all fixes directly — no recompute trigger
-            getVarsStore().writeCssVarsDirect(cssVarUpdates, themeUpdate)
+            getVarsStore().writeCssVarsDirect(cssVarUpdates)
         }
 
         return applied
-    }
-
-    /**
-     * Build a theme JSON copy with a single fix applied.
-     */
-    private buildThemeJsonUpdate(cssVar: string, value: string): JsonLike | undefined {
-        if (!this.getTheme) return undefined
-        const themeCopy = getVarsStore().getLatestThemeCopy()
-        this.applyFixToThemeCopy(themeCopy, cssVar, value)
-        return themeCopy
-    }
-
-    /**
-     * Build a theme JSON copy with multiple fixes applied.
-     */
-    private buildBatchThemeJsonUpdate(cssVarUpdates: Record<string, string>): JsonLike | undefined {
-        if (!this.getTheme) return undefined
-        const themeCopy = getVarsStore().getLatestThemeCopy()
-        for (const [cssVar, value] of Object.entries(cssVarUpdates)) {
-            this.applyFixToThemeCopy(themeCopy, cssVar, value)
-        }
-        return themeCopy
     }
 
     // ─── Private scan methods ───
@@ -262,6 +216,8 @@ class ComplianceServiceImpl {
 
             Object.keys(palettes).forEach((paletteKey) => {
                 if (paletteKey === 'core' || paletteKey === 'core-colors') return
+                // Skip palettes that have been deleted by the user (deletion marker in brand delta)
+                if (document.documentElement.style.getPropertyValue(`--recursica_brand_palette_deleted_${paletteKey}`).trim() === 'true') return
 
                 levels.forEach((level) => {
                     const toneVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_tone`
@@ -364,8 +320,8 @@ class ComplianceServiceImpl {
         const simpleCoreColors = ['alert', 'warning', 'success', 'black', 'white']
 
         simpleCoreColors.forEach((colorKey) => {
-            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_color_tone`
-            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_color_on-tone`
+            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_tone`
+            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_on-tone`
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -432,8 +388,8 @@ class ComplianceServiceImpl {
         ]
 
         interactiveVariants.forEach(({ variant, label }) => {
-            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_color_tone`
-            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_color_on-tone`
+            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_tone`
+            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_on-tone`
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -908,7 +864,7 @@ class ComplianceServiceImpl {
             // Parse core color on-tone vars (simple):
             // --recursica_brand_themes_{mode}-palettes-core-{colorKey}-on-tone
             const coreMatch = cssVar.match(
-                /--recursica_brand_themes_(light|dark)_palettes_core_([a-z]+)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_core-colors_([a-z]+)_on-tone$/
             )
             if (coreMatch) {
                 const [, mode, colorKey] = coreMatch

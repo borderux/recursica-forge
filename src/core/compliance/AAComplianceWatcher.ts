@@ -110,8 +110,8 @@ export class AAComplianceWatcher {
     }
 
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core_black`
-    const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core_white`
+    const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_black`
+    const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_white`
     const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
     const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
 
@@ -190,8 +190,8 @@ export class AAComplianceWatcher {
     }
 
     const onToneValue = chosen === 'white'
-      ? `var(--recursica_brand_themes_${mode}_palettes_core_white)`
-      : `var(--recursica_brand_themes_${mode}_palettes_core_black)`
+      ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_white)`
+      : `var(--recursica_brand_themes_${mode}_palettes_core-colors_black)`
 
     // Pass tokens to updateCssVar for validation
     updateCssVar(onToneVar, onToneValue, this.tokens)

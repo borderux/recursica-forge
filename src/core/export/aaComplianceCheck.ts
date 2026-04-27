@@ -76,8 +76,8 @@ export function checkAACompliance(): ComplianceIssue[] {
       // Check core-colors (alert, warning, success, black, white) tone/on-tone combinations
       const coreColorKeys = ['alert', 'warning', 'success', 'black', 'white']
       coreColorKeys.forEach((colorKey) => {
-        const toneVar = `--recursica_brand_themes_${mode}_palettes_core_${colorKey}-tone`
-        const onToneVar = `--recursica_brand_themes_${mode}_palettes_core_${colorKey}-on-tone`
+        const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}-tone`
+        const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}-on-tone`
         
         const toneValue = readCssVar(toneVar)
         const onToneValue = readCssVar(onToneVar)

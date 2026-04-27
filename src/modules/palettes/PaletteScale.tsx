@@ -270,7 +270,7 @@ export function PaletteScaleHeader({
                     }
                     themes[modeKey].palettes[paletteKey][level].color['on-tone'] = {
                       $type: 'color',
-                      $value: `{brand.palettes.${chosen}}`
+                      $value: `{brand.palettes.core-colors.${chosen}.tone}`
                     }
 
                     // Set the CSS var directly for immediate visual feedback

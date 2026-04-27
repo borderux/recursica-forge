@@ -70,6 +70,13 @@ function writeJsonValue(token: any, cssValue: string): void {
   let syncedCount = 0
   const tokensRoot: any = (tokens as any)?.tokens || {}
 
+  // Build set of deleted palette keys from brand delta markers.
+  const deletedPaletteKeys = new Set<string>()
+  for (const [k, v] of entries) {
+    const m = k.match(/^--recursica_brand_palette_deleted_(.+)$/)
+    if (m && v === 'true') deletedPaletteKeys.add(m[1])
+  }
+
   // Read the list of user-deleted color scale aliases.
   // Any delta entries for these scales must be skipped to prevent resurrection.
   const deletedAliases = new Set<string>()
@@ -255,31 +262,64 @@ function writeJsonValue(token: any, cssValue: string): void {
 
     switch (brandParsed.type) {
       case 'palette': {
-        const paletteGroup = themes?.[brandParsed.mode]?.palettes?.[brandParsed.paletteName]
-        if (!paletteGroup) break
+        // Skip vars for palettes the user has deleted (tracked via deletion marker in delta).
+        if (deletedPaletteKeys.has(brandParsed.paletteName)) break
+        // Ensure the palette path exists in themes JSON — creates it if this is a user-added palette
+        // (e.g. palette-3 not present in the static brand JSON).
+        if (!themes[brandParsed.mode]) themes[brandParsed.mode] = {}
+        if (!themes[brandParsed.mode].palettes) themes[brandParsed.mode].palettes = {}
+        if (!themes[brandParsed.mode].palettes[brandParsed.paletteName]) {
+          themes[brandParsed.mode].palettes[brandParsed.paletteName] = {}
+        }
+        const paletteGroup = themes[brandParsed.mode].palettes[brandParsed.paletteName]
+
+        if (!paletteGroup[brandParsed.level]) paletteGroup[brandParsed.level] = {}
         const levelObj = paletteGroup[brandParsed.level]
-        if (!levelObj) break
 
         const propParts = brandParsed.prop.split('_')
         let target: any = levelObj
         for (let i = 0; i < propParts.length - 1; i++) {
-          target = target?.[propParts[i]]
-          if (!target) break
+          const seg = propParts[i]
+          if (!target[seg]) target[seg] = {}
+          target = target[seg]
         }
-        if (target) {
-          const leaf = propParts[propParts.length - 1]
-          if (target[leaf] && typeof target[leaf] === 'object' && '$value' in target[leaf]) {
-            target[leaf].$value = cssValue
-            syncedCount++
-          }
+        const leaf = propParts[propParts.length - 1]
+        // cssValue has already been converted by cssVarToRef (line 131) from
+        // var(--recursica_tokens_colors_scale-03_500) → {tokens.colors.scale-03.500}
+        // so this writes a valid DTCG ref, not a raw CSS var.
+        //
+        // Migrate stale on-tone refs: old code used {brand.*.palettes.core.black.tone}
+        // Current code uses {brand.*.palettes.core-colors.black.tone}.
+        // Silently fix stale delta entries so the export is always valid.
+        let valueToWrite = cssValue
+        if (leaf === 'on-tone' || leaf === 'on_tone') {
+          valueToWrite = cssValue
+            .replace(/\{(brand\.themes\.\w+\.palettes)\.core\.(black|white)\.tone\}/g, '{$1.core-colors.$2.tone}')
+            .replace(/\{(brand\.palettes)\.core\.(black|white)\.tone\}/g, '{$1.core-colors.$2.tone}')
         }
+        if (!target[leaf]) target[leaf] = {}
+        if (typeof target[leaf] === 'object' && !('$type' in target[leaf])) {
+          target[leaf].$type = 'color'
+        }
+        target[leaf].$value = valueToWrite
+        syncedCount++
         break
       }
       case 'core-color': {
-        const coreGroup = themes?.[brandParsed.mode]?.palettes?.core
+        const coreGroup = themes?.[brandParsed.mode]?.palettes?.['core-colors']
         if (!coreGroup) break
 
-        const pathParts = brandParsed.path.split('_')
+        // Translate flat hyphenated CSS variable paths back into nested JSON path segments
+        const p = brandParsed.path
+        let pathParts: string[] = []
+        if (p === 'interactive-default-on-tone') pathParts = ['interactive', 'default', 'on-tone']
+        else if (p === 'interactive-default-tone') pathParts = ['interactive', 'default', 'tone']
+        else if (p === 'interactive-hover-on-tone') pathParts = ['interactive', 'hover', 'on-tone']
+        else if (p === 'interactive-hover-tone') pathParts = ['interactive', 'hover', 'tone']
+        else if (p.endsWith('-on-tone')) pathParts = [p.replace('-on-tone', ''), 'on-tone']
+        else if (p.endsWith('-tone')) pathParts = [p.replace('-tone', ''), 'tone']
+        else if (p.endsWith('-interactive')) pathParts = [p.replace('-interactive', ''), 'interactive']
+        else pathParts = p.split('_')
         let target: any = coreGroup
         for (let i = 0; i < pathParts.length - 1; i++) {
           target = target?.[pathParts[i]]

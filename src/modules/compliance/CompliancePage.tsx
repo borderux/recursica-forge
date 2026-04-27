@@ -322,11 +322,12 @@ export default function CompliancePage() {
 
         // Store original hex for undo before modifying
         const tokensAny = tokens as any
-        const originalHex = tokensAny?.tokens?.colors?.[resolvedFamily]?.[resolvedLevel]?.$value || ''
+        const colorsRootAny = tokensAny?.tokens?.colors || tokensAny?.tokens?.color || {}
+        const originalHex = colorsRootAny[resolvedFamily]?.[resolvedLevel]?.$value || ''
 
         // Deep clone tokens and update the scale level value
         const tokensCopy = JSON.parse(JSON.stringify(tokens))
-        const colorsRoot = tokensCopy?.tokens?.colors || {}
+        const colorsRoot = tokensCopy?.tokens?.colors || tokensCopy?.tokens?.color || {}
         const scaleObj = colorsRoot[resolvedFamily]
         if (scaleObj && scaleObj[resolvedLevel]) {
             if (typeof scaleObj[resolvedLevel] === 'object' && '$value' in scaleObj[resolvedLevel]) {
@@ -370,7 +371,7 @@ export default function CompliancePage() {
 
         // Deep clone tokens and restore the original value
         const tokensCopy = JSON.parse(JSON.stringify(tokens))
-        const colorsRoot = tokensCopy?.tokens?.colors || {}
+        const colorsRoot = tokensCopy?.tokens?.colors || tokensCopy?.tokens?.color || {}
         const scaleObj = colorsRoot[undoInfo.family]
         if (scaleObj && scaleObj[undoInfo.level]) {
             if (typeof scaleObj[undoInfo.level] === 'object' && '$value' in scaleObj[undoInfo.level]) {

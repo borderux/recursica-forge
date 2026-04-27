@@ -110,8 +110,9 @@ function createGitHubIssueUrl(title: string, body: string): string {
 
 /**
  * Main function to create bug report
+ * @param extraInfo - Optional extra context to include at the top of the bug report body (plain text or markdown)
  */
-export function createBugReport() {
+export function createBugReport(extraInfo?: string) {
   // Start intercepting console if not already
   interceptConsole()
 
@@ -133,6 +134,7 @@ export function createBugReport() {
     '### Description',
     '<!-- Please describe the bug you encountered -->',
     '',
+    ...(extraInfo ? ['### Validation Errors', '', extraInfo, ''] : []),
     '### Steps to Reproduce',
     '1. ',
     '2. ',

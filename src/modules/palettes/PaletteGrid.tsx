@@ -18,6 +18,7 @@ import { parseTokenReference, resolveTokenReferenceToCssVar, resolveTokenReferen
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getVarsStore } from '../../core/store/varsStore'
+import { updateBrandValue } from '../../core/css/updateBrandValue'
 
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
@@ -87,18 +88,16 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
       Object.keys(node).forEach((k) => visit((node as any)[k], prefix ? `${prefix}/${k}` : k, mode))
     }
     const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-    // Check both 'palette' (singular) and 'palettes' (plural) to handle different JSON structures
-    if (root?.light?.palettes) visit(root.light.palettes, 'palettes', 'Light')
-    else if (root?.light?.palette) visit(root.light.palette, 'palette', 'Light')
-    if (root?.dark?.palettes) visit(root.dark.palettes, 'palettes', 'Dark')
-    else if (root?.dark?.palette) visit(root.dark.palette, 'palette', 'Dark')
+    const themes = root?.themes || root
+    // Canonical structure: brand.themes.light.palettes → prefix 'palette' (singular, DTCG path)
+    if (themes?.light?.palettes) visit(themes.light.palettes, 'palette', 'Light')
+    if (themes?.dark?.palettes) visit(themes.dark.palettes, 'palette', 'Dark')
     return out
   }, [themeJson])
   const detectFamilyFromTheme = useMemo(() => {
     // Try to detect the actual family from theme JSON by checking a few levels
     const checkLevels = ['200', '500', '400', '300']
     for (const lvl of checkLevels) {
-      // The themeIndex uses 'palette' prefix even though JSON has 'palettes'
       const toneName = `palette/${paletteKey}/${lvl}/color/tone`
       const toneRaw = (themeIndex as any)[`${mode}::${toneName}`]?.value
       if (typeof toneRaw === 'string') {
@@ -146,10 +145,19 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     try { window.dispatchEvent(new CustomEvent('paletteFamilyChanged', { detail: { key: paletteKey, family: selectedFamily } })) } catch { }
   }, [paletteKey, selectedFamily])
   const [, forceVersion] = useState(0)
+  const [paletteFamilyChangedVersion, setPaletteFamilyChangedVersion] = useState(0)
   useEffect(() => {
-    const handler = () => forceVersion((v) => v + 1)
-    window.addEventListener('paletteFamilyChanged', handler as any)
-    return () => window.removeEventListener('paletteFamilyChanged', handler as any)
+    const onFamilyChanged = () => {
+      forceVersion((v) => v + 1)
+      setPaletteFamilyChangedVersion((v) => v + 1)
+    }
+    const onVarsChanged = () => forceVersion((v) => v + 1)
+    window.addEventListener('paletteFamilyChanged', onFamilyChanged as any)
+    window.addEventListener('paletteVarsChanged', onVarsChanged as any)
+    return () => {
+      window.removeEventListener('paletteFamilyChanged', onFamilyChanged as any)
+      window.removeEventListener('paletteVarsChanged', onVarsChanged as any)
+    }
   }, [])
   // Use shared AA util for on-tone selection
   const getTokenValueByName = (name: string): string | undefined => {
@@ -216,14 +224,16 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     return undefined
   }
   const resolveDefaultLevelForPalette = useMemo(() => {
-    // 1. Check localStorage first — persists across navigation without fragile JSON writes
-    try {
-      const stored = localStorage.getItem(`rf:palette-default:${paletteKey}:${mode}`)
-      if (stored) return stored
-    } catch { }
-
-    // 2. Try both plural ('palettes/') and singular ('palette/') themeIndex prefixes
+    // Read the user-chosen default level from the brand JSON (via themeIndex).
+    // updateBrandValue() writes the chosen level into state.theme when the user sets a default,
+    // so themeIndex is always up-to-date without needing a separate localStorage key.
+    //
+    // The JSON structure is default.color.tone — themeIndex keys use the full path:
+    // 'palettes/pk/default/color/tone'. Singular 'palette' prefix is kept as fallback
+    // for any JSON using the old key name.
     const entry =
+      (themeIndex as any)[`${mode}::palettes/${paletteKey}/default/color/tone`] ??
+      (themeIndex as any)[`${mode}::palette/${paletteKey}/default/color/tone`] ??
       (themeIndex as any)[`${mode}::palettes/${paletteKey}/default/tone`] ??
       (themeIndex as any)[`${mode}::palette/${paletteKey}/default/tone`]
     const ref = entry?.value
@@ -241,6 +251,10 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     return defaultLevelStr
   }, [paletteKey, themeIndex, defaultLevelStr, mode])
   const [primaryLevelStr, setPrimaryLevelStr] = useState<string>(resolveDefaultLevelForPalette)
+  // Keep a ref that always mirrors the latest memo value so event handlers
+  // (which close over stale values) can read the current resolved default.
+  const resolveDefaultRef = useRef(resolveDefaultLevelForPalette)
+  resolveDefaultRef.current = resolveDefaultLevelForPalette
 
   // Update primary level when mode changes or when palettePrimaryLevelChanged event fires
   useEffect(() => {
@@ -274,104 +288,20 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, paletteKey]) // Only update when mode or paletteKey changes, not when primaryLevelStr changes
 
+  // After a full theme reset the store re-emits (themeJson updates) and fires
+  // 'themeReset'. By deferring with setTimeout(0) we allow React to finish
+  // re-rendering so resolveDefaultRef.current reflects the fresh themeIndex
+  // (localStorage keys already cleared by resetAll before emit).
+  useEffect(() => {
+    const handleThemeReset = () => {
+      setTimeout(() => setPrimaryLevelStr(resolveDefaultRef.current), 0)
+    }
+    window.addEventListener('themeReset', handleThemeReset)
+    return () => window.removeEventListener('themeReset', handleThemeReset)
+  }, [])
+
   const [hoverLevelStr, setHoverLevelStr] = useState<string | null>(null)
-  const applyThemeMappingsFromJson = (modeLabel: 'Light' | 'Dark') => {
-    // Don't run during reset - recomputeAndApplyAll handles everything
-    if (isResettingRef.current) return
 
-    const levels = headerLevels
-    const modeLower = modeLabel.toLowerCase()
-    levels.forEach((lvl) => {
-      const onToneCssVar = palette(modeLower, paletteKey, lvl, 'color_on-tone')
-
-      // Set on-tone CSS vars from theme JSON for the current mode.
-      // Since palettes are independent per mode, we always update from the theme JSON
-      // to ensure the correct on-tone values are applied when switching modes.
-
-      // Try both 'palettes' and 'palette' path formats
-      const onToneNamePlural = `palettes/${paletteKey}/${lvl}/on-tone`
-      const onToneNameSingular = `palette/${paletteKey}/${lvl}/on-tone`
-      const onToneRaw = (themeIndex as any)[`${modeLabel}::${onToneNamePlural}`]?.value
-        || (themeIndex as any)[`${modeLabel}::${onToneNameSingular}`]?.value
-
-      if (typeof onToneRaw === 'string') {
-        const s = onToneRaw.trim().toLowerCase()
-        let coreRef: string | undefined
-
-        // Handle direct hex values
-        if (s === '#ffffff' || s === 'white') {
-          coreRef = `var(${paletteCore(modeLower, 'white')})`
-        } else if (s === '#000000' || s === 'black') {
-          coreRef = `var(${paletteCore(modeLower, 'black')})`
-        } else {
-          // Handle JSON references like {brand.themes.light.palettes.core-colors.white}
-          const context: TokenReferenceContext = {
-            currentMode: modeLabel.toLowerCase() as 'light' | 'dark',
-            tokenIndex: buildTokenIndex(tokensJson),
-            theme: themeJson
-          }
-          const parsed = parseTokenReference(onToneRaw, context)
-          if (parsed && parsed.type === 'brand') {
-            const pathParts = parsed.path
-            // Check if it's a core color reference (palettes.core-colors.white or palettes.core.white or palettes.white)
-            if (pathParts.length >= 2 && pathParts[0] === 'palettes' && (pathParts[1] === 'core-colors' || pathParts[1] === 'core')) {
-              const colorName = pathParts[pathParts.length - 1] // Last part is the color name
-              if (colorName === 'white') {
-                coreRef = `var(${paletteCore(modeLower, 'white')})`
-              } else if (colorName === 'black') {
-                coreRef = `var(${paletteCore(modeLower, 'black')})`
-              }
-            } else if (pathParts.length >= 2 && pathParts[0] === 'palettes' && (pathParts[1] === 'white' || pathParts[1] === 'black')) {
-              // Handle {brand.palettes.white} or {brand.palettes.black}
-              const colorName = pathParts[1]
-              coreRef = `var(${paletteCore(modeLower, colorName)})`
-            }
-          }
-
-          // Handle token references like {tokens.colors.scale-01.000}
-          // These are set by compliance fixes that point directly to token values
-          if (!coreRef && parsed && parsed.type === 'token') {
-            const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
-            if (cssVar) {
-              coreRef = cssVar
-            }
-          }
-
-          // If we still don't have a coreRef, try to resolve as theme reference (handles var() references)
-          if (!coreRef) {
-            // Also try resolveTokenReferenceToCssVar as a general fallback
-            const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
-            if (cssVar) {
-              coreRef = cssVar
-            } else {
-              // Try both path formats
-              const resolved = resolveThemeRef({ collection: 'Theme', name: onToneNamePlural }, modeLabel)
-                || resolveThemeRef({ collection: 'Theme', name: onToneNameSingular }, modeLabel)
-              if (typeof resolved === 'string') {
-                // If it's already a var() reference, use it directly
-                if (resolved.startsWith('var(')) {
-                  coreRef = resolved
-                }
-                // If it resolved to a hex or color name, map it
-                else {
-                  const resolvedLower = resolved.trim().toLowerCase()
-                  if (resolvedLower === '#ffffff' || resolvedLower === 'white') {
-                    coreRef = `var(${paletteCore(modeLower, 'white')})`
-                  } else if (resolvedLower === '#000000' || resolvedLower === 'black') {
-                    coreRef = `var(${paletteCore(modeLower, 'black')})`
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        if (coreRef) {
-          updateCssVar(onToneCssVar, coreRef)
-        }
-      }
-    })
-  }
   const isResettingRef = useRef(false)
   useEffect(() => {
     // Listen for reset events to prevent applyThemeMappingsFromJson from running during reset
@@ -390,25 +320,16 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     // Skip if reset is in progress - recomputeAndApplyAll already sets everything from JSON
     if (isResettingRef.current) return
 
-    // Apply theme mappings from JSON for the current mode
-    // This ensures on-tones are correct when navigating from another page
-    applyThemeMappingsFromJson(mode)
-
     // Dispatch event to notify components that palette vars may have changed
     // This ensures components re-render with correct on-tones when navigating
     try {
       window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
     } catch { }
-  }, [mode, overrideVersion])
-  // Track last primary level to only update when user explicitly changes it
-  const lastPrimaryLevel = useRef<string | null>(null)
-  const lastMode = useRef<string | null>(null)
+  }, [mode, overrideVersion, paletteFamilyChangedVersion])
+  const handleSetPrimary = (lvl: string) => {
+    setPrimaryLevelStr(lvl)
 
-  useEffect(() => {
-    // Only update when primary level or mode actually changes (user action), not on every render
-    if (lastPrimaryLevel.current === primaryLevelStr && lastMode.current === mode) return
-
-    const lvl = primaryLevelStr
+    // Explicit user action: update CSS vars and write to JSON for the CURRENT mode
     const modeKey = mode.toLowerCase()
     try {
       // 1. Update CSS vars so primary reflects the chosen level immediately
@@ -421,20 +342,20 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
         `var(${palette(modeKey, paletteKey, lvl, 'color_on-tone')})`
       )
 
-      // 2. Persist chosen level to localStorage so it survives navigation / remount
-      try {
-        localStorage.setItem(`rf:palette-default:${paletteKey}:${mode}`, lvl)
-      } catch { }
+      // 2. Write the new default into the brand JSON and the CSS delta so it persists across reloads.
+      // updateCssVar handles syncing the DOM, tracking the delta, and updating the JSON (via updateBrandValue internally).
+      updateCssVar(
+        palette(modeKey, paletteKey, 'default', 'color_tone'),
+        `var(${palette(modeKey, paletteKey, lvl, 'color_tone')})`
+      )
+      updateCssVar(
+        palette(modeKey, paletteKey, 'default', 'color_on-tone'),
+        `var(${palette(modeKey, paletteKey, lvl, 'color_on-tone')})`
+      )
 
-      // Notify dependents only when this is a real user-initiated change
-      if (lastPrimaryLevel.current !== null || lastMode.current !== null) {
-        try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch { }
-      }
-
-      lastPrimaryLevel.current = primaryLevelStr
-      lastMode.current = mode
+      try { window.dispatchEvent(new CustomEvent('paletteVarsChanged')) } catch { }
     } catch { }
-  }, [primaryLevelStr, mode, paletteKey])
+  }
 
   const { mode: themeMode } = useThemeMode()
   // layer0Base and layer1Base removed — use builder functions directly
@@ -579,7 +500,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
                 headerLevels={headerLevels}
                 onMouseEnter={() => setHoverLevelStr(lvl)}
                 onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
-                onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                onSetPrimary={() => handleSetPrimary(lvl)}
                 paletteKey={paletteKey}
                 tokens={tokensJson}
               />
@@ -613,7 +534,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
                   headerLevels={headerLevels}
                   onMouseEnter={() => setHoverLevelStr(lvl)}
                   onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
-                  onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                  onSetPrimary={() => handleSetPrimary(lvl)}
                   paletteKey={paletteKey}
                   level={lvl}
                   tokens={tokensJson}
@@ -650,7 +571,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
                   headerLevels={headerLevels}
                   onMouseEnter={() => setHoverLevelStr(lvl)}
                   onMouseLeave={() => setHoverLevelStr((v) => (v === lvl ? null : v))}
-                  onSetPrimary={() => setPrimaryLevelStr(lvl)}
+                  onSetPrimary={() => handleSetPrimary(lvl)}
                   paletteKey={paletteKey}
                   level={lvl}
                   tokens={tokensJson}

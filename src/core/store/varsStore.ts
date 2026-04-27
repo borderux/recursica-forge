@@ -17,7 +17,7 @@ import { AAComplianceWatcher } from '../compliance/AAComplianceWatcher'
 import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneForCompliance } from '../compliance/coreColorAaCompliance'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
-import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges } from './cssDelta'
+import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges, isVarNew } from './cssDelta'
 import { clearElevationColorMirror } from '../elevation/elevationModeScope'
 import { clearStoredFonts, saveStoredFonts, getDefaultFonts, deriveFontsFromJson, populateWindowFontUrlMap } from './fontStore'
 import { syncDeltaToJson } from './deltaToJson'
@@ -92,6 +92,38 @@ function defaultPaletteStore(): PaletteStore {
     ],
     primaryLevels: {}
   }
+}
+
+/**
+ * Derive the dynamic palette list by scanning brand CSS vars on the DOM.
+ * After restoreDelta() re-applies rf:delta:brand, any user-added palette (e.g. palette-3)
+ * will have its tone CSS vars present on document.documentElement.
+ * Palettes with a deletion marker (--recursica_brand_palette_deleted_{key}) are excluded.
+ */
+function deriveDynamicPalettes(): PaletteStore['dynamic'] {
+  if (typeof document === 'undefined') return defaultPaletteStore().dynamic
+  const style = document.documentElement.style
+
+  // Check for deletion markers on static palettes
+  const base = defaultPaletteStore().dynamic
+  const baseNums = new Set(base.map(e => {
+    const m = e.key.match(/^palette-(\d+)$/)
+    return m ? parseInt(m[1], 10) : null
+  }).filter(Boolean) as number[])
+
+  // Scan all inline CSS vars for user-added palette-N tone entries
+  const found = new Set<number>()
+  for (let i = 0; i < style.length; i++) {
+    const prop = style.item(i)
+    const m = prop.match(/--recursica_brand_themes_light_palettes_palette-(\d+)_/)
+    if (m) found.add(parseInt(m[1], 10))
+  }
+
+  const extra = Array.from(found).filter(n => !baseNums.has(n)).sort((a, b) => a - b)
+  return [
+    ...base.filter(e => style.getPropertyValue(`--recursica_brand_palette_deleted_${e.key}`).trim() !== 'true'),
+    ...extra.map(n => ({ key: `palette-${n}`, title: `Palette ${n}`, defaultLevel: 500 }))
+  ]
 }
 
 type Listener = () => void
@@ -256,7 +288,14 @@ class VarsStore {
         const savedUikit = localStorage.getItem(STORAGE_KEYS.uikit)
         if (savedUikit) {
           try {
-            this.state.uikit = JSON.parse(savedUikit)
+            // Fix legacy corrupted references stored in localStorage
+            let fixedUikit = savedUikit
+              .replace(/{brand(?:\.themes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.interactive-(tone|tone-hover|on-tone|on-tone-hover)}/g,
+                '{brand.layers.$1.elements.interactive.$2}')
+              .replace(/{brand(?:\.themes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.text-(color|warning|success|alert)}/g,
+                '{brand.layers.$1.elements.text.$2}')
+            
+            this.state.uikit = JSON.parse(fixedUikit)
           } catch {
             localStorage.removeItem(STORAGE_KEYS.uikit)
           }
@@ -336,14 +375,34 @@ class VarsStore {
       if (structuralAdditions) {
         // New scales were created from delta — recompute to generate their CSS vars
         this.recomputeAndApplyAll()
-        // Re-snapshot defaults so the new scale vars are included in the baseline
-        snapshotDefaults(this.lastComputedVars)
-        // Re-apply the delta on top of the new baseline
+        // Re-apply the delta on top of the new baseline to restore non-structural overrides
         restoreDelta()
       }
       // After restoring delta, schedule a compliance scan since CSS vars may have changed
       this.scheduleComplianceScan()
     }
+
+    // Derive dynamic palette list from brand CSS vars now on DOM (captures user-added palettes
+    // whose CSS vars are in rf:delta:brand and were restored by restoreDelta() above).
+    // Also strips any palettes marked as deleted from state.theme.
+    const domStyle = document.documentElement.style
+    {
+      const brandRoot: any = (this.state.theme as any)?.brand ? (this.state.theme as any).brand : this.state.theme
+      const themes: any = brandRoot?.themes || brandRoot
+      let hadDeletions = false
+      for (const modeKey of ['light', 'dark'] as const) {
+        const modePalettes = themes?.[modeKey]?.palettes || {}
+        for (const pk of Object.keys(modePalettes)) {
+          if (domStyle.getPropertyValue(`--recursica_brand_palette_deleted_${pk}`).trim() === 'true') {
+            delete themes[modeKey].palettes[pk]
+            hadDeletions = true
+          }
+        }
+      }
+      if (hadDeletions) this.writeState({ theme: this.state.theme })
+    }
+    const derivedDynamic = deriveDynamicPalettes()
+    this.state.palettes = { ...this.state.palettes, dynamic: derivedDynamic }
     installBeforeUnloadHandler()
 
     // Connect compliance service to token/theme getters
@@ -384,12 +443,13 @@ class VarsStore {
   }
 
   /**
-   * Write CSS vars directly to DOM + update JSON store.
-   * Used by Fix All and targeted compliance fixes.
+   * Write CSS vars directly to DOM and record them in the delta.
+   * Used by compliance fixes (Fix / Fix All) and palette default updates.
    * Does NOT trigger recomputeAndApplyAll — writes are terminal.
-   * Schedules a debounced compliance scan after writes.
+   * JSON sync (state.theme / state.uikit) happens lazily at export time via syncDeltaToJson.
+   * Schedules a debounced compliance re-scan after writes.
    */
-  public writeCssVarsDirect(cssVarUpdates: Record<string, string>, themeUpdate?: JsonLike) {
+  public writeCssVarsDirect(cssVarUpdates: Record<string, string>) {
     // Write CSS vars to DOM inline style
     const root = document.documentElement
     for (const [key, value] of Object.entries(cssVarUpdates)) {
@@ -398,14 +458,9 @@ class VarsStore {
 
     // Track all changes in the delta serialization system.
     // The CSS delta is mode-aware (CSS var names embed themes_light / themes_dark),
-    // so per-mode compliance fixes for components are stored and restored correctly
-    // by reapplyDelta() after every recomputeAndApplyAll (including mode switches).
+    // so per-mode compliance fixes are stored and restored correctly by reapplyDelta()
+    // after every recomputeAndApplyAll (including mode switches).
     trackChanges(cssVarUpdates)
-
-    // Persist theme JSON update if provided (brand layer/palette fixes supply this)
-    if (themeUpdate) {
-      this.writeState({ theme: themeUpdate })
-    }
 
     // Schedule compliance scan
     this.scheduleComplianceScan()
@@ -851,12 +906,14 @@ class VarsStore {
   }
   /** Update UIKit without triggering recomputeAndApplyAll. Use when CSS var was already set via updateCssVar (e.g. toolbar color picker). */
   setUiKitSilent(next: JsonLike) { this.writeState({ uikit: next }) }
+
   /**
    * Replay any UIKit CSS var changes stored in the CSS delta back into the
    * in-memory UIKit JSON.  Call this immediately before exporting so that
    * exportUIKitJson() sees all in-session modifications, even after a page reload.
    *
-   * Tokens and brand are always kept in sync via updateBrandValue / setTokensSilent.
+   * Brand is kept in sync via updateBrandValue → setThemeSilent on every change.
+   * Tokens are synced at export time inside exportTokensJson via syncDeltaToJson.
    * UIKit is patched here lazily (on-demand) to avoid redundant work at startup.
    */
   public syncUiKitDelta(): void {
@@ -2315,6 +2372,16 @@ class VarsStore {
       // Theme JSON is the single source of truth
       const allPaletteVars = { ...paletteVarsLight, ...paletteVarsDark }
 
+      // Track palette vars against the defaults baseline — but ONLY for user-added palettes
+      // (vars with no snapshotDefaults entry). Calling trackChanges for static palette vars
+      // (palette-1, palette-2, neutral, core-colors) risks deleting user-edited delta entries
+      // when buildPaletteVars regenerates the original computed value after a state.theme miss.
+      const newPaletteVars: Record<string, string> = {}
+      for (const [varName, value] of Object.entries(allPaletteVars)) {
+        if (isVarNew(varName)) newPaletteVars[varName] = value
+      }
+      if (Object.keys(newPaletteVars).length > 0) trackChanges(newPaletteVars)
+
       // Note: Overlay CSS variables are now cleared at the start of recomputeAndApplyAll()
       // so we don't need to preserve them here - they'll be set from the generated values in allPaletteVars
       // This ensures that theme JSON changes (like randomization) are properly reflected in the DOM
@@ -3062,7 +3129,7 @@ class VarsStore {
 
       for (const colorName of coreColors) {
         // Get the tone hex for this core color
-        const toneCssVar = `--recursica_brand_themes_${mode}_palettes_core_${colorName}-tone`
+        const toneCssVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_tone`
         const tokenIndex = buildTokenIndex(this.state.tokens)
         const toneValue = readCssVarResolved(toneCssVar) || readCssVar(toneCssVar)
         const toneHex = toneValue

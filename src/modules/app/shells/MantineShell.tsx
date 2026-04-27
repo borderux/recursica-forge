@@ -363,7 +363,7 @@ export default function MantineShell({
                               style={{
                                 width: 14,
                                 height: 14,
-                                color: `var(--recursica_brand_themes_${mode}_palettes_core_alert-tone)`,
+                                color: `var(--recursica_brand_themes_${mode}_palettes_core-colors_alert_tone)`,
                               }}
                             />
                           ) : null;

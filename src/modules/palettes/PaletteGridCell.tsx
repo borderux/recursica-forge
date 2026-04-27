@@ -128,8 +128,8 @@ export function PaletteEmphasisCell({
     const opacity = readCssVarNumber(emphasisCssVar, 1)
 
     // Also get high and low emphasis opacities to check both
-    const highEmphasisCssVar = `--recursica_brand_text-emphasis_high`
-    const lowEmphasisCssVar = `--recursica_brand_text-emphasis_low`
+    const highEmphasisCssVar = `--recursica_brand_themes_${mode}_text-emphasis_high`
+    const lowEmphasisCssVar = `--recursica_brand_themes_${mode}_text-emphasis_low`
     const highOpacity = readCssVarNumber(highEmphasisCssVar, 1)
     const lowOpacity = readCssVarNumber(lowEmphasisCssVar, 1)
 
@@ -139,8 +139,8 @@ export function PaletteEmphasisCell({
     const passesAA = currentRatio >= AA
 
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    const coreBlackVar = `--recursica_brand_palettes_core_black`
-    const coreWhiteVar = `--recursica_brand_palettes_core_white`
+    const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_black`
+    const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_white`
     const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
     const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
     const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
@@ -206,9 +206,9 @@ export function PaletteEmphasisCell({
     ? (!aaStatus.passesAA && !aaStatus.blackPasses && !aaStatus.whitePasses)
     : false
 
-  // If THIS cell's emphasis level fails AA, show suggest-tones modal instead of set-primary
+  // If THIS cell's emphasis level fails AA, show warning icon
   const shouldOpenColorPicker = aaStatus
-    ? (emphasisType === 'high' ? aaStatus.highFailsAA : aaStatus.lowFailsAA)
+    ? (emphasisType === 'high' ? !aaStatus.currentHighPasses : !aaStatus.currentLowPasses)
     : false
 
   // Always prefer the low-emphasis compliance issue: its lower opacity is the harder
@@ -298,6 +298,7 @@ export function PaletteEmphasisCell({
         if (shouldOpenColorPicker || currentOnToneFails) {
           e.preventDefault()
           e.stopPropagation()
+          setIsHovered(false)
           setSuggestOpen(true)
           return
         }
@@ -308,13 +309,13 @@ export function PaletteEmphasisCell({
       {isPrimary ? (
         // For primary tone, show both high and low emphasis dots vertically stacked
         (() => {
-          const highEmphasisCssVar = `--recursica_brand_text-emphasis_high`
-          const lowEmphasisCssVar = `--recursica_brand_text-emphasis_low`
-          const highOnToneCssVar = `--recursica_brand_palettes_${paletteKey}_${level}_color_on-tone`
-          const lowOnToneCssVar = `--recursica_brand_palettes_${paletteKey}_${level}_color_on-tone`
+          const highEmphasisCssVar = `--recursica_brand_themes_${mode}_text-emphasis_high`
+          const lowEmphasisCssVar = `--recursica_brand_themes_${mode}_text-emphasis_low`
+          const highOnToneCssVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
+          const lowOnToneCssVar = `--recursica_brand_themes_${mode}_palettes_${paletteKey}_${level}_color_on-tone`
+          const WarningIcon = iconNameToReactComponent('warning')
 
           if (shouldOpenColorPicker) {
-            const WarningIcon = iconNameToReactComponent('warning')
             const iconOnToneCssVar = emphasisType === 'high' ? highOnToneCssVar : lowOnToneCssVar
             const iconEmphasisCssVar = emphasisType === 'high' ? highEmphasisCssVar : lowEmphasisCssVar
             return emphasisType === 'high' ? (
@@ -371,28 +372,58 @@ export function PaletteEmphasisCell({
                   }}>
                     {level}
                   </div>
-                  <div className="palette-dot" style={{
-                    position: 'relative',
-                    width: '16px',
-                    height: '16px',
-                    borderRadius: '50%',
-                    flexShrink: 0,
-                    backgroundColor: `var(${highOnToneCssVar})`,
-                    opacity: `var(${highEmphasisCssVar})`
-                  }} />
+                  {!aaStatus?.currentHighPasses ? (
+                    <div
+                      className="palette-warning"
+                      style={{
+                        color: `var(${highOnToneCssVar})`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: `var(${highEmphasisCssVar})`
+                      }}
+                    >
+                      {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
+                    </div>
+                  ) : (
+                    <div className="palette-dot" style={{
+                      position: 'relative',
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      flexShrink: 0,
+                      backgroundColor: `var(${highOnToneCssVar})`,
+                      opacity: `var(${highEmphasisCssVar})`
+                    }} />
+                  )}
                 </>
               )}
               {emphasisType === 'low' && (
                 <>
-                  <div className="palette-dot" style={{
-                    position: 'relative',
-                    width: '16px',
-                    height: '16px',
-                    borderRadius: '50%',
-                    flexShrink: 0,
-                    backgroundColor: `var(${lowOnToneCssVar})`,
-                    opacity: `var(${lowEmphasisCssVar})`
-                  }} />
+                  {!aaStatus?.currentLowPasses ? (
+                    <div
+                      className="palette-warning"
+                      style={{
+                        color: `var(${lowOnToneCssVar})`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: `var(${lowEmphasisCssVar})`
+                      }}
+                    >
+                      {WarningIcon && <WarningIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} />}
+                    </div>
+                  ) : (
+                    <div className="palette-dot" style={{
+                      position: 'relative',
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      flexShrink: 0,
+                      backgroundColor: `var(${lowOnToneCssVar})`,
+                      opacity: `var(${lowEmphasisCssVar})`
+                    }} />
+                  )}
                   <Chip
                     variant="unselected"
                     size="small"

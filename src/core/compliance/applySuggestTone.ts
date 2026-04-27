@@ -29,7 +29,7 @@ export function applySuggestTone(
   const resolvedLevel = traced?.level || level
 
   const tokensCopy = JSON.parse(JSON.stringify(tokens))
-  const colorsRoot = tokensCopy?.tokens?.colors || {}
+  const colorsRoot = tokensCopy?.tokens?.colors || tokensCopy?.tokens?.color || {}
   const scaleObj = colorsRoot[resolvedFamily]
   if (scaleObj && scaleObj[resolvedLevel]) {
     if (typeof scaleObj[resolvedLevel] === 'object' && '$value' in scaleObj[resolvedLevel]) {

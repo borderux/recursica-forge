@@ -13,8 +13,10 @@ import { ColorPickerModal } from '../../pickers/ColorPickerModal'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { TextField } from '../../../components/adapters/TextField'
+import { Modal } from '../../../components/adapters/Modal'
+import { getDelta } from '../../../core/store/cssDelta'
 import { readCssVar } from '../../../core/css/readCssVar'
-import { getAllFamilyNames, setFamilyNameByAlias, renameFamilyName } from '../../../core/utils/familyNames'
+import { getAllFamilyNames, setFamilyName, setFamilyNameByAlias, renameFamilyName } from '../../../core/utils/familyNames'
 
 type TokenEntry = {
   name: string
@@ -241,6 +243,7 @@ export default function ColorTokens() {
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
   const [showAddColorModal, setShowAddColorModal] = useState(false)
   const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core_black)')
+  const [deleteConfirmFamily, setDeleteConfirmFamily] = useState<string | null>(null)
 
   // Listen for theme reset to clear deleted families and family order
   useEffect(() => {
@@ -537,14 +540,33 @@ export default function ColorTokens() {
     const currentTokens = currentState.tokens
     const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
     const tokensRoot = nextTokens?.tokens || {}
+    
+    // Import the base tokens directly to check for original scale numbers
+    const baseTokensImport = require('../../../../recursica_tokens.json')
 
-    // Find the next available scale number
+    // Assign a scale key that is strictly higher than all existing AND all previously
+    // deleted scale numbers.  The gap-filling approach (find first free slot) was broken:
+    // after deleting scale-01 and scale-02, the loop would reuse scale-01 for the new
+    // scale — but scale-01 is still in rf:deleted-scales, so restoreDelta / syncDeltaToJson
+    // would silently drop all its delta entries on the next page refresh.
     const colorsRoot = tokensRoot?.colors || {}
-    let scaleNumber = 1
-    while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
-      scaleNumber++
-    }
-    const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
+    const existingNums = Object.keys(colorsRoot)
+      .filter(k => k.startsWith('scale-'))
+      .map(k => parseInt(k.replace('scale-', ''), 10))
+      .filter(n => Number.isFinite(n))
+
+    // Check base tokens to prevent reusing any scale numbers that were in the original
+    // file, even if they were deleted by the user. This prevents syncDeltaToJson from
+    // incorrectly identifying a reused scale ID as a deleted base scale.
+    const baseTokensRoot: any = (baseTokensImport as any)?.tokens || {}
+    const baseColorsRoot: any = baseTokensRoot?.colors || {}
+    const baseNums = Object.keys(baseColorsRoot)
+      .filter(k => k.startsWith('scale-'))
+      .map(k => parseInt(k.replace('scale-', ''), 10))
+      .filter(n => Number.isFinite(n))
+
+    const maxNum = Math.max(0, ...existingNums, ...baseNums)
+    const scaleKey = `scale-${String(maxNum + 1).padStart(2, '0')}`
 
     // Create the new scale in the new format with alias
     if (!tokensRoot.colors) tokensRoot.colors = {}
@@ -581,10 +603,14 @@ export default function ColorTokens() {
     })
 
     // Update family names via CSS var
+    // Use setFamilyName(scaleKey) directly — scaleKey is already known here.
+    // setFamilyNameByAlias would use the stale tokensJson closure (pre-render)
+    // and fail to find the new scale, leaving family-name out of the delta.
+    const displayName = toTitleCase(friendlyName)
     const updatedFamilyNames = { ...familyNames }
-    updatedFamilyNames[newFamilySlug] = toTitleCase(friendlyName)
+    updatedFamilyNames[newFamilySlug] = displayName
     setFamilyNames(updatedFamilyNames)
-    setFamilyNameByAlias(newFamilySlug, toTitleCase(friendlyName), tokensJson)
+    setFamilyName(scaleKey, displayName)
   }
 
   // Build detailed usage map: family -> Array<{ label, url }>
@@ -811,7 +837,13 @@ export default function ColorTokens() {
     }
   }, [tokensJson, deletedFamilies])
 
+  // handleDeleteFamily: open a confirmation modal first.
+  // The actual deletion logic is in performDeleteFamily below.
   const handleDeleteFamily = (family: string) => {
+    setDeleteConfirmFamily(family)
+  }
+
+  const performDeleteFamily = (family: string) => {
     // Deep clone tokens to avoid mutation
       const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
       const tokensRoot = nextTokens?.tokens || {}
@@ -1096,6 +1128,25 @@ export default function ColorTokens() {
           />
         ))}
       </div>
+      <Modal
+        isOpen={deleteConfirmFamily !== null}
+        onClose={() => setDeleteConfirmFamily(null)}
+        title="Delete color scale"
+        primaryActionLabel="Delete"
+        secondaryActionLabel="Cancel"
+        onPrimaryAction={() => {
+          const family = deleteConfirmFamily!
+          setDeleteConfirmFamily(null)
+          performDeleteFamily(family)
+        }}
+        onSecondaryAction={() => setDeleteConfirmFamily(null)}
+        layer="layer-1"
+        size="sm"
+      >
+        <p style={{ margin: 0, lineHeight: 1.5 }}>
+          Are you sure you want to permanently delete the color scale <strong>{familyNames[deleteConfirmFamily ?? ''] || deleteConfirmFamily}</strong>?
+        </p>
+      </Modal>
       <ColorPickerModal
         open={showAddColorModal}
         defaultHex={pendingColorHex}

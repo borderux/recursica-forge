@@ -3,7 +3,7 @@ import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { updateCssVar, removeCssVar, clearPendingCssVars, suppressCssVarEvents } from '../../core/css/updateCssVar'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
-import { updateInteractiveColor, updateCoreColorInteractiveOnTones } from './interactiveColorUpdater'
+import { updateInteractiveColor, updateCoreColorInteractiveOnTones, updateCoreColorOnTones } from './interactiveColorUpdater'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { parseTokenReference, resolveTokenReferenceToValue, resolveTokenReferenceToCssVar, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { hexToCssVarRef, getSteppedColor, resolveCssVarToHex, findColorFamilyAndLevel } from '../../core/compliance/layerColorStepping'
@@ -284,7 +284,7 @@ export default function ColorTokenPicker() {
     // Use --recursica_brand_themes_ format to match varsStore.ts and palettes.ts
     // paletteCore() generates `core_` with underscore, not `core-` with hyphen
     const modeLower = mode.toLowerCase()
-    const coreColorPrefix = `--recursica_brand_themes_${modeLower}_palettes_core_`
+    const coreColorPrefix = `--recursica_brand_themes_${modeLower}_palettes_core-colors_`
     if (!cssVar.startsWith(coreColorPrefix)) return // Not a core color
 
     // Extract the color name from the CSS var
@@ -389,7 +389,7 @@ export default function ColorTokenPicker() {
       // Handle interactive colors with nested structure
       if (mapping.isInteractive) {
         // For main interactive var (backward compatibility), it maps to default.tone
-        const isMainInteractive = cssVar === `--recursica_brand_themes_${modeLower}_palettes_core_interactive`
+        const isMainInteractive = cssVar === `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive`
 
         if (!coreColors.interactive) {
           coreColors.interactive = {
@@ -431,161 +431,23 @@ export default function ColorTokenPicker() {
 
       // For base color tones (not interactive), update all other base colors' on-tone values
       // This works similarly to how interactive color updates all base colors' interactive properties
-      // We do this BEFORE setTheme so we can use themeCopy which has the updated tone
+      // We do this AFTER updating the tone in themeCopy so the calculations use the new tone
       if (!mapping.isInteractive && normalizedToneHex) {
-        const coreColorNames = ['black', 'white', 'alert', 'warning', 'success']
-        const tokenIndex = buildTokenIndex(tokensJson)
-        const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-        const themes = root?.themes || root
-        const coreColorsObj = themes?.[modeLower]?.palettes?.['core-colors'] || {}
-
-        // Get OLD white tone scale key from current theme (before update) for comparison
-        // We need to check if on-tones are using the OLD white, not the new one
-        const oldRoot: any = themeJson?.brand ? themeJson.brand : themeJson
-        const oldThemes = oldRoot?.themes || oldRoot
-        const oldCoreColorsObj = oldThemes?.[modeLower]?.palettes?.['core-colors'] || {}
-        const oldWhiteColorDef = oldCoreColorsObj.white
-        let oldWhiteScaleKey: string | null = null
-        if (oldWhiteColorDef?.tone?.$value) {
-          const oldWhiteToneRef = oldWhiteColorDef.tone.$value
-          if (typeof oldWhiteToneRef === 'string' && oldWhiteToneRef.startsWith('{tokens.colors.')) {
-            const oldWhiteMatch = oldWhiteToneRef.match(/\{tokens\.colors\.([^.]+)\.(\d+)\}/)
-            if (oldWhiteMatch) {
-              oldWhiteScaleKey = oldWhiteMatch[1]
-            }
-          }
-        }
-
-        // Helper function to check if an on-tone is currently using white (the OLD white)
-        const isOnToneUsingWhite = (onToneColorName: string): boolean => {
-          if (!oldWhiteScaleKey) return false
-
-          const onToneVar = `--recursica_brand_themes_${modeLower}_palettes_core_${onToneColorName}_on-tone`
-          const onToneValue = readCssVar(onToneVar)
-          if (!onToneValue) return false
-
-          // Check if it's a direct reference to white core color
-          // Format: var(--recursica_brand_palettes_core_white)
-          if (onToneValue.includes('palettes-core-white')) {
-            return true
-          }
-
-          // Parse the on-tone CSS var value to see which scale it's using
-          // The on-tone value should be a CSS var like var(--recursica_tokens_colors_scale_XX-level)
-          // or a token reference like {tokens.colors.scale-XX.level}
-          const context: TokenReferenceContext = {
-            currentMode: modeLower as 'light' | 'dark',
-            tokenIndex,
-            theme: themeJson // Use old theme for context
-          }
-
-          // Try to parse as token reference first
-          const parsed = parseTokenReference(onToneValue, context)
-          if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'colors') {
-            const onToneScaleKey = parsed.path[1]
-            return onToneScaleKey === oldWhiteScaleKey
-          }
-
-          // If it's a CSS var, extract the scale key from the var name
-          const colorParsed = extractColorToken(onToneValue)
-          if (colorParsed) {
-            return colorParsed.family === oldWhiteScaleKey
-          }
-
-          // Also check if it resolves to white by resolving the CSS var to hex and checking
-          // if that hex matches the old white tone hex
-          const resolvedHex = resolveCssVarToHex(onToneValue, tokenIndex)
-          if (resolvedHex) {
-            // Get old white tone hex for comparison
-            const oldWhiteToneRef = oldWhiteColorDef?.tone?.$value
-            if (oldWhiteToneRef && typeof oldWhiteToneRef === 'string' && oldWhiteToneRef.startsWith('{tokens.colors.')) {
-              const oldWhiteMatch = oldWhiteToneRef.match(/\{tokens\.colors\.([^.]+)\.(\d+)\}/)
-              if (oldWhiteMatch) {
-                const [, scaleKey, level] = oldWhiteMatch
-                const normalizedLevel = level === '000' ? '050' : level
-                const oldWhiteHex = tokenIndex.get(`colors/${scaleKey}/${normalizedLevel}`)
-                if (typeof oldWhiteHex === 'string') {
-                  const normalizedOldWhiteHex = oldWhiteHex.startsWith('#') ? oldWhiteHex.toLowerCase() : `#${oldWhiteHex.toLowerCase()}`
-                  const normalizedResolvedHex = resolvedHex.startsWith('#') ? resolvedHex.toLowerCase() : `#${resolvedHex.toLowerCase()}`
-                  if (normalizedResolvedHex === normalizedOldWhiteHex) {
-                    return true
-                  }
-                }
-              }
-            }
-          }
-
-          return false
-        }
-
-        // Update on-tone values for all base colors (including the one that changed)
-        // This ensures all on-tones are AA-compliant with their respective tones
-        // Use themeCopy which has the updated black/white tone values
-        coreColorNames.forEach((otherColorName) => {
-          // If white changed:
-          // - Always update white's own on-tone (regardless of what it's currently using)
-          // - For other colors, only update if their on-tone is currently using white
-          if (colorName === 'white' && oldWhiteScaleKey) {
-            // Always update white's own on-tone when white changes
-            if (otherColorName === 'white') {
-              // Continue to update white's on-tone
-            } else {
-              // For other colors, only update if they're using white
-              if (!isOnToneUsingWhite(otherColorName)) {
-                return // Skip this color - its on-tone is not using white
-              }
-            }
-          }
-
-          // Get the tone hex for this other color from themeCopy (not CSS vars, since they might not be updated yet)
-          const otherColorDef = coreColorsObj[otherColorName]
-          let otherToneHex: string | null = null
-
-          if (otherColorDef?.tone?.$value) {
-            // Resolve the tone reference from themeCopy
-            const toneRef = otherColorDef.tone.$value
-            if (typeof toneRef === 'string' && toneRef.startsWith('{tokens.colors.')) {
-              // Parse token reference: {tokens.colors.scale-XX.level}
-              const match = toneRef.match(/\{tokens\.colors\.([^.]+)\.(\d+)\}/)
-              if (match) {
-                const [, scaleKey, level] = match
-                const normalizedLevel = level === '000' ? '050' : level
-                otherToneHex = tokenIndex.get(`colors/${scaleKey}/${normalizedLevel}`)
-                if (typeof otherToneHex === 'string') {
-                  otherToneHex = otherToneHex.startsWith('#') ? otherToneHex.toLowerCase() : `#${otherToneHex.toLowerCase()}`
-                }
-              }
-            }
-          }
-
-          // Fallback: try to read from CSS var if theme doesn't have it
-          if (!otherToneHex || otherToneHex === '#000000') {
-            const otherToneCssVar = `--recursica_brand_themes_${modeLower}_palettes_core_${otherColorName}_tone`
-            const otherToneValue = readCssVarResolved(otherToneCssVar) || readCssVar(otherToneCssVar)
-            otherToneHex = otherToneValue
-              ? (resolveCssVarToHex(otherToneValue, tokenIndex) || '#000000')
-              : '#000000'
-          }
-
-          if (otherToneHex && otherToneHex !== '#000000') {
-            // Update on-tone for this color - this updates CSS vars directly
-            // The function will read the updated black/white tones from themeCopy
-            // Force update to ensure we re-check with the new black/white tone values
-            updateCoreColorOnTonesForCompliance(
-              otherColorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
-              otherToneHex,
-              tokensJson,
-              themeCopy, // Use themeCopy which has the updated black/white tone
-              setTheme,
-              modeLower as 'light' | 'dark',
-              true // forceUpdate = true to always re-check when a base color tone changes
-            )
-          }
-        })
+        // Save the updated tone to theme first so the updater can read it
+        getVarsStore().setThemeSilent(themeCopy)
+        
+        // This calculates and applies the AA compliant on-tones for all 5 core colors
+        updateCoreColorOnTones(tokensJson, themeCopy, setTheme, modeLower)
+      } else {
+        // If interactive, we still need to save the theme changes
+        getVarsStore().setThemeSilent(themeCopy)
       }
 
-      getVarsStore().setThemeSilent(themeCopy)
-
+      // If black or white changed, we must also update all palette on-tones
+      // because they might be using black or white
+      if (colorName === 'black' || colorName === 'white') {
+        getVarsStore().aaWatcher?.checkAllPaletteOnTones()
+      }
 
       // Compliance scan runs via scheduleComplianceScan after setTheme → recomputeAndApplyAll
 
@@ -610,11 +472,11 @@ export default function ColorTokenPicker() {
     // Still try to set it even if variable doesn't exist yet - it might be created dynamically
 
     // Check if this is a core color CSS var
-    const isCoreColor = targetVar.startsWith(`--recursica_brand_themes_${modeLower}_palettes_core_`)
+    const isCoreColor = targetVar.startsWith(`--recursica_brand_themes_${modeLower}_palettes_core-colors_`)
 
     // Check if this is an interactive color change
-    const isInteractiveDefault = targetVar === `--recursica_brand_themes_${modeLower}_palettes_core_interactive_default_tone` ||
-      targetVar === `--recursica_brand_themes_${modeLower}_palettes_core_interactive`
+    const isInteractiveDefault = targetVar === `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_default_tone` ||
+      targetVar === `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive`
 
     if (isInteractiveDefault) {
       // Get the hex value for the selected token from tokens JSON (checking overrides first)
@@ -658,7 +520,7 @@ export default function ColorTokenPicker() {
 
         // Update CSS variable FIRST for immediate visual feedback (before setTheme triggers recompute)
         const tokenCssVar = buildTokenCssVar(family, level)
-        const targetCssVar = `--recursica_brand_themes_${modeLower}_palettes_core_interactive_default_tone`
+        const targetCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_default_tone`
         updateCssVar(targetCssVar, `var(${tokenCssVar})`, tokensJson)
 
 
@@ -669,12 +531,12 @@ export default function ColorTokenPicker() {
           const defaultToneRef = hexToCssVarRef(normalizedHex, tokensJson)
 
           // Keep current hover color
-          const currentHover = readCssVar(`--recursica_brand_themes_${modeLower}_palettes_core_interactive_hover_tone`)
+          const currentHover = readCssVar(`--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_hover_tone`)
           let hoverHex: string
           if (currentHover && !currentHover.startsWith('var(')) {
             hoverHex = currentHover
           } else {
-            hoverHex = resolveCssVarToHex(`var(--recursica_brand_themes_${modeLower}_palettes_core_interactive_hover_tone)`, tokenIndex) || normalizedHex
+            hoverHex = resolveCssVarToHex(`var(--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_hover_tone)`, tokenIndex) || normalizedHex
           }
           const hoverToneRef = hexToCssVarRef(hoverHex, tokensJson)
 
@@ -739,160 +601,6 @@ export default function ColorTokenPicker() {
             $value: `{brand.themes.${modeLower}.palettes.core-colors.${hoverOnToneCore}}`
           }
 
-          // Update core color interactive properties in theme JSON BEFORE calling setTheme
-          // This ensures recomputeAndApplyAll generates the correct CSS variables
-          if (themeCopy && tokensJson) {
-            // Update theme JSON with new interactive values for each core color
-            const tokenIndex = buildTokenIndex(tokensJson)
-            const AA = 4.5
-            const LEVELS = ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000']
-            const coreColors = ['black', 'white', 'alert', 'warning', 'success']
-
-            // Find the interactive color's family and level for stepping
-            // findColorFamilyAndLevel now returns scale keys directly, not aliases
-            const interactiveFamily = findColorFamilyAndLevel(normalizedHex, tokensJson)
-            if (interactiveFamily) {
-              const { family: interactiveScaleKey, level: interactiveLevel } = interactiveFamily
-              const normalizedInteractiveLevel = interactiveLevel === '000' ? '050' : interactiveLevel
-              const startIdx = LEVELS.indexOf(normalizedInteractiveLevel)
-
-              if (startIdx !== -1 && interactiveScaleKey) {
-                const coreColorsPath = themes[modeLower].palettes['core-colors']
-
-                // Helper to resolve tone reference to hex
-                const context: TokenReferenceContext = {
-                  currentMode: modeLower as 'light' | 'dark',
-                  tokenIndex,
-                  theme: { brand: { themes: themes } }
-                }
-                const resolveRef = (ref: string): string | null => {
-                  const resolved = resolveTokenReferenceToValue(ref, context)
-                  if (typeof resolved === 'string') {
-                    const hex = resolved.trim()
-                    if (/^#?[0-9a-f]{6}$/i.test(hex)) {
-                      return hex.startsWith('#') ? hex.toLowerCase() : `#${hex.toLowerCase()}`
-                    }
-                    if (resolved.startsWith('{') && resolved.endsWith('}')) {
-                      return resolveRef(resolved)
-                    }
-                  }
-                  return null
-                }
-
-                // For each core color, update its interactive property
-                for (const colorName of coreColors) {
-                  const colorDef = coreColorsPath[colorName]
-                  if (!colorDef) continue
-
-                  const toneRef = colorDef.tone?.$value
-                  if (!toneRef) continue
-
-                  const toneHex = resolveRef(toneRef)
-                  if (!toneHex) continue
-
-                  // Step through interactive scale to find AA-compliant color
-                  let interactiveRef: string | null = null
-                  let bestContrast = 0
-                  let bestLevel: string | null = null
-
-                  // First, check the current interactive color itself
-                  const currentContrast = contrastRatio(toneHex, normalizedHex)
-                  if (currentContrast >= AA) {
-                    // Use scale key, not alias, for token reference
-                    interactiveRef = `{tokens.colors.${interactiveScaleKey}.${normalizedInteractiveLevel}}`
-                  } else {
-                    bestContrast = currentContrast
-                    bestLevel = normalizedInteractiveLevel
-
-                    // Try ALL levels in the interactive scale, alternating from the starting point
-                    const searchOrder: number[] = []
-                    for (let offset = 1; offset < LEVELS.length; offset++) {
-                      // Try lighter first
-                      if (startIdx - offset >= 0) {
-                        searchOrder.push(startIdx - offset)
-                      }
-                      // Then darker
-                      if (startIdx + offset < LEVELS.length) {
-                        searchOrder.push(startIdx + offset)
-                      }
-                    }
-
-                    // Search in alternating order
-                    for (const testIdx of searchOrder) {
-                      const testLevel = LEVELS[testIdx]
-                      const normalizedTestLevel = testLevel === '000' ? '050' : testLevel
-                      // Use scale key for lookup (e.g., colors/scale-05/900)
-                      // interactiveScaleKey is now always a scale key, not an alias
-                      const testHex = tokenIndex.get(`colors/${interactiveScaleKey}/${normalizedTestLevel}`)
-                      if (typeof testHex === 'string') {
-                        const hex = testHex.startsWith('#') ? testHex.toLowerCase() : `#${testHex.toLowerCase()}`
-                        const testContrast = contrastRatio(toneHex, hex)
-                        if (testContrast >= AA) {
-                          // Use scale key for token reference
-                          interactiveRef = `{tokens.colors.${interactiveScaleKey}.${normalizedTestLevel}}`
-                          break
-                        }
-                        // Track best contrast even if it doesn't pass
-                        if (testContrast > bestContrast) {
-                          bestContrast = testContrast
-                          bestLevel = normalizedTestLevel
-                        }
-                      }
-                    }
-
-                    // If no color passed, use the original interactive color (the one user selected)
-                    // This will show the warning triangle in the UI
-                    if (!interactiveRef) {
-                      // Use scale key, not alias, for token reference
-                      interactiveRef = `{tokens.colors.${interactiveScaleKey}.${normalizedInteractiveLevel}}`
-                    }
-                  }
-
-                  // Update interactive property in theme JSON
-                  if (interactiveRef) {
-                    if (!colorDef.interactive) {
-                      colorDef.interactive = {}
-                    }
-                    colorDef.interactive.$value = interactiveRef
-                  }
-                }
-              }
-            }
-          }
-
-          // Directly update CSS variables for all core color interactive properties BEFORE setTheme
-          // This ensures immediate visual feedback and prevents recomputeAndApplyAll from overwriting
-          // Use the updated themeCopy structure for proper resolution
-          const rootForCssVar: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-          const themesForCssVar = rootForCssVar?.themes || rootForCssVar
-          // core-colors is NOT wrapped in $value in normal (non-import) usage.
-          // Mirror the same pattern used in palettes.ts: fall back to the raw object.
-          const coreColorsRaw = themesForCssVar[modeLower]?.palettes?.['core-colors']
-          const coreColorsPath = coreColorsRaw?.$value || coreColorsRaw
-
-          if (coreColorsPath) {
-            const coreColorNames = ['black', 'white', 'alert', 'warning', 'success']
-            const contextForCssVar: TokenReferenceContext = {
-              currentMode: modeLower as 'light' | 'dark',
-              tokenIndex: buildTokenIndex(tokensJson),
-              theme: themeCopy
-            }
-
-            coreColorNames.forEach((colorName) => {
-              const colorDef = coreColorsPath[colorName]
-              if (!colorDef) return
-
-              const interactiveRef = colorDef.interactive?.$value
-              if (!interactiveRef) return
-
-              const interactiveCssVar = `--recursica_brand_themes_${modeLower}_palettes_core_${colorName}_interactive`
-              const cssVarValue = resolveTokenReferenceToCssVar(interactiveRef, contextForCssVar)
-              if (cssVarValue) {
-                updateCssVar(interactiveCssVar, cssVarValue, tokensJson)
-              }
-            })
-          }
-
           // Update theme JSON synchronously - CSS vars were already updated above
           // This includes the updated interactive values for each core color
           getVarsStore().setThemeSilent(themeCopy)
@@ -902,12 +610,6 @@ export default function ColorTokenPicker() {
           // Use themeCopy instead of themeJson since we just updated it
           // Use modeLower instead of mode for consistency
           updateInteractiveColor(normalizedHex, 'keep', tokensJson, modeLower as 'light' | 'dark', themeCopy, setTheme)
-
-          // Update CSS variables for core color interactive properties
-          // AA compliance is now manual via header button - removed automatic call
-          // if (setTheme && themeCopy) {
-          //   updateCoreColorInteractiveOnTones(normalizedHex, tokensJson, themeCopy, setTheme, mode)
-          // }
 
 
         setAnchor(null)

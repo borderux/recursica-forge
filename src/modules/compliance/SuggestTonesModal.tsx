@@ -6,12 +6,13 @@
  * levels and allows the user to pick one that passes AA contrast.
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Modal } from '../../components/adapters/Modal'
 import { Badge } from '../../components/adapters/Badge'
 import { Button } from '../../components/adapters/Button'
 import { RadioButton } from '../../components/adapters/RadioButton'
+import { Loader } from '../../components/adapters/Loader'
 import type { ComplianceIssue } from '../../core/compliance/ComplianceService'
 import { generateSuggestedTones, type SuggestedTone } from './toneInterpolation'
 import {
@@ -43,85 +44,116 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
 
     const WarningIcon = iconNameToReactComponent('warning')
 
-    // Resolve the issue's tone to its scale family/level and compute suggestions
-    const { tones, family, level, emphasisOpacity } = useMemo(() => {
-        if (!isOpen) return { tones: [] as SuggestedTone[], family: '', level: '', emphasisOpacity: 1 }
+    const [isLoading, setIsLoading] = useState(false)
+    const [suggestData, setSuggestData] = useState<{ tones: SuggestedTone[], family: string, level: string, emphasisOpacity: number }>({ tones: [], family: '', level: '', emphasisOpacity: 1 })
 
-        const store = getVarsStore()
-        const tokens = store.getState().tokens
-        if (!tokens) return { tones: [] as SuggestedTone[], family: '', level: '', emphasisOpacity: 1 }
-
-        // Trace the CSS var chain to find the exact token, falling back to hex matching
-        const traced = issue.toneCssVar ? traceToTokenRef(issue.toneCssVar) : null
-        const info = traced || findColorFamilyAndLevel(issue.toneHex, tokens)
-        if (!info) return { tones: [] as SuggestedTone[], family: '', level: '', emphasisOpacity: 1 }
-
-        const { family, level } = info
-
-        // Get all colors in this family
-        const familyColors = getAllFamilyColorsByKey(family, tokens)
-        if (familyColors.length === 0) return { tones: [] as SuggestedTone[], family, level, emphasisOpacity: 1 }
-
-        // Determine level ordering based on mode
-        // In dark mode, levels are reversed: 1000 = lightest, so "darker" means lower level number
-        const orderedLevels = issue.mode === 'dark' ? [...LEVELS].reverse() : [...LEVELS]
-
-        const currentIdx = orderedLevels.indexOf(level)
-        if (currentIdx === -1) return { tones: [] as SuggestedTone[], family, level, emphasisOpacity: 1 }
-
-        // "Above" = one step toward darker
-        // "Below" = one step toward lighter
-        const aboveIdx = currentIdx > 0 ? currentIdx - 1 : -1
-        const belowIdx = currentIdx < orderedLevels.length - 1 ? currentIdx + 1 : -1
-
-        const aboveLevel = aboveIdx >= 0 ? orderedLevels[aboveIdx] : null
-        const belowLevel = belowIdx >= 0 ? orderedLevels[belowIdx] : null
-
-        const colorMap = new Map(familyColors.map(c => [c.level, c.hex]))
-        const aboveHex = aboveLevel ? colorMap.get(aboveLevel) || null : null
-        const belowHex = belowLevel ? colorMap.get(belowLevel) || null : null
-        const failingHex = colorMap.get(level) || issue.toneHex
-
-        // Get emphasis opacity
-        const emphasis = issue.emphasis || 'high'
-        const emphasisVar = emphasis === 'high'
-            ? `--recursica_brand_themes_${issue.mode}-text-emphasis-high`
-            : `--recursica_brand_themes_${issue.mode}-text-emphasis-low`
-        const emphasisOpacity = readCssVarNumber(emphasisVar, emphasis === 'high' ? 1 : 0.6)
-
-        const tones = generateSuggestedTones(
-            failingHex,
-            aboveHex,
-            belowHex,
-            aboveLevel,
-            belowLevel,
-            level,
-            emphasis,
-            emphasisOpacity,
-        )
-
-        // Override the failing tone's values with the actual issue data so the
-        // current-state swatch reflects the real on-tone colour (not the computed best).
-        const failingTone = tones.find(t => t.isFailing)
-        if (failingTone) {
-            failingTone.contrastRatio = issue.contrastRatio
-            failingTone.isCompliant = false // It's always failing, that's why we're here
-
-            // Use the raw (unblended) on-tone to determine the icon/dot colour for the
-            // current swatch — issue.onToneHex is blended with opacity, rawOnToneHex is not.
-            const actualHex = issue.rawOnToneHex || issue.onToneHex
-            if (actualHex) {
-                const h = actualHex.replace('#', '')
-                const r = parseInt(h.slice(0, 2), 16) / 255
-                const g = parseInt(h.slice(2, 4), 16) / 255
-                const b = parseInt(h.slice(4, 6), 16) / 255
-                const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                failingTone.onToneColor = lum > 0.5 ? 'white' : 'black'
-            }
+    useEffect(() => {
+        if (!isOpen) {
+            setSuggestData({ tones: [], family: '', level: '', emphasisOpacity: 1 })
+            setIsLoading(false)
+            return
         }
 
-        return { tones, family, level, emphasisOpacity }
+        setIsLoading(true)
+        
+        // Defer computation so the modal can mount immediately
+        const timerId = setTimeout(() => {
+            try {
+                const store = getVarsStore()
+                const tokens = store.getState().tokens
+                if (!tokens) {
+                    setSuggestData({ tones: [], family: '', level: '', emphasisOpacity: 1 })
+                    return
+                }
+
+                // Trace the CSS var chain to find the exact token, falling back to hex matching
+                const traced = issue.toneCssVar ? traceToTokenRef(issue.toneCssVar) : null
+                const info = traced || findColorFamilyAndLevel(issue.toneHex, tokens)
+                if (!info) {
+                    setSuggestData({ tones: [], family: '', level: '', emphasisOpacity: 1 })
+                    return
+                }
+
+                const { family, level } = info
+
+                // Get all colors in this family
+                const familyColors = getAllFamilyColorsByKey(family, tokens)
+                if (familyColors.length === 0) {
+                    setSuggestData({ tones: [], family, level, emphasisOpacity: 1 })
+                    return
+                }
+
+                // Determine level ordering based on mode
+                // In dark mode, levels are reversed: 1000 = lightest, so "darker" means lower level number
+                const orderedLevels = issue.mode === 'dark' ? [...LEVELS].reverse() : [...LEVELS]
+
+                const currentIdx = orderedLevels.indexOf(level)
+                if (currentIdx === -1) {
+                    setSuggestData({ tones: [], family, level, emphasisOpacity: 1 })
+                    return
+                }
+
+                // "Above" = one step toward darker
+                // "Below" = one step toward lighter
+                const aboveIdx = currentIdx > 0 ? currentIdx - 1 : -1
+                const belowIdx = currentIdx < orderedLevels.length - 1 ? currentIdx + 1 : -1
+
+                const aboveLevel = aboveIdx >= 0 ? orderedLevels[aboveIdx] : null
+                const belowLevel = belowIdx >= 0 ? orderedLevels[belowIdx] : null
+
+                const colorMap = new Map(familyColors.map(c => [c.level, c.hex]))
+                const aboveHex = aboveLevel ? colorMap.get(aboveLevel) || null : null
+                const belowHex = belowLevel ? colorMap.get(belowLevel) || null : null
+                const failingHex = colorMap.get(level) || issue.toneHex
+
+                // Get emphasis opacity
+                const emphasis = issue.emphasis || 'high'
+                const emphasisVar = emphasis === 'high'
+                    ? `--recursica_brand_themes_${issue.mode}-text-emphasis-high`
+                    : `--recursica_brand_themes_${issue.mode}-text-emphasis-low`
+                const emphasisOpacity = readCssVarNumber(emphasisVar, emphasis === 'high' ? 1 : 0.6)
+
+                const calculatedTones = generateSuggestedTones(
+                    failingHex,
+                    aboveHex,
+                    belowHex,
+                    aboveLevel,
+                    belowLevel,
+                    level,
+                    emphasis,
+                    emphasisOpacity,
+                )
+
+                // Override the failing tone's values with the actual issue data so the
+                // current-state swatch reflects the real on-tone colour (not the computed best).
+                const failingTone = calculatedTones.find(t => t.isFailing)
+                if (failingTone) {
+                    failingTone.contrastRatio = issue.contrastRatio
+                    failingTone.isCompliant = false // It's always failing, that's why we're here
+
+                    // Use the raw (unblended) on-tone to determine the icon/dot colour for the
+                    // current swatch — issue.onToneHex is blended with opacity, rawOnToneHex is not.
+                    const actualHex = issue.rawOnToneHex || issue.onToneHex
+                    if (actualHex) {
+                        const h = actualHex.replace('#', '')
+                        const r = parseInt(h.slice(0, 2), 16) / 255
+                        const g = parseInt(h.slice(2, 4), 16) / 255
+                        const b = parseInt(h.slice(4, 6), 16) / 255
+                        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+                        failingTone.onToneColor = lum > 0.5 ? 'white' : 'black'
+                    }
+                }
+                
+                setSuggestData({ tones: calculatedTones, family, level, emphasisOpacity })
+            } finally {
+                setIsLoading(false)
+            }
+        }, 10)
+        
+        return () => clearTimeout(timerId)
     }, [isOpen, issue])
+
+    const { tones, family, level, emphasisOpacity } = suggestData
 
     const handleSave = () => {
         if (!selectedHex || !family || !level) return
@@ -169,10 +201,16 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                         lineHeight: 'var(--recursica_brand_typography_body-small-line-height)',
                     }}
                 >
-                    {issue.location} · {familyLabel} · {emphasisLabel}
+                    {issue.location} · {familyLabel || 'Calculating...'} · {emphasisLabel}
                 </p>
 
-                {tones.map((tone, idx) => {
+                {isLoading ? (
+                    <div style={{ padding: '2rem', display: 'flex', justifyContent: 'center' }}>
+                        <Loader />
+                    </div>
+                ) : (
+                    <>
+                        {tones.map((tone, idx) => {
                     const isSelectable = !tone.isReference && !tone.isFailing && tone.isCompliant
                     const isSelected = selectedHex === tone.hex
 
@@ -287,6 +325,8 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                     <p style={{ margin: '8px 0 0 0', fontSize: '12px', opacity: 0.5, textAlign: 'center' }}>
                         No compliant options found — try adjusting the scale.
                     </p>
+                )}
+                    </>
                 )}
             </div>
         </Modal>
