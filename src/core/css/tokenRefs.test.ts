@@ -4,15 +4,17 @@ import { findTokenByHex, tokenToCssVar } from './tokenRefs'
 describe('findTokenByHex', () => {
   const mockTokens = {
     tokens: {
-      color: {
-        gray: {
+      colors: {
+        'scale-02': {
+          alias: 'gray',
           '000': { $value: '#ffffff' },
           '050': { $value: '#f5f5f5' },
           '100': { $value: '#e0e0e0' },
           '500': { $value: '#808080' },
           '900': { $value: '#000000' } // Note: 1000 is normalized to 900
         },
-        salmon: {
+        'scale-05': {
+          alias: 'salmon',
           '500': { $value: '#ff6b6b' }
         }
       }
@@ -21,17 +23,17 @@ describe('findTokenByHex', () => {
 
   it('should find token by exact hex match', () => {
     const result = findTokenByHex('#000000', mockTokens)
-    expect(result).toEqual({ family: 'gray', level: '900' })
+    expect(result).toEqual({ family: 'scale-02', level: '900', scale: 'scale-02' })
   })
 
   it('should find token by hex without # prefix', () => {
     const result = findTokenByHex('000000', mockTokens)
-    expect(result).toEqual({ family: 'gray', level: '900' })
+    expect(result).toEqual({ family: 'scale-02', level: '900', scale: 'scale-02' })
   })
 
   it('should find token case-insensitively', () => {
     const result = findTokenByHex('#FFFFFF', mockTokens)
-    expect(result).toEqual({ family: 'gray', level: '000' })
+    expect(result).toEqual({ family: 'scale-02', level: '000', scale: 'scale-02' })
   })
 
   it('should return null when no match found', () => {
@@ -53,23 +55,17 @@ describe('findTokenByHex', () => {
 describe('tokenToCssVar', () => {
   const mockTokens = {
     tokens: {
-      color: {
-        gray: {
+      colors: {
+        'scale-01': {
+          alias: 'gray',
           '000': { $value: '#ffffff' },
           '500': { $value: '#808080' },
           '900': { $value: '#000000' },
           '1000': { $value: '#000000' }
         },
-        salmon: {
+        'scale-05': {
+          alias: 'salmon',
           '500': { $value: '#ff6b6b' }
-        }
-      },
-      colors: {
-        'scale-01': {
-          alias: 'gray',
-          '500': { $value: '#808080' },
-          '900': { $value: '#000000' },
-          '1000': { $value: '#000000' }
         }
       },
       opacities: {

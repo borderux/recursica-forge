@@ -64,14 +64,7 @@ export function getAllFamilyNames(tokensJson?: any): Record<string, string> {
     })
   }
 
-  // Also check old color format
-  const oldColors = tokensRoot?.color || {}
-  Object.keys(oldColors).forEach((fam) => {
-    if (fam === 'translucent') return
-    if (!names[fam]) {
-      names[fam] = fam.charAt(0).toUpperCase() + fam.slice(1)
-    }
-  })
+
 
   return names
 }

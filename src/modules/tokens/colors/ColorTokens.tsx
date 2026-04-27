@@ -343,19 +343,7 @@ export default function ColorTokens() {
         })
       }
 
-      // Backwards compatibility: also process old color structure if it exists
-      const oldColors = t?.color || {}
-      if (oldColors && typeof oldColors === 'object' && !Array.isArray(oldColors)) {
-        Object.keys(oldColors).forEach((family) => {
-          if (family === 'translucent') return
-          const levels = oldColors[family] || {}
-          Object.keys(levels).forEach((lvl) => {
-            push(`color/${family}/${lvl}`, 'color', levels[lvl]?.$value)
-          })
-        })
-        if (oldColors.gray?.['000']) push('color/gray/000', 'color', oldColors.gray['000'].$value)
-        if (oldColors.gray?.['1000']) push('color/gray/1000', 'color', oldColors.gray['1000'].$value)
-      }
+
     } catch { }
     return list
   }, [tokensJson])
@@ -824,13 +812,6 @@ export default function ColorTokens() {
           }
         }
       })
-      // Also check old format (color) for backwards compatibility
-      const oldColorsRoot = tokensRoot?.color || {}
-      Object.keys(oldColorsRoot).forEach((fam) => {
-        if (fam !== 'translucent' && !deletedFamilies[fam]) {
-          scaleAliases.add(fam)
-        }
-      })
       return scaleAliases.size
     } catch {
       return 0
@@ -847,15 +828,8 @@ export default function ColorTokens() {
     // Deep clone tokens to avoid mutation
       const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
       const tokensRoot = nextTokens?.tokens || {}
-      const oldColorsRoot = tokensRoot?.color || {}
       const newColorsRoot = tokensRoot?.colors || {}
       let tokensChanged = false
-
-      // Delete from OLD color structure (color.family)
-      if (oldColorsRoot[family]) {
-        delete oldColorsRoot[family]
-        tokensChanged = true
-      }
 
       // Delete from NEW colors structure (colors.scale-XX with matching alias)
       let deletedScaleKey: string | null = null
@@ -882,10 +856,6 @@ export default function ColorTokens() {
       for (let i = style.length - 1; i >= 0; i--) {
         const prop = style[i]
         if (!prop) continue
-        // Match old format: --recursica_tokens_color_{family}-*
-        if (prop.startsWith(`${tokenColor(family, '')}`)) {
-          cssVarsToRemove.push(prop)
-        }
         // Match new format by alias: --recursica_tokens_colors_{family}-*
         if (prop.startsWith(`${tokenColors(family, '')}`)) {
           cssVarsToRemove.push(prop)
@@ -902,7 +872,7 @@ export default function ColorTokens() {
       // Update local values state - remove all tokens for this family (both formats)
       const newValues = { ...values }
       Object.keys(newValues).forEach((tokenName) => {
-        if (tokenName.startsWith(`color/${family}/`) || tokenName.startsWith(`colors/${family}/`)) {
+        if (tokenName.startsWith(`colors/${family}/`)) {
           delete newValues[tokenName]
         }
         if (deletedScaleKey && tokenName.startsWith(`colors/${deletedScaleKey}/`)) {
@@ -930,14 +900,7 @@ export default function ColorTokens() {
         // Deep clone tokens to avoid mutation
         const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
         const tokensRoot = nextTokens?.tokens || {}
-        const colorsRoot = tokensRoot?.color || {}
-
-        // Get all levels for the old family
-        const oldFamilyData = colorsRoot[family]
-        if (oldFamilyData && typeof oldFamilyData === 'object') {
-          // Create new family with all levels
-          if (!tokensRoot.color) tokensRoot.color = {}
-          tokensRoot.color[newFamilySlug] = { ...oldFamilyData }
+        const colorsRoot = tokensRoot?.colors || {}
 
           // Delete old family
           delete tokensRoot.color[family]

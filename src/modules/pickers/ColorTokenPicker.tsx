@@ -86,18 +86,6 @@ export default function ColorTokenPicker() {
       }
     }
 
-    // Also process old color structure for backwards compatibility
-    const oldColors: any = (tokensJson as any)?.tokens?.color || {}
-    Object.keys(oldColors).forEach((fam) => {
-      if (fam === 'translucent') return
-      if (!colorFamilyMap[fam]) {
-        colorFamilyMap[fam] = new Set()
-      }
-      Object.keys(oldColors[fam] || {}).forEach((lvl) => {
-        colorFamilyMap[fam].add(lvl)
-      })
-    })
-
     // Add override families
     const overrideFamilies = Array.from(new Set(Object.keys(overrideMap)
       .filter((k) => k.startsWith('color/') || k.startsWith('colors/'))
@@ -148,7 +136,7 @@ export default function ColorTokenPicker() {
         }
         // Fallback to old structure
         if (!val) {
-          val = (overrideMap as any)[name] ?? (overrideMap as any)[`color/${fam}/${lvl}`] ?? (oldColors?.[fam]?.[lvl]?.$value)
+          val = (overrideMap as any)[name] ?? (overrideMap as any)[`color/${fam}/${lvl}`]
         }
         return { level: lvl, name, value: String(val ?? '') }
       }).filter((it) => it.value && /^#?[0-9a-fA-F]{6}$/i.test(String(it.value).trim()))
@@ -498,12 +486,9 @@ export default function ColorTokenPicker() {
           if (tokenValue) break
         }
       }
-      // Fallback to old structure
-      if (!tokenValue) {
-        const oldColors: any = (tokensJson as any)?.tokens?.color || {}
-        tokenValue = oldColors?.[family]?.[level]?.$value ?? oldColors?.[family]?.[level]
-      }
+
       const finalTokenValue = overrideValue ?? tokenValue
+
       let tokenHex: string | null = null
 
       if (typeof tokenValue === 'string' && /^#?[0-9a-f]{6}$/i.test(tokenValue)) {

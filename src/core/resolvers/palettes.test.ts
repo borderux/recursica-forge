@@ -29,19 +29,19 @@ describe('buildPaletteVars', () => {
             'core-colors': {
               $type: 'color',
               $value: {
-                black: '{tokens.color.gray.900}',
-                white: '{tokens.color.gray.000}',
-                alert: '{tokens.color.gray.900}',
-                success: '{tokens.color.gray.900}',
-                warning: '{tokens.color.gray.900}',
+                black: '{tokens.colors.scale-02.900}',
+                white: '{tokens.colors.scale-02.000}',
+                alert: '{tokens.colors.scale-02.900}',
+                success: '{tokens.colors.scale-02.900}',
+                warning: '{tokens.colors.scale-02.900}',
                 interactive: {
                   default: {
-                    tone: { $value: '{tokens.color.gray.500}' },
-                    'on-tone': { $value: '{tokens.color.gray.000}' }
+                    tone: { $value: '{tokens.colors.scale-02.500}' },
+                    'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                   },
                   hover: {
-                    tone: { $value: '{tokens.color.gray.600}' },
-                    'on-tone': { $value: '{tokens.color.gray.000}' }
+                    tone: { $value: '{tokens.colors.scale-02.600}' },
+                    'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                   }
                 }
               }
@@ -49,14 +49,14 @@ describe('buildPaletteVars', () => {
             neutral: {
               '500': {
                 color: {
-                  tone: { $value: '{tokens.color.gray.500}' },
-                  'on-tone': { $value: '{tokens.color.gray.000}' }
+                  tone: { $value: '{tokens.colors.scale-02.500}' },
+                  'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                 }
               },
               '900': {
                 color: {
-                  tone: { $value: '{tokens.color.gray.900}' },
-                  'on-tone': { $value: '{tokens.color.gray.000}' }
+                  tone: { $value: '{tokens.colors.scale-02.900}' },
+                  'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                 }
               }
             }
@@ -68,7 +68,7 @@ describe('buildPaletteVars', () => {
           state: {
             disabled: { $value: '{tokens.opacity.smoky}' },
             overlay: {
-              color: { $value: '{tokens.color.gray.900}' },
+              color: { $value: '{tokens.colors.scale-02.900}' },
               opacity: { $value: '{tokens.opacity.smoky}' }
             }
           }
@@ -78,19 +78,19 @@ describe('buildPaletteVars', () => {
             'core-colors': {
               $type: 'color',
               $value: {
-                black: '{tokens.color.gray.000}',
-                white: '{tokens.color.gray.900}',
-                alert: '{tokens.color.gray.000}',
-                success: '{tokens.color.gray.000}',
-                warning: '{tokens.color.gray.000}',
+                black: '{tokens.colors.scale-02.000}',
+                white: '{tokens.colors.scale-02.900}',
+                alert: '{tokens.colors.scale-02.000}',
+                success: '{tokens.colors.scale-02.000}',
+                warning: '{tokens.colors.scale-02.000}',
                 interactive: {
                   default: {
-                    tone: { $value: '{tokens.color.gray.500}' },
-                    'on-tone': { $value: '{tokens.color.gray.900}' }
+                    tone: { $value: '{tokens.colors.scale-02.500}' },
+                    'on-tone': { $value: '{tokens.colors.scale-02.900}' }
                   },
                   hover: {
-                    tone: { $value: '{tokens.color.gray.400}' },
-                    'on-tone': { $value: '{tokens.color.gray.900}' }
+                    tone: { $value: '{tokens.colors.scale-02.400}' },
+                    'on-tone': { $value: '{tokens.colors.scale-02.900}' }
                   }
                 }
               }
@@ -98,8 +98,8 @@ describe('buildPaletteVars', () => {
             neutral: {
               '500': {
                 color: {
-                  tone: { $value: '{tokens.color.gray.500}' },
-                  'on-tone': { $value: '{tokens.color.gray.900}' }
+                  tone: { $value: '{tokens.colors.scale-02.500}' },
+                  'on-tone': { $value: '{tokens.colors.scale-02.900}' }
                 }
               }
             }
@@ -181,8 +181,8 @@ describe('buildPaletteVars', () => {
               neutral: {
                 default: {
                   color: {
-                    tone: { $value: '{tokens.color.gray.500}' },
-                    'on-tone': { $value: '{tokens.color.gray.000}' }
+                    tone: { $value: '{tokens.colors.scale-02.500}' },
+                    'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                   }
                 }
               }
@@ -223,8 +223,8 @@ describe('buildPaletteVars', () => {
             neutral: {
               '500': {
                 color: {
-                  tone: { $value: '{tokens.color.gray.500}' },
-                  'on-tone': { $value: '{tokens.color.gray.000}' }
+                  tone: { $value: '{tokens.colors.scale-02.500}' },
+                  'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                 }
               }
             }
@@ -246,8 +246,8 @@ describe('buildPaletteVars', () => {
               neutral: {
                 '500': {
                   color: {
-                    tone: { $value: '{tokens.color.gray.500}' },
-                    'on-tone': { $value: '{tokens.color.gray.000}' }
+                    tone: { $value: '{tokens.colors.scale-02.500}' },
+                    'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                   }
                 }
               }
@@ -270,7 +270,7 @@ describe('buildPaletteVars', () => {
     expect(toneVar).toBeDefined()
     // The variable should either be a CSS var reference or contain a token reference
     if (typeof toneVar === 'string') {
-      expect(toneVar).toMatch(/var\(--recursica_(tokens_color_gray_|brand_light_palettes_core_)/)
+      expect(toneVar).toMatch(/var\(--recursica_(tokens_colors_scale-02_|brand_themes_light_palettes_core_)/)
     }
   })
 })

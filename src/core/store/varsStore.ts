@@ -1114,7 +1114,7 @@ class VarsStore {
           }
         } else {
           // Old format: color/family/level (backwards compatibility)
-          const tokenValue = tokensRoot?.color?.[scaleOrFamily]?.[level]?.$value
+          const tokenValue = tokensRoot?.colors?.[scaleOrFamily]?.[level]?.$value
           if (tokenValue != null) {
             const cssVarKey = tokenColor(scaleOrFamily, normalizedLevel)
             varsToUpdate[cssVarKey] = String(tokenValue)
@@ -1942,31 +1942,7 @@ class VarsStore {
           })
         }
 
-        // Backwards compatibility: also process old color structure if it exists
-        const oldColorsRoot: any = tokensRoot?.color
-        if (oldColorsRoot && typeof oldColorsRoot === 'object' && !Array.isArray(oldColorsRoot)) {
-          Object.keys(oldColorsRoot).forEach((family) => {
-            if (!family || typeof family !== 'string' || family === 'translucent') return
-            const levels = oldColorsRoot[family]
-            if (!levels || typeof levels !== 'object' || Array.isArray(levels)) return
 
-            Object.keys(levels).forEach((lvl) => {
-              if (!/^(\d{2,4}|000|050)$/.test(lvl)) return
-              const normalizedLevel = lvl === '1000' ? '1000' : String(lvl).padStart(3, '0')
-              const cssVarKey = tokenColor(family, normalizedLevel)
-              if (!processedKeys.has(cssVarKey)) {
-                const levelObj = levels[lvl]
-                if (levelObj && typeof levelObj === 'object') {
-                  const val = levelObj.$value
-                  if (typeof val === 'string' && val) {
-                    vars[cssVarKey] = String(val)
-                    processedKeys.add(cssVarKey)
-                  }
-                }
-              }
-            })
-          })
-        }
 
         Object.assign(allVars, vars)
       } catch { }
@@ -2629,7 +2605,7 @@ class VarsStore {
                 if (parts[0] === 'colors' && parts[1]?.startsWith('scale-')) {
                   return root?.colors?.[parts[1]]?.[parts[2]]?.$value
                 }
-                return root?.color?.[parts[1]]?.[parts[2]]?.$value || root?.colors?.[parts[1]]?.[parts[2]]?.$value
+                return root?.colors?.[parts[1]]?.[parts[2]]?.$value
               }
               return undefined
             }

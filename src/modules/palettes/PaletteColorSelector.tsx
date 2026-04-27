@@ -264,11 +264,6 @@ export default function PaletteColorSelector({
       })
     }
 
-    // Also add from old color structure for backwards compatibility
-    const oldColors = tokensRoot?.color || {}
-    Object.keys(oldColors).forEach((fam) => {
-      if (fam !== 'translucent') fams.add(fam)
-    })
 
     // Add from overrides
     try {
@@ -356,7 +351,7 @@ export default function PaletteColorSelector({
     if (parts[0] === 'color' && parts.length >= 3) {
       const family = parts[1]
       const level = parts[2]
-      return (tokensJson as any)?.tokens?.color?.[family]?.[level]?.$value
+      return (tokensJson as any)?.tokens?.colors?.[family]?.[level]?.$value
     }
 
     return undefined

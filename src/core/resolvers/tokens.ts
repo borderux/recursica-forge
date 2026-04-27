@@ -19,7 +19,7 @@ export function buildTokenIndex(tokens: JsonLike | null | undefined): TokenIndex
           return root?.colors?.[scaleOrFamily]?.[level]?.$value
         } else {
           // Old format: color.family.level (for backwards compatibility)
-          return root?.color?.[scaleOrFamily]?.[level]?.$value
+          return root?.colors?.[scaleOrFamily]?.[level]?.$value
         }
       }
       case 'colors': {

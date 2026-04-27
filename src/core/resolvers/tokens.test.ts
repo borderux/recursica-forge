@@ -5,8 +5,9 @@ import type { JsonLike } from './tokens'
 describe('buildTokenIndex', () => {
   const mockTokens: JsonLike = {
     tokens: {
-      color: {
-        gray: {
+      colors: {
+        'scale-02': {
+          alias: 'gray',
           '000': { $value: '#ffffff' },
           '050': { $value: '#f5f5f5' },
           '100': { $value: '#e0e0e0' },
@@ -14,7 +15,8 @@ describe('buildTokenIndex', () => {
           '900': { $value: '#000000' },
           '1000': { $value: '#000000' }
         },
-        salmon: {
+        'scale-05': {
+          alias: 'salmon',
           '500': { $value: '#ff6b6b' }
         }
       },
@@ -63,9 +65,9 @@ describe('buildTokenIndex', () => {
 
   it('should resolve color tokens', () => {
     const index = buildTokenIndex(mockTokens)
-    expect(index.get('color/gray/500')).toBe('#808080')
-    expect(index.get('color/salmon/500')).toBe('#ff6b6b')
-    expect(index.get('color/gray/000')).toBe('#ffffff')
+    expect(index.get('colors/scale-02/500')).toBe('#808080')
+    expect(index.get('colors/scale-05/500')).toBe('#ff6b6b')
+    expect(index.get('colors/scale-02/000')).toBe('#ffffff')
   })
 
   it('should resolve opacity tokens', () => {
@@ -118,41 +120,41 @@ describe('buildTokenIndex', () => {
 
   it('should return undefined for non-existent tokens', () => {
     const index = buildTokenIndex(mockTokens)
-    expect(index.get('color/nonexistent/500')).toBeUndefined()
+    expect(index.get('colors/nonexistent/500')).toBeUndefined()
     expect(index.get('invalid/path')).toBeUndefined()
     expect(index.get('')).toBeUndefined()
   })
 
   it('should handle tokens without $value wrapper', () => {
     const tokensWithoutWrapper: JsonLike = {
-      color: {
-        gray: {
+      colors: {
+        'scale-02': {
           '500': { $value: '#808080' }
         }
       }
     }
     const index = buildTokenIndex(tokensWithoutWrapper)
-    expect(index.get('color/gray/500')).toBe('#808080')
+    expect(index.get('colors/scale-02/500')).toBe('#808080')
   })
 
   it('should handle empty tokens object', () => {
     const index = buildTokenIndex({})
-    expect(index.get('color/gray/500')).toBeUndefined()
+    expect(index.get('colors/scale-02/500')).toBeUndefined()
   })
 
   it('should handle null/undefined tokens', () => {
     const index1 = buildTokenIndex(null)
     const index2 = buildTokenIndex(undefined)
-    expect(index1.get('color/gray/500')).toBeUndefined()
-    expect(index2.get('color/gray/500')).toBeUndefined()
+    expect(index1.get('colors/scale-02/500')).toBeUndefined()
+    expect(index2.get('colors/scale-02/500')).toBeUndefined()
   })
 })
 
 describe('resolveBraceRef', () => {
   const mockTokens: JsonLike = {
     tokens: {
-      color: {
-        gray: {
+      colors: {
+        'scale-02': {
           '500': { $value: '#808080' }
         }
       },
@@ -165,19 +167,19 @@ describe('resolveBraceRef', () => {
   const tokenIndex = buildTokenIndex(mockTokens)
 
   it('should resolve simple token references', () => {
-    const result = resolveBraceRef('{tokens.color.gray.500}', tokenIndex)
+    const result = resolveBraceRef('{tokens.colors.scale-02.500}', tokenIndex)
     expect(result).toBe('#808080')
   })
 
   it('should resolve token references with token prefix', () => {
-    const result = resolveBraceRef('{token.color.gray.500}', tokenIndex)
+    const result = resolveBraceRef('{tokens.colors.scale-02.500}', tokenIndex)
     expect(result).toBe('#808080')
   })
 
   it('should resolve nested references', () => {
     const themeAccessor = (path: string) => {
       if (path === 'palette.neutral.500') {
-        return '{tokens.color.gray.500}'
+        return '{tokens.colors.scale-02.500}'
       }
       return undefined
     }
@@ -186,18 +188,18 @@ describe('resolveBraceRef', () => {
   })
 
   it('should handle references with spaces', () => {
-    const result = resolveBraceRef('{ tokens.color.gray.500 }', tokenIndex)
+    const result = resolveBraceRef('{ tokens.colors.scale-02.500 }', tokenIndex)
     expect(result).toBe('#808080')
   })
 
   it('should handle object with $value property', () => {
-    const obj = { $value: '{tokens.color.gray.500}' }
+    const obj = { $value: '{tokens.colors.scale-02.500}' }
     const result = resolveBraceRef(obj, tokenIndex)
     expect(result).toBe('#808080')
   })
 
   it('should handle object with value property', () => {
-    const obj = { value: '{tokens.color.gray.500}' }
+    const obj = { value: '{tokens.colors.scale-02.500}' }
     const result = resolveBraceRef(obj, tokenIndex)
     expect(result).toBe('#808080')
   })

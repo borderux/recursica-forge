@@ -132,14 +132,14 @@ describe('JSON Schema Validation', () => {
 
     it('should have tokens.color structure', () => {
       // Support both old format (tokens.color) and new format (tokens.colors)
-      expect(tokensJson.tokens?.color || tokensJson.tokens?.colors).toBeDefined()
-      const colorStructure = tokensJson.tokens?.color || tokensJson.tokens?.colors
+      expect(tokensJson.tokens?.colors).toBeDefined()
+      const colorStructure = tokensJson.tokens?.colors
       expect(typeof colorStructure).toBe('object')
     })
 
     it('should have gray color family', () => {
       // Support both old format (tokens.color.gray) and new format (tokens.colors with scales)
-      const hasOldFormat = tokensJson.tokens?.color?.gray
+      const hasOldFormat = false
       const hasNewFormat = tokensJson.tokens?.colors && Object.keys(tokensJson.tokens.colors).length > 0
       expect(hasOldFormat || hasNewFormat).toBeTruthy()
       
@@ -156,7 +156,7 @@ describe('JSON Schema Validation', () => {
 
     it('should have valid color hex values', () => {
       // Support both old format (tokens.color.gray) and new format (tokens.colors with scales)
-      const gray = tokensJson.tokens?.color?.gray
+      const gray = tokensJson.tokens?.colors?.gray
       if (gray) {
         Object.values(gray).forEach((entry: any) => {
           if (entry?.$value) {
@@ -342,19 +342,19 @@ describe('JSON Schema Validation', () => {
                 'core-colors': {
                   $type: 'color',
                   $value: {
-                    black: '{tokens.color.gray.900}',
-                    white: '{tokens.color.gray.000}',
-                    alert: '{tokens.color.gray.900}',
-                    success: '{tokens.color.gray.900}',
-                    warning: '{tokens.color.gray.900}',
+                    black: '{tokens.colors.scale-02.900}',
+                    white: '{tokens.colors.scale-02.000}',
+                    alert: '{tokens.colors.scale-02.900}',
+                    success: '{tokens.colors.scale-02.900}',
+                    warning: '{tokens.colors.scale-02.900}',
                     interactive: {
                       default: {
-                        tone: { $value: '{tokens.color.gray.500}' },
-                        'on-tone': { $value: '{tokens.color.gray.000}' }
+                        tone: { $value: '{tokens.colors.scale-02.500}' },
+                        'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                       },
                       hover: {
-                        tone: { $value: '{tokens.color.gray.600}' },
-                        'on-tone': { $value: '{tokens.color.gray.000}' }
+                        tone: { $value: '{tokens.colors.scale-02.600}' },
+                        'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                       }
                     }
                   }
@@ -409,19 +409,19 @@ describe('JSON Schema Validation', () => {
                 'core-colors': {
                   $type: 'color',
                   $value: {
-                    black: '{tokens.color.gray.900}',
-                    white: '{tokens.color.gray.000}',
-                    alert: '{tokens.color.gray.900}',
-                    success: '{tokens.color.gray.900}',
-                    warning: '{tokens.color.gray.900}',
+                    black: '{tokens.colors.scale-02.900}',
+                    white: '{tokens.colors.scale-02.000}',
+                    alert: '{tokens.colors.scale-02.900}',
+                    success: '{tokens.colors.scale-02.900}',
+                    warning: '{tokens.colors.scale-02.900}',
                     interactive: {
                       default: {
-                        tone: { $value: '{tokens.color.gray.500}' },
-                        'on-tone': { $value: '{tokens.color.gray.000}' }
+                        tone: { $value: '{tokens.colors.scale-02.500}' },
+                        'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                       },
                       hover: {
-                        tone: { $value: '{tokens.color.gray.600}' },
-                        'on-tone': { $value: '{tokens.color.gray.000}' }
+                        tone: { $value: '{tokens.colors.scale-02.600}' },
+                        'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                       }
                     }
                   }
@@ -429,8 +429,8 @@ describe('JSON Schema Validation', () => {
                 neutral: {
                   '500': {
                     color: {
-                      tone: { $value: '{tokens.color.gray.500}' },
-                      'on-tone': { $value: '{tokens.color.gray.000}' }
+                      tone: { $value: '{tokens.colors.scale-02.500}' },
+                      'on-tone': { $value: '{tokens.colors.scale-02.000}' }
                     }
                   }
                 }

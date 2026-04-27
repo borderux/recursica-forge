@@ -550,11 +550,6 @@ export default function PalettesPage() {
       })
     }
 
-    // Also add from old color structure for backwards compatibility
-    const oldColors = tokensRoot?.color || {}
-    Object.keys(oldColors).forEach((fam) => {
-      if (fam !== 'translucent') fams.add(fam)
-    })
 
     fams.delete('translucent')
     const list = Array.from(fams)
@@ -867,7 +862,7 @@ export default function PalettesPage() {
             }
           } else {
             // Old color format fallback
-            const hex = tokensRoot?.color?.[familyForMode]?.[tokenLevel]?.$value
+            const hex = tokensRoot?.colors?.[familyForMode]?.[tokenLevel]?.$value
             if (typeof hex === 'string' && /^#?[0-9a-f]{6}$/i.test(hex.trim())) {
               const normalizedHex = hex.startsWith('#') ? hex : `#${hex}`
               const onToneCore = pickOnToneWithOpacity(normalizedHex, modeLabel)

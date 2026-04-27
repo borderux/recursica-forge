@@ -57,7 +57,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
     return () => window.removeEventListener('tokenOverridesChanged', handler as any)
   }, [])
   const families = useMemo(() => {
-    const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.color || {}))
+    const fams = new Set<string>(Object.keys((tokensJson as any)?.tokens?.colors || {}))
     try {
       const overrides = readOverrides() as Record<string, any>
       Object.keys(overrides || {}).forEach((name) => {
@@ -169,7 +169,8 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
       }
     } catch { }
     const parts = (name || '').split('/')
-    if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.tokens?.color?.[parts[1]]?.[parts[2]]?.$value
+    if (parts[0] === 'colors' && parts.length >= 3) return (tokensJson as any)?.tokens?.colors?.[parts[1]]?.[parts[2]]?.$value
+    if (parts[0] === 'color' && parts.length >= 3) return (tokensJson as any)?.tokens?.colors?.[parts[1]]?.[parts[2]]?.$value
     if (parts[0] === 'opacity' && parts[1]) return String((tokensJson as any)?.tokens?.opacity?.[parts[1]]?.$value)
     return undefined
   }
