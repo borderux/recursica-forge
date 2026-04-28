@@ -163,6 +163,9 @@ export function restoreDelta(): number {
         if (varName.startsWith('--recursica_brand_dimensions_')) continue
         // Elevation shadow-color vars are fully recomputed from paletteSelections — never restore
         if (varName.includes('_elevations_') && varName.endsWith('_shadow-color')) continue
+        // Scrub legacy palette references that were removed in the .default architecture refactor
+        if (value.includes('.palettes.palette-3.') || value.includes('.palettes.palette-4.') || value.includes('.palettes.palette-5.')) continue
+        if (value.includes('_palettes_palette-3_') || value.includes('_palettes_palette-4_') || value.includes('_palettes_palette-5_')) continue
         // Skip CSS vars belonging to deleted color scales
         if (deletedScaleKeys.size > 0) {
           const tokenColorMatch = varName.match(/^--recursica_tokens_colors?_([\w-]+)_/)

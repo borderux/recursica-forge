@@ -952,6 +952,22 @@ export default function PalettesPage() {
       delete themes?.[modeKey]?.palettes?.[key]
     }
 
+    // First, clean up any dangling references to the deleted palette from OTHER properties.
+    // If a component or another palette was pointing to the deleted palette, clear that
+    // override so it reverts to its JSON default (to prevent DTCG validation errors on export).
+    const currentDeltaForCleanup = getDelta()
+    const deletedRefMatches = [`.palettes.${key}.`, `_palettes_${key}_`]
+    const varsToClear = []
+    for (const [varName, value] of Object.entries(currentDeltaForCleanup)) {
+      if (deletedRefMatches.some(ref => value.includes(ref))) {
+        varsToClear.push(varName)
+      }
+    }
+    for (const varName of varsToClear) {
+      clearDeltaEntry(varName)
+      document.documentElement.style.removeProperty(varName)
+    }
+
     // Rename theme JSON keys and delta CSS vars for shifted palettes
     const currentDelta = getDelta()
     for (const { from, to } of toRename) {
@@ -961,15 +977,33 @@ export default function PalettesPage() {
           delete themes[modeKey].palettes[from]
         }
       }
-      // Rename delta entries
+      // Rename delta entries AND update any values that reference the shifted palette
       const fromPrefix = `_palettes_${from}_`
       const toPrefix = `_palettes_${to}_`
+      const fromRef = `.palettes.${from}.`
+      const toRef = `.palettes.${to}.`
+
       const renamedVars: Record<string, string> = {}
       for (const [varName, value] of Object.entries(currentDelta)) {
+        let newVarName = varName
+        let newValue = value
+
         if (varName.includes(fromPrefix)) {
-          renamedVars[varName.replace(fromPrefix, toPrefix)] = value
-          clearDeltaEntry(varName)
-          document.documentElement.style.removeProperty(varName)
+          newVarName = varName.replace(fromPrefix, toPrefix)
+        }
+        if (value.includes(fromPrefix)) {
+          newValue = value.replace(fromPrefix, toPrefix)
+        }
+        if (value.includes(fromRef)) {
+          newValue = value.replace(fromRef, toRef)
+        }
+
+        if (newVarName !== varName || newValue !== value) {
+          renamedVars[newVarName] = newValue
+          if (newVarName !== varName) {
+            clearDeltaEntry(varName)
+            document.documentElement.style.removeProperty(varName)
+          }
         }
       }
       if (Object.keys(renamedVars).length > 0) {
@@ -982,6 +1016,38 @@ export default function PalettesPage() {
       clearDeltaEntry(`--recursica_brand_palette_deleted_${from}`)
       document.documentElement.style.removeProperty(`--recursica_brand_palette_deleted_${from}`)
     }
+
+    // Scrub the in-memory themeCopy so that setTheme doesn't re-inject broken references back into the DOM
+    const walkScrub = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return
+      for (const [k, v] of Object.entries(obj)) {
+        if (v && typeof v === 'object') {
+          if ('$value' in v && typeof v.$value === 'string') {
+            let valStr = v.$value
+            let changed = false
+            
+            // If it references the deleted palette, safely fallback to neutral
+            if (deletedRefMatches.some((ref) => valStr.includes(ref))) {
+              valStr = valStr.replace(`.palettes.${key}.`, `.palettes.neutral.`)
+              changed = true
+            } else {
+              // Shift remaining references
+              for (const { from, to } of toRename) {
+                const fromRef = `.palettes.${from}.`
+                if (valStr.includes(fromRef)) {
+                  valStr = valStr.replace(fromRef, `.palettes.${to}.`)
+                  changed = true
+                }
+              }
+            }
+            if (changed) v.$value = valStr
+          } else {
+            walkScrub(v)
+          }
+        }
+      }
+    }
+    walkScrub(themeCopy)
 
     // If nothing shifted into the deleted slot, write a deletion marker so the static
     // JSON entry for that palette is suppressed on restore.
