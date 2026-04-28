@@ -1514,7 +1514,7 @@
                 },
                 "on-tone": {
                   "$type": "color",
-                  "$value": "{brand.themes.dark.palettes.core-colors.white.tone}"
+                  "$value": "{brand.themes.dark.palettes.core-colors.black.tone}"
                 }
               }
             },
@@ -1698,7 +1698,7 @@
                 },
                 "on-tone": {
                   "$type": "color",
-                  "$value": "{brand.themes.dark.palettes.core-colors.black.tone}"
+                  "$value": "{brand.themes.dark.palettes.core-colors.white.tone}"
                 }
               }
             },
@@ -1869,7 +1869,7 @@
                 },
                 "on-tone": {
                   "$type": "color",
-                  "$value": "{brand.themes.dark.palettes.core-colors.white.tone}"
+                  "$value": "{brand.themes.dark.palettes.core-colors.black.tone}"
                 }
               }
             },

@@ -341,6 +341,7 @@ export function updateInteractiveColor(
   setTheme?: (theme: JsonLike) => void
 ): void {
   const normalizedHex = newInteractiveHex.startsWith('#') ? newInteractiveHex.toLowerCase() : `#${newInteractiveHex.toLowerCase()}`
+  const defaultToneRef = hexToCssVarRef(normalizedHex, tokens)
 
   if (defaultToneRef) {
     updateCssVar(

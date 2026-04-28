@@ -53,8 +53,9 @@ describe('applyCssVars', () => {
   it('should auto-fix brand vars with hex values when tokens provided', () => {
     const tokens = {
       tokens: {
-        color: {
-          gray: {
+        colors: {
+          'scale-01': {
+            alias: 'gray',
             '1000': { $value: '#000000' }
           }
         }

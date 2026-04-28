@@ -1077,48 +1077,34 @@ class VarsStore {
           varsToUpdate[tokenOpacity(key)] = norm
           varsToUpdate[token('opacity', key)] = norm
         }
-      } else if ((category === 'color' || category === 'colors') && rest.length >= 2) {
+      } else if (category === 'colors' && rest.length >= 2) {
         const [scaleOrFamily, level] = rest
         // Preserve 000 and 1000 as-is, pad others to 3 digits
         const normalizedLevel = level === '000' ? '000' : level === '1000' ? '1000' : String(level).padStart(3, '0')
 
-        // Handle new format: colors/scale-XX/level or colors/family/level
-        if (category === 'colors') {
-          let tokenValue: any = null
-          let scaleKey: string | null = null
-          let alias: string | null = null
+        let tokenValue: any = null
+        let scaleKey: string | null = null
 
-          if (scaleOrFamily.startsWith('scale-')) {
-            // Direct scale reference: colors/scale-01/100
-            scaleKey = scaleOrFamily
-            tokenValue = tokensRoot?.colors?.[scaleKey]?.[level]?.$value
-            const scale = tokensRoot?.colors?.[scaleKey]
-            alias = scale?.alias
-          } else {
-            // Alias-based reference: colors/cornflower/100
-            // Find the scale that has this alias
-            scaleKey = Object.keys(tokensRoot?.colors || {}).find(key => {
-              const scale = tokensRoot?.colors?.[key]
-              return scale && typeof scale === 'object' && scale.alias === scaleOrFamily
-            }) || null
-            if (scaleKey) {
-              tokenValue = tokensRoot?.colors?.[scaleKey]?.[level]?.$value
-              alias = scaleOrFamily
-            }
-          }
-
-          if (tokenValue != null && scaleKey) {
-            // Generate CSS vars for scale name only (no alias-based vars)
-            const scaleCssVarKey = tokenColors(scaleKey, normalizedLevel)
-            varsToUpdate[scaleCssVarKey] = String(tokenValue)
-          }
+        if (scaleOrFamily.startsWith('scale-')) {
+          // Direct scale reference: colors/scale-01/100
+          scaleKey = scaleOrFamily
+          tokenValue = tokensRoot?.colors?.[scaleKey]?.[level]?.$value
         } else {
-          // Old format: color/family/level (backwards compatibility)
-          const tokenValue = tokensRoot?.colors?.[scaleOrFamily]?.[level]?.$value
-          if (tokenValue != null) {
-            const cssVarKey = tokenColor(scaleOrFamily, normalizedLevel)
-            varsToUpdate[cssVarKey] = String(tokenValue)
+          // Alias-based reference: colors/cornflower/100
+          // Find the scale that has this alias
+          scaleKey = Object.keys(tokensRoot?.colors || {}).find(key => {
+            const scale = tokensRoot?.colors?.[key]
+            return scale && typeof scale === 'object' && scale.alias === scaleOrFamily
+          }) || null
+          if (scaleKey) {
+            tokenValue = tokensRoot?.colors?.[scaleKey]?.[level]?.$value
           }
+        }
+
+        if (tokenValue != null && scaleKey) {
+          // Generate CSS vars for scale name only (no alias-based vars)
+          const scaleCssVarKey = tokenColors(scaleKey, normalizedLevel)
+          varsToUpdate[scaleCssVarKey] = String(tokenValue)
         }
       }
 
@@ -1158,37 +1144,28 @@ class VarsStore {
     try {
       const [category, ...rest] = parts
 
-      if ((category === 'color' || category === 'colors') && rest.length >= 2) {
+      if (category === 'colors' && rest.length >= 2) {
         const [scaleOrFamily, level] = rest
-        // Handle new format: colors/scale-XX/level or colors/family/level
-        if (category === 'colors') {
-          if (!tokensRoot.colors) tokensRoot.colors = {}
-          // Check if it's a scale-XX key or an alias (family name)
-          if (scaleOrFamily.startsWith('scale-')) {
-            // Direct scale reference: colors/scale-01/100
-            if (!tokensRoot.colors[scaleOrFamily]) tokensRoot.colors[scaleOrFamily] = {}
-            if (!tokensRoot.colors[scaleOrFamily][level]) tokensRoot.colors[scaleOrFamily][level] = {}
-            tokensRoot.colors[scaleOrFamily][level].$value = String(value)
-          } else {
-            // Alias-based reference: colors/cornflower/100
-            // Find the scale that has this alias
-            const scaleKey = Object.keys(tokensRoot.colors || {}).find(key => {
-              const scale = tokensRoot.colors?.[key]
-              return scale && typeof scale === 'object' && scale.alias === scaleOrFamily
-            })
-            if (scaleKey) {
-              if (!tokensRoot.colors[scaleKey][level]) tokensRoot.colors[scaleKey][level] = {}
-              tokensRoot.colors[scaleKey][level].$value = String(value)
-            } else {
-              // Scale not found, create it (shouldn't happen normally)
-            }
-          }
+        if (!tokensRoot.colors) tokensRoot.colors = {}
+        // Check if it's a scale-XX key or an alias (family name)
+        if (scaleOrFamily.startsWith('scale-')) {
+          // Direct scale reference: colors/scale-01/100
+          if (!tokensRoot.colors[scaleOrFamily]) tokensRoot.colors[scaleOrFamily] = {}
+          if (!tokensRoot.colors[scaleOrFamily][level]) tokensRoot.colors[scaleOrFamily][level] = {}
+          tokensRoot.colors[scaleOrFamily][level].$value = String(value)
         } else {
-          // Old format: color/family/level (backwards compatibility)
-          if (!tokensRoot.color) tokensRoot.color = {}
-          if (!tokensRoot.color[scaleOrFamily]) tokensRoot.color[scaleOrFamily] = {}
-          if (!tokensRoot.color[scaleOrFamily][level]) tokensRoot.color[scaleOrFamily][level] = {}
-          tokensRoot.color[scaleOrFamily][level].$value = String(value)
+          // Alias-based reference: colors/cornflower/100
+          // Find the scale that has this alias
+          const scaleKey = Object.keys(tokensRoot.colors || {}).find(key => {
+            const scale = tokensRoot.colors?.[key]
+            return scale && typeof scale === 'object' && scale.alias === scaleOrFamily
+          })
+          if (scaleKey) {
+            if (!tokensRoot.colors[scaleKey][level]) tokensRoot.colors[scaleKey][level] = {}
+            tokensRoot.colors[scaleKey][level].$value = String(value)
+          } else {
+            // Scale not found, create it (shouldn't happen normally)
+          }
         }
       } else if (category === 'size' && rest.length >= 1) {
         const [key] = rest
@@ -1238,10 +1215,6 @@ class VarsStore {
         } else if (pluralKind === 'typefaces' || pluralKind === 'cases' || pluralKind === 'decorations') {
           if (!tokensRoot.font[pluralKind]) tokensRoot.font[pluralKind] = {}
           tokensRoot.font[pluralKind][key] = typeof value === 'object' ? value : { $value: String(value) }
-        } else if (kind === 'family') {
-          // Keep 'family' as-is for backwards compatibility
-          if (!tokensRoot.font[kind]) tokensRoot.font[kind] = {}
-          tokensRoot.font[kind][key] = typeof value === 'object' ? value : { $value: String(value) }
         }
       } else if (category === 'shadow' && rest.length >= 1) {
         const [key] = rest
@@ -1843,10 +1816,6 @@ class VarsStore {
             const px = toPxString(val)
             if (typeof px === 'string' && px) {
               vars[tokenSize(short)] = px
-              // Backwards compatibility: also create singular form
-              if (!vars[token('size', short)]) {
-                vars[token('size', short)] = px
-              }
               if (short.includes('elevation')) {
                 elevationTokensFound.push(short)
               }
@@ -1885,10 +1854,6 @@ class VarsStore {
             const norm = normalize(v)
             if (typeof norm === 'string') {
               vars[tokenOpacity(short)] = norm
-              // Backwards compatibility: also create singular form
-              if (!vars[token('opacity', short)]) {
-                vars[token('opacity', short)] = norm
-              }
             }
           })
           Object.assign(allVars, vars)

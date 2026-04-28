@@ -895,65 +895,53 @@ export default function ColorTokens() {
     const v = toTitleCase(newName)
     const newFamilySlug = toKebabCase(newName)
 
-    // If the slug differs from the current family key, rename all tokens
+    // If the slug differs from the current family key, update local state to reflect the new slug
     if (newFamilySlug && newFamilySlug !== family && newFamilySlug.length > 0) {
-        // Deep clone tokens to avoid mutation
-        const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
-        const tokensRoot = nextTokens?.tokens || {}
-        const colorsRoot = tokensRoot?.colors || {}
+      if (!deletedFamilies[family]) {
+        // Update local values state
+        const oldTokenNames = Object.keys(values).filter(name => name.startsWith(`colors/${family}/`))
+        const newValues = { ...values }
+        oldTokenNames.forEach(oldTokenName => {
+          const parts = oldTokenName.split('/')
+          if (parts.length === 3) {
+            const level = parts[2]
+            const newTokenName = `colors/${newFamilySlug}/${level}`
+            const value = values[oldTokenName]
+            delete newValues[oldTokenName]
+            newValues[newTokenName] = value
+          }
+        })
+        setValues(newValues)
 
-          // Delete old family
-          delete tokensRoot.color[family]
+        // Update family order
+        setFamilyOrder((prev) => prev.map(f => f === family ? newFamilySlug : f))
 
-          // Update tokens structure
-          if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
-          setTokens(nextTokens)
-
-          // Update local values state
-          const oldTokenNames = Object.keys(values).filter(name => name.startsWith(`color/${family}/`))
-          const newValues = { ...values }
-          oldTokenNames.forEach(oldTokenName => {
-            const parts = oldTokenName.split('/')
-            if (parts.length === 3) {
-              const level = parts[2]
-              const newTokenName = `color/${newFamilySlug}/${level}`
-              const value = values[oldTokenName]
-              delete newValues[oldTokenName]
-              newValues[newTokenName] = value
-            }
+        // Update deleted families if needed
+        if (deletedFamilies[family]) {
+          setDeletedFamilies((prev) => {
+            const next = { ...prev }
+            delete next[family]
+            next[newFamilySlug] = true
+            return next
           })
-          setValues(newValues)
-
-          // Update family order
-          setFamilyOrder((prev) => prev.map(f => f === family ? newFamilySlug : f))
-
-          // Update deleted families if needed
-          if (deletedFamilies[family]) {
-            setDeletedFamilies((prev) => {
-              const next = { ...prev }
-              delete next[family]
-              next[newFamilySlug] = true
-              return next
-            })
-          }
-
-          // Update family names map
-          const updatedFamilyNames = { ...familyNames }
-          delete updatedFamilyNames[family]
-          updatedFamilyNames[newFamilySlug] = v
-          setFamilyNames(updatedFamilyNames)
-
-          // Update CSS var
-          renameFamilyName(family, newFamilySlug, v, tokensJson)
-
-          // Close picker if open for this family
-          if (openPicker && openPicker.tokenName.startsWith(`color/${family}/`)) {
-            setOpenPicker(null)
-          }
-
-          return // Early return since we've handled the rename
         }
 
+        // Update family names map
+        const updatedFamilyNames = { ...familyNames }
+        delete updatedFamilyNames[family]
+        updatedFamilyNames[newFamilySlug] = v
+        setFamilyNames(updatedFamilyNames)
+
+        // Update CSS var and tokens alias
+        renameFamilyName(family, newFamilySlug, v, tokensJson)
+
+        // Close picker if open for this family
+        if (openPicker && openPicker.tokenName.startsWith(`colors/${family}/`)) {
+          setOpenPicker(null)
+        }
+
+        return // Early return since we've handled the rename
+      }
     }
 
     // If slug matches or rename failed, just update the display name

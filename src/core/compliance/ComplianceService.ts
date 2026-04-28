@@ -11,7 +11,7 @@ import { resolveCssVarToHex } from './layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio, blendHexWithOpacity } from '../../modules/theme/contrastUtil'
-import { findColorFamilyAndLevel, getAllFamilyColors, hexToCssVarRef } from './layerColorStepping'
+import { findColorFamilyAndLevel, getAllFamilyColors, hexToCssVarRef, traceToTokenRef, getAllFamilyColorsByKey } from './layerColorStepping'
 import { updateCssVar } from '../css/updateCssVar'
 import { parseBrandCssVar, unwrapVar } from '../css/cssVarBuilder'
 import { getVarsStore } from '../store/varsStore'
@@ -200,12 +200,16 @@ class ComplianceServiceImpl {
             const root: any = (theme as any)?.brand ? (theme as any).brand : theme
             const themes = root?.themes || root
             // Look for palettes in both possible paths:
-            // 1. brand.themes.light.palettes (correct/new path)
-            // 2. brand.light.palettes (legacy path, for palettes added before fix)
+            // Palettes inherit from light mode if not explicitly defined in dark mode
+            const lightThemePalettes = themes?.['light']?.palettes || {}
+            const lightRootPalettes = (themes !== root && root?.['light']?.palettes) ? root['light'].palettes : {}
+            const basePalettes = { ...lightRootPalettes, ...lightThemePalettes }
+            
             const themePalettes = themes?.[mode]?.palettes || {}
             const rootPalettes = (themes !== root && root?.[mode]?.palettes) ? root[mode].palettes : {}
-            // Merge: theme path takes priority, but include any from root path not already present
-            const palettes = { ...rootPalettes, ...themePalettes }
+            
+            // Merge: light mode palettes act as the base (inherited), but mode-specific ones take priority
+            const palettes = { ...basePalettes, ...rootPalettes, ...themePalettes }
             const levels = ['1000', '900', '800', '700', '600', '500', '400', '300', '200', '100', '050', '000']
 
             // Read emphasis opacity values (use readCssVarNumber to resolve var() references)
@@ -320,8 +324,8 @@ class ComplianceServiceImpl {
         const simpleCoreColors = ['alert', 'warning', 'success', 'black', 'white']
 
         simpleCoreColors.forEach((colorKey) => {
-            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_tone`
-            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_on-tone`
+            const toneVar = `--recursica_brand_themes_${mode}_palettes_core_${colorKey}-tone`
+            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core_${colorKey}-on-tone`
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -388,8 +392,8 @@ class ComplianceServiceImpl {
         ]
 
         interactiveVariants.forEach(({ variant, label }) => {
-            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_tone`
-            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_on-tone`
+            const toneVar = `--recursica_brand_themes_${mode}_palettes_core_interactive-${variant}-tone`
+            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core_interactive-${variant}-on-tone`
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -632,8 +636,12 @@ class ComplianceServiceImpl {
             const onToneHex = resolveCssVarToHex(onToneValue, _tokenIndex as any)
             if (!onToneHex) return null
 
-            // 1. Try all levels in the on-tone's own family
-            const familyColors = getAllFamilyColors(onToneHex, tokens)
+            // 1. Try all levels in the on-tone's own family (tracing the var to find the correct family)
+            const traced = traceToTokenRef(onToneCssVar)
+            const familyColors = traced 
+                ? getAllFamilyColorsByKey(traced.family, tokens)
+                : getAllFamilyColors(onToneHex, tokens)
+                
             const candidate = this.findBestPassingColor(familyColors, toneHex, onToneHex, emphasisOpacity)
             if (candidate) {
                 const cssVarRef = hexToCssVarRef(candidate.hex, tokens)
@@ -716,8 +724,12 @@ class ComplianceServiceImpl {
         _mode: 'light' | 'dark'
     ): SuggestedFix | null {
         try {
-            // 1. Try all levels in the foreground's family
-            const familyColors = getAllFamilyColors(foregroundHex, tokens)
+            // 1. Try all levels in the foreground's family (tracing the var to find the correct family)
+            const traced = traceToTokenRef(targetCssVar)
+            const familyColors = traced
+                ? getAllFamilyColorsByKey(traced.family, tokens)
+                : getAllFamilyColors(foregroundHex, tokens)
+            
             const candidate = this.findBestPassingColor(familyColors, backgroundHex, foregroundHex)
             if (candidate) {
                 const cssVarRef = hexToCssVarRef(candidate.hex, tokens)

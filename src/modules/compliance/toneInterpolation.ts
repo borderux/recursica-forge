@@ -207,6 +207,7 @@ export function generateSuggestedTones(
     const tones: SuggestedTone[] = []
 
     let optionCount = 1
+    let uniqueAbove: string[] = []
 
     // Above reference (darker in light mode, lighter in dark mode)
     if (aboveHex && aboveLevel) {
@@ -225,7 +226,7 @@ export function generateSuggestedTones(
         // 3 interpolated tones between above and failing
         const interpAbove = interpolateOklch(aboveHex, failingHex, 3)
         // Deduplicate and remove boundaries
-        const uniqueAbove = Array.from(new Set(interpAbove)).filter(h => 
+        uniqueAbove = Array.from(new Set(interpAbove)).filter(h => 
             h.toLowerCase() !== aboveHex.toLowerCase() && 
             h.toLowerCase() !== failingHex.toLowerCase()
         )
@@ -264,7 +265,8 @@ export function generateSuggestedTones(
         // Deduplicate and remove boundaries
         const uniqueBelow = Array.from(new Set(interpBelow)).filter(h => 
             h.toLowerCase() !== belowHex.toLowerCase() && 
-            h.toLowerCase() !== failingHex.toLowerCase()
+            h.toLowerCase() !== failingHex.toLowerCase() &&
+            (!uniqueAbove || !uniqueAbove.some(ua => ua.toLowerCase() === h.toLowerCase()))
         )
 
         uniqueBelow.forEach((hex) => {

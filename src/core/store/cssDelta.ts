@@ -383,7 +383,43 @@ function readStoredDelta(ns: Namespace): Record<string, string> {
     if (!raw) return {}
     const parsed = JSON.parse(raw)
     if (!parsed || typeof parsed !== 'object') return {}
-    return parsed as Record<string, string>
+
+    // One-time migration to upgrade 'primary' palette keys to 'default'
+    let migrated = false
+    const result: Record<string, string> = {}
+    
+    for (const [key, val] of Object.entries(parsed as Record<string, string>)) {
+      let newKey = key
+      let newVal = val
+      
+      // Migrate CSS var names (keys)
+      // e.g. --recursica_brand_palettes_neutral_primary_color_tone -> _default_
+      if (newKey.includes('_palettes_') && newKey.includes('_primary_')) {
+        newKey = newKey.replace(/_palettes_(neutral|palette-1|palette-2)_primary_/g, '_palettes_$1_default_')
+        migrated = true
+      }
+      
+      // Migrate CSS var values (var() references)
+      // e.g. var(--recursica_brand_palettes_neutral_primary_color_tone) -> _default_
+      if (newVal.includes('_palettes_') && newVal.includes('_primary_')) {
+        newVal = newVal.replace(/_palettes_(neutral|palette-1|palette-2)_primary_/g, '_palettes_$1_default_')
+        migrated = true
+      }
+      // Or if it was already stored as a DTCG ref like {brand.palettes.neutral.primary.color.tone}
+      if (newVal.includes('.palettes.') && newVal.includes('.primary.')) {
+        newVal = newVal.replace(/\.palettes\.(neutral|palette-1|palette-2)\.primary\./g, '.palettes.$1.default.')
+        migrated = true
+      }
+      
+      result[newKey] = newVal
+    }
+    
+    // Auto-save the migrated payload so we don't have to migrate it again
+    if (migrated) {
+      localStorage.setItem(STORAGE_KEYS[ns], JSON.stringify(result))
+    }
+    
+    return result
   } catch {
     return {}
   }

@@ -464,7 +464,7 @@ export function PaletteEmphasisCell({
         }} />
       )}
 
-      {shouldOpenColorPicker && isHovered && (
+      {shouldOpenColorPicker && isHovered && !suggestOpen && (
         <div
           data-recursica-layer="1"
           style={{
@@ -492,7 +492,7 @@ export function PaletteEmphasisCell({
         </div>
       )}
 
-      {!shouldOpenColorPicker && !isPrimary && isHovered &&
+      {!shouldOpenColorPicker && !isPrimary && isHovered && !suggestOpen &&
         !(aaStatus != null && (!aaStatus.currentLowPasses || !aaStatus.currentHighPasses)) && (
         <div
           data-recursica-layer="1"

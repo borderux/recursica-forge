@@ -65,7 +65,7 @@ export function getConstants() {
   return {
     colorScales,
     paletteNames: Array.from(new Set(paletteNames)),
-    paletteLevels: ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000'],
+    paletteLevels: ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000', 'default'],
     tones: ['tone', 'on-tone'],
     coreColors: ['interactive', 'warning', 'success', 'alert', 'black', 'white'],
     coreColorLevels: ['default', 'hover'],

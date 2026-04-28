@@ -23,17 +23,17 @@ describe('findTokenByHex', () => {
 
   it('should find token by exact hex match', () => {
     const result = findTokenByHex('#000000', mockTokens)
-    expect(result).toEqual({ family: 'scale-02', level: '900', scale: 'scale-02' })
+    expect(result).toEqual({ family: 'gray', level: '900', scale: 'scale-02' })
   })
 
   it('should find token by hex without # prefix', () => {
     const result = findTokenByHex('000000', mockTokens)
-    expect(result).toEqual({ family: 'scale-02', level: '900', scale: 'scale-02' })
+    expect(result).toEqual({ family: 'gray', level: '900', scale: 'scale-02' })
   })
 
   it('should find token case-insensitively', () => {
     const result = findTokenByHex('#FFFFFF', mockTokens)
-    expect(result).toEqual({ family: 'scale-02', level: '000', scale: 'scale-02' })
+    expect(result).toEqual({ family: 'gray', level: '000', scale: 'scale-02' })
   })
 
   it('should return null when no match found', () => {
@@ -90,7 +90,7 @@ describe('tokenToCssVar', () => {
     expect(result2).toContain('--recursica_tokens_colors_scale-0')
     expect(result2).toContain('_500') // Uses scale
     
-    expect(tokenToCssVar('color/salmon/500', mockTokens)).toBeNull() // salmon not in mock tokens
+    expect(tokenToCssVar('color/nonexistent/500', mockTokens)).toBeNull() // nonexistent not in mock tokens
   })
 
   it('should handle tokens with different separators', () => {

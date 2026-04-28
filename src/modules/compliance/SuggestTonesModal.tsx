@@ -109,8 +109,8 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                 // Get emphasis opacity
                 const emphasis = issue.emphasis || 'high'
                 const emphasisVar = emphasis === 'high'
-                    ? `--recursica_brand_themes_${issue.mode}-text-emphasis-high`
-                    : `--recursica_brand_themes_${issue.mode}-text-emphasis-low`
+                    ? `--recursica_brand_themes_${issue.mode}_text-emphasis_high`
+                    : `--recursica_brand_themes_${issue.mode}_text-emphasis_low`
                 const emphasisOpacity = readCssVarNumber(emphasisVar, emphasis === 'high' ? 1 : 0.6)
 
                 const calculatedTones = generateSuggestedTones(

@@ -137,11 +137,7 @@ function extractRefPath(ref: string): string {
   return ref.trim().slice(1, -1).trim()
 }
 
-/** Default palette levels when ref uses .default. */
-const DEFAULT_LEVELS: Record<string, Record<string, string>> = {
-  light: { neutral: '200', 'palette-1': '400', 'palette-2': '400' },
-  dark: { neutral: '800', 'palette-1': '600', 'palette-2': '600' }
-}
+
 
 /**
  * Expands theme-relative refs using the current path as context.
@@ -161,14 +157,6 @@ function expandRefPath(refPath: string, currentPath: string): string {
       let expanded = `brand.themes.${theme}.${afterBrand}`
       if (afterBrand === 'palettes.black' || afterBrand === 'palettes.white') {
         expanded = `brand.themes.${theme}.palettes.core-colors.${afterBrand.replace('palettes.', '')}.tone`
-      } else if (afterBrand.match(/^palettes\.(neutral|palette-1|palette-2)\.default/)) {
-        const paletteMatch = afterBrand.match(/^palettes\.(neutral|palette-1|palette-2)\.default(\..*)?$/)
-        if (paletteMatch) {
-          const palette = paletteMatch[1]
-          const rest = paletteMatch[2] || ''
-          const level = DEFAULT_LEVELS[theme]?.[palette] ?? '500'
-          expanded = `brand.themes.${theme}.palettes.${palette}.${level}${rest}`
-        }
       }
       return expanded
     }

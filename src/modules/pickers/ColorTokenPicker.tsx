@@ -425,7 +425,7 @@ export default function ColorTokenPicker() {
         getVarsStore().setThemeSilent(themeCopy)
         
         // This calculates and applies the AA compliant on-tones for all 5 core colors
-        updateCoreColorOnTones(tokensJson, themeCopy, setTheme, modeLower)
+        updateCoreColorOnTones(tokensJson, themeCopy, setTheme, modeLower as 'light' | 'dark')
       } else {
         // If interactive, we still need to save the theme changes
         getVarsStore().setThemeSilent(themeCopy)
