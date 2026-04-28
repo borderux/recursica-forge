@@ -12,6 +12,7 @@ import {
   MantineProvider,
   Modal as MantineModal,
   Tabs as MantineTabs,
+  Radio,
 } from "@mantine/core";
 import { Tabs } from "../../../components/adapters/Tabs";
 import { Dropdown } from "../../../components/adapters/Dropdown";
@@ -76,6 +77,8 @@ export default function MantineShell({
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([]);
   const [showRandomizeModal, setShowRandomizeModal] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetTarget, setResetTarget] = useState<'imported' | 'original'>('imported');
+  const [hasImportedFiles, setHasImportedFiles] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [cssAuditAutoRun, setCssAuditAutoRunState] = useState(() =>
@@ -405,7 +408,14 @@ export default function MantineShell({
                       />
                     ) : null;
                   })()}
-                  onClick={() => setShowResetConfirm(true)}
+                  onClick={() => {
+                    const hasImported = !!localStorage.getItem('rf:imported-tokens') || 
+                                        !!localStorage.getItem('rf:imported-brand') || 
+                                        !!localStorage.getItem('rf:imported-uikit');
+                    setHasImportedFiles(hasImported);
+                    setResetTarget(hasImported ? 'imported' : 'original');
+                    setShowResetConfirm(true);
+                  }}
                 />
               </Tooltip>
               <Tooltip label='Import theme'>
@@ -752,14 +762,32 @@ export default function MantineShell({
             setIsResetting(true);
             window.dispatchEvent(new CustomEvent('complianceReset'));
             clearOverrides(tokensJson as any);
-            resetAll();
+            resetAll(resetTarget === 'original');
             setTimeout(() => {
               runScan();
               setIsResetting(false);
               setShowResetConfirm(false);
             }, 1500);
           }}
-          content="Are you sure you want to reset all changes? This will restore the theme to its default state."
+          content={
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <p style={{ margin: 0 }}>Are you sure you want to reset your changes?</p>
+              {hasImportedFiles && (
+                <Radio.Group
+                  value={resetTarget}
+                  onChange={(val) => setResetTarget(val as 'imported' | 'original')}
+                  name="resetTarget"
+                  label="Reset destination"
+                  withAsterisk
+                >
+                  <Group mt="xs" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
+                    <Radio value="imported" label="Reset to last import" />
+                    <Radio value="original" label="Reset to original factory defaults" />
+                  </Group>
+                </Radio.Group>
+              )}
+            </div>
+          }
         />
       </div>
     </MantineProvider>

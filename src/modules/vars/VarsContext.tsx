@@ -34,7 +34,7 @@ type VarsContextValue = {
   updateElevation: (mutator: (prev: import('../../core/store/varsStore').ElevationState) => import('../../core/store/varsStore').ElevationState) => void
   /** Read-only structural metadata — what keys/palettes/layers exist */
   structure: StructuralMetadata | null
-  resetAll: () => void
+  resetAll: (toOriginal?: boolean) => void
   recomputeAndApplyAll: () => void
 }
 
@@ -101,7 +101,7 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       setElevation: (next) => store.setElevation(next),
       updateElevation: (mutator) => store.updateElevation(mutator),
       structure: store.structure,
-      resetAll: () => store.resetAll(),
+      resetAll: (toOriginal?: boolean) => store.resetAll(toOriginal),
       recomputeAndApplyAll: () => store.recomputeAndApplyAll(),
     }
   }, [state, store, resolvedTheme])
