@@ -17,7 +17,7 @@ import { AAComplianceWatcher } from '../compliance/AAComplianceWatcher'
 import { updateCoreColorOnTonesForCompliance, updateCoreColorInteractiveOnToneForCompliance } from '../compliance/coreColorAaCompliance'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { getComplianceService } from '../compliance/ComplianceService'
-import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, trackChanges, isVarNew } from './cssDelta'
+import { snapshotDefaults, restoreDelta, reapplyDelta, installBeforeUnloadHandler, clearDelta, clearDeltaByPattern, trackChanges, isVarNew, getDelta, renameDeltaReferences, getAllDeltas, forceSaveDelta, updateDefaultsForPrefix } from './cssDelta'
 import { clearElevationColorMirror } from '../elevation/elevationModeScope'
 import { clearStoredFonts, saveStoredFonts, getDefaultFonts, deriveFontsFromJson, populateWindowFontUrlMap } from './fontStore'
 import { syncDeltaToJson } from './deltaToJson'
@@ -61,14 +61,16 @@ export type VarsState = {
 }
 
 const STORAGE_KEYS = {
-  version: 'rf:vars:version',
-  uikit: 'rf:vars:uikit',
-  deletedScales: 'rf:deleted-scales',
-  elevationPaletteSelections: 'rf:elevation-palette-selections',
-}
+  version: 'rf:version',
+  uikit: 'rf:uikit',
+  elevationPaletteSelections: 'rf:elevation-selections',
+  importedTokens: 'rf:imported-tokens',
+  importedBrand: 'rf:imported-brand',
+  importedUikit: 'rf:imported-uikit',
+} as const
 
 /** Exported for use by cssDelta and deltaToJson modules — the single source of truth for this key. */
-export const DELETED_SCALES_KEY = STORAGE_KEYS.deletedScales
+
 
 function isLocalStorageAvailable(): boolean {
   try { if (typeof window === 'undefined' || !window.localStorage) return false; const k = '__ls__'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return true } catch { return false }
@@ -253,17 +255,28 @@ class VarsStore {
     // serialization system (rf:css-delta) AFTER recomputeAndApplyAll generates defaults.
     // This eliminates the old localStorage JSON dual-write system.
     // Use deep-cloned JSON imports to ensure we don't mutate the singleton imports
-    const tokensRaw = JSON.parse(JSON.stringify(tokensImport as any))
+    let tokensRaw = tokensImport as any
+    let themeImportRaw = themeImport as any
+    let uikitRaw = uikitImport as any
+
+    if (this.lsAvailable) {
+      try {
+        const impT = localStorage.getItem(STORAGE_KEYS.importedTokens)
+        if (impT) tokensRaw = JSON.parse(impT)
+        const impB = localStorage.getItem(STORAGE_KEYS.importedBrand)
+        if (impB) themeImportRaw = JSON.parse(impB)
+        const impU = localStorage.getItem(STORAGE_KEYS.importedUikit)
+        if (impU) uikitRaw = JSON.parse(impU)
+      } catch {}
+    }
+
+    tokensRaw = JSON.parse(JSON.stringify(tokensRaw))
     // Sort font token objects once during initialization to maintain consistent order
     const tokens = sortFontTokenObjects(tokensRaw) || tokensRaw || {}
-    const themeImportRaw = JSON.parse(JSON.stringify(themeImport as any))
+    themeImportRaw = JSON.parse(JSON.stringify(themeImportRaw))
     const theme = themeImportRaw?.brand ? themeImportRaw : { brand: themeImportRaw }
-    const uikit = JSON.parse(JSON.stringify(uikitImport as any))
+    const uikit = JSON.parse(JSON.stringify(uikitRaw))
     const palettes = defaultPaletteStore()
-
-    // Strip deleted color scales from tokens before any CSS generation.
-    // This ensures scales the user deleted don't reappear on page refresh.
-    this.applyDeletedScales(tokens)
 
     // Ensure tokens is defined before passing to initElevationState
     // initElevationState will create elevation tokens and add them to the tokens object
@@ -271,6 +284,50 @@ class VarsStore {
     // Ensure tokens structure is properly set (initElevationState modifies tokens in place)
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
+
+    // Apply structural deletions saved by the user
+    try {
+      if (this.lsAvailable) {
+        const deletedScales = JSON.parse(localStorage.getItem('deleted_scales') || '[]')
+        const colorsGroup = (this.state.tokens as any)?.tokens?.colors
+        if (colorsGroup) {
+          deletedScales.forEach((k: string) => delete colorsGroup[k])
+        }
+
+        const deletedPalettes = JSON.parse(localStorage.getItem('deleted_palettes') || '[]')
+        const themesRoot = (this.state.theme as any)?.brand?.themes || (this.state.theme as any)?.themes || this.state.theme
+        if (themesRoot) {
+          for (const mode of ['light', 'dark']) {
+            const modePalettes = themesRoot[mode]?.palettes
+            if (modePalettes) {
+              deletedPalettes.forEach((k: string) => delete modePalettes[k])
+            }
+          }
+        }
+
+        const paletteReplacements = JSON.parse(localStorage.getItem('palette_replacements') || '{}')
+        
+        // Auto-heal: If a palette was deleted but has no replacement mapping (e.g. from an older session),
+        // fallback to 'neutral' to prevent broken references in the UI Kit.
+        deletedPalettes.forEach((dp: string) => {
+          if (!paletteReplacements[dp]) {
+            paletteReplacements[dp] = 'neutral'
+          }
+        })
+
+        if (Object.keys(paletteReplacements).length > 0) {
+          let stateStr = JSON.stringify(this.state)
+          for (const [oldKey, newKey] of Object.entries(paletteReplacements)) {
+            stateStr = stateStr.replace(new RegExp(`\\{brand\\.palettes\\.${oldKey}\\.`, 'g'), `{brand.palettes.${newKey}.`)
+            stateStr = stateStr.replace(new RegExp(`\\{brand\\.themes\\.(light|dark)\\.palettes\\.${oldKey}\\.`, 'g'), `{brand.themes.$1.palettes.${newKey}.`)
+            // We do not replace _palettes_${oldKey}_ here because that's for CSS vars, and CSS vars are handled by delta renaming.
+            // But doing it for consistency in JSON string (though JSON shouldn't contain CSS vars)
+            stateStr = stateStr.replace(new RegExp(`_palettes_${oldKey}_`, 'g'), `_palettes_${newKey}_`)
+          }
+          this.state = { ...this.state, ...JSON.parse(stateStr) }
+        }
+      }
+    } catch {}
 
     // Bundle version check: when source JSON files change, clear the CSS delta
     // to prevent stale user overrides from applying to a new JSON structure.
@@ -392,14 +449,11 @@ class VarsStore {
       let hadDeletions = false
       for (const modeKey of ['light', 'dark'] as const) {
         const modePalettes = themes?.[modeKey]?.palettes || {}
-        for (const pk of Object.keys(modePalettes)) {
-          if (domStyle.getPropertyValue(`--recursica_brand_palette_deleted_${pk}`).trim() === 'true') {
-            delete themes[modeKey].palettes[pk]
-            hadDeletions = true
-          }
+        for (const pk of Object.keys(themes[modeKey].palettes || {})) {
+          // No op, legacy deletion logic removed
         }
+        if (hadDeletions) this.writeState({ theme: this.state.theme })
       }
-      if (hadDeletions) this.writeState({ theme: this.state.theme })
     }
     const derivedDynamic = deriveDynamicPalettes()
     this.state.palettes = { ...this.state.palettes, dynamic: derivedDynamic }
@@ -431,7 +485,7 @@ class VarsStore {
    * The delta serialization system (rf:css-delta) handles all user CSS var changes.
    * NEVER triggers recomputeAndApplyAll — callers that need full regen must call it explicitly.
    */
-  private writeState(next: Partial<VarsState>) {
+  writeState(next: Partial<VarsState>) {
     this.state = { ...this.state, ...next }
 
     // Update AA watcher if tokens or theme changed
@@ -502,66 +556,104 @@ class VarsStore {
 
   public bumpVersion() { this.state = { ...this.state, version: (this.state.version || 0) + 1 }; this.emit() }
 
-  /**
-   * Read the deleted-scales list from localStorage.
-   */
-  public getDeletedScales(): string[] {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEYS.deletedScales)
-      if (raw) return JSON.parse(raw) as string[]
-    } catch { }
-    return []
-  }
+  public deleteScale(scaleKeyToDelete: string) {
+    const deletedNumStr = scaleKeyToDelete.match(/^scale-(\d+)$/)?.[1]
+    if (!deletedNumStr) return
 
-  /**
-   * Persist a newly-deleted scale alias to localStorage and remove it from in-memory tokens.
-   */
-  public persistDeletedScale(alias: string, scaleKey?: string) {
-    try {
-      const list = this.getDeletedScales()
-      if (!list.includes(alias)) list.push(alias)
-      localStorage.setItem(STORAGE_KEYS.deletedScales, JSON.stringify(list))
-    } catch { }
+    const stateStr = JSON.stringify(this.state)
+    const stateObj = JSON.parse(stateStr)
 
-    // Also strip from in-memory tokens so recomputeAndApplyAll won't regenerate vars
-    const tokensRoot: any = (this.state.tokens as any)?.tokens || {}
-    const colorsRoot: any = tokensRoot?.colors || {}
-    if (scaleKey && colorsRoot[scaleKey]) {
-      delete colorsRoot[scaleKey]
-    } else {
-      // Find and remove by alias
-      for (const [key, scale] of Object.entries(colorsRoot)) {
-        if (key.startsWith('scale-') && (scale as any)?.alias === alias) {
-          delete colorsRoot[key]
-          break
-        }
+    const colorsRoot = stateObj.tokens?.tokens?.colors || {}
+    if (!colorsRoot[scaleKeyToDelete]) return
+
+    delete colorsRoot[scaleKeyToDelete]
+
+    // 2. We no longer shift/renumber scales to avoid breaking references
+
+    clearDeltaByPattern(`_colors_${scaleKeyToDelete}_`)
+
+    // Clear from DOM immediately
+    if (typeof document !== 'undefined') {
+      const style = document.documentElement.style
+      const toRemove = []
+      for (let i = 0; i < style.length; i++) {
+        if (style[i].includes(`_colors_${scaleKeyToDelete}_`)) toRemove.push(style[i])
       }
+      toRemove.forEach(p => style.removeProperty(p))
     }
-  }
 
-  /**
-   * Clear the deleted-scales list (used during resetAll).
-   */
-  private clearDeletedScales() {
-    try { localStorage.removeItem(STORAGE_KEYS.deletedScales) } catch { }
-  }
-
-  /**
-   * Strip deleted color scales from a tokens object.
-   * Called during constructor before any CSS var generation.
-   */
-  private applyDeletedScales(tokens: any) {
-    const deleted = this.getDeletedScales()
-    if (deleted.length === 0) return
-    const tokensRoot = tokens?.tokens || {}
-    const colorsRoot = tokensRoot?.colors || {}
-    for (const [scaleKey, scale] of Object.entries(colorsRoot)) {
-      if (!scaleKey.startsWith('scale-')) continue
-      const alias = (scale as any)?.alias
-      if (alias && typeof alias === 'string' && deleted.includes(alias.trim())) {
-        delete colorsRoot[scaleKey]
+    // Save deletion to localStorage
+    try {
+      const deletedScales = JSON.parse(localStorage.getItem('deleted_scales') || '[]')
+      if (!deletedScales.includes(scaleKeyToDelete)) {
+        deletedScales.push(scaleKeyToDelete)
+        localStorage.setItem('deleted_scales', JSON.stringify(deletedScales))
       }
+    } catch {}
+
+    let finalStateStr = JSON.stringify({
+      ...stateObj,
+      tokens: { ...stateObj.tokens, tokens: { ...stateObj.tokens?.tokens, colors: colorsRoot } }
+    })
+
+    this.writeState(JSON.parse(finalStateStr))
+    forceSaveDelta()
+    this.recomputeAndApplyAll()
+  }
+
+  public deletePalette(paletteKeyToDelete: string, fallbackPaletteKey: string) {
+    const deletedNumStr = paletteKeyToDelete.match(/^palette-(\d+)$/)?.[1]
+    if (!deletedNumStr) return
+
+    // 1. Replace all references to the deleted palette with the fallback palette
+    let stateStr = JSON.stringify(this.state)
+    stateStr = stateStr.replace(new RegExp(`\\{brand\\.palettes\\.${paletteKeyToDelete}\\.`, 'g'), `{brand.palettes.${fallbackPaletteKey}.`)
+    stateStr = stateStr.replace(new RegExp(`\\{brand\\.themes\\.(light|dark)\\.palettes\\.${paletteKeyToDelete}\\.`, 'g'), `{brand.themes.$1.palettes.${fallbackPaletteKey}.`)
+    stateStr = stateStr.replace(new RegExp(`_palettes_${paletteKeyToDelete}_`, 'g'), `_palettes_${fallbackPaletteKey}_`)
+
+    renameDeltaReferences(paletteKeyToDelete, fallbackPaletteKey)
+
+    clearDeltaByPattern(`_palettes_${paletteKeyToDelete}_`)
+
+    // Clear from DOM immediately
+    if (typeof document !== 'undefined') {
+      const style = document.documentElement.style
+      const toRemove = []
+      for (let i = 0; i < style.length; i++) {
+        if (style[i].includes(`_palettes_${paletteKeyToDelete}_`)) toRemove.push(style[i])
+      }
+      toRemove.forEach(p => style.removeProperty(p))
     }
+
+    const stateObj = JSON.parse(stateStr)
+    if (stateObj.palettes && stateObj.palettes.dynamic) {
+      stateObj.palettes.dynamic = stateObj.palettes.dynamic.filter((p: any) => p.key !== paletteKeyToDelete)
+    }
+
+    const themes = stateObj.theme?.brand?.themes || stateObj.theme?.themes || stateObj.theme
+
+    for (const mode of ['light', 'dark']) {
+      const palettes = themes?.[mode]?.palettes
+      if (!palettes) continue
+      delete palettes[paletteKeyToDelete]
+    }
+
+    // Save deletion and replacement mapping to localStorage
+    try {
+      const deletedPalettes = JSON.parse(localStorage.getItem('deleted_palettes') || '[]')
+      if (!deletedPalettes.includes(paletteKeyToDelete)) {
+        deletedPalettes.push(paletteKeyToDelete)
+        localStorage.setItem('deleted_palettes', JSON.stringify(deletedPalettes))
+      }
+
+      const paletteReplacements = JSON.parse(localStorage.getItem('palette_replacements') || '{}')
+      paletteReplacements[paletteKeyToDelete] = fallbackPaletteKey
+      localStorage.setItem('palette_replacements', JSON.stringify(paletteReplacements))
+    } catch {}
+
+    this.writeState(stateObj)
+    forceSaveDelta()
+    this.recomputeAndApplyAll()
   }
 
   setTokens(next: JsonLike) {
@@ -638,9 +730,17 @@ class VarsStore {
     }
 
     if (!this.isRecomputing) {
+      clearDeltaByPattern('--recursica_brand_')
+      clearDeltaByPattern('--recursica_ui-kit_') // brand changes can affect uikit vars
+      clearAllCssVars()
+
       this.recomputeAndApplyAll()
-      this.trackCurrentStateAsDelta('--recursica_brand_')
-      this.trackCurrentStateAsDelta('--recursica_ui-kit_')
+      updateDefaultsForPrefix('--recursica_brand_', this.lastComputedVars)
+      updateDefaultsForPrefix('--recursica_ui-kit_', this.lastComputedVars)
+    }
+
+    if (this.lsAvailable) {
+      try { localStorage.setItem(STORAGE_KEYS.importedBrand, JSON.stringify(next)) } catch { }
     }
 
     // Notify FontFamiliesTokens to rebuild rows and load imported font files
@@ -838,15 +938,27 @@ class VarsStore {
       populateWindowFontUrlMap(importedFonts)
     }
 
+    if (files.tokens) clearDeltaByPattern('--recursica_tokens_')
+    if (files.brand) clearDeltaByPattern('--recursica_brand_')
+    if (files.uikit) clearDeltaByPattern('--recursica_ui-kit_')
+
+    // Wipe all CSS variables from the DOM to ensure complete replacement
+    clearAllCssVars()
+
     // Single recompute with all stores updated
     this.recomputeAndApplyAll()
 
-    // Track delta for all imported namespaces.
-    // This snapshots lastComputedVars (base values) into the delta, overwriting any stale
-    // delta entries. Compliance overrides are applied AFTER this step so they land on top.
-    if (files.tokens) this.trackCurrentStateAsDelta('--recursica_tokens_')
-    if (files.brand)  this.trackCurrentStateAsDelta('--recursica_brand_')
-    if (files.uikit)  this.trackCurrentStateAsDelta('--recursica_ui-kit_')
+    // Update the base defaults so the delta engine knows these are the new "factory" settings
+    if (files.tokens) updateDefaultsForPrefix('--recursica_tokens_', this.lastComputedVars)
+    if (files.brand)  updateDefaultsForPrefix('--recursica_brand_', this.lastComputedVars)
+    if (files.uikit)  updateDefaultsForPrefix('--recursica_ui-kit_', this.lastComputedVars)
+
+    // Save to localStorage as the imported source of truth
+    if (this.lsAvailable) {
+      if (files.tokens) try { localStorage.setItem(STORAGE_KEYS.importedTokens, JSON.stringify(files.tokens)) } catch { }
+      if (files.brand) try { localStorage.setItem(STORAGE_KEYS.importedBrand, JSON.stringify(files.brand)) } catch { }
+      if (files.uikit) try { localStorage.setItem(STORAGE_KEYS.importedUikit, JSON.stringify(files.uikit)) } catch { }
+    }
 
     // Persist uikit to localStorage if it contains custom variants
     if (files.uikit && this.lsAvailable) {
@@ -1291,7 +1403,14 @@ class VarsStore {
     } catch { }
   }
 
-  resetAll() {
+  resetAll(toOriginal: boolean = false) {
+    if (toOriginal && this.lsAvailable) {
+      try {
+        localStorage.removeItem(STORAGE_KEYS.importedTokens)
+        localStorage.removeItem(STORAGE_KEYS.importedBrand)
+        localStorage.removeItem(STORAGE_KEYS.importedUikit)
+      } catch {}
+    }
     // Clear all CSS variables, persisted delta, stored font overrides, and deleted scales
     clearAllCssVars()
     clearDelta()
@@ -1301,7 +1420,6 @@ class VarsStore {
     // emits font CSS vars for the default font set.  Added fonts and sequence changes
     // are both wiped because we derive from the static JSON, not from any user session state.
     saveStoredFonts(getDefaultFonts())
-    this.clearDeletedScales()
     try { localStorage.removeItem(STORAGE_KEYS.elevationPaletteSelections) } catch { }
     clearElevationColorMirror()
 
@@ -1353,6 +1471,10 @@ class VarsStore {
     // Reset the recomputing flag first since we're doing a full reset
     this.isRecomputing = false
     this.recomputeAndApplyAll()
+
+    // Clear any delta generated during the reset recomputation
+    // because recomputeAndApplyAll checks against the OLD defaults before snapshotDefaults is called
+    clearDelta()
 
     // Snapshot new defaults (clean JSON) so delta system has the correct baseline
     snapshotDefaults(this.lastComputedVars)
@@ -2166,12 +2288,12 @@ class VarsStore {
           // Map core color names to CSS variable names
           // Use --recursica_brand_themes_ format to match palettes.ts resolver
           const coreColorMap: Record<string, string> = {
-            black: `--recursica_brand_themes_${mode}_palettes_core_black`,
-            white: `--recursica_brand_themes_${mode}_palettes_core_white`,
-            alert: `--recursica_brand_themes_${mode}_palettes_core_alert`,
-            warning: `--recursica_brand_themes_${mode}_palettes_core_warning`,
-            success: `--recursica_brand_themes_${mode}_palettes_core_success`,
-            interactive: `--recursica_brand_themes_${mode}_palettes_core_interactive`,
+            black: `--recursica_brand_themes_${mode}_palettes_core-colors_black`,
+            white: `--recursica_brand_themes_${mode}_palettes_core-colors_white`,
+            alert: `--recursica_brand_themes_${mode}_palettes_core-colors_alert`,
+            warning: `--recursica_brand_themes_${mode}_palettes_core-colors_warning`,
+            success: `--recursica_brand_themes_${mode}_palettes_core-colors_success`,
+            interactive: `--recursica_brand_themes_${mode}_palettes_core-colors_interactive`,
           }
 
           // Default fallbacks if theme JSON doesn't have the value
@@ -2219,25 +2341,25 @@ class VarsStore {
               if (defaultTone) {
                 const defaultToneRef = resolveTokenRef(defaultTone)
                 if (defaultToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core_interactive-default-tone`] = defaultToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone`] = defaultToneRef
                 }
               }
               if (defaultOnTone) {
                 const defaultOnToneRef = resolveTokenRef(defaultOnTone)
                 if (defaultOnToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core_interactive-default-on-tone`] = defaultOnToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_on-tone`] = defaultOnToneRef
                 }
               }
               if (hoverTone) {
                 const hoverToneRef = resolveTokenRef(hoverTone)
                 if (hoverToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core_interactive-hover-tone`] = hoverToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone`] = hoverToneRef
                 }
               }
               if (hoverOnTone) {
                 const hoverOnToneRef = resolveTokenRef(hoverOnTone)
                 if (hoverOnToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core_interactive-hover-on-tone`] = hoverOnToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_on-tone`] = hoverOnToneRef
                 }
               }
             } else if (coreValue && typeof coreValue === 'object' && !coreValue.$value) {
@@ -2256,19 +2378,19 @@ class VarsStore {
               if (tone) {
                 const toneRef = resolveTokenRef(tone)
                 if (toneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core_${colorName}-tone`] = toneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_tone`] = toneRef
                 }
               }
               if (onTone) {
                 const onToneRef = resolveTokenRef(onTone)
                 if (onToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core_${colorName}-on-tone`] = onToneRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_on-tone`] = onToneRef
                 }
               }
               if (interactive) {
                 const interactiveRef = resolveTokenRef(interactive)
                 if (interactiveRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core_${colorName}-interactive`] = interactiveRef
+                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_${colorName}_interactive`] = interactiveRef
                 }
               }
             } else {
@@ -2868,6 +2990,12 @@ class VarsStore {
         // hasn't been written back to the JSON state would be overwritten by the freshly
         // generated vars above.
         reapplyDelta()
+        
+        // Merge the reapplied deltas back into lastComputedVars so that if
+        // trackCurrentStateAsDelta is called (e.g. during a theme or token operation),
+        // it doesn't overwrite the user's manual fixes (like compliance fixes) with the
+        // auto-generated defaults.
+        this.lastComputedVars = { ...this.lastComputedVars, ...getAllDeltas() }
 
         // Generate scoped CSS aliases and set theme attribute
         if (typeof document !== 'undefined') {
