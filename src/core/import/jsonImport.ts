@@ -11,7 +11,7 @@ import brandJson from "../../../recursica_brand.json";
 import uikitJson from "../../../recursica_ui-kit.json";
 import type { JsonLike } from "../resolvers/tokens";
 import { validateBrandJson, validateTokensJson, validateUIKitJson } from "../utils/validateJsonSchemas";
-import { getDelta, clearDeltaByPrefix } from "../store/cssDelta";
+import { validateImportedReferences } from "./importHydration";
 
 /**
  * Clears CSS variables based on what's being imported
@@ -78,11 +78,7 @@ function stableStringify(value: unknown): string {
  */
 export function detectDirtyData(): boolean {
   try {
-    // Fast path: check if the CSS delta has any entries
-    const delta = getDelta();
-    if (Object.keys(delta).length > 0) return true;
-
-    // Fallback: compare in-memory JSON state to originals
+    // compare in-memory JSON state to originals
     const store = getVarsStore();
     const currentState = store.getState();
 
@@ -192,31 +188,22 @@ export function importJsonFiles(files: {
   // Clear running CSS variables for the files being imported
   clearCssVarsForImport(files);
 
-  // Clear persistent delta for these namespaces so stale overrides don't resurrect themselves
-  if (files.tokens) clearDeltaByPrefix("--recursica_tokens_");
-  if (files.brand) clearDeltaByPrefix("--recursica_brand_");
-  if (files.uikit) clearDeltaByPrefix("--recursica_ui-kit_");
-
   const store = getVarsStore();
   const fileCount = (files.tokens ? 1 : 0) + (files.brand ? 1 : 0) + (files.uikit ? 1 : 0);
 
-  if (fileCount > 1) {
-    // Multi-file import: use atomic bulkImport to avoid intermediate recomputes
-    // that cause stale UIKit CSS vars to be incorrectly preserved by the DOM
-    // preservation logic in recomputeAndApplyAll.
-    const normalizedTokens = files.tokens
-      ? ((files.tokens as any)?.tokens ? files.tokens : { tokens: files.tokens })
-      : undefined;
+  const normalizedTokens = files.tokens
+    ? ((files.tokens as any)?.tokens ? files.tokens : { tokens: files.tokens })
+    : undefined;
 
-    const normalizedBrand = files.brand
-      ? ((files.brand as any)?.brand ? files.brand : { brand: files.brand })
-      : undefined;
+  const normalizedBrand = files.brand
+    ? ((files.brand as any)?.brand ? files.brand : { brand: files.brand })
+    : undefined;
 
-    const normalizedUikit = files.uikit
-      ? ((files.uikit as any)?.['ui-kit'] ? files.uikit : { 'ui-kit': files.uikit })
-      : undefined;
+  const normalizedUikit = files.uikit
+    ? ((files.uikit as any)?.['ui-kit'] ? files.uikit : { 'ui-kit': files.uikit })
+    : undefined;
 
-    // Validate all files before importing
+  // Validate all files before importing
     if (normalizedTokens) {
       validateTokensJson(normalizedTokens as JsonLike);
     }
@@ -227,16 +214,17 @@ export function importJsonFiles(files: {
       validateUIKitJson(normalizedUikit as JsonLike);
     }
 
+    // Validate cross-references before importing
+    const currentState = store.getState();
+    const tempTokens = normalizedTokens || currentState.tokens;
+    const tempBrand = normalizedBrand || currentState.theme;
+    const tempUikit = normalizedUikit || currentState.uikit;
+    validateImportedReferences(tempTokens, tempBrand, tempUikit);
+
     store.bulkImport({
       tokens: normalizedTokens as JsonLike | undefined,
       brand: normalizedBrand as JsonLike | undefined,
       uikit: normalizedUikit as JsonLike | undefined,
     });
-  } else {
-    // Single-file import: use direct methods (no race condition with single file)
-    if (files.tokens) importTokensJson(files.tokens);
-    if (files.brand) importBrandJson(files.brand);
-    if (files.uikit) importUIKitJson(files.uikit);
-  }
 }
 

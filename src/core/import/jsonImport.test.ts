@@ -10,12 +10,19 @@ import {
 import * as validateSchemasModule from "../utils/validateJsonSchemas";
 import * as varsStoreModule from "../store/varsStore";
 
+import { validateImportedReferences, ImportValidationError } from "./importHydration";
+import { validateReferences } from "../utils/validateJsonSchemas";
+
 // Mock validateJsonSchemas
-vi.mock("../utils/validateJsonSchemas", () => ({
-  validateBrandJson: vi.fn(),
-  validateTokensJson: vi.fn(),
-  validateUIKitJson: vi.fn(),
-}));
+vi.mock("../utils/validateJsonSchemas", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../utils/validateJsonSchemas")>();
+  return {
+    ...actual,
+    validateBrandJson: vi.fn(),
+    validateTokensJson: vi.fn(),
+    validateUIKitJson: vi.fn(),
+  };
+});
 
 // Mock varsStore
 const mockStore = {
@@ -29,6 +36,7 @@ const mockStore = {
     theme: {},
     uikit: {},
   })),
+  writeState: vi.fn(),
 };
 
 vi.mock("../store/varsStore", () => ({
@@ -266,6 +274,11 @@ describe("importJsonFiles", () => {
     vi.mocked(validateSchemasModule.validateUIKitJson).mockReturnValue(
       undefined,
     );
+    mockStore.getState.mockReturnValue({
+      tokens: {},
+      theme: {},
+      uikit: {},
+    });
     // Mock document.documentElement.style
     if (typeof document !== "undefined") {
       document.documentElement.style.cssText = "";
@@ -318,5 +331,115 @@ describe("importJsonFiles", () => {
       brand: { brand: {} },
       uikit: { "ui-kit": {} },
     });
+  });
+});
+
+describe("validateImportedReferences", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should throw ImportValidationError for missing palettes", () => {
+    const mockState = {
+      tokens: { tokens: { colors: {} } },
+      theme: { brand: { themes: { light: { palettes: {} } } } },
+      uikit: {
+        "ui-kit": {
+          components: {
+            button: {
+              variants: {
+                styles: {
+                  solid: {
+                    properties: {
+                      colors: {
+                        "layer-0": {
+                          background: {
+                            $type: "color",
+                            $value: "{brand.themes.light.palettes.palette-3.500.color.tone}"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+    mockStore.getState.mockReturnValue(mockState);
+
+    expect(() => {
+      validateImportedReferences(mockState.tokens, mockState.theme, mockState.uikit);
+    }).toThrowError(ImportValidationError);
+  });
+
+  it("should throw ImportValidationError for missing tokens", () => {
+    const mockState = {
+      tokens: { tokens: { colors: {} } }, // Empty tokens, no scale-05
+      theme: { 
+        brand: { 
+          themes: { 
+            light: { 
+              palettes: {
+                "core-colors": { interactive: { tone: { $type: "color", $value: "{tokens.colors.scale-05.500}" } } }
+              }
+            } 
+          } 
+        } 
+      },
+      uikit: { "ui-kit": {} }
+    };
+    mockStore.getState.mockReturnValue(mockState);
+
+    expect(() => {
+      validateImportedReferences(mockState.tokens, mockState.theme, mockState.uikit);
+    }).toThrowError(ImportValidationError);
+  });
+
+  it("should not throw if references are valid", () => {
+    const mockState = {
+      tokens: { tokens: { colors: { "scale-05": { "500": { $type: "color", $value: "#fff" } } } } },
+      theme: { 
+        brand: { 
+          themes: { 
+            light: { 
+              palettes: {
+                "core-colors": { interactive: { tone: { $type: "color", $value: "{tokens.colors.scale-05.500}" } } }
+              }
+            } 
+          } 
+        } 
+      },
+      uikit: {
+        "ui-kit": {
+          components: {
+            button: {
+              variants: {
+                styles: {
+                  solid: {
+                    properties: {
+                      colors: {
+                        "layer-0": {
+                          background: {
+                            $type: "color",
+                            $value: "{brand.themes.light.palettes.core-colors.interactive.tone}"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+
+    expect(() => {
+      validateImportedReferences(mockState.tokens, mockState.theme, mockState.uikit);
+    }).not.toThrow();
   });
 });

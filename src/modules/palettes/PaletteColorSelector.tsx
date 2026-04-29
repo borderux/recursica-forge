@@ -9,7 +9,6 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getVarsStore } from '../../core/store/varsStore'
-import { clearDeltaEntry, getDelta, trackChanges } from '../../core/store/cssDelta'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { paletteCore } from '../../core/css/cssVarBuilder'
 
@@ -820,26 +819,7 @@ export default function PaletteColorSelector({
         }
       })
 
-      // Clear stale delta entries for this palette's numeric levels BEFORE calling setTheme.
-      // reapplyDelta() runs inside recomputeAndApplyAll (inside setTheme) and would re-apply
-      // the old scale's CSS vars if they are still in the delta at that point, overwriting the
-      // freshly computed new-scale values. Clearing them first prevents that overwrite.
-      // Only clear the current mode's numeric-level vars — leave the other mode's entries
-      // (palettes are independent per mode) and _primary_/_default_ vars untouched.
-      const numericLevelPattern = /--recursica_brand_themes_\w+_palettes_[^_]+_\d{3,4}_/
-      const currentModePattern = `--recursica_brand_themes_${currentModeKey}_palettes_${paletteKey}_`
-      const deltaBefore = getDelta()
-      for (const varName of Object.keys(deltaBefore)) {
-        if (varName.startsWith(currentModePattern) && numericLevelPattern.test(varName)) {
-          clearDeltaEntry(varName)
-        }
-      }
-
-      // setTheme triggers recomputeAndApplyAll → buildPaletteVars → applyCssVars → reapplyDelta.
-      // reapplyDelta now has no stale palette vars for this mode/palette, so the fresh CSS vars
-      // from buildPaletteVars survive. setTheme also calls trackCurrentStateAsDelta('--recursica_brand_')
-      // which reads from lastComputedVars (the values before reapplyDelta) — correctly capturing
-      // the new scale's palette vars into the delta without needing a separate DOM snapshot.
+      // setTheme triggers recomputeAndApplyAll → buildPaletteVars → applyCssVars
       setTheme(themeCopy)
 
 

@@ -11,6 +11,8 @@ import {
   importJsonFiles,
 } from "./jsonImport";
 import { DirtyDataModal } from "./DirtyDataModal";
+import { ImportValidationErrorModal } from "./ImportValidationErrorModal";
+import { ImportValidationError } from "./importHydration";
 import {
   validateTokensJson,
   validateBrandJson,
@@ -32,6 +34,8 @@ export function useJsonImport() {
   const [filesToImport, setFilesToImport] = useState<string[]>([]);
   const [pendingImport, setPendingImport] = useState<ImportFiles | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<ImportFiles>({});
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorNodes, setErrorNodes] = useState<string[]>([]);
 
   const setSelectedFilesData = (files: ImportFiles) => {
     setSelectedFiles(files);
@@ -70,11 +74,16 @@ export function useJsonImport() {
         if (onSuccess) onSuccess();
       }
     } catch (error) {
-      alert(
-        `Import failed: ${
-          error instanceof Error ? error.message : "Invalid JSON file(s)"
-        }`,
-      );
+      if (error instanceof ImportValidationError) {
+        setErrorNodes(error.missingNodes);
+        setShowErrorModal(true);
+      } else {
+        alert(
+          `Import failed: ${
+            error instanceof Error ? error.message : "Invalid JSON file(s)"
+          }`,
+        );
+      }
     }
   };
 
@@ -88,15 +97,29 @@ export function useJsonImport() {
   const handleAcknowledge = (onSuccess?: () => void) => {
     setShowDirtyModal(false);
     if (pendingImport) {
-      importJsonFiles(pendingImport);
-      setPendingImport(null);
-      triggerDiffIfPending()
-      if (onSuccess) onSuccess();
+      try {
+        importJsonFiles(pendingImport);
+        setPendingImport(null);
+        triggerDiffIfPending()
+        if (onSuccess) onSuccess();
+      } catch (error) {
+        if (error instanceof ImportValidationError) {
+          setErrorNodes(error.missingNodes);
+          setShowErrorModal(true);
+        } else {
+          alert(
+            `Import failed: ${
+              error instanceof Error ? error.message : "Invalid JSON file(s)"
+            }`,
+          );
+        }
+      }
     }
   };
 
   const handleCancel = () => {
     setShowDirtyModal(false);
+    setShowErrorModal(false);
     setPendingImport(null);
     setFilesToImport([]);
   };
@@ -110,6 +133,8 @@ export function useJsonImport() {
     setSelectedFiles: setSelectedFilesData,
     handleImport,
     showDirtyModal,
+    showErrorModal,
+    errorNodes,
     filesToImport,
     handleAcknowledge,
     handleCancel,
@@ -135,6 +160,25 @@ export function ImportDirtyDataModal({
       filesToImport={filesToImport}
       onAcknowledge={onAcknowledge}
       onCancel={onCancel}
+    />
+  );
+}
+
+export function ImportErrorModal({
+  show,
+  missingNodes,
+  onAcknowledge,
+}: {
+  show: boolean;
+  missingNodes: string[];
+  onAcknowledge: () => void;
+}) {
+  if (!show) return null;
+
+  return (
+    <ImportValidationErrorModal
+      missingNodes={missingNodes}
+      onAcknowledge={onAcknowledge}
     />
   );
 }

@@ -11,7 +11,6 @@
 import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
 import { removeUIKitValue } from './updateUIKitValue'
-import { trackChange, clearDeltaEntry } from '../store/cssDelta'
 import { getVarsStore } from '../store/varsStore'
 import { checkForGlobalRef } from './globalRefInterceptor'
 import { updateBrandValue } from './updateBrandValue'
@@ -135,9 +134,7 @@ export function updateCssVar(
 
   // Debounce delta tracking to avoid thrashing during rapid slider movement
   cssVarDebounceTimers[cssVarName] = setTimeout(() => {
-    // Track this change in the delta serialization system.
     // JSON sync (state.tokens / state.theme / state.uikit) happens lazily at export time.
-    trackChange(cssVarName, trimmedValue)
 
     // For UIKit component vars: propagate global-ref conflicts if the property
     // was backed by a {ui-kit.globals.*} reference in the pristine JSON.
@@ -253,9 +250,6 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
 export function removeCssVar(cssVarName: string, silent?: boolean): void {
   const root = document.documentElement
   root.style.removeProperty(cssVarName)
-
-  // Remove from delta so reapplyDelta() won't re-apply a stale value
-  clearDeltaEntry(cssVarName)
 
   // Also remove unprefixed version if it exists
   if (cssVarName.startsWith('--recursica_')) {

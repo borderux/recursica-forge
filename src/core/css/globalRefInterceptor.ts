@@ -21,7 +21,6 @@
 
 import { getVarsStore } from '../store/varsStore'
 import { updateUIKitValue } from './updateUIKitValue'
-import { clearDeltaEntry, trackChange } from '../store/cssDelta'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -369,17 +368,11 @@ function applyGlobalUpdate(conflict: GlobalRefConflict): void {
     //    so it continues following the global.
     root.style.setProperty(conflict.cssVarName, conflict.previousValue)
 
-    // Remove the stale component-level override from the delta system.
-    clearDeltaEntry(conflict.cssVarName)
-
     // Restore the original DTCG reference in the UIKit JSON store.
     updateUIKitValue(conflict.cssVarName, conflict.originalDtcgRef)
 
     // 2. Update the global CSS var with the new value.
     root.style.setProperty(conflict.globalCssVarName, conflict.newValue)
-
-    // Track the global change in the delta system for persistence.
-    trackChange(conflict.globalCssVarName, conflict.newValue)
 
     // Sync the global's value to the UIKit JSON store.
     updateUIKitValue(conflict.globalCssVarName, conflict.newValue)

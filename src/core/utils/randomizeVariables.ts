@@ -6,7 +6,6 @@
  */
 
 import { getVarsStore } from '../store/varsStore'
-import { trackChanges } from '../store/cssDelta'
 import type { JsonLike } from '../resolvers/tokens'
 import type { RandomizeOptions } from './RandomizeOptionsModal'
 import { randomizeTokens } from './randomizers/tokenRandomizer'

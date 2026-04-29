@@ -14,7 +14,6 @@ import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { TextField } from '../../../components/adapters/TextField'
 import { Modal } from '../../../components/adapters/Modal'
-import { getDelta } from '../../../core/store/cssDelta'
 import { readCssVar } from '../../../core/css/readCssVar'
 import { getAllFamilyNames, setFamilyName, setFamilyNameByAlias, renameFamilyName } from '../../../core/utils/familyNames'
 
@@ -30,7 +29,7 @@ type ModeName = 'Mode 1' | 'Mode 2' | string
 export function AddColorScaleButton() {
   const { mode: themeMode } = useThemeMode()
   const [showAddColorModal, setShowAddColorModal] = useState(false)
-  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core_black)')
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core-colors_black)')
   const { setTokens } = useVars()
 
   const handleAddColor = () => {
@@ -231,24 +230,17 @@ export default function ColorTokens() {
       setThemeVersion(v => v + 1)
     })
   }, [])
-  // Hydrate deleted families from localStorage so they persist across refreshes
-  const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>(() => {
-    const deleted = getVarsStore().getDeletedScales()
-    const map: Record<string, true> = {}
-    deleted.forEach(alias => { map[alias] = true })
-    return map
-  })
+
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
   const [showAddColorModal, setShowAddColorModal] = useState(false)
-  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core_black)')
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core-colors_black)')
   const [deleteConfirmFamily, setDeleteConfirmFamily] = useState<string | null>(null)
 
   // Listen for theme reset to clear deleted families and family order
   useEffect(() => {
     const handleReset = () => {
-      setDeletedFamilies({})
       setFamilyOrder([])
     }
     window.addEventListener('themeReset', handleReset)
@@ -479,7 +471,7 @@ export default function ColorTokens() {
 
   const createColorScale = async (seedHex: string) => {
     setOpenPicker(null)
-    const families = Object.entries(colorFamiliesByMode['Mode 1'] || {}).filter(([family]) => family !== 'translucent' && !deletedFamilies[family])
+    const families = Object.entries(colorFamiliesByMode['Mode 1'] || {}).filter(([family]) => family !== 'translucent')
     if (!families.length) return
 
     // Parse the seed hex to get HSV values for generating the scale
@@ -529,31 +521,13 @@ export default function ColorTokens() {
     const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
     const tokensRoot = nextTokens?.tokens || {}
     
-    // Import the base tokens directly to check for original scale numbers
-    const baseTokensImport = require('../../../../recursica_tokens.json')
-
-    // Assign a scale key that is strictly higher than all existing AND all previously
-    // deleted scale numbers.  The gap-filling approach (find first free slot) was broken:
-    // after deleting scale-01 and scale-02, the loop would reuse scale-01 for the new
-    // scale — but scale-01 is still in rf:deleted-scales, so restoreDelta / syncDeltaToJson
-    // would silently drop all its delta entries on the next page refresh.
     const colorsRoot = tokensRoot?.colors || {}
     const existingNums = Object.keys(colorsRoot)
       .filter(k => k.startsWith('scale-'))
       .map(k => parseInt(k.replace('scale-', ''), 10))
       .filter(n => Number.isFinite(n))
 
-    // Check base tokens to prevent reusing any scale numbers that were in the original
-    // file, even if they were deleted by the user. This prevents syncDeltaToJson from
-    // incorrectly identifying a reused scale ID as a deleted base scale.
-    const baseTokensRoot: any = (baseTokensImport as any)?.tokens || {}
-    const baseColorsRoot: any = baseTokensRoot?.colors || {}
-    const baseNums = Object.keys(baseColorsRoot)
-      .filter(k => k.startsWith('scale-'))
-      .map(k => parseInt(k.replace('scale-', ''), 10))
-      .filter(n => Number.isFinite(n))
-
-    const maxNum = Math.max(0, ...existingNums, ...baseNums)
+    const maxNum = existingNums.length > 0 ? Math.max(...existingNums) : 0
     const scaleKey = `scale-${String(maxNum + 1).padStart(2, '0')}`
 
     // Create the new scale in the new format with alias
@@ -806,7 +780,7 @@ export default function ColorTokens() {
           const scale = colorsRoot[key]
           if (scale && typeof scale === 'object' && scale.alias && typeof scale.alias === 'string') {
             const alias = scale.alias.trim()
-            if (alias && !deletedFamilies[alias]) {
+            if (alias) {
               scaleAliases.add(alias)
             }
           }
@@ -816,7 +790,7 @@ export default function ColorTokens() {
     } catch {
       return 0
     }
-  }, [tokensJson, deletedFamilies])
+  }, [tokensJson])
 
   // handleDeleteFamily: open a confirmation modal first.
   // The actual deletion logic is in performDeleteFamily below.
@@ -825,70 +799,25 @@ export default function ColorTokens() {
   }
 
   const performDeleteFamily = (family: string) => {
-    // Deep clone tokens to avoid mutation
-      const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
-      const tokensRoot = nextTokens?.tokens || {}
-      const newColorsRoot = tokensRoot?.colors || {}
-      let tokensChanged = false
-
-      // Delete from NEW colors structure (colors.scale-XX with matching alias)
-      let deletedScaleKey: string | null = null
-      Object.keys(newColorsRoot).forEach((scaleKey) => {
-        if (!scaleKey.startsWith('scale-')) return
-        const scale = newColorsRoot[scaleKey]
-        if (scale && typeof scale === 'object' && scale.alias === family) {
-          delete newColorsRoot[scaleKey]
-          deletedScaleKey = scaleKey
-          tokensChanged = true
-        }
-      })
-
-      if (tokensChanged) {
-        setTokens(nextTokens)
+    // Find the scale key for this alias
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
+    let scaleKeyToDelete: string | null = null
+    
+    Object.keys(colorsRoot).forEach((scaleKey) => {
+      if (!scaleKey.startsWith('scale-')) return
+      const scale = colorsRoot[scaleKey]
+      if (scale && typeof scale === 'object' && scale.alias === family) {
+        scaleKeyToDelete = scaleKey
       }
+    })
 
-      // Remove all CSS variables for this color family from inline styles
-      const root = document.documentElement
-      const style = root.style
-      const cssVarsToRemove: string[] = []
+    if (!scaleKeyToDelete) return
 
-      // Iterate backwards to avoid index shifting issues
-      for (let i = style.length - 1; i >= 0; i--) {
-        const prop = style[i]
-        if (!prop) continue
-        // Match new format by alias: --recursica_tokens_colors_{family}-*
-        if (prop.startsWith(`${tokenColors(family, '')}`)) {
-          cssVarsToRemove.push(prop)
-        }
-        // Match new format by scale key: --recursica_tokens_colors_{scale-XX}-*
-        if (deletedScaleKey && prop.startsWith(`${tokenColors(deletedScaleKey, '')}`)) {
-          cssVarsToRemove.push(prop)
-        }
-      }
+    setOpenPicker(null)
+    setFamilyOrder((prev) => prev.filter((f) => f !== family))
 
-      // Remove all collected CSS variables
-      cssVarsToRemove.forEach(prop => root.style.removeProperty(prop))
-
-      // Update local values state - remove all tokens for this family (both formats)
-      const newValues = { ...values }
-      Object.keys(newValues).forEach((tokenName) => {
-        if (tokenName.startsWith(`colors/${family}/`)) {
-          delete newValues[tokenName]
-        }
-        if (deletedScaleKey && tokenName.startsWith(`colors/${deletedScaleKey}/`)) {
-          delete newValues[tokenName]
-        }
-      })
-      setValues(newValues)
-
-      // Mark as deleted and update order
-      setDeletedFamilies((prev) => ({ ...prev, [family]: true }))
-      setOpenPicker(null)
-      setFamilyOrder((prev) => prev.filter((f) => f !== family))
-
-      // Persist the deletion to localStorage so it survives browser refresh
-      getVarsStore().persistDeletedScale(family, deletedScaleKey || undefined)
-
+    getVarsStore().deleteScale(scaleKeyToDelete)
   }
 
   const handleFamilyNameChange = (family: string, newName: string) => {
@@ -897,51 +826,39 @@ export default function ColorTokens() {
 
     // If the slug differs from the current family key, update local state to reflect the new slug
     if (newFamilySlug && newFamilySlug !== family && newFamilySlug.length > 0) {
-      if (!deletedFamilies[family]) {
-        // Update local values state
-        const oldTokenNames = Object.keys(values).filter(name => name.startsWith(`colors/${family}/`))
-        const newValues = { ...values }
-        oldTokenNames.forEach(oldTokenName => {
-          const parts = oldTokenName.split('/')
-          if (parts.length === 3) {
-            const level = parts[2]
-            const newTokenName = `colors/${newFamilySlug}/${level}`
-            const value = values[oldTokenName]
-            delete newValues[oldTokenName]
-            newValues[newTokenName] = value
-          }
-        })
-        setValues(newValues)
-
-        // Update family order
-        setFamilyOrder((prev) => prev.map(f => f === family ? newFamilySlug : f))
-
-        // Update deleted families if needed
-        if (deletedFamilies[family]) {
-          setDeletedFamilies((prev) => {
-            const next = { ...prev }
-            delete next[family]
-            next[newFamilySlug] = true
-            return next
-          })
+      // Update local values state
+      const oldTokenNames = Object.keys(values).filter(name => name.startsWith(`colors/${family}/`))
+      const newValues = { ...values }
+      oldTokenNames.forEach(oldTokenName => {
+        const parts = oldTokenName.split('/')
+        if (parts.length === 3) {
+          const level = parts[2]
+          const newTokenName = `colors/${newFamilySlug}/${level}`
+          const value = values[oldTokenName]
+          delete newValues[oldTokenName]
+          newValues[newTokenName] = value
         }
+      })
+      setValues(newValues)
 
-        // Update family names map
-        const updatedFamilyNames = { ...familyNames }
-        delete updatedFamilyNames[family]
-        updatedFamilyNames[newFamilySlug] = v
-        setFamilyNames(updatedFamilyNames)
+      // Update family order
+      setFamilyOrder((prev) => prev.map(f => f === family ? newFamilySlug : f))
 
-        // Update CSS var and tokens alias
-        renameFamilyName(family, newFamilySlug, v, tokensJson)
+      // Update family names map
+      const updatedFamilyNames = { ...familyNames }
+      delete updatedFamilyNames[family]
+      updatedFamilyNames[newFamilySlug] = v
+      setFamilyNames(updatedFamilyNames)
 
-        // Close picker if open for this family
-        if (openPicker && openPicker.tokenName.startsWith(`colors/${family}/`)) {
-          setOpenPicker(null)
-        }
+      // Update CSS var and tokens alias
+      renameFamilyName(family, newFamilySlug, v, tokensJson)
 
-        return // Early return since we've handled the rename
+      // Close picker if open for this family
+      if (openPicker && openPicker.tokenName.startsWith(`colors/${family}/`)) {
+        setOpenPicker(null)
       }
+
+      return // Early return since we've handled the rename
     }
 
     // If slug matches or rename failed, just update the display name
@@ -986,7 +903,7 @@ export default function ColorTokens() {
   }
 
   // Sort families by scale number (scale-01, scale-02, etc.) - always use scale-based ordering
-  let families = Object.entries(familiesData).filter(([family]) => family !== 'translucent' && !deletedFamilies[family]).sort(([a], [b]) => {
+  let families = Object.entries(familiesData).filter(([family]) => family !== 'translucent').sort(([a], [b]) => {
     // Sort by scale number (scale-01, scale-02, etc.)
     const scaleKeyA = getScaleKeyForFamily(a)
     const scaleKeyB = getScaleKeyForFamily(b)
@@ -1064,7 +981,6 @@ export default function ColorTokens() {
             levelOrder={levelOrder}
             values={values}
             familyNames={familyNames}
-            deletedFamilies={deletedFamilies}
             hoveredSwatch={hoveredSwatch}
             openPicker={openPicker}
             setHoveredSwatch={setHoveredSwatch}

@@ -14,7 +14,6 @@ import tokensJson from '../../../recursica_tokens.json'
 import brandJson from '../../../recursica_brand.json'
 import uikitJson from '../../../recursica_ui-kit.json'
 import { getVarsStore } from '../store/varsStore'
-import { syncDeltaToJson } from '../store/deltaToJson'
 import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import {
   EXPORT_FILENAME_TOKENS,
@@ -192,11 +191,7 @@ export function exportTokensJson(): object {
   const tokenIndex = buildTokenIndex(tokensJson as JsonLike)
   const store = getVarsStore()
 
-  // Flush any in-session token CSS var changes from rf:delta:tokens into state.tokens
-  // before reading it. Token edits go through trackChange (delta); JSON sync happens
-  // lazily here at export time via syncDeltaToJson.
   const storeState = store.getState()
-  syncDeltaToJson(storeState.tokens, storeState.theme)
 
   const storeTokens = (storeState.tokens as any)?.tokens || {}
   const originalTokens = tokensJson as JsonLike
@@ -753,7 +748,7 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
  * - {brand.themes.light.palettes.neutral.100.tone} -> {brand.palettes.neutral.100.tone}
  * - {brand.themes.light.text.emphasis.low} -> {brand.text.emphasis.low}
  */
-function normalizeUIKitBrandReferences(obj: any): any {
+function normalizeUIKitBrandReferences(obj: any, currentPath: string = ''): any {
   if (typeof obj === 'string') {
     let normalized = obj
       // ── Layer element text path: cssVarToRef flattens `text.color` into `text-color` ──
@@ -783,17 +778,20 @@ function normalizeUIKitBrandReferences(obj: any): any {
       // ── Remove theme prefix from all ui-kit references ──
       .replace(/{ui-kit\.themes\.(light|dark)\./g, '{ui-kit.')
 
+
+
     return normalized
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(normalizeUIKitBrandReferences)
+    return obj.map((item, index) => normalizeUIKitBrandReferences(item, `${currentPath}[${index}]`))
   }
 
   if (obj && typeof obj === 'object') {
     const normalized: any = {}
     for (const key in obj) {
-      normalized[key] = normalizeUIKitBrandReferences(obj[key])
+      const nextPath = currentPath ? `${currentPath}.${key}` : key
+      normalized[key] = normalizeUIKitBrandReferences(obj[key], nextPath)
     }
     return normalized
   }
@@ -822,11 +820,24 @@ function ensurePaletteDefaults(result: any): void {
     const steps = DEFAULT_PALETTE_STEP[mode]
     if (!steps) continue
 
-    for (const paletteKey of ['neutral', 'palette-1', 'palette-2'] as const) {
+    for (const paletteKey of Object.keys(palettes)) {
+      if (paletteKey === 'core-colors') continue
+      
       const palette = palettes[paletteKey]
       if (!palette || typeof palette !== 'object') continue
 
-      const step = steps[paletteKey]
+      let step = steps[paletteKey] || (paletteKey === 'neutral' ? '050' : '500')
+      
+      // Ensure the step actually exists in the palette; if not, pick the closest or any available step
+      if (!palette[step]) {
+        const availableSteps = Object.keys(palette).filter(k => !k.startsWith('$') && k !== 'default')
+        if (availableSteps.length > 0) {
+          // Try to find the closest step to 500, or just pick the first one
+          availableSteps.sort((a, b) => Math.abs(parseInt(a) - 500) - Math.abs(parseInt(b) - 500))
+          step = availableSteps[0]
+        }
+      }
+
       const toneRef = `{brand.themes.${mode}.palettes.${paletteKey}.${step}.color.tone}`
       const onToneRef = `{brand.themes.${mode}.palettes.${paletteKey}.${step}.color.on-tone}`
 
@@ -986,7 +997,6 @@ export function exportBrandJson(): object {
   // Flush all in-session brand CSS var changes from rf:delta:brand into state.theme
   // before reading it. Brand edits (layers, palette on-tones, compliance fixes) go
   // through trackChange (delta) but no longer eagerly update state.theme.
-  syncDeltaToJson(storeState.tokens, storeState.theme)
 
   const theme = storeState.theme as any
 
@@ -1136,7 +1146,6 @@ export function exportUIKitJson(): object {
   // Flush all in-session UIKit CSS var changes from rf:delta:uikit into state.uikit
   // before reading it. All UIKit edits (toolbar, compliance fixes) go through
   // trackChange (delta) and are now lazy-synced to JSON here at export time.
-  syncDeltaToJson(storeState.tokens, storeState.theme, storeState.uikit)
 
   // Deep clone the UIKit structure from store
   // Ensure it has the 'ui-kit' wrapper if it doesn't already
@@ -1845,123 +1854,7 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
  * Normalizes color scale keys to sequential numbering before export.
  *
  * During a working session, scale keys can become non-sequential (e.g. scale-01, scale-04,
- * scale-07) due to deletions and additions.  This function remaps them to consecutive
- * scale-01, scale-02, … both in the tokens export and in every token reference inside
- * the brand and UIKit exports so the three files are mutually consistent.
- *
- * The live in-memory state is NOT touched — normalization is export-only.
- */
-function normalizeColorScaleKeys(
-  tokensExport: any,
-  brandExport: any,
-  uikitExport: any
-): { tokens: any; brand: any; uikit: any } {
-  const colorsRoot: Record<string, any> = tokensExport?.tokens?.colors || {}
 
-  // Collect existing scale-XX keys sorted by their number
-  const scaleKeys = Object.keys(colorsRoot)
-    .filter(k => /^scale-\d+$/.test(k))
-    .sort((a, b) => {
-      const na = parseInt(a.replace('scale-', ''), 10)
-      const nb = parseInt(b.replace('scale-', ''), 10)
-      return na - nb
-    })
-
-  // If there are no gaps and numbering already starts at 01 consecutively, skip
-  const alreadyClean = scaleKeys.every(
-    (k, i) => k === `scale-${String(i + 1).padStart(2, '0')}`
-  )
-  if (alreadyClean || scaleKeys.length === 0) {
-    return { tokens: tokensExport, brand: brandExport, uikit: uikitExport }
-  }
-
-  // Build old → new key map
-  const remap: Record<string, string> = {}
-  scaleKeys.forEach((oldKey, i) => {
-    const newKey = `scale-${String(i + 1).padStart(2, '0')}`
-    if (oldKey !== newKey) remap[oldKey] = newKey
-  })
-
-  if (Object.keys(remap).length === 0) {
-    return { tokens: tokensExport, brand: brandExport, uikit: uikitExport }
-  }
-
-  // ── Step 1: Rewrite tokens.colors keys ──────────────────────────────────────
-  const newColors: Record<string, any> = {}
-  scaleKeys.forEach((oldKey, i) => {
-    const newKey = `scale-${String(i + 1).padStart(2, '0')}`
-    newColors[newKey] = colorsRoot[oldKey]
-  })
-  // Deep-clone tokens export and swap in the renumbered colors block
-  const newTokens = JSON.parse(JSON.stringify(tokensExport))
-  newTokens.tokens.colors = newColors
-
-  // ── Step 2: Rewrite all scale-key references in string values ────────────────
-  // Patterns that appear in brand/UIKit refs, e.g.:
-  //   {tokens.colors.scale-07.500}
-  //   var(--recursica_tokens_colors_scale-07_500)   ← shouldn't appear but guard anyway
-  function rewriteStrings(value: any): any {
-    if (typeof value === 'string') {
-      let result = value
-      
-      // Pass 1: Nullify references to DELETED scales before shifting.
-      // If a palette referenced scale-02 and scale-02 was deleted, we must break this
-      // reference cleanly to __deleted_scale_02__ rather than letting it be hijacked
-      // by the newly shifted scale-02 (which used to be scale-03).
-      const refsMatch = result.match(/\{tokens\.colors\.(scale-\d+)\./g)
-      if (refsMatch) {
-        refsMatch.forEach(match => {
-          const extractedScale = match.match(/scale-\d+/)?.[0]
-          if (extractedScale && !scaleKeys.includes(extractedScale)) {
-            result = result.replace(
-              new RegExp(`\\{tokens\\.colors\\.${extractedScale}\\.`, 'g'),
-              `{tokens.colors.__deleted_${extractedScale}__.`
-            )
-          }
-        })
-      }
-      
-      const cssRefsMatch = result.match(/_colors_(scale-\d+)_/g)
-      if (cssRefsMatch) {
-        cssRefsMatch.forEach(match => {
-          const extractedScale = match.match(/scale-\d+/)?.[0]
-          if (extractedScale && !scaleKeys.includes(extractedScale)) {
-            result = result.replace(
-              new RegExp(`_colors_${extractedScale}_`, 'g'),
-              `_colors___deleted_${extractedScale}___`
-            )
-          }
-        })
-      }
-
-      // Pass 2: Apply the gap-closing remap to the remaining valid references
-      for (const [oldKey, newKey] of Object.entries(remap)) {
-        // DTCG token references: {tokens.colors.scale-07.…}
-        const dtcgPattern = new RegExp(`\\{tokens\\.colors\\.${oldKey.replace('-', '\\-')}\\.`, 'g')
-        result = result.replace(dtcgPattern, `{tokens.colors.${newKey}.`)
-        // CSS var form (unlikely in JSON but guard anyway)
-        const cssPattern = new RegExp(`_colors_${oldKey.replace('-', '\\-')}_`, 'g')
-        result = result.replace(cssPattern, `_colors_${newKey}_`)
-      }
-      return result
-    }
-    if (Array.isArray(value)) return value.map(rewriteStrings)
-    if (value !== null && typeof value === 'object') {
-      const out: any = {}
-      for (const [k, v] of Object.entries(value)) out[k] = rewriteStrings(v)
-      return out
-    }
-    return value
-  }
-
-  // Apply rewriting to all three exports (tokens colors block was already rebuilt above,
-  // but rewrite the rest of tokens too for any cross-references)
-  const finalTokens = rewriteStrings(newTokens)
-  const finalBrand  = rewriteStrings(JSON.parse(JSON.stringify(brandExport)))
-  const finalUikit  = rewriteStrings(JSON.parse(JSON.stringify(uikitExport)))
-
-  return { tokens: finalTokens, brand: finalBrand, uikit: finalUikit }
-}
 
 /**
  * Downloads selected JSON files and optionally CSS file.
@@ -1969,55 +1862,48 @@ function normalizeColorScaleKeys(
  * Validates JSON files before export and throws error if validation fails.
  *
  * Before validation, color scale keys are compacted to sequential numbering
- * (scale-01, scale-02, …) and all cross-file references are updated to match.
  */
 export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; cssSpecific?: boolean; cssScoped?: boolean } = { tokens: true, brand: true, uikit: true }): Promise<void> {
-  // Generate all three raw exports up-front so normalizeColorScaleKeys can rewrite
-  // cross-file references (brand/UIKit token refs pointing to scale-XX keys) atomically.
   const rawTokens = exportTokensJson()
   const rawBrand  = exportBrandJson()
   const rawUikit  = exportUIKitJson()
-
-  // Compact scale keys to sequential numbering (export-only, live state unchanged)
-  const { tokens: normalizedTokens, brand: normalizedBrand, uikit: normalizedUikit } =
-    normalizeColorScaleKeys(rawTokens, rawBrand, rawUikit)
 
   // Count how many files are selected
   const selectedFiles: Array<{ content: string | object; filename: string; isJson: boolean }> = []
 
   if (files.tokens) {
     try {
-      validateTokensJson(normalizedTokens as JsonLike)
+      validateTokensJson(rawTokens as JsonLike)
     } catch (error) {
       throw new Error(`Cannot export tokens.json: ${error instanceof Error ? error.message : String(error)}`)
     }
-    selectedFiles.push({ content: normalizedTokens, filename: EXPORT_FILENAME_TOKENS, isJson: true })
+    selectedFiles.push({ content: rawTokens, filename: EXPORT_FILENAME_TOKENS, isJson: true })
   }
 
   if (files.brand) {
     try {
-      validateBrandJson(normalizedBrand as JsonLike)
+      validateBrandJson(rawBrand as JsonLike)
     } catch (error) {
       throw new Error(`Cannot export brand.json: ${error instanceof Error ? error.message : String(error)}`)
     }
-    selectedFiles.push({ content: normalizedBrand, filename: EXPORT_FILENAME_BRAND, isJson: true })
+    selectedFiles.push({ content: rawBrand, filename: EXPORT_FILENAME_BRAND, isJson: true })
   }
 
   if (files.uikit) {
     try {
-      validateUIKitJson(normalizedUikit as JsonLike)
+      validateUIKitJson(rawUikit as JsonLike)
     } catch (error) {
       throw new Error(`Cannot export uikit.json: ${error instanceof Error ? error.message : String(error)}`)
     }
-    selectedFiles.push({ content: normalizedUikit, filename: EXPORT_FILENAME_UIKIT, isJson: true })
+    selectedFiles.push({ content: rawUikit, filename: EXPORT_FILENAME_UIKIT, isJson: true })
   }
 
   // Export CSS files using the same normalized exports for consistency
   if (files.cssSpecific || files.cssScoped) {
     const json = {
-      tokens: normalizedTokens,
-      brand: normalizedBrand,
-      uikit: normalizedUikit,
+      tokens: rawTokens,
+      brand: rawBrand,
+      uikit: rawUikit,
     } as Parameters<typeof recursicaJsonTransformSpecific>[0]
     if (files.cssSpecific) {
       const [file] = recursicaJsonTransformSpecific(json)

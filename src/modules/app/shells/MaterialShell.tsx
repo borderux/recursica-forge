@@ -23,6 +23,7 @@ import {
 import {
   useJsonImport,
   ImportDirtyDataModal,
+  ImportErrorModal,
   processUploadedFilesAsync,
 } from "../../../core/import/importWithDirtyData";
 import { createBugReport } from "../utils/bugReport";
@@ -93,6 +94,8 @@ export default function MaterialShell({
     setSelectedFiles,
     handleImport,
     showDirtyModal,
+    showErrorModal,
+    errorNodes,
     filesToImport,
     handleAcknowledge: handleDirtyAcknowledge,
     handleCancel: handleDirtyCancel,
@@ -880,6 +883,11 @@ export default function MaterialShell({
           filesToImport={filesToImport}
           onAcknowledge={handleDirtyAcknowledgeWithClose}
           onCancel={handleDirtyCancel}
+        />
+        <ImportErrorModal
+          show={showErrorModal}
+          missingNodes={errorNodes}
+          onAcknowledge={handleDirtyCancel}
         />
       </div>
     </ThemeProvider>

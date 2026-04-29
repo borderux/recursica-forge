@@ -353,6 +353,12 @@ export function cssVarToRef(value: string): string | null {
     return `{${joined}}`
   }
 
+  if (unwrapped.startsWith('--recursica_tokens_')) {
+    const stripped = unwrapped.slice('--recursica_tokens_'.length)
+    const parts = stripped.split('_')
+    return `{tokens.${parts.join('.')}}`
+  }
+
   return null
 }
 

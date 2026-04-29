@@ -27,6 +27,7 @@ import {
 import {
   useJsonImport,
   ImportDirtyDataModal,
+  ImportErrorModal,
   processUploadedFilesAsync,
 } from "../../../core/import/importWithDirtyData";
 import { createBugReport } from "../utils/bugReport";
@@ -142,6 +143,8 @@ export default function CarbonShell({
     setSelectedFiles,
     handleImport,
     showDirtyModal,
+    showErrorModal,
+    errorNodes,
     filesToImport,
     handleAcknowledge: handleDirtyAcknowledge,
     handleCancel: handleDirtyCancel,
@@ -863,6 +866,11 @@ export default function CarbonShell({
           filesToImport={filesToImport}
           onAcknowledge={handleDirtyAcknowledgeWithClose}
           onCancel={handleDirtyCancel}
+        />
+        <ImportErrorModal
+          show={showErrorModal}
+          missingNodes={errorNodes}
+          onAcknowledge={handleDirtyCancel}
         />
       </div>
     </Theme>

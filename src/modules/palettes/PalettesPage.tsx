@@ -15,11 +15,10 @@ import { iconNameToReactComponent } from '../components/iconUtils'
 import { getAllFamilyNames } from '../../core/utils/familyNames'
 import { hexToRgb, contrastRatio, blendHexWithOpacity } from '../theme/contrastUtil'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
-import { genericLayerProperty, genericLayerText, tokenColors } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, tokenColors, palette, extractColorToken } from '../../core/css/cssVarBuilder'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
-import { clearDeltaEntry, clearDeltaByPrefix, getDelta, trackChanges } from '../../core/store/cssDelta'
 
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 
@@ -905,8 +904,7 @@ export default function PalettesPage() {
     const nextKey = `palette-${i}`
 
     try {
-      // Clear any deletion marker for this key so it can be re-added cleanly.
-      clearDeltaEntry(`--recursica_brand_palette_deleted_${nextKey}`)
+      // Also clean up any lingering local storage state for deleted palettes
       document.documentElement.style.removeProperty(`--recursica_brand_palette_deleted_${nextKey}`)
 
       // Initialize theme JSON for this palette using the unused color scale
@@ -926,150 +924,19 @@ export default function PalettesPage() {
     }
   }
 
-  const deletePalette = (key: string) => {
-    if (key === 'neutral' || key === 'palette-1') return
+  // Delete-palette modal state
+  const [deleteConfirmPalette, setDeleteConfirmPalette] = useState<string | null>(null)
+  const [fallbackPalette, setFallbackPalette] = useState<string>('neutral')
 
+  const handleDeletePalette = () => {
+    if (!deleteConfirmPalette) return
     const store = getVarsStore()
-    const themeCopy = store.getLatestThemeCopy()
-    const brandRoot: any = themeCopy?.brand ? themeCopy.brand : themeCopy
-    const themes: any = brandRoot?.themes || brandRoot
-
-    // Build the shift chain: palette-(N+1) → palette-N, palette-(N+2) → palette-(N+1), ...
-    // until there are no more palettes in the current list.
-    const deletedNum = parseInt(key.replace('palette-', ''), 10)
-    const remaining = palettes.filter((p) => p.key !== key)
-    const toRename: Array<{ from: string; to: string }> = []
-    let nextNum = deletedNum + 1
-    let targetNum = deletedNum
-    while (remaining.find((p) => p.key === `palette-${nextNum}`)) {
-      toRename.push({ from: `palette-${nextNum}`, to: `palette-${targetNum}` })
-      nextNum++
-      targetNum++
-    }
-
-    // Remove the deleted slot from theme JSON
-    for (const modeKey of ['light', 'dark']) {
-      delete themes?.[modeKey]?.palettes?.[key]
-    }
-
-    // First, clean up any dangling references to the deleted palette from OTHER properties.
-    // If a component or another palette was pointing to the deleted palette, clear that
-    // override so it reverts to its JSON default (to prevent DTCG validation errors on export).
-    const currentDeltaForCleanup = getDelta()
-    const deletedRefMatches = [`.palettes.${key}.`, `_palettes_${key}_`]
-    const varsToClear = []
-    for (const [varName, value] of Object.entries(currentDeltaForCleanup)) {
-      if (deletedRefMatches.some(ref => value.includes(ref))) {
-        varsToClear.push(varName)
-      }
-    }
-    for (const varName of varsToClear) {
-      clearDeltaEntry(varName)
-      document.documentElement.style.removeProperty(varName)
-    }
-
-    // Rename theme JSON keys and delta CSS vars for shifted palettes
-    const currentDelta = getDelta()
-    for (const { from, to } of toRename) {
-      for (const modeKey of ['light', 'dark']) {
-        if (themes?.[modeKey]?.palettes?.[from]) {
-          themes[modeKey].palettes[to] = themes[modeKey].palettes[from]
-          delete themes[modeKey].palettes[from]
-        }
-      }
-      // Rename delta entries AND update any values that reference the shifted palette
-      const fromPrefix = `_palettes_${from}_`
-      const toPrefix = `_palettes_${to}_`
-      const fromRef = `.palettes.${from}.`
-      const toRef = `.palettes.${to}.`
-
-      const renamedVars: Record<string, string> = {}
-      for (const [varName, value] of Object.entries(currentDelta)) {
-        let newVarName = varName
-        let newValue = value
-
-        if (varName.includes(fromPrefix)) {
-          newVarName = varName.replace(fromPrefix, toPrefix)
-        }
-        if (value.includes(fromPrefix)) {
-          newValue = value.replace(fromPrefix, toPrefix)
-        }
-        if (value.includes(fromRef)) {
-          newValue = value.replace(fromRef, toRef)
-        }
-
-        if (newVarName !== varName || newValue !== value) {
-          renamedVars[newVarName] = newValue
-          if (newVarName !== varName) {
-            clearDeltaEntry(varName)
-            document.documentElement.style.removeProperty(varName)
-          }
-        }
-      }
-      if (Object.keys(renamedVars).length > 0) {
-        trackChanges(renamedVars)
-        for (const [varName, value] of Object.entries(renamedVars)) {
-          document.documentElement.style.setProperty(varName, value)
-        }
-      }
-      // The moved palette's old key no longer exists — clear any stale deletion marker for it
-      clearDeltaEntry(`--recursica_brand_palette_deleted_${from}`)
-      document.documentElement.style.removeProperty(`--recursica_brand_palette_deleted_${from}`)
-    }
-
-    // Scrub the in-memory themeCopy so that setTheme doesn't re-inject broken references back into the DOM
-    const walkScrub = (obj: any) => {
-      if (!obj || typeof obj !== 'object') return
-      for (const [k, v] of Object.entries(obj)) {
-        if (v && typeof v === 'object') {
-          if ('$value' in v && typeof v.$value === 'string') {
-            let valStr = v.$value
-            let changed = false
-            
-            // If it references the deleted palette, safely fallback to neutral
-            if (deletedRefMatches.some((ref) => valStr.includes(ref))) {
-              valStr = valStr.replace(`.palettes.${key}.`, `.palettes.neutral.`)
-              changed = true
-            } else {
-              // Shift remaining references
-              for (const { from, to } of toRename) {
-                const fromRef = `.palettes.${from}.`
-                if (valStr.includes(fromRef)) {
-                  valStr = valStr.replace(fromRef, `.palettes.${to}.`)
-                  changed = true
-                }
-              }
-            }
-            if (changed) v.$value = valStr
-          } else {
-            walkScrub(v)
-          }
-        }
-      }
-    }
-    walkScrub(themeCopy)
-
-    // If nothing shifted into the deleted slot, write a deletion marker so the static
-    // JSON entry for that palette is suppressed on restore.
-    if (toRename.length === 0) {
-      store.writeCssVarsDirect({ [`--recursica_brand_palette_deleted_${key}`]: 'true' })
-    } else {
-      // The last vacated key (highest shift target) needs its delta cleared.
-      const vacatedKey = `palette-${targetNum}`
-      clearDeltaByPrefix(`--recursica_brand_themes_light_palettes_${vacatedKey}_`)
-      clearDeltaByPrefix(`--recursica_brand_themes_dark_palettes_${vacatedKey}_`)
-    }
-
-    setTheme(themeCopy)
-
-    const updatedPalettes = remaining.map((p) => {
-      const rename = toRename.find((r) => r.from === p.key)
-      return rename ? { ...p, key: rename.to } : p
-    })
-    writePalettes(updatedPalettes)
-
+    store.deletePalette(deleteConfirmPalette, fallbackPalette)
+    setDeleteConfirmPalette(null)
+    setFallbackPalette('neutral')
+    
     try {
-      window.dispatchEvent(new CustomEvent('paletteDeleted', { detail: { key } }))
+      window.dispatchEvent(new CustomEvent('paletteDeleted', { detail: { key: deleteConfirmPalette } }))
     } catch { }
   }
 
@@ -1130,6 +997,26 @@ export default function PalettesPage() {
     }
   }, [])
 
+  const getPaletteAliasName = (pk: string, defaultLevel?: number | string) => {
+    const baseName = pk === 'neutral' ? 'Neutral' : pk.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    const defaultCssVar = palette(mode.toLowerCase(), pk, String(defaultLevel || 500), 'color_tone')
+    const rawVal = readCssVar(defaultCssVar)
+    if (rawVal) {
+      const parsedColor = extractColorToken(rawVal)
+      if (parsedColor && parsedColor.family) {
+        const colorsRoot: any = (tokensJson as any)?.tokens?.colors || {}
+        const scaleAlias = colorsRoot[parsedColor.family]?.alias || parsedColor.family
+        const allNames = getAllFamilyNames(tokensJson)
+        const mappedName = allNames[scaleAlias] || scaleAlias
+        if (mappedName) {
+          const aliasName = mappedName.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+          return `${baseName} (${aliasName})`
+        }
+      }
+    }
+    return baseName
+  }
+
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: `var(${genericLayerProperty(0, 'surface')})`, color: `var(${genericLayerText(0, 'color')})` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
@@ -1160,7 +1047,7 @@ export default function PalettesPage() {
 
         <div className="section" style={{ marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)', display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
         {palettes.map((p, index) => {
-            const displayTitle = p.key === 'neutral' ? 'Neutral' : `Palette ${index}`
+            const displayTitle = getPaletteAliasName(p.key, p.defaultLevel)
             return (
             <PaletteGrid
               key={p.key}
@@ -1170,7 +1057,7 @@ export default function PalettesPage() {
               defaultLevel={p.defaultLevel}
               mode={mode === 'dark' ? 'Dark' : 'Light'}
               deletable={!(p.key === 'neutral' || p.key === 'palette-1')}
-              onDelete={() => deletePalette(p.key)}
+              onDelete={() => setDeleteConfirmPalette(p.key)}
               initialFamily={p.initialFamily}
             />
             )
@@ -1229,6 +1116,67 @@ export default function PalettesPage() {
                 items={dropdownItems}
                 value={selectedScaleKey}
                 onChange={setSelectedScaleKey}
+                layer="layer-1"
+                disableTopBottomMargin
+              />
+            </div>
+          </Modal>
+        )
+      })()}
+
+      {/* Delete-palette modal */}
+      {(() => {
+        if (!deleteConfirmPalette) return null
+        
+        const deletedPaletteIndex = palettes.findIndex(p => p.key === deleteConfirmPalette)
+        const deletedPaletteObj = palettes[deletedPaletteIndex]
+        const deletedPaletteName = deletedPaletteObj 
+          ? getPaletteAliasName(deletedPaletteObj.key, deletedPaletteObj.defaultLevel)
+          : getPaletteAliasName(deleteConfirmPalette)
+
+        // Show remaining palettes as fallback options
+        const fallbackOptions = palettes
+          .filter(p => p.key !== deleteConfirmPalette)
+          .map((p, i) => {
+            const labelName = getPaletteAliasName(p.key, p.defaultLevel)
+            const toneVar = palette(mode.toLowerCase(), p.key, String(p.defaultLevel || 500), 'color_tone')
+            const swatch = (
+              <span style={{
+                display: 'inline-block',
+                width: '14px',
+                height: '14px',
+                borderRadius: '3px',
+                backgroundColor: `var(${toneVar})`,
+                flexShrink: 0,
+              }} />
+            )
+            return {
+              value: p.key,
+              label: labelName,
+              leadingIcon: swatch,
+            }
+          })
+        return (
+          <Modal
+            isOpen={deleteConfirmPalette !== null}
+            onClose={() => setDeleteConfirmPalette(null)}
+            title="Delete palette"
+            primaryActionLabel="Delete"
+            secondaryActionLabel="Cancel"
+            onPrimaryAction={handleDeletePalette}
+            onSecondaryAction={() => setDeleteConfirmPalette(null)}
+            layer="layer-1"
+            size="sm"
+          >
+            <div style={{ padding: '8px 0', display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
+              <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-font-size)' }}>
+                Choose a new palette to update any existing references to {deletedPaletteName}.
+              </p>
+              <Dropdown
+                label="New palette"
+                items={fallbackOptions}
+                value={fallbackPalette}
+                onChange={setFallbackPalette}
                 layer="layer-1"
                 disableTopBottomMargin
               />

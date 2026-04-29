@@ -17,7 +17,6 @@ export type ColorScaleProps = {
   levelOrder: string[]
   values: Record<string, string | number>
   familyNames: Record<string, string>
-  deletedFamilies: Record<string, true>
   hoveredSwatch: string | null
   openPicker: { tokenName: string; anchorElement: HTMLElement } | null
   setHoveredSwatch: (tokenName: string | null) => void
@@ -37,7 +36,6 @@ export function ColorScale({
   levelOrder,
   values,
   familyNames,
-  deletedFamilies,
   hoveredSwatch,
   openPicker,
   setHoveredSwatch,
@@ -50,8 +48,6 @@ export function ColorScale({
   isLastColorScale,
   tokens,
 }: ColorScaleProps) {
-  if (deletedFamilies[family]) return null
-
   const { mode } = useThemeMode()
 
   const level500 = levels.find((l) => l.level === '500')

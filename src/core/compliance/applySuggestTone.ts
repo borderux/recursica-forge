@@ -9,7 +9,6 @@
 
 import { getVarsStore } from '../store/varsStore'
 import { tokenColors } from '../css/cssVarBuilder'
-import { trackChange } from '../store/cssDelta'
 import { traceToTokenRef } from './layerColorStepping'
 import type { ComplianceIssue } from './ComplianceService'
 
@@ -46,13 +45,11 @@ export function applySuggestTone(
 
   const tokenCssVar = tokenColors(resolvedFamily, normalizedLevel)
   document.documentElement.style.setProperty(tokenCssVar, newHex)
-  trackChange(tokenCssVar, newHex)
   store.setTokensSilent(tokensCopy)
 
   // Re-apply after recompute settles
   setTimeout(() => {
     document.documentElement.style.setProperty(tokenCssVar, newHex)
-    trackChange(tokenCssVar, newHex)
     window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
   }, 500)
 }

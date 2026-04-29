@@ -20,7 +20,6 @@ import { getVarsStore } from '../../core/store/varsStore'
 import { tokenColors, genericLayerText, genericLayerProperty, paletteCore, textEmphasis } from '../../core/css/cssVarBuilder'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { readCssVarNumber } from '../../core/css/readCssVar'
-import { trackChange } from '../../core/store/cssDelta'
 import { generateSuggestedTones } from './toneInterpolation'
 import { SuggestTonesModal } from './SuggestTonesModal'
 import { Modal } from '../../components/adapters/Modal'
@@ -343,7 +342,6 @@ export default function CompliancePage() {
         // Directly update the token-level CSS var on the DOM as a safety net
         const tokenCssVar = tokenColors(resolvedFamily, normalizedLevel)
         document.documentElement.style.setProperty(tokenCssVar, newHex)
-        trackChange(tokenCssVar, newHex)
 
         // Persist token change (triggers recomputeAndApplyAll)
         store.setTokensSilent(tokensCopy)
@@ -354,7 +352,6 @@ export default function CompliancePage() {
         // Re-scan after CSS vars rebuild (don't use handleRescan — it clears undo maps)
         setTimeout(() => {
             document.documentElement.style.setProperty(tokenCssVar, newHex)
-            trackChange(tokenCssVar, newHex)
             snapshotRef.current = null
             runScan()
         }, 500)
@@ -379,11 +376,9 @@ export default function CompliancePage() {
             }
         }
 
-        // Normalize level for CSS var name
         const normalizedLevel = undoInfo.level === '000' ? '000' : undoInfo.level === '1000' ? '1000' : String(undoInfo.level).padStart(3, '0')
         const tokenCssVar = tokenColors(undoInfo.family, normalizedLevel)
         document.documentElement.style.setProperty(tokenCssVar, undoInfo.originalHex)
-        trackChange(tokenCssVar, undoInfo.originalHex)
 
         // Persist token change
         store.setTokensSilent(tokensCopy)
@@ -398,7 +393,6 @@ export default function CompliancePage() {
         // Re-scan after restoring (don't use handleRescan — it clears undo maps)
         setTimeout(() => {
             document.documentElement.style.setProperty(tokenCssVar, undoInfo.originalHex)
-            trackChange(tokenCssVar, undoInfo.originalHex)
             snapshotRef.current = null
             runScan()
         }, 500)

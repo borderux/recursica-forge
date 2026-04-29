@@ -10,7 +10,6 @@
 
 import { tokenColorFamilyName } from '../css/cssVarBuilder'
 import { readCssVar } from '../css/readCssVar'
-import { trackChange } from '../store/cssDelta'
 import { getVarsStore } from '../store/varsStore'
 
 /**
@@ -101,7 +100,6 @@ export function findScaleKeyByAlias(alias: string, tokensJson?: any): string | u
 export function setFamilyName(scaleKey: string, displayName: string): void {
   const cssVar = tokenColorFamilyName(scaleKey)
   document.documentElement.style.setProperty(cssVar, displayName)
-  trackChange(cssVar, displayName)
 }
 
 /**
@@ -128,7 +126,6 @@ export function setFamilyNameByAlias(alias: string, displayName: string, tokensJ
 export function deleteFamilyName(scaleKey: string): void {
   const cssVar = tokenColorFamilyName(scaleKey)
   document.documentElement.style.removeProperty(cssVar)
-  trackChange(cssVar, '')
 }
 
 /**
