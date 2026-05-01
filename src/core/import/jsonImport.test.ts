@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
-  importTokensJson,
-  importBrandJson,
-  importUIKitJson,
   importJsonFiles,
   detectJsonFileType,
   detectDirtyData,
@@ -28,7 +25,6 @@ vi.mock("../utils/validateJsonSchemas", async (importOriginal) => {
 const mockStore = {
   setTokens: vi.fn(),
   setTheme: vi.fn(),
-  importTheme: vi.fn(),
   setUiKit: vi.fn(),
   bulkImport: vi.fn(),
   getState: vi.fn(() => ({
@@ -130,133 +126,6 @@ describe("detectDirtyData", () => {
 
     const result = detectDirtyData();
     expect(result).toBe(false);
-    consoleSpy.mockRestore();
-  });
-});
-
-describe("importTokensJson", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should validate and import tokens", () => {
-    const tokens = {
-      tokens: { color: { gray: { "500": { $value: "#808080" } } } },
-    };
-
-    importTokensJson(tokens);
-
-    expect(validateSchemasModule.validateTokensJson).toHaveBeenCalledWith(
-      tokens,
-    );
-    expect(mockStore.setTokens).toHaveBeenCalledWith(tokens);
-  });
-
-  it("should normalize tokens structure", () => {
-    const tokens = { color: { gray: { "500": { $value: "#808080" } } } };
-
-    importTokensJson(tokens);
-
-    expect(validateSchemasModule.validateTokensJson).toHaveBeenCalledWith({
-      tokens,
-    });
-    expect(mockStore.setTokens).toHaveBeenCalledWith({ tokens });
-  });
-
-  it("should throw on validation failure", () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const tokens = { tokens: { invalid: "data" } };
-    vi.mocked(validateSchemasModule.validateTokensJson).mockImplementation(
-      () => {
-        throw new Error("Validation failed");
-      },
-    );
-
-    expect(() => importTokensJson(tokens)).toThrow(
-      "Failed to import recursica_tokens.json",
-    );
-    consoleSpy.mockRestore();
-  });
-});
-
-describe("importBrandJson", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should validate and import brand", () => {
-    const brand = { brand: { themes: { light: {} } } };
-
-    importBrandJson(brand);
-
-    expect(validateSchemasModule.validateBrandJson).toHaveBeenCalledWith(brand);
-    expect(mockStore.importTheme).toHaveBeenCalledWith(brand);
-  });
-
-  it("should normalize brand structure", () => {
-    const brand = { themes: { light: {} } };
-
-    importBrandJson(brand);
-
-    expect(validateSchemasModule.validateBrandJson).toHaveBeenCalledWith({
-      brand,
-    });
-    expect(mockStore.importTheme).toHaveBeenCalledWith({ brand });
-  });
-
-  it("should throw on validation failure", () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const brand = { brand: { invalid: "data" } };
-    vi.mocked(validateSchemasModule.validateBrandJson).mockImplementation(
-      () => {
-        throw new Error("Validation failed");
-      },
-    );
-
-    expect(() => importBrandJson(brand)).toThrow(
-      "Failed to import recursica_brand.json",
-    );
-    consoleSpy.mockRestore();
-  });
-});
-
-describe("importUIKitJson", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("should validate and import uikit", () => {
-    const uikit = { "ui-kit": { globals: {}, components: {} } };
-
-    importUIKitJson(uikit);
-
-    expect(validateSchemasModule.validateUIKitJson).toHaveBeenCalledWith(uikit);
-    expect(mockStore.setUiKit).toHaveBeenCalledWith(uikit);
-  });
-
-  it("should normalize uikit structure", () => {
-    const uikit = { globals: {}, components: {} };
-
-    importUIKitJson(uikit);
-
-    expect(validateSchemasModule.validateUIKitJson).toHaveBeenCalledWith({
-      "ui-kit": uikit,
-    });
-    expect(mockStore.setUiKit).toHaveBeenCalledWith({ "ui-kit": uikit });
-  });
-
-  it("should throw on validation failure", () => {
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const uikit = { "ui-kit": { invalid: "data" } };
-    vi.mocked(validateSchemasModule.validateUIKitJson).mockImplementation(
-      () => {
-        throw new Error("Validation failed");
-      },
-    );
-
-    expect(() => importUIKitJson(uikit)).toThrow(
-      "Failed to import recursica_ui-kit.json",
-    );
     consoleSpy.mockRestore();
   });
 });

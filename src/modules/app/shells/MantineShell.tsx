@@ -789,12 +789,12 @@ export default function MantineShell({
                   <RadioButtonItem 
                     selected={resetTarget === 'imported'} 
                     onChange={() => setResetTarget('imported')} 
-                    label="Reset to last import" 
+                    label="Reset to last imported version" 
                   />
                   <RadioButtonItem 
                     selected={resetTarget === 'original'} 
                     onChange={() => setResetTarget('original')} 
-                    label="Reset to original factory defaults" 
+                    label="Reset to app defaults" 
                   />
                 </RadioButtonGroup>
               )}

@@ -61,11 +61,11 @@ export type VarsState = {
 const STORAGE_KEYS = {
   version: 'recursica_version',
   elevationPaletteSelections: 'recursica_elevation_selections',
-  originalTokens: 'recursica_tokens_original',
+  importedTokens: 'recursica_tokens_imported',
   editedTokens: 'recursica_tokens_edited',
-  originalBrand: 'recursica_brand_original',
+  importedBrand: 'recursica_brand_imported',
   editedBrand: 'recursica_brand_edited',
-  originalUikit: 'recursica_uikit_original',
+  importedUikit: 'recursica_uikit_imported',
   editedUikit: 'recursica_uikit_edited',
 } as const
 
@@ -293,22 +293,38 @@ class VarsStore {
 
     if (this.lsAvailable) {
       try {
-        // Initialize edited keys if they don't exist. Original keys are ONLY populated during an explicit import.
-        const initKey = (originalKey: string, editedKey: string, fallbackJson: any) => {
-          let edited = localStorage.getItem(editedKey)
-          let original = localStorage.getItem(originalKey)
-          
-          if (!edited) {
-            const jsonStr = original || JSON.stringify(fallbackJson)
-            localStorage.setItem(editedKey, jsonStr)
-            edited = jsonStr
+        // Migrate old _original keys to _imported keys (one-time rename)
+        const migrations: [string, string][] = [
+          ['recursica_tokens_original', STORAGE_KEYS.importedTokens],
+          ['recursica_brand_original', STORAGE_KEYS.importedBrand],
+          ['recursica_uikit_original', STORAGE_KEYS.importedUikit],
+        ]
+        for (const [oldKey, newKey] of migrations) {
+          const old = localStorage.getItem(oldKey)
+          if (old && !localStorage.getItem(newKey)) {
+            localStorage.setItem(newKey, old)
           }
-          return JSON.parse(edited)
+          localStorage.removeItem(oldKey)
+        }
+      } catch {}
+
+      try {
+        // Load state from localStorage: edited → imported → bundled app JSON.
+        // Edited keys are created by writeState as the user modifies data.
+        // Imported keys are set during an explicit import and serve as the baseline.
+        const initKey = (editedKey: string, importedKey: string, fallbackJson: any) => {
+          const edited = localStorage.getItem(editedKey)
+          if (edited) return JSON.parse(edited)
+
+          const imported = localStorage.getItem(importedKey)
+          if (imported) return JSON.parse(imported)
+
+          return JSON.parse(JSON.stringify(fallbackJson))
         }
 
-        tokensRaw = initKey(STORAGE_KEYS.originalTokens, STORAGE_KEYS.editedTokens, tokensRaw)
-        themeImportRaw = initKey(STORAGE_KEYS.originalBrand, STORAGE_KEYS.editedBrand, themeImportRaw)
-        uikitRaw = initKey(STORAGE_KEYS.originalUikit, STORAGE_KEYS.editedUikit, uikitRaw)
+        tokensRaw = initKey(STORAGE_KEYS.editedTokens, STORAGE_KEYS.importedTokens, tokensRaw)
+        themeImportRaw = initKey(STORAGE_KEYS.editedBrand, STORAGE_KEYS.importedBrand, themeImportRaw)
+        uikitRaw = initKey(STORAGE_KEYS.editedUikit, STORAGE_KEYS.importedUikit, uikitRaw)
       } catch (err) {
         console.error("Failed to initialize storage keys", err)
       }
@@ -643,77 +659,6 @@ class VarsStore {
     }
   }
   /**
-   * Import a brand JSON file, rebuilding elevation state from it before recomputing.
-   *
-   * Mirrors the state produced by `randomizeVariables` after elevations are randomized:
-   * controls are cleared so CSS generation reads blur/spread/x/y directly from the brand
-   * JSON. paletteSelections are re-parsed from the imported JSON's elevation color refs.
-   */
-  importTheme(next: JsonLike) {
-    if (this.lsAvailable) { try { localStorage.setItem('recursica_has_imported', 'true') } catch {} }
-    const brand: any = (next as any)?.brand || next
-    const themes = brand?.themes || brand
-
-    const newPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
-    const newColorTokens: Record<string, string> = {}
-
-    for (const mode of ['light', 'dark'] as const) {
-      const els: any = themes?.[mode]?.elevations || {}
-      for (let i = 1; i <= 4; i++) {
-        const key = `elevation-${i}`
-        const colorRef = els[key]?.$value?.color?.$value
-        if (typeof colorRef === 'string') {
-          const palMatch = colorRef.match(/palettes\.([a-z0-9-]+)\.(\d+)\.color\.tone/)
-          if (palMatch) {
-            newPaletteSelections[mode][key] = { paletteKey: palMatch[1], level: palMatch[2] }
-          } else {
-            const tokMatch = colorRef.match(/tokens\.colors\.(scale-\d{2})\.(\d+)/)
-            if (tokMatch) {
-              newColorTokens[key] = `colors/${tokMatch[1]}/${tokMatch[2]}`
-            }
-          }
-        }
-      }
-    }
-
-    const elevation: ElevationState = {
-      ...this.state.elevation,
-      controls: { light: {}, dark: {} },
-      directions: { light: {}, dark: {} },
-      paletteSelections: newPaletteSelections,
-      colorTokens: newColorTokens,
-      alphaTokens: { light: {}, dark: {} },
-    }
-
-    this.writeState({ theme: next, elevation })
-
-    // Rebuild recursica_fonts from the imported brand + current tokens so syncFontsToTokens
-    // picks up new typefaces and changed primary/secondary/tertiary assignments.
-    const importedFonts = deriveFontsFromJson(this.state.tokens, next)
-    if (importedFonts.length > 0) {
-      saveStoredFonts(importedFonts)
-      populateWindowFontUrlMap(importedFonts)
-    }
-
-    if (!this.isRecomputing) {
-      clearAllCssVars()
-      this.recomputeAndApplyAll()
-    }
-
-    if (this.lsAvailable) {
-      try { 
-        localStorage.setItem(STORAGE_KEYS.editedBrand, JSON.stringify(next)) 
-        localStorage.setItem(STORAGE_KEYS.originalBrand, JSON.stringify(next)) 
-      } catch { }
-    }
-
-    // Notify FontFamiliesTokens to rebuild rows and load imported font files
-    try {
-      window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: {}, reset: true } }))
-      window.dispatchEvent(new CustomEvent('fontsImported', {}))
-    } catch { }
-  }
-  /**
    * Update theme JSON in-memory WITHOUT triggering recomputeAndApplyAll.
    * Use when the CSS var is already set via updateCssVar and you only need JSON sync.
    * This prevents the recompute from overwriting other CSS var changes (e.g. interactive color reset bug).
@@ -911,24 +856,28 @@ class VarsStore {
     // Single recompute with all stores updated
     this.recomputeAndApplyAll()
 
-    // Save to localStorage as the imported source of truth
+    // Save to localStorage: set imported snapshot and clear edited keys.
+    // Edited keys will be re-created by writeState as the user makes changes,
+    // which allows detectDirtyData to correctly identify modifications since import.
     if (this.lsAvailable) {
+      try { localStorage.setItem('recursica_has_imported', 'true') } catch {}
+
       if (files.tokens) {
         try { 
-          localStorage.setItem(STORAGE_KEYS.editedTokens, JSON.stringify(files.tokens)) 
-          localStorage.setItem(STORAGE_KEYS.originalTokens, JSON.stringify(files.tokens)) 
+          localStorage.setItem(STORAGE_KEYS.importedTokens, JSON.stringify(files.tokens))
+          localStorage.removeItem(STORAGE_KEYS.editedTokens)
         } catch { }
       }
       if (files.brand) {
         try { 
-          localStorage.setItem(STORAGE_KEYS.editedBrand, JSON.stringify(files.brand)) 
-          localStorage.setItem(STORAGE_KEYS.originalBrand, JSON.stringify(files.brand)) 
+          localStorage.setItem(STORAGE_KEYS.importedBrand, JSON.stringify(files.brand))
+          localStorage.removeItem(STORAGE_KEYS.editedBrand)
         } catch { }
       }
       if (files.uikit) {
         try { 
-          localStorage.setItem(STORAGE_KEYS.editedUikit, JSON.stringify(files.uikit)) 
-          localStorage.setItem(STORAGE_KEYS.originalUikit, JSON.stringify(files.uikit)) 
+          localStorage.setItem(STORAGE_KEYS.importedUikit, JSON.stringify(files.uikit))
+          localStorage.removeItem(STORAGE_KEYS.editedUikit)
         } catch { }
       }
     }
@@ -1338,17 +1287,6 @@ class VarsStore {
   }
 
   resetAll(toOriginal: boolean = false) {
-    if (toOriginal && this.lsAvailable) {
-      try {
-        localStorage.removeItem(STORAGE_KEYS.editedTokens)
-        localStorage.removeItem(STORAGE_KEYS.editedBrand)
-        localStorage.removeItem(STORAGE_KEYS.editedUikit)
-        localStorage.removeItem(STORAGE_KEYS.originalTokens)
-        localStorage.removeItem(STORAGE_KEYS.originalBrand)
-        localStorage.removeItem(STORAGE_KEYS.originalUikit)
-        localStorage.removeItem('recursica_has_imported')
-      } catch {}
-    }
     // Clear all CSS variables, persisted delta, stored font overrides, and deleted scales
     clearAllCssVars()
     clearStoredFonts()
@@ -1373,23 +1311,38 @@ class VarsStore {
     let nextThemeRaw: any = themeImport
     let nextUikitRaw: any = this.pristineUikit
 
-    if (!toOriginal && this.lsAvailable) {
-      // Revert to imported original state (the imported zip file state)
-      try {
-        const t = localStorage.getItem(STORAGE_KEYS.originalTokens)
-        if (t) nextTokensRaw = JSON.parse(t)
-        const b = localStorage.getItem(STORAGE_KEYS.originalBrand)
-        if (b) nextThemeRaw = JSON.parse(b)
-        const u = localStorage.getItem(STORAGE_KEYS.originalUikit)
-        if (u) nextUikitRaw = JSON.parse(u)
-      } catch {}
-      
-      // Clear ONLY edited keys so the next reload uses original keys
-      try {
-        localStorage.removeItem(STORAGE_KEYS.editedTokens)
-        localStorage.removeItem(STORAGE_KEYS.editedBrand)
-        localStorage.removeItem(STORAGE_KEYS.editedUikit)
-      } catch {}
+    if (toOriginal) {
+      // Reset to app defaults — clear ALL localStorage keys (imported + edited)
+      if (this.lsAvailable) {
+        try {
+          localStorage.removeItem(STORAGE_KEYS.editedTokens)
+          localStorage.removeItem(STORAGE_KEYS.editedBrand)
+          localStorage.removeItem(STORAGE_KEYS.editedUikit)
+          localStorage.removeItem(STORAGE_KEYS.importedTokens)
+          localStorage.removeItem(STORAGE_KEYS.importedBrand)
+          localStorage.removeItem(STORAGE_KEYS.importedUikit)
+          localStorage.removeItem('recursica_has_imported')
+        } catch {}
+      }
+    } else {
+      // Reset to imported state — read imported keys, then clear edited keys
+      if (this.lsAvailable) {
+        try {
+          const t = localStorage.getItem(STORAGE_KEYS.importedTokens)
+          if (t) nextTokensRaw = JSON.parse(t)
+          const b = localStorage.getItem(STORAGE_KEYS.importedBrand)
+          if (b) nextThemeRaw = JSON.parse(b)
+          const u = localStorage.getItem(STORAGE_KEYS.importedUikit)
+          if (u) nextUikitRaw = JSON.parse(u)
+        } catch {}
+
+        // Clear edited keys so next reload picks up the imported snapshot
+        try {
+          localStorage.removeItem(STORAGE_KEYS.editedTokens)
+          localStorage.removeItem(STORAGE_KEYS.editedBrand)
+          localStorage.removeItem(STORAGE_KEYS.editedUikit)
+        } catch {}
+      }
     }
 
     // Reset state from deep-cloned state

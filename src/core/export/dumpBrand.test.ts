@@ -7,7 +7,7 @@ import brandJson from '../../../../recursica_brand.json';
 describe('dump brand', () => {
   it('dumps', () => {
     // initialize store with factory
-    getVarsStore().importTheme(brandJson as any);
+    getVarsStore().bulkImport({ brand: brandJson as any });
     
     // now export
     const exported = exportBrandJson();
