@@ -856,6 +856,12 @@ class VarsStore {
     // Single recompute with all stores updated
     this.recomputeAndApplyAll()
 
+    // Re-derive the dynamic palette list from the imported theme so that
+    // any extra palettes (palette-3, etc.) in the imported brand are recognized.
+    const derivedDynamic = deriveDynamicPalettes(this.state.theme)
+    this.state.palettes = { ...this.state.palettes, dynamic: derivedDynamic }
+    this.emit()
+
     // Save to localStorage: set imported snapshot and clear edited keys.
     // Edited keys will be re-created by writeState as the user makes changes,
     // which allows detectDirtyData to correctly identify modifications since import.

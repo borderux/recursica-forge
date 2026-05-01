@@ -252,7 +252,7 @@ export default function FileInput({
             ) : (
                 <span style={{
                     flex: 1,
-                    overflow: 'hidden',
+                    overflow: 'clip',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     fontFamily: `var(${valueFontFamilyVar})`,

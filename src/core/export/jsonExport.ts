@@ -671,8 +671,8 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
       .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.on\.tone}/g, '{brand.palettes.palette-$1.$2.color.on-tone}')
       .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.tone}/g, '{brand.palettes.palette-$1.$2.color.tone}')
       // Fix refs missing .color: {brand.palettes.X.600.tone} -> {brand.palettes.X.600.color.tone}
-      .replace(/\{brand\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.tone\}/g, '{brand.palettes.$1.$2.color.tone}')
-      .replace(/\{brand\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.on-tone\}/g, '{brand.palettes.$1.$2.color.on-tone}')
+      .replace(/\{brand\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.tone\}/g, '{brand.palettes.$1.$2.color.tone}')
+      .replace(/\{brand\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.on-tone\}/g, '{brand.palettes.$1.$2.color.on-tone}')
       // Fix malformed token references: {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
       .replace(/{tokens\.colors\.scale\.(\d+)-(\d{3,4})}/g, '{tokens.colors.scale-$1.$2}')
       // Sanitize stale/corrupt core-colors refs missing the .tone leaf.
@@ -769,9 +769,9 @@ function normalizeUIKitBrandReferences(obj: any, currentPath: string = ''): any 
       .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.(black|white|alert|warning|success)}/g,
         '{brand.palettes.core-colors.$1.tone}')
       // ── Palette refs missing .color. segment ──
-      .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.tone\}/g,
+      .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.tone\}/g,
         '{brand.palettes.$1.$2.color.tone}')
-      .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.on-tone\}/g,
+      .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.on-tone\}/g,
         '{brand.palettes.$1.$2.color.on-tone}')
       // ── Remove theme prefix from all brand references ──
       .replace(/{brand\.themes\.(light|dark)\./g, '{brand.')

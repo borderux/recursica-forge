@@ -209,13 +209,15 @@ export function ThemeCompliance({ issues, runScan, applySuggestion }: ThemeCompl
 
         const cssUpdates: Record<string, string> = { [tokenCssVar]: newHex }
 
-        if (newOnToneColor && issue.suggestion?.targetCssVar) {
+        if (newOnToneColor) {
             const mode = issue.mode || 'light'
-            const onToneValueJson = `{brand.palettes.core-colors.${newOnToneColor}.tone}`
-            const onToneCssVarValue = `var(--recursica_brand_themes_${mode}_palettes_core-colors_${newOnToneColor}_tone)`
-            const onToneCssVar = issue.suggestion.targetCssVar
-            updateBrandValue(onToneCssVar, onToneValueJson)
-            cssUpdates[onToneCssVar] = onToneCssVarValue
+            const onToneCssVar = issue.suggestion?.targetCssVar || (issue.toneCssVar ? issue.toneCssVar.replace(/_tone$/, '_on-tone') : null)
+            if (onToneCssVar) {
+                const onToneValueJson = `{brand.themes.${mode}.palettes.core-colors.${newOnToneColor}.tone}`
+                const onToneCssVarValue = `var(--recursica_brand_themes_${mode}_palettes_core-colors_${newOnToneColor}_tone)`
+                updateBrandValue(onToneCssVar, onToneValueJson)
+                cssUpdates[onToneCssVar] = onToneCssVarValue
+            }
         }
 
         store.writeCssVarsDirect(cssUpdates)

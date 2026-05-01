@@ -498,6 +498,7 @@ export default function DatePicker({
                 transition: 'box-shadow 0.2s',
                 cursor: state === 'disabled' ? 'default' : 'pointer',
                 justifyContent: labelAlign === 'right' && layout === 'stacked' ? 'flex-end' : 'flex-start',
+                minHeight: `var(${minHeightVar})`,
             }}
         >
             {CalendarIcon && (
@@ -531,7 +532,6 @@ export default function DatePicker({
                     flex: 1,
                     minWidth: 0,
                     maxWidth: '100%',
-                    minHeight: `var(${minHeightVar})`,
                     paddingTop: `var(${verticalPaddingVar})`,
                     paddingBottom: `var(${verticalPaddingVar})`,
                     border: 'none',

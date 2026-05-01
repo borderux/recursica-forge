@@ -58,8 +58,17 @@ export function applySuggestTone(
   const targetCssVar = issue.suggestion?.targetCssVar || (issue.toneCssVar ? issue.toneCssVar.replace(/_tone$/, '_on-tone') : null)
   
   if (newOnToneColor && targetCssVar) {
-    const onToneValueJson = newOnToneColor === 'white' ? '{colors.scale-00.000}' : '{colors.scale-00.1000}'
-    const onToneCssVarValue = newOnToneColor === 'white' ? 'var(--recursica_tokens_colors_scale-00_000)' : 'var(--recursica_tokens_colors_scale-00_1000)'
+    // Determine the mode from the target CSS var path
+    const modeMatch = targetCssVar.match(/themes_(light|dark)/)
+    const mode = modeMatch ? modeMatch[1] : 'light'
+
+    // Use core-color references (white.tone = scale-02.000, black.tone = scale-02.1000)
+    const onToneValueJson = newOnToneColor === 'white'
+      ? `{brand.themes.${mode}.palettes.core-colors.white.tone}`
+      : `{brand.themes.${mode}.palettes.core-colors.black.tone}`
+    const onToneCssVarValue = newOnToneColor === 'white'
+      ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_white_tone)`
+      : `var(--recursica_brand_themes_${mode}_palettes_core-colors_black_tone)`
     
     // Update the brand JSON with JSON ref
     updateBrandValue(targetCssVar, onToneValueJson)

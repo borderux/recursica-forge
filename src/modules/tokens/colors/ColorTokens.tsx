@@ -850,8 +850,23 @@ export default function ColorTokens() {
       updatedFamilyNames[newFamilySlug] = v
       setFamilyNames(updatedFamilyNames)
 
-      // Update CSS var and tokens alias
-      renameFamilyName(family, newFamilySlug, v, tokensJson)
+      // Update the alias in the tokens JSON so flatTokens re-derives correctly
+      const store = getVarsStore()
+      const currentTokens = store.getState().tokens
+      const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
+      const tokensRoot = nextTokens?.tokens || {}
+      const colorsRoot = tokensRoot?.colors || {}
+      const scaleKey = Object.keys(colorsRoot).find(k =>
+        k.startsWith('scale-') && colorsRoot[k]?.alias === family
+      )
+      if (scaleKey) {
+        colorsRoot[scaleKey].alias = newFamilySlug
+        if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
+        setTokens(nextTokens)
+      }
+
+      // Update CSS var display name (uses the now-updated tokens for lookup)
+      renameFamilyName(family, newFamilySlug, v, nextTokens)
 
       // Close picker if open for this family
       if (openPicker && openPicker.tokenName.startsWith(`colors/${family}/`)) {
