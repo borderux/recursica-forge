@@ -569,7 +569,7 @@ export default function ColorTokenPicker() {
 
           // Update on-tone in theme JSON (flat structure)
           coreColors.interactive['on-tone'] = {
-            $value: `{brand.themes.${modeLower}.palettes.core-colors.${defaultOnToneCore}}`
+            $value: `{brand.themes.${modeLower}.palettes.core-colors.${defaultOnToneCore}.tone}`
           }
 
           // Update theme JSON synchronously - CSS vars were already updated above
