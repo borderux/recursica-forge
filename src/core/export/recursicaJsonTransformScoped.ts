@@ -382,11 +382,19 @@ function injectDarkLayer0InteractiveAliases(out: Array<{ path: string; value: un
     const hasColor = paths.has(`${base}.color`)
     const hasHoverColor = paths.has(`${base}.hover-color`)
     const hasTone = paths.has(`${base}.tone`)
+    const hasOnTone = paths.has(`${base}.on-tone`)
+
+    // Legacy support: map old color/hover-color to tone/on-tone
     if (!hasTone && (hasColor || hasHoverColor)) {
       if (hasColor) out.push({ path: `${base}.tone`, value: `{${base}.color}` })
       if (hasHoverColor) out.push({ path: `${base}.tone-hover`, value: `{${base}.hover-color}` })
-      out.push({ path: `${base}.on-tone`, value: '{brand.palettes.palette-1.default.color.on-tone}' })
-      out.push({ path: `${base}.on-tone-hover`, value: '{brand.palettes.palette-1.600.color.on-tone}' })
+      if (!hasOnTone) out.push({ path: `${base}.on-tone`, value: '{brand.palettes.core-colors.interactive.on-tone}' })
+      out.push({ path: `${base}.on-tone-hover`, value: '{brand.palettes.core-colors.interactive.on-tone}' })
+    }
+
+    // Synthesize on-tone from core palette when tone exists but on-tone is missing
+    if (hasTone && !hasOnTone) {
+      out.push({ path: `${base}.on-tone`, value: '{brand.palettes.core-colors.interactive.on-tone}' })
     }
   }
 }
