@@ -1,5 +1,82 @@
 # recursica-forge
 
+## 0.12.0
+
+### Minor Changes
+
+- 92fc6d7: ### State Persistence & Import/Reset Refactor
+
+  - **Consolidated import pipeline**: Removed redundant `importTheme`, `importTokensJson`, `importBrandJson`, `importUIKitJson` methods. All imports now flow through a single `importJsonFiles()` → `store.bulkImport()` path.
+  - **Renamed localStorage keys**: `_original` → `_imported` to accurately distinguish user-imported snapshots from bundled app defaults.
+  - **Fixed import persistence**: `bulkImport` now sets the `recursica_has_imported` flag and clears `edited` keys on import so dirty data detection compares against the correct baseline.
+  - **Init fallback chain**: Startup loads state as `edited` → `imported` → bundled JSON, ensuring page reloads after import preserve imported data.
+  - **Reset modal**: Always shows confirmation on reset. Radio options ("Reset to last imported version" / "Reset to app defaults") appear only when imported data exists in localStorage.
+  - **Dirty data detection**: `detectDirtyData` now compares against imported baseline (when available) instead of always the bundled JSON.
+  - **Old key migration**: One-time migration of legacy `_original` localStorage keys to `_imported` keys.
+
+  ### Compliance & Theme Fixes
+
+  - **Compliance page restructured**: Split into `ThemeCompliance` and `ComponentCompliance` modules with clear `h2`/`h3` hierarchy.
+  - **Dark mode alert on-tones**: Fixed tone/on-tone propagation in dark mode compliance fixes.
+  - **Radio button animation**: Fixed selection animation to originate from the center of the dot.
+  - **Suggest Tones modal**: Updated to use new compliance service patterns.
+
+  ### Export Pipeline Fixes
+
+  - **Dark layer interactive on-tone**: Fixed `injectDarkLayer0InteractiveAliases` in both specific and scoped CSS transforms to synthesize `on-tone` when `tone` exists but `on-tone` is missing in the brand JSON.
+  - **Export validation**: Improved `ValidationErrorModal` and added `ImportValidationErrorModal` for import-time reference validation.
+
+  ### Codebase Cleanup
+
+  - **Purged legacy cssDelta infrastructure**: Removed `cssDelta.ts`, `deltaToJson.ts`, and all delta-related code across UI modules.
+  - **Removed diagnostic instrumentation**: Deleted `dumpBrand.test.ts` and 38+ untracked script files from the project root.
+  - **Removed dead code**: Cleaned up unused fallback logic, legacy color stepping, and redundant localStorage writes.
+
+### Patch Changes
+
+- 740ee93: ## Bug fixes
+
+  ### Base colors grid — interactive color update propagation
+
+  When a new Interactive color was selected via the token picker, the "Interactive" row dots in the other core-color swatches (Black, White, Alert, Warning, Success) did not update immediately. The swatches would only reflect the new color after navigating to Dark mode and back.
+
+  **Root cause:** The code block responsible for immediately writing `--recursica_brand_themes_{mode}_palettes_core_{colorName}_interactive` CSS variables was guarded by:
+
+  ```ts
+  const coreColorsPath =
+    themesForCssVar[modeLower]?.palettes?.["core-colors"]?.$value;
+  ```
+
+  In normal (non-import) usage, `core-colors` in the live theme JSON is a plain object with no `$value` wrapper, so `?.$value` returned `undefined`. The guard was always falsy, the CSS variable update loop never ran, and the Interactive-row dots in every non-interactive column remained at their previous value until a full recompute was forced by a mode switch.
+
+  **Fix (`ColorTokenPicker.tsx`):** Mirror the same fallback pattern already used in `palettes.ts`:
+
+  ```ts
+  const coreColorsRaw = themesForCssVar[modeLower]?.palettes?.["core-colors"];
+  const coreColorsPath = coreColorsRaw?.$value || coreColorsRaw;
+  ```
+
+  ### Base colors grid — "Reset All" did not reset interactive color
+
+  After changing the Interactive column color, clicking **Reset All** restored the tone and on-tone for the five base colors (Black, White, Alert, Warning, Success) but left the Interactive-row dots in each of those columns showing the modified color instead of reverting to the factory value.
+
+  **Root cause:** The `handleResetAll` loop reset `tone` and `on-tone` for each core color from `recursica_brand.json` but never touched the `interactive` property. When the interactive color is changed, `updateCoreColorInteractiveOnTones` writes a per-color `interactive.$value` into the theme for each base color (e.g. `black.interactive.$value = "{tokens.colors.scale-05.900}"`). Because `handleResetAll` skipped this field, the value survived the reset and the subsequent `buildPaletteVars` recompute regenerated the same modified CSS variable.
+
+  **Fix (`BaseColorsGrid.tsx`):** Added a reset block for `interactive` inside the existing per-color loop, parallel to the existing `tone` / `on-tone` resets:
+
+  ```ts
+  if (defaultColor.interactive?.$value) {
+    currentCoreColors[colorName].interactive = {
+      $type: "color",
+      $value: defaultColor.interactive.$value,
+    };
+  } else {
+    delete currentCoreColors[colorName].interactive;
+  }
+  ```
+
+  The default `recursica_brand.json` already contains the factory `interactive.$value` for each core color (e.g. `black → scale-05.300`, `white → scale-05.500`), so the recompute correctly restores the Interactive-row dots to their original values.
+
 ## 0.11.14
 
 ### Patch Changes
