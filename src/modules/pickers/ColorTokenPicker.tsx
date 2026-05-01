@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useVars } from '../vars/VarsContext'
 import { readOverrides } from '../theme/tokenOverrides'
 import { updateCssVar, removeCssVar, clearPendingCssVars, suppressCssVarEvents } from '../../core/css/updateCssVar'
@@ -39,6 +40,14 @@ export default function ColorTokenPicker() {
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
   }, [])
+
+  // Close picker on route navigation
+  const location = useLocation()
+  useEffect(() => {
+    setAnchor(null)
+    setTargetVar(null)
+    setAdditionalTargetVars([])
+  }, [location.pathname])
 
   useEffect(() => {
     try {

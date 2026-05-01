@@ -771,17 +771,25 @@ export default function DimensionTokenSelector({
     }))
   }
 
-  // Handle pixel slider changes
-  const handlePixelChange = (value: number) => {
-    // Update local state so slider position updates immediately
+  // Handle pixel slider drag (local state + real-time CSS preview)
+  const handlePixelDrag = (value: number) => {
     setPixelValue(value)
 
-    // Update CSS vars directly with pixel value
+    // Apply CSS immediately for real-time preview (no event dispatch)
+    const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+    cssVars.forEach(cssVar => {
+      document.documentElement.style.setProperty(cssVar, `${value}px`)
+    })
+  }
+
+  // Handle pixel slider commit (persist to CSS vars on release)
+  const handlePixelCommit = (value: number) => {
+    setPixelValue(value)
+
     const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
     cssVars.forEach(cssVar => {
       updateCssVar(cssVar, `${value}px`)
     })
-    // Dispatch event to notify components of CSS var updates
     window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
       detail: { cssVars }
     }))
@@ -824,8 +832,8 @@ export default function DimensionTokenSelector({
     return (
       <Slider
         value={pixelValue}
-        onChange={(val) => handlePixelChange(typeof val === 'number' ? val : val[0])}
-        onChangeCommitted={(val) => handlePixelChange(typeof val === 'number' ? val : val[0])}
+        onChange={(val) => handlePixelDrag(typeof val === 'number' ? val : val[0])}
+        onChangeCommitted={(val) => handlePixelCommit(typeof val === 'number' ? val : val[0])}
         min={minPixelValue}
         max={maxPixelValue}
         step={1}
@@ -855,8 +863,8 @@ export default function DimensionTokenSelector({
     return (
       <Slider
         value={currentPixelValue}
-        onChange={(val) => handlePixelChange(typeof val === 'number' ? val : val[0])}
-        onChangeCommitted={(val) => handlePixelChange(typeof val === 'number' ? val : val[0])}
+        onChange={(val) => handlePixelDrag(typeof val === 'number' ? val : val[0])}
+        onChangeCommitted={(val) => handlePixelCommit(typeof val === 'number' ? val : val[0])}
         min={currentMinPixelValue}
         max={currentMaxPixelValue}
         step={1}

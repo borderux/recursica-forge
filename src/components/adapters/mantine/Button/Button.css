@@ -139,7 +139,8 @@
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
-  display: block !important;
+  display: inline-flex !important;
+  align-items: center !important;
   text-align: left !important;
   /* Allow label to shrink below content width so ellipsis can trigger */
   flex: 1 1 0 !important;

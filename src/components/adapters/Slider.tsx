@@ -233,15 +233,17 @@ export function Slider({
       window.addEventListener('cssVarsReset', handleCssVarUpdate)
 
       // Also watch for direct style changes using MutationObserver
+      // Debounced to avoid re-render storms during slider drag
+      let mutationTimer: ReturnType<typeof setTimeout> | null = null
       const observer = new MutationObserver(() => {
-        if (thumbElevationVar) {
-          const value = readCssVar(thumbElevationVar)
-          setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
-        }
-        // Force re-render on any style change
-        requestAnimationFrame(() => {
+        if (mutationTimer) clearTimeout(mutationTimer)
+        mutationTimer = setTimeout(() => {
+          if (thumbElevationVar) {
+            const value = readCssVar(thumbElevationVar)
+            setThumbElevationFromVar(value ? parseElevationValue(value) : undefined)
+          }
           forceUpdate(prev => prev + 1)
-        })
+        }, 500)
       })
       observer.observe(document.documentElement, {
         attributes: true,
@@ -251,6 +253,7 @@ export function Slider({
       return () => {
         window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
         window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+        if (mutationTimer) clearTimeout(mutationTimer)
         observer.disconnect()
       }
     }, [thumbElevationVar, trackVar, trackActiveVar, thumbVar, trackHeightVar, thumbSizeVar, trackBorderRadiusVar, thumbBorderRadiusVar, disabledOpacityVar, topBottomMarginVarStacked, topBottomMarginVarSideBySide, layout])
