@@ -10,7 +10,7 @@
 
 import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
-import { removeUIKitValue } from './updateUIKitValue'
+import { removeUIKitValue, updateUIKitValue } from './updateUIKitValue'
 import { getVarsStore } from '../store/varsStore'
 import { checkForGlobalRef } from './globalRefInterceptor'
 import { updateBrandValue } from './updateBrandValue'
@@ -130,6 +130,8 @@ export function updateCssVar(
   // updateBrandValue also clears any stale delta entries for the updated key.
   if (isBrandVar(cssVarName)) {
     updateBrandValue(cssVarName, trimmedValue)
+  } else if (isUIKitVar) {
+    updateUIKitValue(cssVarName, trimmedValue)
   }
 
   // Debounce delta tracking to avoid thrashing during rapid slider movement

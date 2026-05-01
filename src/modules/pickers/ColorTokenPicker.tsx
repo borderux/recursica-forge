@@ -288,8 +288,8 @@ export default function ColorTokenPicker() {
       colorName = colorName.slice(0, -'_tone'.length)
     }
 
-    // If it's the main interactive variable (not interactive_default_tone or interactive_hover_tone), handle it separately
-    if (colorName === 'interactive' && !cssVar.includes('interactive_default_tone') && !cssVar.includes('interactive_hover_tone')) {
+    // If it's the main interactive variable (not interactive_tone or interactive_hover_tone), handle it separately
+    if (colorName === 'interactive' && !cssVar.includes('interactive_tone') && !cssVar.includes('interactive_hover_tone')) {
       // This is the main interactive var (backward compatibility) - treat as interactive-default
       colorName = 'interactive-default'
     }
@@ -381,20 +381,13 @@ export default function ColorTokenPicker() {
 
         if (!coreColors.interactive) {
           coreColors.interactive = {
-            default: { tone: { $value: tokenRef } },
-            hover: { tone: { $value: tokenRef } }
+            tone: { $value: tokenRef },
+            'on-tone': { $value: `{brand.themes.${modeLower}.palettes.core-colors.white.tone}` }
           }
         } else {
-          if (mapping.isHover) {
-            if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
-            if (!coreColors.interactive.hover.tone) coreColors.interactive.hover.tone = {}
-            coreColors.interactive.hover.tone.$value = tokenRef
-          } else {
-            // Update default tone (for both default-tone and main interactive vars)
-            if (!coreColors.interactive.default) coreColors.interactive.default = {}
-            if (!coreColors.interactive.default.tone) coreColors.interactive.default.tone = {}
-            coreColors.interactive.default.tone.$value = tokenRef
-          }
+          // Update tone (flat structure)
+          if (!coreColors.interactive.tone) coreColors.interactive.tone = {}
+          coreColors.interactive.tone.$value = tokenRef
         }
       } else {
         // Simple core color (black, white, alert, warning, success)
@@ -463,7 +456,7 @@ export default function ColorTokenPicker() {
     const isCoreColor = targetVar.startsWith(`--recursica_brand_themes_${modeLower}_palettes_core-colors_`)
 
     // Check if this is an interactive color change
-    const isInteractiveDefault = targetVar === `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_default_tone` ||
+    const isInteractiveDefault = targetVar === `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_tone` ||
       targetVar === `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive`
 
     if (isInteractiveDefault) {
@@ -505,7 +498,7 @@ export default function ColorTokenPicker() {
 
         // Update CSS variable FIRST for immediate visual feedback (before setTheme triggers recompute)
         const tokenCssVar = buildTokenCssVar(family, level)
-        const targetCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_default_tone`
+        const targetCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_tone`
         updateCssVar(targetCssVar, `var(${tokenCssVar})`, tokensJson)
 
 
@@ -553,37 +546,21 @@ export default function ColorTokenPicker() {
 
           const coreColors = themes[modeLower].palettes['core-colors']
           if (!coreColors.interactive) {
-            coreColors.interactive = { default: {}, hover: {} }
+            coreColors.interactive = {}
           }
 
-          // Update tone colors in theme JSON
+          // Update tone in theme JSON (flat structure)
           if (defaultToken) {
             const tokenParts = defaultToken.split('/')
             // Use new format (colors) for token references
             const tokenRef = `{tokens.colors.${tokenParts[1]}.${tokenParts[2]}}`
-            if (!coreColors.interactive.default) coreColors.interactive.default = {}
-            if (!coreColors.interactive.default.tone) coreColors.interactive.default.tone = {}
-            coreColors.interactive.default.tone.$value = tokenRef
+            if (!coreColors.interactive.tone) coreColors.interactive.tone = {}
+            coreColors.interactive.tone.$value = tokenRef
           }
 
-          if (hoverToken) {
-            const tokenParts = hoverToken.split('/')
-            // Use new format (colors) for token references
-            const tokenRef = `{tokens.colors.${tokenParts[1]}.${tokenParts[2]}}`
-            if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
-            if (!coreColors.interactive.hover.tone) coreColors.interactive.hover.tone = {}
-            coreColors.interactive.hover.tone.$value = tokenRef
-          }
-
-          // Update on-tone colors in theme JSON
-          if (!coreColors.interactive.default) coreColors.interactive.default = {}
-          coreColors.interactive.default['on-tone'] = {
+          // Update on-tone in theme JSON (flat structure)
+          coreColors.interactive['on-tone'] = {
             $value: `{brand.themes.${modeLower}.palettes.core-colors.${defaultOnToneCore}}`
-          }
-
-          if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
-          coreColors.interactive.hover['on-tone'] = {
-            $value: `{brand.themes.${modeLower}.palettes.core-colors.${hoverOnToneCore}}`
           }
 
           // Update theme JSON synchronously - CSS vars were already updated above

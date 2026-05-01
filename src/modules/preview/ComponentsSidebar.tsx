@@ -224,14 +224,8 @@ export function ComponentsSidebar({
   }, [currentComponent, componentTree])
 
 
-  // Redirect to first component if on /components without a component name
-  useEffect(() => {
-    if (location.pathname === '/components' && componentTree.length > 0) {
-      const firstNode = componentTree[0]
-      const slug = componentNameToSlug(firstNode.name)
-      navigate(`/components/${slug}`, { replace: true })
-    }
-  }, [location.pathname, componentTree, navigate])
+
+
   const interactiveColor = `--recursica_brand_palettes_core_interactive`
 
   const handleNavClick = (componentName: string) => {

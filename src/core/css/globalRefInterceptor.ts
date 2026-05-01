@@ -47,7 +47,7 @@ export type GlobalRefPreference = 'ask' | 'always-override' | 'always-global'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const PREFERENCE_KEY = 'rf:global-ref-preference'
+const PREFERENCE_KEY = 'recursica_global_ref_preference'
 const DEBOUNCE_MS = 500
 
 // ─── Internal state ───────────────────────────────────────────────────────────

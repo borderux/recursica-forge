@@ -80,6 +80,7 @@ const router = createBrowserRouter([
         path: '/components',
         element: <PreviewPage />,
         children: [
+          { index: true, element: <Navigate to="/components/accordion" replace /> },
           { path: 'popover', element: <Navigate to="/components/hover-card" replace /> },
           { path: ':componentName', element: <ComponentDetailPage /> },
         ],

@@ -204,7 +204,7 @@ export function updateCoreColorInteractiveOnToneForCompliance(
   const modeLower = mode.toLowerCase()
 
   // Get interactive tone reference
-  const interactiveToneVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_default_tone`
+  const interactiveToneVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_interactive_tone`
   const interactiveToneValue = readCssVar(interactiveToneVar)
   const interactiveToneHex = interactiveToneValue
     ? (resolveCssVarToHex(interactiveToneValue, tokenIndex) || '#000000')

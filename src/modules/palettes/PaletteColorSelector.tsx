@@ -1001,7 +1001,7 @@ function FamilyDropdown({
     const { alias } = getFamilyInfo(family)
     const names = getAllFamilyNames()
     const v = names[alias]
-    if (typeof v === 'string' && v.trim()) return v
+    if (typeof v === 'string' && v.trim()) return titleCase(v)
     return titleCase(alias)
   }
 

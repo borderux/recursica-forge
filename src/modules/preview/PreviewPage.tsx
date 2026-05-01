@@ -1,5 +1,5 @@
-import { useState, useEffect, createContext, useContext } from 'react'
-import { Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { useState, createContext, useContext } from 'react'
+import { Outlet } from 'react-router-dom'
 import { ComponentsSidebar } from './ComponentsSidebar'
 
 const DebugModeContext = createContext<{
@@ -17,16 +17,7 @@ export function useDebugMode() {
 
 export default function PreviewPage() {
   const [debugMode, setDebugMode] = useState(false)
-  const navigate = useNavigate()
-  const location = useLocation()
 
-  // Redirect to first component if on /components without a component name
-  useEffect(() => {
-    if (location.pathname === '/components') {
-      // Will redirect after sidebar loads and determines first component
-      // This is handled in ComponentsSidebar
-    }
-  }, [location.pathname, navigate])
 
   return (
     <DebugModeContext.Provider value={{ debugMode, setDebugMode }}>

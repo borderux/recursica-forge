@@ -17,14 +17,14 @@ const ThemeModeContext = createContext<ThemeModeContextValue | undefined>(undefi
 
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>(() => {
-    const saved = typeof window !== 'undefined' ? (localStorage.getItem('theme-mode') as ThemeMode | null) : null
+    const saved = typeof window !== 'undefined' ? (localStorage.getItem('recursica_theme_mode') as ThemeMode | null) : null
     return saved ?? 'light'
   })
 
   const setMode = (next: ThemeMode) => {
     setModeState(next)
     try {
-      localStorage.setItem('theme-mode', next)
+      localStorage.setItem('recursica_theme_mode', next)
       // Update varsStore to switch mode and regenerate CSS vars
       getVarsStore().switchMode(next)
       // Set data attributes on html element for CSS targeting
@@ -47,6 +47,16 @@ export function ThemeModeProvider({ children }: { children: ReactNode }) {
       if (!document.documentElement.hasAttribute('data-recursica-layer')) {
         document.documentElement.setAttribute('data-recursica-layer', '0')
       }
+    }
+    
+    // Listen for global reset to ensure we always fall back to light mode on factory reset
+    const handleThemeReset = () => {
+      setMode('light')
+    }
+    window.addEventListener('themeReset', handleThemeReset)
+    
+    return () => {
+      window.removeEventListener('themeReset', handleThemeReset)
     }
   }, []) // Only run on mount
 

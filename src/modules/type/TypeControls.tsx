@@ -7,7 +7,7 @@
 import { useMemo, useState } from 'react'
 import { getVarsStore } from '../../core/store/varsStore'
 
-const CHOICES_KEY = 'type-token-choices'
+const CHOICES_KEY = 'recursica_type_token_choices'
 
 export function readChoices(): Record<string, { family?: string; size?: string; weight?: string; spacing?: string; lineHeight?: string }> {
   try { const raw = localStorage.getItem(CHOICES_KEY); if (raw) return JSON.parse(raw) } catch {}

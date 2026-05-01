@@ -419,7 +419,7 @@ export function storeCustomFont(
   fontSource?: { type: 'npm' | 'git'; url: string }
 ): void {
   try {
-    const customFonts = JSON.parse(localStorage.getItem('custom-fonts') || '[]') as Array<{
+    const customFonts = JSON.parse(localStorage.getItem('recursica_custom_fonts') || '[]') as Array<{
       name: string
       fileName?: string
       source?: { type: 'npm' | 'git'; url: string }
@@ -441,7 +441,7 @@ export function storeCustomFont(
       customFonts.push(fontData)
     }
 
-    localStorage.setItem('custom-fonts', JSON.stringify(customFonts))
+    localStorage.setItem('recursica_custom_fonts', JSON.stringify(customFonts))
   } catch (e) {
     console.warn('Failed to store custom font:', e)
   }
@@ -457,7 +457,7 @@ export function getStoredCustomFonts(): Array<{
   addedAt: number
 }> {
   try {
-    return JSON.parse(localStorage.getItem('custom-fonts') || '[]')
+    return JSON.parse(localStorage.getItem('recursica_custom_fonts') || '[]')
   } catch {
     return []
   }
@@ -740,7 +740,7 @@ export function clearCustomFonts(): void {
     })
 
     // Clear localStorage
-    localStorage.removeItem('custom-fonts')
+    localStorage.removeItem('recursica_custom_fonts')
   } catch (e) {
     console.warn('Failed to clear custom fonts:', e)
   }

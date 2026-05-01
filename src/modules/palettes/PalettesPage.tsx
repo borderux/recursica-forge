@@ -998,23 +998,7 @@ export default function PalettesPage() {
   }, [])
 
   const getPaletteAliasName = (pk: string, defaultLevel?: number | string) => {
-    const baseName = pk === 'neutral' ? 'Neutral' : pk.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-    const defaultCssVar = palette(mode.toLowerCase(), pk, String(defaultLevel || 500), 'color_tone')
-    const rawVal = readCssVar(defaultCssVar)
-    if (rawVal) {
-      const parsedColor = extractColorToken(rawVal)
-      if (parsedColor && parsedColor.family) {
-        const colorsRoot: any = (tokensJson as any)?.tokens?.colors || {}
-        const scaleAlias = colorsRoot[parsedColor.family]?.alias || parsedColor.family
-        const allNames = getAllFamilyNames(tokensJson)
-        const mappedName = allNames[scaleAlias] || scaleAlias
-        if (mappedName) {
-          const aliasName = mappedName.split(' ').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-          return `${baseName} (${aliasName})`
-        }
-      }
-    }
-    return baseName
+    return pk === 'neutral' ? 'Neutral' : pk.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
   return (

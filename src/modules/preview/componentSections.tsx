@@ -479,7 +479,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/badge`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'flex', gap: 8 }}>
-          <span style={{ background: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
+          <span style={{ background: `var(--recursica_brand_palettes_core_interactive_tone)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>New</span>
           <span style={{ background: `var(--recursica_brand_palettes_core_warning)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Warn</span>
           <span style={{ background: `var(--recursica_brand_palettes_core_success)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 8px', fontSize: 12 }}>Success</span>
         </div>
@@ -927,8 +927,8 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           <span style={{ border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 999, padding: '2px 10px' }}>Default Chip</span>
           <span style={{ border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 999, padding: '2px 10px', cursor: 'pointer' }}>Clickable</span>
           <span style={{ border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, borderRadius: 999, padding: '2px 10px' }}>Deletable ✕</span>
-          <span style={{ background: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 10px' }}>Primary</span>
-          <span style={{ border: `1px solid var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
+          <span style={{ background: `var(--recursica_brand_palettes_core_interactive_tone)`, color: `var(--recursica_brand_palettes_core_white)`, borderRadius: 999, padding: '2px 10px' }}>Primary</span>
+          <span style={{ border: `1px solid var(--recursica_brand_palettes_core_interactive_tone)`, color: `var(--recursica_brand_palettes_core_interactive_tone)`, borderRadius: 999, padding: '2px 10px' }}>Secondary Outlined</span>
         </div>
       ),
     },
@@ -1062,7 +1062,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/segmented-control`,
       render: (_selectedLayers: Set<LayerOption>) => (
         <div style={{ display: 'inline-flex', border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 999, overflow: 'hidden' }}>
-          <button style={{ padding: '6px 10px', background: `var(--recursica_brand_palettes_core_interactive_default_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, border: 0 }}>First</button>
+          <button style={{ padding: '6px 10px', background: `var(--recursica_brand_palettes_core_interactive_tone)`, color: `var(--recursica_brand_palettes_core_white)`, border: 0 }}>First</button>
           <button style={{ padding: '6px 10px', border: 0 }}>Second</button>
           <button style={{ padding: '6px 10px', border: 0 }}>Third</button>
         </div>
@@ -1125,7 +1125,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         <ol style={{ display: 'flex', gap: 12, listStyle: 'none', padding: 0 }}>
           {['One', 'Two', 'Three'].map((s, i) => (
             <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? `var(--recursica_brand_palettes_core_interactive_default_color_tone)` : `var(--recursica_brand_palettes_neutral_300_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: i === 1 ? `var(--recursica_brand_palettes_core_interactive_tone)` : `var(--recursica_brand_palettes_neutral_300_color_tone)`, color: `var(--recursica_brand_palettes_core_white)`, display: 'grid', placeItems: 'center', fontSize: 12 }}>{i + 1}</span>
               <span>{s}</span>
             </li>
           ))}

@@ -431,34 +431,11 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
           if (swatches.length === 0) return null
 
-          let aliasStr = ''
-          try {
-            const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
-            const themes = root?.themes || root
-            const pal: any = themes?.[modeLower]?.palettes?.[pk] || themes?.[modeLower]?.palette?.[pk] || {}
-            
-            const palNode = pal['500'] || pal['default']
-            const toneRef = palNode?.color?.tone?.$value || palNode?.tone?.$value || palNode?.$value
-            if (typeof toneRef === 'string') {
-              const match = toneRef.match(/colors\.([^.]+)\./) || toneRef.match(/color\.([^.]+)\./)
-              if (match) {
-                const family = match[1]
-                const tokensRoot: any = (tokensJson as any)?.tokens?.colors || (tokensJson as any)?.colors || {}
-                const familyObj = tokensRoot[family]
-                if (familyObj && familyObj.alias) {
-                  aliasStr = ` (${familyObj.alias})`
-                }
-              }
-            }
-          } catch {}
-
           let displayName = pk.replace(/-/g, ' ')
           if (pk === 'neutral') {
-            displayName = `Neutral${aliasStr}`
+            displayName = 'Neutral'
           } else if (pk.startsWith('palette-')) {
-            displayName = pk.replace(/^palette-/, 'Palette ') + aliasStr
-          } else {
-            displayName += aliasStr
+            displayName = pk.replace(/^palette-/, 'Palette ')
           }
 
           return (

@@ -9,6 +9,7 @@
 
 import { getVarsStore } from '../store/varsStore'
 import { tokenColors } from '../css/cssVarBuilder'
+import { updateBrandValue } from '../css/updateBrandValue'
 import { traceToTokenRef } from './layerColorStepping'
 import type { ComplianceIssue } from './ComplianceService'
 
@@ -17,6 +18,7 @@ export function applySuggestTone(
   newHex: string,
   family: string,
   level: string,
+  newOnToneColor?: 'white' | 'black'
 ): void {
   const store = getVarsStore()
   const tokens = store.getState().tokens
@@ -44,12 +46,32 @@ export function applySuggestTone(
     : String(resolvedLevel).padStart(3, '0')
 
   const tokenCssVar = tokenColors(resolvedFamily, normalizedLevel)
-  document.documentElement.style.setProperty(tokenCssVar, newHex)
+  
+  // 1. Manually update tokens JSON so it's persisted for export
   store.setTokensSilent(tokensCopy)
 
-  // Re-apply after recompute settles
+  const cssUpdates: Record<string, string> = {
+    [tokenCssVar]: newHex
+  }
+
+  // 2. If the UI indicated that the on-tone needs to flip, update the brand value
+  const targetCssVar = issue.suggestion?.targetCssVar || (issue.toneCssVar ? issue.toneCssVar.replace(/_tone$/, '_on-tone') : null)
+  
+  if (newOnToneColor && targetCssVar) {
+    const onToneValueJson = newOnToneColor === 'white' ? '{colors.scale-00.000}' : '{colors.scale-00.1000}'
+    const onToneCssVarValue = newOnToneColor === 'white' ? 'var(--recursica_tokens_colors_scale-00_000)' : 'var(--recursica_tokens_colors_scale-00_1000)'
+    
+    // Update the brand JSON with JSON ref
+    updateBrandValue(targetCssVar, onToneValueJson)
+    // Update the DOM with CSS var ref to pass validation
+    cssUpdates[targetCssVar] = onToneCssVarValue
+  }
+
+  // 3. Use writeCssVarsDirect to update DOM, track delta, and trigger compliance scan
+  store.writeCssVarsDirect(cssUpdates)
+
+  // 4. Trigger UI update
   setTimeout(() => {
-    document.documentElement.style.setProperty(tokenCssVar, newHex)
     window.dispatchEvent(new CustomEvent('paletteVarsChanged'))
-  }, 500)
+  }, 100)
 }

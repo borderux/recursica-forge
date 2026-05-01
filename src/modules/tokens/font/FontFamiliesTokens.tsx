@@ -248,7 +248,7 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           const fontStack = `${quotedName}, ${category || 'sans-serif'}`
           updateToken(`font/typeface/${sequentialName}`, fontStack)
 
-          // Update variants in tokensJson (not part of rf:fonts yet)
+          // Update variants in tokensJson (not part of recursica_fonts yet)
           // Variants are handled at the root font level
           if (variants) {
             try {
@@ -403,7 +403,7 @@ export default function FontFamiliesTokens() {
     return () => window.removeEventListener('tokenOverridesChanged', handler)
   }, [tokensJson])
 
-  // After an import the store dispatches 'fontsImported'.  At that point rf:fonts
+  // After an import the store dispatches 'fontsImported'.  At that point recursica_fonts
   // and window.__fontUrlMap are already updated.  Call loadFontsFromStore() which
   // iterates over the stored entries and injects the correct <link> stylesheet for
   // each font (including newly-imported Google Fonts with custom URLs).
@@ -1166,7 +1166,7 @@ export default function FontFamiliesTokens() {
             const newKey = sequence || oldKey
             const store = getVarsStore()
 
-            // Handle sequence change: sequence is owned by rf:fonts (id field) and brand.fonts.
+            // Handle sequence change: sequence is owned by recursica_fonts (id field) and brand.fonts.
             // typefaces are slug-keyed and never need to move — only the id mapping changes.
             if (newKey !== oldKey) {
               const fonts = getStoredFonts()

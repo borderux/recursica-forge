@@ -19,10 +19,13 @@ import { Dropdown } from "../../../components/adapters/Dropdown";
 import { Modal } from "../../../components/adapters/Modal";
 import "@mantine/core/styles.css";
 import "./MantineShell.css";
+import { RadioButtonGroup } from "../../../components/adapters/RadioButtonGroup";
+import { RadioButtonItem } from "../../../components/adapters/RadioButtonItem";
 import { iconNameToReactComponent } from "../../components/iconUtils";
 import { clearOverrides } from "../../theme/tokenOverrides";
 import tokensJson from "../../../../recursica_tokens.json";
 import { useVars } from "../../vars/VarsContext";
+import { getVarsStore } from "../../../core/store/varsStore";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { UiKit } from "../../uikit/UiKitContext";
 import { useThemeMode } from "../../theme/ThemeModeContext";
@@ -412,9 +415,7 @@ export default function MantineShell({
                     ) : null;
                   })()}
                   onClick={() => {
-                    const hasImported = !!localStorage.getItem('rf:imported-tokens') || 
-                                        !!localStorage.getItem('rf:imported-brand') || 
-                                        !!localStorage.getItem('rf:imported-uikit');
+                    const hasImported = getVarsStore().hasUserImportedFiles();
                     setHasImportedFiles(hasImported);
                     setResetTarget(hasImported ? 'imported' : 'original');
                     setShowResetConfirm(true);
@@ -781,18 +782,21 @@ export default function MantineShell({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <p style={{ margin: 0 }}>Are you sure you want to reset your changes?</p>
               {hasImportedFiles && (
-                <Radio.Group
-                  value={resetTarget}
-                  onChange={(val) => setResetTarget(val as 'imported' | 'original')}
-                  name="resetTarget"
+                <RadioButtonGroup
                   label="Reset destination"
-                  withAsterisk
+                  required
                 >
-                  <Group mt="xs" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px' }}>
-                    <Radio value="imported" label="Reset to last import" />
-                    <Radio value="original" label="Reset to original factory defaults" />
-                  </Group>
-                </Radio.Group>
+                  <RadioButtonItem 
+                    selected={resetTarget === 'imported'} 
+                    onChange={() => setResetTarget('imported')} 
+                    label="Reset to last import" 
+                  />
+                  <RadioButtonItem 
+                    selected={resetTarget === 'original'} 
+                    onChange={() => setResetTarget('original')} 
+                    label="Reset to original factory defaults" 
+                  />
+                </RadioButtonGroup>
               )}
             </div>
           }

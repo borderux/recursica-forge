@@ -184,27 +184,13 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
       const coreColorsRaw: any = themes?.[modeLower]?.palettes?.['core-colors'] || themes?.[modeLower]?.palettes?.core || {}
       const coreColorsObj: any = coreColorsRaw?.$value || coreColorsRaw || {}
       
-      // Add interactive colors (default and hover states)
+      // Add interactive color (flat structure: tone directly under interactive)
       if (coreColorsObj?.interactive) {
         const interactive = coreColorsObj.interactive
-        if (interactive.default?.tone) {
-          colors.push({
-            key: 'interactive-default',
-            cssVar: paletteCore(modeLower, 'interactive-default-tone'),
-            label: 'Interactive / Default'
-          })
-        }
-        if (interactive.hover?.tone) {
-          colors.push({
-            key: 'interactive-hover',
-            cssVar: paletteCore(modeLower, 'interactive-hover-tone'),
-            label: 'Interactive / Hover'
-          })
-        }
-        if (!interactive.default && !interactive.hover && interactive.tone) {
+        if (interactive.tone) {
           colors.push({
             key: 'interactive',
-            cssVar: paletteCore(modeLower, 'interactive'),
+            cssVar: paletteCore(modeLower, 'interactive-tone'),
             label: 'Interactive'
           })
         }
@@ -298,16 +284,11 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
           if (!themes[modeKey].states) themes[modeKey].states = {}
           if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
           
-          // Handle interactive colors with states
-          if (coreColorKey === 'interactive-default') {
+          // Handle interactive colors
+          if (coreColorKey === 'interactive') {
             themes[modeKey].states.overlay.color = {
               $type: 'color',
-              $value: `{brand.themes.${modeKey}.palettes.core-colors.interactive.default.tone}`
-            }
-          } else if (coreColorKey === 'interactive-hover') {
-            themes[modeKey].states.overlay.color = {
-              $type: 'color',
-              $value: `{brand.themes.${modeKey}.palettes.core-colors.interactive.hover.tone}`
+              $value: `{brand.themes.${modeKey}.palettes.core-colors.interactive.tone}`
             }
           } else {
             // For non-interactive core colors (black, white, alert, warning, success),

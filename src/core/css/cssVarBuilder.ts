@@ -345,9 +345,20 @@ export function cssVarToRef(value: string): string | null {
       })
     }
     
-    // Core color aliases
+    // Core color aliases: `palettes.core.` → `palettes.core-colors.`
     if (joined.includes('.palettes.core.')) {
       joined = joined.replace(/\.palettes\.core\./, '.palettes.core-colors.')
+    }
+
+    // Core-colors de-flattening: compound keys like `success-tone`, `success-on-tone`,
+    // `interactive-tone`, `interactive-on-tone` must be split into their
+    // correct nested JSON paths. The CSS var builder collapses `core-colors.{key}.{prop}`
+    // into `core_{key}-{prop}` (a single segment), which this transform reverses.
+    if (joined.includes('.palettes.core-colors.')) {
+      // interactive-tone and interactive-on-tone (flat structure)
+      joined = joined.replace(/\.palettes\.core-colors\.(interactive)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
+      // {colorKey}-tone and {colorKey}-on-tone (alert, warning, success, black, white)
+      joined = joined.replace(/\.palettes\.core-colors\.(alert|warning|success|black|white)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
     }
 
     return `{${joined}}`

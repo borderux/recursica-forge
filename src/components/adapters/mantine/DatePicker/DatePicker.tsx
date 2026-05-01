@@ -347,7 +347,7 @@ export default function DatePicker({
     // Year dropdown items (memoized based on current view year)
     const yearDropdownItems = useMemo(() => getYearDropdownItems(new Date().getFullYear()), [])
 
-    const accentColorVar = `--recursica_brand_palettes_core_interactive_default_color_tone`
+    const accentColorVar = `--recursica_brand_palettes_core_interactive_tone`
     const textLowEmphasisVar = genericLayerText(1, 'low-emphasis')
 
     // Calendar popover content

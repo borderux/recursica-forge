@@ -34,7 +34,7 @@ import {
 } from "../export/EXPORT_FILENAMES";
 import { detectJsonFileType } from "./jsonImport";
 
-const IMPORT_MODE_STORAGE_KEY = "rf:import:preferredMode";
+const IMPORT_MODE_STORAGE_KEY = "recursica_import_preferredMode";
 
 type ImportMode = "local" | "github";
 type GitHubStep = "auth" | "repositories" | "fetch-files";

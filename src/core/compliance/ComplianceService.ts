@@ -46,12 +46,35 @@ export interface ComplianceIssue {
     componentName?: string
 }
 
+/** Result of a contrast check for a single mode */
+export interface ModeResult {
+    bgHex: string
+    fgHex: string
+    contrastRatio: number
+    passes: boolean
+}
+
+/** Deduplicated component compliance issue showing both modes */
+export interface ComponentComplianceIssue {
+    id: string
+    componentName: string
+    location: string
+    /** The foreground CSS var (mode placeholder replaced) */
+    fgCssVarPattern: string
+    /** The background CSS var (mode placeholder replaced) */
+    bgCssVarPattern: string
+    light: ModeResult
+    dark: ModeResult
+    suggestion: SuggestedFix | null
+}
+
 // ─── Service ───
 
 const AA_THRESHOLD = 4.5
 
 class ComplianceServiceImpl {
     private issues: ComplianceIssue[] = []
+    private _componentIssues: ComponentComplianceIssue[] = []
     private scanTimeout: ReturnType<typeof setTimeout> | null = null
     private isScanning = false
 
@@ -76,7 +99,7 @@ class ComplianceServiceImpl {
 
     /**
      * Run a full compliance scan. Called on trigger events.
-     * Returns the issues found.
+     * Returns the theme issues found. Component issues are stored separately.
      */
     runFullScan(): ComplianceIssue[] {
         if (!this.getTokens || !this.getTheme) return this.issues
@@ -104,15 +127,16 @@ class ComplianceServiceImpl {
 
                 // 5. Check layer interactive colors
                 this.checkLayerInteractiveColors(newIssues, tokenIndex, tokens, mode)
-
-                // 6. Check component text/icon vs background contrast
-                this.checkComponentTextColors(newIssues, tokenIndex, tokens, mode)
             }
+
+            // 6. Component text/icon vs background — dual-mode scan
+            this._componentIssues = this.checkComponentTextColorsDualMode(tokenIndex, tokens)
 
             this.issues = newIssues
             // Emit event for React consumers
+            const totalCount = newIssues.length + this._componentIssues.length
             window.dispatchEvent(new CustomEvent('complianceIssuesChanged', {
-                detail: { issueCount: newIssues.length }
+                detail: { issueCount: totalCount }
             }))
 
             return newIssues
@@ -139,8 +163,18 @@ class ComplianceServiceImpl {
         return this.issues
     }
 
+    /** Theme issues only (palette, core, layer) */
+    getThemeIssues(): ComplianceIssue[] {
+        return this.issues
+    }
+
+    /** Deduplicated dual-mode component issues */
+    getComponentIssues(): ComponentComplianceIssue[] {
+        return this._componentIssues
+    }
+
     getIssueCount(): number {
-        return this.issues.length
+        return this.issues.length + this._componentIssues.length
     }
 
     /**
@@ -324,8 +358,8 @@ class ComplianceServiceImpl {
         const simpleCoreColors = ['alert', 'warning', 'success', 'black', 'white']
 
         simpleCoreColors.forEach((colorKey) => {
-            const toneVar = `--recursica_brand_themes_${mode}_palettes_core_${colorKey}-tone`
-            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core_${colorKey}-on-tone`
+            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_tone`
+            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_on-tone`
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -383,6 +417,34 @@ class ComplianceServiceImpl {
                     }
                 }
             }
+
+            // Check interactive color
+            const interactiveVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_interactive`
+            const interactiveValue = readCssVar(interactiveVar)
+            if (interactiveValue) {
+                const interactiveHex = resolveCssVarToHex(interactiveValue, tokenIndex as any)
+                if (interactiveHex) {
+                    const intRatio = contrastRatio(toneHex, interactiveHex)
+                    if (intRatio < AA_THRESHOLD) {
+                        const suggestion = this.generateSteppedColorSuggestion(interactiveHex, toneHex, interactiveVar, tokens, mode)
+                        issues.push({
+                            id: `core-${colorKey}-interactive-${mode}`,
+                            type: 'core-on-tone',
+                            mode,
+                            location: `Core / ${colorKey.charAt(0).toUpperCase() + colorKey.slice(1)}`,
+                            
+                            toneHex,
+                            onToneHex: interactiveHex,
+                            rawOnToneHex: interactiveHex,
+                            contrastRatio: intRatio,
+                            requiredRatio: AA_THRESHOLD,
+                            message: `Interactive color contrast ratio ${intRatio.toFixed(2)}:1 < ${AA_THRESHOLD}:1`,
+                            suggestion,
+                            toneCssVar: toneVar
+                        })
+                    }
+                }
+            }
         })
 
         // Interactive core colors: default and hover variants
@@ -392,8 +454,8 @@ class ComplianceServiceImpl {
         ]
 
         interactiveVariants.forEach(({ variant, label }) => {
-            const toneVar = `--recursica_brand_themes_${mode}_palettes_core_interactive-${variant}-tone`
-            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core_interactive-${variant}-on-tone`
+            const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_tone`
+            const onToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_${variant}_on-tone`
 
             const toneValue = readCssVar(toneVar)
             const onToneValue = readCssVar(onToneVar)
@@ -605,6 +667,38 @@ class ComplianceServiceImpl {
                     }
                 }
             }
+
+            // Check interactive hover tone vs on-tone-hover
+            const iToneHoverVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_interactive-tone-hover`
+            const iOnToneHoverVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_interactive-on-tone-hover`
+            const iToneHoverValue = readCssVar(iToneHoverVar)
+            const iOnToneHoverValue = readCssVar(iOnToneHoverVar)
+            if (iToneHoverValue && iOnToneHoverValue) {
+                const iToneHoverHex = resolveCssVarToHex(iToneHoverValue, tokenIndex as any)
+                const iOnToneHoverHex = resolveCssVarToHex(iOnToneHoverValue, tokenIndex as any)
+                if (iToneHoverHex && iOnToneHoverHex) {
+                    const ratioHover = contrastRatio(iToneHoverHex, iOnToneHoverHex)
+                    if (ratioHover < AA_THRESHOLD) {
+                        const suggestionHover = this.generateSteppedColorSuggestion(
+                            iOnToneHoverHex, iToneHoverHex, iOnToneHoverVar, tokens, mode
+                        )
+                        issues.push({
+                            id: `layer-${layer}-interactive-ontone-hover-${mode}`,
+                            type: 'layer-interactive',
+                            mode,
+                            location: `Layer ${layer} / Interactive hover on-tone`,
+                            toneHex: iToneHoverHex,
+                            onToneHex: iOnToneHoverHex,
+                            rawOnToneHex: iOnToneHoverHex,
+                            contrastRatio: ratioHover,
+                            requiredRatio: AA_THRESHOLD,
+                            message: `Interactive hover on-tone contrast ${ratioHover.toFixed(2)}:1 is below ${AA_THRESHOLD}:1`,
+                            suggestion: suggestionHover,
+                            toneCssVar: iToneHoverVar
+                        })
+                    }
+                }
+            }
         }
     }
 
@@ -716,12 +810,70 @@ class ComplianceServiceImpl {
      *  2. Try black and white token values
      *  3. If nothing passes, return null (changing the background is out of scope)
      */
+
+    private getSemanticPairSuggestion(
+        bgValue: string,
+        targetCssVar: string,
+        mode: 'light' | 'dark',
+        tokens: JsonLike,
+    ): SuggestedFix | null {
+        let suggestedVarRef: string | null = null;
+        let desc = '';
+
+        if (!bgValue || !bgValue.includes('var(')) return null;
+        
+        // Convert to generic mode-less token path if it contains themes_{mode}
+        let genericBgValue = bgValue;
+        if (bgValue.includes(`_themes_${mode}_`)) {
+            genericBgValue = bgValue.replace(`_themes_${mode}_`, '_');
+        }
+
+        if (bgValue.includes('_palettes_core_') || bgValue.includes('_palettes_core-colors_')) {
+            if (bgValue.endsWith('_tone)')) {
+                suggestedVarRef = bgValue.replace('_tone)', '_on-tone)');
+                const parts = bgValue.split('_');
+                const colorName = parts[parts.length - 2];
+                desc = `Use semantic pair: ${colorName} on-tone`;
+            }
+        } else if (bgValue.includes('_layers_layer-')) {
+            if (bgValue.endsWith('_properties_surface)')) {
+                suggestedVarRef = bgValue.replace('_properties_surface)', '_elements_text-color)');
+                const layerName = bgValue.split('_layers_')[1].split('_')[0];
+                desc = `Use semantic pair: ${layerName} text color`;
+            } else if (bgValue.endsWith('_elements_interactive_tone)')) {
+                suggestedVarRef = bgValue.replace('_elements_interactive_tone)', '_elements_interactive_on-tone)');
+                const layerName = bgValue.split('_layers_')[1].split('_')[0];
+                desc = `Use semantic pair: ${layerName} interactive on-tone`;
+            }
+        } else if (bgValue.includes('_palettes_palette-')) {
+            if (bgValue.endsWith('_color_tone)')) {
+                suggestedVarRef = bgValue.replace('_color_tone)', '_color_on-tone)');
+                desc = `Use semantic pair: palette on-tone`;
+            }
+        }
+
+        if (suggestedVarRef) {
+            const tokenIndex = this.getTokens ? buildTokenIndex(this.getTokens()) : null;
+            const suggestedHex = tokenIndex ? resolveCssVarToHex(suggestedVarRef, tokenIndex) : '#000000';
+            return {
+                description: desc,
+                targetCssVar,
+                suggestedValue: suggestedVarRef,
+                suggestedHex: suggestedHex || '#000000',
+                resultingRatio: 4.5 // Placeholder, semantic pairing implies AA compliance
+            };
+        }
+        return null;
+    }
+
     private generateSteppedColorSuggestion(
         foregroundHex: string,
         backgroundHex: string,
         targetCssVar: string,
         tokens: JsonLike,
-        _mode: 'light' | 'dark'
+        _mode: 'light' | 'dark',
+        otherBackgroundHex?: string,
+        strictPalette: boolean = false
     ): SuggestedFix | null {
         try {
             // 1. Try all levels in the foreground's family (tracing the var to find the correct family)
@@ -730,7 +882,7 @@ class ComplianceServiceImpl {
                 ? getAllFamilyColorsByKey(traced.family, tokens)
                 : getAllFamilyColors(foregroundHex, tokens)
             
-            const candidate = this.findBestPassingColor(familyColors, backgroundHex, foregroundHex)
+            const candidate = this.findBestPassingColor(familyColors, backgroundHex, foregroundHex, 1, otherBackgroundHex)
             if (candidate) {
                 const cssVarRef = hexToCssVarRef(candidate.hex, tokens)
                 if (cssVarRef) {
@@ -748,9 +900,11 @@ class ComplianceServiceImpl {
                 }
             }
 
-            // 2. Try black and white
-            const bwResult = this.tryBlackWhiteTokens(backgroundHex, targetCssVar, tokens)
-            if (bwResult) return bwResult
+            if (!strictPalette) {
+                // 2. Try black and white
+                const bwResult = this.tryBlackWhiteTokens(backgroundHex, targetCssVar, tokens, 1, otherBackgroundHex)
+                if (bwResult) return bwResult
+            }
 
             return null
         } catch {
@@ -767,7 +921,8 @@ class ComplianceServiceImpl {
         candidates: { hex: string; family: string; level: string }[],
         surfaceHex: string,
         originalHex: string,
-        emphasisOpacity: number = 1
+        emphasisOpacity: number = 1,
+        otherSurfaceHex?: string
     ): { hex: string; family: string; level: string } | null {
         let best: { hex: string; family: string; level: string } | null = null
         let bestDistance = Infinity
@@ -778,9 +933,19 @@ class ComplianceServiceImpl {
                 ? (blendHexWithOpacity(c.hex, surfaceHex, emphasisOpacity) || c.hex)
                 : c.hex
             const ratio = contrastRatio(surfaceHex, effectiveHex)
-            if (ratio >= AA_THRESHOLD) {
+            
+            let passesOther = true;
+            if (otherSurfaceHex) {
+                const otherEffectiveHex = emphasisOpacity < 1
+                    ? (blendHexWithOpacity(c.hex, otherSurfaceHex, emphasisOpacity) || c.hex)
+                    : c.hex
+                const otherRatio = contrastRatio(otherSurfaceHex, otherEffectiveHex)
+                if (otherRatio < 4.5) passesOther = false;
+            }
+
+            if (ratio >= 4.5 && passesOther) {
                 // Prefer the candidate closest to the threshold
-                const dist = Math.abs(ratio - AA_THRESHOLD)
+                const dist = Math.abs(ratio - 4.5)
                 if (dist < bestDistance) {
                     bestDistance = dist
                     best = c
@@ -800,40 +965,80 @@ class ComplianceServiceImpl {
         surfaceHex: string,
         targetCssVar: string,
         tokens: JsonLike,
-        emphasisOpacity: number = 1
+        emphasisOpacity: number = 1,
+        otherSurfaceHex?: string
     ): SuggestedFix | null {
-        // Blend black/white at emphasis opacity before checking contrast
-        const effectiveBlack = emphasisOpacity < 1
-            ? (blendHexWithOpacity('#000000', surfaceHex, emphasisOpacity) || '#000000')
-            : '#000000'
-        const effectiveWhite = emphasisOpacity < 1
-            ? (blendHexWithOpacity('#ffffff', surfaceHex, emphasisOpacity) || '#ffffff')
-            : '#ffffff'
+        const modeMatch = targetCssVar.match(/_themes_(light|dark)_/);
+        const mode = modeMatch ? modeMatch[1] : 'light';
+        
+        let actualBlackHex = '#000000';
+        let actualWhiteHex = '#ffffff';
 
-        const blackContrast = contrastRatio(surfaceHex, effectiveBlack)
-        const whiteContrast = contrastRatio(surfaceHex, effectiveWhite)
-
-        // Try whichever has better contrast first
-        const attempts: { hex: string; label: string; ratio: number }[] = blackContrast >= whiteContrast
-            ? [{ hex: '#000000', label: 'black', ratio: blackContrast }, { hex: '#ffffff', label: 'white', ratio: whiteContrast }]
-            : [{ hex: '#ffffff', label: 'white', ratio: whiteContrast }, { hex: '#000000', label: 'black', ratio: blackContrast }]
-
-        for (const attempt of attempts) {
-            if (attempt.ratio >= AA_THRESHOLD) {
-                const cssVarRef = hexToCssVarRef(attempt.hex, tokens)
-                if (cssVarRef) {
-                    return {
-                        description: `Change to ${attempt.label} (${attempt.ratio.toFixed(2)}:1)`,
-                        targetCssVar,
-                        suggestedValue: cssVarRef,
-                        suggestedHex: attempt.hex,
-                        resultingRatio: attempt.ratio,
-                    }
-                }
+        const tokenIndex = this.getTokens ? buildTokenIndex(this.getTokens()) : null;
+        if (tokenIndex) {
+            const blackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_black`;
+            const whiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_white`;
+            
+            const blackValue = readCssVar(blackVar);
+            const whiteValue = readCssVar(whiteVar);
+            
+            if (blackValue) {
+                const bHex = resolveCssVarToHex(blackValue, tokenIndex as any);
+                if (bHex) actualBlackHex = bHex;
+            }
+            if (whiteValue) {
+                const wHex = resolveCssVarToHex(whiteValue, tokenIndex as any);
+                if (wHex) actualWhiteHex = wHex;
             }
         }
 
-        return null
+        // Blend black/white at emphasis opacity before checking contrast
+        const effectiveBlack = emphasisOpacity < 1
+            ? (blendHexWithOpacity(actualBlackHex, surfaceHex, emphasisOpacity) || actualBlackHex)
+            : actualBlackHex;
+        const effectiveWhite = emphasisOpacity < 1
+            ? (blendHexWithOpacity(actualWhiteHex, surfaceHex, emphasisOpacity) || actualWhiteHex)
+            : actualWhiteHex;
+
+        const blackContrast = contrastRatio(surfaceHex, effectiveBlack);
+        const whiteContrast = contrastRatio(surfaceHex, effectiveWhite);
+
+        let blackPassesOther = true;
+        let whitePassesOther = true;
+
+        if (otherSurfaceHex) {
+            const otherEffectiveBlack = emphasisOpacity < 1
+                ? (blendHexWithOpacity(actualBlackHex, otherSurfaceHex, emphasisOpacity) || actualBlackHex)
+                : actualBlackHex;
+            const otherEffectiveWhite = emphasisOpacity < 1
+                ? (blendHexWithOpacity(actualWhiteHex, otherSurfaceHex, emphasisOpacity) || actualWhiteHex)
+                : actualWhiteHex;
+            
+            if (contrastRatio(otherSurfaceHex, otherEffectiveBlack) < 4.5) blackPassesOther = false;
+            if (contrastRatio(otherSurfaceHex, otherEffectiveWhite) < 4.5) whitePassesOther = false;
+        }
+
+        const attempts = blackContrast >= whiteContrast
+            ? [{ hex: actualBlackHex, label: 'core black', ratio: blackContrast, passesOther: blackPassesOther, key: 'black' }, { hex: actualWhiteHex, label: 'core white', ratio: whiteContrast, passesOther: whitePassesOther, key: 'white' }]
+            : [{ hex: actualWhiteHex, label: 'core white', ratio: whiteContrast, passesOther: whitePassesOther, key: 'white' }, { hex: actualBlackHex, label: 'core black', ratio: blackContrast, passesOther: blackPassesOther, key: 'black' }];
+
+        for (const attempt of attempts) {
+            if (attempt.ratio >= 4.5 && attempt.passesOther) {
+                let cssVarRef = hexToCssVarRef(attempt.hex, tokens);
+                if (!cssVarRef) {
+                    cssVarRef = `{brand.themes.${mode}.palettes.core-colors.${attempt.key}}`;
+                }
+                return {
+                    description: `Change to ${attempt.label} (${attempt.ratio.toFixed(2)}:1)`,
+                    targetCssVar,
+                    suggestedValue: cssVarRef,
+                    suggestedHex: attempt.hex,
+                    resultingRatio: attempt.ratio,
+                };
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -859,10 +1064,10 @@ class ComplianceServiceImpl {
             // Parse core color on-tone vars (interactive):
             // --recursica_brand_themes_{mode}-palettes-core-interactive-{variant}-on-tone
             const coreInteractiveMatch = cssVar.match(
-                /--recursica_brand_themes_(light|dark)_palettes_core_interactive-(default|hover)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_(core|core-colors)_interactive_(default|hover)_on-tone$/
             )
             if (coreInteractiveMatch) {
-                const [, mode, variant] = coreInteractiveMatch
+                const [, mode, , variant] = coreInteractiveMatch
                 const themes = root?.themes || root
                 const coreKey = themes?.[mode]?.palettes?.['core-colors'] ? 'core-colors' : 'core'
                 if (!themes?.[mode]?.palettes?.[coreKey]?.interactive?.[variant]) return
@@ -876,10 +1081,10 @@ class ComplianceServiceImpl {
             // Parse core color on-tone vars (simple):
             // --recursica_brand_themes_{mode}-palettes-core-{colorKey}-on-tone
             const coreMatch = cssVar.match(
-                /--recursica_brand_themes_(light|dark)_palettes_core-colors_([a-z]+)_on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_(core|core-colors)_([a-z]+)_on-tone$/
             )
             if (coreMatch) {
-                const [, mode, colorKey] = coreMatch
+                const [, mode, , colorKey] = coreMatch
                 const themes = root?.themes || root
                 const coreKey = themes?.[mode]?.palettes?.['core-colors'] ? 'core-colors' : 'core'
                 const colorObj = themes?.[mode]?.palettes?.[coreKey]?.[colorKey]
@@ -1032,10 +1237,10 @@ class ComplianceServiceImpl {
             // Parse core color on-tone vars (interactive):
             // --recursica_brand_themes_{mode}-palettes-core-interactive-{variant}-on-tone
             const coreInteractiveMatch = cssVar.match(
-                /--recursica_brand_themes_(light|dark)_palettes_core_interactive-(default|hover)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_(core|core-colors)_interactive_(default|hover)_on-tone$/
             )
             if (coreInteractiveMatch) {
-                const [, mode, variant] = coreInteractiveMatch
+                const [, mode, , variant] = coreInteractiveMatch
                 const themes = root?.themes || root
                 const coreKey = themes?.[mode]?.palettes?.['core-colors'] ? 'core-colors' : 'core'
                 if (!themes?.[mode]?.palettes?.[coreKey]?.interactive?.[variant]) {
@@ -1053,10 +1258,10 @@ class ComplianceServiceImpl {
             // Parse core color on-tone vars (simple):
             // --recursica_brand_themes_{mode}-palettes-core-{colorKey}-on-tone
             const coreMatch = cssVar.match(
-                /--recursica_brand_themes_(light|dark)_palettes_core_([a-z]+)-on-tone$/
+                /--recursica_brand_themes_(light|dark)_palettes_(core|core-colors)_([a-z]+)_on-tone$/
             )
             if (coreMatch) {
-                const [, mode, colorKey] = coreMatch
+                const [, mode, , colorKey] = coreMatch
                 const themes = root?.themes || root
                 const coreKey = themes?.[mode]?.palettes?.['core-colors'] ? 'core-colors' : 'core'
                 const colorObj = themes?.[mode]?.palettes?.[coreKey]?.[colorKey]
@@ -1229,7 +1434,7 @@ class ComplianceServiceImpl {
                     // Check against all core colors (black, white, alert, warning, success)
                     const coreColors = ['black', 'white', 'alert', 'warning', 'success']
                     for (const coreColor of coreColors) {
-                        const coreCssVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${coreColor}`
+                        const coreCssVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${coreColor}_tone`
                         const coreVal = readCssVar(coreCssVar)
                         const coreHex = coreVal ? resolveCssVarToHex(coreVal, tokenIndex) : null
                         if (coreHex && coreHex.toLowerCase() === normalizedHex) {
@@ -1288,6 +1493,87 @@ class ComplianceServiceImpl {
      * segmented control, and transfer list.
      * Skips disabled states.
      */
+    private checkContrastAndAddIssue(
+        fgVar: string,
+        bgVar: string,
+        fgValue: string,
+        bgValue: string,
+        fgHex: string,
+        bgHex: string,
+        otherBgHex: string | undefined,
+        propLabel: string,
+        location: string,
+        compName: string,
+        mode: 'light' | 'dark',
+        prop: string,
+        layer: string,
+        variantName: string,
+        tokens: any,
+        tokenIndex: any,
+        issues: ComplianceIssue[]
+    ) {
+        const ratio = contrastRatio(bgHex, fgHex)
+        if (ratio < AA_THRESHOLD) {
+            let suggestion = null;
+            const resolveTargetVar = (uikitVar: string): string => uikitVar;
+            if (fgValue.includes('interactive') || fgValue.includes('palettes_')) {
+                const fgOnToneSuggestion = this.getSemanticPairSuggestion(fgValue, resolveTargetVar(fgVar), mode, tokens);
+                if (fgOnToneSuggestion) {
+                    const fgOnToneHex = resolveCssVarToHex(fgOnToneSuggestion.suggestedValue, tokenIndex as any);
+                    if (fgOnToneHex && contrastRatio(bgHex, fgOnToneHex) >= AA_THRESHOLD) {
+                        suggestion = fgOnToneSuggestion;
+                    }
+                }
+                if (!suggestion) {
+                    const bgOnToneSuggestion = this.getSemanticPairSuggestion(bgValue, resolveTargetVar(fgVar), mode, tokens);
+                    if (bgOnToneSuggestion) {
+                        const bgOnToneHex = resolveCssVarToHex(bgOnToneSuggestion.suggestedValue, tokenIndex as any);
+                        if (bgOnToneHex && contrastRatio(bgHex, bgOnToneHex) >= AA_THRESHOLD) {
+                            suggestion = bgOnToneSuggestion;
+                        }
+                    }
+                }
+                if (!suggestion) {
+                    suggestion = this.tryBlackWhiteTokens(bgHex, resolveTargetVar(fgVar), tokens, 1, otherBgHex);
+                }
+            } else {
+                suggestion = this.getSemanticPairSuggestion(bgValue, resolveTargetVar(fgVar), mode, tokens);
+                if (suggestion) {
+                    const suggHex = resolveCssVarToHex(suggestion.suggestedValue, tokenIndex as any);
+                    if (!suggHex || contrastRatio(bgHex, suggHex) < AA_THRESHOLD) {
+                        suggestion = null;
+                    }
+                }
+                if (!suggestion) {
+                    suggestion = this.tryBlackWhiteTokens(bgHex, resolveTargetVar(fgVar), tokens, 1, otherBgHex);
+                }
+            }
+            let genericFgValue = fgValue;
+            if (fgValue.includes(`_themes_${mode}_`)) {
+                genericFgValue = fgValue.replace(`_themes_${mode}_`, '_');
+            }
+            if (suggestion && (suggestion.suggestedValue === fgValue || suggestion.suggestedValue === genericFgValue)) {
+                suggestion = null;
+            }
+
+            issues.push({
+                id: `comp-${compName}-${variantName}-${layer}-${prop}-${mode}`,
+                type: 'component-text',
+                mode,
+                componentName: compName,
+                location,
+                toneHex: bgHex,
+                onToneHex: fgHex,
+                rawOnToneHex: fgHex,
+                contrastRatio: ratio,
+                requiredRatio: AA_THRESHOLD,
+                message: `${propLabel} contrast ${ratio.toFixed(2)}:1 vs background is below ${AA_THRESHOLD}:1`,
+                suggestion,
+                toneCssVar: bgVar,
+            })
+        }
+    }
+
     private checkComponentTextColors(
         issues: ComplianceIssue[],
         tokenIndex: ReturnType<typeof buildTokenIndex>,
@@ -1299,191 +1585,84 @@ class ComplianceServiceImpl {
             const components = uikit?.['ui-kit']?.components ?? uikit?.components ?? {}
             const layers: string[] = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
 
-            // Format a kebab-case key as a readable label: 'error-selected' → 'Error selected', 'layer-0' → 'Layer 0'
             const toLabel = (s: string) => {
                 const words = s.split('-')
                 return words.map((w, i) => i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w).join(' ')
             }
 
-            // Always target the UIKit var directly as the fix destination.
-            // writeCssVarsDirect now calls updateUIKitValue for UIKit vars, so the fix is
-            // immediately written into state.uikit and survives both page reloads (via the
-            // CSS delta) and recomputeAndApplyAll rebuilds (via the updated UIKit JSON).
-            // Targeting the brand upstream var was the old approach and caused fixes to be
-            // lost on UIKit-only export/import cycles because the UIKit JSON was never updated.
-            const resolveTargetVar = (uikitVar: string): string => uikitVar
+            const compConfigs: Array<{
+                names: string[];
+                variantGroup: 'states' | 'styles';
+                fgProps: string[];
+            }> = [
+                {
+                    names: ['text-field', 'textarea', 'dropdown', 'autocomplete', 'number-input', 'date-picker', 'time-picker', 'file-input', 'file-upload', 'transfer-list'],
+                    variantGroup: 'states',
+                    fgProps: ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
+                },
+                {
+                    names: ['button'],
+                    variantGroup: 'styles',
+                    fgProps: ['text', 'text-hover', 'icon-color']
+                },
+                {
+                    names: ['chip', 'badge'],
+                    variantGroup: 'styles',
+                    fgProps: ['text', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon']
+                }
+            ];
 
-            // ── 1. Form fields with variants.states.{state}.properties.colors.{layer}.{prop} ──
-            const formFields = [
-                'text-field', 'textarea', 'dropdown', 'autocomplete', 'number-input',
-                'date-picker', 'time-picker', 'file-input', 'file-upload', 'transfer-list'
-            ]
-            // Foreground props to check vs background
-            const fgProps = ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
+            // 1. Check standard components (Forms, Button, Chip, Badge)
+            for (const config of compConfigs) {
+                for (const compName of config.names) {
+                    const comp = components[compName]
+                    const variantMap = comp?.variants?.[config.variantGroup]
+                    if (!variantMap) continue
 
-            for (const compName of formFields) {
-                const comp = components[compName]
-                const states = comp?.variants?.states
-                if (!states) continue
+                    for (const [variantName, variantObj] of Object.entries(variantMap)) {
+                        if (config.variantGroup === 'states' && variantName === 'disabled') continue
+                        const colors = (variantObj as any)?.properties?.colors
+                        if (!colors) continue
 
-                for (const [stateName, stateObj] of Object.entries(states)) {
-                    if (stateName === 'disabled') continue
-                    const colors = (stateObj as any)?.properties?.colors
-                    if (!colors) continue
+                        for (const layer of layers) {
+                            const layerColors = colors[layer]
+                            if (!layerColors?.background) continue
 
-                    for (const layer of layers) {
-                        const layerColors = colors[layer]
-                        if (!layerColors?.background) continue
+                            const bgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background`
+                            const bgValue = readCssVar(bgVar)
+                            if (!bgValue) continue
+                            const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                            if (!bgHex) continue
 
-                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_states_${stateName}_properties_colors_${layer}_background`
-                        const bgValue = readCssVar(bgVar)
-                        if (!bgValue) continue
-                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
-                        if (!bgHex) continue
+                            const otherMode = mode === 'light' ? 'dark' : 'light';
+                            const otherBgVar = bgVar.replace(`_themes_${mode}_`, `_themes_${otherMode}_`);
+                            const otherBgValue = readCssVar(otherBgVar);
+                            const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
 
-                        for (const prop of fgProps) {
-                            if (!layerColors[prop]) continue
-                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_states_${stateName}_properties_colors_${layer}_${prop}`
-                            const fgValue = readCssVar(fgVar)
-                            if (!fgValue) continue
-                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
-                            if (!fgHex) continue
+                            for (const prop of config.fgProps) {
+                                if (!layerColors[prop]) continue
+                                const fgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_${prop}`
+                                const fgValue = readCssVar(fgVar)
+                                if (!fgValue) continue
+                                const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                                if (!fgHex) continue
 
-                            const ratio = contrastRatio(bgHex, fgHex)
-                            if (ratio < AA_THRESHOLD) {
                                 const displayName = compName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
                                 const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveTargetVar(fgVar), tokens, mode)
-                                issues.push({
-                                    id: `comp-${compName}-${stateName}-${layer}-${prop}-${mode}`,
-                                    type: 'component-text',
-                                    mode,
-                                    componentName: compName,
-                                    location: `${displayName} / ${toLabel(stateName)} / ${toLabel(layer)} / ${propLabel}`,
-                                    toneHex: bgHex,
-                                    onToneHex: fgHex,
-                                    rawOnToneHex: fgHex,
-                                    contrastRatio: ratio,
-                                    requiredRatio: AA_THRESHOLD,
-                                    message: `${propLabel} contrast ${ratio.toFixed(2)}:1 vs background is below ${AA_THRESHOLD}:1`,
-                                    suggestion,
-                                    toneCssVar: bgVar,
-                                })
+                                const location = `${displayName} / ${toLabel(variantName)} / ${toLabel(layer)} / ${propLabel}`
+
+                                this.checkContrastAndAddIssue(
+                                    fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                                    propLabel, location, compName, mode, prop, layer, variantName,
+                                    tokens, tokenIndex, issues
+                                )
                             }
                         }
                     }
                 }
             }
 
-            // ── 2. Button style variants: variants.styles.{style}.properties.colors.{layer} ──
-            const button = components['button']
-            if (button?.variants?.styles) {
-                const buttonFgProps = ['text', 'text-hover', 'icon-color']
-                for (const [styleName, styleObj] of Object.entries(button.variants.styles)) {
-                    const colors = (styleObj as any)?.properties?.colors
-                    if (!colors) continue
-
-                    for (const layer of layers) {
-                        const layerColors = colors[layer]
-                        if (!layerColors?.background) continue
-
-                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_button_variants_styles_${styleName}_properties_colors_${layer}_background`
-                        const bgValue = readCssVar(bgVar)
-                        if (!bgValue) continue
-                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
-                        if (!bgHex) continue
-
-                        for (const prop of buttonFgProps) {
-                            if (!layerColors[prop]) continue
-                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_button_variants_styles_${styleName}_properties_colors_${layer}_${prop}`
-                            const fgValue = readCssVar(fgVar)
-                            if (!fgValue) continue
-                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
-                            if (!fgHex) continue
-
-                            const ratio = contrastRatio(bgHex, fgHex)
-                            if (ratio < AA_THRESHOLD) {
-                                const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveTargetVar(fgVar), tokens, mode)
-                                issues.push({
-                                    id: `comp-button-${styleName}-${layer}-${prop}-${mode}`,
-                                    type: 'component-text',
-                                    mode,
-                                    componentName: 'button',
-                                    location: `Button / ${toLabel(styleName)} / ${toLabel(layer)} / ${propLabel}`,
-                                    toneHex: bgHex,
-                                    onToneHex: fgHex,
-                                    rawOnToneHex: fgHex,
-                                    contrastRatio: ratio,
-                                    requiredRatio: AA_THRESHOLD,
-                                    message: `${propLabel} contrast ${ratio.toFixed(2)}:1 vs background is below ${AA_THRESHOLD}:1`,
-                                    suggestion,
-                                    toneCssVar: bgVar,
-                                })
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ── 3. Chip and Badge style variants: variants.styles.{style}.properties.colors.{layer} ──
-            for (const compName of ['chip', 'badge'] as const) {
-                const comp = components[compName]
-                if (!comp?.variants?.styles) continue
-
-                const chipFgProps = compName === 'chip'
-                    ? ['text', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon']
-                    : ['text']
-
-                for (const [styleName, styleObj] of Object.entries(comp.variants.styles)) {
-                    const colors = (styleObj as any)?.properties?.colors
-                    if (!colors) continue
-
-                    for (const layer of layers) {
-                        const layerColors = colors[layer]
-                        if (!layerColors?.background) continue
-
-                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_styles_${styleName}_properties_colors_${layer}_background`
-                        const bgValue = readCssVar(bgVar)
-                        if (!bgValue) continue
-                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
-                        if (!bgHex) continue
-
-                        for (const prop of chipFgProps) {
-                            if (!layerColors[prop]) continue
-                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_${compName}_variants_styles_${styleName}_properties_colors_${layer}_${prop}`
-                            const fgValue = readCssVar(fgVar)
-                            if (!fgValue) continue
-                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
-                            if (!fgHex) continue
-
-                            const ratio = contrastRatio(bgHex, fgHex)
-                            if (ratio < AA_THRESHOLD) {
-                                const displayName = compName.charAt(0).toUpperCase() + compName.slice(1)
-                                const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveTargetVar(fgVar), tokens, mode)
-                                issues.push({
-                                    id: `comp-${compName}-${styleName}-${layer}-${prop}-${mode}`,
-                                    type: 'component-text',
-                                    mode,
-                                    componentName: compName,
-                                    location: `${displayName} / ${toLabel(styleName)} / ${toLabel(layer)} / ${propLabel}`,
-                                    toneHex: bgHex,
-                                    onToneHex: fgHex,
-                                    rawOnToneHex: fgHex,
-                                    contrastRatio: ratio,
-                                    requiredRatio: AA_THRESHOLD,
-                                    message: `${propLabel} contrast ${ratio.toFixed(2)}:1 vs background is below ${AA_THRESHOLD}:1`,
-                                    suggestion,
-                                    toneCssVar: bgVar,
-                                })
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ── 4. AccordionItem: properties.colors.{layer}.{text|content-text|icon} vs background ──
+            // 2. Check AccordionItem (Custom structure)
             const accordionItem = components['accordion-item']
             if (accordionItem?.properties?.colors) {
                 const accFgProps = ['text', 'content-text', 'icon']
@@ -1497,12 +1676,16 @@ class ComplianceServiceImpl {
                     if (!layerColors) continue
 
                     for (const bgGroup of accBgGroups) {
-                        if (!layerColors[bgGroup.key]) continue
                         const bgVar = `--recursica_ui-kit_themes_${mode}_components_accordion-item_properties_colors_${layer}_${bgGroup.key}`
                         const bgValue = readCssVar(bgVar)
                         if (!bgValue) continue
                         const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
                         if (!bgHex) continue
+
+                        const otherMode = mode === 'light' ? 'dark' : 'light';
+                        const otherBgVar = bgVar.replace(`_themes_${mode}_`, `_themes_${otherMode}_`);
+                        const otherBgValue = readCssVar(otherBgVar);
+                        const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
 
                         for (const prop of accFgProps) {
                             if (!layerColors[prop]) continue
@@ -1512,85 +1695,272 @@ class ComplianceServiceImpl {
                             const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
                             if (!fgHex) continue
 
-                            const ratio = contrastRatio(bgHex, fgHex)
-                            if (ratio < AA_THRESHOLD) {
+                            const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            const location = `Accordion Item / ${toLabel(layer)} / ${toLabel(bgGroup.label)} / ${propLabel}`
+
+                            this.checkContrastAndAddIssue(
+                                fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                                propLabel, location, 'accordion-item', mode, prop, layer, bgGroup.key,
+                                tokens, tokenIndex, issues
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 3. Check MenuItem (Custom nested structure)
+            const menuItem = components['menu-item']
+            if (menuItem?.properties?.colors) {
+                const itemTypes = ['selected-item', 'unselected-item']
+                for (const layer of layers) {
+                    const layerColors = menuItem.properties.colors[layer]
+                    if (!layerColors) continue
+
+                    for (const type of itemTypes) {
+                        const typeObj = layerColors[type]
+                        if (!typeObj?.background) continue
+
+                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_menu-item_properties_colors_${layer}_${type}_background`
+                        const bgValue = readCssVar(bgVar)
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        const otherMode = mode === 'light' ? 'dark' : 'light';
+                        const otherBgVar = bgVar.replace(`_themes_${mode}_`, `_themes_${otherMode}_`);
+                        const otherBgValue = readCssVar(otherBgVar);
+                        const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
+
+                        const fgVar = `--recursica_ui-kit_themes_${mode}_components_menu-item_properties_colors_${layer}_${type}_text`
+                        const fgValue = readCssVar(fgVar)
+                        if (!fgValue) continue
+                        const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                        if (!fgHex) continue
+
+                        const location = `Menu Item / ${toLabel(layer)} / ${toLabel(type)} / Text`
+
+                        this.checkContrastAndAddIssue(
+                            fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                            'Text', location, 'menu-item', mode, 'text', layer, type,
+                            tokens, tokenIndex, issues
+                        )
+                    }
+                }
+            }
+
+        } catch (e) {
+            console.error('Error checking component text colors:', e)
+        }
+    }
+
+    // ─── Dual-Mode Component Scanner ───
+
+    /**
+     * Scan all component text/icon colors against backgrounds in BOTH modes
+     * simultaneously. Produces deduplicated ComponentComplianceIssue objects
+     * where each issue shows light and dark mode results side-by-side.
+     * An issue is created if EITHER mode fails AA.
+     */
+    private checkComponentTextColorsDualMode(
+        tokenIndex: ReturnType<typeof buildTokenIndex>,
+        tokens: JsonLike,
+    ): ComponentComplianceIssue[] {
+        const results: ComponentComplianceIssue[] = []
+
+        try {
+            const uikit = getVarsStore().getState().uikit as any
+            const components = uikit?.['ui-kit']?.components ?? uikit?.components ?? {}
+            const layers: string[] = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
+
+            const toLabel = (s: string) => {
+                const words = s.split('-')
+                return words.map((w, i) => i === 0 ? w.charAt(0).toUpperCase() + w.slice(1) : w).join(' ')
+            }
+
+            /**
+             * Check a single fg/bg pair across both modes and add to results if either fails.
+             */
+            const checkDualMode = (
+                compName: string,
+                variantName: string,
+                layer: string,
+                prop: string,
+                propLabel: string,
+                location: string,
+                fgVarTemplate: string,
+                bgVarTemplate: string,
+            ) => {
+                const modeResults: Record<'light' | 'dark', ModeResult | null> = { light: null, dark: null }
+
+                for (const mode of ['light', 'dark'] as const) {
+                    const fgVar = fgVarTemplate.replace('_themes_MODE_', `_themes_${mode}_`)
+                    const bgVar = bgVarTemplate.replace('_themes_MODE_', `_themes_${mode}_`)
+                    const fgValue = readCssVar(fgVar)
+                    const bgValue = readCssVar(bgVar)
+                    if (!fgValue || !bgValue) continue
+                    const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                    const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                    if (!fgHex || !bgHex) continue
+                    const ratio = contrastRatio(bgHex, fgHex)
+                    modeResults[mode] = { bgHex, fgHex, contrastRatio: ratio, passes: ratio >= AA_THRESHOLD }
+                }
+
+                const light = modeResults.light
+                const dark = modeResults.dark
+                if (!light || !dark) return
+                // Only add if at least one mode fails
+                if (light.passes && dark.passes) return
+
+                // Generate suggestion that passes BOTH modes
+                let suggestion: SuggestedFix | null = null
+                const lightFgVar = fgVarTemplate.replace('_themes_MODE_', '_themes_light_')
+                const lightFgValue = readCssVar(lightFgVar)
+                if (lightFgValue) {
+                    // Try semantic pair first
+                    suggestion = this.getSemanticPairSuggestion(
+                        readCssVar(bgVarTemplate.replace('_themes_MODE_', '_themes_light_')) || '',
+                        lightFgVar, 'light', tokens
+                    )
+                    if (suggestion) {
+                        const suggHex = resolveCssVarToHex(suggestion.suggestedValue, tokenIndex as any)
+                        if (!suggHex
+                            || contrastRatio(light.bgHex, suggHex) < AA_THRESHOLD
+                            || contrastRatio(dark.bgHex, suggHex) < AA_THRESHOLD) {
+                            suggestion = null
+                        }
+                    }
+                    if (!suggestion) {
+                        // Try stepped color that passes both
+                        suggestion = this.generateSteppedColorSuggestion(
+                            light.fgHex, light.bgHex, lightFgVar, tokens, 'light', dark.bgHex
+                        )
+                    }
+                    if (!suggestion) {
+                        suggestion = this.tryBlackWhiteTokens(light.bgHex, lightFgVar, tokens, 1, dark.bgHex)
+                    }
+                }
+
+                results.push({
+                    id: `comp-${compName}-${variantName}-${layer}-${prop}`,
+                    componentName: compName,
+                    location,
+                    fgCssVarPattern: fgVarTemplate,
+                    bgCssVarPattern: bgVarTemplate,
+                    light,
+                    dark,
+                    suggestion,
+                })
+            }
+
+            const compConfigs: Array<{
+                names: string[];
+                variantGroup: 'states' | 'styles';
+                fgProps: string[];
+            }> = [
+                {
+                    names: ['text-field', 'textarea', 'dropdown', 'autocomplete', 'number-input', 'date-picker', 'time-picker', 'file-input', 'file-upload', 'transfer-list'],
+                    variantGroup: 'states',
+                    fgProps: ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
+                },
+                {
+                    names: ['button'],
+                    variantGroup: 'styles',
+                    fgProps: ['text', 'text-hover', 'icon-color']
+                },
+                {
+                    names: ['chip', 'badge'],
+                    variantGroup: 'styles',
+                    fgProps: ['text', 'leading-icon-color', 'selected-icon-color', 'close-icon-color', 'icon']
+                }
+            ]
+
+            // 1. Standard components (Forms, Button, Chip, Badge)
+            for (const config of compConfigs) {
+                for (const compName of config.names) {
+                    const comp = components[compName]
+                    const variantMap = comp?.variants?.[config.variantGroup]
+                    if (!variantMap) continue
+
+                    for (const [variantName, variantObj] of Object.entries(variantMap)) {
+                        if (config.variantGroup === 'states' && variantName === 'disabled') continue
+                        const colors = (variantObj as any)?.properties?.colors
+                        if (!colors) continue
+
+                        for (const layer of layers) {
+                            const layerColors = colors[layer]
+                            if (!layerColors?.background) continue
+
+                            for (const prop of config.fgProps) {
+                                if (!layerColors[prop]) continue
+                                const displayName = compName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
                                 const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                                const suggestion = this.generateSteppedColorSuggestion(fgHex, bgHex, resolveTargetVar(fgVar), tokens, mode)
-                                issues.push({
-                                    id: `comp-accordion-item-${bgGroup.label}-${layer}-${prop}-${mode}`,
-                                    type: 'component-text',
-                                    mode,
-                                    componentName: 'accordion-item',
-                                    location: `Accordion Item / ${bgGroup.label} / ${toLabel(layer)} / ${propLabel}`,
-                                    toneHex: bgHex,
-                                    onToneHex: fgHex,
-                                    rawOnToneHex: fgHex,
-                                    contrastRatio: ratio,
-                                    requiredRatio: AA_THRESHOLD,
-                                    message: `${propLabel} contrast ${ratio.toFixed(2)}:1 vs ${bgGroup.label} background is below ${AA_THRESHOLD}:1`,
-                                    suggestion,
-                                    toneCssVar: bgVar,
-                                })
+                                const location = `${displayName} / ${toLabel(variantName)} / ${toLabel(layer)} / ${propLabel}`
+
+                                const fgTemplate = `--recursica_ui-kit_themes_MODE_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_${prop}`
+                                const bgTemplate = `--recursica_ui-kit_themes_MODE_components_${compName}_variants_${config.variantGroup}_${variantName}_properties_colors_${layer}_background`
+
+                                checkDualMode(compName, variantName, layer, prop, propLabel, location, fgTemplate, bgTemplate)
                             }
                         }
                     }
                 }
             }
 
-            // ── 5. MenuItem: properties.colors.{layer}.{selected-item|unselected-item}.text vs .background ──
-            const menuItem = components['menu-item']
-            if (menuItem?.properties?.colors) {
-                const groups = ['selected-item', 'unselected-item']
+            // 2. AccordionItem
+            const accordionItem = components['accordion-item']
+            if (accordionItem?.properties?.colors) {
+                const accFgProps = ['text', 'content-text', 'icon']
+                const accBgGroups = [
+                    { key: 'background-collapsed', label: 'collapsed' },
+                    { key: 'background-expanded', label: 'expanded' },
+                ]
 
                 for (const layer of layers) {
-                    const layerColors = menuItem.properties.colors[layer]
+                    const layerColors = accordionItem.properties.colors[layer]
                     if (!layerColors) continue
 
-                    for (const group of groups) {
-                        const groupObj = layerColors[group]
-                        if (!groupObj?.background || !groupObj?.text) continue
+                    for (const bgGroup of accBgGroups) {
+                        for (const prop of accFgProps) {
+                            if (!layerColors[prop]) continue
+                            const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            const location = `Accordion Item / ${toLabel(layer)} / ${toLabel(bgGroup.label)} / ${propLabel}`
 
-                        // Skip if background is null (transparent)
-                        if (groupObj.background.$value === null) continue
+                            const fgTemplate = `--recursica_ui-kit_themes_MODE_components_accordion-item_properties_colors_${layer}_${prop}`
+                            const bgTemplate = `--recursica_ui-kit_themes_MODE_components_accordion-item_properties_colors_${layer}_${bgGroup.key}`
 
-                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_menu-item_properties_colors_${layer}_${group}_background`
-                        const textVar = `--recursica_ui-kit_themes_${mode}_components_menu-item_properties_colors_${layer}_${group}_text`
-
-                        const bgValue = readCssVar(bgVar)
-                        const textValue = readCssVar(textVar)
-                        if (!bgValue || !textValue) continue
-
-                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
-                        const textHex = resolveCssVarToHex(textValue, tokenIndex as any)
-                        if (!bgHex || !textHex) continue
-
-                        const ratio = contrastRatio(bgHex, textHex)
-                        if (ratio < AA_THRESHOLD) {
-                            const groupLabel = group.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-                            const suggestion = this.generateSteppedColorSuggestion(textHex, bgHex, resolveTargetVar(textVar), tokens, mode)
-                            issues.push({
-                                id: `comp-menu-item-${group}-${layer}-text-${mode}`,
-                                type: 'component-text',
-                                mode,
-                                componentName: 'menu-item',
-                                location: `Menu Item / ${groupLabel} / ${toLabel(layer)} / Text`,
-                                toneHex: bgHex,
-                                onToneHex: textHex,
-                                rawOnToneHex: textHex,
-                                contrastRatio: ratio,
-                                requiredRatio: AA_THRESHOLD,
-                                message: `Text contrast ${ratio.toFixed(2)}:1 vs ${groupLabel} background is below ${AA_THRESHOLD}:1`,
-                                suggestion,
-                                toneCssVar: bgVar,
-                            })
+                            checkDualMode('accordion-item', bgGroup.key, layer, prop, propLabel, location, fgTemplate, bgTemplate)
                         }
                     }
                 }
             }
 
-        } catch (err) {
-            // Silently skip — component scanning should not break the overall scan
+            // 3. MenuItem
+            const menuItem = components['menu-item']
+            if (menuItem?.properties?.colors) {
+                const itemTypes = ['selected-item', 'unselected-item']
+                for (const layer of layers) {
+                    const layerColors = menuItem.properties.colors[layer]
+                    if (!layerColors) continue
+
+                    for (const type of itemTypes) {
+                        const typeObj = layerColors[type]
+                        if (!typeObj?.background) continue
+
+                        const location = `Menu Item / ${toLabel(layer)} / ${toLabel(type)} / Text`
+
+                        const fgTemplate = `--recursica_ui-kit_themes_MODE_components_menu-item_properties_colors_${layer}_${type}_text`
+                        const bgTemplate = `--recursica_ui-kit_themes_MODE_components_menu-item_properties_colors_${layer}_${type}_background`
+
+                        checkDualMode('menu-item', type, layer, 'text', 'Text', location, fgTemplate, bgTemplate)
+                    }
+                }
+            }
+
+        } catch (e) {
+            console.error('Error checking component text colors (dual-mode):', e)
         }
+
+        return results
     }
 }
 

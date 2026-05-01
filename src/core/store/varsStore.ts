@@ -9,7 +9,7 @@ import { buildDimensionVars } from '../resolvers/dimensions'
 import { applyCssVars, type CssVarMap, clearAllCssVars } from '../css/apply'
 import { updateScopedCss, setThemeAttribute } from '../css/scopedCssEngine'
 import { findTokenByHex, tokenToCssVar } from '../css/tokenRefs'
-import { suppressCssVarEvents, clearPendingCssVars } from '../css/updateCssVar'
+import { suppressCssVarEvents, clearPendingCssVars, updateCssVars } from '../css/updateCssVar'
 import { computeBundleVersion } from './versioning'
 import { readCssVar, readCssVarResolved } from '../css/readCssVar'
 import { resolveTokenReferenceToCssVar, parseTokenReference, extractBraceContent, type TokenReferenceContext } from '../utils/tokenReferenceParser'
@@ -59,14 +59,14 @@ export type VarsState = {
 }
 
 const STORAGE_KEYS = {
-  version: 'rf:version',
-  elevationPaletteSelections: 'rf:elevation-selections',
-  originalTokens: 'recursica_original_tokens',
-  editedTokens: 'recursica_edited_tokens',
-  originalBrand: 'recursica_original_brand',
-  editedBrand: 'recursica_edited_brand',
-  originalUikit: 'recursica_original_uikit',
-  editedUikit: 'recursica_edited_uikit',
+  version: 'recursica_version',
+  elevationPaletteSelections: 'recursica_elevation_selections',
+  originalTokens: 'recursica_tokens_original',
+  editedTokens: 'recursica_tokens_edited',
+  originalBrand: 'recursica_brand_original',
+  editedBrand: 'recursica_brand_edited',
+  originalUikit: 'recursica_uikit_original',
+  editedUikit: 'recursica_uikit_edited',
 } as const
 
 /** Exported for use by cssDelta and deltaToJson modules — the single source of truth for this key. */
@@ -293,18 +293,15 @@ class VarsStore {
 
     if (this.lsAvailable) {
       try {
-        // Initialize original & edited keys if they don't exist
+        // Initialize edited keys if they don't exist. Original keys are ONLY populated during an explicit import.
         const initKey = (originalKey: string, editedKey: string, fallbackJson: any) => {
           let edited = localStorage.getItem(editedKey)
           let original = localStorage.getItem(originalKey)
           
-          if (!original) {
-            localStorage.setItem(originalKey, JSON.stringify(fallbackJson))
-            original = JSON.stringify(fallbackJson)
-          }
           if (!edited) {
-            localStorage.setItem(editedKey, original)
-            edited = original
+            const jsonStr = original || JSON.stringify(fallbackJson)
+            localStorage.setItem(editedKey, jsonStr)
+            edited = jsonStr
           }
           return JSON.parse(edited)
         }
@@ -457,33 +454,21 @@ class VarsStore {
   /**
    * Write CSS vars directly to DOM and sync them to JSON.
    * Used by compliance fixes (Fix / Fix All) and palette default updates.
-   * Does NOT trigger recomputeAndApplyAll — writes are terminal.
-   * Schedules a debounced compliance re-scan after writes.
+   * Triggers recomputeAndApplyAll to rebuild both modes' vars from updated JSON,
+   * ensuring cross-mode regressions are caught immediately by the compliance scan.
    */
   public writeCssVarsDirect(cssVarUpdates: Record<string, string>) {
-    // Write CSS vars to DOM inline style
-    const root = document.documentElement
-    
-    // We need to lazy load these to avoid circular dependencies
-    // Alternatively, we can just let `updateCssVar` handle it
-    let themeChanged = false
-    
-    for (const [key, value] of Object.entries(cssVarUpdates)) {
-      root.style.setProperty(key, value)
-      // Actually we will dispatch an event and let the existing infrastructure handle it,
-      // or we can just import updateBrandValue later. But since we are in varsStore, 
-      // the safest way to avoid circular dependency is to just trigger an event 
-      // or update it inline if possible. For now, since updateBrandValue is in another file,
-      // we'll dispatch a CustomEvent so updateCssVar.ts can catch it, OR we just let the caller use updateCssVar.
-      // Wait, AAComplianceWatcher calls this. If it calls this, we want it synced.
-      // I will just use the standard pipeline: if it's a brand var, we must sync it.
-    }
-    
-    // For now we rely on the component or caller to call updateBrandValue directly,
-    // or we'll update AAComplianceWatcher to do it.
+    // Write CSS vars to DOM inline style and automatically sync to JSON via updateCssVar pipeline
+    updateCssVars(cssVarUpdates, this.state.tokens, false)
 
-    // Schedule compliance scan
-    this.scheduleComplianceScan()
+    // Rebuild all CSS vars from the updated JSON so both modes' vars are in sync.
+    // This prevents "new" issues from appearing only on mode switch — the recompute
+    // ensures the AA pipeline (fixPaletteOnTones, fixCoreColorOnTones) runs against
+    // the updated JSON immediately, and scheduleComplianceScan at the end of
+    // recomputeAndApplyAll catches any cross-mode regressions right away.
+    if (!this.isRecomputing) {
+      this.recomputeAndApplyAll()
+    }
   }
 
   /**
@@ -508,8 +493,9 @@ class VarsStore {
   public deleteScale(scaleKeyToDelete: string) {
     const deletedNumStr = scaleKeyToDelete.match(/^scale-(\d+)$/)?.[1]
     if (!deletedNumStr) return
+    const deletedNum = parseInt(deletedNumStr, 10)
 
-    const stateStr = JSON.stringify(this.state)
+    let stateStr = JSON.stringify(this.state)
     const stateObj = JSON.parse(stateStr)
 
     const colorsRoot = stateObj.tokens?.tokens?.colors || {}
@@ -532,6 +518,38 @@ class VarsStore {
       tokens: { ...stateObj.tokens, tokens: { ...stateObj.tokens?.tokens, colors: colorsRoot } }
     })
 
+    // Renumber remaining scales to close the gap
+    const remainingScales = Object.keys(colorsRoot)
+      .filter(k => k.startsWith('scale-'))
+      .map(k => parseInt(k.replace('scale-', ''), 10))
+      .sort((a, b) => a - b)
+    
+    let expectedNum = 1
+    for (const currentNum of remainingScales) {
+      if (currentNum > expectedNum) {
+        const oldKey = `scale-${String(currentNum).padStart(2, '0')}`
+        const newKey = `scale-${String(expectedNum).padStart(2, '0')}`
+        
+        // Update JSON references
+        finalStateStr = finalStateStr.replace(new RegExp(`\\{tokens\\.colors\\.${oldKey}\\.`, 'g'), `{tokens.colors.${newKey}.`)
+        // Update CSS variables string
+        finalStateStr = finalStateStr.replace(new RegExp(`_colors_${oldKey}_`, 'g'), `_colors_${newKey}_`)
+        // Update object keys
+        finalStateStr = finalStateStr.replace(new RegExp(`"${oldKey}"`, 'g'), `"${newKey}"`)
+        
+        // Clear old CSS vars from DOM
+        if (typeof document !== 'undefined') {
+          const style = document.documentElement.style
+          const toRemove = []
+          for (let i = 0; i < style.length; i++) {
+            if (style[i].includes(`_colors_${oldKey}_`)) toRemove.push(style[i])
+          }
+          toRemove.forEach(p => style.removeProperty(p))
+        }
+      }
+      expectedNum++
+    }
+
     this.writeState(JSON.parse(finalStateStr))
     this.recomputeAndApplyAll()
   }
@@ -539,6 +557,7 @@ class VarsStore {
   public deletePalette(paletteKeyToDelete: string, fallbackPaletteKey: string) {
     const deletedNumStr = paletteKeyToDelete.match(/^palette-(\d+)$/)?.[1]
     if (!deletedNumStr) return
+    const deletedNum = parseInt(deletedNumStr, 10)
 
     // 1. Replace all references to the deleted palette with the fallback palette
     let stateStr = JSON.stringify(this.state)
@@ -569,7 +588,40 @@ class VarsStore {
       delete palettes[paletteKeyToDelete]
     }
 
-    this.writeState(stateObj)
+    let finalStateStr = JSON.stringify(stateObj)
+
+    // Renumber remaining palettes
+    const remainingPalettes = (stateObj.palettes?.dynamic || [])
+      .map((p: any) => parseInt(p.key.replace('palette-', ''), 10))
+      .filter((n: number) => !isNaN(n))
+      .sort((a: number, b: number) => a - b)
+
+    let expectedNum = 1
+    for (const currentNum of remainingPalettes) {
+      if (currentNum > expectedNum) {
+        const oldKey = `palette-${currentNum}`
+        const newKey = `palette-${expectedNum}`
+
+        // Update references in JSON string
+        finalStateStr = finalStateStr.replace(new RegExp(`\\{brand\\.palettes\\.${oldKey}\\.`, 'g'), `{brand.palettes.${newKey}.`)
+        finalStateStr = finalStateStr.replace(new RegExp(`\\{brand\\.themes\\.(light|dark)\\.palettes\\.${oldKey}\\.`, 'g'), `{brand.themes.$1.palettes.${newKey}.`)
+        finalStateStr = finalStateStr.replace(new RegExp(`_palettes_${oldKey}_`, 'g'), `_palettes_${newKey}_`)
+        finalStateStr = finalStateStr.replace(new RegExp(`"${oldKey}"`, 'g'), `"${newKey}"`)
+
+        // Clear old CSS vars from DOM
+        if (typeof document !== 'undefined') {
+          const style = document.documentElement.style
+          const toRemove = []
+          for (let i = 0; i < style.length; i++) {
+            if (style[i].includes(`_palettes_${oldKey}_`)) toRemove.push(style[i])
+          }
+          toRemove.forEach(p => style.removeProperty(p))
+        }
+      }
+      expectedNum++
+    }
+
+    this.writeState(JSON.parse(finalStateStr))
     this.recomputeAndApplyAll()
   }
 
@@ -598,6 +650,7 @@ class VarsStore {
    * JSON. paletteSelections are re-parsed from the imported JSON's elevation color refs.
    */
   importTheme(next: JsonLike) {
+    if (this.lsAvailable) { try { localStorage.setItem('recursica_has_imported', 'true') } catch {} }
     const brand: any = (next as any)?.brand || next
     const themes = brand?.themes || brand
 
@@ -634,7 +687,7 @@ class VarsStore {
 
     this.writeState({ theme: next, elevation })
 
-    // Rebuild rf:fonts from the imported brand + current tokens so syncFontsToTokens
+    // Rebuild recursica_fonts from the imported brand + current tokens so syncFontsToTokens
     // picks up new typefaces and changed primary/secondary/tertiary assignments.
     const importedFonts = deriveFontsFromJson(this.state.tokens, next)
     if (importedFonts.length > 0) {
@@ -671,12 +724,18 @@ class VarsStore {
    * Always use this instead of cloning React state (themeJson) to ensure
    * compliance fixes from writeCssVarsDirect() are included.
    */
+
+  hasUserImportedFiles(): boolean {
+    if (!this.lsAvailable) return false;
+    return localStorage.getItem('recursica_has_imported') === 'true';
+  }
+
   public getLatestThemeCopy(): any {
     return JSON.parse(JSON.stringify(this.state.theme))
   }
   public syncFontsToTokens(silent = false) {
-    try {
-      const storedFontsRaw = localStorage.getItem('rf:fonts')
+    if (typeof localStorage !== 'undefined') {
+      const storedFontsRaw = localStorage.getItem('recursica_fonts')
       if (!storedFontsRaw) return
       const storedFonts = JSON.parse(storedFontsRaw)
       if (!Array.isArray(storedFonts)) return
@@ -768,8 +827,6 @@ class VarsStore {
         this.writeState({ tokens, theme })
         if (!this.isRecomputing) this.recomputeAndApplyAll()
       }
-    } catch {
-      // Font sync failed
     }
   }
 
@@ -837,7 +894,7 @@ class VarsStore {
       this.writeState({ uikit: files.uikit })
     }
 
-    // Rebuild rf:fonts from the imported data so syncFontsToTokens (called inside
+    // Rebuild recursica_fonts from the imported data so syncFontsToTokens (called inside
     // recomputeAndApplyAll below) uses the correct typefaces and sequence assignments
     // from the imported JSON rather than whatever was previously in localStorage.
     const importedFonts = deriveFontsFromJson(
@@ -1289,12 +1346,13 @@ class VarsStore {
         localStorage.removeItem(STORAGE_KEYS.originalTokens)
         localStorage.removeItem(STORAGE_KEYS.originalBrand)
         localStorage.removeItem(STORAGE_KEYS.originalUikit)
+        localStorage.removeItem('recursica_has_imported')
       } catch {}
     }
     // Clear all CSS variables, persisted delta, stored font overrides, and deleted scales
     clearAllCssVars()
     clearStoredFonts()
-    // Immediately restore rf:fonts to the canonical defaults so syncFontsToTokens
+    // Immediately restore recursica_fonts to the canonical defaults so syncFontsToTokens
     // (called inside recomputeAndApplyAll below) does not return early and correctly
     // emits font CSS vars for the default font set.  Added fonts and sequence changes
     // are both wiped because we derive from the static JSON, not from any user session state.
@@ -1311,12 +1369,35 @@ class VarsStore {
       sessionStorage.removeItem('randomizer_ratios')
     } catch { }
 
-    // Reset state from deep-cloned original JSON imports
+    let nextTokensRaw: any = tokensImport
+    let nextThemeRaw: any = themeImport
+    let nextUikitRaw: any = this.pristineUikit
+
+    if (!toOriginal && this.lsAvailable) {
+      // Revert to imported original state (the imported zip file state)
+      try {
+        const t = localStorage.getItem(STORAGE_KEYS.originalTokens)
+        if (t) nextTokensRaw = JSON.parse(t)
+        const b = localStorage.getItem(STORAGE_KEYS.originalBrand)
+        if (b) nextThemeRaw = JSON.parse(b)
+        const u = localStorage.getItem(STORAGE_KEYS.originalUikit)
+        if (u) nextUikitRaw = JSON.parse(u)
+      } catch {}
+      
+      // Clear ONLY edited keys so the next reload uses original keys
+      try {
+        localStorage.removeItem(STORAGE_KEYS.editedTokens)
+        localStorage.removeItem(STORAGE_KEYS.editedBrand)
+        localStorage.removeItem(STORAGE_KEYS.editedUikit)
+      } catch {}
+    }
+
+    // Reset state from deep-cloned state
     // This ensures we have fresh objects that haven't been mutated in-memory
-    const tokens = JSON.parse(JSON.stringify(tokensImport))
+    const tokens = JSON.parse(JSON.stringify(nextTokensRaw))
     const sortedTokens = sortFontTokenObjects(tokens as any)
-    const normalizedTheme = JSON.parse(JSON.stringify(themeImport?.brand ? themeImport : { brand: themeImport }))
-    const uikit = JSON.parse(JSON.stringify(this.pristineUikit))
+    const normalizedTheme = JSON.parse(JSON.stringify(nextThemeRaw?.brand ? nextThemeRaw : { brand: nextThemeRaw }))
+    const uikit = JSON.parse(JSON.stringify(nextUikitRaw))
 
     // Reset localStorage to original values
     if (this.lsAvailable) {
@@ -1346,6 +1427,13 @@ class VarsStore {
       version: (this.state?.version || 0) + 1
     }
 
+    // Ensure the DOM theme attribute is reset atomically before recomputation
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme-mode', 'light')
+      document.documentElement.setAttribute('data-recursica-theme', 'light')
+      try { localStorage.setItem('recursica_theme_mode', 'light') } catch { }
+    }
+
     // Recompute and apply all CSS variables from clean state
     // Reset the recomputing flag first since we're doing a full reset
     this.isRecomputing = false
@@ -1356,13 +1444,14 @@ class VarsStore {
 
     // Dispatch events to notify components of the reset
     try {
+      window.dispatchEvent(new CustomEvent('themeReset', {}))
+      
       // Unconditionally trigger CSS variable update flush across the app
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { reset: true } }))
       
-      window.dispatchEvent(new CustomEvent('themeReset', {}))
       window.dispatchEvent(new CustomEvent('paletteVarsChanged', {}))
 
-      // Notify font components to rebuild rows from the now-cleared rf:fonts
+      // Notify font components to rebuild rows from the now-cleared recursica_fonts
       window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: {}, reset: true } }))
 
       // Dispatch palettePrimaryLevelChanged events for all palettes in both modes
@@ -1711,12 +1800,12 @@ class VarsStore {
   }
 
   private readTypeChoices(): TypographyChoices {
-    try { const raw = localStorage.getItem('type-token-choices'); return raw ? JSON.parse(raw) : {} } catch { return {} }
+    try { const raw = localStorage.getItem('recursica_type_token_choices'); return raw ? JSON.parse(raw) : {} } catch { return {} }
   }
 
   private getCurrentMode(): 'light' | 'dark' {
     try {
-      const saved = localStorage.getItem('theme-mode') as 'light' | 'dark' | null
+      const saved = localStorage.getItem('recursica_theme_mode') as 'light' | 'dark' | null
       return saved ?? 'light'
     } catch {
       return 'light'
@@ -1725,7 +1814,7 @@ class VarsStore {
 
   public switchMode(mode: 'light' | 'dark') {
     try {
-      localStorage.setItem('theme-mode', mode)
+      localStorage.setItem('recursica_theme_mode', mode)
     } catch { }
     // Skip if already recomputing to prevent infinite loops
     if (!this.isRecomputing) {
@@ -1741,6 +1830,12 @@ class VarsStore {
       return
     }
     this.isRecomputing = true
+    
+    if (typeof document !== 'undefined') {
+      const domTheme = document.documentElement.getAttribute('data-recursica-theme')
+      const currentMode = this.getCurrentMode()
+      console.debug(`[recomputeAndApplyAll] DOM theme: ${domTheme}, Current Mode: ${currentMode}`)
+    }
 
     // Clear overlay CSS variables from DOM before recomputing to ensure new values from theme JSON are used
     if (typeof document !== 'undefined') {
@@ -1952,11 +2047,11 @@ class VarsStore {
         const fontRoot: any = tokensRoot?.font || {}
         const vars: Record<string, string> = {}
 
-        // Read font typefaces exclusively from rf:fonts local storage
+        // Read font typefaces exclusively from recursica_fonts local storage
         let storedFonts: any[] = []
         try {
           if (typeof localStorage !== 'undefined') {
-            const raw = localStorage.getItem('rf:fonts')
+            const raw = localStorage.getItem('recursica_fonts')
             if (raw) storedFonts = JSON.parse(raw)
           }
         } catch { }
@@ -1996,7 +2091,7 @@ class VarsStore {
             }
           })
         } else {
-          // No rf:fonts in localStorage (fresh load / cache cleared):
+          // No recursica_fonts in localStorage (fresh load / cache cleared):
           // Emit brand.fonts CSS vars by resolving each brand.fonts.{level} alias
           // through the token store → tokens.font.typefaces.{slug}.$value
           const brandRoot: any = (this.state.theme as any)?.brand || this.state.theme
@@ -2195,40 +2290,26 @@ class VarsStore {
 
             // Special handling for interactive (nested structure)
             if (colorName === 'interactive' && coreValue && typeof coreValue === 'object' && !coreValue.$value) {
-              // Handle nested structure: interactive.default.tone, interactive.default.on-tone, etc.
-              const defaultTone = coreValue.default?.tone?.$value || coreValue.default?.tone
-              const defaultOnTone = coreValue.default?.['on-tone']?.$value || coreValue.default?.['on-tone']
-              const hoverTone = coreValue.hover?.tone?.$value || coreValue.hover?.tone
-              const hoverOnTone = coreValue.hover?.['on-tone']?.$value || coreValue.hover?.['on-tone']
+              // Handle flat structure: interactive.tone, interactive.on-tone
+              const tone = coreValue.tone?.$value || coreValue.tone || coreValue.default?.tone?.$value || coreValue.default?.tone
+              const onTone = coreValue['on-tone']?.$value || coreValue['on-tone'] || coreValue.default?.['on-tone']?.$value || coreValue.default?.['on-tone']
 
-              // Main interactive var (backward compatibility) maps to default tone
-              if (defaultTone) {
-                tokenRef = resolveTokenRef(defaultTone)
+              // Main interactive var (backward compatibility) maps to tone
+              if (tone) {
+                tokenRef = resolveTokenRef(tone)
               }
 
-              // Generate additional CSS vars for nested structure
-              if (defaultTone) {
-                const defaultToneRef = resolveTokenRef(defaultTone)
-                if (defaultToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone`] = defaultToneRef
+              // Generate CSS vars for the flat structure
+              if (tone) {
+                const toneRef = resolveTokenRef(tone)
+                if (toneRef) {
+                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`] = toneRef
                 }
               }
-              if (defaultOnTone) {
-                const defaultOnToneRef = resolveTokenRef(defaultOnTone)
-                if (defaultOnToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_on-tone`] = defaultOnToneRef
-                }
-              }
-              if (hoverTone) {
-                const hoverToneRef = resolveTokenRef(hoverTone)
-                if (hoverToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone`] = hoverToneRef
-                }
-              }
-              if (hoverOnTone) {
-                const hoverOnToneRef = resolveTokenRef(hoverOnTone)
-                if (hoverOnToneRef) {
-                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_on-tone`] = hoverOnToneRef
+              if (onTone) {
+                const onToneRef = resolveTokenRef(onTone)
+                if (onToneRef) {
+                  colors[`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone`] = onToneRef
                 }
               }
             } else if (coreValue && typeof coreValue === 'object' && !coreValue.$value) {
@@ -2394,12 +2475,12 @@ class VarsStore {
 
       Object.assign(allVars, typeVars)
 
-      // Re-apply rf:fonts font stacks AFTER typography merge, keyed by SLUG (not font.id).
+      // Re-apply recursica_fonts font stacks AFTER typography merge, keyed by SLUG (not font.id).
       try {
         let fontsForOverride: any[] = []
         try {
           if (typeof localStorage !== 'undefined') {
-            const raw = localStorage.getItem('rf:fonts')
+            const raw = localStorage.getItem('recursica_fonts')
             if (raw) fontsForOverride = JSON.parse(raw)
           }
         } catch { }
@@ -2428,7 +2509,7 @@ class VarsStore {
       // Load fonts
       const actualFamiliesToLoad: string[] = []
       try {
-        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('rf:fonts') : null
+        const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('recursica_fonts') : null
         const storedForLoad: any[] = raw ? JSON.parse(raw) : []
         storedForLoad.forEach((font: any) => {
           if (font.family) {

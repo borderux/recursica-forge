@@ -220,8 +220,8 @@ function updateOnToneColors(
   }
 
   // Get the interactive tone hex for default and hover
-  const defaultToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone`
-  const hoverToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone`
+  const defaultToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
+  const hoverToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
   const defaultToneHex = resolveCssVarToHex(`var(${defaultToneVar})`, tokenIndex) || interactiveHex
   const hoverToneHex = resolveCssVarToHex(`var(${hoverToneVar})`, tokenIndex) || hoverHex
 
@@ -267,8 +267,8 @@ function updateOnToneColors(
     hoverOnToneVar = hoverOnToneRef
   }
 
-  updateCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_on-tone`, defaultOnToneVar, tokens)
-  updateCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_on-tone`, hoverOnToneVar, tokens)
+  updateCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone`, defaultOnToneVar, tokens)
+  updateCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone`, hoverOnToneVar, tokens)
 
   // Update theme JSON if provided
   if (theme && setTheme) {
@@ -283,17 +283,10 @@ function updateOnToneColors(
       if (!themes[mode].palettes['core-colors']) themes[mode].palettes['core-colors'] = {}
       const coreColors = themes[mode].palettes['core-colors']
       if (!coreColors.interactive) coreColors.interactive = {}
-      if (!coreColors.interactive.default) coreColors.interactive.default = {}
-      if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
 
-      // Update default on-tone in theme JSON
-      coreColors.interactive.default['on-tone'] = {
+      // Update on-tone in theme JSON (flat structure)
+      coreColors.interactive['on-tone'] = {
         $value: defaultOnToneRef
-      }
-
-      // Update hover on-tone in theme JSON
-      coreColors.interactive.hover['on-tone'] = {
-        $value: hoverOnToneRef
       }
 
       getVarsStore().setThemeSilent(themeCopy)
@@ -345,7 +338,7 @@ export function updateInteractiveColor(
 
   if (defaultToneRef) {
     updateCssVar(
-      `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone`,
+      `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`,
       defaultToneRef,
       tokens
     )
@@ -363,13 +356,13 @@ export function updateInteractiveColor(
   let hoverHex: string
   if (hoverOption === 'keep') {
     // Keep current hover color
-    const currentHover = readCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone`)
+    const currentHover = readCssVar(`--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`)
     if (currentHover && !currentHover.startsWith('var(')) {
       hoverHex = currentHover
     } else {
       // Resolve to hex
       const tokenIndex = buildTokenIndex(tokens)
-      hoverHex = resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone)`, tokenIndex) || normalizedHex
+      hoverHex = resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`, tokenIndex) || normalizedHex
     }
   } else {
     hoverHex = getSteppedColor(normalizedHex, hoverOption, tokens) || normalizedHex
@@ -379,7 +372,7 @@ export function updateInteractiveColor(
   const hoverToneRef = hexToCssVarRef(hoverHex, tokens)
   if (hoverToneRef) {
     updateCssVar(
-      `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone`,
+      `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`,
       hoverToneRef,
       tokens
     )
@@ -421,7 +414,7 @@ export function updateCoreColorInteractiveOnTones(
     if (!coreColorsPath) return
 
     // Get the interactive tone color (this is our starting point)
-    const interactiveToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone`
+    const interactiveToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
     const interactiveToneValue = readCssVar(interactiveToneVar)
     const interactiveToneHex = interactiveToneValue
       ? (resolveCssVarToHex(interactiveToneValue, tokenIndex) || interactiveHex)
@@ -816,8 +809,8 @@ export function updateCoreColorOnTones(
     }
 
     // Also update the interactive on-tones since they rely on white/black
-    const interactiveToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone`
-    const hoverToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone`
+    const interactiveToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
+    const hoverToneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone`
     const interactiveToneHex = resolveCssVarToHex(`var(${interactiveToneVar})`, tokenIndex)
     const hoverToneHex = resolveCssVarToHex(`var(${hoverToneVar})`, tokenIndex)
     if (interactiveToneHex && hoverToneHex) {

@@ -34,7 +34,7 @@ export interface SuggestTonesModalProps {
     issue: ComplianceIssue
     isOpen: boolean
     onClose: () => void
-    onApply: (issue: ComplianceIssue, newHex: string, family: string, level: string) => void
+    onApply: (issue: ComplianceIssue, newHex: string, family: string, level: string, newOnToneColor?: 'white' | 'black') => void
 }
 
 export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTonesModalProps) {
@@ -157,7 +157,9 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
 
     const handleSave = () => {
         if (!selectedHex || !family || !level) return
-        onApply(issue, selectedHex, family, level)
+        const selectedTone = tones.find(t => t?.hex === selectedHex)
+        const onToneColor = selectedTone?.onToneColor === 'white' || selectedTone?.onToneColor === 'black' ? selectedTone.onToneColor : undefined
+        onApply(issue, selectedHex, family, level, onToneColor)
         setSelectedHex(null)
         onClose()
     }

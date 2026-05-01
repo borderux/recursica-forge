@@ -208,7 +208,7 @@ export default function LayerModule({ level, title, className, children, onSelec
       margin: '0 0 12px 0',
     }
     try {
-      const raw = localStorage.getItem('type-token-choices')
+      const raw = localStorage.getItem('recursica_type_token_choices')
       if (raw) {
         const choices = JSON.parse(raw || '{}') || {}
         const c = choices[prefix]

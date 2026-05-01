@@ -8,7 +8,7 @@
  * Default: unlocked (changes apply to current mode only).
  */
 
-const KEY = 'rf:elevation-color-mirror'
+const KEY = 'recursica_elevation_color_mirror'
 
 export function getElevationColorMirror(): boolean {
   try {

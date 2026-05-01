@@ -55,10 +55,10 @@ export function getAllFamilyNames(tokensJson?: any): Record<string, string> {
       const cssVar = tokenColorFamilyName(scaleKey)
       const displayName = readCssVar(cssVar)
       if (displayName) {
-        names[alias] = displayName
+        names[alias] = displayName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
       } else {
-        // Fallback: title-case the alias
-        names[alias] = alias.charAt(0).toUpperCase() + alias.slice(1)
+        // Fallback: remove hyphens and title-case the alias
+        names[alias] = alias.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
       }
     })
   }

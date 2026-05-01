@@ -3,7 +3,7 @@
  *
  * Thin event-dispatch layer for notifying components when token values change.
  * Previously used localStorage ('token-overrides') for persistence;
- * now all persistence is handled by the CSS delta system (rf:css-delta).
+ * now all persistence is handled by the CSS delta system (recursica_css_delta).
  *
  * Events
  * - Dispatches 'tokenOverridesChanged' with detail { name, value, all }
@@ -38,7 +38,7 @@ export function clearOverrides(initialAll?: any) {
     } catch {}
 
     // Clear other ephemeral client-side state
-    try { localStorage.removeItem('type-token-choices') } catch {}
+    try { localStorage.removeItem('recursica_type_token_choices') } catch {}
 
     let payload: Record<string, any> = {}
     if (initialAll && typeof initialAll === 'object') {

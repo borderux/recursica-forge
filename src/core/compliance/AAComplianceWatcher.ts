@@ -456,7 +456,7 @@ export class AAComplianceWatcher {
       return
     } else if (elementName === 'interactive-tone') {
       // Use stepping logic for interactive tone colors (background)
-      const coreInteractiveVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone)`
+      const coreInteractiveVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`
       const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex) ||
         resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive)`, this.tokenIndex)
 
@@ -469,7 +469,7 @@ export class AAComplianceWatcher {
       return
     } else if (elementName === 'interactive-tone-hover') {
       // Use stepping logic for interactive tone hover colors (background hover)
-      const coreInteractiveVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone)`
+      const coreInteractiveVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`
       const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex)
 
       if (coreInteractiveHex) {
@@ -487,11 +487,11 @@ export class AAComplianceWatcher {
       const interactiveToneValue = readCssVar(interactiveToneVar)
       const interactiveToneHex = interactiveToneValue
         ? resolveCssVarToHex(interactiveToneValue, this.tokenIndex)
-        : resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_tone)`, this.tokenIndex)
+        : resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`, this.tokenIndex)
 
       if (interactiveToneHex) {
         // Text should contrast with the interactive tone, not the surface
-        const coreOnToneVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_default_on-tone)`
+        const coreOnToneVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone)`
         const coreOnToneHex = resolveCssVarToHex(coreOnToneVar, this.tokenIndex)
 
         if (coreOnToneHex) {
@@ -510,11 +510,11 @@ export class AAComplianceWatcher {
       const interactiveToneHoverValue = readCssVar(interactiveToneHoverVar)
       const interactiveToneHoverHex = interactiveToneHoverValue
         ? resolveCssVarToHex(interactiveToneHoverValue, this.tokenIndex)
-        : resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_tone)`, this.tokenIndex)
+        : resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`, this.tokenIndex)
 
       if (interactiveToneHoverHex) {
         // Text should contrast with the interactive hover tone, not the surface
-        const coreOnToneVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_hover_on-tone)`
+        const coreOnToneVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_on-tone)`
         const coreOnToneHex = resolveCssVarToHex(coreOnToneVar, this.tokenIndex)
 
         if (coreOnToneHex) {

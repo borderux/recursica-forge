@@ -6,10 +6,14 @@
  */
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
-import { getComplianceService, type ComplianceIssue } from './ComplianceService'
+import { getComplianceService, type ComplianceIssue, type ComponentComplianceIssue } from './ComplianceService'
 
 interface ComplianceContextValue {
+    /** Theme issues only (palette, core, layer) */
     issues: ComplianceIssue[]
+    /** Deduplicated dual-mode component issues */
+    componentIssues: ComponentComplianceIssue[]
+    /** Total count of all issues (theme + component) */
     issueCount: number
     lightIssueCount: number
     darkIssueCount: number
@@ -20,6 +24,7 @@ interface ComplianceContextValue {
 
 const ComplianceContext = createContext<ComplianceContextValue>({
     issues: [],
+    componentIssues: [],
     issueCount: 0,
     lightIssueCount: 0,
     darkIssueCount: 0,
@@ -30,6 +35,7 @@ const ComplianceContext = createContext<ComplianceContextValue>({
 
 export function ComplianceProvider({ children }: { children: React.ReactNode }) {
     const [issues, setIssues] = useState<ComplianceIssue[]>([])
+    const [componentIssues, setComponentIssues] = useState<ComponentComplianceIssue[]>([])
     const mountedRef = useRef(true)
 
     useEffect(() => {
@@ -37,7 +43,9 @@ export function ComplianceProvider({ children }: { children: React.ReactNode }) 
 
         const handleIssuesChanged = () => {
             if (!mountedRef.current) return
-            setIssues(getComplianceService().getIssues())
+            const service = getComplianceService()
+            setIssues(service.getThemeIssues())
+            setComponentIssues(service.getComponentIssues())
         }
 
         // Listen for compliance events
@@ -45,7 +53,8 @@ export function ComplianceProvider({ children }: { children: React.ReactNode }) 
 
         // Get initial state
         const service = getComplianceService()
-        setIssues(service.getIssues())
+        setIssues(service.getThemeIssues())
+        setComponentIssues(service.getComponentIssues())
 
         return () => {
             mountedRef.current = false
@@ -65,7 +74,7 @@ export function ComplianceProvider({ children }: { children: React.ReactNode }) 
         return getComplianceService().applyAllSuggestions()
     }, [])
 
-    const issueCount = issues.length
+    const issueCount = issues.length + componentIssues.length
     const lightIssueCount = issues.filter(i => i.mode === 'light').length
     const darkIssueCount = issues.filter(i => i.mode === 'dark').length
 
@@ -73,6 +82,7 @@ export function ComplianceProvider({ children }: { children: React.ReactNode }) 
         <ComplianceContext.Provider
             value={{
                 issues,
+                componentIssues,
                 issueCount,
                 lightIssueCount,
                 darkIssueCount,

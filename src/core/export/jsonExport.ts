@@ -987,14 +987,14 @@ function ensureStateTokenRefs(result: any): void {
 
 /**
  * Exports brand.json from the store.
- * Brand CSS var changes are tracked in rf:delta:brand and synced into state.theme
+ * Brand CSS var changes are tracked in recursica_css_delta and synced into state.theme
  * lazily here at export time via syncDeltaToJson.
  */
 export function exportBrandJson(): object {
   const store = getVarsStore()
   const storeState = store.getState()
 
-  // Flush all in-session brand CSS var changes from rf:delta:brand into state.theme
+  // Flush all in-session brand CSS var changes from recursica_css_delta into state.theme
   // before reading it. Brand edits (layers, palette on-tones, compliance fixes) go
   // through trackChange (delta) but no longer eagerly update state.theme.
 
@@ -1143,7 +1143,7 @@ export function exportUIKitJson(): object {
     }
   }
 
-  // Flush all in-session UIKit CSS var changes from rf:delta:uikit into state.uikit
+  // Flush all in-session UIKit CSS var changes from recursica_css_delta into state.uikit
   // before reading it. All UIKit edits (toolbar, compliance fixes) go through
   // trackChange (delta) and are now lazy-synced to JSON here at export time.
 

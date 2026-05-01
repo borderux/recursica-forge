@@ -528,8 +528,8 @@ export function PaletteEmphasisCell({
             issue={matchingIssue}
             isOpen
             onClose={() => setSuggestOpen(false)}
-            onApply={(iss, newHex, family, level) => {
-              applySuggestTone(iss, newHex, family, level)
+            onApply={(iss, newHex, family, level, onToneColor) => {
+              applySuggestTone(iss, newHex, family, level, onToneColor)
               setSuggestOpen(false)
             }}
           />
