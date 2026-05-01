@@ -42,6 +42,21 @@
   color: var(--radio-icon-color, #ffffff) !important;
   width: var(--radio-icon-size) !important;
   height: var(--radio-icon-size) !important;
+  /* Override Mantine's default translateY offset so the dot scales from center */
+  --radio-icon-transform: scale(0.2) !important;
+  transform-origin: center !important;
+}
+
+/* Scale to full size when selected */
+.recursica-radio-root .mantine-Radio-radio:checked + .mantine-Radio-icon,
+.recursica-radio-root .mantine-Radio-radio[data-checked] + .mantine-Radio-icon,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-radio:checked + .mantine-Radio-icon,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-radio[data-checked] + .mantine-Radio-icon,
+.recursica-radio-root .mantine-Radio-radio:checked ~ .mantine-Radio-icon,
+.recursica-radio-root .mantine-Radio-radio[data-checked] ~ .mantine-Radio-icon,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-radio:checked ~ .mantine-Radio-icon,
+.recursica-radio-root.mantine-Radio-root .mantine-Radio-radio[data-checked] ~ .mantine-Radio-icon {
+  --radio-icon-transform: scale(1) !important;
 }
 
 /* Hide icon when unselected */

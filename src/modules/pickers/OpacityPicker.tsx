@@ -339,7 +339,7 @@ export default function OpacityPicker() {
             >
               <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {isSelected && (
-                  <span style={{ fontSize: 14, color: `var(--recursica_brand_palettes_core_interactive_default_color_tone)` }}>✓</span>
+                  <span style={{ fontSize: 14, color: `var(--recursica_brand_palettes_core_interactive_tone)` }}>✓</span>
                 )}
                 <span style={{ textTransform: 'capitalize' }}>{opt.name.replace('opacity/','')}</span>
               </span>

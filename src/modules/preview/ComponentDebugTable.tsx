@@ -387,7 +387,7 @@ export default function ComponentDebugTable({
                   <td style={{
                     padding: 'var(--recursica_brand_dimensions_general_sm) var(--recursica_brand_dimensions_general_md)',
                     color: isChanged 
-                      ? `var(--recursica_brand_palettes_core_interactive_default_color_tone)`
+                      ? `var(--recursica_brand_palettes_core_interactive_tone)`
                       : `var(${genericLayerText(0, 'color')})`,
                     background: isChanged 
                       ? `var(${genericLayerProperty(1, 'surface')})`

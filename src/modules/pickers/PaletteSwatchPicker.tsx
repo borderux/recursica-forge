@@ -10,7 +10,6 @@ import { Label } from '../../components/adapters/Label'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { getVarsStore } from '../../core/store/varsStore'
 import { tokenOpacity, parseBrandCssVar, unwrapVar, parseTokenCssVar } from '../../core/css/cssVarBuilder'
-
 export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarName: string) => void }) {
   const { palettes, theme: themeJson, tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
@@ -432,9 +431,16 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
           if (swatches.length === 0) return null
 
+          let displayName = pk.replace(/-/g, ' ')
+          if (pk === 'neutral') {
+            displayName = 'Neutral'
+          } else if (pk.startsWith('palette-')) {
+            displayName = pk.replace(/^palette-/, 'Palette ')
+          }
+
           return (
             <div key={pk} style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
-              <Label size="small" style={{ textTransform: 'capitalize' }}>{pk.replace(/-/g, ' ')}</Label>
+              <Label size="small" style={{ textTransform: 'capitalize' }}>{displayName}</Label>
               <div style={{ display: 'flex', flexWrap: 'nowrap', gap }}>
                 {swatches.map((s) => {
                   const isSelected = isSwatchSelected(s.cssVar)

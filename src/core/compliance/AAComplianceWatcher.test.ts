@@ -48,15 +48,15 @@ const mockTheme = {
       light: {
         palettes: {
           'core-colors': {
-            black: { $value: '{tokens.color.gray.1000}' },
-            white: { $value: '{tokens.color.gray.000}' },
-            interactive: { $value: '{tokens.color.gray.500}' }
+            black: { $value: '{tokens.colors.scale-02.1000}' },
+            white: { $value: '{tokens.colors.scale-02.000}' },
+            interactive: { $value: '{tokens.colors.scale-02.500}' }
           }
         },
         layers: {
           'layer-0': {
             property: {
-              surface: { $value: '{tokens.color.gray.000}' }
+              surface: { $value: '{tokens.colors.scale-02.000}' }
             }
           }
         }

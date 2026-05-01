@@ -10,7 +10,6 @@
 
 import { tokenColorFamilyName } from '../css/cssVarBuilder'
 import { readCssVar } from '../css/readCssVar'
-import { trackChange } from '../store/cssDelta'
 import { getVarsStore } from '../store/varsStore'
 
 /**
@@ -56,22 +55,15 @@ export function getAllFamilyNames(tokensJson?: any): Record<string, string> {
       const cssVar = tokenColorFamilyName(scaleKey)
       const displayName = readCssVar(cssVar)
       if (displayName) {
-        names[alias] = displayName
+        names[alias] = displayName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
       } else {
-        // Fallback: title-case the alias
-        names[alias] = alias.charAt(0).toUpperCase() + alias.slice(1)
+        // Fallback: remove hyphens and title-case the alias
+        names[alias] = alias.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
       }
     })
   }
 
-  // Also check old color format
-  const oldColors = tokensRoot?.color || {}
-  Object.keys(oldColors).forEach((fam) => {
-    if (fam === 'translucent') return
-    if (!names[fam]) {
-      names[fam] = fam.charAt(0).toUpperCase() + fam.slice(1)
-    }
-  })
+
 
   return names
 }
@@ -108,7 +100,6 @@ export function findScaleKeyByAlias(alias: string, tokensJson?: any): string | u
 export function setFamilyName(scaleKey: string, displayName: string): void {
   const cssVar = tokenColorFamilyName(scaleKey)
   document.documentElement.style.setProperty(cssVar, displayName)
-  trackChange(cssVar, displayName)
 }
 
 /**
@@ -135,7 +126,6 @@ export function setFamilyNameByAlias(alias: string, displayName: string, tokensJ
 export function deleteFamilyName(scaleKey: string): void {
   const cssVar = tokenColorFamilyName(scaleKey)
   document.documentElement.style.removeProperty(cssVar)
-  trackChange(cssVar, '')
 }
 
 /**

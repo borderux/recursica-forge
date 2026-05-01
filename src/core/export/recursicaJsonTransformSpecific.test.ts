@@ -33,8 +33,8 @@ describe('recursicaJsonTransform (Specific)', () => {
   it('includes token color variables', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
-    expect(css).toContain('--recursica_tokens_colors_scale-01_000')
-    expect(css).toContain('--recursica_tokens_colors_scale-02_500')
+    expect(css).toContain('--recursica_tokens_colors_scale-02_000')
+    expect(css).toContain('--recursica_tokens_colors_scale-04_500')
   })
 
   it('includes token font variables', () => {

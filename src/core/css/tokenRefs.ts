@@ -157,25 +157,7 @@ export function findTokenByHex(
       }
     }
     
-    // Fallback to old structure (color.family.level)
-    const oldColorsRoot: any = tokensRoot?.color
-    if (oldColorsRoot && typeof oldColorsRoot === 'object' && !Array.isArray(oldColorsRoot)) {
-      for (const family of Object.keys(oldColorsRoot)) {
-        if (family === 'translucent') continue
-        const familyObj = oldColorsRoot[family]
-        if (!familyObj || typeof familyObj !== 'object' || Array.isArray(familyObj)) continue
-        
-        for (const level of levels) {
-          const levelObj = familyObj[level]
-          if (levelObj && typeof levelObj === 'object') {
-            const val = levelObj.$value
-            if (typeof val === 'string' && val.trim().toLowerCase() === normalized) {
-              return { family, level }
-            }
-          }
-        }
-      }
-    }
+
   } catch (e) {
     console.error('[findTokenByHex] Error finding token:', e)
   }

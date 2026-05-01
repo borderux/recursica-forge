@@ -93,26 +93,10 @@
         },
         "interactive": {
           "type": "object",
-          "required": ["default", "hover"],
+          "required": ["tone", "on-tone"],
           "properties": {
-            "default": {
-              "type": "object",
-              "required": ["tone", "on-tone"],
-              "properties": {
-                "tone": { "type": "object", "required": ["$value"], "properties": { "$value": { "type": "string" } }, "additionalProperties": false },
-                "on-tone": { "type": "object", "required": ["$value"], "properties": { "$value": { "type": "string" } }, "additionalProperties": false }
-              },
-              "additionalProperties": false
-            },
-            "hover": {
-              "type": "object",
-              "required": ["tone", "on-tone"],
-              "properties": {
-                "tone": { "type": "object", "required": ["$value"], "properties": { "$value": { "type": "string" } }, "additionalProperties": false },
-                "on-tone": { "type": "object", "required": ["$value"], "properties": { "$value": { "type": "string" } }, "additionalProperties": false }
-              },
-              "additionalProperties": false
-            }
+            "tone": { "type": "object", "required": ["$value"], "properties": { "$value": { "type": "string" } }, "additionalProperties": false },
+            "on-tone": { "type": "object", "required": ["$value"], "properties": { "$value": { "type": "string" } }, "additionalProperties": false }
           },
           "additionalProperties": false
         }

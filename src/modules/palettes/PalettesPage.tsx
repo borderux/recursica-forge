@@ -8,10 +8,14 @@ import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { Button } from '../../components/adapters/Button'
 import { Toast } from '../../components/adapters/Toast'
+import { Modal } from '../../components/adapters/Modal'
+import { Dropdown } from '../../components/adapters/Dropdown'
+import type { DropdownItem } from '../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { getAllFamilyNames } from '../../core/utils/familyNames'
 import { hexToRgb, contrastRatio, blendHexWithOpacity } from '../theme/contrastUtil'
 import { readCssVar, readCssVarResolved, readCssVarNumber } from '../../core/css/readCssVar'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, tokenColors, palette, extractColorToken } from '../../core/css/cssVarBuilder'
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { getVarsStore } from '../../core/store/varsStore'
@@ -545,11 +549,6 @@ export default function PalettesPage() {
       })
     }
 
-    // Also add from old color structure for backwards compatibility
-    const oldColors = tokensRoot?.color || {}
-    Object.keys(oldColors).forEach((fam) => {
-      if (fam !== 'translucent') fams.add(fam)
-    })
 
     fams.delete('translucent')
     const list = Array.from(fams)
@@ -844,7 +843,7 @@ export default function PalettesPage() {
 
           // Determine the correct on-tone by computing AA contrast compliance
           // Look up the hex value for this level from tokens
-          let onToneValue = '{brand.palettes.white}' // fallback
+          let onToneValue = '{brand.palettes.core-colors.white.tone}' // fallback
           const resolvedScale = scaleKeyForMode || ((): string | undefined => {
             for (const [sk, sc] of Object.entries(colorsRoot)) {
               if (!sk.startsWith('scale-')) continue
@@ -858,15 +857,15 @@ export default function PalettesPage() {
             if (typeof hex === 'string' && /^#?[0-9a-f]{6}$/i.test(hex.trim())) {
               const normalizedHex = hex.startsWith('#') ? hex : `#${hex}`
               const onToneCore = pickOnToneWithOpacity(normalizedHex, modeLabel)
-              onToneValue = `{brand.palettes.${onToneCore}}`
+              onToneValue = `{brand.palettes.core-colors.${onToneCore}.tone}`
             }
           } else {
             // Old color format fallback
-            const hex = tokensRoot?.color?.[familyForMode]?.[tokenLevel]?.$value
+            const hex = tokensRoot?.colors?.[familyForMode]?.[tokenLevel]?.$value
             if (typeof hex === 'string' && /^#?[0-9a-f]{6}$/i.test(hex.trim())) {
               const normalizedHex = hex.startsWith('#') ? hex : `#${hex}`
               const onToneCore = pickOnToneWithOpacity(normalizedHex, modeLabel)
-              onToneValue = `{brand.palettes.${onToneCore}}`
+              onToneValue = `{brand.palettes.core-colors.${onToneCore}.tone}`
             }
           }
 
@@ -875,6 +874,19 @@ export default function PalettesPage() {
             $value: onToneValue
           }
         })
+
+        // Write the 'default' level entry so updateBrandValue can navigate to it
+        // when the user sets the default tone via the palette grid.
+        // Initialise pointing to level 500 (the PaletteEntry.defaultLevel default).
+        const defaultRef = `{brand.themes.${modeKey}.palettes.${paletteKey}.500.color.tone}`
+        const defaultOnToneRef = `{brand.themes.${modeKey}.palettes.${paletteKey}.500.color.on-tone}`
+        targetRoot[modeKey].palettes[paletteKey].default = {
+          color: {
+            $type: 'color',
+            tone: { $type: 'color', $value: defaultRef },
+            'on-tone': { $type: 'color', $value: defaultOnToneRef }
+          }
+        }
       }
 
       setTheme(themeCopy)
@@ -883,18 +895,8 @@ export default function PalettesPage() {
     }
   }
 
-  const addPalette = () => {
-    if (!canAddPalette || unusedFamilies.length === 0) {
-      return
-    }
-
-    // Only use unused color scales - take the first available one
-    // unusedFamilies already filters out used families, so we can trust it
-    const family = unusedFamilies[0]
-
-    if (!family) {
-      return
-    }
+  const addPalette = (family: string) => {
+    if (!canAddPalette || !family) return
 
     const existing = new Set(palettes.map((p) => p.key))
     let i = 1
@@ -902,6 +904,9 @@ export default function PalettesPage() {
     const nextKey = `palette-${i}`
 
     try {
+      // Also clean up any lingering local storage state for deleted palettes
+      document.documentElement.style.removeProperty(`--recursica_brand_palette_deleted_${nextKey}`)
+
       // Initialize theme JSON for this palette using the unused color scale
       initializePaletteTheme(nextKey, family)
 
@@ -915,18 +920,24 @@ export default function PalettesPage() {
 
 
     } catch (err) {
-      console.error('Failed to add palette:', err)
+      throw err
     }
   }
 
-  const deletePalette = (key: string) => {
-    if (key === 'neutral' || key === 'palette-1') return
-    writePalettes(palettes.filter((p) => p.key !== key))
-    // Dispatch event for AA compliance watcher
-    try {
-      window.dispatchEvent(new CustomEvent('paletteDeleted', { detail: { key } }))
-    } catch { }
+  // Delete-palette modal state
+  const [deleteConfirmPalette, setDeleteConfirmPalette] = useState<string | null>(null)
+  const [fallbackPalette, setFallbackPalette] = useState<string>('neutral')
 
+  const handleDeletePalette = () => {
+    if (!deleteConfirmPalette) return
+    const store = getVarsStore()
+    store.deletePalette(deleteConfirmPalette, fallbackPalette)
+    setDeleteConfirmPalette(null)
+    setFallbackPalette('neutral')
+    
+    try {
+      window.dispatchEvent(new CustomEvent('paletteDeleted', { detail: { key: deleteConfirmPalette } }))
+    } catch { }
   }
 
   // Generate descriptive labels: Grayscale for neutral (index 0), then Primary, Secondary, etc.
@@ -942,6 +953,10 @@ export default function PalettesPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [toastPaletteKey, setToastPaletteKey] = useState<string | null>(null)
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Add-palette modal state
+  const [showAddPaletteModal, setShowAddPaletteModal] = useState(false)
+  const [selectedScaleKey, setSelectedScaleKey] = useState<string>('')
 
   const showToast = useCallback((message: string, paletteKey: string) => {
     // Clear any existing timer
@@ -982,6 +997,10 @@ export default function PalettesPage() {
     }
   }, [])
 
+  const getPaletteAliasName = (pk: string, defaultLevel?: number | string) => {
+    return pk === 'neutral' ? 'Neutral' : pk.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+  }
+
   return (
     <div id="body" className="antialiased" style={{ backgroundColor: `var(${genericLayerProperty(0, 'surface')})`, color: `var(${genericLayerText(0, 'color')})` }}>
       <div className="container-padding" style={{ padding: 'var(--recursica_brand_dimensions_general_xl)' }}>
@@ -998,7 +1017,11 @@ export default function PalettesPage() {
           <Button
             variant="outline"
             size="small"
-            onClick={addPalette}
+            onClick={() => {
+              // Default selection = first unused family
+              setSelectedScaleKey(unusedFamilies[0] || '')
+              setShowAddPaletteModal(true)
+            }}
             disabled={!canAddPalette}
             icon={PlusIcon ? <PlusIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null}
           >
@@ -1007,23 +1030,144 @@ export default function PalettesPage() {
         </div>
 
         <div className="section" style={{ marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)', display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
-          {palettes.map((p, index) => (
+        {palettes.map((p, index) => {
+            const displayTitle = getPaletteAliasName(p.key, p.defaultLevel)
+            return (
             <PaletteGrid
               key={p.key}
               paletteKey={p.key}
-              title={p.title}
+              title={displayTitle}
               descriptiveLabel={getDescriptiveLabel(p.key, index)}
               defaultLevel={p.defaultLevel}
               mode={mode === 'dark' ? 'Dark' : 'Light'}
               deletable={!(p.key === 'neutral' || p.key === 'palette-1')}
-              onDelete={() => deletePalette(p.key)}
+              onDelete={() => setDeleteConfirmPalette(p.key)}
               initialFamily={p.initialFamily}
             />
-          ))}
+            )
+          })}
         </div>
 
         <PaletteSwatchPicker />
       </div>
+
+      {/* Scale-picker modal for adding a palette */}
+      {(() => {
+        const familyDisplayNames = getAllFamilyNames(tokensJson)
+        const colorsRoot: any = (tokensJson as any)?.tokens?.colors || {}
+        const dropdownItems: DropdownItem[] = unusedFamilies.map(scaleKey => {
+          const alias: string = colorsRoot[scaleKey]?.alias || scaleKey
+          const displayName = familyDisplayNames[alias] || alias
+          // Read 500-tone live hex via CSS var (resolves through computed styles)
+          const hex500 = readCssVarResolved(tokenColors(scaleKey, '500'))
+            || readCssVar(tokenColors(scaleKey, '500'))
+            || '#888888'
+          const swatch = (
+            <span style={{
+              display: 'inline-block',
+              width: '14px',
+              height: '14px',
+              borderRadius: '3px',
+              backgroundColor: hex500,
+              flexShrink: 0,
+            }} />
+          )
+          return {
+            value: scaleKey,
+            label: displayName,
+            leadingIcon: swatch,
+          }
+        })
+        return (
+          <Modal
+            isOpen={showAddPaletteModal}
+            onClose={() => setShowAddPaletteModal(false)}
+            title="Add palette"
+            primaryActionLabel="Add"
+            secondaryActionLabel="Cancel"
+            primaryActionDisabled={!selectedScaleKey}
+            onPrimaryAction={() => {
+              setShowAddPaletteModal(false)
+              addPalette(selectedScaleKey)
+            }}
+            onSecondaryAction={() => setShowAddPaletteModal(false)}
+            layer="layer-1"
+            size="sm"
+          >
+            <div style={{ padding: '8px 0' }}>
+              <Dropdown
+                label="Color scale"
+                items={dropdownItems}
+                value={selectedScaleKey}
+                onChange={setSelectedScaleKey}
+                layer="layer-1"
+                disableTopBottomMargin
+              />
+            </div>
+          </Modal>
+        )
+      })()}
+
+      {/* Delete-palette modal */}
+      {(() => {
+        if (!deleteConfirmPalette) return null
+        
+        const deletedPaletteIndex = palettes.findIndex(p => p.key === deleteConfirmPalette)
+        const deletedPaletteObj = palettes[deletedPaletteIndex]
+        const deletedPaletteName = deletedPaletteObj 
+          ? getPaletteAliasName(deletedPaletteObj.key, deletedPaletteObj.defaultLevel)
+          : getPaletteAliasName(deleteConfirmPalette)
+
+        // Show remaining palettes as fallback options
+        const fallbackOptions = palettes
+          .filter(p => p.key !== deleteConfirmPalette)
+          .map((p, i) => {
+            const labelName = getPaletteAliasName(p.key, p.defaultLevel)
+            const toneVar = palette(mode.toLowerCase(), p.key, String(p.defaultLevel || 500), 'color_tone')
+            const swatch = (
+              <span style={{
+                display: 'inline-block',
+                width: '14px',
+                height: '14px',
+                borderRadius: '3px',
+                backgroundColor: `var(${toneVar})`,
+                flexShrink: 0,
+              }} />
+            )
+            return {
+              value: p.key,
+              label: labelName,
+              leadingIcon: swatch,
+            }
+          })
+        return (
+          <Modal
+            isOpen={deleteConfirmPalette !== null}
+            onClose={() => setDeleteConfirmPalette(null)}
+            title="Delete palette"
+            primaryActionLabel="Delete"
+            secondaryActionLabel="Cancel"
+            onPrimaryAction={handleDeletePalette}
+            onSecondaryAction={() => setDeleteConfirmPalette(null)}
+            layer="layer-1"
+            size="sm"
+          >
+            <div style={{ padding: '8px 0', display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
+              <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-font-size)' }}>
+                Choose a new palette to update any existing references to {deletedPaletteName}.
+              </p>
+              <Dropdown
+                label="New palette"
+                items={fallbackOptions}
+                value={fallbackPalette}
+                onChange={setFallbackPalette}
+                layer="layer-1"
+                disableTopBottomMargin
+              />
+            </div>
+          </Modal>
+        )
+      })()}
 
       {toastMessage && (
         <div style={{

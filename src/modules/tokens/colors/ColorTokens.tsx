@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { useVars } from '../../vars/VarsContext'
 import { getVarsStore } from '../../../core/store/varsStore'
@@ -12,8 +13,9 @@ import { ColorPickerModal } from '../../pickers/ColorPickerModal'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { TextField } from '../../../components/adapters/TextField'
+import { Modal } from '../../../components/adapters/Modal'
 import { readCssVar } from '../../../core/css/readCssVar'
-import { getAllFamilyNames, setFamilyNameByAlias, renameFamilyName } from '../../../core/utils/familyNames'
+import { getAllFamilyNames, setFamilyName, setFamilyNameByAlias, renameFamilyName } from '../../../core/utils/familyNames'
 
 type TokenEntry = {
   name: string
@@ -27,7 +29,7 @@ type ModeName = 'Mode 1' | 'Mode 2' | string
 export function AddColorScaleButton() {
   const { mode: themeMode } = useThemeMode()
   const [showAddColorModal, setShowAddColorModal] = useState(false)
-  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core_black)')
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core-colors_black)')
   const { setTokens } = useVars()
 
   const handleAddColor = () => {
@@ -161,6 +163,53 @@ export default function ColorTokens() {
   const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null)
   const [openPicker, setOpenPicker] = useState<{ tokenName: string; anchorElement: HTMLElement } | null>(null)
 
+  const [pendingOpenScale, setPendingOpenScale] = useState<{ family: string; level: string } | null>(null)
+
+  // Read navigation state from SuggestTonesModal "Edit scale" button
+  const location = useLocation()
+  useEffect(() => {
+    const state = location.state as any
+    if (state?.openScale) {
+      setPendingOpenScale(state.openScale)
+      // Clear state to prevent re-triggering on subsequent renders
+      window.history.replaceState({}, '')
+    }
+  }, [location.state])
+
+  // After pendingOpenScale is set, wait for DOM then scroll to + open picker
+  useEffect(() => {
+    if (!pendingOpenScale) return
+    const { family: rawFamily, level } = pendingOpenScale
+
+    // Resolve scale key (e.g., "scale-05") to its alias (e.g., "mandy")
+    // because data-scale-family uses the alias, not the scale key.
+    let family = rawFamily
+    if (rawFamily.startsWith('scale-')) {
+      const colorsRoot: any = (tokensJson as any)?.tokens?.colors || {}
+      const scale = colorsRoot[rawFamily]
+      if (scale?.alias && typeof scale.alias === 'string') {
+        family = scale.alias
+      }
+    }
+
+    const timer = setTimeout(() => {
+      const wrapper = document.querySelector(
+        `[data-scale-family="${family}"][data-scale-level="${level}"]`
+      ) as HTMLElement | null
+      if (wrapper) {
+        wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        const roleBtn = wrapper.querySelector('[role="button"]') as HTMLElement | null
+        if (roleBtn) {
+          // Use alias-based token name — this is what ColorCell's entry.name contains
+          const tokenName = `colors/${family}/${level}`
+          setOpenPicker({ tokenName, anchorElement: roleBtn })
+        }
+      }
+      setPendingOpenScale(null)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [pendingOpenScale, tokensJson])
+
   // Track theme changes via direct store subscription so colorScaleUsageMap
   // always reflects the freshest theme even when this component was unmounted
   // during a theme update (e.g. changing warning color on Core Properties page).
@@ -181,23 +230,17 @@ export default function ColorTokens() {
       setThemeVersion(v => v + 1)
     })
   }, [])
-  // Hydrate deleted families from localStorage so they persist across refreshes
-  const [deletedFamilies, setDeletedFamilies] = useState<Record<string, true>>(() => {
-    const deleted = getVarsStore().getDeletedScales()
-    const map: Record<string, true> = {}
-    deleted.forEach(alias => { map[alias] = true })
-    return map
-  })
+
   const [familyNames, setFamilyNames] = useState<Record<string, string>>({})
   const [namesHydrated, setNamesHydrated] = useState(false)
   const [familyOrder, setFamilyOrder] = useState<string[]>([])
   const [showAddColorModal, setShowAddColorModal] = useState(false)
-  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core_black)')
+  const [pendingColorHex, setPendingColorHex] = useState<string>('var(--recursica_brand_palettes_core-colors_black)')
+  const [deleteConfirmFamily, setDeleteConfirmFamily] = useState<string | null>(null)
 
   // Listen for theme reset to clear deleted families and family order
   useEffect(() => {
     const handleReset = () => {
-      setDeletedFamilies({})
       setFamilyOrder([])
     }
     window.addEventListener('themeReset', handleReset)
@@ -292,19 +335,7 @@ export default function ColorTokens() {
         })
       }
 
-      // Backwards compatibility: also process old color structure if it exists
-      const oldColors = t?.color || {}
-      if (oldColors && typeof oldColors === 'object' && !Array.isArray(oldColors)) {
-        Object.keys(oldColors).forEach((family) => {
-          if (family === 'translucent') return
-          const levels = oldColors[family] || {}
-          Object.keys(levels).forEach((lvl) => {
-            push(`color/${family}/${lvl}`, 'color', levels[lvl]?.$value)
-          })
-        })
-        if (oldColors.gray?.['000']) push('color/gray/000', 'color', oldColors.gray['000'].$value)
-        if (oldColors.gray?.['1000']) push('color/gray/1000', 'color', oldColors.gray['1000'].$value)
-      }
+
     } catch { }
     return list
   }, [tokensJson])
@@ -440,7 +471,7 @@ export default function ColorTokens() {
 
   const createColorScale = async (seedHex: string) => {
     setOpenPicker(null)
-    const families = Object.entries(colorFamiliesByMode['Mode 1'] || {}).filter(([family]) => family !== 'translucent' && !deletedFamilies[family])
+    const families = Object.entries(colorFamiliesByMode['Mode 1'] || {}).filter(([family]) => family !== 'translucent')
     if (!families.length) return
 
     // Parse the seed hex to get HSV values for generating the scale
@@ -489,14 +520,15 @@ export default function ColorTokens() {
     const currentTokens = currentState.tokens
     const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
     const tokensRoot = nextTokens?.tokens || {}
-
-    // Find the next available scale number
+    
     const colorsRoot = tokensRoot?.colors || {}
-    let scaleNumber = 1
-    while (colorsRoot[`scale-${String(scaleNumber).padStart(2, '0')}`]) {
-      scaleNumber++
-    }
-    const scaleKey = `scale-${String(scaleNumber).padStart(2, '0')}`
+    const existingNums = Object.keys(colorsRoot)
+      .filter(k => k.startsWith('scale-'))
+      .map(k => parseInt(k.replace('scale-', ''), 10))
+      .filter(n => Number.isFinite(n))
+
+    const maxNum = existingNums.length > 0 ? Math.max(...existingNums) : 0
+    const scaleKey = `scale-${String(maxNum + 1).padStart(2, '0')}`
 
     // Create the new scale in the new format with alias
     if (!tokensRoot.colors) tokensRoot.colors = {}
@@ -533,10 +565,14 @@ export default function ColorTokens() {
     })
 
     // Update family names via CSS var
+    // Use setFamilyName(scaleKey) directly — scaleKey is already known here.
+    // setFamilyNameByAlias would use the stale tokensJson closure (pre-render)
+    // and fail to find the new scale, leaving family-name out of the delta.
+    const displayName = toTitleCase(friendlyName)
     const updatedFamilyNames = { ...familyNames }
-    updatedFamilyNames[newFamilySlug] = toTitleCase(friendlyName)
+    updatedFamilyNames[newFamilySlug] = displayName
     setFamilyNames(updatedFamilyNames)
-    setFamilyNameByAlias(newFamilySlug, toTitleCase(friendlyName), tokensJson)
+    setFamilyName(scaleKey, displayName)
   }
 
   // Build detailed usage map: family -> Array<{ label, url }>
@@ -744,173 +780,85 @@ export default function ColorTokens() {
           const scale = colorsRoot[key]
           if (scale && typeof scale === 'object' && scale.alias && typeof scale.alias === 'string') {
             const alias = scale.alias.trim()
-            if (alias && !deletedFamilies[alias]) {
+            if (alias) {
               scaleAliases.add(alias)
             }
           }
-        }
-      })
-      // Also check old format (color) for backwards compatibility
-      const oldColorsRoot = tokensRoot?.color || {}
-      Object.keys(oldColorsRoot).forEach((fam) => {
-        if (fam !== 'translucent' && !deletedFamilies[fam]) {
-          scaleAliases.add(fam)
         }
       })
       return scaleAliases.size
     } catch {
       return 0
     }
-  }, [tokensJson, deletedFamilies])
+  }, [tokensJson])
 
+  // handleDeleteFamily: open a confirmation modal first.
+  // The actual deletion logic is in performDeleteFamily below.
   const handleDeleteFamily = (family: string) => {
-    // Deep clone tokens to avoid mutation
-      const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
-      const tokensRoot = nextTokens?.tokens || {}
-      const oldColorsRoot = tokensRoot?.color || {}
-      const newColorsRoot = tokensRoot?.colors || {}
-      let tokensChanged = false
+    setDeleteConfirmFamily(family)
+  }
 
-      // Delete from OLD color structure (color.family)
-      if (oldColorsRoot[family]) {
-        delete oldColorsRoot[family]
-        tokensChanged = true
+  const performDeleteFamily = (family: string) => {
+    // Find the scale key for this alias
+    const tokensRoot: any = (tokensJson as any)?.tokens || {}
+    const colorsRoot: any = tokensRoot?.colors || {}
+    let scaleKeyToDelete: string | null = null
+    
+    Object.keys(colorsRoot).forEach((scaleKey) => {
+      if (!scaleKey.startsWith('scale-')) return
+      const scale = colorsRoot[scaleKey]
+      if (scale && typeof scale === 'object' && scale.alias === family) {
+        scaleKeyToDelete = scaleKey
       }
+    })
 
-      // Delete from NEW colors structure (colors.scale-XX with matching alias)
-      let deletedScaleKey: string | null = null
-      Object.keys(newColorsRoot).forEach((scaleKey) => {
-        if (!scaleKey.startsWith('scale-')) return
-        const scale = newColorsRoot[scaleKey]
-        if (scale && typeof scale === 'object' && scale.alias === family) {
-          delete newColorsRoot[scaleKey]
-          deletedScaleKey = scaleKey
-          tokensChanged = true
-        }
-      })
+    if (!scaleKeyToDelete) return
 
-      if (tokensChanged) {
-        setTokens(nextTokens)
-      }
+    setOpenPicker(null)
+    setFamilyOrder((prev) => prev.filter((f) => f !== family))
 
-      // Remove all CSS variables for this color family from inline styles
-      const root = document.documentElement
-      const style = root.style
-      const cssVarsToRemove: string[] = []
-
-      // Iterate backwards to avoid index shifting issues
-      for (let i = style.length - 1; i >= 0; i--) {
-        const prop = style[i]
-        if (!prop) continue
-        // Match old format: --recursica_tokens_color_{family}-*
-        if (prop.startsWith(`${tokenColor(family, '')}`)) {
-          cssVarsToRemove.push(prop)
-        }
-        // Match new format by alias: --recursica_tokens_colors_{family}-*
-        if (prop.startsWith(`${tokenColors(family, '')}`)) {
-          cssVarsToRemove.push(prop)
-        }
-        // Match new format by scale key: --recursica_tokens_colors_{scale-XX}-*
-        if (deletedScaleKey && prop.startsWith(`${tokenColors(deletedScaleKey, '')}`)) {
-          cssVarsToRemove.push(prop)
-        }
-      }
-
-      // Remove all collected CSS variables
-      cssVarsToRemove.forEach(prop => root.style.removeProperty(prop))
-
-      // Update local values state - remove all tokens for this family (both formats)
-      const newValues = { ...values }
-      Object.keys(newValues).forEach((tokenName) => {
-        if (tokenName.startsWith(`color/${family}/`) || tokenName.startsWith(`colors/${family}/`)) {
-          delete newValues[tokenName]
-        }
-        if (deletedScaleKey && tokenName.startsWith(`colors/${deletedScaleKey}/`)) {
-          delete newValues[tokenName]
-        }
-      })
-      setValues(newValues)
-
-      // Mark as deleted and update order
-      setDeletedFamilies((prev) => ({ ...prev, [family]: true }))
-      setOpenPicker(null)
-      setFamilyOrder((prev) => prev.filter((f) => f !== family))
-
-      // Persist the deletion to localStorage so it survives browser refresh
-      getVarsStore().persistDeletedScale(family, deletedScaleKey || undefined)
-
+    getVarsStore().deleteScale(scaleKeyToDelete)
   }
 
   const handleFamilyNameChange = (family: string, newName: string) => {
     const v = toTitleCase(newName)
     const newFamilySlug = toKebabCase(newName)
 
-    // If the slug differs from the current family key, rename all tokens
+    // If the slug differs from the current family key, update local state to reflect the new slug
     if (newFamilySlug && newFamilySlug !== family && newFamilySlug.length > 0) {
-        // Deep clone tokens to avoid mutation
-        const nextTokens = JSON.parse(JSON.stringify(tokensJson)) as any
-        const tokensRoot = nextTokens?.tokens || {}
-        const colorsRoot = tokensRoot?.color || {}
-
-        // Get all levels for the old family
-        const oldFamilyData = colorsRoot[family]
-        if (oldFamilyData && typeof oldFamilyData === 'object') {
-          // Create new family with all levels
-          if (!tokensRoot.color) tokensRoot.color = {}
-          tokensRoot.color[newFamilySlug] = { ...oldFamilyData }
-
-          // Delete old family
-          delete tokensRoot.color[family]
-
-          // Update tokens structure
-          if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
-          setTokens(nextTokens)
-
-          // Update local values state
-          const oldTokenNames = Object.keys(values).filter(name => name.startsWith(`color/${family}/`))
-          const newValues = { ...values }
-          oldTokenNames.forEach(oldTokenName => {
-            const parts = oldTokenName.split('/')
-            if (parts.length === 3) {
-              const level = parts[2]
-              const newTokenName = `color/${newFamilySlug}/${level}`
-              const value = values[oldTokenName]
-              delete newValues[oldTokenName]
-              newValues[newTokenName] = value
-            }
-          })
-          setValues(newValues)
-
-          // Update family order
-          setFamilyOrder((prev) => prev.map(f => f === family ? newFamilySlug : f))
-
-          // Update deleted families if needed
-          if (deletedFamilies[family]) {
-            setDeletedFamilies((prev) => {
-              const next = { ...prev }
-              delete next[family]
-              next[newFamilySlug] = true
-              return next
-            })
-          }
-
-          // Update family names map
-          const updatedFamilyNames = { ...familyNames }
-          delete updatedFamilyNames[family]
-          updatedFamilyNames[newFamilySlug] = v
-          setFamilyNames(updatedFamilyNames)
-
-          // Update CSS var
-          renameFamilyName(family, newFamilySlug, v, tokensJson)
-
-          // Close picker if open for this family
-          if (openPicker && openPicker.tokenName.startsWith(`color/${family}/`)) {
-            setOpenPicker(null)
-          }
-
-          return // Early return since we've handled the rename
+      // Update local values state
+      const oldTokenNames = Object.keys(values).filter(name => name.startsWith(`colors/${family}/`))
+      const newValues = { ...values }
+      oldTokenNames.forEach(oldTokenName => {
+        const parts = oldTokenName.split('/')
+        if (parts.length === 3) {
+          const level = parts[2]
+          const newTokenName = `colors/${newFamilySlug}/${level}`
+          const value = values[oldTokenName]
+          delete newValues[oldTokenName]
+          newValues[newTokenName] = value
         }
+      })
+      setValues(newValues)
 
+      // Update family order
+      setFamilyOrder((prev) => prev.map(f => f === family ? newFamilySlug : f))
+
+      // Update family names map
+      const updatedFamilyNames = { ...familyNames }
+      delete updatedFamilyNames[family]
+      updatedFamilyNames[newFamilySlug] = v
+      setFamilyNames(updatedFamilyNames)
+
+      // Update CSS var and tokens alias
+      renameFamilyName(family, newFamilySlug, v, tokensJson)
+
+      // Close picker if open for this family
+      if (openPicker && openPicker.tokenName.startsWith(`colors/${family}/`)) {
+        setOpenPicker(null)
+      }
+
+      return // Early return since we've handled the rename
     }
 
     // If slug matches or rename failed, just update the display name
@@ -955,7 +903,7 @@ export default function ColorTokens() {
   }
 
   // Sort families by scale number (scale-01, scale-02, etc.) - always use scale-based ordering
-  let families = Object.entries(familiesData).filter(([family]) => family !== 'translucent' && !deletedFamilies[family]).sort(([a], [b]) => {
+  let families = Object.entries(familiesData).filter(([family]) => family !== 'translucent').sort(([a], [b]) => {
     // Sort by scale number (scale-01, scale-02, etc.)
     const scaleKeyA = getScaleKeyForFamily(a)
     const scaleKeyB = getScaleKeyForFamily(b)
@@ -1033,7 +981,6 @@ export default function ColorTokens() {
             levelOrder={levelOrder}
             values={values}
             familyNames={familyNames}
-            deletedFamilies={deletedFamilies}
             hoveredSwatch={hoveredSwatch}
             openPicker={openPicker}
             setHoveredSwatch={setHoveredSwatch}
@@ -1048,6 +995,25 @@ export default function ColorTokens() {
           />
         ))}
       </div>
+      <Modal
+        isOpen={deleteConfirmFamily !== null}
+        onClose={() => setDeleteConfirmFamily(null)}
+        title="Delete color scale"
+        primaryActionLabel="Delete"
+        secondaryActionLabel="Cancel"
+        onPrimaryAction={() => {
+          const family = deleteConfirmFamily!
+          setDeleteConfirmFamily(null)
+          performDeleteFamily(family)
+        }}
+        onSecondaryAction={() => setDeleteConfirmFamily(null)}
+        layer="layer-1"
+        size="sm"
+      >
+        <p style={{ margin: 0, lineHeight: 1.5 }}>
+          Are you sure you want to permanently delete the color scale <strong>{familyNames[deleteConfirmFamily ?? ''] || deleteConfirmFamily}</strong>?
+        </p>
+      </Modal>
       <ColorPickerModal
         open={showAddColorModal}
         defaultHex={pendingColorHex}

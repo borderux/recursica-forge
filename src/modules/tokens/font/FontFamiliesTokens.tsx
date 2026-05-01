@@ -11,7 +11,6 @@ import { getStoredFonts, saveStoredFonts, FontEntry } from '../../../core/store/
 import { genericLayerProperty, genericLayerText, tokenFont } from '../../../core/css/cssVarBuilder'
 import { removeCssVar } from '../../../core/css/updateCssVar'
 import { getVarsStore } from '../../../core/store/varsStore'
-import { clearDeltaByPrefix } from '../../../core/store/cssDelta'
 import { CustomFontModal } from '../../type/CustomFontModal'
 import { GoogleFontsModal } from './GoogleFontsModal'
 import { EditFontVariantsModal } from './EditFontVariantsModal'
@@ -249,7 +248,7 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           const fontStack = `${quotedName}, ${category || 'sans-serif'}`
           updateToken(`font/typeface/${sequentialName}`, fontStack)
 
-          // Update variants in tokensJson (not part of rf:fonts yet)
+          // Update variants in tokensJson (not part of recursica_fonts yet)
           // Variants are handled at the root font level
           if (variants) {
             try {
@@ -303,8 +302,6 @@ function GoogleFontsModalWrapper({ open, onClose }: { open: boolean; onClose: ()
           setTimeout(() => {
             try {
               const store = getVarsStore()
-              clearDeltaByPrefix(tokenFont('typefaces', ''))
-              clearDeltaByPrefix(tokenFont('families', ''))
               store.setTokens(store.getState().tokens)
               store.syncFontsToTokens()
             } catch { }
@@ -406,7 +403,7 @@ export default function FontFamiliesTokens() {
     return () => window.removeEventListener('tokenOverridesChanged', handler)
   }, [tokensJson])
 
-  // After an import the store dispatches 'fontsImported'.  At that point rf:fonts
+  // After an import the store dispatches 'fontsImported'.  At that point recursica_fonts
   // and window.__fontUrlMap are already updated.  Call loadFontsFromStore() which
   // iterates over the stored entries and injects the correct <link> stylesheet for
   // each font (including newly-imported Google Fonts with custom URLs).
@@ -754,10 +751,6 @@ export default function FontFamiliesTokens() {
 
     saveStoredFonts(updatedFonts)
 
-    // Purge any stale delta entries for font typefaces/families.
-    clearDeltaByPrefix(tokenFont('typefaces', ''))
-    clearDeltaByPrefix(tokenFont('families', ''))
-
     // Clear typography font-family CSS vars so they are regenerated with the new mapping
     const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
     typographyPrefixes.forEach((prefix) => {
@@ -806,10 +799,6 @@ export default function FontFamiliesTokens() {
     }
 
     saveStoredFonts(updatedFonts)
-
-    // Purge stale delta entries for font typefaces/families before recompute
-    clearDeltaByPrefix(tokenFont('typefaces', ''))
-    clearDeltaByPrefix(tokenFont('families', ''))
 
     // Clean up fontVariants for the deleted font
     const store = getVarsStore()
@@ -1177,7 +1166,7 @@ export default function FontFamiliesTokens() {
             const newKey = sequence || oldKey
             const store = getVarsStore()
 
-            // Handle sequence change: sequence is owned by rf:fonts (id field) and brand.fonts.
+            // Handle sequence change: sequence is owned by recursica_fonts (id field) and brand.fonts.
             // typefaces are slug-keyed and never need to move — only the id mapping changes.
             if (newKey !== oldKey) {
               const fonts = getStoredFonts()
@@ -1385,8 +1374,6 @@ export default function FontFamiliesTokens() {
             setTimeout(() => {
               try {
                 const store = getVarsStore()
-                clearDeltaByPrefix(tokenFont('typefaces', ''))
-                clearDeltaByPrefix(tokenFont('families', ''))
                 store.setTokens(store.getState().tokens)
                 store.syncFontsToTokens()
               } catch { }

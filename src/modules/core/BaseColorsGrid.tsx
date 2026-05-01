@@ -353,42 +353,22 @@ export default function BaseColorsGrid() {
       }
     })
 
-    // Reset interactive colors (default and hover)
+    // Reset interactive colors (flat structure)
     const defaultInteractive = defaultCoreColors.interactive
     if (defaultInteractive) {
       if (!currentCoreColors.interactive) currentCoreColors.interactive = {}
 
-      // Reset default tone and on-tone
-      if (defaultInteractive.default) {
-        if (!currentCoreColors.interactive.default) currentCoreColors.interactive.default = {}
-        if (defaultInteractive.default.tone?.$value) {
-          currentCoreColors.interactive.default.tone = {
-            $type: 'color',
-            $value: defaultInteractive.default.tone.$value
-          }
-        }
-        if (defaultInteractive.default['on-tone']?.$value) {
-          currentCoreColors.interactive.default['on-tone'] = {
-            $type: 'color',
-            $value: defaultInteractive.default['on-tone'].$value
-          }
+      // Reset tone and on-tone (flat structure)
+      if (defaultInteractive.tone?.$value) {
+        currentCoreColors.interactive.tone = {
+          $type: 'color',
+          $value: defaultInteractive.tone.$value
         }
       }
-
-      // Reset hover tone and on-tone
-      if (defaultInteractive.hover) {
-        if (!currentCoreColors.interactive.hover) currentCoreColors.interactive.hover = {}
-        if (defaultInteractive.hover.tone?.$value) {
-          currentCoreColors.interactive.hover.tone = {
-            $type: 'color',
-            $value: defaultInteractive.hover.tone.$value
-          }
-        }
-        if (defaultInteractive.hover['on-tone']?.$value) {
-          currentCoreColors.interactive.hover['on-tone'] = {
-            $type: 'color',
-            $value: defaultInteractive.hover['on-tone'].$value
-          }
+      if (defaultInteractive['on-tone']?.$value) {
+        currentCoreColors.interactive['on-tone'] = {
+          $type: 'color',
+          $value: defaultInteractive['on-tone'].$value
         }
       }
     }
@@ -497,7 +477,7 @@ export default function BaseColorsGrid() {
         {baseColors.map((color, colIndex) => {
           // Determine the tone CSS var for this column (used as background)
           const columnToneCssVar = color === 'interactive'
-            ? paletteCore(modeLower, 'interactive', 'default', 'tone')
+            ? paletteCore(modeLower, 'interactive', 'tone')
             : paletteCore(modeLower, color, 'tone')
 
           return (
@@ -526,7 +506,7 @@ export default function BaseColorsGrid() {
               {rows.map(row => {
                 if (row.key === 'interactive' && color === 'interactive') {
                   // NA case - use disabled on-tone (on-tone color with disabled opacity)
-                  const onToneCssVar = paletteCore(modeLower, 'interactive', 'default', 'on-tone')
+                  const onToneCssVar = paletteCore(modeLower, 'interactive', 'on-tone')
                   const disabledOpacityVar = state(modeLower, 'disabled')
                   return (
                     <div key={`${row.key}-${color}`} style={{
@@ -547,26 +527,36 @@ export default function BaseColorsGrid() {
                 if (row.key === 'interactive') {
                   return (
                     <div key={`${row.key}-${color}`}>
-                      <InteractiveCell
-                        toneCssVar={paletteCore(modeLower, color, 'tone')}
-                        interactiveCssVar={paletteCore(modeLower, color, 'interactive')}
-                        pickerCssVar={paletteCore(modeLower, color, 'tone')}
-                        colorName={color}
-                        modeLower={modeLower}
-                      />
+                      {color === 'interactive' ? (
+                        <InteractiveCell
+                          toneCssVar={paletteCore(modeLower, color, 'tone')}
+                          interactiveCssVar={paletteCore(modeLower, color, 'on-tone')}
+                          pickerCssVar={paletteCore(modeLower, color, 'tone')}
+                          colorName={color}
+                          modeLower={modeLower}
+                        />
+                      ) : (
+                        <InteractiveCell
+                          toneCssVar={paletteCore(modeLower, color, 'tone')}
+                          interactiveCssVar={paletteCore(modeLower, color, 'interactive')}
+                          pickerCssVar={paletteCore(modeLower, color, 'tone')}
+                          colorName={color}
+                          modeLower={modeLower}
+                        />
+                      )}
                     </div>
                   )
                 }
 
-                // Handle interactive color specially - it uses -default-tone and -default-on-tone
+                // Handle interactive color specially - it uses tone and on-tone directly
                 const toneCssVar = color === 'interactive'
-                  ? paletteCore(modeLower, 'interactive', 'default', 'tone')
+                  ? paletteCore(modeLower, 'interactive', 'tone')
                   : paletteCore(modeLower, color, 'tone')
                 const onToneCssVar = color === 'interactive'
-                  ? paletteCore(modeLower, 'interactive', 'default', 'on-tone')
+                  ? paletteCore(modeLower, 'interactive', 'on-tone')
                   : paletteCore(modeLower, color, 'on-tone')
                 const pickerCssVar = color === 'interactive'
-                  ? paletteCore(modeLower, 'interactive', 'default', 'tone')
+                  ? paletteCore(modeLower, 'interactive', 'tone')
                   : paletteCore(modeLower, color, 'tone')
 
                 return (

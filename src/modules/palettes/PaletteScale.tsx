@@ -195,7 +195,7 @@ export function PaletteScaleHeader({
         const parts = tokenName.split('/')
         const family = parts[1]
         const overrideMap = readOverrides()
-        const jsonColors: any = (tokens as any)?.tokens?.color || {}
+        const jsonColors: any = (tokens as any)?.tokens?.colors || {}
         const overrideValue = (overrideMap as any)[tokenName]
         const tokenValue = overrideValue ?? jsonColors?.[family]?.[parts[2]]?.$value ?? jsonColors?.[family]?.[parts[2]]
         const currentHex = typeof tokenValue === 'string' && /^#?[0-9a-f]{6}$/i.test(tokenValue)
@@ -270,7 +270,7 @@ export function PaletteScaleHeader({
                     }
                     themes[modeKey].palettes[paletteKey][level].color['on-tone'] = {
                       $type: 'color',
-                      $value: `{brand.palettes.${chosen}}`
+                      $value: `{brand.palettes.core-colors.${chosen}.tone}`
                     }
 
                     // Set the CSS var directly for immediate visual feedback

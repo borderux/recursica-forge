@@ -105,9 +105,9 @@ export function palette(
   return `${P}brand_themes_${mode}_palettes_${pk}_${level}_${prop}`
 }
 
-/** `--recursica_brand_themes_{mode}_palettes_core_{...rest joined with _}` */
+/** `--recursica_brand_themes_{mode}_palettes_core-colors_{...rest joined with _}` */
 export function paletteCore(mode: string, ...rest: string[]): string {
-  return `${P}brand_themes_${mode}_palettes_core_${rest.join('_')}`
+  return `${P}brand_themes_${mode}_palettes_core-colors_${rest.join('_')}`
 }
 
 // ─── Brand: Layers (specific, theme-scoped) ─────────────────────────────────
@@ -329,7 +329,45 @@ export function cssVarToRef(value: string): string | null {
       }
     }
 
-    return `{${parts.join('.')}}`
+    let joined = parts.join('.')
+    // Restore nested JSON structure for layer elements that were flattened in CSS var names
+    if (joined.includes('.elements.')) {
+      joined = joined.replace(/\.elements\.(text-color|text-warning|text-success|text-alert|interactive-tone|interactive-color|interactive-on-tone|interactive-tone-hover|interactive-on-tone-hover)/, (match, p1) => {
+        if (p1 === 'text-color') return '.elements.text.color'
+        if (p1 === 'text-warning') return '.elements.text.warning'
+        if (p1 === 'text-success') return '.elements.text.success'
+        if (p1 === 'text-alert') return '.elements.text.alert'
+        if (p1 === 'interactive-tone' || p1 === 'interactive-color') return '.elements.interactive.tone'
+        if (p1 === 'interactive-on-tone') return '.elements.interactive.on-tone'
+        if (p1 === 'interactive-tone-hover') return '.elements.interactive.tone-hover'
+        if (p1 === 'interactive-on-tone-hover') return '.elements.interactive.on-tone-hover'
+        return match
+      })
+    }
+    
+    // Core color aliases: `palettes.core.` → `palettes.core-colors.`
+    if (joined.includes('.palettes.core.')) {
+      joined = joined.replace(/\.palettes\.core\./, '.palettes.core-colors.')
+    }
+
+    // Core-colors de-flattening: compound keys like `success-tone`, `success-on-tone`,
+    // `interactive-tone`, `interactive-on-tone` must be split into their
+    // correct nested JSON paths. The CSS var builder collapses `core-colors.{key}.{prop}`
+    // into `core_{key}-{prop}` (a single segment), which this transform reverses.
+    if (joined.includes('.palettes.core-colors.')) {
+      // interactive-tone and interactive-on-tone (flat structure)
+      joined = joined.replace(/\.palettes\.core-colors\.(interactive)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
+      // {colorKey}-tone and {colorKey}-on-tone (alert, warning, success, black, white)
+      joined = joined.replace(/\.palettes\.core-colors\.(alert|warning|success|black|white)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
+    }
+
+    return `{${joined}}`
+  }
+
+  if (unwrapped.startsWith('--recursica_tokens_')) {
+    const stripped = unwrapped.slice('--recursica_tokens_'.length)
+    const parts = stripped.split('_')
+    return `{tokens.${parts.join('.')}}`
   }
 
   return null
@@ -542,7 +580,7 @@ export function parseBrandCssVar(input: string): ParsedBrand | null {
   // palettes_{pk}_{level}_{prop}   (generic / unthemed form)
   if (segments[0] === 'palettes' && segments.length >= 4) {
     const pk = segments[1]
-    if (pk === 'core') {
+    if (pk === 'core' || pk === 'core-colors') {
       return { type: 'core-color', mode: '', path: segments.slice(2).join('_') }
     }
     return { type: 'palette', mode: '', paletteName: pk, level: segments[2], prop: segments.slice(3).join('_') }
@@ -555,7 +593,7 @@ export function parseBrandCssVar(input: string): ParsedBrand | null {
 
     if (section === 'palettes') {
       const pk = segments[3]
-      if (pk === 'core' && segments.length >= 5) {
+      if ((pk === 'core' || pk === 'core-colors') && segments.length >= 5) {
         return { type: 'core-color', mode, path: segments.slice(4).join('_') }
       }
       if (segments.length >= 6) {

@@ -5,7 +5,7 @@
  * via pull requests. Authentication is obtained via GitHub OAuth; see RECURSICA_API_GITHUB_OAUTH.md.
  */
 
-const STORAGE_KEY = "rf:github:auth";
+const STORAGE_KEY = "recursica_github_auth";
 
 export interface GitHubAuth {
   accessToken: string;

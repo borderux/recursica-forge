@@ -15,7 +15,6 @@ import { parseTokenReference, type TokenReferenceContext } from '../../core/util
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { genericLayerProperty, genericLayerText, layerProperty, layerText, parseBrandCssVar } from '../../core/css/cssVarBuilder'
-import { clearDeltaByPrefix } from '../../core/store/cssDelta'
 
 // Helper to format dimension label from key
 const formatDimensionLabel = (key: string): string => {
@@ -848,13 +847,6 @@ export default function LayerStylePanel({
           allTextProperties.forEach((prop) => {
             rootEl.style.removeProperty(`--recursica_brand_layer_${lvl}_elements_text-${prop}`)
           })
-        })
-
-        // Clear delta entries for selected layers so reapplyDelta() won't
-        // re-apply old user-modified values after recomputeAndApplyAll.
-        levels.forEach((lvl) => {
-          clearDeltaByPrefix(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_`)
-          clearDeltaByPrefix(`--recursica_brand_layer_${lvl}_`)
         })
 
         // Update theme JSON with defaults

@@ -110,22 +110,6 @@ export function findColorFamilyAndLevel(hex: string, tokens: JsonLike): { family
     }
   }
 
-  // Fallback: search through old color structure for backwards compatibility
-  // Note: Old structure may not have scale keys, but we still return what we find
-  const oldColors: any = (tokens as any)?.tokens?.color || {}
-  for (const [family, levels] of Object.entries(oldColors)) {
-    if (family === 'translucent') continue
-    const familyObj = levels as any
-    for (const [level, value] of Object.entries(familyObj)) {
-      const tokenValue = (value as any)?.$value || value
-      if (typeof tokenValue === 'string') {
-        const tokenHex = tokenValue.startsWith('#') ? tokenValue.toLowerCase() : `#${tokenValue.toLowerCase()}`
-        if (tokenHex === normalizedHex) {
-          return { family, level }
-        }
-      }
-    }
-  }
   return null
 }
 
@@ -289,23 +273,6 @@ function findClosestColorToken(hex: string, tokens: JsonLike): { family: string;
         if (!closest || distance < closest.distance) {
           // Return scale key directly, not alias
           closest = { family: scaleKey, level, distance }
-        }
-      }
-    }
-  }
-
-  // Fallback: search through old color structure
-  const oldColors: any = (tokens as any)?.tokens?.color || {}
-  for (const [family, levels] of Object.entries(oldColors)) {
-    if (family === 'translucent') continue
-    const familyObj = levels as any
-    for (const [level, value] of Object.entries(familyObj)) {
-      const tokenValue = (value as any)?.$value || value
-      if (typeof tokenValue === 'string') {
-        const tokenHex = tokenValue.startsWith('#') ? tokenValue.toLowerCase() : `#${tokenValue.toLowerCase()}`
-        const distance = colorDistance(normalizedHex, tokenHex)
-        if (!closest || distance < closest.distance) {
-          closest = { family, level, distance }
         }
       }
     }

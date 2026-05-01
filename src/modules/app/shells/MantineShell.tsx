@@ -12,16 +12,20 @@ import {
   MantineProvider,
   Modal as MantineModal,
   Tabs as MantineTabs,
+  Radio,
 } from "@mantine/core";
 import { Tabs } from "../../../components/adapters/Tabs";
 import { Dropdown } from "../../../components/adapters/Dropdown";
 import { Modal } from "../../../components/adapters/Modal";
 import "@mantine/core/styles.css";
 import "./MantineShell.css";
+import { RadioButtonGroup } from "../../../components/adapters/RadioButtonGroup";
+import { RadioButtonItem } from "../../../components/adapters/RadioButtonItem";
 import { iconNameToReactComponent } from "../../components/iconUtils";
 import { clearOverrides } from "../../theme/tokenOverrides";
 import tokensJson from "../../../../recursica_tokens.json";
 import { useVars } from "../../vars/VarsContext";
+import { getVarsStore } from "../../../core/store/varsStore";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { UiKit } from "../../uikit/UiKitContext";
 import { useThemeMode } from "../../theme/ThemeModeContext";
@@ -35,6 +39,7 @@ import {
 import {
   useJsonImport,
   ImportDirtyDataModal,
+  ImportErrorModal,
   processUploadedFilesAsync,
 } from "../../../core/import/importWithDirtyData";
 import { Button } from "../../../components/adapters/Button";
@@ -76,6 +81,8 @@ export default function MantineShell({
   const [selectedFileNames, setSelectedFileNames] = useState<string[]>([]);
   const [showRandomizeModal, setShowRandomizeModal] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetTarget, setResetTarget] = useState<'imported' | 'original'>('imported');
+  const [hasImportedFiles, setHasImportedFiles] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
   const [cssAuditAutoRun, setCssAuditAutoRunState] = useState(() =>
@@ -104,6 +111,8 @@ export default function MantineShell({
     setSelectedFiles,
     handleImport,
     showDirtyModal,
+    showErrorModal,
+    errorNodes,
     filesToImport,
     handleAcknowledge: handleDirtyAcknowledge,
     handleCancel: handleDirtyCancel,
@@ -363,7 +372,7 @@ export default function MantineShell({
                               style={{
                                 width: 14,
                                 height: 14,
-                                color: `var(--recursica_brand_themes_${mode}_palettes_core_alert-tone)`,
+                                color: `var(--recursica_brand_themes_${mode}_palettes_core-colors_alert_tone)`,
                               }}
                             />
                           ) : null;
@@ -405,7 +414,12 @@ export default function MantineShell({
                       />
                     ) : null;
                   })()}
-                  onClick={() => setShowResetConfirm(true)}
+                  onClick={() => {
+                    const hasImported = getVarsStore().hasUserImportedFiles();
+                    setHasImportedFiles(hasImported);
+                    setResetTarget(hasImported ? 'imported' : 'original');
+                    setShowResetConfirm(true);
+                  }}
                 />
               </Tooltip>
               <Tooltip label='Import theme'>
@@ -732,6 +746,11 @@ export default function MantineShell({
           onAcknowledge={handleDirtyAcknowledgeWithClose}
           onCancel={handleDirtyCancel}
         />
+        <ImportErrorModal
+          show={showErrorModal}
+          missingNodes={errorNodes}
+          onAcknowledge={handleDirtyCancel}
+        />
 
         {/* Reset Confirmation Modal */}
         <Modal
@@ -752,14 +771,35 @@ export default function MantineShell({
             setIsResetting(true);
             window.dispatchEvent(new CustomEvent('complianceReset'));
             clearOverrides(tokensJson as any);
-            resetAll();
+            resetAll(resetTarget === 'original');
             setTimeout(() => {
               runScan();
               setIsResetting(false);
               setShowResetConfirm(false);
             }, 1500);
           }}
-          content="Are you sure you want to reset all changes? This will restore the theme to its default state."
+          content={
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <p style={{ margin: 0 }}>Are you sure you want to reset your changes?</p>
+              {hasImportedFiles && (
+                <RadioButtonGroup
+                  label="Reset destination"
+                  required
+                >
+                  <RadioButtonItem 
+                    selected={resetTarget === 'imported'} 
+                    onChange={() => setResetTarget('imported')} 
+                    label="Reset to last imported version" 
+                  />
+                  <RadioButtonItem 
+                    selected={resetTarget === 'original'} 
+                    onChange={() => setResetTarget('original')} 
+                    label="Reset to app defaults" 
+                  />
+                </RadioButtonGroup>
+              )}
+            </div>
+          }
         />
       </div>
     </MantineProvider>

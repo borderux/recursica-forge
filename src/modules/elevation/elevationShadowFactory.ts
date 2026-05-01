@@ -1,4 +1,3 @@
-import { trackChanges } from '../../core/store/cssDelta'
 
 export interface ElevationShadowValues {
   /** Blur radius in px (non-negative) */
@@ -57,6 +56,4 @@ export function applyElevationShadow(
     root.style.setProperty(key, val)
   }
 
-  // Track in delta so reapplyDelta() restores these values after any recompute.
-  trackChanges(vars)
 }

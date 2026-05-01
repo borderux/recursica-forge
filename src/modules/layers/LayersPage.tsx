@@ -10,7 +10,6 @@ import brandDefault from '../../../recursica_brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getVarsStore } from '../../core/store/varsStore'
 import { genericLayerProperty, genericLayerText, layerProperty, layerText } from '../../core/css/cssVarBuilder'
-import { clearDeltaByPrefix } from '../../core/store/cssDelta'
 
 export default function LayersPage() {
   const { theme, setTheme } = useVars()
@@ -86,15 +85,6 @@ export default function LayersPage() {
         }
       })
     }
-
-    // Clear all delta entries for every layer so reapplyDelta() won't
-    // re-apply old user-modified values after recomputeAndApplyAll.
-    allLayers.forEach((lvl) => {
-      // Themed vars: --recursica_brand_themes_{mode}_layers_layer-{N}_...
-      clearDeltaByPrefix(`--recursica_brand_themes_${mode}_layers_layer-${lvl}_`)
-      // Scoped vars: --recursica_brand_layer_{N}_...
-      clearDeltaByPrefix(`--recursica_brand_layer_${lvl}_`)
-    })
 
     setTheme(nextTheme)
   }

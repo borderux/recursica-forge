@@ -2,11 +2,10 @@ import '../theme/index.css'
 import { useMemo, useState } from 'react'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import ElevationModule from './ElevationModule'
 import ElevationStylePanel from './ElevationStylePanel'
+import ElevationModule from './ElevationModule'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { removeCssVar } from '../../core/css/updateCssVar'
-import { clearDeltaByPrefix } from '../../core/store/cssDelta'
 import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import { Button } from '../../components/adapters/Button'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -345,16 +344,6 @@ export default function ElevationsPage() {
         propNames.forEach((prop) => {
           removeCssVar(`--recursica_brand_elevations_elevation-${lvl}_${prop}`)
         })
-
-        // Clear the factory-written shadow-color from the delta so reapplyDelta doesn't
-        // restore the old color after recomputeAndApplyAll runs.
-        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_shadow-color`)
-        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_blur`)
-        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_spread`)
-        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_x-axis`)
-        clearDeltaByPrefix(`--recursica_brand_themes_${mode}_elevations_elevation-${lvl}_y-axis`)
-
-
 
 
         // Update directions (mode-specific)

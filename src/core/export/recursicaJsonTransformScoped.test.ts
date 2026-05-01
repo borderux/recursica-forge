@@ -34,8 +34,8 @@ describe('recursicaJsonTransform (Scoped)', () => {
   it('includes unscoped :root with token variables', () => {
     const result = recursicaJsonTransform(json)
     const css = result[0].contents
-    expect(css).toContain('--recursica_tokens_colors_scale-01_000')
-    expect(css).toContain('--recursica_tokens_colors_scale-02_500')
+    expect(css).toContain('--recursica_tokens_colors_scale-02_000')
+    expect(css).toContain('--recursica_tokens_colors_scale-04_500')
   })
 
   it('includes theme-scoped blocks', () => {

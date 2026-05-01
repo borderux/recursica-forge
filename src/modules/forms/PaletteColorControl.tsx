@@ -258,7 +258,7 @@ export default function PaletteColorControl({
       if (brandParsed && brandParsed.type === 'core-color') {
         const coreKey = brandParsed.path
         // Handle interactive colors (path segments joined by _)
-        if (coreKey === 'interactive_default_tone' || coreKey === 'interactive-default-tone' || coreKey === 'interactive-default' || coreKey === 'interactive_default') {
+        if (coreKey === 'interactive_tone' || coreKey === 'interactive-default-tone' || coreKey === 'interactive-default' || coreKey === 'interactive_default') {
           return 'Core / Interactive / Default'
         }
         if (coreKey === 'interactive_hover_tone' || coreKey === 'interactive-hover-tone' || coreKey === 'interactive-hover' || coreKey === 'interactive_hover') {
@@ -514,7 +514,7 @@ export default function PaletteColorControl({
       const brandParsed = parseBrandCssVar(paletteValue)
       if (brandParsed && brandParsed.type === 'core-color') {
         const coreKey = brandParsed.path
-        if (coreKey === 'interactive_default_tone' || coreKey === 'interactive-default-tone' || coreKey === 'interactive-default' || coreKey === 'interactive_default') {
+        if (coreKey === 'interactive_tone' || coreKey === 'interactive-default-tone' || coreKey === 'interactive-default' || coreKey === 'interactive_default') {
           setDisplayLabel('Core / Interactive / Default')
           return
         }

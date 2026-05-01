@@ -77,9 +77,7 @@ export function Chip({
 
     // Get color CSS variables for reactive updates
     const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
-    const chipTextForListener = variant === 'error' || variant === 'error-selected'
-      ? getComponentLevelCssVar('Chip', 'colors.error.text-color')
-      : buildVariantColorCssVar('Chip', variant, 'text', layer)
+    const chipTextForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
     const colorCssVars = [chipBgForListener, chipTextForListener, chipBorderForListener]
@@ -273,13 +271,7 @@ function getChipStyles(
   const bgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const borderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
-  // For error variant (including error-selected), use component-level error color CSS variables
-  let textVar: string
-  if (variant === 'error' || variant === 'error-selected') {
-    textVar = getComponentLevelCssVar('Chip', 'colors.error.text-color')
-  } else {
-    textVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
-  }
+  const textVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
 
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)
   // NEW STRUCTURE: properties.{property}

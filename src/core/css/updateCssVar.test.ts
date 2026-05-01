@@ -65,8 +65,9 @@ describe('updateCssVar', { timeout: 60000 }, () => {
   it('should auto-fix brand CSS variable with hex value when token match found', () => {
     const tokens = {
       tokens: {
-        color: {
-          gray: {
+        colors: {
+          'scale-02': {
+            alias: 'gray',
             '900': { $value: '#000000' } // Note: 1000 normalizes to 900
           }
         }

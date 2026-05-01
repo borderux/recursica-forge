@@ -9,7 +9,7 @@ import { readCssVar } from '../css/readCssVar'
 import { resolveCssVarToHex } from '../compliance/layerColorStepping'
 import { buildTokenIndex } from '../resolvers/tokens'
 import type { JsonLike } from '../resolvers/tokens'
-import { TOKEN_PREFIX, unwrapVar, BRAND_PREFIX } from '../css/cssVarBuilder'
+import { cssVarToRef, TOKEN_PREFIX, unwrapVar, BRAND_PREFIX } from '../css/cssVarBuilder'
 import tokensJson from '../../../recursica_tokens.json'
 import brandJson from '../../../recursica_brand.json'
 import uikitJson from '../../../recursica_ui-kit.json'
@@ -190,7 +190,9 @@ export function exportTokensJson(): object {
   const vars = getAllCssVars()
   const tokenIndex = buildTokenIndex(tokensJson as JsonLike)
   const store = getVarsStore()
+
   const storeState = store.getState()
+
   const storeTokens = (storeState.tokens as any)?.tokens || {}
   const originalTokens = tokensJson as JsonLike
 
@@ -673,7 +675,34 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
       .replace(/\{brand\.palettes\.(neutral|palette-1|palette-2)\.(default|\d{3,4})\.on-tone\}/g, '{brand.palettes.$1.$2.color.on-tone}')
       // Fix malformed token references: {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
       .replace(/{tokens\.colors\.scale\.(\d+)-(\d{3,4})}/g, '{tokens.colors.scale-$1.$2}')
-      
+      // Sanitize stale/corrupt core-colors refs missing the .tone leaf.
+      // updateCoreColorOnTones previously wrote {brand.themes.light.palettes.core-colors.white}
+      // (no .tone) into state.theme; these point to a group not a token and fail DTCG validation.
+      // Match the fully theme-qualified form first so the theme prefix is preserved in brand exports.
+      .replace(
+        /\{brand\.themes\.(light|dark)\.palettes\.core-colors\.(white|black|alert|warning|success)\}/g,
+        (_, mode, leaf) => `{brand.themes.${mode}.palettes.core-colors.${leaf}.tone}`
+      )
+      // Then catch the theme-agnostic form (used in UIKit refs / interactiveColorUpdater fallbacks).
+      .replace(
+        /\{brand\.palettes\.core-colors\.(white|black|alert|warning|success)\}/g,
+        (_, leaf) => `{brand.palettes.core-colors.${leaf}.tone}`
+      )
+      // Fix theme-qualified palettes.core.* (no hyphen) → palettes.core-colors.*.tone
+      // Generated when syncDeltaToJson converts a paletteCore() CSS var name back to a DTCG ref
+      // using the old 'core' segment instead of 'core-colors'.
+      .replace(
+        /\{brand\.themes\.(light|dark)\.palettes\.core\.(white|black|alert|warning|success)\}/g,
+        (_, mode, leaf) => `{brand.themes.${mode}.palettes.core-colors.${leaf}.tone}`
+      )
+      // Fix bare shortcut refs {brand.palettes.white} / {brand.palettes.black}
+      // Written by palette initialization before the source-fix in initializePaletteTheme.
+      .replace(
+        /\{brand\.palettes\.(white|black)\}/g,
+        (_, leaf) => `{brand.palettes.core-colors.${leaf}.tone}`
+      )
+
+
     if (stripThemes) {
       normalized = normalized
         // Core-colors: normalize to theme-agnostic token paths (.tone)
@@ -719,7 +748,7 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
  * - {brand.themes.light.palettes.neutral.100.tone} -> {brand.palettes.neutral.100.tone}
  * - {brand.themes.light.text.emphasis.low} -> {brand.text.emphasis.low}
  */
-function normalizeUIKitBrandReferences(obj: any): any {
+function normalizeUIKitBrandReferences(obj: any, currentPath: string = ''): any {
   if (typeof obj === 'string') {
     let normalized = obj
       // ── Layer element text path: cssVarToRef flattens `text.color` into `text-color` ──
@@ -727,6 +756,10 @@ function normalizeUIKitBrandReferences(obj: any): any {
       // Also handles theme-qualified variants that haven't been stripped yet
       .replace(/{brand(?:\.themes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.text-(color|warning|success|alert)}/g,
         '{brand.layers.$1.elements.text.$2}')
+      // ── Layer element interactive path: cssVarToRef flattens `interactive.tone` into `interactive-tone` ──
+      // Fix: {brand.layers.layer-N.elements.interactive-tone} → {brand.layers.layer-N.elements.interactive.tone}
+      .replace(/{brand(?:\.themes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.interactive-(tone|tone-hover|on-tone|on-tone-hover)}/g,
+        '{brand.layers.$1.elements.interactive.$2}')
       // ── Core palette path: cssVarToRef flattens `core-colors` into `core` ──
       // Fix: {brand.palettes.core.black.tone} → {brand.palettes.core-colors.black.tone}
       // Also handles theme-qualified variants
@@ -742,18 +775,23 @@ function normalizeUIKitBrandReferences(obj: any): any {
         '{brand.palettes.$1.$2.color.on-tone}')
       // ── Remove theme prefix from all brand references ──
       .replace(/{brand\.themes\.(light|dark)\./g, '{brand.')
+      // ── Remove theme prefix from all ui-kit references ──
+      .replace(/{ui-kit\.themes\.(light|dark)\./g, '{ui-kit.')
+
+
 
     return normalized
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(normalizeUIKitBrandReferences)
+    return obj.map((item, index) => normalizeUIKitBrandReferences(item, `${currentPath}[${index}]`))
   }
 
   if (obj && typeof obj === 'object') {
     const normalized: any = {}
     for (const key in obj) {
-      normalized[key] = normalizeUIKitBrandReferences(obj[key])
+      const nextPath = currentPath ? `${currentPath}.${key}` : key
+      normalized[key] = normalizeUIKitBrandReferences(obj[key], nextPath)
     }
     return normalized
   }
@@ -782,11 +820,24 @@ function ensurePaletteDefaults(result: any): void {
     const steps = DEFAULT_PALETTE_STEP[mode]
     if (!steps) continue
 
-    for (const paletteKey of ['neutral', 'palette-1', 'palette-2'] as const) {
+    for (const paletteKey of Object.keys(palettes)) {
+      if (paletteKey === 'core-colors') continue
+      
       const palette = palettes[paletteKey]
       if (!palette || typeof palette !== 'object') continue
 
-      const step = steps[paletteKey]
+      let step = steps[paletteKey] || (paletteKey === 'neutral' ? '050' : '500')
+      
+      // Ensure the step actually exists in the palette; if not, pick the closest or any available step
+      if (!palette[step]) {
+        const availableSteps = Object.keys(palette).filter(k => !k.startsWith('$') && k !== 'default')
+        if (availableSteps.length > 0) {
+          // Try to find the closest step to 500, or just pick the first one
+          availableSteps.sort((a, b) => Math.abs(parseInt(a) - 500) - Math.abs(parseInt(b) - 500))
+          step = availableSteps[0]
+        }
+      }
+
       const toneRef = `{brand.themes.${mode}.palettes.${paletteKey}.${step}.color.tone}`
       const onToneRef = `{brand.themes.${mode}.palettes.${paletteKey}.${step}.color.on-tone}`
 
@@ -936,12 +987,17 @@ function ensureStateTokenRefs(result: any): void {
 
 /**
  * Exports brand.json from the store.
- * Now a direct store dump — brand CSS var changes are synced to the store
- * in real-time via updateBrandValue, so the store is always up-to-date.
+ * Brand CSS var changes are tracked in recursica_css_delta and synced into state.theme
+ * lazily here at export time via syncDeltaToJson.
  */
 export function exportBrandJson(): object {
   const store = getVarsStore()
   const storeState = store.getState()
+
+  // Flush all in-session brand CSS var changes from recursica_css_delta into state.theme
+  // before reading it. Brand edits (layers, palette on-tones, compliance fixes) go
+  // through trackChange (delta) but no longer eagerly update state.theme.
+
   const theme = storeState.theme as any
 
   if (!theme?.brand) {
@@ -1087,10 +1143,19 @@ export function exportUIKitJson(): object {
     }
   }
 
+  // Flush all in-session UIKit CSS var changes from recursica_css_delta into state.uikit
+  // before reading it. All UIKit edits (toolbar, compliance fixes) go through
+  // trackChange (delta) and are now lazy-synced to JSON here at export time.
+
   // Deep clone the UIKit structure from store
   // Ensure it has the 'ui-kit' wrapper if it doesn't already
   const uikitWithWrapper = (uikit as any)?.['ui-kit'] ? uikit : { 'ui-kit': uikit }
   const result = JSON.parse(JSON.stringify(uikitWithWrapper))
+
+  // Note: DOM snapshot was removed. syncDeltaToJson() above correctly flushes all delta
+  // changes into state.uikit before the deep clone. Reading CSS var computed values from
+  // document.documentElement.style and overwriting $value entries was corrupting DTCG
+  // references when cssVarToRef couldn't reconstruct the original token path.
 
   // Map typography literal strings back to their corresponding token references targeting tokens.json
   const walkAndConvertFonts = (obj: any) => {
@@ -1785,55 +1850,60 @@ export function exportCssStylesheet(options: { specific?: boolean; scoped?: bool
 
 /**
  * Downloads selected JSON files and optionally CSS file
- * If multiple files are selected, they are zipped together
- * Validates JSON files before export and throws error if validation fails
+/**
+ * Normalizes color scale keys to sequential numbering before export.
+ *
+ * During a working session, scale keys can become non-sequential (e.g. scale-01, scale-04,
+
+
+/**
+ * Downloads selected JSON files and optionally CSS file.
+ * If multiple files are selected, they are zipped together.
+ * Validates JSON files before export and throws error if validation fails.
+ *
+ * Before validation, color scale keys are compacted to sequential numbering
  */
 export async function downloadJsonFiles(files: { tokens?: boolean; brand?: boolean; uikit?: boolean; cssSpecific?: boolean; cssScoped?: boolean } = { tokens: true, brand: true, uikit: true }): Promise<void> {
+  const rawTokens = exportTokensJson()
+  const rawBrand  = exportBrandJson()
+  const rawUikit  = exportUIKitJson()
+
   // Count how many files are selected
   const selectedFiles: Array<{ content: string | object; filename: string; isJson: boolean }> = []
 
   if (files.tokens) {
-    const tokens = exportTokensJson()
-    // Validate tokens before adding to export
     try {
-      validateTokensJson(tokens as JsonLike)
+      validateTokensJson(rawTokens as JsonLike)
     } catch (error) {
-
       throw new Error(`Cannot export tokens.json: ${error instanceof Error ? error.message : String(error)}`)
     }
-    selectedFiles.push({ content: tokens, filename: EXPORT_FILENAME_TOKENS, isJson: true })
+    selectedFiles.push({ content: rawTokens, filename: EXPORT_FILENAME_TOKENS, isJson: true })
   }
 
   if (files.brand) {
-    const brand = exportBrandJson()
-    // Validate brand before adding to export
     try {
-      validateBrandJson(brand as JsonLike)
+      validateBrandJson(rawBrand as JsonLike)
     } catch (error) {
-
       throw new Error(`Cannot export brand.json: ${error instanceof Error ? error.message : String(error)}`)
     }
-    selectedFiles.push({ content: brand, filename: EXPORT_FILENAME_BRAND, isJson: true })
+    selectedFiles.push({ content: rawBrand, filename: EXPORT_FILENAME_BRAND, isJson: true })
   }
 
   if (files.uikit) {
-    const uikit = exportUIKitJson()
-    // Validate UIKit before adding to export
     try {
-      validateUIKitJson(uikit as JsonLike)
+      validateUIKitJson(rawUikit as JsonLike)
     } catch (error) {
-
       throw new Error(`Cannot export uikit.json: ${error instanceof Error ? error.message : String(error)}`)
     }
-    selectedFiles.push({ content: uikit, filename: EXPORT_FILENAME_UIKIT, isJson: true })
+    selectedFiles.push({ content: rawUikit, filename: EXPORT_FILENAME_UIKIT, isJson: true })
   }
 
-  // Export CSS files (specific and/or scoped) via JSON transforms
+  // Export CSS files using the same normalized exports for consistency
   if (files.cssSpecific || files.cssScoped) {
     const json = {
-      tokens: exportTokensJson(),
-      brand: exportBrandJson(), // exportBrandJson already normalizes and preserves themes
-      uikit: exportUIKitJson()  // exportUIKitJson already normalizes and strips themes
+      tokens: rawTokens,
+      brand: rawBrand,
+      uikit: rawUikit,
     } as Parameters<typeof recursicaJsonTransformSpecific>[0]
     if (files.cssSpecific) {
       const [file] = recursicaJsonTransformSpecific(json)

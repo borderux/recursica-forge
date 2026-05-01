@@ -10,11 +10,10 @@
 
 import { isBrandVar, validateCssVarValue } from './varTypes'
 import { findTokenByHex, tokenToCssVar } from './tokenRefs'
-import { updateUIKitValue, removeUIKitValue } from './updateUIKitValue'
-import { updateBrandValue } from './updateBrandValue'
-import { trackChange, clearDeltaEntry } from '../store/cssDelta'
+import { removeUIKitValue, updateUIKitValue } from './updateUIKitValue'
 import { getVarsStore } from '../store/varsStore'
 import { checkForGlobalRef } from './globalRefInterceptor'
+import { updateBrandValue } from './updateBrandValue'
 
 // Global flag to suppress events during bulk updates
 let suppressEvents = false
@@ -124,25 +123,29 @@ export function updateCssVar(
   // IMMEDIATELY apply the CSS variable to the DOM to ensure 60fps live previews
   root.style.setProperty(cssVarName, trimmedValue)
 
-  // Debounce the actual state persistence and heavy JSON object mutations
+  // For brand CSS variables, synchronously sync state.theme so that any subsequent
+  // recomputeAndApplyAll (e.g. from addPalette / deletePalette) reads the updated value
+  // via buildPaletteVars. Without this, state.theme keeps the stale JSON value and the
+  // next recompute regenerates the old CSS variable, reverting the user's change.
+  // updateBrandValue also clears any stale delta entries for the updated key.
+  if (isBrandVar(cssVarName)) {
+    updateBrandValue(cssVarName, trimmedValue)
+  } else if (isUIKitVar) {
+    updateUIKitValue(cssVarName, trimmedValue)
+  }
+
+  // Debounce delta tracking to avoid thrashing during rapid slider movement
   cssVarDebounceTimers[cssVarName] = setTimeout(() => {
-    // Track this change in the delta serialization system
-    trackChange(cssVarName, trimmedValue)
+    // JSON sync (state.tokens / state.theme / state.uikit) happens lazily at export time.
 
-    // CRITICAL FIX: Ensure all UIKit var changes from any slider/picker save to JSON store automatically
-    if (isUIKitVar) {
-      updateUIKitValue(cssVarName, trimmedValue)
-
-      // Check if this component property is backed by a ui-kit.globals.* reference.
-      if (cssVarName.includes('_components_')) {
-        checkForGlobalRef(cssVarName, trimmedValue)
-      }
+    // For UIKit component vars: propagate global-ref conflicts if the property
+    // was backed by a {ui-kit.globals.*} reference in the pristine JSON.
+    if (isUIKitVar && cssVarName.includes('_components_')) {
+      checkForGlobalRef(cssVarName, trimmedValue)
     }
 
-    // Sync brand CSS var changes to the JSON store
-    // This ensures AA compliance fixes (and any other brand var changes) persist in the store
+    // Schedule a compliance scan when brand vars change (color/opacity edits)
     if (isBrandVar(cssVarName)) {
-      updateBrandValue(cssVarName, trimmedValue)
       getVarsStore().scheduleComplianceScan()
     }
 
@@ -151,7 +154,6 @@ export function updateCssVar(
       pendingCssVars.add(cssVarName)
       fireBatchedEvent()
     } else if (!shouldBeSilent) {
-      // During suppression, just track the var for later batching
       pendingCssVars.add(cssVarName)
     }
 
@@ -217,12 +219,12 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
         let tokenName = `colors/${tokenMatch.family}/${tokenMatch.level}`
         let cssVar = tokenToCssVar(tokenName, tokens)
         // If that didn't work and we have old format tokens, try old format (color/...)
-        if (!cssVar && tokens?.tokens?.color) {
+        if (!cssVar && tokens?.tokens?.colors) {
           tokenName = `color/${tokenMatch.family}/${tokenMatch.level}`
           cssVar = tokenToCssVar(tokenName, tokens)
         }
         // If still no CSS var and we have old format, generate old format CSS var directly
-        if (!cssVar && tokens?.tokens?.color && !tokenMatch.scale) {
+        if (!cssVar && tokens?.tokens?.colors && !tokenMatch.scale) {
           const normalizedLevel = tokenMatch.level === '1000' ? '1000' : String(tokenMatch.level).padStart(3, '0')
           return `var(--recursica_tokens_color_${tokenMatch.family}_${normalizedLevel})`
         }
@@ -250,9 +252,6 @@ function tryFixBrandVarValue(cssVarName: string, value: string, tokens?: any): s
 export function removeCssVar(cssVarName: string, silent?: boolean): void {
   const root = document.documentElement
   root.style.removeProperty(cssVarName)
-
-  // Remove from delta so reapplyDelta() won't re-apply a stale value
-  clearDeltaEntry(cssVarName)
 
   // Also remove unprefixed version if it exists
   if (cssVarName.startsWith('--recursica_')) {

@@ -263,11 +263,6 @@ export default function PaletteColorSelector({
       })
     }
 
-    // Also add from old color structure for backwards compatibility
-    const oldColors = tokensRoot?.color || {}
-    Object.keys(oldColors).forEach((fam) => {
-      if (fam !== 'translucent') fams.add(fam)
-    })
 
     // Add from overrides
     try {
@@ -355,7 +350,7 @@ export default function PaletteColorSelector({
     if (parts[0] === 'color' && parts.length >= 3) {
       const family = parts[1]
       const level = parts[2]
-      return (tokensJson as any)?.tokens?.color?.[family]?.[level]?.$value
+      return (tokensJson as any)?.tokens?.colors?.[family]?.[level]?.$value
     }
 
     return undefined
@@ -569,7 +564,7 @@ export default function PaletteColorSelector({
               }
               root[currentModeKey].palettes[paletteKey][lvl].color['on-tone'] = {
                 $type: 'color',
-                $value: `{brand.palettes.${onToneCore}}`
+                $value: `{brand.palettes.core-colors.${onToneCore}.tone}`
               }
             }
           })
@@ -819,13 +814,12 @@ export default function PaletteColorSelector({
           // Use short alias format (no theme path)
           targetRoot[currentModeKey].palettes[paletteKey][lvl].color['on-tone'] = {
             $type: 'color',
-            $value: `{brand.palettes.${onToneCore}}`
+            $value: `{brand.palettes.core-colors.${onToneCore}.tone}`
           }
         }
       })
 
       // setTheme triggers recomputeAndApplyAll → buildPaletteVars → applyCssVars
-      // No direct updateCssVar calls — buildPaletteVars is the single source
       setTheme(themeCopy)
 
 
@@ -1007,7 +1001,7 @@ function FamilyDropdown({
     const { alias } = getFamilyInfo(family)
     const names = getAllFamilyNames()
     const v = names[alias]
-    if (typeof v === 'string' && v.trim()) return v
+    if (typeof v === 'string' && v.trim()) return titleCase(v)
     return titleCase(alias)
   }
 

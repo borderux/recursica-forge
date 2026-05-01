@@ -11,7 +11,7 @@ import brandJson from "../../../recursica_brand.json";
 import uikitJson from "../../../recursica_ui-kit.json";
 import type { JsonLike } from "../resolvers/tokens";
 import { validateBrandJson, validateTokensJson, validateUIKitJson } from "../utils/validateJsonSchemas";
-import { getDelta, clearDeltaByPrefix } from "../store/cssDelta";
+import { validateImportedReferences } from "./importHydration";
 
 /**
  * Clears CSS variables based on what's being imported
@@ -78,30 +78,34 @@ function stableStringify(value: unknown): string {
  */
 export function detectDirtyData(): boolean {
   try {
-    // Fast path: check if the CSS delta has any entries
-    const delta = getDelta();
-    if (Object.keys(delta).length > 0) return true;
-
-    // Fallback: compare in-memory JSON state to originals
+    // Compare in-memory state to the baseline (imported state if available, otherwise bundled JSON)
     const store = getVarsStore();
     const currentState = store.getState();
 
-    // Normalize original JSON files for comparison
-    const originalTokens = tokensJson as JsonLike;
-    const originalBrand = (brandJson as any)?.brand
-      ? brandJson
-      : ({ brand: brandJson } as JsonLike);
-    const originalUiKit = (uikitJson as any)?.["ui-kit"]
-      ? uikitJson
-      : ({ "ui-kit": uikitJson } as JsonLike);
+    let baselineTokens: JsonLike;
+    let baselineBrand: JsonLike;
+    let baselineUiKit: JsonLike;
+
+    // Check if the user has imported files — if so, compare against the imported baseline
+    const importedTokens = localStorage.getItem('recursica_tokens_imported');
+    const importedBrand = localStorage.getItem('recursica_brand_imported');
+    const importedUikit = localStorage.getItem('recursica_uikit_imported');
+
+    if (importedTokens || importedBrand || importedUikit) {
+      baselineTokens = importedTokens ? JSON.parse(importedTokens) : (tokensJson as JsonLike);
+      baselineBrand = importedBrand ? JSON.parse(importedBrand) : ((brandJson as any)?.brand ? brandJson : { brand: brandJson }) as JsonLike;
+      baselineUiKit = importedUikit ? JSON.parse(importedUikit) : ((uikitJson as any)?.["ui-kit"] ? uikitJson : { "ui-kit": uikitJson }) as JsonLike;
+    } else {
+      // No imported data — compare against bundled app JSON
+      baselineTokens = tokensJson as JsonLike;
+      baselineBrand = ((brandJson as any)?.brand ? brandJson : { brand: brandJson }) as JsonLike;
+      baselineUiKit = ((uikitJson as any)?.["ui-kit"] ? uikitJson : { "ui-kit": uikitJson }) as JsonLike;
+    }
 
     // Compare using stable stringify (key-order independent)
-    const tokensEqual =
-      stableStringify(currentState.tokens) === stableStringify(originalTokens);
-    const themeEqual =
-      stableStringify(currentState.theme) === stableStringify(originalBrand);
-    const uikitEqual =
-      stableStringify(currentState.uikit) === stableStringify(originalUiKit);
+    const tokensEqual = stableStringify(currentState.tokens) === stableStringify(baselineTokens);
+    const themeEqual = stableStringify(currentState.theme) === stableStringify(baselineBrand);
+    const uikitEqual = stableStringify(currentState.uikit) === stableStringify(baselineUiKit);
 
     // If any differ, we have dirty data
     return !tokensEqual || !themeEqual || !uikitEqual;
@@ -123,66 +127,9 @@ export function detectJsonFileType(
 }
 
 /**
- * Imports recursica_tokens.json and updates CSS variables
- */
-export function importTokensJson(tokens: object): void {
-  const normalizedTokens = (tokens as any)?.tokens
-    ? tokens
-    : { tokens: tokens };
-  try {
-    validateTokensJson(normalizedTokens as JsonLike);
-  } catch (error) {
-    throw new Error(
-      `Failed to import recursica_tokens.json: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-  }
-  const store = getVarsStore();
-  store.setTokens(normalizedTokens as JsonLike);
-}
-
-/**
- * Imports recursica_brand.json and updates CSS variables
- */
-export function importBrandJson(brand: object): void {
-  const normalizedBrand = (brand as any)?.brand ? brand : { brand: brand };
-  try {
-    validateBrandJson(normalizedBrand as JsonLike);
-  } catch (error) {
-    throw new Error(
-      `Failed to import recursica_brand.json: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-  }
-  const store = getVarsStore();
-  store.importTheme(normalizedBrand as JsonLike);
-}
-
-/**
- * Imports recursica_ui-kit.json and updates CSS variables
- */
-export function importUIKitJson(uikit: object): void {
-  const normalizedUiKit = (uikit as any)?.["ui-kit"]
-    ? uikit
-    : { "ui-kit": uikit };
-  try {
-    validateUIKitJson(normalizedUiKit as JsonLike);
-  } catch (error) {
-    throw new Error(
-      `Failed to import recursica_ui-kit.json: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-  }
-  const store = getVarsStore();
-  store.setUiKit(normalizedUiKit as JsonLike);
-}
-
-/**
  * Main import function - imports any combination of JSON files.
  * Clears relevant CSS variables before importing to ensure clean state.
+ * All imports flow through this single entry point → store.bulkImport().
  */
 export function importJsonFiles(files: {
   tokens?: object;
@@ -192,31 +139,22 @@ export function importJsonFiles(files: {
   // Clear running CSS variables for the files being imported
   clearCssVarsForImport(files);
 
-  // Clear persistent delta for these namespaces so stale overrides don't resurrect themselves
-  if (files.tokens) clearDeltaByPrefix("--recursica_tokens_");
-  if (files.brand) clearDeltaByPrefix("--recursica_brand_");
-  if (files.uikit) clearDeltaByPrefix("--recursica_ui-kit_");
-
   const store = getVarsStore();
   const fileCount = (files.tokens ? 1 : 0) + (files.brand ? 1 : 0) + (files.uikit ? 1 : 0);
 
-  if (fileCount > 1) {
-    // Multi-file import: use atomic bulkImport to avoid intermediate recomputes
-    // that cause stale UIKit CSS vars to be incorrectly preserved by the DOM
-    // preservation logic in recomputeAndApplyAll.
-    const normalizedTokens = files.tokens
-      ? ((files.tokens as any)?.tokens ? files.tokens : { tokens: files.tokens })
-      : undefined;
+  const normalizedTokens = files.tokens
+    ? ((files.tokens as any)?.tokens ? files.tokens : { tokens: files.tokens })
+    : undefined;
 
-    const normalizedBrand = files.brand
-      ? ((files.brand as any)?.brand ? files.brand : { brand: files.brand })
-      : undefined;
+  const normalizedBrand = files.brand
+    ? ((files.brand as any)?.brand ? files.brand : { brand: files.brand })
+    : undefined;
 
-    const normalizedUikit = files.uikit
-      ? ((files.uikit as any)?.['ui-kit'] ? files.uikit : { 'ui-kit': files.uikit })
-      : undefined;
+  const normalizedUikit = files.uikit
+    ? ((files.uikit as any)?.['ui-kit'] ? files.uikit : { 'ui-kit': files.uikit })
+    : undefined;
 
-    // Validate all files before importing
+  // Validate all files before importing
     if (normalizedTokens) {
       validateTokensJson(normalizedTokens as JsonLike);
     }
@@ -227,16 +165,17 @@ export function importJsonFiles(files: {
       validateUIKitJson(normalizedUikit as JsonLike);
     }
 
+    // Validate cross-references before importing
+    const currentState = store.getState();
+    const tempTokens = normalizedTokens || currentState.tokens;
+    const tempBrand = normalizedBrand || currentState.theme;
+    const tempUikit = normalizedUikit || currentState.uikit;
+    validateImportedReferences(tempTokens, tempBrand, tempUikit);
+
     store.bulkImport({
       tokens: normalizedTokens as JsonLike | undefined,
       brand: normalizedBrand as JsonLike | undefined,
       uikit: normalizedUikit as JsonLike | undefined,
     });
-  } else {
-    // Single-file import: use direct methods (no race condition with single file)
-    if (files.tokens) importTokensJson(files.tokens);
-    if (files.brand) importBrandJson(files.brand);
-    if (files.uikit) importUIKitJson(files.uikit);
-  }
 }
 

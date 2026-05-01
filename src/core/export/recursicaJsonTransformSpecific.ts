@@ -63,11 +63,7 @@ function extractRefPath(ref: string): string {
   return ref.trim().slice(1, -1).trim()
 }
 
-/** Default palette levels when ref uses .default (e.g. brand.palettes.neutral.default). */
-const DEFAULT_LEVELS: Record<string, Record<string, string>> = {
-  light: { neutral: '200', 'palette-1': '400', 'palette-2': '400' },
-  dark: { neutral: '800', 'palette-1': '600', 'palette-2': '600' }
-}
+
 
 /**
  * Expands theme-relative refs using the current path as context.
@@ -90,14 +86,6 @@ function expandRefPath(refPath: string, currentPath: string): string {
       let expanded = `brand.themes.${theme}.${afterBrand}`
       if (afterBrand === 'palettes.black' || afterBrand === 'palettes.white') {
         expanded = `brand.themes.${theme}.palettes.core-colors.${afterBrand.replace('palettes.', '')}.tone`
-      } else if (afterBrand.match(/^palettes\.(neutral|palette-1|palette-2)\.default/)) {
-        const paletteMatch = afterBrand.match(/^palettes\.(neutral|palette-1|palette-2)\.default(\..*)?$/)
-        if (paletteMatch) {
-          const palette = paletteMatch[1]
-          const rest = paletteMatch[2] || ''
-          const level = DEFAULT_LEVELS[theme]?.[palette] ?? '500'
-          expanded = `brand.themes.${theme}.palettes.${palette}.${level}${rest}`
-        }
       }
       return expanded
     }
@@ -333,11 +321,19 @@ function injectDarkLayer0InteractiveAliases(out: FlatEntry[]): void {
   const hasColor = paths.has(`${base}.color`)
   const hasHoverColor = paths.has(`${base}.hover-color`)
   const hasTone = paths.has(`${base}.tone`)
+  const hasOnTone = paths.has(`${base}.on-tone`)
+
+  // Legacy support: map old color/hover-color to tone/on-tone
   if (!hasTone && (hasColor || hasHoverColor)) {
     if (hasColor) out.push({ path: `${base}.tone`, value: `{${base}.color}` })
     if (hasHoverColor) out.push({ path: `${base}.tone-hover`, value: `{${base}.hover-color}` })
-    out.push({ path: `${base}.on-tone`, value: '{brand.palettes.palette-1.default.color.on-tone}' })
-    out.push({ path: `${base}.on-tone-hover`, value: '{brand.palettes.palette-1.600.color.on-tone}' })
+    if (!hasOnTone) out.push({ path: `${base}.on-tone`, value: '{brand.palettes.core-colors.interactive.on-tone}' })
+    out.push({ path: `${base}.on-tone-hover`, value: '{brand.palettes.core-colors.interactive.on-tone}' })
+  }
+
+  // Synthesize on-tone from core palette when tone exists but on-tone is missing
+  if (hasTone && !hasOnTone) {
+    out.push({ path: `${base}.on-tone`, value: '{brand.palettes.core-colors.interactive.on-tone}' })
   }
 }
 

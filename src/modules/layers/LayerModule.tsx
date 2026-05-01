@@ -47,7 +47,7 @@ export default function LayerModule({ level, title, className, children, onSelec
     try {
       const t: any = (tokens as any)?.tokens || {}
       const parts = name.split('/')
-      if (parts[0] === 'color' && parts[1] && parts[2]) return t?.color?.[parts[1]]?.[parts[2]]?.$value
+      if (parts[0] === 'colors' && parts[1] && parts[2]) return t?.colors?.[parts[1]]?.[parts[2]]?.$value
       if (parts[0] === 'opacity' && parts[1]) return t?.opacity?.[parts[1]]?.$value
       if (parts[0] === 'size' && parts[1]) return t?.size?.[parts[1]]?.$value
     } catch { }
@@ -208,7 +208,7 @@ export default function LayerModule({ level, title, className, children, onSelec
       margin: '0 0 12px 0',
     }
     try {
-      const raw = localStorage.getItem('type-token-choices')
+      const raw = localStorage.getItem('recursica_type_token_choices')
       if (raw) {
         const choices = JSON.parse(raw || '{}') || {}
         const c = choices[prefix]

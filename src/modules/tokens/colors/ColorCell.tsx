@@ -60,7 +60,7 @@ export function ColorCell({
   })() : null
 
   return (
-    <div>
+    <div data-scale-family={_family} data-scale-level={level}>
       <div
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}

@@ -16,7 +16,6 @@ import brandDefault from '../../../recursica_brand.json'
 import { getVarsStore } from '../../core/store/varsStore'
 import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 import { updateCssVar } from '../../core/css/updateCssVar'
-import { clearDeltaEntry } from '../../core/store/cssDelta'
 
 type DimensionEntry = {
   path: string[]
@@ -293,12 +292,6 @@ export default function DimensionsPage() {
         $type: 'number',
         $value: defaultTokenRef,
       }
-    })
-
-    // Clear dimension CSS vars from the delta so reapplyDelta() won't
-    // re-apply the old user-modified values after recomputeAndApplyAll.
-    groupedDimensions[category].forEach((entry) => {
-      clearDeltaEntry(entry.cssVar)
     })
 
     setTheme(themeCopy)

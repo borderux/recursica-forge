@@ -9,7 +9,7 @@ export interface FontEntry {
     slug?: string  // token key for the named entry, e.g. "lexend"
 }
 
-const STORAGE_KEY = 'rf:fonts'
+const STORAGE_KEY = 'recursica_fonts'
 
 /**
  * Convert a font family name to a safe DTCG token key.
@@ -45,7 +45,7 @@ export function getStoredFonts(): FontEntry[] {
             return fonts
         }
     } catch (err) {
-        console.warn('[fontStore] Failed to read rf:fonts from localStorage', err)
+        console.warn('[fontStore] Failed to read recursica_fonts from localStorage', err)
     }
 
     // Fallback to recursica_tokens.json defaults
@@ -56,7 +56,7 @@ export function saveStoredFonts(fonts: FontEntry[]): void {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(fonts))
     } catch (err) {
-        console.warn('[fontStore] Failed to save rf:fonts to localStorage', err)
+        console.warn('[fontStore] Failed to save recursica_fonts to localStorage', err)
     }
 }
 
@@ -83,7 +83,7 @@ export function clearStoredFonts(): void {
     try {
         localStorage.removeItem(STORAGE_KEY)
     } catch (err) {
-        console.warn('[fontStore] Failed to clear rf:fonts from localStorage', err)
+        console.warn('[fontStore] Failed to clear recursica_fonts from localStorage', err)
     }
 }
 
