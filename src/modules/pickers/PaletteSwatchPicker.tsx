@@ -200,6 +200,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
     const currentVal = readCssVar(targetCssVar)
     if (currentVal?.trim() === `var(${paletteCssVar})`) return true
 
+    // If the tracked selection is a core color, no palette swatch should match
+    // (even if they resolve to the same hex, e.g. core-black vs neutral-1000)
+    if (selectedPaletteSwatch && selectedPaletteSwatch.startsWith('core-')) return false
+
     // Tracking match
     if (selectedPaletteSwatch) {
       if (selectedPaletteSwatch.startsWith('hex:')) {
@@ -404,6 +408,128 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
           </div>
         )}
 
+        {/* Core colors row */}
+        {(() => {
+          const coreColorNames = ['black', 'white', 'interactive', 'alert', 'success', 'warning']
+          const coreSwatches: { key: string; label: string; cssVar: string; onToneCssVar: string }[] = []
+
+          try {
+            const root: any = (themeJson as any)?.brand ? (themeJson as any).brand : themeJson
+            const themes = root?.themes || root
+            const coreColors: any = themes?.[modeLower]?.palettes?.['core-colors'] || {}
+
+            coreColorNames.forEach(name => {
+              if (coreColors[name] && coreColors[name].tone) {
+                const cssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${name}_tone`
+                const onToneCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${name}_on-tone`
+                coreSwatches.push({
+                  key: name,
+                  label: name.charAt(0).toUpperCase() + name.slice(1),
+                  cssVar,
+                  onToneCssVar,
+                })
+              }
+            })
+          } catch { }
+
+          if (coreSwatches.length === 0) return null
+
+          return (
+            <div style={{ display: 'grid', gridTemplateColumns: `${labelCol}px 1fr`, alignItems: 'center', gap: 6 }}>
+              <Label size="small">Core</Label>
+              <div style={{ display: 'flex', flexWrap: 'nowrap', gap }}>
+                {coreSwatches.map(s => {
+                  const isCoreSelected = (() => {
+                    if (!targetCssVar) return false
+                    const currentVal = readCssVar(targetCssVar)
+                    if (currentVal?.trim() === `var(${s.cssVar})`) return true
+                    if (selectedPaletteSwatch) {
+                      if (selectedPaletteSwatch === `core-${s.key}_tone`) return true
+                      if (selectedPaletteSwatch.startsWith('hex:')) {
+                        const targetHex = selectedPaletteSwatch.slice(4)
+                        const swatchHex = readCssVarResolved(s.cssVar)
+                        if (swatchHex && targetHex === swatchHex.toLowerCase().trim()) {
+                          if (firstHexMatchRef.current === null) {
+                            firstHexMatchRef.current = s.cssVar
+                            return true
+                          }
+                          return firstHexMatchRef.current === s.cssVar
+                        }
+                      }
+                    }
+                    if (targetResolvedValue?.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
+                      const directVal = targetResolvedValue.direct?.trim() || ''
+                      if (!directVal.includes('color-mix')) {
+                        const swatchHex = readCssVarResolved(s.cssVar)
+                        if (swatchHex && swatchHex.toLowerCase() === targetResolvedValue.resolved.toLowerCase()) {
+                          if (firstHexMatchRef.current === null) {
+                            firstHexMatchRef.current = s.cssVar
+                            return true
+                          }
+                          return firstHexMatchRef.current === s.cssVar
+                        }
+                      }
+                    }
+                    return false
+                  })()
+
+                  return (
+                    <div
+                      key={s.key}
+                      title={s.label}
+                      onClick={() => {
+                        const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
+                        const paletteVarRef = `var(${s.cssVar})`
+                        cssVarsToUpdate.forEach(v => updateCssVar(v, paletteVarRef, tokensJson))
+
+                        if (isOverlay && themeJson) {
+                          try {
+                            const themeCopy = getVarsStore().getLatestThemeCopy()
+                            const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                            const themes = root?.themes || root
+                            const isDark = cssVarsToUpdate.some(v => v.includes('-dark-'))
+                            const modeKey = isDark ? 'dark' : 'light'
+                            if (!themes[modeKey]) themes[modeKey] = {}
+                            if (!themes[modeKey].states) themes[modeKey].states = {}
+                            if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+                            themes[modeKey].states.overlay.color = {
+                              $type: 'color',
+                              $value: `{brand.themes.${modeKey}.palettes.core-colors.${s.key}.tone}`
+                            }
+                            getVarsStore().setThemeSilent(themeCopy)
+                          } catch { }
+                        }
+
+                        onSelect?.(s.cssVar)
+                        setRefreshTrigger(prev => prev + 1)
+                        setAnchor(null)
+                        window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
+                      }}
+                      style={{
+                        position: 'relative',
+                        width: swatch,
+                        height: swatch,
+                        cursor: 'pointer',
+                        background: `var(${s.cssVar})`,
+                        border: `1px solid ${isCoreSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                        padding: isCoreSelected ? '1px' : '0',
+                        borderRadius: isCoreSelected ? '5px' : '0',
+                        boxSizing: 'border-box',
+                      }}
+                    >
+                      {isCoreSelected && (
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
+                          {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(${s.onToneCssVar})` }} /> : '✓'}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
+
         {paletteKeys.map((pk) => {
           const swatches: { key: string; label: string; cssVar: string }[] = []
           try {
@@ -505,8 +631,6 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
             </div>
           )
         })}
-
-        {/* Core colors removed */}
       </div>
     </Modal>
   )

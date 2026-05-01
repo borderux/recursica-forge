@@ -258,22 +258,19 @@ export default function PaletteColorControl({
       if (brandParsed && brandParsed.type === 'core-color') {
         const coreKey = brandParsed.path
         // Handle interactive colors (path segments joined by _)
-        if (coreKey === 'interactive_tone' || coreKey === 'interactive-default-tone' || coreKey === 'interactive-default' || coreKey === 'interactive_default') {
-          return 'Core / Interactive / Default'
+        if (coreKey === 'interactive' || coreKey === 'interactive_tone' || coreKey === 'interactive-tone') {
+          return 'Core / Interactive'
         }
         if (coreKey === 'interactive_hover_tone' || coreKey === 'interactive-hover-tone' || coreKey === 'interactive-hover' || coreKey === 'interactive_hover') {
           return 'Core / Interactive / Hover'
         }
-        if (coreKey === 'interactive' || coreKey === 'interactive-tone' || coreKey === 'interactive_tone') {
-          return 'Core / Interactive'
-        }
-        const formattedCore = formatPaletteName(coreKey.replace(/_/g, '-'))
+        const formattedCore = formatPaletteName(coreKey.replace(/_/g, '-').replace(/-on-tone$/, '').replace(/-tone$/, ''))
         return `Core / ${formattedCore}`
       }
       if (brandParsed && brandParsed.type === 'palette') {
         const { paletteName: paletteKey, level } = brandParsed
         if (paletteKey === 'core-interactive') {
-          if (level === 'default') return 'Core / Interactive / Default'
+          if (level === 'default') return 'Core / Interactive'
           if (level === 'hover') return 'Core / Interactive / Hover'
           return `Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`
         }
@@ -312,14 +309,11 @@ export default function PaletteColorControl({
             if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a core color match! Format and return
               const normalizedKey = coreKey.replace(/-tone$/, '')
-              if (normalizedKey === 'interactive-default') {
-                return 'Core / Interactive / Default'
+              if (normalizedKey === 'interactive' || normalizedKey === 'interactive-default') {
+                return 'Core / Interactive'
               }
               if (normalizedKey === 'interactive-hover') {
                 return 'Core / Interactive / Hover'
-              }
-              if (normalizedKey === 'interactive') {
-                return 'Core / Interactive'
               }
               const formattedCore = formatPaletteName(normalizedKey)
               return `Core / ${formattedCore}`
@@ -337,7 +331,7 @@ export default function PaletteColorControl({
                 // Special handling for core-interactive palette
                 if (pk === 'core-interactive') {
                   if (level === 'default') {
-                    return 'Core / Interactive / Default'
+                    return 'Core / Interactive'
                   } else if (level === 'hover') {
                     return 'Core / Interactive / Hover'
                   } else {
@@ -383,7 +377,7 @@ export default function PaletteColorControl({
       if (brandResult.type === 'palette') {
         const { paletteName: paletteKey, level } = brandResult
         if (paletteKey === 'core-interactive') {
-          if (level === 'default') return 'Core / Interactive / Default'
+          if (level === 'default') return 'Core / Interactive'
           if (level === 'hover') return 'Core / Interactive / Hover'
           return `Core / Interactive / ${level.charAt(0).toUpperCase() + level.slice(1)}`
         }
@@ -514,19 +508,15 @@ export default function PaletteColorControl({
       const brandParsed = parseBrandCssVar(paletteValue)
       if (brandParsed && brandParsed.type === 'core-color') {
         const coreKey = brandParsed.path
-        if (coreKey === 'interactive_tone' || coreKey === 'interactive-default-tone' || coreKey === 'interactive-default' || coreKey === 'interactive_default') {
-          setDisplayLabel('Core / Interactive / Default')
+        if (coreKey === 'interactive' || coreKey === 'interactive_tone' || coreKey === 'interactive-tone') {
+          setDisplayLabel('Core / Interactive')
           return
         }
         if (coreKey === 'interactive_hover_tone' || coreKey === 'interactive-hover-tone' || coreKey === 'interactive-hover' || coreKey === 'interactive_hover') {
           setDisplayLabel('Core / Interactive / Hover')
           return
         }
-        if (coreKey === 'interactive' || coreKey === 'interactive-tone' || coreKey === 'interactive_tone') {
-          setDisplayLabel('Core / Interactive')
-          return
-        }
-        const formattedCore = formatPaletteName(coreKey.replace(/_/g, '-'))
+        const formattedCore = formatPaletteName(coreKey.replace(/_/g, '-').replace(/-on-tone$/, '').replace(/-tone$/, ''))
         setDisplayLabel(`Core / ${formattedCore}`)
         return
       }
@@ -535,7 +525,7 @@ export default function PaletteColorControl({
         const { paletteName: paletteKey, level } = brandParsed
         if (paletteKey === 'core-interactive') {
           if (level === 'default') {
-            setDisplayLabel('Core / Interactive / Default')
+            setDisplayLabel('Core / Interactive')
           } else if (level === 'hover') {
             setDisplayLabel('Core / Interactive / Hover')
           } else {
@@ -584,12 +574,10 @@ export default function PaletteColorControl({
             if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a core color match! Format and display
               const normalizedKey = coreKey.replace(/-tone$/, '')
-              if (normalizedKey === 'interactive-default') {
-                setDisplayLabel('Core / Interactive / Default')
+              if (normalizedKey === 'interactive' || normalizedKey === 'interactive-default') {
+                setDisplayLabel('Core / Interactive')
               } else if (normalizedKey === 'interactive-hover') {
                 setDisplayLabel('Core / Interactive / Hover')
-              } else if (normalizedKey === 'interactive') {
-                setDisplayLabel('Core / Interactive')
               } else {
                 const formattedCore = formatPaletteName(normalizedKey)
                 setDisplayLabel(`Core / ${formattedCore}`)
@@ -609,7 +597,7 @@ export default function PaletteColorControl({
                 // Special handling for core-interactive palette
                 if (pk === 'core-interactive') {
                   if (level === 'default') {
-                    setDisplayLabel('Core / Interactive / Default')
+                    setDisplayLabel('Core / Interactive')
                   } else if (level === 'hover') {
                     setDisplayLabel('Core / Interactive / Hover')
                   } else {
@@ -660,7 +648,7 @@ export default function PaletteColorControl({
       const { paletteName: paletteKey, level } = brandResult2
       if (paletteKey === 'core-interactive') {
         if (level === 'default') {
-          setDisplayLabel('Core / Interactive / Default')
+          setDisplayLabel('Core / Interactive')
         } else if (level === 'hover') {
           setDisplayLabel('Core / Interactive / Hover')
         } else {
@@ -718,7 +706,7 @@ export default function PaletteColorControl({
               // Special handling for core-interactive palette
               if (pk === 'core-interactive') {
                 if (level === 'default') {
-                  setDisplayLabel('Core / Interactive / Default')
+                  setDisplayLabel('Core / Interactive')
                 } else if (level === 'hover') {
                   setDisplayLabel('Core / Interactive / Hover')
                 } else {

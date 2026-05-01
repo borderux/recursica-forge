@@ -1955,7 +1955,7 @@
             "layer-0": {
               "thumb-selected": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": "{brand.palettes.core-colors.white.tone}"
               },
               "thumb-unselected": {
                 "$type": "color",
@@ -1973,7 +1973,7 @@
             "layer-1": {
               "thumb-selected": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                "$value": "{brand.palettes.core-colors.white.tone}"
               },
               "thumb-unselected": {
                 "$type": "color",
@@ -1991,7 +1991,7 @@
             "layer-2": {
               "thumb-selected": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                "$value": "{brand.palettes.core-colors.white.tone}"
               },
               "thumb-unselected": {
                 "$type": "color",
@@ -2009,7 +2009,7 @@
             "layer-3": {
               "thumb-selected": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                "$value": "{brand.palettes.core-colors.white.tone}"
               },
               "thumb-unselected": {
                 "$type": "color",

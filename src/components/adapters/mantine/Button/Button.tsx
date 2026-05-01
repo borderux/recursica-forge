@@ -277,8 +277,10 @@ export default function Button({
         flexShrink: 0, // Prevent icon from shrinking when content is truncated
       } : undefined,
       label: children ? {
-        // CSS file handles truncation styles - only set line-height here for vertical centering
-        lineHeight: `var(${heightVar})`, // Match button height for vertical centering
+        // Use flexbox for vertical centering instead of line-height hack
+        // line-height = button height breaks when border-size increases (border-box)
+        display: 'inline-flex',
+        alignItems: 'center',
       } : undefined,
       ...mantine?.styles,
     },

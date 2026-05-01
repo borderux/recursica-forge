@@ -1380,7 +1380,19 @@ export default function PropControlContent({
           return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
         }, [primaryVar, minValue, maxValue])
 
-        const handleChange = (val: number | [number, number]) => {
+        const handleDrag = (val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.round(numValue / step) * step
+          setValue(clampedValue)
+
+          // Apply CSS immediately for real-time preview (no event dispatch)
+          const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+          cssVarsToUpdate.forEach(cssVar => {
+            document.documentElement.style.setProperty(cssVar, `${clampedValue}${unit}`)
+          })
+        }
+
+        const handleCommit = (val: number | [number, number]) => {
           const numValue = typeof val === 'number' ? val : val[0]
           const clampedValue = Math.round(numValue / step) * step
           setValue(clampedValue)
@@ -1397,8 +1409,8 @@ export default function PropControlContent({
         return (
           <Slider
             value={value}
-            onChange={handleChange}
-            onChangeCommitted={handleChange}
+            onChange={handleDrag}
+            onChangeCommitted={handleCommit}
             min={minValue}
             max={maxValue}
             step={step}
@@ -2361,15 +2373,11 @@ export default function PropControlContent({
             const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
             setValue(clampedValue)
 
-            // Update CSS vars directly with pixel value
+            // Apply CSS immediately for real-time preview, but silent (no event dispatch)
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
           }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
