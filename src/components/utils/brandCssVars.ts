@@ -83,7 +83,7 @@ export function parseElevationValue(elevationValue: string | undefined): string 
   }
 
   // Check if it's a brand reference
-  const match = elevationValue.match(/elevations?\.(elevation-\d+)/)
+  const match = elevationValue.match(/elevations?[._](elevation-\d+)/i)
   if (match) {
     return match[1]
   }

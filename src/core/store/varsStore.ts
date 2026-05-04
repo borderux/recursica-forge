@@ -943,7 +943,7 @@ class VarsStore {
     const next = mutator(this.state.elevation)
     this.writeState({ elevation: next })
 
-    // Sync paletteSelections back to theme.brand so exportBrandJson captures current color choices.
+    // Sync paletteSelections, controls, and directions back to theme.brand so exportBrandJson captures current choices.
     // Each mode's selections are written only to that mode's brand JSON elevations node.
     try {
       const theme = this.state.theme as any
@@ -951,6 +951,7 @@ class VarsStore {
       const themes = brand?.themes || brand
       if (themes) {
         for (const m of ['light', 'dark'] as const) {
+          // Sync palette selections (color)
           const modeSelections = next.paletteSelections[m] || {}
           for (const [elevKey, sel] of Object.entries(modeSelections)) {
             const { paletteKey, level } = sel
@@ -961,8 +962,51 @@ class VarsStore {
               elevNode['$value'].color.$value = `{brand.themes.${m}.palettes.${paletteKey}.${level}.color.tone}`
             }
           }
+
+          // Sync controls (blur, spread, opacity, offsetX, offsetY)
+          const modeControls = next.controls[m] || {}
+          for (const [elevKey, ctrl] of Object.entries(modeControls)) {
+            const elevNode = themes?.[m]?.elevations?.[elevKey]
+            if (elevNode?.['$value']) {
+              if (!elevNode['$value'].blur) elevNode['$value'].blur = {}
+              elevNode['$value'].blur.$type = 'number'
+              elevNode['$value'].blur.$value = { value: ctrl.blur, unit: 'px' }
+
+              if (!elevNode['$value'].spread) elevNode['$value'].spread = {}
+              elevNode['$value'].spread.$type = 'number'
+              elevNode['$value'].spread.$value = { value: ctrl.spread, unit: 'px' }
+              
+              if (!elevNode['$value'].opacity) elevNode['$value'].opacity = {}
+              elevNode['$value'].opacity.$type = 'number'
+              elevNode['$value'].opacity.$value = { value: Math.round(ctrl.opacity * 100), unit: 'percentage' }
+
+              if (!elevNode['$value'].x) elevNode['$value'].x = {}
+              elevNode['$value'].x.$type = 'number'
+              elevNode['$value'].x.$value = { value: ctrl.offsetX, unit: 'px' }
+
+              if (!elevNode['$value'].y) elevNode['$value'].y = {}
+              elevNode['$value'].y.$type = 'number'
+              elevNode['$value'].y.$value = { value: ctrl.offsetY, unit: 'px' }
+            }
+          }
+
+          // Sync directions (x-direction, y-direction)
+          const modeDirections = next.directions[m] || {}
+          for (const [elevKey, dir] of Object.entries(modeDirections)) {
+            const elevNode = themes?.[m]?.elevations?.[elevKey]
+            if (elevNode?.['$value']) {
+              if (!elevNode['$value']['x-direction']) elevNode['$value']['x-direction'] = {}
+              elevNode['$value']['x-direction'].$type = 'number'
+              elevNode['$value']['x-direction'].$value = dir.x === 'right' ? 1 : -1
+              
+              if (!elevNode['$value']['y-direction']) elevNode['$value']['y-direction'] = {}
+              elevNode['$value']['y-direction'].$type = 'number'
+              elevNode['$value']['y-direction'].$value = dir.y === 'down' ? 1 : -1
+            }
+          }
         }
       }
+      this.writeState({ theme: this.state.theme })
     } catch { /* non-fatal — export will use last good state */ }
 
     // Persist paletteSelections so they survive a browser refresh
