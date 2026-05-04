@@ -327,11 +327,11 @@ export function checkForGlobalRef(
  * the user's decision.
  */
 export function resolveGlobalRefConflict(
-  decision: 'override' | 'update-global',
+  decision: 'override' | 'update-global' | 'cancel',
   conflict: GlobalRefConflict,
   rememberChoice: boolean,
 ): void {
-  if (rememberChoice) {
+  if (decision !== 'cancel' && rememberChoice) {
     setGlobalRefPreference(
       decision === 'override' ? 'always-override' : 'always-global'
     )
@@ -339,6 +339,20 @@ export function resolveGlobalRefConflict(
 
   if (decision === 'update-global') {
     applyGlobalUpdate(conflict)
+  } else if (decision === 'cancel') {
+    // Revert the component change without updating the global var
+    suppressInterception = true
+    try {
+      const root = document.documentElement
+      root.style.setProperty(conflict.cssVarName, conflict.previousValue)
+      updateUIKitValue(conflict.cssVarName, conflict.originalDtcgRef)
+      
+      // Update UI state so toolbars and form inputs reset back to the reverted value
+      const store = getVarsStore()
+      store.recomputeAndApplyAll()
+    } finally {
+      suppressInterception = false
+    }
   }
   // 'override' — the preview is already applied; nothing to revert.
 }
