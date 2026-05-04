@@ -65,6 +65,7 @@ export function getConstants() {
   return {
     colorScales,
     paletteNames: Array.from(new Set(paletteNames)),
+    tokenColorLevels: ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000'],
     paletteLevels: ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000', 'default'],
     tones: ['tone', 'on-tone'],
     coreColors: ['interactive', 'warning', 'success', 'alert', 'black', 'white'],
@@ -191,7 +192,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
            return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
         }
         const randomScale = CONSTANTS.colorScales[Math.floor(Math.random() * CONSTANTS.colorScales.length)];
-        const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
+        const randomLevel = CONSTANTS.tokenColorLevels[Math.floor(Math.random() * CONSTANTS.tokenColorLevels.length)];
         return `{tokens.colors.${randomScale}.${randomLevel}}`;
     }
 
@@ -206,7 +207,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         }
         const [, scale, level] = colorTokenMatch;
         const newScale = shiftValue(scale, CONSTANTS.colorScales);
-        const newLevel = shiftValue(level, CONSTANTS.paletteLevels);
+        const newLevel = shiftValue(level, CONSTANTS.tokenColorLevels);
         return `{tokens.colors.${newScale}.${newLevel}}`;
     }
 

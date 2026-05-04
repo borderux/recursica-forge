@@ -184,7 +184,7 @@ export default function DimensionsPage() {
     }
 
     const leaf = path[path.length - 1]
-    const tokenRef = `{tokens.size.${token.name}}`
+    const tokenRef = `{tokens.sizes.${token.name}}`
     node[leaf] = {
       $type: 'number',
       $value: tokenRef,
