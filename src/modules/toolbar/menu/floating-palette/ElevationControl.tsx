@@ -43,7 +43,7 @@ export default function ElevationControl({
   const currentThumbElevation = thumbElevationVar ? (() => {
     const value = readCssVar(thumbElevationVar)
     if (value) {
-      const match = value.match(/elevations\.(elevation-\d+)/)
+      const match = value.match(/elevations?[._](elevation-\d+)/i)
       if (match) return match[1]
       if (/^elevation-\d+$/.test(value)) return value
     }
@@ -53,7 +53,7 @@ export default function ElevationControl({
   const currentTrackElevation = trackElevationVar ? (() => {
     const value = readCssVar(trackElevationVar)
     if (value) {
-      const match = value.match(/elevations\.(elevation-\d+)/)
+      const match = value.match(/elevations?[._](elevation-\d+)/i)
       if (match) return match[1]
       if (/^elevation-\d+$/.test(value)) return value
     }

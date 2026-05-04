@@ -670,7 +670,7 @@ function ElevationSliderInline({
 
     // Parse token reference format: {brand.themes.light.elevations.elevation-0}
     // Check if the token reference is for the correct mode
-    const tokenMatch = inlineValue.match(/themes\.(light|dark)\.elevations?\.(elevation-\d+)/i)
+    const tokenMatch = inlineValue.match(/themes[._](light|dark)[._]elevations?[._](elevation-\d+)/i)
     if (tokenMatch) {
       const refMode = tokenMatch[1].toLowerCase() as 'light' | 'dark'
       const elevationName = tokenMatch[2]
@@ -685,7 +685,7 @@ function ElevationSliderInline({
     }
 
     // Fallback: try to match without mode check (for backwards compatibility)
-    const fallbackMatch = inlineValue.match(/elevations?\.(elevation-\d+)/i)
+    const fallbackMatch = inlineValue.match(/elevations?[._](elevation-\d+)/i)
     if (fallbackMatch) {
       return fallbackMatch[1]
     }

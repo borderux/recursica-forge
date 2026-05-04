@@ -307,6 +307,7 @@ function ElevationSliderInline({
   mode,
   onUpdate,
   layer = 'layer-1',
+  initialElevationName,
 }: {
   primaryVar: string
   label: string
@@ -314,6 +315,7 @@ function ElevationSliderInline({
   mode: 'light' | 'dark'
   onUpdate?: (path: string[], value: string) => void
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
+  initialElevationName?: string
 }) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
   const justSetValueRef = useRef<string | null>(null)
@@ -330,6 +332,14 @@ function ElevationSliderInline({
     // Don't read if we just set a value ourselves
     if (justSetValueRef.current !== null) {
       return
+    }
+
+    if (initialElevationName) {
+      const matchingIndex = tokens.findIndex(t => t.name === initialElevationName)
+      if (matchingIndex >= 0) {
+        setSelectedIndex(matchingIndex)
+        return
+      }
     }
 
     const inlineValue = typeof document !== 'undefined'
@@ -351,8 +361,8 @@ function ElevationSliderInline({
         // Direct elevation name format
         elevationName = currentValue.trim()
       } else {
-        // Token reference format - extract elevation name
-        const match = currentValue.match(/elevations?\.(elevation-\d+)/i)
+        // Token reference format or CSS variable format - extract elevation name
+        const match = currentValue.match(/elevations?[._](elevation-\d+)/i)
         if (match) {
           elevationName = match[1]
         }
@@ -361,7 +371,14 @@ function ElevationSliderInline({
 
     const matchingIndex = tokens.findIndex(t => t.name === elevationName)
     setSelectedIndex(matchingIndex >= 0 ? matchingIndex : 0)
-  }, [primaryVar, tokens])
+  }, [primaryVar, tokens, initialElevationName])
+
+  useEffect(() => {
+    if (initialElevationName && tokens.length > 0) {
+      const idx = tokens.findIndex(t => t.name === initialElevationName)
+      if (idx >= 0) setSelectedIndex(idx)
+    }
+  }, [initialElevationName, tokens])
 
   useEffect(() => {
     const frameId = requestAnimationFrame(() => readInitialValue())
@@ -908,6 +925,14 @@ export default function LayerStylePanel({
           const elevLvl = selectedLevels.length > 0 ? selectedLevels[0] : layerKey.replace('layer-', '')
           const elevationCssVar = `${layerProperty(mode, elevLvl, 'elevation')}`
 
+          const elevationJson = spec?.properties?.elevation?.$value
+          let initialElevationName: string | undefined
+          if (typeof elevationJson === 'string') {
+            const match = elevationJson.match(/elevations?[._](elevation-\d+)/i)
+            if (match) initialElevationName = match[1]
+            else if (/^elevation-\d+$/.test(elevationJson.trim())) initialElevationName = elevationJson.trim()
+          }
+
           return (
             <ElevationSliderInline
               primaryVar={elevationCssVar}
@@ -916,6 +941,7 @@ export default function LayerStylePanel({
               mode={mode}
               onUpdate={updateValue}
               layer={(layerKey || 'layer-0') as any}
+              initialElevationName={initialElevationName}
             />
           )
         })()}
