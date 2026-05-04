@@ -46,7 +46,8 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
   }
 
   const handleClose = () => {
-    // Closing without choosing = keep the override (same as "Override")
+    // Closing without choosing = cancel the change entirely and revert the property
+    resolveGlobalRefConflict('cancel', conflict, false)
     setRememberChoice(false)
     onClose()
   }
