@@ -349,9 +349,7 @@ export function resolveGlobalRefConflict(
       
       // Update UI state so toolbars and form inputs reset back to the reverted value
       const store = getVarsStore()
-      if (!store.isRecomputing) {
-         store.recomputeAndApplyAll()
-      }
+      store.recomputeAndApplyAll()
     } finally {
       suppressInterception = false
     }
