@@ -261,6 +261,20 @@
                   "pattern": "^\\{tokens\\.font\\.sizes\\.[a-z0-9_.-]+\\}$"
                 }
               ]
+            },
+            {
+              "type": "object",
+              "required": ["value", "unit"],
+              "properties": {
+                "value": {
+                  "oneOf": [
+                    { "type": "number" },
+                    { "type": "string" }
+                  ]
+                },
+                "unit": { "type": "string" }
+              },
+              "additionalProperties": false
             }
           ]
         }
