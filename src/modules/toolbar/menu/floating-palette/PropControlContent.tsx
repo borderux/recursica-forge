@@ -26,7 +26,7 @@ import TopBottomMarginToolbar from '../top-bottom-margin-group/TopBottomMarginTo
 import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
 import { SegmentedControl } from '../../../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
-import { useCssVar } from '../../../../components/hooks/useCssVar'
+import { useCssVar, useRawCssVar } from '../../../../components/hooks/useCssVar'
 import { Dropdown } from '../../../../components/adapters/Dropdown'
 import type { ComponentLayer } from '../../../../components/registry/types'
 import uikitJson from '../../../../../recursica_ui-kit.json'
@@ -66,7 +66,7 @@ function SegmentedControlFromCssVar({
   options: Array<string | { value: string; icon?: string }>
 }) {
   const firstValue = typeof options[0] === 'string' ? options[0] : options[0]?.value ?? ''
-  const currentValue = useCssVar(primaryVar, firstValue)
+  const currentValue = useRawCssVar(primaryVar, firstValue)
   const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || firstValue
   const items = options.map((opt) => {
     // Normalize: options can be plain strings or { value, icon } objects
@@ -109,8 +109,14 @@ function DropdownFromCssVar({
   options: Array<string | { label: string; value: string; icon?: string }>
   layer?: any
 }) {
-  const currentValue = useCssVar(primaryVar, '')
-  const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || (typeof options[0] === 'string' ? options[0] : options[0]?.value ?? '')
+  const currentValue = useRawCssVar(primaryVar, '')
+  let cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || (typeof options[0] === 'string' ? options[0] : options[0]?.value ?? '')
+
+  // Reverse map typography CSS vars back to their token references so dropdown matches option value
+  const typographyMatch = /var\(--recursica_brand_typography_(.+)-font-size\)/.exec(cleanValue)
+  if (typographyMatch) {
+    cleanValue = `{brand.typography.${typographyMatch[1]}}`
+  }
 
   const dropdownItems = options.map((opt) => {
     if (typeof opt === 'string') {

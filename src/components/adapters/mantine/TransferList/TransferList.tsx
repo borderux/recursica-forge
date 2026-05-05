@@ -15,7 +15,7 @@ import { Badge } from '../../Badge'
 import { Button } from '../../Button'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { useCssVar } from '../../../hooks/useCssVar'
+import { useCssVar, useRawCssVar } from '../../../hooks/useCssVar'
 import type { TransferListItem, TransferListData } from '../../TransferList'
 import type { ComponentLayer } from '../../../registry/types'
 import './TransferList.css'
@@ -173,7 +173,18 @@ export default function TransferList({
 
     // Heading level from CSS var (dropdown writes here)
     const headingLevelVar = getComponentLevelCssVar('TransferList', 'heading-level')
-    const headingLevel = useCssVar(headingLevelVar, 'h4') as 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+    const rawHeadingLevel = useRawCssVar(headingLevelVar, 'h4') as string
+    let headingLevel = 'h4'
+    if (rawHeadingLevel.startsWith('{brand.typography.')) {
+        headingLevel = rawHeadingLevel.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeadingLevel.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawHeadingLevel)
+        if (match) {
+            headingLevel = match[1]
+        }
+    } else {
+        headingLevel = rawHeadingLevel
+    }
     const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headingLevel) ? headingLevel : 'h4') as keyof JSX.IntrinsicElements
 
     // Border CSS vars

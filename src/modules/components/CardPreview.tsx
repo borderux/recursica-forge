@@ -6,7 +6,7 @@ import { getComponentLevelCssVar } from '../../components/utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { getElevationBoxShadow, parseElevationValue } from '../../components/utils/brandCssVars'
 import { getCardElevationLayer } from '../../components/adapters/Card'
-import { readCssVar } from '../../core/css/readCssVar'
+import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
 
 interface CardPreviewProps {
@@ -86,7 +86,20 @@ export default function CardPreview({
     const maxWidthVar = getComponentLevelCssVar('Card', 'max-width')
 
     const headerStyleVar = getComponentLevelCssVar('Card', 'header-style')
-    const headerStyleValue = readCssVar(headerStyleVar) || 'h3'
+    const rawHeaderStyleValue = readRawCssVar(headerStyleVar) || 'h3'
+    let headerStyleValue = 'h3'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawHeaderStyleValue)
+        if (match) {
+            headerStyleValue = match[1]
+        }
+    } else {
+        headerStyleValue = rawHeaderStyleValue
+    }
+
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
 
     // ─── Shared styles ───────────────────────────────────────────────────────
 
@@ -107,6 +120,7 @@ export default function CardPreview({
         paddingBottom: '0.15em',
         minWidth: 0,
         flex: 1,
+        margin: 0,
     } as any
 
     const bodyStyle = {
@@ -146,7 +160,7 @@ export default function CardPreview({
                 alignItems: 'center',
                 justifyContent: 'space-between',
             }}>
-                <span style={headerStyle}>The Crystalline Abyss</span>
+                <HeadingTag style={headerStyle}>The Crystalline Abyss</HeadingTag>
                 <Badge layer={cardLayer}>Chapter 4</Badge>
             </div>
 
@@ -210,9 +224,9 @@ export default function CardPreview({
                 gap: `var(${verticalGutterVar})`,
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: `var(${verticalGutterVar})`, minWidth: 0 }}>
-                    <span style={{ ...headerStyle, fontSize: 'var(--recursica_brand_typography_h4-font-size)' }}>
+                    <HeadingTag style={headerStyle}>
                         Elixir of Deepwell Sight
-                    </span>
+                    </HeadingTag>
                     <Badge layer={cardLayer}>Rare</Badge>
                 </div>
                 <div style={{ ...bodyStyle }}>
@@ -235,9 +249,9 @@ export default function CardPreview({
                 flexDirection: 'column',
                 gap: `var(${verticalGutterVar})`,
             }}>
-                <span style={{ ...headerStyle, fontSize: 'var(--recursica_brand_typography_h4-font-size)' }}>
+                <HeadingTag style={headerStyle}>
                     Grindlefax's Emporium
-                </span>
+                </HeadingTag>
                 <div style={bodyStyle}>
                     <p style={{ margin: 0 }}>{shopDescription}</p>
                 </div>

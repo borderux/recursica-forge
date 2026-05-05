@@ -1316,8 +1316,8 @@
             }
           },
           "header-style": {
-            "$type": "string",
-            "$value": "h3"
+            "$type": "typography",
+            "$value": "{brand.typography.h3}"
           },
           "padding": {
             "$type": "dimension",
@@ -11905,8 +11905,8 @@
             }
           },
           "header-style": {
-            "$type": "string",
-            "$value": "h3"
+            "$type": "typography",
+            "$value": "{brand.typography.h3}"
           },
           "header-footer-horizontal-padding": {
             "$type": "dimension",
@@ -12813,8 +12813,8 @@
             }
           },
           "heading-level": {
-            "$type": "string",
-            "$value": "h4"
+            "$type": "typography",
+            "$value": "{brand.typography.h4}"
           },
           "title-filter-gap": {
             "$type": "dimension",

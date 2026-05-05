@@ -36,27 +36,27 @@
                     "options": [
                         {
                             "label": "H1",
-                            "value": "h1"
+                            "value": "{brand.typography.h1}"
                         },
                         {
                             "label": "H2",
-                            "value": "h2"
+                            "value": "{brand.typography.h2}"
                         },
                         {
                             "label": "H3",
-                            "value": "h3"
+                            "value": "{brand.typography.h3}"
                         },
                         {
                             "label": "H4",
-                            "value": "h4"
+                            "value": "{brand.typography.h4}"
                         },
                         {
                             "label": "H5",
-                            "value": "h5"
+                            "value": "{brand.typography.h5}"
                         },
                         {
                             "label": "H6",
-                            "value": "h6"
+                            "value": "{brand.typography.h6}"
                         }
                     ]
                 }

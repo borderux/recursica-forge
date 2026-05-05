@@ -15,7 +15,7 @@ import type { PanelProps as AdapterPanelProps } from '../../Panel'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readRawCssVar as readCssVar } from '../../../../core/css/readCssVar'
 import './Panel.css'
 import './PanelOverlay.css'
 
@@ -127,8 +127,21 @@ export default function Panel({
             borderRadius: `0 var(${borderRadiusVar}) var(${borderRadiusVar}) 0`,
         }
 
-    // Get header style value
-    const headerStyleValue = readCssVar(headerStyleVar) || 'h3'
+    // Get header style value (extract from typography token or var)
+    const rawHeaderStyleValue = readCssVar(headerStyleVar) || 'h3'
+    let headerStyleValue = 'h3'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawHeaderStyleValue)
+        if (match) {
+            headerStyleValue = match[1]
+        }
+    } else {
+        headerStyleValue = rawHeaderStyleValue
+    }
+
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
 
     // CSS custom properties for the component
     const panelStyles = {
@@ -190,7 +203,7 @@ export default function Panel({
                         background: 'var(--panel-hf-bg)',
                     }}
                 >
-                    <span style={{
+                    <HeadingTag style={{
                         color: 'var(--panel-title-color)',
                         fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
                         fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
@@ -206,9 +219,10 @@ export default function Panel({
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         paddingBottom: '0.15em',
+                        margin: 0,
                     } as any}>
                         {title}
-                    </span>
+                    </HeadingTag>
                     {onClose && (
                         <Button
                             variant="text"

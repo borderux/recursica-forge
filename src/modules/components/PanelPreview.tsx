@@ -7,7 +7,7 @@ import { Group } from '@mantine/core'
 import { getComponentLevelCssVar } from '../../components/utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { getElevationBoxShadow } from '../../components/utils/brandCssVars'
-import { readCssVar } from '../../core/css/readCssVar'
+import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
 import type { PanelPosition } from '../../components/adapters/Panel'
 
@@ -74,7 +74,20 @@ export default function PanelPreview({
     const maxWidthVar = getComponentLevelCssVar('Panel', 'max-width')
 
     const headerStyleVar = getComponentLevelCssVar('Panel', 'header-style')
-    const headerStyleValue = readCssVar(headerStyleVar) || 'h3'
+    const rawHeaderStyleValue = readRawCssVar(headerStyleVar) || 'h3'
+    let headerStyleValue = 'h3'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawHeaderStyleValue)
+        if (match) {
+            headerStyleValue = match[1]
+        }
+    } else {
+        headerStyleValue = rawHeaderStyleValue
+    }
+
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
 
     const elevationVar = getComponentLevelCssVar('Panel', 'elevation')
     const elevationName = readCssVar(elevationVar) || componentElevation
@@ -96,6 +109,7 @@ export default function PanelPreview({
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         paddingBottom: '0.15em',
+        margin: 0,
     } as any
 
     const bodyStyle = {
@@ -171,9 +185,9 @@ export default function PanelPreview({
                         flexShrink: 0,
                         background: `var(${hfBgVar})`,
                     }}>
-                        <span style={headerStyle}>
+                        <HeadingTag style={headerStyle}>
                             Goblin's Rest
-                        </span>
+                        </HeadingTag>
                         <Button
                             variant="text"
                             layer={layer}
