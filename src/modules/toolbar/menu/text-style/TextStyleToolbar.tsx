@@ -552,7 +552,7 @@ export default function TextStyleToolbar({
       { value: 'none', label: 'Original', icon: TextNoneIcon ? <TextNoneIcon size={16} /> : null, tooltip: 'Original' },
       { value: 'uppercase', label: 'Uppercase', icon: UppercaseIcon ? <UppercaseIcon size={16} /> : null, tooltip: 'Uppercase' },
       { value: 'lowercase', label: 'Lowercase', icon: LowercaseIcon ? <LowercaseIcon size={16} /> : null, tooltip: 'Lowercase' },
-      { value: 'capitalize', label: 'Capitalize', icon: CapitalizeIcon ? <CapitalizeIcon size={16} /> : null, tooltip: 'Capitalize' },
+      { value: 'titlecase', label: 'Capitalize', icon: CapitalizeIcon ? <CapitalizeIcon size={16} /> : null, tooltip: 'Capitalize' },
     ]
   }, [])
 
@@ -1234,7 +1234,8 @@ export default function TextStyleToolbar({
 
   const handleTextDecorationChange = useCallback((value: string) => {
     // CRITICAL: Log which CSS variable is being updated to verify it's the correct one
-    updateCssVar(textDecorationVar, value)
+    const tokenValue = `var(--recursica_tokens_font_decorations_${value})`
+    updateCssVar(textDecorationVar, tokenValue)
     // Update state immediately for UI responsiveness
     setCurrentTextDecoration(value)
     requestAnimationFrame(() => {
@@ -1245,7 +1246,10 @@ export default function TextStyleToolbar({
   }, [textDecorationVar, componentName, textElementName])
 
   const handleTextTransformChange = useCallback((value: string) => {
-    updateCssVar(textTransformVar, value)
+    const tokenMap: Record<string, string> = { 'none': 'original', 'uppercase': 'uppercase', 'lowercase': 'lowercase', 'capitalize': 'titlecase', 'titlecase': 'titlecase' }
+    const tokenShort = tokenMap[value] || value
+    const tokenValue = `var(--recursica_tokens_font_cases_${tokenShort})`
+    updateCssVar(textTransformVar, tokenValue)
     // Update state immediately for UI responsiveness
     setCurrentTextTransform(value)
     requestAnimationFrame(() => {
@@ -1256,7 +1260,8 @@ export default function TextStyleToolbar({
   }, [textTransformVar])
 
   const handleFontStyleChange = useCallback((value: string) => {
-    updateCssVar(fontStyleVar, value)
+    const tokenValue = `var(--recursica_tokens_font_styles_${value})`
+    updateCssVar(fontStyleVar, tokenValue)
     // Update state immediately for UI responsiveness
     setCurrentFontStyle(value)
     requestAnimationFrame(() => {
