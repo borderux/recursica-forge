@@ -172,20 +172,20 @@ export default function TransferList({
         : `${data[1].length}`
 
     // Heading level from CSS var (dropdown writes here)
-    const headingLevelVar = getComponentLevelCssVar('TransferList', 'heading-level')
-    const rawHeadingLevel = useRawCssVar(headingLevelVar, 'h4') as string
-    let headingLevel = 'h4'
-    if (rawHeadingLevel.startsWith('{brand.typography.')) {
-        headingLevel = rawHeadingLevel.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
-    } else if (rawHeadingLevel.includes('--recursica_brand_typography_')) {
-        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawHeadingLevel)
+    const headerStyleVar = getComponentLevelCssVar('TransferList', 'header-style')
+    const rawHeaderStyleValue = useRawCssVar(headerStyleVar, 'h4') as string
+    let headerStyleValue = 'h4'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawHeaderStyleValue)
         if (match) {
-            headingLevel = match[1]
+            headerStyleValue = match[1].replace(/-font-size$/, "")
         }
     } else {
-        headingLevel = rawHeadingLevel
+        headerStyleValue = rawHeaderStyleValue
     }
-    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headingLevel) ? headingLevel : 'h4') as keyof JSX.IntrinsicElements
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'h4') as keyof JSX.IntrinsicElements
 
     // Border CSS vars
     const stateName = state  // Use state name directly so custom variants target their own CSS vars
@@ -212,6 +212,16 @@ export default function TransferList({
         '--transfer-list-width': `var(${getComponentLevelCssVar('TransferList', 'width')}, 200px)`,
     } as React.CSSProperties
 
+    const headerStyle = {
+        fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
+        fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
+        fontWeight: `var(--recursica_brand_typography_${headerStyleValue}-font-weight)`,
+        letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-letter-spacing)`,
+        lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
+        textDecoration: `var(--recursica_brand_typography_${headerStyleValue}-text-decoration)`,
+        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)`,
+    } as React.CSSProperties
+
     return (
         <div className={`recursica-transfer-list ${state === 'error' ? 'recursica-transfer-list--error' : ''} ${isDisabled ? 'recursica-transfer-list--disabled' : ''}`} style={containerVars}>
             <div className="recursica-transfer-list-body">
@@ -219,7 +229,7 @@ export default function TransferList({
                 <div className="recursica-transfer-list-pane">
                     {/* Pane header with title and badge count */}
                     <div className="recursica-transfer-list-pane-header">
-                        <HeadingTag className="recursica-transfer-list-title">
+                        <HeadingTag className="recursica-transfer-list-title" style={headerStyle}>
                             {sourceLabel}
                         </HeadingTag>
                         <Badge size="small" layer={layer}>
@@ -270,7 +280,7 @@ export default function TransferList({
                 <div className="recursica-transfer-list-pane">
                     {/* Pane header with title and badge count */}
                     <div className="recursica-transfer-list-pane-header">
-                        <HeadingTag className="recursica-transfer-list-title">
+                        <HeadingTag className="recursica-transfer-list-title" style={headerStyle}>
                             {targetLabel}
                         </HeadingTag>
                         <Badge size="small" layer={layer}>

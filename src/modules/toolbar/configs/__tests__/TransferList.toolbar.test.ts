@@ -149,7 +149,13 @@ describe('TransferList Toolbar Config', () => {
         expect(boxConfig.group).toBeDefined()
         expect(boxConfig.group.background).toBeDefined()
         expect(boxConfig.group['header-color']).toBeDefined()
-        expect(boxConfig.group['heading-level']).toBeDefined()
+    })
+
+    it('should have type-styles group with the expected sub-props', () => {
+        const typeStylesConfig = (config.props as any)['type-styles']
+        expect(typeStylesConfig).toBeDefined()
+        expect(typeStylesConfig.group).toBeDefined()
+        expect(typeStylesConfig.group['header-style']).toBeDefined()
     })
 
     it('should have border group with the expected sub-props', () => {

@@ -48,7 +48,6 @@
     gap: 8px;
     padding: var(--transfer-list-v-padding, 8px) var(--transfer-list-h-padding, 12px) 0;
     min-width: 0;
-    overflow: hidden;
     margin-bottom: var(--transfer-list-title-filter-gap, 4px);
 }
 
@@ -60,6 +59,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    padding: 3px 0; /* Symmetrical padding prevents descenders from being clipped while preserving center alignment */
     color: var(--transfer-list-header-color, inherit);
 }
 

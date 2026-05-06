@@ -182,7 +182,7 @@ export default function Dropdown({
             <Text
                 style={{
                     flex: 1,
-                    overflow: 'clip',
+                    overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     fontFamily: `var(${valueFontFamilyVar})`,
@@ -193,6 +193,7 @@ export default function Dropdown({
                     textDecoration: valueTextDecorationVar ? `var(${valueTextDecorationVar})` as any : 'none',
                     textTransform: valueTextTransformVar ? `var(${valueTextTransformVar})` as any : 'none',
                     fontStyle: valueFontStyleVar ? `var(${valueFontStyleVar})` as any : 'normal',
+                    padding: '0.1em 0', // Tiny padding to prevent descender clipping
                 }}
             >
                 {displayLabel}

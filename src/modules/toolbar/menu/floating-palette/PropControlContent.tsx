@@ -113,9 +113,10 @@ function DropdownFromCssVar({
   let cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || (typeof options[0] === 'string' ? options[0] : options[0]?.value ?? '')
 
   // Reverse map typography CSS vars back to their token references so dropdown matches option value
-  const typographyMatch = /var\(--recursica_brand_typography_(.+)-font-size\)/.exec(cleanValue)
+  const typographyMatch = /var\(--recursica_brand_typography_([^)]+)/.exec(cleanValue)
   if (typographyMatch) {
-    cleanValue = `{brand.typography.${typographyMatch[1]}}`
+    const style = typographyMatch[1].replace(/-font-size$/, '')
+    cleanValue = `{brand.typography.${style}}`
   }
 
   const dropdownItems = options.map((opt) => {

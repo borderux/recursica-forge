@@ -6,7 +6,7 @@ import { Box, Group, Text } from '@mantine/core'
 import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { getElevationBoxShadow } from '../../components/utils/brandCssVars'
-import { readCssVar } from '../../core/css/readCssVar'
+import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
 
 interface ModalPreviewProps {
@@ -55,28 +55,65 @@ export default function ModalPreview({
     const minHeightVar = getComponentLevelCssVar('Modal', 'min-height')
     const maxHeightVar = getComponentLevelCssVar('Modal', 'max-height')
 
-    const headerFontFamilyVar = getComponentTextCssVar('Modal', 'header-text', 'font-family')
-    const headerFontSizeVar = getComponentTextCssVar('Modal', 'header-text', 'font-size')
-    const headerFontWeightVar = getComponentTextCssVar('Modal', 'header-text', 'font-weight')
-    const headerLetterSpacingVar = getComponentTextCssVar('Modal', 'header-text', 'letter-spacing')
-    const headerLineHeightVar = getComponentTextCssVar('Modal', 'header-text', 'line-height')
-    const headerFontStyleVar = getComponentTextCssVar('Modal', 'header-text', 'font-style')
-    const headerTextDecorationVar = getComponentTextCssVar('Modal', 'header-text', 'text-decoration')
-    const headerTextTransformVar = getComponentTextCssVar('Modal', 'header-text', 'text-transform')
+    const headerStyleVar = getComponentLevelCssVar('Modal', 'header-style')
 
-    const contentFontFamilyVar = getComponentTextCssVar('Modal', 'content-text', 'font-family')
-    const contentFontSizeVar = getComponentTextCssVar('Modal', 'content-text', 'font-size')
-    const contentFontWeightVar = getComponentTextCssVar('Modal', 'content-text', 'font-weight')
-    const contentLetterSpacingVar = getComponentTextCssVar('Modal', 'content-text', 'letter-spacing')
-    const contentLineHeightVar = getComponentTextCssVar('Modal', 'content-text', 'line-height')
-    const contentFontStyleVar = getComponentTextCssVar('Modal', 'content-text', 'font-style')
-    const contentTextDecorationVar = getComponentTextCssVar('Modal', 'content-text', 'text-decoration')
-    const contentTextTransformVar = getComponentTextCssVar('Modal', 'content-text', 'text-transform')
+    const contentStyleVar = getComponentLevelCssVar('Modal', 'content-style')
 
     const elevationVar = getComponentLevelCssVar('Modal', 'elevation')
 
     const elevationName = readCssVar(elevationVar) || componentElevation
     const elevationBoxShadow = getElevationBoxShadow(mode, elevationName)
+
+    const rawHeaderStyleValue = readRawCssVar(headerStyleVar) || 'h3'
+    let headerStyleValue = 'h3'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawHeaderStyleValue)
+        if (match) {
+            headerStyleValue = match[1]
+        }
+    } else {
+        headerStyleValue = rawHeaderStyleValue
+    }
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
+
+    const headerStyle = {
+        color: `var(${titleColorVar})`,
+        fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
+        fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
+        fontWeight: `var(--recursica_brand_typography_${headerStyleValue}-font-weight)`,
+        letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-font-letter-spacing)`,
+        lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
+        fontStyle: `var(--recursica_brand_typography_${headerStyleValue}-font-style)`,
+        textDecoration: 'none',
+        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)`,
+        margin: 0,
+    } as any
+
+    const rawContentStyleValue = readRawCssVar(contentStyleVar) || 'body'
+    let contentStyleValue = 'body'
+    if (rawContentStyleValue.startsWith('{brand.typography.')) {
+        contentStyleValue = rawContentStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawContentStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawContentStyleValue)
+        if (match) {
+            contentStyleValue = match[1]
+        }
+    } else {
+        contentStyleValue = rawContentStyleValue
+    }
+
+    const contentStyle = {
+        fontFamily: `var(--recursica_brand_typography_${contentStyleValue}-font-family)`,
+        fontSize: `var(--recursica_brand_typography_${contentStyleValue}-font-size)`,
+        fontWeight: `var(--recursica_brand_typography_${contentStyleValue}-font-weight)`,
+        letterSpacing: `var(--recursica_brand_typography_${contentStyleValue}-font-letter-spacing)`,
+        lineHeight: `var(--recursica_brand_typography_${contentStyleValue}-line-height)`,
+        fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
+        textDecoration: 'none',
+        textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)`,
+    } as any
 
     const staticModalStyles = {
         background: `var(${bgVar})`,
@@ -122,19 +159,9 @@ export default function ModalPreview({
                             justifyContent: 'space-between',
                             borderBottom: scrollable ? `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})` : 'none',
                         }}>
-                            <span style={{
-                                color: `var(${titleColorVar})`,
-                                fontFamily: `var(${headerFontFamilyVar})`,
-                                fontSize: `var(${headerFontSizeVar})`,
-                                fontWeight: `var(${headerFontWeightVar})`,
-                                letterSpacing: `var(${headerLetterSpacingVar})`,
-                                lineHeight: `var(${headerLineHeightVar})`,
-                                fontStyle: `var(${headerFontStyleVar})`,
-                                textDecoration: `var(${headerTextDecorationVar})`,
-                                textTransform: `var(${headerTextTransformVar})`,
-                            } as any}>
+                            <HeadingTag style={headerStyle}>
                                 The Legend of Zog
-                            </span>
+                            </HeadingTag>
                             <Button
                                 variant="text"
                                 layer={selectedLayer as any}
@@ -158,14 +185,7 @@ export default function ModalPreview({
                         maxHeight: '200px',
                         overflowY: scrollable ? 'auto' : 'visible',
                         flex: 1,
-                        fontFamily: `var(${contentFontFamilyVar})`,
-                        fontSize: `var(${contentFontSizeVar})`,
-                        fontWeight: `var(${contentFontWeightVar})`,
-                        letterSpacing: `var(${contentLetterSpacingVar})`,
-                        lineHeight: `var(${contentLineHeightVar})`,
-                        fontStyle: `var(${contentFontStyleVar})`,
-                        textDecoration: `var(${contentTextDecorationVar})`,
-                        textTransform: `var(${contentTextTransformVar})`,
+                        ...contentStyle
                     } as any}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <p style={{ margin: 0 }}>
@@ -214,19 +234,9 @@ export default function ModalPreview({
                         justifyContent: 'space-between',
                         borderBottom: `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`,
                     }}>
-                        <span style={{
-                            color: `var(${titleColorVar})`,
-                            fontFamily: `var(${headerFontFamilyVar})`,
-                            fontSize: `var(${headerFontSizeVar})`,
-                            fontWeight: `var(${headerFontWeightVar})`,
-                            letterSpacing: `var(${headerLetterSpacingVar})`,
-                            lineHeight: `var(${headerLineHeightVar})`,
-                            fontStyle: `var(${headerFontStyleVar})`,
-                            textDecoration: `var(${headerTextDecorationVar})`,
-                            textTransform: `var(${headerTextTransformVar})`,
-                        } as any}>
+                        <HeadingTag style={headerStyle}>
                             The Legend of Zog
-                        </span>
+                        </HeadingTag>
                         <Button
                             variant="text"
                             layer={selectedLayer as any}
@@ -249,14 +259,7 @@ export default function ModalPreview({
                         maxHeight: '150px',
                         overflowY: 'auto',
                         flex: 1,
-                        fontFamily: `var(${contentFontFamilyVar})`,
-                        fontSize: `var(${contentFontSizeVar})`,
-                        fontWeight: `var(${contentFontWeightVar})`,
-                        letterSpacing: `var(${contentLetterSpacingVar})`,
-                        lineHeight: `var(${contentLineHeightVar})`,
-                        fontStyle: `var(${contentFontStyleVar})`,
-                        textDecoration: `var(${contentTextDecorationVar})`,
-                        textTransform: `var(${contentTextTransformVar})`,
+                        ...contentStyle
                     } as any}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <p style={{ margin: 0 }}>

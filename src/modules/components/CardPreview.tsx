@@ -86,14 +86,16 @@ export default function CardPreview({
     const maxWidthVar = getComponentLevelCssVar('Card', 'max-width')
 
     const headerStyleVar = getComponentLevelCssVar('Card', 'header-style')
+    const contentStyleVar = getComponentLevelCssVar('Card', 'content-style')
+
     const rawHeaderStyleValue = readRawCssVar(headerStyleVar) || 'h3'
     let headerStyleValue = 'h3'
     if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
         headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
     } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
-        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawHeaderStyleValue)
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawHeaderStyleValue)
         if (match) {
-            headerStyleValue = match[1]
+            headerStyleValue = match[1].replace(/-font-size$/, "")
         }
     } else {
         headerStyleValue = rawHeaderStyleValue
@@ -123,13 +125,29 @@ export default function CardPreview({
         margin: 0,
     } as any
 
+    const rawContentStyleValue = readRawCssVar(contentStyleVar) || 'body'
+    let contentStyleValue = 'body'
+    if (rawContentStyleValue.startsWith('{brand.typography.')) {
+        contentStyleValue = rawContentStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawContentStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawContentStyleValue)
+        if (match) {
+            contentStyleValue = match[1].replace(/-font-size$/, "")
+        }
+    } else {
+        contentStyleValue = rawContentStyleValue
+    }
+
     const bodyStyle = {
         color: `var(${contentColorVar})`,
-        fontFamily: 'var(--recursica_brand_typography_body-font-family)',
-        fontSize: 'var(--recursica_brand_typography_body-font-size)',
-        fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
-        lineHeight: 'var(--recursica_brand_typography_body-line-height)',
-        letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+        fontFamily: `var(--recursica_brand_typography_${contentStyleValue}-font-family)`,
+        fontSize: `var(--recursica_brand_typography_${contentStyleValue}-font-size)`,
+        fontWeight: `var(--recursica_brand_typography_${contentStyleValue}-font-weight)`,
+        lineHeight: `var(--recursica_brand_typography_${contentStyleValue}-line-height)`,
+        letterSpacing: `var(--recursica_brand_typography_${contentStyleValue}-font-letter-spacing)`,
+        fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
+        textDecoration: 'none',
+        textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)`,
     } as React.CSSProperties
 
     // Card container base style — uses UIKit per-layer CSS vars

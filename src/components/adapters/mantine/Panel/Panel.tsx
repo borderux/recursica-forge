@@ -81,8 +81,9 @@ export default function Panel({
     const minWidthVar = getComponentLevelCssVar('Panel', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Panel', 'max-width')
 
-    // Header style
+    // Typography styles
     const headerStyleVar = getComponentLevelCssVar('Panel', 'header-style')
+    const contentStyleVar = getComponentLevelCssVar('Panel', 'content-style')
 
     // Elevation variable
     const internalElevationVar = getComponentLevelCssVar('Panel', 'elevation')
@@ -133,12 +134,26 @@ export default function Panel({
     if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
         headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
     } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
-        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawHeaderStyleValue)
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawHeaderStyleValue)
         if (match) {
-            headerStyleValue = match[1]
+            headerStyleValue = match[1].replace(/-font-size$/, "")
         }
     } else {
         headerStyleValue = rawHeaderStyleValue
+    }
+
+    // Get content style value
+    const rawContentStyleValue = readCssVar(contentStyleVar) || 'body'
+    let contentStyleValue = 'body'
+    if (rawContentStyleValue.startsWith('{brand.typography.')) {
+        contentStyleValue = rawContentStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawContentStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawContentStyleValue)
+        if (match) {
+            contentStyleValue = match[1].replace(/-font-size$/, "")
+        }
+    } else {
+        contentStyleValue = rawContentStyleValue
     }
 
     const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
@@ -242,6 +257,14 @@ export default function Panel({
                     padding: 'var(--panel-content-padding-y) var(--panel-content-padding-x)',
                     flex: 1,
                     overflowY: 'auto',
+                    fontFamily: `var(--recursica_brand_typography_${contentStyleValue}-font-family)`,
+                    fontSize: `var(--recursica_brand_typography_${contentStyleValue}-font-size)`,
+                    fontWeight: `var(--recursica_brand_typography_${contentStyleValue}-font-weight)`,
+                    letterSpacing: `var(--recursica_brand_typography_${contentStyleValue}-font-letter-spacing)`,
+                    lineHeight: `var(--recursica_brand_typography_${contentStyleValue}-line-height)`,
+                    fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
+                    textDecoration: 'none',
+                    textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)`,
                 }}
             >
                 {children}

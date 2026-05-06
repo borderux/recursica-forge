@@ -341,13 +341,13 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
        }
     }
 
-    // Typography references: {brand.typography.h3.fontFamily}
-    const typographyMatch = content.match(/^brand\.typography\.([a-z0-9-]+)\.([a-zA-Z]+)$/);
+    // Typography references: {brand.typography.h3.fontFamily} or {brand.typography.h3}
+    const typographyMatch = content.match(/^brand\.typography\.([a-z0-9-]+)(?:\.([a-zA-Z]+))?$/);
     if (typographyMatch) {
        const [, level, prop] = typographyMatch;
        const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline'];
        const newLevel = shiftValue(level, levels);
-       return `{brand.typography.${newLevel}.${prop}}`;
+       return prop ? `{brand.typography.${newLevel}.${prop}}` : `{brand.typography.${newLevel}}`;
     }
 
     return tokenRef;
@@ -373,13 +373,11 @@ export function randomizeStringValue(propName: string, oldVal: string): string {
     const stringOptions: Record<string, string[]> = {
         'display': ['icon', 'text', 'icon+text'],
         'orientation': ['horizontal', 'vertical'],
-        'heading-level': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
         'position': ['top', 'bottom', 'left', 'right'],
         'alignment': ['start', 'center', 'end'],
         'search-icon-position': ['left', 'right'],
         'avatar-size': ['small', 'default', 'large'],
         'border-style': ['solid', 'dashed', 'dotted'],
-        'header-style': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
         'tab-content-alignment': ['left', 'center', 'right'],
         'text-decoration': ['none', 'underline', 'line-through'],
         'text-transform': ['none', 'uppercase', 'lowercase', 'capitalize'],
