@@ -95,6 +95,98 @@ function SegmentedControlFromCssVar({
   )
 }
 
+/** Pixel slider for properties that use raw px values instead of tokens */
+function PixelValueSlider({
+  primaryVar,
+  cssVars,
+  label,
+  minPixelValue,
+  maxPixelValue,
+}: {
+  primaryVar: string
+  cssVars: string[]
+  label: string
+  minPixelValue: number
+  maxPixelValue: number
+}) {
+  const [value, setValue] = useState(() => {
+    const currentValue = readCssVar(primaryVar)
+    const resolvedValue = readCssVarResolved(primaryVar)
+    const valueStr = resolvedValue || currentValue || `${minPixelValue}px`
+    const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+    return match ? Math.max(minPixelValue, Math.min(maxPixelValue, parseFloat(match[1]))) : minPixelValue
+  })
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      const currentValue = readCssVar(primaryVar)
+      const resolvedValue = readCssVarResolved(primaryVar)
+      const valueStr = resolvedValue || currentValue || `${minPixelValue}px`
+      const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+      if (match) {
+        setValue(Math.max(minPixelValue, Math.min(maxPixelValue, parseFloat(match[1]))))
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleUpdate)
+    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+  }, [primaryVar, minPixelValue, maxPixelValue])
+
+  const updateCssVars = useCallback((clampedValue: number) => {
+    const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+    cssVarsToUpdate.forEach(cssVar => {
+      updateCssVar(cssVar, `${clampedValue}px`)
+    })
+
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars: cssVarsToUpdate }
+    }))
+  }, [cssVars, primaryVar])
+
+  const handleChange = (newValue: number | [number, number]) => {
+    const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+    const clampedValue = Math.max(minPixelValue, Math.min(maxPixelValue, numValue))
+    setValue(clampedValue)
+    const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+    cssVarsToUpdate.forEach(cssVar => {
+      document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+    })
+  }
+
+  const handleChangeCommitted = (newValue: number | [number, number]) => {
+    const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+    const clampedValue = Math.max(minPixelValue, Math.min(maxPixelValue, numValue))
+    const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+    cssVarsToUpdate.forEach(cssVar => {
+      document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+    })
+    updateCssVars(clampedValue)
+  }
+
+  const getValueLabel = useCallback((val: number) => {
+    return `${Math.round(val)}px`
+  }, [])
+
+  return (
+    <Slider
+      value={value}
+      onChange={handleChange}
+      onChangeCommitted={handleChangeCommitted}
+      min={minPixelValue}
+      max={maxPixelValue}
+      step={1}
+      layer="layer-1"
+      layout="stacked"
+      showInput={false}
+      showValueLabel={true}
+      valueLabel={getValueLabel}
+      minLabel={`${minPixelValue}px`}
+      maxLabel={`${maxPixelValue}px`}
+      showMinMaxLabels={false}
+      label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+    />
+  )
+}
+
 /** Dropdown that reads/writes a CSS var - re-renders when the var changes */
 function DropdownFromCssVar({
   primaryVar,
@@ -1965,95 +2057,6 @@ export default function PropControlContent({
         )
       }
 
-      // Use pixel slider for accordion min-width and max-width (raw pixel values, not tokens)
-      if ((propNameLower === 'min-width' || propNameLower === 'max-width') && componentName.toLowerCase() === 'accordion') {
-        const AccordionWidthSlider = () => {
-          const minValue = propNameLower === 'min-width' ? 20 : 100
-          const maxValue = propNameLower === 'min-width' ? 200 : 1500
-          const [value, setValue] = useState(() => {
-            const currentValue = readCssVar(primaryVar)
-            const resolvedValue = readCssVarResolved(primaryVar)
-            const valueStr = resolvedValue || currentValue || `${minValue}px`
-            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
-          })
-
-          useEffect(() => {
-            const handleUpdate = () => {
-              const currentValue = readCssVar(primaryVar)
-              const resolvedValue = readCssVarResolved(primaryVar)
-              const valueStr = resolvedValue || currentValue || `${minValue}px`
-              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-              if (match) {
-                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
-              }
-            }
-            window.addEventListener('cssVarsUpdated', handleUpdate)
-            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-          }, [primaryVar, minValue, maxValue])
-
-          const updateCssVars = useCallback((clampedValue: number) => {
-            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
-            cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
-            })
-
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [cssVars, primaryVar])
-
-          const handleChange = (newValue: number | [number, number]) => {
-            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
-            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
-            setValue(clampedValue)
-            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
-            cssVarsToUpdate.forEach(cssVar => {
-              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
-            })
-          }
-
-          const handleChangeCommitted = (newValue: number | [number, number]) => {
-            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
-            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
-            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
-            cssVarsToUpdate.forEach(cssVar => {
-              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
-            })
-          }
-
-          const getValueLabel = useCallback((val: number) => {
-            return `${Math.round(val)}px`
-          }, [])
-
-          return (
-            <Slider
-              value={value}
-              onChange={handleChange}
-              onChangeCommitted={handleChangeCommitted}
-              min={minValue}
-              max={maxValue}
-              step={1}
-              layer="layer-1"
-              layout="stacked"
-              showInput={false}
-              showValueLabel={true}
-              valueLabel={getValueLabel}
-              minLabel={`${minValue}px`}
-              maxLabel={`${maxValue}px`}
-              showMinMaxLabels={false}
-              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
-            />
-          )
-        }
-
-        return (
-          <AccordionWidthSlider
-            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
-          />
-        )
-      }
-
       // Use pixel slider for modal dimensions
       if (componentName.toLowerCase() === 'modal' && (
         propNameLower === 'min-width' ||
@@ -3665,6 +3668,18 @@ export default function PropControlContent({
         maxPixelValue = 50
       }
 
+      if (dimensionType === 'px') {
+        return (
+          <PixelValueSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            primaryVar={primaryVar}
+            cssVars={cssVars}
+            label={label}
+            minPixelValue={minPixelValue}
+            maxPixelValue={maxPixelValue ?? 1000}
+          />
+        )
+      }
 
       return (
         <DimensionTokenSelector
