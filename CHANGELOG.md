@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.12.5
+
+### Patch Changes
+
+- 1cf1c4c: Updated base json colors and styles to fix all compliance issues
+
 ## 0.12.4
 
 ### Patch Changes
