@@ -1,5 +1,17 @@
 # recursica-forge
 
+## 0.12.4
+
+### Patch Changes
+
+- bd9477f: - Refactored component layout to prevent text descender clipping by standardizing `padding: 0.15em 0` on label elements and using `overflow-y: visible` with `overflow-x: hidden` for ellipsis.
+  - Resolved token resolution errors in JSON to CSS export pipeline to support direct references to typography groups (e.g., `{brand.typography.h2}`).
+  - Updated UI Kit components (Card, Panel, Modal, TransferList) to properly use brand typography tokens for `header-style` and `content-style`.
+  - Fixed build-time TypeScript type mismatches for dynamically generated `textTransform` CSS properties.
+- 9d06928: Fix token assignment logic during component randomization:
+  - Color randomizer previously injected bare token color references (`{tokens.colors.*}`) into component state. All component-level color randomizations will now strictly assign semantic palette references (`{brand.palettes.*.color.tone}`) for consistent theming architecture.
+  - Font family and font style property randomization was occasionally skipping due to incomplete token matching. Added missing token path resolution for `{brand.fonts.*}` and improved regex matching for `font-style` to properly cycle through values during component randomization.
+
 ## 0.12.3
 
 ### Patch Changes
