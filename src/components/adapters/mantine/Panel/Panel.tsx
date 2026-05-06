@@ -264,7 +264,7 @@ export default function Panel({
                     lineHeight: `var(--recursica_brand_typography_${contentStyleValue}-line-height)`,
                     fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
                     textDecoration: 'none',
-                    textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)`,
+                    textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)` as any,
                 }}
             >
                 {children}

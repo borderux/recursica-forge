@@ -251,10 +251,18 @@ function formatValue(
     const resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
     if (!resolved) {
       const varName = pathToVarName(expanded)
-      errors.push({
-        path: currentPath,
-        message: `Reference '${val}' targets non-existent var ${varName}`
-      })
+      const isTypographyGroup = expanded.startsWith('brand.typography.') && 
+        (allVarNames.has(pathToVarName(`${expanded}.font-family`)) || 
+         allVarNames.has(pathToVarName(`${expanded}.fontFamily`)) ||
+         allVarNames.has(pathToVarName(`${expanded}.font-size`)) ||
+         allVarNames.has(pathToVarName(`${expanded}.fontSize`)))
+         
+      if (!isTypographyGroup) {
+        errors.push({
+          path: currentPath,
+          message: `Reference '${val}' targets non-existent var ${varName}`
+        })
+      }
       return `var(${refNamer(expanded)})`
     }
     return `var(${refNamer(resolved)})`

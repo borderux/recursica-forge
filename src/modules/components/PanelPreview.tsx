@@ -104,7 +104,7 @@ export default function PanelPreview({
         lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
         fontStyle: `var(--recursica_brand_typography_${headerStyleValue}-font-style)`,
         textDecoration: 'none',
-        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)`,
+        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)` as any,
         flex: 1,
         minWidth: 0,
         overflow: 'clip',
@@ -136,7 +136,7 @@ export default function PanelPreview({
         letterSpacing: `var(--recursica_brand_typography_${contentStyleValue}-font-letter-spacing)`,
         fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
         textDecoration: 'none',
-        textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)`,
+        textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)` as any,
     } as React.CSSProperties
 
     // The panel footer content

@@ -87,7 +87,7 @@ export default function ModalPreview({
         lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
         fontStyle: `var(--recursica_brand_typography_${headerStyleValue}-font-style)`,
         textDecoration: 'none',
-        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)`,
+        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)` as any,
         margin: 0,
     } as any
 
@@ -112,7 +112,7 @@ export default function ModalPreview({
         lineHeight: `var(--recursica_brand_typography_${contentStyleValue}-line-height)`,
         fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
         textDecoration: 'none',
-        textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)`,
+        textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)` as any,
     } as any
 
     const staticModalStyles = {

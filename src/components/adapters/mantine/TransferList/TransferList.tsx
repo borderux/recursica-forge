@@ -219,7 +219,7 @@ export default function TransferList({
         letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-letter-spacing)`,
         lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
         textDecoration: `var(--recursica_brand_typography_${headerStyleValue}-text-decoration)`,
-        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)`,
+        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)` as any,
     } as React.CSSProperties
 
     return (
