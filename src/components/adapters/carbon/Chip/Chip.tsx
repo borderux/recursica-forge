@@ -56,9 +56,7 @@ export default function Chip({
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
     const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
-    const chipIconColorVarForListener = variant === 'error' || variant === 'error-selected'
-      ? getComponentLevelCssVar('Chip', 'colors.error.icon-color')
-      : chipColorVarForListener
+    const chipIconColorVarForListener = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
 
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
@@ -103,17 +101,8 @@ export default function Chip({
   const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
-  // For error variant (including error-selected), use component-level error color CSS variables
-  let chipColorVar: string
-  let chipIconColorVar: string
-  if (variant === 'error' || variant === 'error-selected') {
-    chipColorVar = getComponentLevelCssVar('Chip', 'colors.error.text-color')
-    chipIconColorVar = getComponentLevelCssVar('Chip', 'colors.error.icon-color')
-  } else {
-    chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
-    // Non-error variants don't have icon colors defined, so use text color for icons
-    chipIconColorVar = chipColorVar
-  }
+  const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
+  const chipIconColorVar = chipColorVar
 
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)
   // NEW STRUCTURE: properties.{property}
@@ -249,14 +238,14 @@ export default function Chip({
       '--chip-icon-color': chipIconColorVar ? `var(${chipIconColorVar})` : undefined,
       '--chip-border': `var(${chipBorderVar})`,
       // Don't set color inline - let CSS handle it via --chip-color CSS custom property
-      '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      '--chip-icon-size': (icon || showCheckmark) ? `var(${iconSizeVar})` : '0px',
       '--chip-close-icon-size': deletable && onDelete ? `var(${closeIconSizeVar})` : '0px',
       '--chip-leading-icon-color': leadingIconColorVar ? `var(${leadingIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       '--chip-selected-icon-color': selectedIconColorVar ? `var(${selectedIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       '--chip-close-icon-color': closeIconColorVar ? `var(${closeIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
       // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
-      '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
+      '--chip-icon-text-gap': (icon || showCheckmark || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
       '--chip-padding-x': `var(${horizontalPaddingVar})`,
       '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,

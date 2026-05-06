@@ -56,9 +56,7 @@ export default function Chip({
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
     const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
-    const chipIconColorVarForListener = variant === 'error' || variant === 'error-selected'
-      ? getComponentLevelCssVar('Chip', 'colors.error.icon-color')
-      : chipColorVarForListener
+    const chipIconColorVarForListener = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
 
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
@@ -103,17 +101,8 @@ export default function Chip({
   const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
-  // For error variant (including error-selected), use component-level error color CSS variables
-  let chipColorVar: string
-  let chipIconColorVar: string
-  if (variant === 'error' || variant === 'error-selected') {
-    chipColorVar = getComponentLevelCssVar('Chip', 'colors.error.text-color')
-    chipIconColorVar = getComponentLevelCssVar('Chip', 'colors.error.icon-color')
-  } else {
-    chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
-    // Non-error variants don't have icon colors defined, so use text color for icons
-    chipIconColorVar = chipColorVar
-  }
+  const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
+  const chipIconColorVar = chipColorVar
 
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)
   // NEW STRUCTURE: properties.{property}
@@ -247,7 +236,7 @@ export default function Chip({
   const rootStyles = {
     // Set CSS custom properties in styles.root to ensure they're applied to the root element
     '--chip-border-size': `var(${borderSizeVar})`,
-    '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
+    '--chip-icon-text-gap': (icon || showCheckmark || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
     borderStyle: 'solid',
     borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
 

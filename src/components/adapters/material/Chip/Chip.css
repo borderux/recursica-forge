@@ -3,6 +3,10 @@
   background-color: var(--chip-bg) !important;
   color: var(--chip-color) !important;
   border: var(--chip-border-size, 1px) solid var(--chip-border, var(--mui-palette-divider)) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: var(--chip-icon-text-gap) !important;
   cursor: pointer !important;
   /* Override any fixed height from Material UI - let padding and content determine height */
   height: auto !important;
@@ -32,14 +36,29 @@
   cursor: not-allowed !important;
 }
 
+/* Ensure text label shrinks properly to avoid pushing the icon out of bounds,
+   and apply the standard descender fix */
+.MuiChip-root .MuiChip-label,
+.MuiChip-root .MuiChip-label span,
+.MuiChip-root span:not([class*="icon"]) {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  text-align: center !important;
+  display: block !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  padding: 0.15em 0 !important;
+}
+
 /* Icon styling - use native icon prop */
 .MuiChip-root .MuiChip-icon {
   width: var(--chip-icon-size) !important;
   height: var(--chip-icon-size) !important;
   color: var(--chip-leading-icon-color, var(--chip-icon-color, var(--chip-color))) !important;
-  /* Use CSS custom property set by component for real-time updates - toolbar updates this on document root */
-  /* When toolbar updates UIKit variable on documentElement, component updates --chip-icon-text-gap which updates this automatically */
-  margin-right: var(--chip-icon-text-gap) !important;
+  /* Use gap on parent instead of margins */
+  margin: 0 !important;
   flex-shrink: 0 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -57,7 +76,7 @@
   height: var(--chip-close-icon-size) !important;
   font-size: var(--chip-close-icon-size) !important;
   color: var(--chip-close-icon-color, var(--chip-icon-color, inherit)) !important;
-  margin-left: var(--chip-icon-text-gap, 4px) !important;
+  margin: 0 !important;
   opacity: 0.7 !important;
 }
 
