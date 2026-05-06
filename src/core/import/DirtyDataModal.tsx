@@ -4,9 +4,7 @@
  * Warns users that unexported changes will be discarded when importing JSON files.
  */
 
-import { useState } from 'react'
 import { Modal } from '../../components/adapters/Modal'
-import { Checkbox } from '../../components/adapters/Checkbox'
 
 interface DirtyDataModalProps {
   filesToImport: string[]
@@ -14,18 +12,14 @@ interface DirtyDataModalProps {
   onCancel: () => void
 }
 
-export function DirtyDataModal({ filesToImport, onAcknowledge, onCancel }: DirtyDataModalProps) {
-  const [acknowledged, setAcknowledged] = useState(false)
-
+export function DirtyDataModal({ onAcknowledge, onCancel }: DirtyDataModalProps) {
   return (
     <Modal
       isOpen={true}
       onClose={onCancel}
-      title="Unexported Changes Detected"
-      style={{ '--modal-title-color': '#d40d0d' } as React.CSSProperties}
-      primaryActionLabel="Import Anyway"
+      title="Unsaved changes"
+      primaryActionLabel="Discard changes and import"
       onPrimaryAction={onAcknowledge}
-      primaryActionDisabled={!acknowledged}
       secondaryActionLabel="Cancel"
       onSecondaryAction={onCancel}
       layer="layer-3"
@@ -33,35 +27,11 @@ export function DirtyDataModal({ filesToImport, onAcknowledge, onCancel }: Dirty
       content={
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <p style={{ margin: 0, opacity: 0.7 }}>
-            You have unexported changes that will be discarded when importing the following files:
+            There are currently unexported changes. Importing will discard these changes. Are you sure you want to continue?
           </p>
-
-          <ul style={{ margin: '0 0 8px 0', paddingLeft: '20px' }}>
-            {filesToImport.map((file, idx) => (
-              <li key={idx} style={{ marginBottom: '4px' }}>
-                <strong>{file}</strong>
-              </li>
-            ))}
-          </ul>
-
-          <p style={{ margin: 0, opacity: 0.7, fontSize: '0.9em' }}>
-            Consider exporting your current changes before importing to avoid losing your work.
-          </p>
-
-          <div style={{ borderTop: '1px solid var(--modal-border-color)', paddingTop: '16px', marginTop: '8px' }}>
-            <Checkbox
-              checked={acknowledged}
-              onChange={setAcknowledged}
-              label={
-                <span style={{ fontSize: '14px' }}>
-                  I understand that unexported changes will be discarded
-                </span>
-              }
-              layer="layer-3"
-            />
-          </div>
         </div>
       }
     />
   )
 }
+
