@@ -349,7 +349,7 @@ export default function Chip({
       )}
       <span
         className={`recursica-chip-label ${mantine?.classNames?.label || ''}`.trim()}
-        style={{ paddingBottom: '2px', ...mantine?.styles?.label }}
+        style={{ padding: '0.15em 0', ...mantine?.styles?.label }}
       >
         {children}
       </span>

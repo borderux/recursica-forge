@@ -7,7 +7,7 @@ import { Group } from '@mantine/core'
 import { getComponentLevelCssVar } from '../../components/utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { getElevationBoxShadow } from '../../components/utils/brandCssVars'
-import { readCssVar } from '../../core/css/readCssVar'
+import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
 import type { PanelPosition } from '../../components/adapters/Panel'
 
@@ -74,7 +74,22 @@ export default function PanelPreview({
     const maxWidthVar = getComponentLevelCssVar('Panel', 'max-width')
 
     const headerStyleVar = getComponentLevelCssVar('Panel', 'header-style')
-    const headerStyleValue = readCssVar(headerStyleVar) || 'h3'
+    const contentStyleVar = getComponentLevelCssVar('Panel', 'content-style')
+
+    const rawHeaderStyleValue = readRawCssVar(headerStyleVar) || 'h3'
+    let headerStyleValue = 'h3'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawHeaderStyleValue)
+        if (match) {
+            headerStyleValue = match[1].replace(/-font-size$/, "")
+        }
+    } else {
+        headerStyleValue = rawHeaderStyleValue
+    }
+
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
 
     const elevationVar = getComponentLevelCssVar('Panel', 'elevation')
     const elevationName = readCssVar(elevationVar) || componentElevation
@@ -89,22 +104,39 @@ export default function PanelPreview({
         lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
         fontStyle: `var(--recursica_brand_typography_${headerStyleValue}-font-style)`,
         textDecoration: 'none',
-        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)`,
+        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)` as any,
         flex: 1,
         minWidth: 0,
         overflow: 'clip',
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         paddingBottom: '0.15em',
+        margin: 0,
     } as any
+
+    const rawContentStyleValue = readRawCssVar(contentStyleVar) || 'body'
+    let contentStyleValue = 'body'
+    if (rawContentStyleValue.startsWith('{brand.typography.')) {
+        contentStyleValue = rawContentStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawContentStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawContentStyleValue)
+        if (match) {
+            contentStyleValue = match[1].replace(/-font-size$/, "")
+        }
+    } else {
+        contentStyleValue = rawContentStyleValue
+    }
 
     const bodyStyle = {
         color: `var(${contentColorVar})`,
-        fontFamily: 'var(--recursica_brand_typography_body-font-family)',
-        fontSize: 'var(--recursica_brand_typography_body-font-size)',
-        fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
-        lineHeight: 'var(--recursica_brand_typography_body-line-height)',
-        letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
+        fontFamily: `var(--recursica_brand_typography_${contentStyleValue}-font-family)`,
+        fontSize: `var(--recursica_brand_typography_${contentStyleValue}-font-size)`,
+        fontWeight: `var(--recursica_brand_typography_${contentStyleValue}-font-weight)`,
+        lineHeight: `var(--recursica_brand_typography_${contentStyleValue}-line-height)`,
+        letterSpacing: `var(--recursica_brand_typography_${contentStyleValue}-font-letter-spacing)`,
+        fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
+        textDecoration: 'none',
+        textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)` as any,
     } as React.CSSProperties
 
     // The panel footer content
@@ -171,9 +203,9 @@ export default function PanelPreview({
                         flexShrink: 0,
                         background: `var(${hfBgVar})`,
                     }}>
-                        <span style={headerStyle}>
+                        <HeadingTag style={headerStyle}>
                             Goblin's Rest
-                        </span>
+                        </HeadingTag>
                         <Button
                             variant="text"
                             layer={layer}

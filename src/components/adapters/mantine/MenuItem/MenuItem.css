@@ -109,8 +109,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   /* Ensure descenders aren't clipped */
-  padding-bottom: 2px;
-  margin-bottom: -2px;
+  padding: 3px 0;
 }
 
 .mantine-menu-item-supporting-text {
@@ -122,8 +121,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   /* Ensure descenders aren't clipped */
-  padding-bottom: 2px;
-  margin-bottom: -2px;
+  padding: 3px 0;
 }
 
 .mantine-menu-item-trailing-icon {

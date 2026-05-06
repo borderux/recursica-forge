@@ -130,6 +130,7 @@ import {
   TextAlignRight,
   TextColumns,
   TextH,
+  TextHTwo,
   TextItalic,
   TextStrikethrough,
   TextT,
@@ -431,6 +432,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'wrench': Wrench,
   'image-square': ImageSquare,
   'prohibit': Prohibit,
+  'text-h-two': TextHTwo,
 }
 
 /**

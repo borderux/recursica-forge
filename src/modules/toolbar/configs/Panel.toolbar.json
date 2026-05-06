@@ -34,6 +34,123 @@
                 }
             }
         },
+        "type-styles": {
+            "icon": "text-aa",
+            "label": "Type styles",
+            "visible": true,
+            "group": {
+                "header-style": {
+                    "icon": "text-h-two",
+                    "label": "Header style",
+                    "visible": true,
+                    "options": [
+                        {
+                            "label": "Heading 1",
+                            "value": "{brand.typography.h1}"
+                        },
+                        {
+                            "label": "Heading 2",
+                            "value": "{brand.typography.h2}"
+                        },
+                        {
+                            "label": "Heading 3",
+                            "value": "{brand.typography.h3}"
+                        },
+                        {
+                            "label": "Heading 4",
+                            "value": "{brand.typography.h4}"
+                        },
+                        {
+                            "label": "Heading 5",
+                            "value": "{brand.typography.h5}"
+                        },
+                        {
+                            "label": "Heading 6",
+                            "value": "{brand.typography.h6}"
+                        },
+                        {
+                            "label": "Subtitle",
+                            "value": "{brand.typography.subtitle}"
+                        },
+                        {
+                            "label": "Subtitle (small)",
+                            "value": "{brand.typography.subtitle-small}"
+                        },
+                        {
+                            "label": "Body",
+                            "value": "{brand.typography.body}"
+                        },
+                        {
+                            "label": "Body (small)",
+                            "value": "{brand.typography.body-small}"
+                        },
+                        {
+                            "label": "Caption",
+                            "value": "{brand.typography.caption}"
+                        },
+                        {
+                            "label": "Overline",
+                            "value": "{brand.typography.overline}"
+                        }
+                    ]
+                },
+                "content-style": {
+                    "icon": "text-align-left",
+                    "label": "Content style",
+                    "visible": true,
+                    "options": [
+                        {
+                            "label": "Heading 1",
+                            "value": "{brand.typography.h1}"
+                        },
+                        {
+                            "label": "Heading 2",
+                            "value": "{brand.typography.h2}"
+                        },
+                        {
+                            "label": "Heading 3",
+                            "value": "{brand.typography.h3}"
+                        },
+                        {
+                            "label": "Heading 4",
+                            "value": "{brand.typography.h4}"
+                        },
+                        {
+                            "label": "Heading 5",
+                            "value": "{brand.typography.h5}"
+                        },
+                        {
+                            "label": "Heading 6",
+                            "value": "{brand.typography.h6}"
+                        },
+                        {
+                            "label": "Subtitle",
+                            "value": "{brand.typography.subtitle}"
+                        },
+                        {
+                            "label": "Subtitle (small)",
+                            "value": "{brand.typography.subtitle-small}"
+                        },
+                        {
+                            "label": "Body",
+                            "value": "{brand.typography.body}"
+                        },
+                        {
+                            "label": "Body (small)",
+                            "value": "{brand.typography.body-small}"
+                        },
+                        {
+                            "label": "Caption",
+                            "value": "{brand.typography.caption}"
+                        },
+                        {
+                            "label": "Overline",
+                            "value": "{brand.typography.overline}"
+                        }
+                    ]
+                }
+            }
+        },
         "header-footer": {
             "icon": "rows",
             "label": "Header and footer",
@@ -48,37 +165,6 @@
                     "icon": "text-aa",
                     "label": "Header color",
                     "visible": true
-                },
-                "header-style": {
-                    "icon": "text-aa",
-                    "label": "Header style",
-                    "visible": true,
-                    "options": [
-                        {
-                            "label": "Heading 1",
-                            "value": "h1"
-                        },
-                        {
-                            "label": "Heading 2",
-                            "value": "h2"
-                        },
-                        {
-                            "label": "Heading 3",
-                            "value": "h3"
-                        },
-                        {
-                            "label": "Heading 4",
-                            "value": "h4"
-                        },
-                        {
-                            "label": "Heading 5",
-                            "value": "h5"
-                        },
-                        {
-                            "label": "Heading 6",
-                            "value": "h6"
-                        }
-                    ]
                 },
                 "header-footer-horizontal-padding": {
                     "icon": "arrows-left-right",

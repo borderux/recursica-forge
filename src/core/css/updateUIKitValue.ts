@@ -117,6 +117,7 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     // Parse value if it's a pixel dimension
     let numericValue: string | number = tokenValue
     let isDimensionHint = false
+    let isTypographyHint = false
 
     if (typeof tokenValue === 'string') {
         if (tokenValue.endsWith('px')) {
@@ -127,6 +128,8 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
             }
         } else if (tokenValue.includes('.dimensions.')) {
             isDimensionHint = true
+        } else if (tokenValue.includes('.typography.')) {
+            isTypographyHint = true
         }
     }
 
@@ -154,6 +157,11 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
             current[finalKey] = {
                 $type: 'dimension',
                 $value: { value: numericValue, unit: 'px' }
+            }
+        } else if (isTypographyHint) {
+            current[finalKey] = {
+                $type: 'typography',
+                $value: tokenValue
             }
         } else {
             current[finalKey] = {

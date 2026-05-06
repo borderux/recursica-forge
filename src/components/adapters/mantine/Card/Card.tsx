@@ -15,7 +15,7 @@ import { useState, useEffect } from 'react'
 import type { CardProps as AdapterCardProps } from '../../Card'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readRawCssVar as readCssVar } from '../../../../core/css/readCssVar'
 import './Card.css'
 
 export default function Card({
@@ -55,8 +55,9 @@ export default function Card({
     const minWidthVar = getComponentLevelCssVar('Card', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Card', 'max-width')
 
-    // Header style (h1-h6 typography reference)
+    // Typography styles
     const headerStyleVar = getComponentLevelCssVar('Card', 'header-style')
+    const contentStyleVar = getComponentLevelCssVar('Card', 'content-style')
 
     // State to force re-renders when CSS variables change
     const [, setUpdateCounter] = useState(0)
@@ -83,8 +84,33 @@ export default function Card({
         }
     }, [])
 
-    // Get header style value
-    const headerStyleValue = readCssVar(headerStyleVar) || 'h3'
+    // Get header style value (extract from typography token or var)
+    const rawHeaderStyleValue = readCssVar(headerStyleVar) || 'h3'
+    let headerStyleValue = 'h3'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawHeaderStyleValue)
+        if (match) {
+            headerStyleValue = match[1].replace(/-font-size$/, "")
+        }
+    } else {
+        headerStyleValue = rawHeaderStyleValue
+    }
+
+    // Content style reference
+    const rawContentStyleValue = readCssVar(contentStyleVar) || 'body'
+    let contentStyleValue = 'body'
+    if (rawContentStyleValue.startsWith('{brand.typography.')) {
+        contentStyleValue = rawContentStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawContentStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawContentStyleValue)
+        if (match) {
+            contentStyleValue = match[1].replace(/-font-size$/, "")
+        }
+    } else {
+        contentStyleValue = rawContentStyleValue
+    }
 
     // CSS custom properties — all from UIKit per-layer refs
     const cardStyles = {
@@ -126,6 +152,8 @@ export default function Card({
         paddingBottom: '0.15em',
     } as any
 
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
+
     return (
         <MantineCard
             className={`recursica-card ${className || ''}`}
@@ -159,9 +187,9 @@ export default function Card({
                         borderBottomWidth: withDividers ? 'var(--card-divider-size)' : '0',
                     }}
                 >
-                    <span style={headerStyle}>
+                    <HeadingTag style={{ ...headerStyle, margin: 0 }}>
                         {title}
-                    </span>
+                    </HeadingTag>
                 </MantineCard.Section>
             )}
 
@@ -173,6 +201,14 @@ export default function Card({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 'var(--card-section-gap)',
+                    fontFamily: `var(--recursica_brand_typography_${contentStyleValue}-font-family)`,
+                    fontSize: `var(--recursica_brand_typography_${contentStyleValue}-font-size)`,
+                    fontWeight: `var(--recursica_brand_typography_${contentStyleValue}-font-weight)`,
+                    letterSpacing: `var(--recursica_brand_typography_${contentStyleValue}-font-letter-spacing)`,
+                    lineHeight: `var(--recursica_brand_typography_${contentStyleValue}-line-height)`,
+                    fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
+                    textDecoration: 'none',
+                    textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)` as any,
                 }}
             >
                 {children}

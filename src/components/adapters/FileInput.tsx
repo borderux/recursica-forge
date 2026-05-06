@@ -272,7 +272,7 @@ export function FileInput({
                                         ))}
                                     </div>
                                 ) : (
-                                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0.15em 0' }}>
                                         {displayValue}
                                     </span>
                                 )}
@@ -399,7 +399,7 @@ export function FileInput({
                                             ))}
                                         </div>
                                     ) : (
-                                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0.15em 0' }}>
                                             {displayValue}
                                         </span>
                                     )}

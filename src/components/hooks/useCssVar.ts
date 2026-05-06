@@ -59,3 +59,92 @@ export function readCssVar(varName: string, fallback?: string): string {
   return computed.getPropertyValue(varName).trim() || fallback || ''
 }
 
+/**
+ * useRawCssVar Hook
+ * 
+ * Hook for reading RAW, uncomputed CSS variables.
+ * Watches for changes and updates reactively.
+ */
+export function useRawCssVar(varName: string, fallback?: string): string {
+  const [value, setValue] = useState(() => {
+    if (typeof window === 'undefined') return fallback || ''
+    
+    // Check inline style first
+    const inlineValue = document.documentElement.style.getPropertyValue(varName)
+    if (inlineValue !== '') return inlineValue.trim()
+
+    // Search through all style tags
+    const styleElements = Array.from(document.querySelectorAll('style')).reverse()
+    for (const style of styleElements) {
+      if (!style.textContent) continue
+      const regex = new RegExp(`${varName}\\s*:\\s*([^;}]+)`, 'g')
+      let match
+      let lastMatch
+      while ((match = regex.exec(style.textContent)) !== null) {
+        lastMatch = match[1]
+      }
+      if (lastMatch) return lastMatch.replace(/\/\*[\s\S]*?\*\//g, '').trim()
+    }
+
+    return fallback || ''
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const updateValue = () => {
+      // Check inline style first
+      const inlineValue = document.documentElement.style.getPropertyValue(varName)
+      if (inlineValue !== '') {
+        setValue(inlineValue.trim())
+        return
+      }
+
+      // Search through all style tags
+      const styleElements = Array.from(document.querySelectorAll('style')).reverse()
+      for (const style of styleElements) {
+        if (!style.textContent) continue
+        const regex = new RegExp(`${varName}\\s*:\\s*([^;}]+)`, 'g')
+        let match
+        let lastMatch
+        while ((match = regex.exec(style.textContent)) !== null) {
+          lastMatch = match[1]
+        }
+        if (lastMatch) {
+          setValue(lastMatch.replace(/\/\*[\s\S]*?\*\//g, '').trim())
+          return
+        }
+      }
+      
+      setValue(fallback || '')
+    }
+
+    // Initial value
+    updateValue()
+
+    // Watch for changes using MutationObserver
+    const observer = new MutationObserver(updateValue)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+    observer.observe(document.head, {
+      childList: true,
+      subtree: true,
+    })
+
+    // Also listen for CSS variable changes via custom events
+    const handleVarChange = () => updateValue()
+    window.addEventListener('cssvarchange', handleVarChange)
+    window.addEventListener('cssVarsUpdated', handleVarChange)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('cssvarchange', handleVarChange)
+      window.removeEventListener('cssVarsUpdated', handleVarChange)
+    }
+  }, [varName, fallback])
+
+  return value
+}
+

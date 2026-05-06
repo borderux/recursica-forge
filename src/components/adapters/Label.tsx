@@ -225,7 +225,7 @@ export function Label({
               : (align === 'right' ? 'flex-end' : 'stretch'),
             gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
           }}>
-            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>{children}</span>
+            <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>{children}</span>
             <span
               style={{
                 display: 'block',
@@ -256,7 +256,7 @@ export function Label({
             width: '100%',
             gap: finalEditIcon ? finalEditIconGap : 0
           }}>
-            <span style={{ display: 'inline-block', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>
+            <span style={{ display: 'inline-block', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>
               {children}
               {styleVariant === 'required' && (
                 <span
