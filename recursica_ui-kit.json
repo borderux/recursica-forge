@@ -10888,7 +10888,7 @@
               },
               "background-indeterminate": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                "$value": "{brand.palettes.core-colors.white.tone}"
               },
               "border-indeterminate": {
                 "$type": "color",
@@ -12743,7 +12743,7 @@
     }
   },
   "$metadata": {
-    "exportedAt": "2026-05-06T15:30:26.538Z",
+    "exportedAt": "2026-05-06T17:14:27.185Z",
     "version": "1.0.0"
   }
 }
