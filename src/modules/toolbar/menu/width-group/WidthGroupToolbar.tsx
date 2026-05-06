@@ -183,10 +183,7 @@ export default function WidthGroupToolbar({
         const numValue = typeof val === 'number' ? val : val[0]
         const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
         setValue(clampedValue)
-        updateCssVar(minWidthVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [minWidthVar] }
-        }))
+        document.documentElement.style.setProperty(minWidthVar, `${clampedValue}px`)
       }, [minWidthVar, range])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -253,10 +250,7 @@ export default function WidthGroupToolbar({
         const numValue = typeof val === 'number' ? val : val[0]
         const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
         setValue(clampedValue)
-        updateCssVar(maxWidthVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [maxWidthVar] }
-        }))
+        document.documentElement.style.setProperty(maxWidthVar, `${clampedValue}px`)
       }, [maxWidthVar, range])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -323,10 +317,7 @@ export default function WidthGroupToolbar({
         const numValue = typeof val === 'number' ? val : val[0]
         const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
         setValue(clampedValue)
-        updateCssVar(minHeightVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [minHeightVar] }
-        }))
+        document.documentElement.style.setProperty(minHeightVar, `${clampedValue}px`)
       }, [minHeightVar, range])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -401,10 +392,7 @@ export default function WidthGroupToolbar({
         const numValue = typeof val === 'number' ? val : val[0]
         const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
         setValue(clampedValue)
-        updateCssVar(maxHeightVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [maxHeightVar] }
-        }))
+        document.documentElement.style.setProperty(maxHeightVar, `${clampedValue}px`)
       }, [maxHeightVar, range])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {

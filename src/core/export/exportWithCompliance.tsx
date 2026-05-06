@@ -122,9 +122,13 @@ export function useJsonExport() {
   const handleSelectionConfirm = (files: { tokens: boolean; brand: boolean; uikit: boolean; cssSpecific: boolean; cssScoped: boolean }) => {
     setShowSelectionModal(false)
     
-    // Export files (validation already passed)
+    // Export files
     downloadJsonFiles(files).catch((error) => {
-      alert(`Export failed: ${error instanceof Error ? error.message : 'Failed to export files.'}`)
+      setValidationErrors([{
+        file: 'uikit', // A generic fallback; the error message will have details
+        message: error instanceof Error ? error.message : String(error)
+      }])
+      setShowValidationModal(true)
     })
   }
   

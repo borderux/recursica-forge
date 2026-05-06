@@ -38,6 +38,7 @@ export default function Dropdown({
     optional = false,
     labelAlign = 'left',
     labelSize,
+    maxHeight,
     id,
     labelId,
     helpId,
@@ -232,7 +233,7 @@ export default function Dropdown({
                                 minWidth: 'auto',
                             }}
                         >
-                            <MenuAdapter layer={layer}>
+                            <MenuAdapter layer={layer} maxHeight={maxHeight}>
                                 {items.map((item) => (
                                     <MenuItemAdapter
                                         key={item.value}

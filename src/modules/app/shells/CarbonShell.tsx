@@ -528,7 +528,7 @@ export default function CarbonShell({
                   size='default'
                   icon={(() => {
                     const UploadIcon =
-                      iconNameToReactComponent("arrow-up-tray");
+                      iconNameToReactComponent("arrow-down-tray");
                     return UploadIcon ? (
                       <UploadIcon
                         style={{
@@ -549,7 +549,7 @@ export default function CarbonShell({
                   size='default'
                   icon={(() => {
                     const DownloadIcon =
-                      iconNameToReactComponent("arrow-down-tray");
+                      iconNameToReactComponent("arrow-up-tray");
                     return DownloadIcon ? (
                       <DownloadIcon
                         style={{

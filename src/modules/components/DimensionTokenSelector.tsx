@@ -459,9 +459,8 @@ export default function DimensionTokenSelector({
           return firstPart === 'border' && cssVarParts[1] === 'radius'
         }
 
-        // For horizontal-padding, padding, item-gap, and divider-item-gap props, only keep general tokens
-        if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' ||
-          propNameLower === 'item-gap' || propNameLower === 'divider-item-gap') {
+        // For padding, margin, and gap props, only keep general tokens
+        if (propNameLower.includes('padding') || propNameLower.includes('margin') || propNameLower.includes('gap')) {
           // Only keep tokens that start with "general-"
           return firstPart === 'general'
         }
