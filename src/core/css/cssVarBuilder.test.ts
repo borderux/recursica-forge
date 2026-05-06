@@ -14,7 +14,7 @@ describe('cssVarToRef', () => {
 
   it('converts var() wrapped brand themes parameters', () => {
     expect(cssVarToRef('var(--recursica_brand_themes_light_palettes_palette-1_500_color_tone)'))
-      .toBe('{brand.themes.light.palettes.palette-1.500.color.tone}')
+      .toBe('{brand.palettes.palette-1.500.color.tone}')
   })
 
   it('converts var() dimensions parameter correctly', () => {
