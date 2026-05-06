@@ -574,7 +574,23 @@ function TypographySliderInline({
     }
   }, [readInitialValue, targetCssVar, targetCssVars])
 
-  const handleSliderChange = (value: number | [number, number]) => {
+  const handleDrag = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
+    setSelectedIndex(clampedIndex)
+
+    const selectedToken = tokens[clampedIndex]
+    if (selectedToken) {
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      const tokenValue = `var(${selectedToken.name})`
+
+      cssVars.forEach(cssVar => {
+        document.documentElement.style.setProperty(cssVar, tokenValue)
+      })
+    }
+  }
+
+  const handleCommit = (value: number | [number, number]) => {
     const numValue = typeof value === 'number' ? value : value[0]
     const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
     setSelectedIndex(clampedIndex)
@@ -629,7 +645,8 @@ function TypographySliderInline({
   return (
     <Slider
       value={safeSelectedIndex}
-      onChange={handleSliderChange}
+      onChange={handleDrag}
+      onChangeCommitted={handleCommit}
       min={0}
       max={tokens.length - 1}
       step={1}
@@ -1138,15 +1155,11 @@ export default function PropControlContent({
         const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
         setValue(clampedValue)
 
-        // Update CSS vars directly with pixel value
+        // Apply CSS immediately for real-time preview (no event dispatch)
         const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
         cssVarsToUpdate.forEach(cssVar => {
-          updateCssVar(cssVar, `${clampedValue}px`)
+          document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
         })
-        // Dispatch event to notify components of CSS var updates
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: cssVarsToUpdate }
-        }))
       }, [primaryVar, cssVars, minValue, maxValue])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -1157,13 +1170,9 @@ export default function PropControlContent({
         // Update CSS vars directly with pixel value
         const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
         cssVarsToUpdate.forEach(cssVar => {
-          updateCssVar(cssVar, `${clampedValue}px`)
+          document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
         })
-        // Dispatch event to notify components of CSS var updates
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: cssVarsToUpdate }
-        }))
-      }, [primaryVar, cssVars, minValue, maxValue])
+        }, [primaryVar, cssVars, minValue, maxValue])
 
       const getValueLabel = useCallback((val: number) => {
         return `${Math.round(val)}px`
@@ -1622,16 +1631,20 @@ export default function PropControlContent({
 
                     const cssVarsToUpdate = marginCssVars.length > 0 ? marginCssVars : [marginPrimaryVar]
                     cssVarsToUpdate.forEach(cssVar => {
-                      updateCssVar(cssVar, `${clampedValue}px`)
+                      document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
                     })
-                    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-                      detail: { cssVars: cssVarsToUpdate }
-                    }))
                   }, [marginPrimaryVar, marginCssVars, minValue, maxValue])
 
                   const handleChangeCommitted = useCallback((val: number | [number, number]) => {
-                    handleChange(val)
-                  }, [handleChange])
+                    const numValue = typeof val === 'number' ? val : val[0]
+                    const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+                    setValue(clampedValue)
+
+                    const cssVarsToUpdate = marginCssVars.length > 0 ? marginCssVars : [marginPrimaryVar]
+                    cssVarsToUpdate.forEach(cssVar => {
+                      document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+                    })
+                    }, [marginPrimaryVar, marginCssVars, minValue, maxValue])
 
                   return (
                     <Slider
@@ -1741,15 +1754,10 @@ export default function PropControlContent({
             const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
             setValue(clampedValue)
 
-            // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
           }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -1760,13 +1768,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const getValueLabel = useCallback((val: number) => {
             return `${Math.round(val)}px`
@@ -1915,7 +1919,10 @@ export default function PropControlContent({
             setValue(clampedValue)
 
             // Always update CSS vars immediately during dragging
-            updateCssVars(clampedValue)
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+            })
           }
 
           const handleChangeCommitted = (newValue: number | [number, number]) => {
@@ -2000,13 +2007,19 @@ export default function PropControlContent({
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             setValue(clampedValue)
-            updateCssVars(clampedValue)
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+            })
           }
 
           const handleChangeCommitted = (newValue: number | [number, number]) => {
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
-            updateCssVars(clampedValue)
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+            })
           }
 
           const getValueLabel = useCallback((val: number) => {
@@ -2103,7 +2116,10 @@ export default function PropControlContent({
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             setValue(clampedValue)
-            updateCssVars(clampedValue)
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+            })
           }
 
           const handleChangeCommitted = (newValue: number | [number, number]) => {
@@ -2189,13 +2205,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2279,12 +2291,9 @@ export default function PropControlContent({
 
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2395,13 +2404,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const getValueLabel = useCallback((val: number) => {
             return `${Math.round(val)}px`
@@ -2504,13 +2509,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2595,13 +2596,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2686,13 +2683,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2777,13 +2770,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2861,12 +2850,9 @@ export default function PropControlContent({
 
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2943,13 +2929,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3028,13 +3010,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3113,13 +3091,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3198,13 +3172,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3311,13 +3281,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3420,13 +3386,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3525,13 +3487,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3624,13 +3582,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
