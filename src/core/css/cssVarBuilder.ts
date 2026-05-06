@@ -330,6 +330,12 @@ export function cssVarToRef(value: string): string | null {
     }
 
     let joined = parts.join('.')
+    
+    // Strip theme prefix for brand variables since components are theme-agnostic
+    if (joined.startsWith('brand.themes.light.') || joined.startsWith('brand.themes.dark.')) {
+      joined = joined.replace(/^brand\.themes\.(light|dark)\./, 'brand.')
+    }
+
     // Restore nested JSON structure for layer elements that were flattened in CSS var names
     if (joined.includes('.elements.')) {
       joined = joined.replace(/\.elements\.(text-color|text-warning|text-success|text-alert|interactive-tone|interactive-color|interactive-on-tone|interactive-tone-hover|interactive-on-tone-hover)/, (match, p1) => {

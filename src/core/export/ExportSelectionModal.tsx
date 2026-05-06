@@ -19,6 +19,7 @@ import {
   EXPORT_FILENAME_CSS_SPECIFIC,
   EXPORT_FILENAME_CSS_SCOPED,
 } from './EXPORT_FILENAMES'
+import { exportUIKitJson } from './jsonExport'
 
 interface ExportSelectionModalProps {
   show: boolean
@@ -63,7 +64,8 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
     setIsDownloading(true)
     try {
       const module = await (devTestFilesMap[selectedTestFile] as () => Promise<any>)()
-      const json = module.default || module
+      const testJson = module.default || module
+      const liveJson = exportUIKitJson()
       
       const filename = selectedTestFile.split('/').pop() || 'test.json'
       const baseName = filename.replace(/\.json$/, '')
@@ -71,7 +73,8 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
       const zip = new JSZip()
       const folder = zip.folder(baseName)
       if (folder) {
-        folder.file('recursica_ui-kit.json', JSON.stringify(json, null, 2))
+        folder.file(filename, JSON.stringify(testJson, null, 2))
+        folder.file('recursica_ui-kit.json', JSON.stringify(liveJson, null, 2))
       }
       
       const blob = await zip.generateAsync({ type: 'blob' })

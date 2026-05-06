@@ -1,7 +1,15 @@
 import { getVarsStore } from '../../../../core/store/varsStore'
 // Extract the rendering logic from PropControl for use in accordions
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
-import { ComponentProp, toSentenceCase, parseComponentStructure, getDimensionPropertyType, pathMatchesVariant } from '../../utils/componentToolbarUtils'
+import {
+  parseComponentStructure,
+  getComponentCssVarsForVariants,
+  getDimensionPropertyType,
+  getDimensionCategoryFromValue,
+  type ComponentProp,
+  toSentenceCase,
+  pathMatchesVariant
+} from '../../utils/componentToolbarUtils'
 import { getPropLabel, getGroupedProps, getPropConfig, type ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
@@ -1626,15 +1634,21 @@ export default function PropControlContent({
 
       // If recursica_ui-kit.json indicates this uses tokens, use BrandDimensionSliderInline (unless overridden below)
       if (dimensionType === 'token') {
-        // Determine dimension category based on property name
+        // Determine dimension category based on the actual value in the JSON definition
         let dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size' = 'general'
-
-        if (propNameLower.includes('border-radius') || propNameLower.includes('corner-radius')) {
-          dimensionCategory = 'border-radii'
-        } else if (propNameLower.includes('icon-size') || (propNameLower.includes('icon') && propNameLower.includes('size'))) {
-          dimensionCategory = 'icons'
-        } else if (propNameLower.includes('text-size') || propNameLower.includes('font-size')) {
-          dimensionCategory = 'text-size'
+        const categoryFromJSON = getDimensionCategoryFromValue(componentName, propToRender.path, selectedVariants, propToRender.sourceComponent)
+        
+        if (categoryFromJSON) {
+          dimensionCategory = categoryFromJSON
+        } else {
+          // Fallback to name-based heuristic if not found
+          if (propNameLower.includes('border-radius') || propNameLower.includes('corner-radius')) {
+            dimensionCategory = 'border-radii'
+          } else if (propNameLower.includes('icon-size') || (propNameLower.includes('icon') && propNameLower.includes('size'))) {
+            dimensionCategory = 'icons'
+          } else if (propNameLower.includes('text-size') || propNameLower.includes('font-size')) {
+            dimensionCategory = 'text-size'
+          }
         }
         // Default to 'general' for padding, gap, spacing (including tabs-content-gap)
 
@@ -3675,7 +3689,7 @@ export default function PropControlContent({
             primaryVar={primaryVar}
             cssVars={cssVars}
             label={label}
-            minPixelValue={minPixelValue}
+            minPixelValue={minPixelValue ?? 0}
             maxPixelValue={maxPixelValue ?? 1000}
           />
         )

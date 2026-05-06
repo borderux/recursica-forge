@@ -796,3 +796,75 @@ export function getDimensionPropertyType(
     return null
   }
 }
+
+/**
+ * Gets the dimension category (e.g., 'border-radii', 'general') based on the token value in the UI Kit JSON.
+ */
+export function getDimensionCategoryFromValue(
+  componentName: string,
+  propPath: string[],
+  selectedVariants: Record<string, string> = {},
+  sourceComponent?: string
+): 'border-radii' | 'icons' | 'general' | 'text-size' | null {
+  try {
+    let componentKey = sourceComponent || componentName.toLowerCase().replace(/\s+/g, '-')
+    if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
+    if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+    if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
+    const uikitRoot: any = uikitJson
+    const components = uikitRoot?.['ui-kit']?.components || {}
+    const component = components[componentKey]
+
+    if (!component) {
+      return null
+    }
+
+    // Navigate to the property using the path
+    let current: any = component
+    for (let i = 0; i < propPath.length; i++) {
+      const pathPart = propPath[i]
+      if (current == null || typeof current !== 'object') {
+        return null
+      }
+
+      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content') {
+        const variantKey = pathPart === 'styles' ? 'style' :
+          pathPart === 'sizes' ? 'size' :
+            pathPart === 'layouts' ? 'layout' :
+              pathPart === 'states' ? 'state' :
+                pathPart === 'types' ? 'type' :
+                  pathPart === 'orientation' ? 'orientation' :
+                    pathPart === 'content' ? 'content' : pathPart
+        const selectedVariant = selectedVariants[variantKey] || (pathPart === 'orientation' ? 'horizontal' : 'default')
+        current = current[pathPart]?.[selectedVariant]
+        if (propPath[i + 1] === selectedVariant) {
+          i++
+        }
+      } else {
+        current = current[pathPart]
+      }
+    }
+
+    // Check if we found a dimension property
+    if (current && typeof current === 'object' && '$type' in current && current.$type === 'dimension') {
+      const value = current.$value
+      let stringValue = ''
+
+      if (typeof value === 'string') {
+        stringValue = value
+      } else if (value && typeof value === 'object' && 'value' in value) {
+        stringValue = String(value.value)
+      }
+
+      if (stringValue.includes('.border-radii.')) return 'border-radii'
+      if (stringValue.includes('.icons.')) return 'icons'
+      if (stringValue.includes('.general.')) return 'general'
+      if (stringValue.includes('.text-size.')) return 'text-size'
+    }
+
+    return null
+  } catch (error) {
+    console.warn('Error checking dimension category:', error)
+    return null
+  }
+}

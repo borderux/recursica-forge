@@ -651,6 +651,9 @@ export function exportTokensJson(): object {
     version: '1.0.0'
   }
 
+  // Validate the exported JSON before returning
+  validateTokensJson(result as JsonLike)
+
   return result
 }
 
@@ -1071,11 +1074,7 @@ export function exportBrandJson(): object {
   }
 
   // Validate the exported JSON before returning
-  try {
-    validateBrandJson(exportObject as JsonLike)
-  } catch (error) {
-    // validation failed — error will be re-thrown by handleExport in exportWithCompliance
-  }
+  validateBrandJson(exportObject as JsonLike)
 
   return exportObject
 }
@@ -1188,11 +1187,7 @@ export function exportUIKitJson(): object {
   }
 
   // Validate the exported JSON before returning
-  try {
-    validateUIKitJson(normalized as JsonLike)
-  } catch (error) {
-    // validation failed — error will be re-thrown by handleExport in exportWithCompliance
-  }
+  validateUIKitJson(normalized as JsonLike)
 
   return normalized
 }
