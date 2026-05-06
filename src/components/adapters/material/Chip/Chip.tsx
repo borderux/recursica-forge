@@ -246,10 +246,10 @@ export default function Chip({
       textTransform: textTransformVar ? `var(${textTransformVar})` as any : 'none',
       fontStyle: fontStyleVar ? `var(${fontStyleVar})` as any : 'normal',
       // Set CSS custom properties for CSS file
-      '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      '--chip-icon-size': (icon || showCheckmark) ? `var(${iconSizeVar})` : '0px',
       // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
       // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
-      '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
+      '--chip-icon-text-gap': (icon || showCheckmark || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
       // Use Button's min-width and max-width vars (same as Button component)
       // Don't use fixed height - let padding and content determine height naturally
       minWidth: `var(${minWidthVar})`,

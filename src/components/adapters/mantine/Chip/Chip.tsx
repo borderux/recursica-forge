@@ -236,7 +236,7 @@ export default function Chip({
   const rootStyles = {
     // Set CSS custom properties in styles.root to ensure they're applied to the root element
     '--chip-border-size': `var(${borderSizeVar})`,
-    '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
+    '--chip-icon-text-gap': (icon || showCheckmark || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
     borderStyle: 'solid',
     borderColor: chipBorderVar ? `var(${chipBorderVar})` : undefined,
 

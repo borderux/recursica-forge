@@ -238,14 +238,14 @@ export default function Chip({
       '--chip-icon-color': chipIconColorVar ? `var(${chipIconColorVar})` : undefined,
       '--chip-border': `var(${chipBorderVar})`,
       // Don't set color inline - let CSS handle it via --chip-color CSS custom property
-      '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      '--chip-icon-size': (icon || showCheckmark) ? `var(${iconSizeVar})` : '0px',
       '--chip-close-icon-size': deletable && onDelete ? `var(${closeIconSizeVar})` : '0px',
       '--chip-leading-icon-color': leadingIconColorVar ? `var(${leadingIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       '--chip-selected-icon-color': selectedIconColorVar ? `var(${selectedIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       '--chip-close-icon-color': closeIconColorVar ? `var(${closeIconColorVar})` : (chipIconColorVar ? `var(${chipIconColorVar})` : undefined),
       // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
       // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
-      '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
+      '--chip-icon-text-gap': (icon || showCheckmark || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
       '--chip-padding-x': `var(${horizontalPaddingVar})`,
       '--chip-padding-y': `var(${verticalPaddingVar})`,
       '--chip-border-size': `var(${borderSizeVar})`,
