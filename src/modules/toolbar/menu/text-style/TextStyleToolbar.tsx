@@ -676,37 +676,7 @@ export default function TextStyleToolbar({
     return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
   }, [fontFamilyVar, fontFamilies])
 
-  // Validate font style when font family changes
-  useEffect(() => {
-    if (!currentFontFamily || !currentFontStyle) return
 
-    const resolvedValue = readCssVarResolved(currentFontFamily)
-    if (!resolvedValue) return
-
-    const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
-    const fontNameMatch = cleanValue.match(/^([^,]+)/)
-    if (!fontNameMatch) return
-
-    const fontName = fontNameMatch[1].trim()
-    const availableStyleKeys = getAvailableStyleKeysForFont(fontName)
-
-    // If we have variant restrictions and current style is not available, switch to normal
-    if (availableStyleKeys && availableStyleKeys.size > 0) {
-      const currentStyleKey = currentFontStyle.toLowerCase()
-      if (!availableStyleKeys.has(currentStyleKey)) {
-        // Current style is not available, switch to normal (which should always be available)
-        if (availableStyleKeys.has('normal')) {
-          updateCssVar(fontStyleVar, 'normal')
-          setCurrentFontStyle('normal')
-          requestAnimationFrame(() => {
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: [fontStyleVar] }
-            }))
-          })
-        }
-      }
-    }
-  }, [currentFontFamily, currentFontStyle, fontStyleVar, getAvailableStyleKeysForFont])
 
   // Update current text decoration, transform, and font style when CSS variables change
   useEffect(() => {
@@ -1168,7 +1138,8 @@ export default function TextStyleToolbar({
           if (!availableStyleKeys.has(currentStyleKey)) {
             // Current style is not available, switch to normal (which should always be available)
             if (availableStyleKeys.has('normal')) {
-              updateCssVar(fontStyleVar, 'normal')
+              const normalTokenVar = `var(--recursica_tokens_font_styles_normal)`
+              updateCssVar(fontStyleVar, normalTokenVar)
               setCurrentFontStyle('normal')
               requestAnimationFrame(() => {
                 window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
