@@ -259,7 +259,7 @@ export default function FileInput({
                     fontSize: `var(${valueFontSizeVar})`,
                     fontWeight: `var(${valueFontWeightVar})`,
                     letterSpacing: `var(${valueLetterSpacingVar})`,
-                    lineHeight: `var(${valueLineHeightVar})`,
+                    lineHeight: 'normal',
                     textDecoration: `var(${valueTextDecorationVar})`,
                     textTransform: `var(${valueTextTransformVar})` as any,
                     fontStyle: `var(${valueFontStyleVar})`,

@@ -328,7 +328,7 @@ export default function TimePicker({
                         color: `var(${textVar})`,
                         outline: 'none',
                         textAlign: 'left',
-                        lineHeight: `var(${valueLineHeightVar}, 1.5)`,
+                        lineHeight: 'normal',
                         fontSize: `var(${valueFontSizeVar}, 14px)`,
                     } as React.CSSProperties}
                     {...mantine}

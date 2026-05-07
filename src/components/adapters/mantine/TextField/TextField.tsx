@@ -302,7 +302,7 @@ export default function TextField({
           font-size: var(${valueFontSizeVar}) !important;
           font-weight: var(${valueFontWeightVar}) !important;
           letter-spacing: var(${valueLetterSpacingVar}) !important;
-          line-height: var(${valueLineHeightVar}) !important;
+          line-height: normal !important;
           text-decoration: var(${valueTextDecorationVar}) !important;
           text-transform: var(${valueTextTransformVar}) !important;
           font-style: var(${valueFontStyleVar}) !important;
