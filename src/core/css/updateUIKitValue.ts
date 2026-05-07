@@ -149,7 +149,7 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
             current[finalKey].$value = numericValue
         } else {
             // Keep original format (e.g., color, raw string)
-            current[finalKey].$value = tokenValue
+            current[finalKey].$value = tokenValue === 'transparent' ? null : tokenValue
         }
     } else {
         // Create new entry
@@ -166,7 +166,7 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         } else {
             current[finalKey] = {
                 $type: 'color', // Fallback
-                $value: tokenValue
+                $value: tokenValue === 'transparent' ? null : tokenValue
             }
         }
     }
@@ -176,16 +176,34 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     return true
 }
 
-/**
- * Removes a UIKit value (resets to default by removing the override)
- * Note: This doesn't actually delete the key, it would need to restore the original default value
- * For now, we'll just document that "None" removes the CSS var but doesn't update JSON
- * 
- * @param cssVar - The CSS variable name
- */
 export function removeUIKitValue(cssVar: string): boolean {
-    // For now, removing a color just removes the CSS variable
-    // The UIKit JSON will still have the default value
-    // This is acceptable because recomputeAndApplyAll will regenerate from JSON
+    const currentUIKit = getVarsStore().getState().uikit
+    if (!currentUIKit || typeof currentUIKit !== 'object') {
+        return false
+    }
+
+    const path = cssVarToUIKitPath(cssVar, currentUIKit)
+    if (!path) return false
+
+    const updatedUIKit = Array.isArray(currentUIKit) ? [...currentUIKit] : { ...currentUIKit }
+    let current: any = updatedUIKit
+    for (let i = 0; i < path.length - 1; i++) {
+        const segment = path[i]
+        if (!current[segment]) return true // Already removed
+        current[segment] = Array.isArray(current[segment]) ? [...current[segment]] : { ...current[segment] }
+        current = current[segment]
+    }
+
+    const finalKey = path[path.length - 1]
+    if (current[finalKey] && typeof current[finalKey] === 'object') {
+        current[finalKey].$value = null
+    } else {
+        current[finalKey] = {
+            $type: 'color',
+            $value: null
+        }
+    }
+
+    getVarsStore().setUiKitSilent(updatedUIKit)
     return true
 }

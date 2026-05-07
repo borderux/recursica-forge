@@ -10063,7 +10063,7 @@
                     },
                     "trailing-icon": {
                       "$type": "color",
-                      "$value": "transparent"
+                      "$value": null
                     },
                     "border-color": {
                       "$type": "color",
@@ -10315,7 +10315,7 @@
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "transparent"
+                      "$value": null
                     },
                     "trailing-icon": {
                       "$type": "color",

@@ -372,6 +372,25 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 e.stopPropagation()
                 const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                 cssVarsToUpdate.forEach((v) => updateCssVar(v, 'transparent', tokensJson))
+                
+                if (isOverlay && themeJson) {
+                  try {
+                    const themeCopy = getVarsStore().getLatestThemeCopy()
+                    const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                    const themes = root?.themes || root
+                    const isDark = cssVarsToUpdate.some(v => v.includes('-dark-'))
+                    const modeKey = isDark ? 'dark' : 'light'
+                    if (!themes[modeKey]) themes[modeKey] = {}
+                    if (!themes[modeKey].states) themes[modeKey].states = {}
+                    if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+                    themes[modeKey].states.overlay.color = {
+                      $type: 'color',
+                      $value: null
+                    }
+                    getVarsStore().setThemeSilent(themeCopy)
+                  } catch (err) {}
+                }
+
                 setAnchor(null)
                 onSelect?.('')
                 window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
