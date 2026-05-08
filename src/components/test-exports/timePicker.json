@@ -1844,18 +1844,6 @@
           }
         },
         "properties": {
-          "colors": {
-            "error": {
-              "text-color": {
-                "$type": "color",
-                "$value": "{brand.palettes.core-colors.alert.tone}"
-              },
-              "icon-color": {
-                "$type": "color",
-                "$value": "{brand.palettes.core-colors.alert.tone}"
-              }
-            }
-          },
           "border-size": {
             "$type": "dimension",
             "$value": {
@@ -10385,10 +10373,7 @@
               "properties": {
                 "top-bottom-margin": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 0,
-                    "unit": "px"
-                  }
+                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
                 }
               }
             }
@@ -10888,7 +10873,7 @@
               },
               "background-indeterminate": {
                 "$type": "color",
-                "$value": "{brand.palettes.core-colors.white.tone}"
+                "$value": "{ui-kit.globals.form.field.colors.background}"
               },
               "border-indeterminate": {
                 "$type": "color",
@@ -10930,7 +10915,7 @@
               },
               "background-indeterminate": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                "$value": "{ui-kit.globals.form.field.colors.background}"
               },
               "border-indeterminate": {
                 "$type": "color",
@@ -10972,7 +10957,7 @@
               },
               "background-indeterminate": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                "$value": "{ui-kit.globals.form.field.colors.background}"
               },
               "border-indeterminate": {
                 "$type": "color",
@@ -11014,7 +10999,7 @@
               },
               "background-indeterminate": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                "$value": "{ui-kit.globals.form.field.colors.background}"
               },
               "border-indeterminate": {
                 "$type": "color",
@@ -11096,10 +11081,68 @@
               "$type": "number",
               "$value": "{tokens.font.line-heights.default}"
             },
-            "color": {
-              "$type": "color",
-              "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+            "letter-spacing": {
+              "$type": "number",
+              "$value": "{tokens.font.letter-spacings.default}"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "{tokens.font.styles.normal}"
+            },
+            "text-decoration": {
+              "$type": "string",
+              "$value": "{tokens.font.decorations.none}"
+            },
+            "text-transform": {
+              "$type": "string",
+              "$value": "{tokens.font.cases.original}"
             }
+          },
+          "colors": {
+            "layer-0": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              },
+              "disabled-text": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.400.color.tone}"
+              }
+            },
+            "layer-1": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              },
+              "disabled-text": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.400.color.tone}"
+              }
+            },
+            "layer-2": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              },
+              "disabled-text": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.400.color.tone}"
+              }
+            },
+            "layer-3": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "disabled-text": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.400.color.tone}"
+              }
+            }
+          },
+          "disabled-opacity": {
+            "$type": "number",
+            "$value": "{brand.states.disabled}"
           }
         }
       },
@@ -11348,10 +11391,68 @@
               "$type": "number",
               "$value": "{tokens.font.line-heights.default}"
             },
-            "color": {
-              "$type": "color",
-              "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+            "letter-spacing": {
+              "$type": "number",
+              "$value": "{tokens.font.letter-spacings.default}"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "{tokens.font.styles.normal}"
+            },
+            "text-decoration": {
+              "$type": "string",
+              "$value": "{tokens.font.decorations.none}"
+            },
+            "text-transform": {
+              "$type": "string",
+              "$value": "{tokens.font.cases.original}"
             }
+          },
+          "colors": {
+            "layer-0": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              },
+              "disabled-text": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.400.color.tone}"
+              }
+            },
+            "layer-1": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              },
+              "disabled-text": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.400.color.tone}"
+              }
+            },
+            "layer-2": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              },
+              "disabled-text": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.400.color.tone}"
+              }
+            },
+            "layer-3": {
+              "text": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "disabled-text": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.400.color.tone}"
+              }
+            }
+          },
+          "disabled-opacity": {
+            "$type": "number",
+            "$value": "{brand.states.disabled}"
           }
         }
       },
@@ -11893,79 +11994,79 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.800.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.800.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.border}"
                     }
                   }
                 },
                 "border-size": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.md}"
+                  "$value": "{ui-kit.globals.form.field.size.border-size-default}"
                 }
               }
             },
@@ -11975,79 +12076,79 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-error}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.800.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-error}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.800.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-error}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.800.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-error}"
                     }
                   }
                 },
                 "border-size": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.border-radii.default}"
+                  "$value": "{ui-kit.globals.form.field.size.border-size-default}"
                 }
               }
             },
@@ -12057,79 +12158,79 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.800.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-focus}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-focus}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-focus}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.800.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-focus}"
                     }
                   }
                 },
                 "border-size": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.md}"
+                  "$value": "{ui-kit.globals.form.field.size.border-size-focus}"
                 }
               }
             },
@@ -12139,79 +12240,79 @@
                   "layer-0": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border}"
                     }
                   },
                   "layer-1": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border}"
                     }
                   },
                   "layer-2": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.000.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.properties.border-color}"
+                      "$value": "{ui-kit.globals.form.field.colors.border}"
                     }
                   },
                   "layer-3": {
                     "background": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.100.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background}"
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.800.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
                     "leading-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.default.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.border}"
                     }
                   }
                 },
                 "border-size": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.md}"
+                  "$value": "{ui-kit.globals.form.field.size.border-size-default}"
                 }
               }
             }
@@ -12221,7 +12322,7 @@
               "properties": {
                 "top-bottom-margin": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.md}"
+                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
                 }
               }
             },
@@ -12230,7 +12331,7 @@
                 "top-bottom-margin": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 6,
+                    "value": 0,
                     "unit": "px"
                   }
                 }
@@ -12241,23 +12342,23 @@
         "properties": {
           "border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.none}"
+            "$value": "{ui-kit.globals.form.field.size.border-radius}"
           },
           "horizontal-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.none}"
+            "$value": "{ui-kit.globals.form.field.size.horizontal-padding}"
           },
           "vertical-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.default}"
+            "$value": "{ui-kit.globals.form.field.size.vertical-padding}"
           },
           "icon-size": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.none}"
+            "$value": "{ui-kit.globals.form.field.size.icon}"
           },
           "icon-text-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.none}"
+            "$value": "{ui-kit.globals.form.field.size.icon-text-gap}"
           },
           "text": {
             "font-family": {
@@ -12266,11 +12367,11 @@
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{brand.dimensions.general.sm}"
+              "$value": "{tokens.font.sizes.md}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": 2
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
@@ -12278,15 +12379,15 @@
             },
             "line-height": {
               "$type": "number",
-              "$value": 10
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.underline}"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.lowercase}"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",
@@ -12295,12 +12396,12 @@
           },
           "placeholder-opacity": {
             "$type": "number",
-            "$value": 5
+            "$value": "{tokens.opacities.ghost}"
           },
           "width": {
             "$type": "dimension",
             "$value": {
-              "value": 136,
+              "value": 130,
               "unit": "px"
             }
           }
