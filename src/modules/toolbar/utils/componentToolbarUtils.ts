@@ -581,7 +581,9 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
       const baseStructure = parseComponentStructure('checkbox')
       // Add base checkbox props that aren't already defined on checkbox-item
       for (const baseProp of baseStructure.props) {
-        const exists = props.some(p => p.name === baseProp.name)
+        // A property is unique by its full path in the JSON tree, not just its name.
+        // Checking only by name causes layers 1, 2, 3 to be skipped because layer 0 was already added.
+        const exists = props.some(p => p.path.join('.') === baseProp.path.join('.'))
         if (!exists) {
           props.push({ ...baseProp, sourceComponent: 'checkbox' })
         }
@@ -597,7 +599,8 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
       const baseStructure = parseComponentStructure('radio-button')
       // Add base radio-button props that aren't already defined on radio-button-item
       for (const baseProp of baseStructure.props) {
-        const exists = props.some(p => p.name === baseProp.name)
+        // A property is unique by its full path in the JSON tree, not just its name.
+        const exists = props.some(p => p.path.join('.') === baseProp.path.join('.'))
         if (!exists) {
           props.push({ ...baseProp, sourceComponent: 'radio-button' })
         }

@@ -1,4 +1,5 @@
 {
+    "variants": {},
     "props": {
         "properties": {
             "icon": "stack",
@@ -13,6 +14,18 @@
                 "padding": {
                     "icon": "frame-corners",
                     "label": "Padding",
+                    "visible": true
+                },
+                "stacked-label-field-gap": {
+                    "label": "Stacked gap",
+                    "visible": true
+                },
+                "sbs-gutter": {
+                    "label": "Side-by-side horizontal gap",
+                    "visible": true
+                },
+                "sbs-vertical-padding": {
+                    "label": "Side-by-side vertical gap",
                     "visible": true
                 }
             }

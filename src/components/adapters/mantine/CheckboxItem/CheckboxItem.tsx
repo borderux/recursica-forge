@@ -26,49 +26,41 @@ export default function CheckboxItem({
     const fontSizeVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-size')
     const fontWeightVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-weight')
     const lineHeightVar = getComponentTextCssVar('CheckboxItem', 'text', 'line-height')
-    const colorVar = getComponentTextCssVar('CheckboxItem', 'text', 'color')
+    const letterSpacingVar = getComponentTextCssVar('CheckboxItem', 'text', 'letter-spacing')
+    const fontStyleVar = getComponentTextCssVar('CheckboxItem', 'text', 'font-style')
+    const textDecorationVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-decoration')
+    const textTransformVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-transform')
 
-    // Checkbox props from base Checkbox component
-    const sizeVar = buildComponentCssVarPath('Checkbox', 'properties', 'size')
-    const borderRadiusVar = buildComponentCssVarPath('Checkbox', 'properties', 'border-radius')
-    const borderWidthVar = buildComponentCssVarPath('Checkbox', 'properties', 'border-size')
-    const iconSizeVar = buildComponentCssVarPath('Checkbox', 'properties', 'icon-size')
-
-    // Color props from base Checkbox component
-    const checkedBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-checked')
-    const checkedBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-checked')
-    const uncheckedBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-unchecked')
-    const uncheckedBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-unchecked')
-    const indeterminateBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-indeterminate')
-    const indeterminateBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-indeterminate')
-    const iconColorVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color')
-    const disabledBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background')
-    const disabledBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border')
-    const disabledIconVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-icon')
-    const disabledOpacityVar = buildComponentCssVarPath('Checkbox', 'properties', 'disabled-opacity')
+    const getPropVar = (prop: string) => `var(${buildComponentCssVarPath('CheckboxItem', 'properties', prop)}, var(${buildComponentCssVarPath('Checkbox', 'properties', prop)}))`
+    const getColorVar = (prop: string) => `var(${buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, prop)}, var(${buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, prop)}))`
 
     const cssVars = {
-        '--checkbox-size': `var(${sizeVar})`,
-        '--checkbox-radius': `var(${borderRadiusVar})`,
-        '--checkbox-border-width': `var(${borderWidthVar})`,
-        '--checkbox-icon-size': `var(${iconSizeVar})`,
-        '--checkbox-bg-checked': `var(${checkedBgVar})`,
-        '--checkbox-border-checked': `var(${checkedBorderVar})`,
-        '--checkbox-bg-unchecked': `var(${uncheckedBgVar})`,
-        '--checkbox-border-unchecked': `var(${uncheckedBorderVar})`,
-        '--checkbox-bg-indeterminate': `var(${indeterminateBgVar})`,
-        '--checkbox-border-indeterminate': `var(${indeterminateBorderVar})`,
-        '--checkbox-icon-color': `var(${iconColorVar})`,
-        '--checkbox-disabled-bg': `var(${disabledBgVar})`,
-        '--checkbox-disabled-border': `var(${disabledBorderVar})`,
-        '--checkbox-disabled-icon': `var(${disabledIconVar})`,
-        '--checkbox-disabled-opacity': `var(${disabledOpacityVar})`,
+        '--checkbox-size': getPropVar('size'),
+        '--checkbox-radius': getPropVar('border-radius'),
+        '--checkbox-border-width': getPropVar('border-size'),
+        '--checkbox-icon-size': getPropVar('icon-size'),
+        '--checkbox-bg-checked': getColorVar('background-checked'),
+        '--checkbox-border-checked': getColorVar('border-checked'),
+        '--checkbox-bg-unchecked': getColorVar('background-unchecked'),
+        '--checkbox-border-unchecked': getColorVar('border-unchecked'),
+        '--checkbox-bg-indeterminate': getColorVar('background-indeterminate'),
+        '--checkbox-border-indeterminate': getColorVar('border-indeterminate'),
+        '--checkbox-icon-color': getColorVar('icon-color'),
+        '--checkbox-disabled-bg': getColorVar('disabled-background'),
+        '--checkbox-disabled-border': getColorVar('disabled-border'),
+        '--checkbox-disabled-icon': getColorVar('disabled-icon'),
+        '--checkbox-disabled-opacity': getPropVar('disabled-opacity'),
         '--checkbox-item-gap': `var(${labelGapVar})`,
         '--checkbox-item-font-family': `var(${fontFamilyVar})`,
         '--checkbox-item-font-size': `var(${fontSizeVar})`,
         '--checkbox-item-font-weight': `var(${fontWeightVar})`,
         '--checkbox-item-line-height': `var(${lineHeightVar})`,
-        '--checkbox-item-color': `var(${colorVar})`,
+        '--checkbox-item-letter-spacing': `var(${letterSpacingVar})`,
+        '--checkbox-item-font-style': `var(${fontStyleVar})`,
+        '--checkbox-item-text-decoration': `var(${textDecorationVar})`,
+        '--checkbox-item-text-transform': `var(${textTransformVar})`,
+        '--checkbox-item-color': getColorVar('text'),
+        '--checkbox-item-disabled-color': getColorVar('disabled-text'),
         '--checkbox-item-max-width': `var(${maxWidthVar})`,
     }
 

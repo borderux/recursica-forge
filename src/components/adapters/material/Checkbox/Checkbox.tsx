@@ -64,7 +64,7 @@ export default function Checkbox({
       onChange={(e) => onChange(e.target.checked)}
       disabled={disabled}
       className={`${className || ''} recursica-mui-checkbox-root`}
-      style={{ ...style, ...cssVars }}
+      style={{ ...cssVars, ...style }}
       {...material}
       {...props}
     />
@@ -77,7 +77,7 @@ export default function Checkbox({
         label={label}
         disabled={disabled}
         className={`${className || ''} recursica-mui-checkbox-label`}
-        style={{ ...style, ...cssVars }}
+        style={{ ...cssVars, ...style }}
       />
     )
   }

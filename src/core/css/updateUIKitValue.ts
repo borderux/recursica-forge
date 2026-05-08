@@ -25,8 +25,8 @@ export function cssVarToUIKitPath(cssVar: string, rootObj: any): string[] | null
 
     while (i < parts.length) {
         if (!current || typeof current !== 'object') {
-            // Reached a leaf or undefined node, assume the rest is one long hyphenated key
-            path.push(parts.slice(i).join('_'))
+            // Reached a leaf or undefined node, append the remaining parts as individual path segments
+            path.push(...parts.slice(i))
             break
         }
 
