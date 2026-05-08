@@ -8593,7 +8593,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -8611,7 +8611,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -8629,7 +8629,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -8647,7 +8647,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -8757,7 +8757,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -8775,7 +8775,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -8793,7 +8793,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -8811,7 +8811,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -8839,7 +8839,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -8857,7 +8857,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -8875,7 +8875,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -8893,7 +8893,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -8943,6 +8943,10 @@
           "padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.md}"
+          },
+          "vertical-element-gap": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.default}"
           },
           "text": {
             "font-family": {
@@ -11672,57 +11676,57 @@
           "layer-0": {
             "background": {
               "$type": "color",
-              "$value": "{brand.layers.layer-0.properties.surface}"
+              "$value": "{brand.palettes.palette-1.000.color.tone}"
             },
             "content": {
               "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
+              "$value": "{brand.palettes.palette-1.300.color.tone}"
             },
             "border-color": {
               "$type": "color",
-              "$value": "{brand.layers.layer-0.properties.border-color}"
+              "$value": "{brand.palettes.core-colors.success.tone}"
             }
           },
           "layer-1": {
             "background": {
               "$type": "color",
-              "$value": "{brand.layers.layer-1.properties.surface}"
+              "$value": "{brand.palettes.palette-1.300.color.tone}"
             },
             "content": {
               "$type": "color",
-              "$value": "{brand.layers.layer-1.elements.text.color}"
+              "$value": "{brand.palettes.palette-1.000.color.tone}"
             },
             "border-color": {
               "$type": "color",
-              "$value": "{brand.layers.layer-1.properties.border-color}"
+              "$value": "{brand.palettes.core-colors.alert.tone}"
             }
           },
           "layer-2": {
             "background": {
               "$type": "color",
-              "$value": "{brand.layers.layer-2.properties.surface}"
+              "$value": "{brand.palettes.palette-1.600.color.tone}"
             },
             "content": {
               "$type": "color",
-              "$value": "{brand.layers.layer-2.elements.text.color}"
+              "$value": "{brand.palettes.neutral.100.color.tone}"
             },
             "border-color": {
               "$type": "color",
-              "$value": "{brand.layers.layer-2.properties.border-color}"
+              "$value": "{brand.palettes.core-colors.success.tone}"
             }
           },
           "layer-3": {
             "background": {
               "$type": "color",
-              "$value": "{brand.layers.layer-3.properties.surface}"
+              "$value": "{brand.palettes.core-colors.success.tone}"
             },
             "content": {
               "$type": "color",
-              "$value": "{brand.layers.layer-3.elements.text.color}"
+              "$value": "{brand.palettes.neutral.700.color.tone}"
             },
             "border-color": {
               "$type": "color",
-              "$value": "{brand.layers.layer-3.properties.border-color}"
+              "$value": "{brand.palettes.neutral.000.color.tone}"
             }
           }
         },
@@ -11730,23 +11734,23 @@
           "content-text": {
             "font-family": {
               "$type": "fontFamily",
-              "$value": "{brand.typography.body.fontFamily}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{brand.typography.body.fontSize}"
+              "$value": "{tokens.font.sizes.2xl}"
             },
             "font-weight": {
               "$type": "fontWeight",
-              "$value": "{brand.typography.body.fontWeight}"
+              "$value": "{tokens.font.weights.thin}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{brand.typography.body.letterSpacing}"
+              "$value": "{tokens.font.letter-spacings.tightest}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{brand.typography.body.lineHeight}"
+              "$value": "{tokens.font.line-heights.tallest}"
             },
             "font-style": {
               "$type": "string",
@@ -11754,56 +11758,56 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.none}"
+              "$value": "{tokens.font.decorations.underline}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{brand.typography.body.textCase}"
+              "$value": "{tokens.font.cases.uppercase}"
             }
           },
           "border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.lg}"
+            "$value": "{brand.dimensions.border-radii.none}"
           },
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "value": 1,
+              "value": 3,
               "unit": "px"
             }
           },
           "horizontal-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.xl}"
+            "$value": "{brand.dimensions.general.default}"
           },
           "vertical-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{brand.dimensions.general.sm}"
           },
           "min-width": {
             "$type": "dimension",
             "$value": {
-              "value": 200,
+              "value": 488,
               "unit": "px"
             }
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 400,
+              "value": 648,
               "unit": "px"
             }
           },
           "beak-size": {
             "$type": "dimension",
             "$value": {
-              "value": 16,
+              "value": 24,
               "unit": "px"
             }
           },
           "elevation": {
             "$type": "elevation",
-            "$value": "{brand.elevations.elevation-1}"
+            "$value": "{brand.elevations.elevation-2}"
           }
         }
       },
@@ -12844,7 +12848,7 @@
     }
   },
   "$metadata": {
-    "exportedAt": "2026-05-06T17:14:27.185Z",
+    "exportedAt": "2026-05-08T22:18:06.785Z",
     "version": "1.0.0"
   }
 }
