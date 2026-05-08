@@ -290,8 +290,12 @@ export function ImportModal({
     onImportClick();
     if (mode === "test-files" && selectedTestFile) {
       const baseName = selectedTestFile.split('/').pop()?.replace('.json', '') || '';
-      // Convert camelCase baseName to kebab-case slug
-      const slug = baseName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase();
+      // Override map for filenames whose kebab conversion doesn't match the route slug
+      const filenameSlugOverrides: Record<string, string> = {
+        'hoverCardPopover': 'hover-card',
+      }
+      const slug = filenameSlugOverrides[baseName]
+        ?? baseName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase()
       if (slug) {
         navigate(`/components/${slug}`);
       }
