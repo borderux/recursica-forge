@@ -67,6 +67,7 @@ export function Label({
   const optionalLineHeightVar = getComponentTextCssVar('Label', 'optional-text', 'line-height')
   const optionalTextDecorationVar = getComponentTextCssVar('Label', 'optional-text', 'text-decoration')
   const optionalTextTransformVar = getComponentTextCssVar('Label', 'optional-text', 'text-transform')
+  const optionalTextOpacityVar = getComponentLevelCssVar('Label', 'optional-text-opacity')
 
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
@@ -85,7 +86,8 @@ export function Label({
       labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
       labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
       optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
-      optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar
+      optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar,
+      optionalTextOpacityVar
     ]
 
     // Include width CSS vars in the update check
@@ -126,6 +128,7 @@ export function Label({
     labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
     optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
     optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar,
+    optionalTextOpacityVar,
     effectiveWidthVar, widthVar, labelWidthVar, effectiveSize, layout
   ])
 
@@ -141,7 +144,6 @@ export function Label({
 
   // Get CSS variables for text emphasis opacity
   const highEmphasisOpacityVar = `--recursica_brand_text-emphasis_high`
-  const lowEmphasisOpacityVar = `--recursica_brand_text-emphasis_low`
 
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
@@ -229,7 +231,7 @@ export function Label({
             <span
               style={{
                 display: 'block',
-                opacity: `var(${lowEmphasisOpacityVar})`,
+                opacity: `var(${optionalTextOpacityVar}, var(--recursica_brand_text-emphasis_low))`,
                 fontSize: `var(${optionalFontSizeVar})`,
                 fontFamily: `var(${optionalFontFamilyVar})`,
                 fontWeight: `var(${optionalFontWeightVar})`,

@@ -18,6 +18,11 @@
         "text": {
           "label": "Color",
           "visible": true
+        },
+        "optional-text-opacity": {
+          "icon": "eye",
+          "label": "Optional text opacity",
+          "visible": true
         }
       }
     },
@@ -48,11 +53,6 @@
       "group": {
         "optional-text": {
           "label": "Text style",
-          "visible": true
-        },
-        "optional-text-opacity": {
-          "icon": "eye",
-          "label": "Opacity",
           "visible": true
         }
       }

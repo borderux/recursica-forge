@@ -4159,12 +4159,12 @@ export default function PropControlContent({
             }
           }
 
-          // Special case: placeholder-opacity is a component-level property, not a variant-level color
-          // It's in the "colors" group but needs to be found as a component-level property
-          if (!groupedProp && groupedPropKey === 'placeholder-opacity') {
+          // Special case: placeholder-opacity / optional-text-opacity are component-level properties,
+          // not variant-level colors — they live directly under properties, not inside colors.{layer}
+          if (!groupedProp && (groupedPropKey === 'placeholder-opacity' || groupedPropKey === 'optional-text-opacity')) {
             const structure = parseComponentStructure(componentName)
             groupedProp = structure.props.find(p => {
-              const nameMatches = p.name.toLowerCase() === 'placeholder-opacity'
+              const nameMatches = p.name.toLowerCase() === groupedPropKey
               // Must be component-level (not variant-specific)
               const isComponentLevel = !p.isVariantSpecific
               return nameMatches && isComponentLevel

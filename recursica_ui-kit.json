@@ -6139,10 +6139,6 @@
         "properties": {
           "colors": {
             "layer-0": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.elements.text.color}"
@@ -6153,10 +6149,6 @@
               }
             },
             "layer-1": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.text.color}"
@@ -6167,10 +6159,6 @@
               }
             },
             "layer-2": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.text.color}"
@@ -6181,10 +6169,6 @@
               }
             },
             "layer-3": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.elements.text.color}"
@@ -6259,12 +6243,6 @@
               "$value": "{tokens.font.cases.original}"
             }
           },
-          "stacked": {
-            "bottom-padding": {
-              "$type": "dimension",
-              "$value": "{brand.dimensions.general.default}"
-            }
-          },
           "required-indicator-gap": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.default}"
@@ -6276,6 +6254,10 @@
           "edit-icon-gap": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.sm}"
+          },
+          "optional-text-opacity": {
+            "$type": "number",
+            "$value": "{brand.text-emphasis.low}"
           }
         }
       },

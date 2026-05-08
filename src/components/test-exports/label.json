@@ -6057,7 +6057,7 @@
                 "min-height": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 20,
+                    "value": 27,
                     "unit": "px"
                   }
                 }
@@ -6069,7 +6069,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 224,
+                          "value": 330,
                           "unit": "px"
                         }
                       }
@@ -6100,11 +6100,11 @@
                 },
                 "gutter": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.form.properties.label-field-gap-horizontal}"
+                  "$value": "{brand.dimensions.general.lg}"
                 },
                 "vertical-padding": {
                   "$type": "dimension",
-                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
+                  "$value": "{brand.dimensions.general.default}"
                 }
               },
               "variants": {
@@ -6139,90 +6139,74 @@
         "properties": {
           "colors": {
             "layer-0": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.color}"
+                "$value": "{brand.palettes.neutral.300.color.tone}"
               },
               "asterisk": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-0.elements.text.alert}"
+                "$value": "{brand.palettes.neutral.600.color.tone}"
               }
             },
             "layer-1": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.text.color}"
+                "$value": "{brand.palettes.core-colors.warning.tone}"
               },
               "asterisk": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-1.elements.text.alert}"
+                "$value": "{brand.palettes.core-colors.warning.tone}"
               }
             },
             "layer-2": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-2.elements.text.color}"
+                "$value": "{brand.palettes.core-colors.success.tone}"
               },
               "asterisk": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-2.elements.text.alert}"
+                "$value": "{brand.palettes.palette-2.600.color.tone}"
               }
             },
             "layer-3": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-3.elements.text.color}"
+                "$value": "{brand.palettes.neutral.200.color.tone}"
               },
               "asterisk": {
                 "$type": "color",
-                "$value": "{brand.layers.layer-3.elements.text.alert}"
+                "$value": "{brand.palettes.palette-1.500.color.tone}"
               }
             }
           },
           "label-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{brand.fonts.secondary}"
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.sm}"
+              "$value": "{tokens.font.sizes.xl}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.regular}"
+              "$value": "{tokens.font.weights.thin}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.default}"
+              "$value": "{tokens.font.letter-spacings.wider}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.default}"
+              "$value": "{tokens.font.line-heights.short}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.none}"
+              "$value": "{tokens.font.decorations.underline}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.original}"
+              "$value": "{tokens.font.cases.uppercase}"
             },
             "font-style": {
               "$type": "string",
@@ -6232,50 +6216,52 @@
           "optional-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{brand.fonts.primary}"
+              "$value": "{brand.fonts.secondary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.xs}"
+              "$value": "{tokens.font.sizes.xl}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.regular}"
+              "$value": "{tokens.font.weights.bold}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.default}"
+              "$value": "{tokens.font.letter-spacings.tightest}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.default}"
+              "$value": "{tokens.font.line-heights.shorter}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.none}"
+              "$value": "{tokens.font.decorations.underline}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.original}"
-            }
-          },
-          "stacked": {
-            "bottom-padding": {
-              "$type": "dimension",
-              "$value": "{brand.dimensions.general.default}"
+              "$value": "{tokens.font.cases.lowercase}"
+            },
+            "font-style": {
+              "$type": "color",
+              "$value": "{tokens.font.styles.italic}"
             }
           },
           "required-indicator-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "label-optional-text-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.default}"
           },
           "edit-icon-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.xl}"
+          },
+          "optional-text-opacity": {
+            "$type": "number",
+            "$value": "{tokens.opacities.mist}"
           }
         }
       },
@@ -8593,7 +8579,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -8611,7 +8597,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -8629,7 +8615,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -8647,7 +8633,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -8757,7 +8743,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -8775,7 +8761,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -8793,7 +8779,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -8811,7 +8797,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -8839,7 +8825,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -8857,7 +8843,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -8875,7 +8861,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -8893,7 +8879,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -8943,6 +8929,10 @@
           "padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.md}"
+          },
+          "vertical-element-gap": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.default}"
           },
           "text": {
             "font-family": {
@@ -11729,28 +11719,24 @@
         "properties": {
           "content-text": {
             "font-family": {
-              "$type": "fontFamily",
-              "$value": "{brand.typography.body.fontFamily}"
+              "$type": "string",
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{brand.typography.body.fontSize}"
+              "$value": "{tokens.font.sizes.md}"
             },
             "font-weight": {
-              "$type": "fontWeight",
-              "$value": "{brand.typography.body.fontWeight}"
+              "$type": "number",
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{brand.typography.body.letterSpacing}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{brand.typography.body.lineHeight}"
-            },
-            "font-style": {
-              "$type": "string",
-              "$value": "{brand.typography.body.fontStyle}"
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
@@ -11758,7 +11744,11 @@
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{brand.typography.body.textCase}"
+              "$value": "{tokens.font.cases.original}"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "border-radius": {
@@ -12844,7 +12834,7 @@
     }
   },
   "$metadata": {
-    "exportedAt": "2026-05-06T17:14:27.185Z",
+    "exportedAt": "2026-05-08T23:04:23.964Z",
     "version": "1.0.0"
   }
 }
