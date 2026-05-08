@@ -243,10 +243,7 @@ export default function Textarea({
           text-transform: var(${valueTextTransformVar}) !important;
           font-style: var(${valueFontStyleVar}) !important;
         }
-        #${uniqueId}.recursica-textarea-input::placeholder,
-        #${uniqueId}.recursica-textarea-input::-webkit-input-placeholder,
-        #${uniqueId}.recursica-textarea-input::-moz-placeholder,
-        #${uniqueId}.recursica-textarea-input:-ms-input-placeholder {
+        #${uniqueId}.recursica-textarea-input::placeholder {
           color: var(${textVar}) !important;
           opacity: var(${placeholderOpacityVar}) !important;
         }

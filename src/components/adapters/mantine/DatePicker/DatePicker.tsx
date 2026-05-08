@@ -555,10 +555,7 @@ export default function DatePicker({
             font-style: var(${valueFontStyleVar}) !important;
           }
           /* Placeholder styles */
-          #${uniqueId}.recursica-date-picker-input::placeholder,
-          #${uniqueId}.recursica-date-picker-input::-webkit-input-placeholder,
-          #${uniqueId}.recursica-date-picker-input::-moz-placeholder,
-          #${uniqueId}.recursica-date-picker-input:-ms-input-placeholder {
+          #${uniqueId}.recursica-date-picker-input::placeholder {
             color: var(${textVar}) !important;
             opacity: var(${placeholderOpacityVar}) !important;
           }

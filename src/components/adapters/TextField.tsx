@@ -247,6 +247,12 @@ export function TextField({
                   textAlign: labelAlign === 'right' && layout === 'stacked' ? 'right' : 'left',
                 }}
               />
+              <style>{`
+                #${inputId}::placeholder {
+                  color: var(${textVar}) !important;
+                  opacity: var(${placeholderOpacityVar}) !important;
+                }
+              `}</style>
               {trailingIcon && (
                 <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, flexShrink: 0, color: `var(${trailingIconVar})` }}>
                   {trailingIcon}
@@ -307,6 +313,12 @@ export function TextField({
                     cursor: onClick ? 'pointer' : undefined,
                   }}
                 />
+                <style>{`
+                  #${inputId}::placeholder {
+                    color: var(${textVar}) !important;
+                    opacity: var(${placeholderOpacityVar}) !important;
+                  }
+                `}</style>
                 {trailingIcon && (
                   <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, flexShrink: 0, color: `var(${trailingIconVar})` }}>
                     {trailingIcon}

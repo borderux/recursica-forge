@@ -600,12 +600,20 @@ export default function TextStyleToolbar({
     return allOptions
   }, [currentFontFamily, getAvailableStyleKeysForFont])
 
+  // Reverse mapping from CSS resolved values to segmented control option values.
+  // Tokens store CSS-native values (e.g. "capitalize") but the segmented control
+  // options use token names (e.g. "titlecase"). This map converts back.
+  const cssToOptionValue: Record<string, string> = useMemo(() => ({
+    'capitalize': 'titlecase',
+  }), [])
+
   // Helper to resolve value and ensure it's clean
   const getResolvedValue = useCallback((cssVar: string, fallback: string) => {
     const value = readCssVarResolved(cssVar) || readCssVar(cssVar) || fallback
     // Remove quotes if present (shouldn't be for these properties, but safety first)
-    return value.replace(/^["']|["']$/g, '').trim()
-  }, [])
+    const cleaned = value.replace(/^["']|["']$/g, '').trim()
+    return cssToOptionValue[cleaned] || cleaned
+  }, [cssToOptionValue])
 
   // Get current values - make font family reactive
   const [currentTextDecoration, setCurrentTextDecoration] = useState<string>(() => getResolvedValue(textDecorationVar, 'none'))

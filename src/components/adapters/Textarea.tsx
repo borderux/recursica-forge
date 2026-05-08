@@ -200,6 +200,12 @@ export function Textarea({
                                 textAlign: labelAlign === 'right' && layout === 'stacked' ? 'right' : 'left',
                             }}
                         />
+                        <style>{`
+                          #${inputId}::placeholder {
+                            color: var(${textVar}) !important;
+                            opacity: var(${placeholderOpacityVar}) !important;
+                          }
+                        `}</style>
                         {assistiveElement}
                     </div>
                 ) : (
@@ -237,6 +243,12 @@ export function Textarea({
                                     resize: 'vertical',
                                 }}
                             />
+                            <style>{`
+                              #${inputId}::placeholder {
+                                color: var(${textVar}) !important;
+                                opacity: var(${placeholderOpacityVar}) !important;
+                              }
+                            `}</style>
                             {assistiveElement}
                         </div>
                     </div>

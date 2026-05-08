@@ -344,8 +344,7 @@ export default function TimePicker({
             text-transform: var(${valueTextTransformVar}) !important;
             font-style: var(${valueFontStyleVar}) !important;
           }
-          #${uniqueId}.recursica-time-picker-input::placeholder,
-          #${uniqueId}.recursica-time-picker-input::-webkit-input-placeholder {
+          #${uniqueId}.recursica-time-picker-input::placeholder {
             color: var(${textVar}) !important;
             opacity: var(${placeholderOpacityVar}) !important;
           }
