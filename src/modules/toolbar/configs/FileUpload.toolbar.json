@@ -23,6 +23,12 @@
                     "label": "Instruction text color",
                     "visible": true,
                     "floatingPaletteLabel": "Instruction Text Color"
+                },
+                "upload-icon": {
+                    "icon": "arrow-up-tray",
+                    "label": "Upload icon color",
+                    "visible": true,
+                    "floatingPaletteLabel": "Upload Icon Color"
                 }
             }
         },
@@ -119,6 +125,11 @@
                 "list-spacing": {
                     "icon": "stack",
                     "label": "List spacing",
+                    "visible": true
+                },
+                "vertical-element-gap": {
+                    "icon": "arrows-vertical",
+                    "label": "Vertical element gap",
                     "visible": true
                 }
             }

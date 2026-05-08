@@ -49,6 +49,7 @@ export default function FileUpload({
     const backgroundVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'background')
     const borderColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'border-color')
     const textColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'text')
+    const uploadIconColorVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'colors', layer, 'upload-icon')
     const borderSizeVar = buildComponentCssVarPath('FileUpload', 'variants', 'states', state, 'properties', 'border-size')
 
     // Get component-level properties
@@ -57,6 +58,7 @@ export default function FileUpload({
     const itemGapVar = getComponentLevelCssVar('FileUpload', 'item-gap')
     const listSpacingVar = getComponentLevelCssVar('FileUpload', 'list-spacing')
     const paddingVar = getComponentLevelCssVar('FileUpload', 'padding')
+    const verticalElementGapVar = getComponentLevelCssVar('FileUpload', 'vertical-element-gap')
 
     // Get text style CSS variables
     const fontSizeVar = getComponentTextCssVar('FileUpload', 'text', 'font-size')
@@ -124,7 +126,7 @@ export default function FileUpload({
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '12px',
+                gap: `var(${verticalElementGapVar}, 12px)`,
                 padding: `var(${paddingVar}, 24px)`,
                 backgroundColor: `var(${backgroundVar})`,
                 border: `var(${borderSizeVar}, 1px) var(${borderStyleVar}, dashed) var(${borderColorVar})`,
@@ -134,6 +136,17 @@ export default function FileUpload({
                 boxSizing: 'border-box'
             }}
         >
+            {UploadIcon && (
+                <div style={{
+                    color: `var(${uploadIconColorVar})`,
+                    width: '2em',
+                    height: '2em',
+                    flexShrink: 0,
+                    opacity: state === 'disabled' ? `var(${getBrandStateCssVar(mode, 'disabled')})` : undefined,
+                }}>
+                    <UploadIcon width="100%" height="100%" />
+                </div>
+            )}
             <div style={{
                 color: `var(${textColorVar})`,
                 fontFamily: `var(${fontFamilyVar})`,

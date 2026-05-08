@@ -617,6 +617,14 @@ export default function ComponentToolbar({
                 if (layoutProps.length > 0) {
                   groupedProp = layoutProps[0]
                 }
+                // Fallback: also find component-level (non-variant-specific) dimension props in the spacing group
+                // e.g., vertical-element-gap, padding, item-gap which live directly under properties
+                if (!groupedProp) {
+                  groupedProp = liveStructure.props.find(p =>
+                    p.name.toLowerCase() === groupedPropKey &&
+                    !p.isVariantSpecific
+                  )
+                }
               }
 
               // Button: horizontal-padding is owned by the content variant (content × size)
