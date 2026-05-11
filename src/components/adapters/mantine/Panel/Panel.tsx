@@ -290,7 +290,7 @@ export default function Panel({
         return createPortal(
             <div
                 className={`panel-overlay-container panel-overlay-container--${position}${closingClass}`}
-                style={{ width: width || '400px', zIndex: zIndex || 10000 }}
+                style={{ zIndex: zIndex || 10000 }}
                 data-recursica-layer={layerNum}
             >
                 {panelContent}
