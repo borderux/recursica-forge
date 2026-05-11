@@ -6139,10 +6139,6 @@
         "properties": {
           "colors": {
             "layer-0": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.elements.text.color}"
@@ -6153,10 +6149,6 @@
               }
             },
             "layer-1": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.text.color}"
@@ -6167,10 +6159,6 @@
               }
             },
             "layer-2": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.text.color}"
@@ -6181,10 +6169,6 @@
               }
             },
             "layer-3": {
-              "optional-text-opacity": {
-                "$type": "number",
-                "$value": "{brand.text-emphasis.low}"
-              },
               "text": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.elements.text.color}"
@@ -6259,12 +6243,6 @@
               "$value": "{tokens.font.cases.original}"
             }
           },
-          "stacked": {
-            "bottom-padding": {
-              "$type": "dimension",
-              "$value": "{brand.dimensions.general.default}"
-            }
-          },
           "required-indicator-gap": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.default}"
@@ -6276,6 +6254,10 @@
           "edit-icon-gap": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.sm}"
+          },
+          "optional-text-opacity": {
+            "$type": "number",
+            "$value": "{brand.text-emphasis.low}"
           }
         }
       },
@@ -6426,6 +6408,10 @@
                     "$type": "string",
                     "$value": "{tokens.font.decorations.none}"
                   },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
+                  },
                   "font-style": {
                     "$type": "string",
                     "$value": "{tokens.font.styles.normal}"
@@ -6485,6 +6471,10 @@
                   "text-decoration": {
                     "$type": "string",
                     "$value": "{tokens.font.decorations.underline}"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
                   },
                   "font-style": {
                     "$type": "string",
@@ -6546,6 +6536,10 @@
                     "$type": "string",
                     "$value": "{tokens.font.decorations.none}"
                   },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
+                  },
                   "font-style": {
                     "$type": "string",
                     "$value": "{tokens.font.styles.normal}"
@@ -6605,6 +6599,10 @@
                   "text-decoration": {
                     "$type": "string",
                     "$value": "{tokens.font.decorations.underline}"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
                   },
                   "font-style": {
                     "$type": "string",
@@ -8593,7 +8591,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -8611,7 +8609,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -8629,7 +8627,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -8647,7 +8645,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -8757,7 +8755,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -8775,7 +8773,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -8793,7 +8791,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -8811,7 +8809,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -8839,7 +8837,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-0.elements.text.color}"
                     }
                   },
                   "layer-1": {
@@ -8857,7 +8855,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-1.elements.text.color}"
                     }
                   },
                   "layer-2": {
@@ -8875,7 +8873,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-2.elements.text.color}"
                     }
                   },
                   "layer-3": {
@@ -8893,7 +8891,7 @@
                     },
                     "upload-icon": {
                       "$type": "color",
-                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                      "$value": "{brand.layers.layer-3.elements.text.color}"
                     }
                   }
                 },
@@ -8943,6 +8941,10 @@
           "padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.md}"
+          },
+          "vertical-element-gap": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.default}"
           },
           "text": {
             "font-family": {
@@ -11729,28 +11731,24 @@
         "properties": {
           "content-text": {
             "font-family": {
-              "$type": "fontFamily",
-              "$value": "{brand.typography.body.fontFamily}"
+              "$type": "string",
+              "$value": "{brand.fonts.primary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{brand.typography.body.fontSize}"
+              "$value": "{tokens.font.sizes.md}"
             },
             "font-weight": {
-              "$type": "fontWeight",
-              "$value": "{brand.typography.body.fontWeight}"
+              "$type": "number",
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{brand.typography.body.letterSpacing}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{brand.typography.body.lineHeight}"
-            },
-            "font-style": {
-              "$type": "string",
-              "$value": "{brand.typography.body.fontStyle}"
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
@@ -11758,7 +11756,11 @@
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{brand.typography.body.textCase}"
+              "$value": "{tokens.font.cases.original}"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "border-radius": {
@@ -12411,7 +12413,7 @@
         "properties": {
           "indicator-color": {
             "$type": "color",
-            "$value": "{brand.palettes.core-colors.interactive.tone}"
+            "$value": "{brand.palettes.neutral.600.color.tone}"
           }
         },
         "variants": {
@@ -12421,21 +12423,18 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 24,
+                    "value": 42,
                     "unit": "px"
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 9999,
-                    "unit": "px"
-                  }
+                  "$value": "{brand.dimensions.border-radii.sm}"
                 },
                 "thickness": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 3,
+                    "value": 14,
                     "unit": "px"
                   }
                 }
@@ -12446,21 +12445,18 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 36,
+                    "value": 82,
                     "unit": "px"
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 9999,
-                    "unit": "px"
-                  }
+                  "$value": "{brand.dimensions.border-radii.lg}"
                 },
                 "thickness": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 4,
+                    "value": 13,
                     "unit": "px"
                   }
                 }
@@ -12471,21 +12467,18 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 48,
+                    "value": 63,
                     "unit": "px"
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 9999,
-                    "unit": "px"
-                  }
+                  "$value": "{brand.dimensions.border-radii.default}"
                 },
                 "thickness": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 5,
+                    "value": 20,
                     "unit": "px"
                   }
                 }
@@ -12844,7 +12837,7 @@
     }
   },
   "$metadata": {
-    "exportedAt": "2026-05-06T17:14:27.185Z",
+    "exportedAt": "2026-05-11T15:53:36.700Z",
     "version": "1.0.0"
   }
 }
