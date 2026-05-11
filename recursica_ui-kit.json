@@ -2321,9 +2321,39 @@
                     "unit": "px"
                   }
                 },
-                "step-number-font-size": {
-                  "$type": "dimension",
-                  "$value": "{tokens.font.sizes.md}"
+                "step-number-text": {
+                  "font-family": {
+                    "$type": "string",
+                    "$value": "{brand.fonts.primary}"
+                  },
+                  "font-size": {
+                    "$type": "dimension",
+                    "$value": "{tokens.font.sizes.md}"
+                  },
+                  "font-weight": {
+                    "$type": "number",
+                    "$value": "{tokens.font.weights.medium}"
+                  },
+                  "letter-spacing": {
+                    "$type": "string",
+                    "$value": "{tokens.font.letter-spacings.default}"
+                  },
+                  "line-height": {
+                    "$type": "number",
+                    "$value": "{tokens.font.line-heights.default}"
+                  },
+                  "text-decoration": {
+                    "$type": "string",
+                    "$value": "{tokens.font.decorations.none}"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
+                  },
+                  "font-style": {
+                    "$type": "string",
+                    "$value": "{tokens.font.styles.normal}"
+                  }
                 },
                 "indicator-border-size": {
                   "$type": "dimension",
@@ -2351,9 +2381,39 @@
                     "unit": "px"
                   }
                 },
-                "step-number-font-size": {
-                  "$type": "dimension",
-                  "$value": "{tokens.font.sizes.sm}"
+                "step-number-text": {
+                  "font-family": {
+                    "$type": "string",
+                    "$value": "{brand.fonts.primary}"
+                  },
+                  "font-size": {
+                    "$type": "dimension",
+                    "$value": "{tokens.font.sizes.sm}"
+                  },
+                  "font-weight": {
+                    "$type": "number",
+                    "$value": "{tokens.font.weights.medium}"
+                  },
+                  "letter-spacing": {
+                    "$type": "string",
+                    "$value": "{tokens.font.letter-spacings.default}"
+                  },
+                  "line-height": {
+                    "$type": "number",
+                    "$value": "{tokens.font.line-heights.default}"
+                  },
+                  "text-decoration": {
+                    "$type": "string",
+                    "$value": "{tokens.font.decorations.none}"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
+                  },
+                  "font-style": {
+                    "$type": "string",
+                    "$value": "{tokens.font.styles.normal}"
+                  }
                 },
                 "indicator-border-size": {
                   "$type": "dimension",

@@ -1948,10 +1948,8 @@ export default function PropControlContent({
       }
 
       // Use brand dimension slider for border-radius properties
-      const isBorderRadiusProp = propNameLower === 'border-radius' ||
-        propNameLower === 'thumb-border-radius' ||
-        propNameLower === 'track-border-radius' ||
-        propNameLower === 'corner-radius'
+      const isBorderRadiusProp = propNameLower.includes('border-radius') ||
+        propNameLower.includes('corner-radius')
 
       if (isBorderRadiusProp) {
         return (
@@ -1961,6 +1959,23 @@ export default function PropControlContent({
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
             dimensionCategory="border-radii"
+            layer={selectedLayer as any}
+          />
+        )
+      }
+
+      // Use brand dimension slider for icon-size properties
+      const isIconSizeProp = propNameLower.includes('icon-size') ||
+        (propNameLower.includes('icon') && propNameLower.includes('size'))
+
+      if (isIconSizeProp && !isTextField && !isNumberInput) {
+        return (
+          <BrandDimensionSliderInline
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+            dimensionCategory="icons"
             layer={selectedLayer as any}
           />
         )
@@ -3774,7 +3789,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text', 'step-number-text']
 
   // Always check recursica_ui-kit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly

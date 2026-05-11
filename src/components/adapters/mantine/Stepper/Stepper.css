@@ -17,7 +17,14 @@
     height: var(--stepper-indicator-size, 42px) !important;
     min-width: var(--stepper-indicator-size, 42px) !important;
     min-height: var(--stepper-indicator-size, 42px) !important;
-    font-size: var(--stepper-step-number-font-size, 16px) !important;
+    font-family: var(--stepper-step-num-font-family, inherit) !important;
+    font-size: var(--stepper-step-num-font-size, 16px) !important;
+    font-weight: var(--stepper-step-num-font-weight, 500) !important;
+    letter-spacing: var(--stepper-step-num-letter-spacing, normal) !important;
+    line-height: var(--stepper-step-num-line-height, 1.5) !important;
+    text-decoration: var(--stepper-step-num-text-decoration, none) !important;
+    text-transform: var(--stepper-step-num-text-transform, none) !important;
+    font-style: var(--stepper-step-num-font-style, normal) !important;
     box-sizing: content-box !important;
     position: relative !important;
     z-index: 1 !important;
@@ -33,7 +40,14 @@
     height: var(--stepper-indicator-size, 42px) !important;
     min-width: var(--stepper-indicator-size, 42px) !important;
     min-height: var(--stepper-indicator-size, 42px) !important;
-    font-size: var(--stepper-step-number-font-size, 16px) !important;
+    font-family: var(--stepper-step-num-font-family, inherit) !important;
+    font-size: var(--stepper-step-num-font-size, 16px) !important;
+    font-weight: var(--stepper-step-num-font-weight, 500) !important;
+    letter-spacing: var(--stepper-step-num-letter-spacing, normal) !important;
+    line-height: var(--stepper-step-num-line-height, 1.5) !important;
+    text-decoration: var(--stepper-step-num-text-decoration, none) !important;
+    text-transform: var(--stepper-step-num-text-transform, none) !important;
+    font-style: var(--stepper-step-num-font-style, normal) !important;
     box-sizing: content-box !important;
     position: relative !important;
     z-index: 1 !important;
@@ -49,7 +63,14 @@
     height: var(--stepper-indicator-size, 42px) !important;
     min-width: var(--stepper-indicator-size, 42px) !important;
     min-height: var(--stepper-indicator-size, 42px) !important;
-    font-size: var(--stepper-step-number-font-size, 16px) !important;
+    font-family: var(--stepper-step-num-font-family, inherit) !important;
+    font-size: var(--stepper-step-num-font-size, 16px) !important;
+    font-weight: var(--stepper-step-num-font-weight, 500) !important;
+    letter-spacing: var(--stepper-step-num-letter-spacing, normal) !important;
+    line-height: var(--stepper-step-num-line-height, 1.5) !important;
+    text-decoration: var(--stepper-step-num-text-decoration, none) !important;
+    text-transform: var(--stepper-step-num-text-transform, none) !important;
+    font-style: var(--stepper-step-num-font-style, normal) !important;
     box-sizing: content-box !important;
     position: relative !important;
     z-index: 1 !important;
@@ -227,7 +248,7 @@
     text-align: center !important;
 }
 
-/* Vertical orientation: center label+description on the indicator */
+/* Vertical orientation: indicator anchors to top so separator positioning stays correct */
 .recursica-stepper .mantine-Stepper-steps[data-orientation="vertical"] .mantine-Stepper-step {
     align-items: flex-start !important;
     overflow: visible !important;

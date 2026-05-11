@@ -490,7 +490,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text, min-max-label, read-only-value, value, placeholder)
         // Text property groups are objects containing text-related properties (font-family, font-size, etc.)
         // We need to create a prop for the parent group so it shows up in the toolbar
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'selected-text', 'unselected-text']
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'selected-text', 'unselected-text', 'step-number-text']
         const isTextPropertyGroup = textPropertyGroupNames.includes(key.toLowerCase()) &&
           typeof value === 'object' &&
           value !== null &&
@@ -758,7 +758,9 @@ export function getDimensionPropertyType(
                   pathPart === 'orientation' ? 'orientation' :
                     pathPart === 'content' ? 'content' : pathPart
         const selectedVariant = selectedVariants[variantKey] || (pathPart === 'orientation' ? 'horizontal' : 'default')
-        current = current[pathPart]?.[selectedVariant]
+        const categoryObj = current[pathPart]
+        // Use the selected variant if it exists, otherwise fall back to the first available variant
+        current = categoryObj?.[selectedVariant] ?? (categoryObj ? categoryObj[Object.keys(categoryObj).filter(k => !k.startsWith('$'))[0]] : undefined)
         // Skip next path part if it's the variant value we just resolved (e.g. path has orientation, horizontal)
         if (propPath[i + 1] === selectedVariant) {
           i++
@@ -839,7 +841,9 @@ export function getDimensionCategoryFromValue(
                   pathPart === 'orientation' ? 'orientation' :
                     pathPart === 'content' ? 'content' : pathPart
         const selectedVariant = selectedVariants[variantKey] || (pathPart === 'orientation' ? 'horizontal' : 'default')
-        current = current[pathPart]?.[selectedVariant]
+        const categoryObj = current[pathPart]
+        // Use the selected variant if it exists, otherwise fall back to the first available variant
+        current = categoryObj?.[selectedVariant] ?? (categoryObj ? categoryObj[Object.keys(categoryObj).filter(k => !k.startsWith('$'))[0]] : undefined)
         if (propPath[i + 1] === selectedVariant) {
           i++
         }
