@@ -7,9 +7,7 @@
 import React, { useState, useEffect } from 'react'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import type { MenuItemProps as AdapterMenuItemProps } from '../../MenuItem'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getBrandStateCssVar } from '../../../utils/brandCssVars'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './MenuItem.css'
 
@@ -32,7 +30,6 @@ export default function MenuItem({
   mantine,
   ...props
 }: AdapterMenuItemProps) {
-  const { mode } = useThemeMode()
   const [, forceUpdate] = useState(0)
 
   useEffect(() => {
@@ -49,28 +46,36 @@ export default function MenuItem({
     effectiveVariant = 'selected'
   }
 
-  // Get selected/unselected background, text, and opacity from properties.colors (component-level, layer-specific)
+  // Get selected/unselected colors from properties.colors (component-level, layer-specific)
   const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'background')
   const selectedTextVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'text')
-  const selectedOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'opacity')
+  const selectedSupportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'supporting-text-color')
+  const selectedLeadingIconColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'leading-icon-color')
+  const selectedTrailingIconColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'trailing-icon-color')
+
   const unselectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'background')
   const unselectedTextVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'text')
-  const unselectedOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'opacity')
+  const unselectedSupportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'supporting-text-color')
+  const unselectedLeadingIconColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'leading-icon-color')
+  const unselectedTrailingIconColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'trailing-icon-color')
 
-  // Get component-level properties
+  // Resolve state-specific vars
+  const finalBgVar = effectiveVariant === 'selected' ? selectedBgVar : unselectedBgVar
+  const finalTextVar = effectiveVariant === 'selected' ? selectedTextVar : unselectedTextVar
+  const finalSupportingTextColorVar = effectiveVariant === 'selected' ? selectedSupportingTextColorVar : unselectedSupportingTextColorVar
+  const finalLeadingIconColorVar = effectiveVariant === 'selected' ? selectedLeadingIconColorVar : unselectedLeadingIconColorVar
+  const finalTrailingIconColorVar = effectiveVariant === 'selected' ? selectedTrailingIconColorVar : unselectedTrailingIconColorVar
+
+  // Get component-level dimension/size properties
   const borderRadiusVar = getComponentLevelCssVar('MenuItem', 'border-radius')
-  const minWidthVar = getComponentLevelCssVar('MenuItem', 'min-width')
-  const maxWidthVar = getComponentLevelCssVar('MenuItem', 'max-width')
   const verticalPaddingVar = getComponentLevelCssVar('MenuItem', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('MenuItem', 'horizontal-padding')
-  const supportingTextOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'supporting-text-opacity')
-  const supportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'supporting-text-color')
-  const dividerColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'divider-color')
-  const dividerOpacityVar = getComponentLevelCssVar('MenuItem', 'divider-opacity')
-  const dividerHeightVar = getComponentLevelCssVar('MenuItem', 'divider-height')
-  const dividerItemGapVar = getComponentLevelCssVar('MenuItem', 'divider-item-gap')
+  const iconTextGapVar = getComponentLevelCssVar('MenuItem', 'icon-text-gap')
+  const textGapVar = getComponentLevelCssVar('MenuItem', 'text-gap')
+  const leadingIconSizeVar = getComponentLevelCssVar('MenuItem', 'icon-leading-size')
+  const trailingIconSizeVar = getComponentLevelCssVar('MenuItem', 'icon-trailing-size')
 
-  // Get text styling CSS variables using getComponentTextCssVar (for text style toolbar)
+  // Get text styling CSS variables
   const fontFamilyVar = getComponentTextCssVar('MenuItem', 'text', 'font-family')
   const fontSizeVar = getComponentTextCssVar('MenuItem', 'text', 'font-size')
   const fontWeightVar = getComponentTextCssVar('MenuItem', 'text', 'font-weight')
@@ -90,118 +95,120 @@ export default function MenuItem({
   const supportingTextTransformVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'text-transform')
   const supportingFontStyleVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-style')
 
-  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
-  const hoverColorVar = getComponentLevelCssVar('MenuItem', 'hover-color')
-  const hoverOpacityVar = getComponentLevelCssVar('MenuItem', 'hover-opacity')
+  // Get hover vars from state-level UIKit tokens (separate per selected/unselected)
+  const unselectedHoverColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'hover-color')
+  const unselectedHoverOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'hover-opacity')
+  const selectedHoverColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'hover-color')
+  const selectedHoverOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'hover-opacity')
+  const hoverColorVar = effectiveVariant === 'selected' ? selectedHoverColorVar : unselectedHoverColorVar
+  const hoverOpacityVar = effectiveVariant === 'selected' ? selectedHoverOpacityVar : unselectedHoverOpacityVar
+  const disabledOpacityVar = getComponentLevelCssVar('MenuItem', 'disabled-opacity')
 
-  // Read background color to check if it's null/transparent
-  const bgColorValue = readCssVar(unselectedBgVar)
-  const hasBackground = bgColorValue && bgColorValue !== 'transparent' && bgColorValue !== 'null'
-
-  // For selected state, use selected-item properties. For default/disabled states, use unselected-item properties.
-  const finalBgVar = effectiveVariant === 'selected' ? selectedBgVar : unselectedBgVar
-  const finalTextVar = effectiveVariant === 'selected' ? selectedTextVar : unselectedTextVar
-  const finalOpacityVar = effectiveVariant === 'selected' ? selectedOpacityVar : unselectedOpacityVar
+  // Determine background
   const finalBgColorValue = readCssVar(finalBgVar)
   const finalHasBackground = finalBgColorValue && finalBgColorValue !== 'transparent' && finalBgColorValue !== 'null'
 
-  // Read divider height to determine if it should be visible by default
-  const dividerHeightValue = readCssVar(dividerHeightVar)
-  const isGlobalDividerVisible = dividerHeightValue && dividerHeightValue !== '0px' && dividerHeightValue !== '0'
-
-  // Explicit prop 'bottom' always shows it. 
-  // 'none' always hides it.
-  // undefined (default) uses global setting.
-  const showDivider = divider === 'bottom' || (divider !== 'none' && isGlobalDividerVisible)
-
   return (
-    <div
-      className={`mantine-menu-item-wrapper ${className || ''} ${showDivider ? 'has-divider' : ''}`}
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      className={`mantine-menu-item ${effectiveVariant} ${className || ''}`}
+      data-variant={effectiveVariant}
+      data-layer={layer}
+      data-selected={selected}
+      data-disabled={disabled}
+      data-leading-icon-type={leadingIconType}
       style={{
-        // Set CSS custom properties for CSS file to use
-        ['--menu-item-divider-color' as string]: dividerColor || `var(${dividerColorVar})`,
-        ['--menu-item-divider-opacity' as string]: dividerOpacity !== undefined ? dividerOpacity : `var(${dividerOpacityVar}, 1)`,
-        // Use dividerHeightVar if showDivider is true, otherwise 0px
-        ['--menu-item-divider-height' as string]: showDivider ? `var(${dividerHeightVar})` : '0px',
-        ['--menu-item-divider-item-gap' as string]: showDivider ? `var(${dividerItemGapVar}, 4px)` : '0px',
+        ['--menu-item-bg' as string]: finalHasBackground ? `var(${finalBgVar})` : 'transparent',
+        ['--menu-item-text' as string]: `var(${finalTextVar})`,
+        ['--menu-item-border-radius' as string]: `var(${borderRadiusVar})`,
+        ['--menu-item-vertical-padding' as string]: `var(${verticalPaddingVar})`,
+        ['--menu-item-horizontal-padding' as string]: `var(${horizontalPaddingVar})`,
+        ['--menu-item-icon-text-gap' as string]: `var(${iconTextGapVar}, 8px)`,
+        ['--menu-item-text-gap' as string]: `var(${textGapVar}, 4px)`,
+        ['--menu-item-leading-icon-size' as string]: `var(${leadingIconSizeVar}, 20px)`,
+        ['--menu-item-trailing-icon-size' as string]: `var(${trailingIconSizeVar}, 20px)`,
+        ['--menu-item-leading-icon-color' as string]: `var(${finalLeadingIconColorVar})`,
+        ['--menu-item-trailing-icon-color' as string]: `var(${finalTrailingIconColorVar})`,
+        ['--menu-item-supporting-text-color' as string]: `var(${finalSupportingTextColorVar})`,
+        ['--menu-item-opacity' as string]: disabled ? `var(${disabledOpacityVar})` : '1',
+        ['--menu-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`,
+        ['--menu-item-hover-color' as string]: `var(${hoverColorVar}, #000000)`,
+        // Apply cascading-safe text styles on the button (these cascade cleanly to children)
+        fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
+        fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
+        fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
+        letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
+        lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
         ...style,
       } as React.CSSProperties}
+      {...mantine}
+      {...props}
     >
-      <button
-        disabled={disabled}
-        onClick={onClick}
-        className={`mantine-menu-item ${effectiveVariant}`}
-        data-variant={effectiveVariant}
-        data-layer={layer}
-        data-selected={selected}
-        data-disabled={disabled}
-        data-leading-icon-type={leadingIconType}
-        style={{
-          // Set CSS custom properties for CSS file to use
-          ['--menu-item-bg' as string]: finalHasBackground ? `var(${finalBgVar})` : 'transparent',
-          ['--menu-item-text' as string]: `var(${finalTextVar})`,
-          ['--menu-item-border-radius' as string]: `var(${borderRadiusVar})`,
-          ['--menu-item-min-width' as string]: `var(${minWidthVar})`,
-          ['--menu-item-max-width' as string]: `var(${maxWidthVar})`,
-          ['--menu-item-vertical-padding' as string]: `var(${verticalPaddingVar})`,
-          ['--menu-item-horizontal-padding' as string]: `var(${horizontalPaddingVar})`,
-          ['--menu-item-supporting-text-opacity' as string]: `var(${supportingTextOpacityVar})`,
-          ['--menu-item-supporting-text-color' as string]: `var(${supportingTextColorVar})`,
-          ['--menu-item-opacity' as string]: disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : (finalOpacityVar ? `var(${finalOpacityVar}, 1)` : '1'),
-          ['--menu-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
-          ['--menu-item-hover-color' as string]: `var(${hoverColorVar}, #000000)`, // Hover color
-          // Apply text styles using CSS variables from text style toolbar
-          fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
-          fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,
-          fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
-          letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
-          lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
-          textDecoration: textDecorationVar ? `var(${textDecorationVar})` : 'none',
-          textTransform: textTransformVar ? `var(${textTransformVar})` : 'none',
-          fontStyle: fontStyleVar ? `var(${fontStyleVar})` : 'normal',
-        } as React.CSSProperties}
-        {...mantine}
-        {...props}
-      >
-        {leadingIconType !== 'none' && (
-          <span className="mantine-menu-item-leading-icon" data-icon-type={leadingIconType}>
-            {leadingIconType === 'radio' && !leadingIcon && (
-              <span className={`mantine-menu-item-radio-icon ${selected ? 'selected' : ''}`} />
-            )}
-            {leadingIconType === 'checkbox' && !leadingIcon && (
-              <span className={`mantine-menu-item-checkbox-icon ${selected ? 'selected' : ''}`} />
-            )}
-            {leadingIcon && <span className="mantine-menu-item-custom-icon">{leadingIcon}</span>}
-          </span>
-        )}
-        <div className="mantine-menu-item-content">
-          <span className="mantine-menu-item-text">{children}</span>
-          {supportingText && (
-            <span
-              className="mantine-menu-item-supporting-text"
-              style={{
-                fontFamily: supportingFontFamilyVar ? `var(${supportingFontFamilyVar})` : undefined,
-                fontSize: supportingFontSizeVar ? `var(${supportingFontSizeVar})` : undefined,
-                fontWeight: supportingFontWeightVar ? `var(${supportingFontWeightVar})` : undefined,
-                letterSpacing: supportingLetterSpacingVar ? `var(${supportingLetterSpacingVar})` : undefined,
-                lineHeight: supportingLineHeightVar ? `var(${supportingLineHeightVar})` : undefined,
-                textDecoration: supportingTextDecorationVar ? `var(${supportingTextDecorationVar})` : 'none',
-                textTransform: supportingTextTransformVar ? `var(${supportingTextTransformVar})` : 'none',
-                fontStyle: supportingFontStyleVar ? `var(${supportingFontStyleVar})` : 'normal',
-              } as React.CSSProperties}
-            >
-              {supportingText}
-            </span>
+      {leadingIconType !== 'none' && (
+        <span
+          className="mantine-menu-item-leading-icon"
+          data-icon-type={leadingIconType}
+          style={{
+            width: `var(${leadingIconSizeVar}, 20px)`,
+            height: `var(${leadingIconSizeVar}, 20px)`,
+            minWidth: `var(${leadingIconSizeVar}, 20px)`,
+            minHeight: `var(${leadingIconSizeVar}, 20px)`,
+            maxWidth: `var(${leadingIconSizeVar}, 20px)`,
+            maxHeight: `var(${leadingIconSizeVar}, 20px)`,
+          } as React.CSSProperties}
+        >
+          {leadingIconType === 'radio' && !leadingIcon && (
+            <span className={`mantine-menu-item-radio-icon ${selected ? 'selected' : ''}`} />
           )}
-        </div>
-        {(trailingIcon || selected) && (
-          <span className="mantine-menu-item-trailing-icon">
-            {trailingIcon || (selected && iconNameToReactComponent('check') ? React.createElement(iconNameToReactComponent('check')!) : (selected ? '✓' : null))}
+          {leadingIconType === 'checkbox' && !leadingIcon && (
+            <span className={`mantine-menu-item-checkbox-icon ${selected ? 'selected' : ''}`} />
+          )}
+          {leadingIcon && <span className="mantine-menu-item-custom-icon">{leadingIcon}</span>}
+        </span>
+      )}
+      <div className="mantine-menu-item-content">
+        <span
+          className="mantine-menu-item-text"
+          style={{
+            textDecoration: textDecorationVar ? `var(${textDecorationVar})` : 'none',
+            textTransform: textTransformVar ? `var(${textTransformVar})` : 'none',
+            fontStyle: fontStyleVar ? `var(${fontStyleVar})` : 'normal',
+          } as React.CSSProperties}
+        >{children}</span>
+        {supportingText && (
+          <span
+            className="mantine-menu-item-supporting-text"
+            style={{
+              fontFamily: supportingFontFamilyVar ? `var(${supportingFontFamilyVar})` : undefined,
+              fontSize: supportingFontSizeVar ? `var(${supportingFontSizeVar})` : undefined,
+              fontWeight: supportingFontWeightVar ? `var(${supportingFontWeightVar})` : undefined,
+              letterSpacing: supportingLetterSpacingVar ? `var(${supportingLetterSpacingVar})` : undefined,
+              lineHeight: supportingLineHeightVar ? `var(${supportingLineHeightVar})` : undefined,
+              textDecoration: supportingTextDecorationVar ? `var(${supportingTextDecorationVar})` : 'none',
+              textTransform: supportingTextTransformVar ? `var(${supportingTextTransformVar})` : 'none',
+              fontStyle: supportingFontStyleVar ? `var(${supportingFontStyleVar})` : 'normal',
+            } as React.CSSProperties}
+          >
+            {supportingText}
           </span>
         )}
-      </button>
-      <div className="mantine-menu-item-divider" />
-    </div>
+      </div>
+      {(trailingIcon || selected) && (
+        <span
+          className="mantine-menu-item-trailing-icon"
+          style={{
+            width: `var(${trailingIconSizeVar}, 20px)`,
+            height: `var(${trailingIconSizeVar}, 20px)`,
+            minWidth: `var(${trailingIconSizeVar}, 20px)`,
+            minHeight: `var(${trailingIconSizeVar}, 20px)`,
+            maxWidth: `var(${trailingIconSizeVar}, 20px)`,
+            maxHeight: `var(${trailingIconSizeVar}, 20px)`,
+          } as React.CSSProperties}
+        >
+          {trailingIcon || (selected && iconNameToReactComponent('check') ? React.createElement(iconNameToReactComponent('check')!) : (selected ? '✓' : null))}
+        </span>
+      )}
+    </button>
   )
 }
-
