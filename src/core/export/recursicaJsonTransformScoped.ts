@@ -13,7 +13,7 @@
 
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.1.0'
+const TRANSFORM_VERSION = '1.2.0'
 
 /** Maps brand.typography $value keys (camelCase) to CSS property names. */
 const TYPOGRAPHY_JSON_TO_CSS_PROP: Record<string, string> = {
@@ -319,7 +319,7 @@ function formatValue(
 }
 
 /** Entry from flatten: path, value, and optional $type when the token had a $value wrapper. */
-type FlatEntry = { path: string; value: unknown; type?: string }
+type FlatEntry = { path: string; value: unknown; type?: string; comment?: string }
 
 /**
  * Recursively collects path/value pairs from the JSON structure.
@@ -374,9 +374,36 @@ function flattenInput(json: RecursicaJsonInput): FlatEntry[] {
   if (brand) collectVars(brand, 'brand', out)
   if (uikit) collectVars(uikit, 'ui-kit', out)
 
+  injectVariantAliases(out)
+
   if (brand) injectElevationComposites(brand as Record<string, unknown>, out)
   injectDarkLayer0InteractiveAliases(out)
   return out
+}
+
+/**
+ * Traverses entries and finds variant tokens that reference other tokens.
+ * For each property in the referenced variant, creates a new alias variable
+ * under the variant's path, effectively mapping the active variant's styles.
+ */
+function injectVariantAliases(out: FlatEntry[]): void {
+  const variants = out.filter(e => e.type === 'variant' && typeof e.value === 'string')
+  for (const entry of variants) {
+    const trimmed = (entry.value as string).trim()
+    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) continue
+    const inner = trimmed.slice(1, -1).trim()
+    const prefix = inner + '.'
+    
+    const len = out.length
+    for (let i = 0; i < len; i++) {
+      const child = out[i]
+      if (child.path.startsWith(prefix)) {
+        const subPath = child.path.slice(prefix.length)
+        const newPath = entry.path + '.' + subPath
+        out.push({ path: newPath, value: `{${child.path}}`, comment: `Variant Reference: ${inner}` })
+      }
+    }
+  }
 }
 
 /**
@@ -605,6 +632,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     if (isLayerSpecificUIKitPath(path)) {
       allRootNames.add(pathToRootVarNameLayerSpecificUIKit(path, 'light'))
       allRootNames.add(pathToRootVarNameLayerSpecificUIKit(path, 'dark'))
+      allRootNames.add(pathToVarName(path)) // Add base path for validation of refs targeting it
     } else {
       allRootNames.add(pathToVarName(path))
     }
@@ -612,10 +640,10 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
 
   // 2. Build root vars: every entry with specific name, values use pathToVarName for refs
   const rootVarsMap = new Map<string, string>()
-  const rootOptions = { refNamer: pathToVarName }
+  const rootVarsComments = new Map<string, string>()
 
   for (const entry of entries) {
-    const { path, value, type: tokenType } = entry
+    const { path, value, type: tokenType, comment } = entry
     // Handle $type: "variant" — extract variant name from brace reference path
     // e.g. {ui-kit.components.button.variants.styles.solid} → "solid"
     if (tokenType === 'variant' && typeof value === 'string') {
@@ -625,6 +653,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
         const lastSegment = inner.split('.').pop() || inner
         const rootName = pathToVarName(path)
         rootVarsMap.set(rootName, `"${lastSegment}"`)
+        if (comment) rootVarsComments.set(rootName, comment)
         continue
       }
     }
@@ -633,21 +662,25 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
       if (layer == null) continue
       for (const theme of ['light', 'dark'] as const) {
         let formatted = formatValue(value, path, allRootNames, errors, {
-          ...rootOptions,
+          refNamer: (p: string) => isLayerSpecificUIKitPath(p) ? pathToRootVarNameLayerSpecificUIKit(p, theme) : pathToVarName(p),
           themeForExpand: theme
         })
         if (formatted == null) formatted = fallbackForNullByType(tokenType)
         if (formatted == null) continue
         const rootName = pathToRootVarNameLayerSpecificUIKit(path, theme)
         rootVarsMap.set(rootName, formatted)
+        if (comment) rootVarsComments.set(rootName, comment)
       }
       continue
     }
 
-    let formatted = formatValue(value, path, allRootNames, errors, rootOptions)
+    let formatted = formatValue(value, path, allRootNames, errors, {
+      refNamer: (p: string) => isLayerSpecificUIKitPath(p) ? pathToRootVarNameLayerSpecificUIKit(p, 'light') : pathToVarName(p)
+    })
     if (formatted == null) continue
     const rootName = pathToVarName(path)
     rootVarsMap.set(rootName, formatted)
+    if (comment) rootVarsComments.set(rootName, comment)
   }
 
   // Validate layer coverage in JSON (each canonical must be defined in all 4 layers)
@@ -702,7 +735,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     themeAliases.set(theme, merged)
   }
 
-  const css = formatScopedCss(rootVarsMap, themeAliases, themeLayerAliases)
+  const css = formatScopedCss(rootVarsMap, themeAliases, themeLayerAliases, rootVarsComments)
   return [{ filename: FILENAME, contents: css }]
 }
 
@@ -738,7 +771,8 @@ function collectTypographyHelpers(
 function formatScopedCss(
   rootVarsMap: Map<string, string>,
   themeAliases: Map<string, Array<{ genericName: string; rootName: string }>>,
-  themeLayerAliases: Map<string, Array<{ genericName: string; rootName: string }>>
+  themeLayerAliases: Map<string, Array<{ genericName: string; rootName: string }>>,
+  rootVarsComments: Map<string, string>
 ): string {
   const buildDate = new Date().toUTCString()
 
@@ -789,6 +823,12 @@ function formatScopedCss(
   css += ` *    full type definition (family, size, weight, line-height, etc.) from brand.typography.\n`
   css += ` *    Class names follow the path: brand.typography.<typeName>.\n`
   css += ` *\n`
+  css += ` * 7. Variant Handling\n`
+  css += ` *    When a token is defined as a variant reference (e.g. $type: "variant"), the exporter automatically\n`
+  css += ` *    extracts all properties from the referenced variant and creates corresponding variables under the\n`
+  css += ` *    active property's path. These aliased variables act as a pointer to the active variant's styles.\n`
+  css += ` *    They are indicated in the CSS with a preceding comment indicating the variant reference.\n`
+  css += ` *\n`
   css += ` * --- Disabled state (implicit rule) ---\n`
   css += ` * The brand theme exposes a single disabled token: --recursica_brand_states_disabled (generic\n`
   css += ` * name; resolves per theme to an opacity value, e.g. from opacities_ghost). Use this for disabled\n`
@@ -816,6 +856,10 @@ function formatScopedCss(
   const rootVars = [...rootVarsMap.entries()].sort((a, b) => a[0].localeCompare(b[0]))
   css += `:root {\n`
   for (const [name, value] of rootVars) {
+    const comment = rootVarsComments.get(name)
+    if (comment) {
+      css += `  /* ${comment} */\n`
+    }
     css += `  ${name}: ${value};\n`
   }
   css += `}\n\n`
