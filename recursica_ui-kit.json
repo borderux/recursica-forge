@@ -6408,6 +6408,10 @@
                     "$type": "string",
                     "$value": "{tokens.font.decorations.none}"
                   },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
+                  },
                   "font-style": {
                     "$type": "string",
                     "$value": "{tokens.font.styles.normal}"
@@ -6467,6 +6471,10 @@
                   "text-decoration": {
                     "$type": "string",
                     "$value": "{tokens.font.decorations.underline}"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
                   },
                   "font-style": {
                     "$type": "string",
@@ -6528,6 +6536,10 @@
                     "$type": "string",
                     "$value": "{tokens.font.decorations.none}"
                   },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
+                  },
                   "font-style": {
                     "$type": "string",
                     "$value": "{tokens.font.styles.normal}"
@@ -6587,6 +6599,10 @@
                   "text-decoration": {
                     "$type": "string",
                     "$value": "{tokens.font.decorations.underline}"
+                  },
+                  "text-transform": {
+                    "$type": "string",
+                    "$value": "{tokens.font.cases.original}"
                   },
                   "font-style": {
                     "$type": "string",
