@@ -11686,7 +11686,7 @@
           },
           "button-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.md}"
+            "$value": "{brand.dimensions.gutters.horizontal}"
           },
           "border-radius": {
             "$type": "dimension",
