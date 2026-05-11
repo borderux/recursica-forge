@@ -10,21 +10,21 @@
     }
   },
   "props": {
-    "container": {
+    "background": {
+      "icon": "paint-bucket",
+      "label": "Background",
+      "visible": true
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "visible": true
+    },
+    "border": {
       "icon": "square",
-      "label": "Container",
+      "label": "Border",
       "visible": true,
       "group": {
-        "background": {
-          "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
-        },
-        "elevation": {
-          "icon": "copy-simple",
-          "label": "Elevation",
-          "visible": true
-        },
         "border-size": {
           "icon": "arrows-left-right",
           "label": "Border size",
@@ -38,11 +38,6 @@
         "border-radius": {
           "icon": "corners-out",
           "label": "Border radius",
-          "visible": true
-        },
-        "text-color": {
-          "icon": "text-aa",
-          "label": "Text color",
           "visible": true
         }
       }
@@ -54,7 +49,7 @@
       "group": {
         "padding-horizontal": {
           "icon": "arrows-left-right",
-          "label": "Horizontal",
+          "label": "Horizontal padding",
           "visible": true
         },
         "padding-vertical": {
@@ -64,43 +59,7 @@
         }
       }
     },
-    "selected": {
-      "icon": "check-square",
-      "label": "Selected",
-      "visible": true,
-      "group": {
-        "background": {
-          "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
-        },
-        "text-color": {
-          "icon": "text-aa",
-          "label": "Text color",
-          "visible": true
-        },
-        "elevation": {
-          "icon": "copy-simple",
-          "label": "Elevation",
-          "visible": true
-        },
-        "border-size": {
-          "icon": "arrows-left-right",
-          "label": "Border size",
-          "visible": true
-        },
-        "border-color": {
-          "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true
-        },
-        "border-radius": {
-          "icon": "corners-out",
-          "label": "Border radius",
-          "visible": true
-        }
-      }
-    },
+
     "direction": {
       "icon": "arrows-out",
       "label": "Direction",
@@ -135,3 +94,4 @@
     }
   }
 }
+

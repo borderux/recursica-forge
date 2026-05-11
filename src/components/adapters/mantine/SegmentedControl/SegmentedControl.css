@@ -38,11 +38,12 @@
   padding-bottom: var(--segmented-control-container-padding-vertical, 0px) !important;
   padding-left: var(--segmented-control-container-padding-horizontal, 0px) !important;
   padding-right: var(--segmented-control-container-padding-horizontal, 0px) !important;
-  font-family: var(--segmented-control-font-family) !important;
-  font-size: var(--segmented-control-font-size) !important;
-  font-weight: var(--segmented-control-font-weight) !important;
-  letter-spacing: var(--segmented-control-letter-spacing) !important;
-  line-height: var(--segmented-control-line-height) !important;
+  /* Default (unselected) typography */
+  font-family: var(--segmented-control-unselected-font-family) !important;
+  font-size: var(--segmented-control-unselected-font-size) !important;
+  font-weight: var(--segmented-control-unselected-font-weight) !important;
+  letter-spacing: var(--segmented-control-unselected-letter-spacing) !important;
+  line-height: var(--segmented-control-unselected-line-height) !important;
   /* Prevent white flash during updates */
   transition: none !important;
   /* Ensure border never shows white - use transparent fallback */
@@ -78,8 +79,27 @@
   /* Ensure control element fills its area and is clickable */
   width: 100% !important;
   height: 100% !important;
+  /* Prevent descender clipping from Mantine defaults */
+  overflow: visible !important;
   /* Prevent white flash during updates */
   transition: none !important;
+}
+
+/* Unselected controls - explicit styling */
+.mantine-SegmentedControl-control:not([data-active]) {
+  background: var(--segmented-control-unselected-bg, transparent) !important;
+  background-color: var(--segmented-control-unselected-bg, transparent) !important;
+  color: var(--segmented-control-unselected-text, var(--segmented-control-text)) !important;
+  border-style: solid !important;
+  border-width: var(--segmented-control-unselected-border-size, 0px) !important;
+  border-color: var(--segmented-control-unselected-border-color, transparent) !important;
+  box-shadow: var(--segmented-control-unselected-elevation-shadow, none) !important;
+  /* Unselected typography */
+  font-family: var(--segmented-control-unselected-font-family) !important;
+  font-size: var(--segmented-control-unselected-font-size) !important;
+  font-weight: var(--segmented-control-unselected-font-weight) !important;
+  letter-spacing: var(--segmented-control-unselected-letter-spacing) !important;
+  line-height: var(--segmented-control-unselected-line-height) !important;
 }
 
 /* Ensure input element inside control covers entire control area and is clickable */
@@ -178,30 +198,9 @@
   flex: none !important;
 }
 
-/* Ensure no default Mantine dividers are applied */
-.mantine-SegmentedControl-root .mantine-SegmentedControl-control {
-  border: none !important;
-  border-color: transparent !important;
-}
-
-/* Override any Mantine default control styles that might add borders */
-/* Remove all default borders from non-selected controls only */
-/* Selected controls will have borders applied via .mantine-SegmentedControl-control[data-active] rule */
-.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not([data-active]) {
-  border-right: none !important;
-  border-left: none !important;
-  border-top: none !important;
-  border-bottom: none !important;
-  border-color: transparent !important;
-}
-
-.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not([data-active]) {
-  border-bottom: none !important;
-  border-top: none !important;
-  border-left: none !important;
-  border-right: none !important;
-  border-color: transparent !important;
-}
+/* NOTE: Do NOT add blanket border:none rules for controls here.
+   Unselected controls have their own border styles set via :not([data-active]).
+   Only the Mantine indicator needs its borders suppressed. */
 
 /* Override any Mantine pseudo-elements or other styling that might create dividers */
 /* Note: We only hide ::before, not ::after, since we use ::after for dividers */
@@ -223,12 +222,13 @@
   gap: 0 !important;
 }
 
-/* Prevent any white borders from appearing - ensure all borders use CSS variables */
-.mantine-SegmentedControl-root,
-.mantine-SegmentedControl-root *,
-.mantine-SegmentedControl-control,
-.mantine-SegmentedControl-control * {
+/* Prevent any white borders from appearing on the root container */
+.mantine-SegmentedControl-root {
   border-color: var(--segmented-control-border-color, transparent) !important;
+}
+/* Ensure selected control children don't show stray borders */
+.mantine-SegmentedControl-control[data-active] * {
+  border-color: transparent !important;
 }
 
 .mantine-SegmentedControl-control[data-active] {
@@ -243,8 +243,8 @@
   border-width: var(--segmented-control-selected-border-size, 1px) !important;
 }
 
-/* Ensure child elements inside selected control have no borders */
-.mantine-SegmentedControl-control[data-active] * {
+/* Ensure child elements inside selected control have no stray borders */
+.mantine-SegmentedControl-control[data-active] > *:not(.mantine-SegmentedControl-label) {
   border: none !important;
   border-color: transparent !important;
   border-width: 0 !important;
@@ -255,8 +255,8 @@
 /* Don't add divider to selected items */
 /* First, ensure ALL controls have no borders by default - this must come before our custom dividers */
 /* But don't override selected item borders */
-.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not([data-active]),
-.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not([data-active]) * {
+/* Mantine indicator border suppression for horizontal */
+.mantine-SegmentedControl-root[data-orientation="horizontal"] .mantine-SegmentedControl-control:not([data-active]) .mantine-SegmentedControl-indicator {
   border-right: none !important;
 }
 
@@ -285,21 +285,17 @@
 }
 
 /* Divider elements injected via JavaScript */
-/* Divider is positioned relative to the control element */
+/* Divider is positioned relative to the control element's padding box */
 .recursica-segmented-control-divider[data-orientation="horizontal"] {
   position: absolute !important;
   top: 0 !important;
   bottom: 0 !important;
   width: var(--segmented-control-divider-size, 1px) !important;
   background: var(--segmented-control-divider-color) !important;
-  /* Center in gap: total gap = margin-right (item-gap) + margin-left of next (item-gap) = 2 * item-gap */
-  /* Gap center is at control.right + item-gap (in margin space, outside the control) */
-  /* Divider center should align with gap center, so divider center at: control.right + item-gap */
-  /* Since we're positioning the right edge, and divider center = right edge - divider-width/2 */
-  /* right edge = divider center + divider-width/2 = (control.right + item-gap) + divider-width/2 */
-  /* Since right is negative for elements outside the control: right = -(item-gap + divider-width/2) */
-  /* So right = -item-gap - divider-width/2 */
-  right: calc(calc(var(--segmented-control-item-gap) * -1) - calc(var(--segmented-control-divider-size, 1px) * 0.5)) !important;
+  /* Positioning from padding box edge: must traverse past border-right, then center in the margin gap. */
+  /* Distance from padding edge to gap center = border-right + item-gap */
+  /* right = -(border-right + item-gap + divider-width/2) */
+  right: calc(-1 * (var(--segmented-control-unselected-border-size, 0px) + var(--segmented-control-item-gap)) - var(--segmented-control-divider-size, 1px) * 0.5) !important;
   pointer-events: none !important;
   z-index: 1 !important;
 }
@@ -313,8 +309,8 @@
 /* Don't add divider to selected items */
 /* First, ensure ALL controls have no borders by default - this must come before our custom dividers */
 /* But don't override selected item borders */
-.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not([data-active]),
-.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not([data-active]) * {
+/* Mantine indicator border suppression for vertical */
+.mantine-SegmentedControl-root[data-orientation="vertical"] .mantine-SegmentedControl-control:not([data-active]) .mantine-SegmentedControl-indicator {
   border-bottom: none !important;
 }
 
@@ -343,21 +339,17 @@
 }
 
 /* Divider elements injected via JavaScript */
-/* Divider is positioned relative to the control element */
+/* Divider is positioned relative to the control element's padding box */
 .recursica-segmented-control-divider[data-orientation="vertical"] {
   position: absolute !important;
   left: 0 !important;
   right: 0 !important;
   height: var(--segmented-control-divider-size, 1px) !important;
   background: var(--segmented-control-divider-color) !important;
-  /* Center in gap: total gap = margin-bottom (item-gap) + margin-top of next (item-gap) = 2 * item-gap */
-  /* Gap center is at control.bottom + item-gap (in margin space, outside the control) */
-  /* Divider center should align with gap center, so divider center at: control.bottom + item-gap */
-  /* Since we're positioning the bottom edge, and divider center = bottom edge - divider-height/2 */
-  /* bottom edge = divider center + divider-height/2 = (control.bottom + item-gap) + divider-height/2 */
-  /* Since bottom is negative for elements outside the control: bottom = -(item-gap + divider-height/2) */
-  /* So bottom = -item-gap - divider-height/2 */
-  bottom: calc(calc(var(--segmented-control-item-gap) * -1) - calc(var(--segmented-control-divider-size, 1px) * 0.5)) !important;
+  /* Positioning from padding box edge: must traverse past border-bottom, then center in the margin gap. */
+  /* Distance from padding edge to gap center = border-bottom + item-gap */
+  /* bottom = -(border-bottom + item-gap + divider-height/2) */
+  bottom: calc(-1 * (var(--segmented-control-unselected-border-size, 0px) + var(--segmented-control-item-gap)) - var(--segmented-control-divider-size, 1px) * 0.5) !important;
   pointer-events: none !important;
   z-index: 1 !important;
 }
@@ -371,14 +363,14 @@
   height: var(--segmented-control-height, auto) !important;
   padding-left: var(--segmented-control-padding-horizontal, 0px) !important;
   padding-right: var(--segmented-control-padding-horizontal, 0px) !important;
-  border-radius: var(--segmented-control-item-border-radius) !important;
+  border-radius: var(--segmented-control-unselected-border-radius, var(--segmented-control-item-border-radius)) !important;
 }
 
 .mantine-SegmentedControl-control[data-active] {
   background: var(--segmented-control-selected-bg) !important;
   background-color: var(--segmented-control-selected-bg) !important;
   color: var(--segmented-control-selected-text) !important;
-  border-radius: var(--segmented-control-item-border-radius) !important;
+  border-radius: var(--segmented-control-selected-border-radius, var(--segmented-control-item-border-radius)) !important;
   /* Selected border - use individual properties - ensure all sides are set */
   /* Explicitly set border-color FIRST to prevent white flash */
   border-color: var(--segmented-control-selected-border-color, var(--segmented-control-selected-bg)) !important;
@@ -398,6 +390,12 @@
   transition: none !important;
   /* Ensure border-style is always solid to prevent white flash */
   border-style: solid !important;
+  /* Selected typography */
+  font-family: var(--segmented-control-selected-font-family) !important;
+  font-size: var(--segmented-control-selected-font-size) !important;
+  font-weight: var(--segmented-control-selected-font-weight) !important;
+  letter-spacing: var(--segmented-control-selected-letter-spacing) !important;
+  line-height: var(--segmented-control-selected-line-height) !important;
 }
 
 /* Dividers are now injected as separate div elements, so no need to hide pseudo-elements */
@@ -409,16 +407,29 @@
   font-weight: inherit !important;
   letter-spacing: inherit !important;
   line-height: inherit !important;
-  text-decoration: var(--segmented-control-text-decoration, none) !important;
-  text-transform: var(--segmented-control-text-transform, none) !important;
-  font-style: var(--segmented-control-font-style, normal) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   /* Reset padding - padding should be controlled by the control element, not the label */
   padding: 0 !important;
+  /* Prevent descender clipping from Mantine defaults */
+  overflow: visible !important;
   /* Ensure label doesn't block pointer events - clicks should go to control element */
   pointer-events: none !important;
+}
+
+/* Unselected label text decoration */
+.mantine-SegmentedControl-control:not([data-active]) .mantine-SegmentedControl-label {
+  text-decoration: var(--segmented-control-unselected-text-decoration, none) !important;
+  text-transform: var(--segmented-control-unselected-text-transform, none) !important;
+  font-style: var(--segmented-control-unselected-font-style, normal) !important;
+}
+
+/* Selected label text decoration */
+.mantine-SegmentedControl-control[data-active] .mantine-SegmentedControl-label {
+  text-decoration: var(--segmented-control-selected-text-decoration, none) !important;
+  text-transform: var(--segmented-control-selected-text-transform, none) !important;
+  font-style: var(--segmented-control-selected-font-style, normal) !important;
 }
 
 /* Ensure SVG icons are centered within their containers */
