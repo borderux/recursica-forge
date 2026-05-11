@@ -1,5 +1,17 @@
 {
     "props": {
+        "colors": {
+            "icon": "paint-bucket",
+            "label": "Colors",
+            "visible": true,
+            "group": {
+                "dots-color": {
+                    "icon": "circle-dashed",
+                    "label": "Dots color",
+                    "visible": true
+                }
+            }
+        },
         "navigation-controls": {
             "icon": "arrows-left-right",
             "label": "Navigation controls",
@@ -26,23 +38,23 @@
                         "small"
                     ]
                 },
-                "navigation-controls-display": {
+                "navigation-controls-content": {
                     "icon": "text-columns",
-                    "label": "Display",
+                    "label": "Content",
                     "visible": true,
                     "control": "dropdown",
                     "options": [
                         {
                             "label": "Icon only",
-                            "value": "icon"
+                            "value": "icon-only"
                         },
                         {
-                            "label": "Text only",
-                            "value": "text"
+                            "label": "Label only",
+                            "value": "label"
                         },
                         {
-                            "label": "Icon + text",
-                            "value": "icon+text"
+                            "label": "Icon + label",
+                            "value": "icon-label"
                         }
                     ]
                 }

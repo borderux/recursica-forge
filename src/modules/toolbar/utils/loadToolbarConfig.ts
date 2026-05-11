@@ -63,6 +63,7 @@ export interface ToolbarPropConfig {
 export interface ToolbarVariantConfig {
   icon: string
   label: string
+  optionLabels?: Record<string, string> // Override display labels per option value
 }
 
 export interface ToolbarConfig {
@@ -332,5 +333,18 @@ export function getVariantIcon(componentName: string, variantPropName: string): 
 export function getVariantLabel(componentName: string, variantPropName: string): string | null {
   const config = getVariantConfig(componentName, variantPropName)
   return config?.label || null
+}
+
+/**
+ * Gets the display label for a specific option value within a variant axis.
+ * Falls back to null if no override is defined (caller should use toSentenceCase).
+ */
+export function getVariantOptionLabel(
+  componentName: string,
+  variantPropName: string,
+  optionValue: string
+): string | null {
+  const config = getVariantConfig(componentName, variantPropName)
+  return config?.optionLabels?.[optionValue] ?? null
 }
 

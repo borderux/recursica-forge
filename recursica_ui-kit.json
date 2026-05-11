@@ -642,6 +642,26 @@
             }
           },
           "content": {
+            "icon-label": {
+              "sizes": {
+                "default": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.general.lg}"
+                    }
+                  }
+                },
+                "small": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.general.md}"
+                    }
+                  }
+                }
+              }
+            },
             "label": {
               "sizes": {
                 "default": {
@@ -6038,9 +6058,9 @@
               "$type": "variant",
               "$value": "{ui-kit.components.button.variants.sizes.small}"
             },
-            "display": {
-              "$type": "string",
-              "$value": "icon"
+            "content": {
+              "$type": "variant",
+              "$value": "{ui-kit.components.button.variants.content.icon-only}"
             }
           }
         }

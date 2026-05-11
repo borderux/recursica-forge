@@ -642,6 +642,26 @@
             }
           },
           "content": {
+            "icon-label": {
+              "sizes": {
+                "default": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.general.lg}"
+                    }
+                  }
+                },
+                "small": {
+                  "properties": {
+                    "horizontal-padding": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.general.md}"
+                    }
+                  }
+                }
+              }
+            },
             "label": {
               "sizes": {
                 "default": {

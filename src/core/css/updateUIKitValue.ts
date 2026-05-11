@@ -144,6 +144,26 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
             }
         } else if (existingType === 'number') {
             current[finalKey].$value = numericValue
+        } else if (existingType === 'variant') {
+            // Reconstruct the full DTCG alias reference for variant-type tokens.
+            // If the incoming value is already a {…} reference, write it directly.
+            // Otherwise, derive the full path by replacing only the last segment of the
+            // existing reference — e.g. selecting "outline" when the existing value is
+            // "{ui-kit.components.button.variants.styles.solid}" produces
+            // "{ui-kit.components.button.variants.styles.outline}".
+            if (typeof tokenValue === 'string' && tokenValue.startsWith('{') && tokenValue.endsWith('}')) {
+                current[finalKey].$value = tokenValue
+            } else {
+                const existingRef = (current[finalKey] as any).$value
+                if (typeof existingRef === 'string' && existingRef.startsWith('{') && existingRef.endsWith('}')) {
+                    const inner = existingRef.slice(1, -1)
+                    const lastDot = inner.lastIndexOf('.')
+                    const prefix = lastDot >= 0 ? inner.slice(0, lastDot + 1) : ''
+                    current[finalKey].$value = `{${prefix}${tokenValue}}`
+                } else {
+                    current[finalKey].$value = tokenValue
+                }
+            }
         } else {
             // Keep original format (e.g., color, raw string)
             current[finalKey].$value = tokenValue === 'transparent' ? null : tokenValue

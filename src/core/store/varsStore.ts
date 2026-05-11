@@ -345,12 +345,15 @@ class VarsStore {
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
 
-    // Bundle version check: clear caches when source JSON files change
+    // Bundle version check: clear uikit cache when source JSON changes so new
+    // schema additions (e.g. new variant keys) are picked up after HMR reload.
     if (this.lsAvailable) {
       const bundleVersion = computeBundleVersion(tokensImport, themeImport, uikitImport)
       const storedVersion = localStorage.getItem(STORAGE_KEYS.version)
       if (storedVersion !== bundleVersion) {
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
+        localStorage.removeItem(STORAGE_KEYS.editedUikit)
+        localStorage.removeItem(STORAGE_KEYS.importedUikit)
       }
     }
 
