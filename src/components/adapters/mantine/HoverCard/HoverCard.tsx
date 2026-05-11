@@ -33,10 +33,9 @@ export default function HoverCard({
     const [, setUpdateKey] = useState(0)
 
     // Build CSS variable names — use 'HoverCardPopover' as the component name for shared styling
-    // Colors are at the component top level (not under properties)
-    const bgVar = buildComponentCssVarPath('HoverCardPopover', 'colors', layer, 'background')
-    const contentColorVar = buildComponentCssVarPath('HoverCardPopover', 'colors', layer, 'content')
-    const borderColorVar = buildComponentCssVarPath('HoverCardPopover', 'colors', layer, 'border-color')
+    const bgVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'background')
+    const contentColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'content')
+    const borderColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'border-color')
 
 
     const borderRadiusVar = getComponentLevelCssVar('HoverCardPopover', 'border-radius')

@@ -3,11 +3,10 @@ import { Modal } from '../../components/adapters/Modal'
 import { Button } from '../../components/adapters/Button'
 import { X } from '@phosphor-icons/react'
 import { Box, Group, Text } from '@mantine/core'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { getElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
-import type { ComponentLayer } from '../../components/registry/types'
 
 interface ModalPreviewProps {
     selectedVariants: Record<string, string>
@@ -31,18 +30,32 @@ export default function ModalPreview({
     const scrollable = selectedVariants.scrollable === 'true'
     const padding = selectedVariants.padding !== 'false'
 
-    // Listen for CSS variable updates to force re-render
+    // Listen for CSS variable updates to force re-render.
+    // UIKit vars are always dispatched silently (no cssVarsUpdated event), so we also
+    // watch the documentElement style attribute via MutationObserver which fires whenever
+    // root.style.setProperty() is called by updateCssVar.
     useEffect(() => {
         const handler = () => setUpdateKey((k) => k + 1)
         window.addEventListener('cssVarsUpdated', handler as any)
-        return () => window.removeEventListener('cssVarsUpdated', handler as any)
+
+        const observer = new MutationObserver(handler)
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style'],
+        })
+
+        return () => {
+            window.removeEventListener('cssVarsUpdated', handler as any)
+            observer.disconnect()
+        }
     }, [])
 
     // Get CSS variable names for the static preview
-    const bgVar = getComponentCssVar('Modal', 'colors', 'background', selectedLayer as ComponentLayer)
-    const titleColorVar = getComponentCssVar('Modal', 'colors', 'title', selectedLayer as ComponentLayer)
-    const borderColorVar = getComponentCssVar('Modal', 'colors', 'border-color', selectedLayer as ComponentLayer)
-    const dividerColorVar = getComponentCssVar('Modal', 'colors', 'scroll-divider', selectedLayer as ComponentLayer)
+    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'background')
+    const titleColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'title')
+    const borderColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'border-color')
+    const dividerColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'scroll-divider')
+    const contentColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'content')
 
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')
@@ -113,6 +126,7 @@ export default function ModalPreview({
         fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
         textDecoration: 'none',
         textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)` as any,
+        color: `var(${contentColorVar})`,
     } as any
 
     const staticModalStyles = {
@@ -182,9 +196,9 @@ export default function ModalPreview({
                     {/* Body */}
                     <div style={{
                         padding: padding ? `var(${verticalPaddingVar}) var(${horizontalPaddingVar})` : 0,
-                        maxHeight: '200px',
-                        overflowY: scrollable ? 'auto' : 'visible',
                         flex: 1,
+                        minHeight: 0,
+                        overflowY: scrollable ? 'auto' : 'visible',
                         ...contentStyle
                     } as any}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -256,9 +270,9 @@ export default function ModalPreview({
                     {/* Body with forced scrolling */}
                     <div style={{
                         padding: padding ? `var(${verticalPaddingVar}) var(${horizontalPaddingVar})` : 0,
-                        maxHeight: '150px',
-                        overflowY: 'auto',
                         flex: 1,
+                        minHeight: 0,
+                        overflowY: 'auto',
                         ...contentStyle
                     } as any}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

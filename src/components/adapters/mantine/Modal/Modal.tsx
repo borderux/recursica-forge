@@ -8,7 +8,7 @@ import { Modal as MantineModal, Box, Group } from '@mantine/core'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import { useState, useEffect } from 'react'
 import type { ModalProps as AdapterModalProps } from '../../Modal'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readRawCssVar } from '../../../../core/css/readCssVar'
@@ -100,11 +100,11 @@ export default function Modal({
     }
 
     // Build CSS variable names
-    const bgVar = getComponentCssVar('Modal', 'colors', 'background', layer)
-    const titleColorVar = getComponentCssVar('Modal', 'colors', 'title', layer)
-    const contentColorVar = getComponentCssVar('Modal', 'colors', 'content', layer)
-    const borderColorVar = getComponentCssVar('Modal', 'colors', 'border-color', layer)
-    const dividerColorVar = getComponentCssVar('Modal', 'colors', 'scroll-divider', layer)
+    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'background')
+    const titleColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'title')
+    const contentColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'content')
+    const borderColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'border-color')
+    const dividerColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'scroll-divider')
 
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')

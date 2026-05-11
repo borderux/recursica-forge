@@ -64,13 +64,11 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     // Get current UIKit JSON
     const currentUIKit = getVarsStore().getState().uikit
     if (!currentUIKit || typeof currentUIKit !== 'object') {
-        console.warn('[updateUIKitValue] UIKit state is not available')
         return false
     }
 
     const path = cssVarToUIKitPath(cssVar, currentUIKit)
     if (!path) {
-        console.warn(`[updateUIKitValue] Could not parse CSS var: ${cssVar}`)
         return false
     }
 
@@ -110,7 +108,6 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         // to serialize a CSS declaration into the DTCG JSON store. If cssVarToRef fails to
         // securely translate it back to a {reference}, we must hard-reject it at the entry gate 
         // to prevent corrupting the JSON payload and failing the export validator later.
-        console.warn(`[updateUIKitValue] Rejected unmapped CSS variable from entering JSON store: ${value}`)
         return false
     }
 

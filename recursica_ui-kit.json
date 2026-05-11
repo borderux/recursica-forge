@@ -11593,97 +11593,97 @@
         }
       },
       "modal": {
-        "colors": {
-          "layer-0": {
-            "background": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-1.properties.surface}"
-            },
-            "scroll-divider": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.default.color.tone}"
-            },
-            "title": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
-            },
-            "content": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
-            },
-            "border-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.properties.border-color}"
-            }
-          },
-          "layer-1": {
-            "background": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-2.properties.surface}"
-            },
-            "scroll-divider": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.default.color.tone}"
-            },
-            "title": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-1.elements.text.color}"
-            },
-            "content": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-1.elements.text.color}"
-            },
-            "border-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-1.properties.border-color}"
-            }
-          },
-          "layer-2": {
-            "background": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-3.properties.surface}"
-            },
-            "scroll-divider": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.default.color.tone}"
-            },
-            "title": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-2.elements.text.color}"
-            },
-            "content": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-2.elements.text.color}"
-            },
-            "border-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-2.properties.border-color}"
-            }
-          },
-          "layer-3": {
-            "background": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-3.properties.surface}"
-            },
-            "scroll-divider": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.default.color.tone}"
-            },
-            "title": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-3.elements.text.color}"
-            },
-            "content": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-3.elements.text.color}"
-            },
-            "border-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-3.properties.border-color}"
-            }
-          }
-        },
         "properties": {
+          "colors": {
+            "layer-0": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "scroll-divider": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.default.color.tone}"
+              },
+              "title": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.border-color}"
+              }
+            },
+            "layer-1": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.surface}"
+              },
+              "scroll-divider": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.default.color.tone}"
+              },
+              "title": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
+              }
+            },
+            "layer-2": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "scroll-divider": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.default.color.tone}"
+              },
+              "title": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
+              }
+            },
+            "layer-3": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "scroll-divider": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.default.color.tone}"
+              },
+              "title": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              }
+            }
+          },
           "button-gap": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.md}"
@@ -11757,65 +11757,65 @@
         }
       },
       "hover-card-popover": {
-        "colors": {
-          "layer-0": {
-            "background": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.properties.surface}"
-            },
-            "content": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.elements.text.color}"
-            },
-            "border-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-0.properties.border-color}"
-            }
-          },
-          "layer-1": {
-            "background": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-1.properties.surface}"
-            },
-            "content": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-1.elements.text.color}"
-            },
-            "border-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-1.properties.border-color}"
-            }
-          },
-          "layer-2": {
-            "background": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-2.properties.surface}"
-            },
-            "content": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-2.elements.text.color}"
-            },
-            "border-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-2.properties.border-color}"
-            }
-          },
-          "layer-3": {
-            "background": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-3.properties.surface}"
-            },
-            "content": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-3.elements.text.color}"
-            },
-            "border-color": {
-              "$type": "color",
-              "$value": "{brand.layers.layer-3.properties.border-color}"
-            }
-          }
-        },
         "properties": {
+          "colors": {
+            "layer-0": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.surface}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.border-color}"
+              }
+            },
+            "layer-1": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
+              }
+            },
+            "layer-2": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.surface}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
+              }
+            },
+            "layer-3": {
+              "background": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "content": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.color}"
+              },
+              "border-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              }
+            }
+          },
           "content-text": {
             "font-family": {
               "$type": "string",

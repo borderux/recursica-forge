@@ -89,8 +89,7 @@ export function Slider({
         computedTooltipText = tooltipText
       }
     }
-  } catch (error) {
-    console.warn('Error calculating tooltip text:', error)
+  } catch (_e) {
     computedTooltipText = undefined
   }
 
@@ -628,8 +627,7 @@ export function Slider({
     } else {
       displayValue = singleValue
     }
-  } catch (error) {
-    console.warn('Error calculating value label:', error)
+  } catch (_e) {
     displayValue = singleValue
   }
   // Ensure displayValue is always a non-empty string for rendering

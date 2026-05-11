@@ -454,9 +454,7 @@ class VarsStore {
         if (next.tokens) localStorage.setItem(STORAGE_KEYS.editedTokens, JSON.stringify(this.state.tokens))
         if (next.theme) localStorage.setItem(STORAGE_KEYS.editedBrand, JSON.stringify(this.state.theme))
         if (next.uikit) localStorage.setItem(STORAGE_KEYS.editedUikit, JSON.stringify(this.state.uikit))
-      } catch (err) {
-        console.error("Failed to persist state to local storage", err)
-      }
+      } catch { }
     }
 
     // Update AA watcher if tokens or theme changed
@@ -1819,10 +1817,19 @@ class VarsStore {
     try {
       localStorage.setItem('recursica_theme_mode', mode)
     } catch { }
-    // Skip if already recomputing to prevent infinite loops
-    if (!this.isRecomputing) {
+    if (this.isRecomputing) {
+      // A recompute is already in flight — defer one recompute so the mode
+      // change is guaranteed to apply once the current recompute finishes.
+      requestAnimationFrame(() => {
+        if (!this.isRecomputing) {
+          this.recomputeAndApplyAll()
+        } else {
+          // Still busy — push one more frame to ensure it runs
+          requestAnimationFrame(() => this.recomputeAndApplyAll())
+        }
+      })
+    } else {
       this.recomputeAndApplyAll()
-      // Compliance scan runs automatically via scheduleComplianceScan at end of recomputeAndApplyAll
     }
   }
 
@@ -1833,12 +1840,6 @@ class VarsStore {
       return
     }
     this.isRecomputing = true
-    
-    if (typeof document !== 'undefined') {
-      const domTheme = document.documentElement.getAttribute('data-recursica-theme')
-      const currentMode = this.getCurrentMode()
-      console.debug(`[recomputeAndApplyAll] DOM theme: ${domTheme}, Current Mode: ${currentMode}`)
-    }
 
     // Clear overlay CSS variables from DOM before recomputing to ensure new values from theme JSON are used
     if (typeof document !== 'undefined') {
@@ -2439,6 +2440,14 @@ class VarsStore {
               continue
             }
 
+            // Only preserve themed vars — non-themed vars are aliases regenerated
+            // from the current JSON state and must NOT be read from the DOM, because
+            // their inline values are stale from the previous recompute cycle and
+            // will incorrectly overwrite the freshly-computed JSON-derived values.
+            if (!cssVar.includes('_themes_light_') && !cssVar.includes('_themes_dark_')) {
+              continue
+            }
+
             const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
             const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
 
@@ -2679,9 +2688,7 @@ class VarsStore {
             vars[`${prefixedScope}_y-axis`] = `${dir.y === 'down' ? yValue : -yValue}px`
           }
           Object.assign(allVars, vars)
-        } catch (e) {
-          throw e
-        }
+        } catch { }
       }
 
       // Compute layer element colors (text, interactive, status) based on layer surfaces.

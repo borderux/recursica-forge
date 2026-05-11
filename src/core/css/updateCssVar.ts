@@ -123,6 +123,21 @@ export function updateCssVar(
   // IMMEDIATELY apply the CSS variable to the DOM to ensure 60fps live previews
   root.style.setProperty(cssVarName, trimmedValue)
 
+  // For mode-independent UIKit vars (dimensions, border-radius, padding, etc.), also
+  // mirror the change to the opposite-mode themed var immediately.
+  // Without this, the preservation loop in recomputeAndApplyAll reads the stale
+  // opposite-mode DOM value (from the last recompute) and treats it as a user change,
+  // overriding the correct JSON-derived value and reverting the user's edit.
+  // Color vars (_properties_colors_) are deliberately excluded — they ARE mode-dependent
+  // and must not be cross-copied between light and dark.
+  if (isUIKitVar && !cssVarName.includes('_properties_colors_')) {
+    if (cssVarName.includes('_themes_light_')) {
+      root.style.setProperty(cssVarName.replace('_themes_light_', '_themes_dark_'), trimmedValue)
+    } else if (cssVarName.includes('_themes_dark_')) {
+      root.style.setProperty(cssVarName.replace('_themes_dark_', '_themes_light_'), trimmedValue)
+    }
+  }
+
   // For brand CSS variables, synchronously sync state.theme so that any subsequent
   // recomputeAndApplyAll (e.g. from addPalette / deletePalette) reads the updated value
   // via buildPaletteVars. Without this, state.theme keeps the stale JSON value and the
