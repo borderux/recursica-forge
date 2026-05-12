@@ -1383,6 +1383,36 @@ export default function PropControlContent({
               }
             }
 
+            // Generic resolver for layout-variant dimension props used by group components
+            // (e.g. switch-group, checkbox-group, radio-button-group).
+            // Toolbar configs express these as "{layout-alias}-{propname}" (e.g. "stacked-label-field-gap",
+            // "sbs-gutter") but the actual uikit path is variants.layouts.{layoutName}.properties.{propname}.
+            // The layout alias mapping: "stacked" -> "stacked", "sbs" -> "side-by-side".
+            if (!childProp) {
+              const layoutAliases: Record<string, string> = {
+                stacked: 'stacked',
+                sbs: 'side-by-side',
+              }
+              for (const [alias, layoutName] of Object.entries(layoutAliases)) {
+                if (childPropName.toLowerCase().startsWith(alias + '-')) {
+                  const layoutPropName = childPropName.slice(alias.length + 1)
+                  const cssVarPath = buildComponentCssVarPath(
+                    componentName,
+                    'variants', 'layouts', layoutName, 'properties', layoutPropName
+                  )
+                  childProp = {
+                    name: childPropName,
+                    category: 'size',
+                    type: 'dimension',
+                    cssVar: cssVarPath,
+                    path: ['variants', 'layouts', layoutName, 'properties', layoutPropName],
+                    isVariantSpecific: false,
+                  }
+                  break
+                }
+              }
+            }
+
             // If not found in structure, create a virtual prop (e.g., for Pagination config string props)
             if (!childProp && childConfig.options) {
               // Build the correct CSS var path for nested properties

@@ -293,6 +293,7 @@ export function ImportModal({
       // Override map for filenames whose kebab conversion doesn't match the route slug
       const filenameSlugOverrides: Record<string, string> = {
         'hoverCardPopover': 'hover-card',
+        'switch': 'switch-group',
       }
       const slug = filenameSlugOverrides[baseName]
         ?? baseName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase()
