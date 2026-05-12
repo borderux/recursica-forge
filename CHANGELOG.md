@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.13.0
+
+### Minor Changes
+
+- 7b9acaa: Updated CSS output with variant handling
+
 ## 0.12.7
 
 ### Patch Changes
