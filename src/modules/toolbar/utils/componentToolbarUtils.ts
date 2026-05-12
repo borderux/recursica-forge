@@ -97,6 +97,8 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+  if (componentKey === 'switch-group-item') componentKey = 'switch-item'
+  if (componentKey === 'switchitem') componentKey = 'switch-item'
   if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
   // Always prefer the live store uikit so custom variants created by cloneVariantInUIKit
   // (which deep-clones, making state.uikit diverge from the static module singleton) are
@@ -608,6 +610,21 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
     }
   }
 
+  // For switch-item, also include base switch props
+  // since size/border/colors now live on the base switch component
+  if (componentKey === 'switch-item') {
+    const baseSwitch = components['switch']
+    if (baseSwitch) {
+      const baseStructure = parseComponentStructure('switch')
+      for (const baseProp of baseStructure.props) {
+        const exists = props.some(p => p.path.join('.') === baseProp.path.join('.'))
+        if (!exists) {
+          props.push({ ...baseProp, sourceComponent: 'switch' })
+        }
+      }
+    }
+  }
+
   return { variants, props }
 }
 
@@ -667,6 +684,8 @@ export function getComponentDefaultValues(componentName: string): Record<string,
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+  if (componentKey === 'switch-group-item') componentKey = 'switch-item'
+  if (componentKey === 'switchitem') componentKey = 'switch-item'
   if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
   const uikitRoot: any = uikitJson
   const components = uikitRoot?.['ui-kit']?.components || {}
@@ -731,6 +750,8 @@ export function getDimensionPropertyType(
     let componentKey = sourceComponent || componentName.toLowerCase().replace(/\s+/g, '-')
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
     if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+    if (componentKey === 'switch-group-item') componentKey = 'switch-item'
+    if (componentKey === 'switchitem') componentKey = 'switch-item'
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
     const uikitRoot: any = uikitJson
     const components = uikitRoot?.['ui-kit']?.components || {}
@@ -815,6 +836,8 @@ export function getDimensionCategoryFromValue(
     let componentKey = sourceComponent || componentName.toLowerCase().replace(/\s+/g, '-')
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
     if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+    if (componentKey === 'switch-group-item') componentKey = 'switch-item'
+    if (componentKey === 'switchitem') componentKey = 'switch-item'
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
     const uikitRoot: any = uikitJson
     const components = uikitRoot?.['ui-kit']?.components || {}

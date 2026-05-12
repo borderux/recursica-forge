@@ -1,6 +1,8 @@
 import React from 'react'
 import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
+import { SwitchGroup } from '../../components/adapters/SwitchGroup'
+import { SwitchItem } from '../../components/adapters/SwitchItem'
 import { Avatar } from '../../components/adapters/Avatar'
 import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
@@ -58,6 +60,54 @@ export function sortLayers(layers: LayerOption[]): LayerOption[] {
 
 export function getComponentSections(mode: 'light' | 'dark'): Section[] {
   // Define SwitchExamples inside getComponentSections to have access to mode
+
+  function SwitchItemExamples({ layer }: { layer: string }) {
+    const [checked1, setChecked1] = React.useState(true)
+    const [checked2, setChecked2] = React.useState(false)
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <SwitchItem checked={checked1} onChange={setChecked1} label="Squeak volume" layer={layer as any} />
+        <SwitchItem checked={checked2} onChange={setChecked2} label="Steal shiny object" disabled layer={layer as any} />
+      </div>
+    )
+  }
+
+  function SwitchGroupExample({ layer }: { layer: string }) {
+    const [checked1, setChecked1] = React.useState(true)
+    const [checked2, setChecked2] = React.useState(false)
+    const [checked3, setChecked3] = React.useState(true)
+    const [checked4, setChecked4] = React.useState(false)
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <div>
+          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: 'var(--recursica_brand_colors_text-primary, inherit)' }}>Stacked</h2>
+          <SwitchGroup
+            label="Goblin Preferences"
+            layout="stacked"
+            layer={layer as any}
+          >
+            <SwitchItem checked={checked1} onChange={setChecked1} label="Enable goblin mode" layer={layer as any} />
+            <SwitchItem checked={checked2} onChange={setChecked2} label="Bite ankles" layer={layer as any} />
+          </SwitchGroup>
+        </div>
+
+        <div>
+          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: 'var(--recursica_brand_colors_text-primary, inherit)' }}>Side-by-side</h2>
+          <SwitchGroup
+            label="Loot Settings"
+            layout="side-by-side"
+            layer={layer as any}
+          >
+            <SwitchItem checked={checked3} onChange={setChecked3} label="Hoard gold" layer={layer as any} />
+            <SwitchItem checked={checked4} onChange={setChecked4} label="Share with clan" layer={layer as any} />
+          </SwitchGroup>
+        </div>
+      </div>
+    )
+  }
+
   function SwitchExamples({ layer, colorVariant = 'default', sizeVariant = 'default' }: { layer: string; colorVariant?: string; sizeVariant?: string }) {
     const [checked1, setChecked1] = React.useState(true)
     const [checked2, setChecked2] = React.useState(false)
@@ -1133,16 +1183,19 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       ),
     },
     {
-      name: 'Switch',
-      url: `${base}/switch`,
+      name: 'Switch group item',
+      url: `${base}/switch-group-item`,
       render: (selectedLayers: Set<LayerOption>) => {
-        // Extract layer from selectedLayers Set (use first one, or default to layer-0)
-        const layer = selectedLayers.size > 0
-          ? Array.from(selectedLayers)[0] as string
-          : 'layer-0'
-
-        // Use default variants - the toolbar will update the CSS vars for the selected variant
-        return <SwitchExamples layer={layer} colorVariant="default" sizeVariant="default" />
+        const layer = selectedLayers.size > 0 ? Array.from(selectedLayers)[0] as string : 'layer-0'
+        return <SwitchItemExamples layer={layer} />
+      },
+    },
+    {
+      name: 'Switch group',
+      url: `${base}/switch-group`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = selectedLayers.size > 0 ? Array.from(selectedLayers)[0] as string : 'layer-0'
+        return <SwitchGroupExample layer={layer} />
       },
     },
     {

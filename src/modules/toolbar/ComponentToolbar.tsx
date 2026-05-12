@@ -808,6 +808,70 @@ export default function ComponentToolbar({
           seenProps.add(propNameLower)
         }
 
+        // Create virtual props for switch-group top-bottom-margin (stacked and side-by-side)
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'stacked-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'stacked-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'sbs-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        
+        // Add virtual props for other switch-group layout spacing properties
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'stacked-label-field-gap') {
+          const virtualProp: ComponentProp = {
+            name: 'stacked-label-field-gap',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'stacked', 'properties', 'label-field-gap'),
+            path: ['variants', 'layouts', 'stacked', 'properties', 'label-field-gap'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'sbs-gutter') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-gutter',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'gutter'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'sbs-vertical-padding') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-vertical-padding',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+
         // Create virtual props for Pagination variant/size configuration
         if (componentName.toLowerCase() === 'pagination') {
           // New structure: active-pages/{style,size}, inactive-pages/{style,size}, navigation-controls/{style,size}

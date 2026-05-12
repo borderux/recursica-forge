@@ -1359,8 +1359,29 @@ export default function PropControlContent({
       return (
         <>
           {Object.entries(groupedConfigs).map(([childPropName, childConfig], index) => {
-            // Find the child property in the component structure
-            let childProp = structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase())
+            // Find the child property in the component structure, ensuring we don't grab text-group properties (which are top-level only)
+            // Prefer a prop whose path contains the currently selected layer so layer-specific color props
+            // (e.g. colors.layer-1.text) resolve correctly instead of always picking layer-0.
+            const layerMatchedChildProp = structure.props.find(p =>
+              p.name.toLowerCase() === childPropName.toLowerCase() &&
+              p.type !== 'text-group' &&
+              p.path.includes(selectedLayer)
+            )
+            let childProp = layerMatchedChildProp ?? structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase() && p.type !== 'text-group')
+
+            // Special case: "text-color" in toolbar config maps to the "text" color prop
+            // (mirrors the same special case in ComponentToolbar for grouped prop lookup)
+            if (!childProp && childPropName.toLowerCase() === 'text-color') {
+              const textColorProp = structure.props.find(p => {
+                if (p.name.toLowerCase() !== 'text' || p.category !== 'colors' || !p.path.includes('colors')) return false
+                const layerInPath = p.path.find(part => part.startsWith('layer-'))
+                if (layerInPath && layerInPath !== selectedLayer) return false
+                return true
+              })
+              if (textColorProp) {
+                childProp = { ...textColorProp, name: 'text-color' }
+              }
+            }
 
             // If not found in structure, create a virtual prop (e.g., for Pagination config string props)
             if (!childProp && childConfig.options) {
@@ -1388,7 +1409,7 @@ export default function PropControlContent({
 
             if (!childProp) return null
 
-            const isVirtualProp = !structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase())
+            const isVirtualProp = !layerMatchedChildProp && !structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase() && p.type !== 'text-group')
             const cssVars = isVirtualProp ? [childProp.cssVar] : getCssVarsForProp(childProp)
             const primaryVar = cssVars[0] || childProp.cssVar
             const label = childConfig.label || getPropLabel(componentName, childPropName) || toSentenceCase(childPropName)
@@ -1558,7 +1579,7 @@ export default function PropControlContent({
     const isButton = componentName.toLowerCase() === 'button'
     const isChip = componentName.toLowerCase() === 'chip'
     const isSlider = componentName.toLowerCase() === 'slider'
-    const isSwitch = componentName.toLowerCase() === 'switch'
+    const isSwitch = componentName.toLowerCase() === 'switch' || normalizedComponentName === 'switch-item' || normalizedComponentName === 'switch-group-item'
     const isSegmentedControl = normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmented-control-item'
     const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item'
     const isBadge = componentName.toLowerCase() === 'badge'
@@ -3833,6 +3854,7 @@ export default function PropControlContent({
         const uikitRoot: any = uikitJson
         const components = uikitRoot?.['ui-kit']?.components || {}
         let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+        if (componentKey === 'switchitem') componentKey = 'switch-item'
         if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
         const component = components[componentKey]
 
@@ -4553,7 +4575,7 @@ export default function PropControlContent({
 
   // Handle track prop
   if (prop.name.toLowerCase() === 'track' && (prop.trackSelectedProp || prop.trackUnselectedProp || prop.thumbProps)) {
-    const isSwitch = componentName.toLowerCase() === 'switch'
+    const isSwitch = componentName.toLowerCase() === 'switch' || normalizedComponentName === 'switch-item' || normalizedComponentName === 'switch-group-item'
     const trackSelectedCssVars = prop.trackSelectedProp ? getCssVarsForProp(prop.trackSelectedProp) : []
     const trackUnselectedCssVars = prop.trackUnselectedProp ? getCssVarsForProp(prop.trackUnselectedProp) : []
     const trackSelectedPrimaryVar = trackSelectedCssVars[0] || prop.trackSelectedProp?.cssVar
@@ -4658,7 +4680,7 @@ export default function PropControlContent({
 
   // Handle thumb prop
   if (prop.name.toLowerCase() === 'thumb' && prop.thumbProps && prop.thumbProps.size > 0) {
-    const isSwitch = componentName.toLowerCase() === 'switch'
+    const isSwitch = componentName.toLowerCase() === 'switch' || normalizedComponentName === 'switch-item' || normalizedComponentName === 'switch-group-item'
     const thumbSelectedProp = prop.thumbProps.get('thumb-selected')
     const thumbUnselectedProp = prop.thumbProps.get('thumb-unselected')
     const thumbHeightProp = prop.thumbProps.get('thumb-height')

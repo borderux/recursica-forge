@@ -3,7 +3,8 @@
  */
 
 import ButtonConfig from '../configs/Button.toolbar.json'
-import SwitchConfig from '../configs/Switch.toolbar.json'
+import SwitchItemConfig from '../configs/SwitchItem.toolbar.json'
+import SwitchGroupConfig from '../configs/SwitchGroup.toolbar.json'
 import AvatarConfig from '../configs/Avatar.toolbar.json'
 import ToastConfig from '../configs/Toast.toolbar.json'
 import BadgeConfig from '../configs/Badge.toolbar.json'
@@ -84,8 +85,13 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
     switch (componentKey) {
       case 'button':
         return ButtonConfig as unknown as ToolbarConfig
-      case 'switch':
-        return SwitchConfig as unknown as ToolbarConfig
+      case 'switch-item':
+      case 'switch group item':
+      case 'switch-group-item':
+        return SwitchItemConfig as unknown as ToolbarConfig
+      case 'switch-group':
+      case 'switch group':
+        return SwitchGroupConfig as unknown as ToolbarConfig
       case 'avatar':
         return AvatarConfig as unknown as ToolbarConfig
       case 'toast':
