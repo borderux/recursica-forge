@@ -503,7 +503,7 @@ function TypographySliderInline({
   targetCssVar,
   targetCssVars = [],
   label,
-  layer = 'layer-1',
+  layer = 'layer-0',
 }: {
   targetCssVar: string
   targetCssVars?: string[]
@@ -1633,7 +1633,22 @@ export default function PropControlContent({
       const dimensionType = getDimensionPropertyType(componentName, propToRender.path, selectedVariants, propToRender.sourceComponent)
 
       // If recursica_ui-kit.json indicates this uses tokens, use BrandDimensionSliderInline (unless overridden below)
-      if (dimensionType === 'token') {
+      const isSliderOverride = isSlider && (
+        propNameLower === 'input-width' ||
+        propNameLower === 'input-height' ||
+        propNameLower === 'thumb-size' ||
+        propNameLower === 'thumb-border-radius' ||
+        propNameLower === 'track-height' ||
+        propNameLower === 'track-border-radius' ||
+        propNameLower === 'input-gap' ||
+        propNameLower === 'icon-size' ||
+        propNameLower === 'input-border-size' ||
+        propNameLower === 'input-padding-vertical' ||
+        propNameLower === 'input-padding-left' ||
+        propNameLower === 'input-padding-right'
+      )
+
+      if (dimensionType === 'token' && !isSliderOverride) {
         // Determine dimension category based on the actual value in the JSON definition
         let dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size' = 'general'
         const categoryFromJSON = getDimensionCategoryFromValue(componentName, propToRender.path, selectedVariants, propToRender.sourceComponent)
@@ -1968,7 +1983,7 @@ export default function PropControlContent({
       const isIconSizeProp = propNameLower.includes('icon-size') ||
         (propNameLower.includes('icon') && propNameLower.includes('size'))
 
-      if (isIconSizeProp && !isTextField && !isNumberInput) {
+      if (isIconSizeProp && !isTextField && !isNumberInput && !isSlider) {
         return (
           <BrandDimensionSliderInline
             key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
@@ -3255,11 +3270,17 @@ export default function PropControlContent({
       // Use Slider component for Slider input-width, thumb-size, thumb-border-radius, track-height, track-border-radius, and input-gap properties
       if (isSlider && (
         propNameLower === 'input-width' ||
+        propNameLower === 'input-height' ||
         propNameLower === 'thumb-size' ||
         propNameLower === 'thumb-border-radius' ||
         propNameLower === 'track-height' ||
         propNameLower === 'track-border-radius' ||
-        propNameLower === 'input-gap'
+        propNameLower === 'input-gap' ||
+        propNameLower === 'icon-size' ||
+        propNameLower === 'input-border-size' ||
+        propNameLower === 'input-padding-vertical' ||
+        propNameLower === 'input-padding-left' ||
+        propNameLower === 'input-padding-right'
       )) {
         const SliderDimensionSlider = () => {
           let minValue = 0
@@ -3267,6 +3288,9 @@ export default function PropControlContent({
           if (propNameLower === 'input-width') {
             minValue = 40
             maxValue = 200
+          } else if (propNameLower === 'input-height') {
+            minValue = 10
+            maxValue = 100
           } else if (propNameLower === 'thumb-size') {
             minValue = 10
             maxValue = 40
@@ -3282,6 +3306,15 @@ export default function PropControlContent({
           } else if (propNameLower === 'input-gap') {
             minValue = 0
             maxValue = 100
+          } else if (propNameLower === 'icon-size') {
+            minValue = 12
+            maxValue = 48
+          } else if (propNameLower === 'input-border-size') {
+            minValue = 0
+            maxValue = 20
+          } else if (propNameLower === 'input-padding-vertical' || propNameLower === 'input-padding-left' || propNameLower === 'input-padding-right') {
+            minValue = 0
+            maxValue = 40
           }
           const [value, setValue] = useState(() => {
             const currentValue = readCssVar(primaryVar)

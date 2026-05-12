@@ -109,6 +109,11 @@
           "label": "Border color",
           "visible": true
         },
+        "input-text": {
+          "icon": "text-aa",
+          "label": "Text color",
+          "visible": true
+        },
         "input-border-size": {
           "icon": "corners-out",
           "label": "Border size",

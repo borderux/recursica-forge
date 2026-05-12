@@ -248,6 +248,8 @@ export default function Modal({
             withOverlay={withOverlay}
             lockScroll={withOverlay}
             trapFocus={trapFocus ?? withOverlay}
+            closeOnClickOutside={false}
+            closeOnEscape={false}
             zIndex={zIndex}
             title={showHeader ? (
                 <Group

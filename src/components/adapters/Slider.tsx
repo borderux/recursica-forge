@@ -191,6 +191,10 @@ export function Slider({
 
     // Get input width and gap if showing input
     const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
+    const inputHeightVar = getComponentLevelCssVar('Slider', 'input-height')
+    const inputPaddingVerticalVar = getComponentLevelCssVar('Slider', 'input-padding-vertical')
+    const inputPaddingLeftVar = getComponentLevelCssVar('Slider', 'input-padding-left')
+    const inputPaddingRightVar = getComponentLevelCssVar('Slider', 'input-padding-right')
     const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
 
     // Get disabled opacity CSS variable
@@ -640,6 +644,12 @@ export function Slider({
             style={{
               fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
               margin: 0,
+              width: `var(${inputWidthVar})`,
+              height: `var(${inputHeightVar})`,
+              paddingTop: `var(${inputPaddingVerticalVar})`,
+              paddingBottom: `var(${inputPaddingVerticalVar})`,
+              paddingLeft: `var(${inputPaddingLeftVar})`,
+              paddingRight: `var(${inputPaddingRightVar})`
             }}
           />
         )}
