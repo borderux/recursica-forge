@@ -59,6 +59,7 @@ import {
   CornersIn,
   CornersOut,
   Crown,
+  Cursor,
   CursorClick,
   Diamond,
   DiamondsFour,
@@ -433,6 +434,9 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'image-square': ImageSquare,
   'prohibit': Prohibit,
   'text-h-two': TextHTwo,
+  'text-input': TextT,
+  'cursor': Cursor,
+  'dots-three': DotsThree,
 }
 
 /**

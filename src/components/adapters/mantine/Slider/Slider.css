@@ -23,21 +23,24 @@
   box-shadow: var(--slider-thumb-elevation, 0 1px 2px rgba(0, 0, 0, 0.15)) !important;
 }
 
-/* Override track (container) background color - use wrapper variable for inactive/unfilled track */
-/* Ensure CSS variable from root is available and used */
-.mantine-Slider-root .mantine-Slider-track,
-.mantine-Slider-track {
-  height: var(--slider-size, 4px) !important;
+/* Override track (container) background color */
+.mantine-Slider-root .mantine-Slider-track {
+  height: var(--custom-track-height, 4px) !important;
   border-radius: var(--slider-radius) !important;
-  background-color: var(--track-bg, var(--slider-track-color, transparent)) !important;
+  /* Remove background from container, let ::before handle it */
+  background-color: transparent !important;
 }
 
-/* Override bar (filled/active portion) color - use wrapper variable set by component */
-.mantine-Slider-root .mantine-Slider-bar,
-.mantine-Slider-bar {
+.mantine-Slider-root .mantine-Slider-track::before {
+  background-color: var(--slider-track-color, transparent) !important;
+  border-radius: var(--slider-radius) !important;
+}
+
+/* Override bar (filled/active portion) color */
+.mantine-Slider-root .mantine-Slider-bar {
   background-color: var(--slider-color) !important;
   background: var(--slider-color) !important;
-  height: var(--slider-size, 4px) !important;
+  height: var(--custom-track-height, 4px) !important;
   border-radius: var(--slider-radius) !important;
 }
 
@@ -89,4 +92,20 @@
   background-color: var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_background) !important;
   border-right: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color) !important;
   border-bottom: var(--recursica_ui-kit_themes_light_components_tooltip_properties_border-size) solid var(--recursica_ui-kit_themes_light_components_tooltip_properties_colors_layer-1_border-color) !important;
+}
+
+/* Step marks for discrete sliders */
+.mantine-Slider-root .mantine-Slider-mark {
+  border-radius: var(--step-indicator-radius, 2px) !important;
+  width: var(--step-indicator-width, 2px) !important;
+  height: var(--step-indicator-width, 2px) !important;
+  transform: translateY(calc((var(--custom-track-height, 4px) - var(--step-indicator-width, 2px)) / 2)) !important;
+  border-color: var(--step-indicator-color, transparent) !important;
+  background-color: var(--step-indicator-color, transparent) !important;
+}
+
+.mantine-Slider-root .mantine-Slider-markFilled,
+.mantine-Slider-root .mantine-Slider-mark[data-filled] {
+  border-color: var(--step-indicator-color-active, transparent) !important;
+  background-color: var(--step-indicator-color-active, transparent) !important;
 }
