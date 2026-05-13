@@ -13,24 +13,12 @@
                 "content-horizontal-padding": {
                     "icon": "arrows-left-right",
                     "label": "Horizontal padding",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        80
-                    ],
-                    "step": 4
+                    "visible": true
                 },
                 "content-vertical-padding": {
                     "icon": "arrows-up-down",
                     "label": "Vertical padding",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        80
-                    ],
-                    "step": 4
+                    "visible": true
                 }
             }
         },
@@ -151,6 +139,23 @@
                 }
             }
         },
+        "text-colors": {
+            "icon": "palette",
+            "label": "Text colors",
+            "visible": true,
+            "group": {
+                "title": {
+                    "icon": "text-aa",
+                    "label": "Header color",
+                    "visible": true
+                },
+                "content": {
+                    "icon": "text-align-left",
+                    "label": "Content color",
+                    "visible": true
+                }
+            }
+        },
         "header-footer": {
             "icon": "rows",
             "label": "Header and footer",
@@ -161,54 +166,25 @@
                     "label": "Background",
                     "visible": true
                 },
-                "title": {
-                    "icon": "text-aa",
-                    "label": "Header color",
-                    "visible": true
-                },
                 "header-footer-horizontal-padding": {
                     "icon": "arrows-left-right",
                     "label": "Horizontal padding",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        80
-                    ],
-                    "step": 4
+                    "visible": true
                 },
                 "header-footer-vertical-padding": {
                     "icon": "arrows-up-down",
                     "label": "Vertical padding",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        80
-                    ],
-                    "step": 4
+                    "visible": true
                 },
                 "header-close-gap": {
                     "icon": "split-horizontal",
                     "label": "Header close gap",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        40
-                    ],
-                    "step": 4
+                    "visible": true
                 },
                 "footer-button-gap": {
                     "icon": "split-horizontal",
                     "label": "Footer button gap",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        40
-                    ],
-                    "step": 4
+                    "visible": true
                 }
             }
         },
@@ -269,7 +245,7 @@
                 }
             }
         },
-        "widths": {
+        "width": {
             "icon": "arrows-in-line-horizontal",
             "label": "Sizes",
             "visible": true,

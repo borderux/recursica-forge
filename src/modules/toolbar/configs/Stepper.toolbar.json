@@ -25,6 +25,14 @@
             "label": "Step indicator",
             "visible": true,
             "group": {
+                "indicator-size": {
+                    "icon": "resize",
+                    "label": "Indicator size",
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [10, 100],
+                    "step": 1
+                },
                 "indicator-border-radius": {
                     "icon": "corners-out",
                     "label": "Border radius",
@@ -33,7 +41,10 @@
                 "indicator-border-size": {
                     "icon": "rows",
                     "label": "Border size",
-                    "visible": true
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [0, 20],
+                    "step": 1
                 },
                 "completed-icon-size": {
                     "icon": "resize",
@@ -44,7 +55,7 @@
         },
         "completed": {
             "icon": "check-circle",
-            "label": "Completed step",
+            "label": "Completed colors",
             "visible": true,
             "group": {
                 "completed-indicator-background": {
@@ -80,13 +91,16 @@
                 "completed-connector-size": {
                     "icon": "arrows-left-right",
                     "label": "Connector size",
-                    "visible": true
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [0, 20],
+                    "step": 1
                 }
             }
         },
         "current": {
             "icon": "cursor-click",
-            "label": "Current step",
+            "label": "Current colors",
             "visible": true,
             "group": {
                 "current-indicator-background": {
@@ -118,7 +132,7 @@
         },
         "upcoming": {
             "icon": "clock",
-            "label": "Upcoming step",
+            "label": "Upcoming colors",
             "visible": true,
             "group": {
                 "upcoming-indicator-background": {
@@ -154,103 +168,27 @@
                 "upcoming-connector-size": {
                     "icon": "arrows-left-right",
                     "label": "Connector size",
-                    "visible": true
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [0, 20],
+                    "step": 1
                 }
             }
+        },
+        "step-number-text": {
+            "icon": "text-aa",
+            "label": "Step number text style",
+            "visible": true
         },
         "label-text": {
             "icon": "text-aa",
             "label": "Label text style",
-            "visible": true,
-            "group": {
-                "font-family": {
-                    "icon": "text-aa",
-                    "label": "Font family",
-                    "visible": true
-                },
-                "font-size": {
-                    "icon": "text-aa",
-                    "label": "Font size",
-                    "visible": true
-                },
-                "font-weight": {
-                    "icon": "text-aa",
-                    "label": "Font weight",
-                    "visible": true
-                },
-                "letter-spacing": {
-                    "icon": "text-aa",
-                    "label": "Letter spacing",
-                    "visible": true
-                },
-                "line-height": {
-                    "icon": "text-aa",
-                    "label": "Line height",
-                    "visible": true
-                },
-                "text-decoration": {
-                    "icon": "text-aa",
-                    "label": "Text decoration",
-                    "visible": true
-                },
-                "text-transform": {
-                    "icon": "text-aa",
-                    "label": "Text transform",
-                    "visible": true
-                },
-                "font-style": {
-                    "icon": "text-aa",
-                    "label": "Font style",
-                    "visible": true
-                }
-            }
+            "visible": true
         },
         "description-text": {
             "icon": "text-aa",
             "label": "Description text style",
-            "visible": true,
-            "group": {
-                "font-family": {
-                    "icon": "text-aa",
-                    "label": "Font family",
-                    "visible": true
-                },
-                "font-size": {
-                    "icon": "text-aa",
-                    "label": "Font size",
-                    "visible": true
-                },
-                "font-weight": {
-                    "icon": "text-aa",
-                    "label": "Font weight",
-                    "visible": true
-                },
-                "letter-spacing": {
-                    "icon": "text-aa",
-                    "label": "Letter spacing",
-                    "visible": true
-                },
-                "line-height": {
-                    "icon": "text-aa",
-                    "label": "Line height",
-                    "visible": true
-                },
-                "text-decoration": {
-                    "icon": "text-aa",
-                    "label": "Text decoration",
-                    "visible": true
-                },
-                "text-transform": {
-                    "icon": "text-aa",
-                    "label": "Text transform",
-                    "visible": true
-                },
-                "font-style": {
-                    "icon": "text-aa",
-                    "label": "Font style",
-                    "visible": true
-                }
-            }
+            "visible": true
         },
         "spacing": {
             "icon": "split-horizontal",

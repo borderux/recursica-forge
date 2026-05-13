@@ -9,7 +9,7 @@
 import { useRef } from 'react'
 import { Tabs as MantineTabs } from '@mantine/core'
 import type { TabsProps as AdapterTabsProps } from '../../Tabs'
-import { getComponentCssVar, getComponentTextCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import './Tabs.css'
 
 export default function Tabs({
@@ -79,10 +79,12 @@ export default function Tabs({
   const iconSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'icon-size')
   const minWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'min-width')
   const maxWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'max-width')
+  // tab-content-alignment is orientation-specific
+  const tabContentAlignmentVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'tab-content-alignment')
 
-  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
-  const hoverColorVar = getComponentLevelCssVar('Tabs', 'hover-color')
-  const hoverOpacityVar = getComponentLevelCssVar('Tabs', 'hover-opacity')
+  // Get hover color and opacity from style-variant-specific UIKit tokens
+  const hoverColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'hover-color')
+  const hoverOpacityVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'hover-opacity')
 
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -98,6 +100,7 @@ export default function Tabs({
     orientation,
     variant: variant === 'pills' ? 'pills' : variant === 'outline' ? 'outline' : 'default',
     className: `recursica-tabs ${className || ''}`.trim(),
+    'data-content-align': tabContentAlignment,
     style: {
       // Set all CSS variables for the Tabs component
       // Active state
@@ -144,9 +147,8 @@ export default function Tabs({
       // Tab sizing
       '--recursica_tabs_min_width': minWidthVar ? `var(${minWidthVar})` : undefined,
       '--recursica_tabs_max_width': maxWidthVar ? `var(${maxWidthVar})` : undefined,
-      // Tab content alignment (icon/text/badge inside tab button)
-      '--recursica_tabs_content_align': tabContentAlignment,
-      '--recursica_tabs_content_justify': tabContentAlignment === 'center' ? 'center' : tabContentAlignment === 'right' ? 'flex-end' : 'flex-start',
+      // Tab content alignment (orientation-specific: horizontal and vertical can differ)
+      '--recursica_tabs_content_align': tabContentAlignmentVar ? `var(${tabContentAlignmentVar}, ${tabContentAlignment})` : tabContentAlignment,
       // Hover state (inactive tabs only)
       '--recursica_tabs_hover_opacity': `var(${hoverOpacityVar})`,
       '--recursica_tabs_hover_color': `var(${hoverColorVar})`,

@@ -25,8 +25,8 @@ export function cssVarToUIKitPath(cssVar: string, rootObj: any): string[] | null
 
     while (i < parts.length) {
         if (!current || typeof current !== 'object') {
-            // Reached a leaf or undefined node, assume the rest is one long hyphenated key
-            path.push(parts.slice(i).join('_'))
+            // Reached a leaf or undefined node, append the remaining parts as individual path segments
+            path.push(...parts.slice(i))
             break
         }
 
@@ -64,13 +64,11 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     // Get current UIKit JSON
     const currentUIKit = getVarsStore().getState().uikit
     if (!currentUIKit || typeof currentUIKit !== 'object') {
-        console.warn('[updateUIKitValue] UIKit state is not available')
         return false
     }
 
     const path = cssVarToUIKitPath(cssVar, currentUIKit)
     if (!path) {
-        console.warn(`[updateUIKitValue] Could not parse CSS var: ${cssVar}`)
         return false
     }
 
@@ -110,7 +108,6 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         // to serialize a CSS declaration into the DTCG JSON store. If cssVarToRef fails to
         // securely translate it back to a {reference}, we must hard-reject it at the entry gate 
         // to prevent corrupting the JSON payload and failing the export validator later.
-        console.warn(`[updateUIKitValue] Rejected unmapped CSS variable from entering JSON store: ${value}`)
         return false
     }
 
@@ -147,9 +144,29 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
             }
         } else if (existingType === 'number') {
             current[finalKey].$value = numericValue
+        } else if (existingType === 'variant') {
+            // Reconstruct the full DTCG alias reference for variant-type tokens.
+            // If the incoming value is already a {…} reference, write it directly.
+            // Otherwise, derive the full path by replacing only the last segment of the
+            // existing reference — e.g. selecting "outline" when the existing value is
+            // "{ui-kit.components.button.variants.styles.solid}" produces
+            // "{ui-kit.components.button.variants.styles.outline}".
+            if (typeof tokenValue === 'string' && tokenValue.startsWith('{') && tokenValue.endsWith('}')) {
+                current[finalKey].$value = tokenValue
+            } else {
+                const existingRef = (current[finalKey] as any).$value
+                if (typeof existingRef === 'string' && existingRef.startsWith('{') && existingRef.endsWith('}')) {
+                    const inner = existingRef.slice(1, -1)
+                    const lastDot = inner.lastIndexOf('.')
+                    const prefix = lastDot >= 0 ? inner.slice(0, lastDot + 1) : ''
+                    current[finalKey].$value = `{${prefix}${tokenValue}}`
+                } else {
+                    current[finalKey].$value = tokenValue
+                }
+            }
         } else {
             // Keep original format (e.g., color, raw string)
-            current[finalKey].$value = tokenValue
+            current[finalKey].$value = tokenValue === 'transparent' ? null : tokenValue
         }
     } else {
         // Create new entry
@@ -166,7 +183,7 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         } else {
             current[finalKey] = {
                 $type: 'color', // Fallback
-                $value: tokenValue
+                $value: tokenValue === 'transparent' ? null : tokenValue
             }
         }
     }
@@ -176,16 +193,34 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
     return true
 }
 
-/**
- * Removes a UIKit value (resets to default by removing the override)
- * Note: This doesn't actually delete the key, it would need to restore the original default value
- * For now, we'll just document that "None" removes the CSS var but doesn't update JSON
- * 
- * @param cssVar - The CSS variable name
- */
 export function removeUIKitValue(cssVar: string): boolean {
-    // For now, removing a color just removes the CSS variable
-    // The UIKit JSON will still have the default value
-    // This is acceptable because recomputeAndApplyAll will regenerate from JSON
+    const currentUIKit = getVarsStore().getState().uikit
+    if (!currentUIKit || typeof currentUIKit !== 'object') {
+        return false
+    }
+
+    const path = cssVarToUIKitPath(cssVar, currentUIKit)
+    if (!path) return false
+
+    const updatedUIKit = Array.isArray(currentUIKit) ? [...currentUIKit] : { ...currentUIKit }
+    let current: any = updatedUIKit
+    for (let i = 0; i < path.length - 1; i++) {
+        const segment = path[i]
+        if (!current[segment]) return true // Already removed
+        current[segment] = Array.isArray(current[segment]) ? [...current[segment]] : { ...current[segment] }
+        current = current[segment]
+    }
+
+    const finalKey = path[path.length - 1]
+    if (current[finalKey] && typeof current[finalKey] === 'object') {
+        current[finalKey].$value = null
+    } else {
+        current[finalKey] = {
+            $type: 'color',
+            $value: null
+        }
+    }
+
+    getVarsStore().setUiKitSilent(updatedUIKit)
     return true
 }

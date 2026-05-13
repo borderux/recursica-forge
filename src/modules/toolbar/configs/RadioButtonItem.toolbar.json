@@ -83,6 +83,33 @@
                 }
             }
         },
+        "disabled": {
+            "icon": "prohibit",
+            "label": "Disabled",
+            "visible": true,
+            "group": {
+                "disabled-background": {
+                    "label": "Background",
+                    "visible": true
+                },
+                "disabled-border": {
+                    "label": "Border",
+                    "visible": true
+                },
+                "disabled-icon": {
+                    "label": "Icon",
+                    "visible": true
+                },
+                "disabled-text": {
+                    "label": "Text",
+                    "visible": true
+                },
+                "disabled-opacity": {
+                    "label": "Opacity",
+                    "visible": true
+                }
+            }
+        },
         "text": {
             "icon": "text-aa",
             "label": "Text style",
@@ -104,7 +131,11 @@
                     "label": "Line height",
                     "visible": true
                 },
-                "color": {
+                "letter-spacing": {
+                    "label": "Letter spacing",
+                    "visible": true
+                },
+                "text": {
                     "label": "Color",
                     "visible": true
                 }

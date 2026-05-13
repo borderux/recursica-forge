@@ -6,6 +6,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
+import { readCssVar } from '../../../../core/css/readCssVar'
 import type { MenuProps as AdapterMenuProps } from '../../Menu'
 import './Menu.css'
 
@@ -24,6 +25,7 @@ export default function Menu({
   // Get CSS variables for colors
   const bgVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'background')
   const borderVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'border-color')
+  const dividerColorVar = buildComponentCssVarPath('Menu', 'properties', 'colors', layer, 'divider-color')
 
   // Get component-level properties
   const borderSizeVar = getComponentLevelCssVar('Menu', 'border-size')
@@ -32,6 +34,12 @@ export default function Menu({
   const maxWidthVar = getComponentLevelCssVar('Menu', 'max-width')
   const paddingVar = getComponentLevelCssVar('Menu', 'padding')
   const itemGapVar = getComponentLevelCssVar('Menu', 'item-gap')
+  const dividerHeightVar = getComponentLevelCssVar('Menu', 'divider-height')
+  const dividerOpacityVar = getComponentLevelCssVar('Menu', 'divider-opacity')
+
+  // Determine if a divider line is configured (height > 0)
+  const dividerHeightValue = readCssVar(dividerHeightVar)
+  const showDividers = dividerHeightValue && dividerHeightValue !== '0px' && dividerHeightValue !== '0'
 
   // Compute elevation box-shadow if elevation is provided
   const elevationBoxShadow = elevation && elevation !== 'elevation-0'
@@ -63,13 +71,30 @@ export default function Menu({
     }
   }, [updateClampedHeight])
 
+  // Interleave divider elements between children when configured
+  const childArray = React.Children.toArray(children)
+  const renderedChildren = showDividers && childArray.length > 1
+    ? childArray.reduce<React.ReactNode[]>((acc, child, index) => {
+        acc.push(child)
+        if (index < childArray.length - 1) {
+          acc.push(
+            <div
+              key={`divider-${index}`}
+              className="mantine-menu-divider"
+              aria-hidden="true"
+            />
+          )
+        }
+        return acc
+      }, [])
+    : children
+
   return (
     <div
       ref={menuRef}
       className={`mantine-menu ${className || ''}`}
       data-layer={layer}
       style={{
-        // Set CSS custom properties for CSS file to use
         ['--menu-bg' as string]: `var(${bgVar})`,
         ['--menu-border' as string]: `var(${borderVar})`,
         ['--menu-border-size' as string]: `var(${borderSizeVar})`,
@@ -79,14 +104,16 @@ export default function Menu({
         ['--menu-padding' as string]: `var(${paddingVar})`,
         ['--menu-item-gap' as string]: `var(${itemGapVar})`,
         ['--menu-max-height' as string]: `${clampedMaxHeight}px`,
+        ['--menu-divider-color' as string]: `var(${dividerColorVar})`,
+        ['--menu-divider-height' as string]: `var(${dividerHeightVar})`,
+        ['--menu-divider-opacity' as string]: `var(${dividerOpacityVar}, 1)`,
         boxShadow: elevationBoxShadow,
         ...style,
       } as React.CSSProperties}
       {...mantine}
       {...props}
     >
-      {children}
+      {renderedChildren}
     </div>
   )
 }
-

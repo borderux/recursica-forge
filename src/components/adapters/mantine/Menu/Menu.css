@@ -15,6 +15,17 @@
   overflow-x: hidden;
 }
 
-.mantine-menu>* {
+.mantine-menu > * {
   width: 100%;
+}
+
+/* Divider — rendered between items by the Menu adapter */
+.mantine-menu-divider {
+  flex-shrink: 0;
+  align-self: stretch;
+  height: var(--menu-divider-height, 1px);
+  background-color: var(--menu-divider-color, #e0e0e0);
+  opacity: var(--menu-divider-opacity, 1);
+  margin: 0;
+  border: none;
 }

@@ -169,10 +169,30 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       const brandParsed = parseBrandCssVar(trimmed)
       if (brandParsed) {
         if (brandParsed.type === 'palette') {
+          const resolvedHex = targetResolvedValue.resolved
+          if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex)) {
+            // Verify the swatch's generic CSS var resolves to the same hex as the actual rendered color.
+            // If they differ (e.g. dark-mode component vs light-mode picker swatch), use hex matching.
+            const genericSwatchVar = `--recursica_brand_palettes_${brandParsed.paletteName}_${brandParsed.level}_color_tone`
+            const swatchHex = readCssVarResolved(genericSwatchVar)
+            if (swatchHex && swatchHex.toLowerCase() !== resolvedHex.toLowerCase()) {
+              return `hex:${resolvedHex.toLowerCase()}`
+            }
+          }
           return `${brandParsed.paletteName}-${brandParsed.level}`
         }
         if (brandParsed.type === 'core-color') {
           return `core-${brandParsed.path}`
+        }
+        // Layer-type var: the component var is pointing into a brand layer which may be
+        // overridden by the theme. Stop following the default chain and use the fully
+        // resolved hex so hex-matching finds the actual rendered swatch.
+        if (brandParsed.type === 'layer') {
+          const resolvedHex = targetResolvedValue.resolved
+          if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex)) {
+            return `hex:${resolvedHex.toLowerCase()}`
+          }
+          return null
         }
       }
 
@@ -217,13 +237,16 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
           }
           return firstHexMatchRef.current === paletteCssVar
         }
+        return false
       } else {
+        // Concrete palette reference — only match this exact palette+level swatch
         const swatchParsed = parseBrandCssVar(paletteCssVar)
         if (swatchParsed && swatchParsed.type === 'palette' && selectedPaletteSwatch === `${swatchParsed.paletteName}-${swatchParsed.level}`) return true
+        return false
       }
     }
 
-    // Hex match fallback — but skip if value is color-mix (blended colors don't correspond to a single swatch)
+    // Hex match fallback — only reached when no concrete token reference was resolved
     if (targetResolvedValue?.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
       const directVal = targetResolvedValue.direct?.trim() || ''
       const isColorMix = directVal.includes('color-mix')
@@ -372,6 +395,25 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 e.stopPropagation()
                 const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                 cssVarsToUpdate.forEach((v) => updateCssVar(v, 'transparent', tokensJson))
+                
+                if (isOverlay && themeJson) {
+                  try {
+                    const themeCopy = getVarsStore().getLatestThemeCopy()
+                    const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                    const themes = root?.themes || root
+                    const isDark = cssVarsToUpdate.some(v => v.includes('-dark-'))
+                    const modeKey = isDark ? 'dark' : 'light'
+                    if (!themes[modeKey]) themes[modeKey] = {}
+                    if (!themes[modeKey].states) themes[modeKey].states = {}
+                    if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+                    themes[modeKey].states.overlay.color = {
+                      $type: 'color',
+                      $value: null
+                    }
+                    getVarsStore().setThemeSilent(themeCopy)
+                  } catch (err) {}
+                }
+
                 setAnchor(null)
                 onSelect?.('')
                 window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
@@ -445,17 +487,19 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                     if (currentVal?.trim() === `var(${s.cssVar})`) return true
                     if (selectedPaletteSwatch) {
                       if (selectedPaletteSwatch === `core-${s.key}_tone`) return true
-                      if (selectedPaletteSwatch.startsWith('hex:')) {
-                        const targetHex = selectedPaletteSwatch.slice(4)
-                        const swatchHex = readCssVarResolved(s.cssVar)
-                        if (swatchHex && targetHex === swatchHex.toLowerCase().trim()) {
-                          if (firstHexMatchRef.current === null) {
-                            firstHexMatchRef.current = s.cssVar
-                            return true
-                          }
-                          return firstHexMatchRef.current === s.cssVar
+                      // Concrete palette reference — do not also match core by hex
+                      if (!selectedPaletteSwatch.startsWith('hex:')) return false
+                      // hex: reference — compare resolved hex
+                      const targetHex = selectedPaletteSwatch.slice(4)
+                      const swatchHex = readCssVarResolved(s.cssVar)
+                      if (swatchHex && targetHex === swatchHex.toLowerCase().trim()) {
+                        if (firstHexMatchRef.current === null) {
+                          firstHexMatchRef.current = s.cssVar
+                          return true
                         }
+                        return firstHexMatchRef.current === s.cssVar
                       }
+                      return false
                     }
                     if (targetResolvedValue?.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
                       const directVal = targetResolvedValue.direct?.trim() || ''

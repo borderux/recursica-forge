@@ -1,5 +1,10 @@
 {
-  "variants": {},
+  "variants": {
+    "states": {
+      "icon": "cursor",
+      "label": "State"
+    }
+  },
   "props": {
     "track": {
       "icon": "faders-horizontal",
@@ -72,9 +77,83 @@
       "label": "Top and bottom margin",
       "visible": true
     },
-    "input-width": {
-      "icon": "arrows-left-right",
-      "label": "Input width",
+    "icon": {
+      "icon": "star",
+      "label": "Icon",
+      "visible": true,
+      "group": {
+        "icon-color": {
+          "icon": "paint-bucket",
+          "label": "Icon color",
+          "visible": true
+        },
+        "icon-size": {
+          "icon": "corners-out",
+          "label": "Icon size",
+          "visible": true
+        }
+      }
+    },
+    "input": {
+      "icon": "text-input",
+      "label": "Input field",
+      "visible": true,
+      "group": {
+        "input-background": {
+          "icon": "paint-bucket",
+          "label": "Background color",
+          "visible": true
+        },
+        "input-border-color": {
+          "icon": "square",
+          "label": "Border color",
+          "visible": true
+        },
+        "input-text": {
+          "icon": "text-aa",
+          "label": "Text color",
+          "visible": true
+        },
+        "input-border-size": {
+          "icon": "corners-out",
+          "label": "Border size",
+          "visible": true
+        },
+        "input-border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius",
+          "visible": true
+        },
+        "input-width": {
+          "icon": "arrows-left-right",
+          "label": "Width",
+          "visible": true
+        },
+        "input-height": {
+          "icon": "arrows-up-down",
+          "label": "Height",
+          "visible": true
+        },
+        "input-padding-vertical": {
+          "icon": "arrows-out-line-vertical",
+          "label": "Vertical padding",
+          "visible": true
+        },
+        "input-padding-left": {
+          "icon": "arrow-left",
+          "label": "Left padding",
+          "visible": true
+        },
+        "input-padding-right": {
+          "icon": "arrow-right",
+          "label": "Right padding",
+          "visible": true
+        }
+      }
+    },
+    "input-text": {
+      "icon": "text-aa",
+      "label": "Input text style",
       "visible": true
     },
     "min-max-label": {
@@ -86,6 +165,33 @@
       "icon": "text-aa",
       "label": "Read-only value style",
       "visible": true
+    },
+    "step-indicator": {
+      "icon": "dots-three",
+      "label": "Step indicator",
+      "visible": true,
+      "group": {
+        "step-indicator-color": {
+          "icon": "paint-bucket",
+          "label": "Color",
+          "visible": true
+        },
+        "step-indicator-color-active": {
+          "icon": "paint-bucket",
+          "label": "Active color",
+          "visible": true
+        },
+        "step-indicator-width": {
+          "icon": "arrows-left-right",
+          "label": "Width",
+          "visible": true
+        },
+        "step-indicator-border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius",
+          "visible": true
+        }
+      }
     }
   }
 }

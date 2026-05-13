@@ -200,11 +200,10 @@ export default function CardPreview({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: `var(${sectionGapVar})`,
+                ...bodyStyle
             }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_md)', ...bodyStyle }}>
-                    <p style={{ margin: 0 }}>{goblinChapter}</p>
-                    <p style={{ margin: 0 }}>{goblinParagraph2}</p>
-                </div>
+                <p style={{ margin: 0 }}>{goblinChapter}</p>
+                <p style={{ margin: 0 }}>{goblinParagraph2}</p>
             </div>
 
             {/* Footer */}
@@ -239,9 +238,9 @@ export default function CardPreview({
                 padding: `var(${paddingVar})`,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: `var(${verticalGutterVar})`,
+                gap: `var(${sectionGapVar})`,
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: `var(${verticalGutterVar})`, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: `var(${sectionGapVar})`, minWidth: 0 }}>
                     <HeadingTag style={headerStyle}>
                         Elixir of Deepwell Sight
                     </HeadingTag>
@@ -265,7 +264,7 @@ export default function CardPreview({
                 padding: `var(${paddingVar})`,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: `var(${verticalGutterVar})`,
+                gap: `var(${sectionGapVar})`,
             }}>
                 <HeadingTag style={headerStyle}>
                     Grindlefax's Emporium

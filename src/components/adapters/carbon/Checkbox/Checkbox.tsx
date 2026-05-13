@@ -73,7 +73,7 @@ export default function Checkbox({
         onChange={(e: any) => onChange(e.target.checked)}
         disabled={disabled}
         className={`${className || ''} recursica-carbon-checkbox`}
-        style={{ ...style, ...cssVars }}
+        style={{ ...cssVars, ...style }}
         {...carbon}
         {...props}
       >
@@ -89,7 +89,7 @@ export default function Checkbox({
     onChange: (e: any) => onChange(e.target.checked),
     disabled,
     className: `${className || ''} recursica-carbon-checkbox`,
-    style: { ...style, ...cssVars },
+    style: { ...cssVars, ...style },
     ...carbon,
     ...props,
   }

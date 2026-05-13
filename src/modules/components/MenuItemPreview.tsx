@@ -41,6 +41,8 @@ export default function MenuItemPreview({
 
   const ChevronRightIcon = iconNameToReactComponent('arrow-right')
   const FileIcon = iconNameToReactComponent('document-text')
+  const HammerIcon = iconNameToReactComponent('hammer')
+  const SnowflakeIcon = iconNameToReactComponent('snowflake')
 
   return (
     <div style={{
@@ -59,8 +61,10 @@ export default function MenuItemPreview({
           key={`default-${updateKey}`}
           variant="default"
           layer={selectedLayer as any}
-          leadingIconType="none"
+          leadingIcon={HammerIcon ? <HammerIcon /> : undefined}
+          leadingIconType="icon"
           trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
+          supportingText="Crafting tool for weapons"
           selected={false}
           disabled={false}
           divider="bottom"
@@ -88,8 +92,10 @@ export default function MenuItemPreview({
           key={`disabled-${updateKey}`}
           variant="disabled"
           layer={selectedLayer as any}
-          leadingIconType="none"
+          leadingIcon={SnowflakeIcon ? <SnowflakeIcon /> : undefined}
+          leadingIconType="icon"
           trailingIcon={ChevronRightIcon ? <ChevronRightIcon /> : undefined}
+          supportingText="Out of stock"
           selected={false}
           disabled={true}
           divider="none"

@@ -51,6 +51,10 @@ export function ComponentsSidebar({
       if (name === 'radio-button-item') {
         return 'Radio button group item'
       }
+      // Special alias: map switch-item to "Switch group item" so it nests active under Switch group
+      if (name === 'switch-item') {
+        return 'Switch group item'
+      }
       // Special alias: map hover-card-popover to display name with slash
       if (name === 'hover-card-popover') {
         return 'Hover card / Popover'
@@ -108,7 +112,8 @@ export function ComponentsSidebar({
       { name: 'Segmented control item', url: `${base}/segmented-control-item` },
       { name: 'Slider', url: `${base}/slider` },
       { name: 'Stepper', url: `${base}/stepper` },
-      { name: 'Switch', url: `${base}/switch` },
+      { name: 'Switch group', url: `${base}/switch-group` },
+      { name: 'Switch group item', url: `${base}/switch-group-item` },
       { name: 'Tabs', url: `${base}/tabs` },
       { name: 'Text field', url: `${base}/text-field` },
       { name: 'Textarea', url: `${base}/textarea` },

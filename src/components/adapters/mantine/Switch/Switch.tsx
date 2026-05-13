@@ -42,6 +42,9 @@ export default function Switch({
   const thumbUnselectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-unselected`, layer)
   const trackSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-track-selected`, layer)
   const trackUnselectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-track-unselected`, layer)
+  const iconSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-icon-selected`, layer)
+  const iconUnselectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-icon-unselected`, layer)
+
   const trackBorderRadiusVar = getComponentLevelCssVar('Switch', 'track-border-radius')
   const thumbBorderRadiusVar = getComponentLevelCssVar('Switch', 'thumb-border-radius')
   const thumbHeightVar = getComponentCssVar('Switch', 'size', 'thumb-height', undefined)
@@ -128,7 +131,11 @@ export default function Switch({
       checked={checked}
       onChange={(e) => onChange(e.currentTarget.checked)}
       disabled={disabled}
-      thumbIcon={checked ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${trackSelectedVar})` }} /> : null) : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${trackUnselectedVar})` }} /> : null)}
+      thumbIcon={
+        checked
+          ? (ThumbIconSelected ? <ThumbIconSelected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${iconSelectedVar})` }} /> : null)
+          : (ThumbIconUnselected ? <ThumbIconUnselected style={{ width: `var(${thumbIconSizeVar})`, height: `var(${thumbIconSizeVar})`, color: `var(${iconUnselectedVar})` }} /> : null)
+      }
       className={className}
       style={{
         // Set Mantine's internal CSS variables to reference UIKit variables directly

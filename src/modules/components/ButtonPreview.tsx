@@ -33,6 +33,9 @@ export default function ButtonPreview({
   const iconOnlyPaddingVar = buildComponentCssVarPath(
     'Button', 'variants', 'content', 'icon-only', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
   )
+  const iconLabelPaddingVar = buildComponentCssVarPath(
+    'Button', 'variants', 'content', 'icon-label', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
+  )
 
   // Style overrides for each content mode
   const labelPaddingStyle: React.CSSProperties = {
@@ -42,6 +45,10 @@ export default function ButtonPreview({
   const iconOnlyPaddingStyle: React.CSSProperties = {
     paddingLeft: `var(${iconOnlyPaddingVar})`,
     paddingRight: `var(${iconOnlyPaddingVar})`,
+  }
+  const iconLabelPaddingStyle: React.CSSProperties = {
+    paddingLeft: `var(${iconLabelPaddingVar})`,
+    paddingRight: `var(${iconLabelPaddingVar})`,
   }
 
   // Phosphor icon elements
@@ -75,7 +82,7 @@ export default function ButtonPreview({
     </span>
   )
 
-  const contentVariant = selectedVariants.content || 'label'
+  const contentVariant = selectedVariants.content || 'icon-label'
 
   return (
     <div className="button-preview">
@@ -103,9 +110,9 @@ export default function ButtonPreview({
               style={iconOnlyPaddingStyle}
             />
           </>
-        ) : (
+        ) : contentVariant === 'label' ? (
           <>
-            {/* Button with text */}
+            {/* Label-only button */}
             <Button
               variant={styleVariant as any}
               size={sizeVariant as any}
@@ -116,19 +123,56 @@ export default function ButtonPreview({
               Enter Forge
             </Button>
 
-            {/* Button with icon on left */}
+            {/* Label-only button */}
+            <Button
+              variant={styleVariant as any}
+              size={sizeVariant as any}
+              layer={actualLayer}
+              elevation={componentElevation}
+              style={labelPaddingStyle}
+            >
+              Draw Sword
+            </Button>
+
+            {/* Disabled label-only button */}
+            <Button
+              variant={styleVariant as any}
+              size={sizeVariant as any}
+              layer={actualLayer}
+              elevation={componentElevation}
+              disabled
+              style={labelPaddingStyle}
+            >
+              Sealed Gate
+            </Button>
+          </>
+        ) : (
+          <>
+            {/* Icon + label button (leading icon) */}
             <Button
               variant={styleVariant as any}
               size={sizeVariant as any}
               layer={actualLayer}
               elevation={componentElevation}
               icon={leadingIcon}
-              style={labelPaddingStyle}
+              style={iconLabelPaddingStyle}
+            >
+              Enter Forge
+            </Button>
+
+            {/* Icon + label button (leading icon) */}
+            <Button
+              variant={styleVariant as any}
+              size={sizeVariant as any}
+              layer={actualLayer}
+              elevation={componentElevation}
+              icon={leadingIcon}
+              style={iconLabelPaddingStyle}
             >
               Draw Sword
             </Button>
 
-            {/* Button with icon on right */}
+            {/* Icon + label button (trailing icon) */}
             <Button
               variant={styleVariant as any}
               size={sizeVariant as any}
@@ -141,7 +185,7 @@ export default function ButtonPreview({
                 rightSection: trailingIconElement
               }}
               style={{
-                ...labelPaddingStyle,
+                ...iconLabelPaddingStyle,
                 '--button-icon-text-gap': `var(${iconGapVar})`,
                 '--button-icon-size': `var(${iconSizeVar})`,
               } as React.CSSProperties}
@@ -150,14 +194,14 @@ export default function ButtonPreview({
               {rightIconElement}
             </Button>
 
-            {/* Disabled button */}
+            {/* Disabled icon + label button */}
             <Button
               variant={styleVariant as any}
               size={sizeVariant as any}
               layer={actualLayer}
               elevation={componentElevation}
               disabled
-              style={labelPaddingStyle}
+              style={iconLabelPaddingStyle}
             >
               Sealed Gate
             </Button>
@@ -167,3 +211,5 @@ export default function ButtonPreview({
     </div>
   )
 }
+
+

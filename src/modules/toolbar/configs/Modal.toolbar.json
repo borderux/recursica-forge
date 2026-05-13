@@ -301,13 +301,7 @@
         "button-gap": {
             "icon": "split-horizontal",
             "label": "Button gap",
-            "visible": true,
-            "propertyType": "slider",
-            "range": [
-                0,
-                40
-            ],
-            "step": 4
+            "visible": true
         },
         "elevation": {
             "icon": "copy-simple",

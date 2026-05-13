@@ -51,7 +51,8 @@ import { ImportModal } from "../../../core/import/ImportModal";
 import { Sidebar } from "../Sidebar";
 import { ThemeSidebar } from "../ThemeSidebar";
 import { ComponentsSidebar } from "../../preview/ComponentsSidebar";
-import { getComponentCssVar } from "../../../components/utils/cssVarNames";
+import { getComponentCssVar, buildComponentCssVarPath } from "../../../components/utils/cssVarNames";
+import { useRawCssVar } from "../../../components/hooks/useCssVar";
 import { genericLayerProperty, genericLayerText, paletteCore } from "../../../core/css/cssVarBuilder";
 import { createBugReport } from "../utils/bugReport";
 import { useCompliance } from "../../../core/compliance/ComplianceContext";
@@ -176,6 +177,11 @@ export default function MantineShell({
     if (location.pathname.startsWith("/components")) return "components";
     return "tokens";
   }, [location.pathname]);
+
+  // Read tab-content-alignment token for header nav tabs (pills, horizontal)
+  const headerTabAlignmentVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', 'horizontal', 'properties', 'tab-content-alignment')
+  const headerTabAlignmentRaw = useRawCssVar(headerTabAlignmentVar, 'left')
+  const headerTabContentAlignment = (headerTabAlignmentRaw?.trim().replace(/^["']|["']$/g, '') || 'left') as 'left' | 'center' | 'right'
 
   // Logo SVG
   const LogoIcon = () => (
@@ -352,6 +358,7 @@ export default function MantineShell({
               value={currentRoute}
               variant='pills'
               layer='layer-0'
+              tabContentAlignment={headerTabContentAlignment}
               style={{ flex: 1 }}
               onChange={(value) => {
                 if (value === "tokens") navigate("/tokens");

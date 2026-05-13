@@ -309,10 +309,7 @@ export default function NumberInput({
         /* Use multiple selectors to ensure maximum specificity and prevent inheritance */
         /* CRITICAL: Use CSS variable references directly - these are SEPARATE variables from value */
         /* Placeholder styles - uses same text styles as value, but with opacity */
-        #${uniqueId}.recursica-number-input-input::placeholder,
-        #${uniqueId}.recursica-number-input-input::-webkit-input-placeholder,
-        #${uniqueId}.recursica-number-input-input::-moz-placeholder,
-        #${uniqueId}.recursica-number-input-input:-ms-input-placeholder {
+        #${uniqueId}.recursica-number-input-input::placeholder {
           color: var(${textVar}) !important;
           opacity: var(${placeholderOpacityVar}) !important;
         }

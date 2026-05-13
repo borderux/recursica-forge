@@ -64,7 +64,7 @@ export default function RadioButton({
             disabled={disabled}
             value={value}
             className={`${className || ''} recursica-mui-radio-root`}
-            style={{ ...style, ...cssVars }}
+            style={{ ...cssVars, ...style }}
             {...material}
             {...props}
         />
@@ -77,7 +77,7 @@ export default function RadioButton({
                 label={label}
                 disabled={disabled}
                 className={`${className || ''} recursica-mui-radio-label`}
-                style={{ ...style, ...cssVars }}
+                style={{ ...cssVars, ...style }}
             />
         )
     }

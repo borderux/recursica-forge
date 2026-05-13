@@ -43,6 +43,8 @@ export type TextareaProps = {
     disableTopBottomMargin?: boolean
     editIcon?: React.ReactNode | boolean
     editIconGap?: string | number
+    leadingIcon?: React.ReactNode
+    trailingIcon?: React.ReactNode
 } & LibrarySpecificProps
 
 export function Textarea({
@@ -72,6 +74,8 @@ export function Textarea({
     disableTopBottomMargin = false,
     editIcon,
     editIconGap,
+    leadingIcon,
+    trailingIcon,
     mantine,
     material,
     carbon,
@@ -200,6 +204,12 @@ export function Textarea({
                                 textAlign: labelAlign === 'right' && layout === 'stacked' ? 'right' : 'left',
                             }}
                         />
+                        <style>{`
+                          #${inputId}::placeholder {
+                            color: var(${textVar}) !important;
+                            opacity: var(${placeholderOpacityVar}) !important;
+                          }
+                        `}</style>
                         {assistiveElement}
                     </div>
                 ) : (
@@ -237,6 +247,12 @@ export function Textarea({
                                     resize: 'vertical',
                                 }}
                             />
+                            <style>{`
+                              #${inputId}::placeholder {
+                                color: var(${textVar}) !important;
+                                opacity: var(${placeholderOpacityVar}) !important;
+                              }
+                            `}</style>
                             {assistiveElement}
                         </div>
                     </div>
@@ -278,6 +294,8 @@ export function Textarea({
                     autoFocus={autoFocus}
                     readOnly={readOnly}
                     editIcon={editIcon}
+                    leadingIcon={leadingIcon}
+                    trailingIcon={trailingIcon}
                     className={className}
                     style={style}
                     mantine={mantine}

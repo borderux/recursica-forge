@@ -188,7 +188,8 @@ export default function PanelPreview({
                     boxShadow: elevationBoxShadow || 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    width: '400px',
+                    minWidth: `var(${minWidthVar})`,
+                    maxWidth: `var(${maxWidthVar})`,
                     height: '100%',
                     overflow: 'hidden',
                 }}>
@@ -274,7 +275,7 @@ export default function PanelPreview({
                     elevation={componentElevation}
                     onClose={() => setActivePanel(null)}
                     footer={panelFooter()}
-                    width="400px"
+
                 >
                     {panelBody}
                 </Panel>

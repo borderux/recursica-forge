@@ -400,6 +400,12 @@ export default function ComponentToolbar({
               //  with variantProp='style-secondary' must be invalidated because the 'style' dimension changed)
               (cachedProp?.isVariantSpecific && Object.entries(selectedVariants).some(([variantProp, variantValue]) => {
                 if (!variantValue || variantProp === cachedProp.variantProp) return false
+                // Only cross-invalidate if the prop's path actually traverses this variant category.
+                // (e.g., a Tabs border-size at variants.styles.default.… has variantProp='style';
+                //  changing orientation to 'vertical' must NOT invalidate it, because border-size
+                //  lives entirely within the styles axis and has no orientation segment.)
+                const categoryKey = VARIANT_PROP_TO_CATEGORY[variantProp] || variantProp + 's'
+                if (!cachedProp.path.includes(categoryKey)) return false
                 return !pathMatchesVariant(cachedProp.path, variantProp, variantValue)
               }))
 
@@ -407,7 +413,7 @@ export default function ComponentToolbar({
               // For nested property groups like "container", "selected", "selected-item", and "unselected-item", match props by name AND path
               // Check if the parent prop name is in the path (e.g., "container", "selected", "selected-item", or "unselected-item")
               const parentPropNameLower = parentPropName.toLowerCase()
-              const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'unselected' || parentPropNameLower === 'active' || parentPropNameLower === 'inactive' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item' || parentPropNameLower === 'thumb-selected' || parentPropNameLower === 'thumb-unselected' || parentPropNameLower === 'track-selected' || parentPropNameLower === 'track-unselected'
+              const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'unselected' || parentPropNameLower === 'active' || parentPropNameLower === 'inactive' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item' || parentPropNameLower === 'thumb-selected' || parentPropNameLower === 'thumb-unselected' || parentPropNameLower === 'track-selected' || parentPropNameLower === 'track-unselected' || parentPropNameLower === 'padding'
 
 
               let groupedProp = liveStructure.props.find(p => {
@@ -434,11 +440,11 @@ export default function ComponentToolbar({
               })
 
 
-              // Special case: placeholder-opacity is a component-level property, not a variant-level color
-              // It's in the "colors" group but doesn't have "colors" in its path
-              if (!groupedProp && groupedPropKey === 'placeholder-opacity') {
+              // Special case: placeholder-opacity / optional-text-opacity are component-level properties,
+              // not variant-level colors — they live directly under properties, not inside colors.{layer}
+              if (!groupedProp && (groupedPropKey === 'placeholder-opacity' || groupedPropKey === 'optional-text-opacity')) {
                 groupedProp = liveStructure.props.find(p => {
-                  const nameMatches = p.name.toLowerCase() === 'placeholder-opacity'
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
                   // Must be component-level (not variant-specific)
                   const isComponentLevel = !p.isVariantSpecific
                   return nameMatches && isComponentLevel
@@ -454,13 +460,14 @@ export default function ComponentToolbar({
                 })
               }
 
-              // Special case: tab-content-alignment is a component-level property for Tabs
-              // It's in the "spacing" group but doesn't have "spacing" in its path
+              // Special case: tab-content-alignment is now orientation-specific for Tabs
+              // It lives under variants.orientation.{orientation}.properties
               if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
                 groupedProp = liveStructure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
-                  const isComponentLevel = !p.isVariantSpecific
-                  return nameMatches && isComponentLevel
+                  const orientationMatches = !selectedVariants.orientation ||
+                    pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
+                  return nameMatches && orientationMatches
                 })
               }
               // tabs-content-gap is under both style and orientation; match by both
@@ -470,6 +477,15 @@ export default function ComponentToolbar({
                   const styleMatches = !selectedVariants.style || pathMatchesVariant(p.path, 'style', selectedVariants.style)
                   const orientationMatches = !selectedVariants.orientation || pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
                   return nameMatches && styleMatches && orientationMatches
+                })
+              }
+              // hover-color and hover-opacity are style-variant-specific for Tabs
+              // (they live under variants.styles.{style}.properties, not under a 'hover' path segment)
+              if (!groupedProp && (groupedPropKey === 'hover-color' || groupedPropKey === 'hover-opacity') && componentName.toLowerCase() === 'tabs') {
+                groupedProp = liveStructure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  const styleMatches = !selectedVariants.style || pathMatchesVariant(p.path, 'style', selectedVariants.style)
+                  return nameMatches && styleMatches
                 })
               }
 
@@ -605,8 +621,9 @@ export default function ComponentToolbar({
               }
 
 
-              // Special handling: if parent prop is "spacing", "dimensions", or "layout", collect props from all layout variants
-              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'dimensions' || parentPropName.toLowerCase() === 'layout')) {
+              // Special handling: if parent prop is "spacing", "dimensions", "layout", or "tabs",
+              // collect props from all layout/orientation variants or fall back to component-level.
+              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'dimensions' || parentPropName.toLowerCase() === 'layout' || parentPropName.toLowerCase() === 'tabs')) {
                 // Find props that match the name and are variant-specific for layout
                 const layoutProps = liveStructure.props.filter(p =>
                   p.name.toLowerCase() === groupedPropKey &&
@@ -616,6 +633,14 @@ export default function ComponentToolbar({
                 // Use the first one found (they should all have the same name, just different variant paths)
                 if (layoutProps.length > 0) {
                   groupedProp = layoutProps[0]
+                }
+                // Fallback: also find component-level (non-variant-specific) dimension props in the spacing group
+                // e.g., vertical-element-gap, padding, item-gap which live directly under properties
+                if (!groupedProp) {
+                  groupedProp = liveStructure.props.find(p =>
+                    p.name.toLowerCase() === groupedPropKey &&
+                    !p.isVariantSpecific
+                  )
                 }
               }
 
@@ -718,7 +743,7 @@ export default function ComponentToolbar({
         }
 
         // Check if this is a text-group prop that exists in recursica_ui-kit.json but wasn't parsed
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'step-number-text', 'selected-text', 'unselected-text']
         if (textPropertyGroupNames.includes(propNameLower)) {
           // Try to find it in liveStructure.props - it should have been parsed
           const structureProp = liveStructure.props.find(p => p.name.toLowerCase() === propNameLower && p.type === 'text-group')
@@ -794,6 +819,70 @@ export default function ComponentToolbar({
             type: 'dimension',
             cssVar: buildComponentCssVarPath('RadioButtonGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'),
             path: ['variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+
+        // Create virtual props for switch-group top-bottom-margin (stacked and side-by-side)
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'stacked-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'stacked-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'sbs-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        
+        // Add virtual props for other switch-group layout spacing properties
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'stacked-label-field-gap') {
+          const virtualProp: ComponentProp = {
+            name: 'stacked-label-field-gap',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'stacked', 'properties', 'label-field-gap'),
+            path: ['variants', 'layouts', 'stacked', 'properties', 'label-field-gap'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'sbs-gutter') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-gutter',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'gutter'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'sbs-vertical-padding') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-vertical-padding',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding'],
             isVariantSpecific: false,
           }
           propsMap.set(propNameLower, virtualProp)

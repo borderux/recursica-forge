@@ -134,6 +134,9 @@ export default function WidthGroupToolbar({
     } else if (compNameLower === 'menu-item') {
       if (propNameLower === 'min-width') return { min: 50, max: 500 }
       if (propNameLower === 'max-width') return { min: 200, max: 1000 }
+    } else if (compNameLower === 'panel') {
+      if (propNameLower === 'min-width') return { min: 100, max: 800 }
+      if (propNameLower === 'max-width') return { min: 200, max: 2000 }
     } else if (compNameLower === 'toast') {
       if (propNameLower === 'min-width') return { min: 200, max: 800 }
       if (propNameLower === 'max-width') return { min: 400, max: 1200 }

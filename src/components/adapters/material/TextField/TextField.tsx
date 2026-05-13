@@ -311,10 +311,7 @@ export default function TextField({
         /* Use multiple selectors to ensure maximum specificity and prevent inheritance */
         /* CRITICAL: Use CSS variable references directly - these are SEPARATE variables from value */
         /* Placeholder styles - uses same text styles as value, but with opacity */
-        #${uniqueId}.recursica-text-field-input::placeholder,
-        #${uniqueId}.recursica-text-field-input::-webkit-input-placeholder,
-        #${uniqueId}.recursica-text-field-input::-moz-placeholder,
-        #${uniqueId}.recursica-text-field-input:-ms-input-placeholder {
+        #${uniqueId}.recursica-text-field-input::placeholder {
           color: var(${textVar}) !important;
           opacity: var(${placeholderOpacityVar}) !important;
         }

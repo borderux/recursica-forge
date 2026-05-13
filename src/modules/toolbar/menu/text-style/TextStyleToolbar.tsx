@@ -600,12 +600,20 @@ export default function TextStyleToolbar({
     return allOptions
   }, [currentFontFamily, getAvailableStyleKeysForFont])
 
+  // Reverse mapping from CSS resolved values to segmented control option values.
+  // Tokens store CSS-native values (e.g. "capitalize") but the segmented control
+  // options use token names (e.g. "titlecase"). This map converts back.
+  const cssToOptionValue: Record<string, string> = useMemo(() => ({
+    'capitalize': 'titlecase',
+  }), [])
+
   // Helper to resolve value and ensure it's clean
   const getResolvedValue = useCallback((cssVar: string, fallback: string) => {
     const value = readCssVarResolved(cssVar) || readCssVar(cssVar) || fallback
     // Remove quotes if present (shouldn't be for these properties, but safety first)
-    return value.replace(/^["']|["']$/g, '').trim()
-  }, [])
+    const cleaned = value.replace(/^["']|["']$/g, '').trim()
+    return cssToOptionValue[cleaned] || cleaned
+  }, [cssToOptionValue])
 
   // Get current values - make font family reactive
   const [currentTextDecoration, setCurrentTextDecoration] = useState<string>(() => getResolvedValue(textDecorationVar, 'none'))
@@ -676,37 +684,7 @@ export default function TextStyleToolbar({
     return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
   }, [fontFamilyVar, fontFamilies])
 
-  // Validate font style when font family changes
-  useEffect(() => {
-    if (!currentFontFamily || !currentFontStyle) return
 
-    const resolvedValue = readCssVarResolved(currentFontFamily)
-    if (!resolvedValue) return
-
-    const cleanValue = resolvedValue.trim().replace(/^["']|["']$/g, '')
-    const fontNameMatch = cleanValue.match(/^([^,]+)/)
-    if (!fontNameMatch) return
-
-    const fontName = fontNameMatch[1].trim()
-    const availableStyleKeys = getAvailableStyleKeysForFont(fontName)
-
-    // If we have variant restrictions and current style is not available, switch to normal
-    if (availableStyleKeys && availableStyleKeys.size > 0) {
-      const currentStyleKey = currentFontStyle.toLowerCase()
-      if (!availableStyleKeys.has(currentStyleKey)) {
-        // Current style is not available, switch to normal (which should always be available)
-        if (availableStyleKeys.has('normal')) {
-          updateCssVar(fontStyleVar, 'normal')
-          setCurrentFontStyle('normal')
-          requestAnimationFrame(() => {
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: [fontStyleVar] }
-            }))
-          })
-        }
-      }
-    }
-  }, [currentFontFamily, currentFontStyle, fontStyleVar, getAvailableStyleKeysForFont])
 
   // Update current text decoration, transform, and font style when CSS variables change
   useEffect(() => {
@@ -1168,7 +1146,8 @@ export default function TextStyleToolbar({
           if (!availableStyleKeys.has(currentStyleKey)) {
             // Current style is not available, switch to normal (which should always be available)
             if (availableStyleKeys.has('normal')) {
-              updateCssVar(fontStyleVar, 'normal')
+              const normalTokenVar = `var(--recursica_tokens_font_styles_normal)`
+              updateCssVar(fontStyleVar, normalTokenVar)
               setCurrentFontStyle('normal')
               requestAnimationFrame(() => {
                 window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
@@ -1325,7 +1304,8 @@ export default function TextStyleToolbar({
             min={0}
             max={fontSizes.length - 1}
             step={1}
-            layer="layer-3"
+            type="discrete"
+            layer={(selectedLayer as any) || 'layer-0'}
             layout="stacked"
             showInput={false}
             showValueLabel={true}
@@ -1389,7 +1369,8 @@ export default function TextStyleToolbar({
                 min={0}
                 max={fontWeights.length - 1}
                 step={1}
-                layer="layer-3"
+                type="discrete"
+                layer={(selectedLayer as any) || 'layer-0'}
                 layout="stacked"
                 showInput={false}
                 showValueLabel={true}
@@ -1433,7 +1414,8 @@ export default function TextStyleToolbar({
                 min={0}
                 max={letterSpacings.length - 1}
                 step={1}
-                layer="layer-3"
+                type="discrete"
+                layer={(selectedLayer as any) || 'layer-0'}
                 layout="stacked"
                 showInput={false}
                 showValueLabel={true}
@@ -1477,7 +1459,8 @@ export default function TextStyleToolbar({
                 min={0}
                 max={lineHeights.length - 1}
                 step={1}
-                layer="layer-3"
+                type="discrete"
+                layer={(selectedLayer as any) || 'layer-0'}
                 layout="stacked"
                 showInput={false}
                 showValueLabel={true}

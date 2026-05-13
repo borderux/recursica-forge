@@ -125,34 +125,7 @@ export function applyCssVars(vars: CssVarMap, tokens?: any) {
     }
   }
 
-  // Log errors with context
-  if (errors.length > 0 && process.env.NODE_ENV !== 'test') {
-    console.error(`[CSS Var Validation] Found ${errors.length} validation error(s):`)
-    errors.forEach(({ var: varName, value, error, context }) => {
-      console.error(`  ❌ ${varName} = ${value}`)
-      console.error(`     Error: ${error}`)
-      if (context) {
-        console.error(`     Context: ${context}`)
-      }
-    })
 
-    // In development, log errors but don't throw to prevent infinite loops
-    // Errors are already logged above, so we just continue
-    // Throwing here was causing infinite recompute loops
-  }
-
-  // Log warnings with context
-  if (warnings.length > 0) {
-    console.warn(`[CSS Var Validation] Found ${warnings.length} validation warning(s):`)
-    warnings.forEach(({ var: varName, value, fixed, context }) => {
-      console.warn(`  ⚠️  ${varName} = ${value} → ${fixed}`)
-      if (context) {
-        console.warn(`     ${context}`)
-      }
-    })
-  }
-
-  // Apply validated vars
   applyDirect(fixedVars)
 
   // Return validation summary

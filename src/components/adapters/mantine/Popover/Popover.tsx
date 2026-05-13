@@ -12,6 +12,7 @@ import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssV
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
+import { genericElevation } from '../../../../core/css/cssVarBuilder'
 import '../HoverCard/HoverCard.css'
 
 export default function Popover({
@@ -33,10 +34,10 @@ export default function Popover({
     const [, setUpdateKey] = useState(0)
 
     // Build CSS variable names — use 'HoverCardPopover' as the component name for shared styling
-    // Colors are at the component top level (not under properties)
-    const bgVar = buildComponentCssVarPath('HoverCardPopover', 'colors', layer, 'background')
-    const contentColorVar = buildComponentCssVarPath('HoverCardPopover', 'colors', layer, 'content')
-    const borderColorVar = buildComponentCssVarPath('HoverCardPopover', 'colors', layer, 'border-color')
+
+    const bgVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'background')
+    const contentColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'content')
+    const borderColorVar = buildComponentCssVarPath('HoverCardPopover', 'properties', 'colors', layer, 'border-color')
 
 
     const borderRadiusVar = getComponentLevelCssVar('HoverCardPopover', 'border-radius')
@@ -105,10 +106,10 @@ export default function Popover({
         const match = activeElevation.match(/elevation-(\d+)/)
         if (!match) return '0 0 0 rgba(0,0,0,0)'
         const level = match[1]
-        const xAxis = `var(--recursica_brand_elevations_elevation-${level}-x-axis, 0px)`
-        const yAxis = `var(--recursica_brand_elevations_elevation-${level}-y-axis, 0px)`
-        const blur = `var(--recursica_brand_elevations_elevation-${level}-blur, 0px)`
-        const color = `var(--recursica_brand_elevations_elevation-${level}-shadow-color, rgba(0, 0, 0, 0))`
+        const xAxis = `var(${genericElevation(level, 'x-axis')})`
+        const yAxis = `var(${genericElevation(level, 'y-axis')})`
+        const blur = `var(${genericElevation(level, 'blur')})`
+        const color = `var(${genericElevation(level, 'shadow-color')})`
         return `${xAxis} ${yAxis} ${blur} ${color}`
     })()
 

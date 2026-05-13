@@ -49,7 +49,7 @@ export default function BrandDimensionSliderInline({
   targetCssVars = [],
   label,
   dimensionCategory,
-  layer = 'layer-1',
+  layer = 'layer-0',
 }: BrandDimensionSliderInlineProps) {
   const { theme } = useVars()
   const { mode } = useThemeMode()
@@ -286,6 +286,7 @@ export default function BrandDimensionSliderInline({
       min={0}
       max={tokens.length - 1}
       step={1}
+      type="discrete"
       layer={layer}
       layout="stacked"
       showInput={false}

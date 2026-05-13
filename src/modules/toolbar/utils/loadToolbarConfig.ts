@@ -3,7 +3,8 @@
  */
 
 import ButtonConfig from '../configs/Button.toolbar.json'
-import SwitchConfig from '../configs/Switch.toolbar.json'
+import SwitchItemConfig from '../configs/SwitchItem.toolbar.json'
+import SwitchGroupConfig from '../configs/SwitchGroup.toolbar.json'
 import AvatarConfig from '../configs/Avatar.toolbar.json'
 import ToastConfig from '../configs/Toast.toolbar.json'
 import BadgeConfig from '../configs/Badge.toolbar.json'
@@ -63,6 +64,7 @@ export interface ToolbarPropConfig {
 export interface ToolbarVariantConfig {
   icon: string
   label: string
+  optionLabels?: Record<string, string> // Override display labels per option value
 }
 
 export interface ToolbarConfig {
@@ -83,8 +85,13 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
     switch (componentKey) {
       case 'button':
         return ButtonConfig as unknown as ToolbarConfig
-      case 'switch':
-        return SwitchConfig as unknown as ToolbarConfig
+      case 'switch-item':
+      case 'switch group item':
+      case 'switch-group-item':
+        return SwitchItemConfig as unknown as ToolbarConfig
+      case 'switch-group':
+      case 'switch group':
+        return SwitchGroupConfig as unknown as ToolbarConfig
       case 'avatar':
         return AvatarConfig as unknown as ToolbarConfig
       case 'toast':
@@ -332,5 +339,18 @@ export function getVariantIcon(componentName: string, variantPropName: string): 
 export function getVariantLabel(componentName: string, variantPropName: string): string | null {
   const config = getVariantConfig(componentName, variantPropName)
   return config?.label || null
+}
+
+/**
+ * Gets the display label for a specific option value within a variant axis.
+ * Falls back to null if no override is defined (caller should use toSentenceCase).
+ */
+export function getVariantOptionLabel(
+  componentName: string,
+  variantPropName: string,
+  optionValue: string
+): string | null {
+  const config = getVariantConfig(componentName, variantPropName)
+  return config?.optionLabels?.[optionValue] ?? null
 }
 

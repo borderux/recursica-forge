@@ -253,7 +253,8 @@ export default function BrandBorderRadiusSlider({
         onChange={handleSliderChange}
         min={0}
         max={tokens.length > 0 ? tokens.length - 1 : 0}
-        step={1}
+        type="discrete"
+      step={1}
         layer={layer}
         layout="stacked"
         showInput={false}

@@ -16,6 +16,8 @@ import { TextField } from './TextField'
 import { NumberInput } from './NumberInput'
 import { getTypographyCssVar, extractTypographyStyleName } from '../utils/typographyUtils'
 import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../utils/brandCssVars'
+import { AssistiveElement } from './AssistiveElement'
+import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
 export type SliderProps = {
@@ -26,6 +28,9 @@ export type SliderProps = {
   max?: number
   step?: number
   disabled?: boolean
+  state?: 'default' | 'focus' | 'error' | 'disabled'
+  errorText?: React.ReactNode
+  type?: 'continuous' | 'discrete'
   layout?: string  // accepts custom layout variant names
   layer?: ComponentLayer
   label?: React.ReactNode
@@ -34,9 +39,12 @@ export type SliderProps = {
   showValueLabel?: boolean
   valueLabel?: string | ((value: number) => string)
   tooltipText?: string | ((value: number) => string)
-  minLabel?: string
-  maxLabel?: string
+  minLabel?: React.ReactNode
+  maxLabel?: React.ReactNode
   showMinMaxLabels?: boolean
+  minIcon?: React.ReactNode
+  maxIcon?: React.ReactNode
+  iconSize?: number | string
   readOnly?: boolean
   className?: string
   style?: React.CSSProperties
@@ -50,6 +58,9 @@ export function Slider({
   max = 100,
   step = 1,
   disabled = false,
+  state = 'default',
+  errorText,
+  type = 'continuous',
   layout = 'stacked',
   layer = 'layer-0',
   label,
@@ -61,6 +72,9 @@ export function Slider({
   minLabel,
   maxLabel,
   showMinMaxLabels,
+  minIcon,
+  maxIcon,
+  iconSize,
   readOnly = false,
   className,
   style,
@@ -69,9 +83,9 @@ export function Slider({
   carbon,
 }: SliderProps) {
   // Use showMinMaxInput as a master toggle if showInput/showMinMaxLabels/showValueLabel aren't explicitly provided
-  const finalShowInput = showInput ?? (showMinMaxInput ? true : false)
+  let finalShowInput = showInput ?? (showMinMaxInput ? true : false)
   const finalShowMinMaxLabels = showMinMaxLabels ?? true
-  const finalShowValueLabel = showValueLabel || (showMinMaxInput && !finalShowInput)
+  let finalShowValueLabel = showValueLabel || (showMinMaxInput && !finalShowInput)
 
   const Component = useComponent('Slider')
   const { mode } = useThemeMode()
@@ -89,8 +103,7 @@ export function Slider({
         computedTooltipText = tooltipText
       }
     }
-  } catch (error) {
-    console.warn('Error calculating tooltip text:', error)
+  } catch (_e) {
     computedTooltipText = undefined
   }
 
@@ -151,10 +164,13 @@ export function Slider({
     const isRange = Array.isArray(value)
     const singleValue = isRange ? value[0] : value
 
+    // Determine effective state
+    const effectiveState = disabled ? 'disabled' : state
+
     // Get CSS variables for colors
-    const trackVar = buildComponentCssVarPath('Slider', 'properties', 'colors', layer, 'track')
-    const trackActiveVar = buildComponentCssVarPath('Slider', 'properties', 'colors', layer, 'track-active')
-    const thumbVar = buildComponentCssVarPath('Slider', 'properties', 'colors', layer, 'thumb')
+    const trackVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'track')
+    const trackActiveVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'track-active')
+    const thumbVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'thumb')
 
     // Get CSS variables for sizes
     const trackHeightVar = getComponentLevelCssVar('Slider', 'track-height')
@@ -162,6 +178,8 @@ export function Slider({
     const trackBorderRadiusVar = getComponentLevelCssVar('Slider', 'track-border-radius')
     const thumbBorderRadiusVar = getComponentLevelCssVar('Slider', 'thumb-border-radius')
     const thumbElevationVar = getComponentLevelCssVar('Slider', 'thumb-elevation')
+    const iconSizeVar = getComponentLevelCssVar('Slider', 'icon-size')
+    const iconColorVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'icon-color')
 
     // Get Label's gutter for side-by-side layout (Label component manages spacing)
     const labelGutterVar = layout === 'side-by-side'
@@ -173,6 +191,10 @@ export function Slider({
 
     // Get input width and gap if showing input
     const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
+    const inputHeightVar = getComponentLevelCssVar('Slider', 'input-height')
+    const inputPaddingVerticalVar = getComponentLevelCssVar('Slider', 'input-padding-vertical')
+    const inputPaddingLeftVar = getComponentLevelCssVar('Slider', 'input-padding-left')
+    const inputPaddingRightVar = getComponentLevelCssVar('Slider', 'input-padding-right')
     const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
 
     // Get disabled opacity CSS variable
@@ -322,25 +344,91 @@ export function Slider({
       }
     }, [percentage, thumbSizeNum, singleValue])
 
+    const labelsBelow = layout === 'labels-below'
+
+    const labelsBelowContent = labelsBelow && (showMinMaxLabels || minIcon || maxIcon) ? (
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {minIcon && (
+            <span style={{ 
+              display: 'flex', 
+              fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+              color: `var(${iconColorVar}, var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')}))`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+            }}>
+              {minIcon}
+            </span>
+          )}
+          {finalShowMinMaxLabels && (
+            <span style={{
+              fontSize: 12,
+              color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+              flexShrink: 0,
+            }}>
+              {minLabel ?? min}
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {finalShowMinMaxLabels && (
+            <span style={{
+              fontSize: 12,
+              color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+              flexShrink: 0,
+            }}>
+              {maxLabel ?? max}
+            </span>
+          )}
+          {maxIcon && (
+            <span style={{ 
+              display: 'flex', 
+              fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+              color: `var(${iconColorVar}, var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')}))`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+            }}>
+              {maxIcon}
+            </span>
+          )}
+        </div>
+      </div>
+    ) : null;
+
     const sliderElement = (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
       <div
         style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center', gap: `var(${inputGapVar}, 8px)`, overflow: 'visible' }}>
         {/* Min value display */}
-        {finalShowMinMaxLabels && (
-          <span style={{
-            fontSize: 12,
-            color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
-
-            flexShrink: 0,
-          }}>
-            {minLabel ?? min}
-          </span>
+        {!labelsBelow && (finalShowMinMaxLabels || minIcon) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            {minIcon && (
+              <span style={{ 
+                display: 'flex', 
+                fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+                color: `var(${iconColorVar}, var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')}))`,
+                opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+              }}>
+                {minIcon}
+              </span>
+            )}
+            {finalShowMinMaxLabels && (
+              <span style={{
+                fontSize: 12,
+                color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+                opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+                flexShrink: 0,
+              }}>
+                {minLabel ?? min}
+              </span>
+            )}
+          </div>
         )}
-        <div
-          ref={trackContainerRef}
-          style={{
-            position: 'relative',
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          <div
+            ref={trackContainerRef}
+            style={{
+              position: 'relative',
             flex: 1,
             display: 'flex',
             alignItems: 'center',
@@ -406,7 +494,7 @@ export function Slider({
                 else onChangeCommitted(singleValue);
               }
             }}
-            disabled={disabled}
+            disabled={disabled || state === 'disabled'}
             title={computedTooltipText}
             style={{
               position: 'relative',
@@ -484,18 +572,33 @@ export function Slider({
               color: transparent;
             }
           `}</style>
+          </div>
+          {labelsBelowContent}
         </div>
         {/* Max value display */}
-        {finalShowMinMaxLabels && (
-          <span style={{
-            fontSize: 12,
-            color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
-
-            flexShrink: 0,
-          }}>
-            {maxLabel ?? max}
-          </span>
+        {!labelsBelow && (finalShowMinMaxLabels || maxIcon) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            {finalShowMinMaxLabels && (
+              <span style={{
+                fontSize: 12,
+                color: `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')})`,
+                opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'high-emphasis')})`,
+                flexShrink: 0,
+              }}>
+                {maxLabel ?? max}
+              </span>
+            )}
+            {maxIcon && (
+              <span style={{ 
+                display: 'flex', 
+                fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+                color: `var(${iconColorVar}, var(${layerText(mode, parseInt(layer.replace('layer-', '')), 'color')}))`,
+                opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+              }}>
+                {maxIcon}
+              </span>
+            )}
+          </div>
         )}
 
         {/* Value label (when showValueLabel is true and no input) */}
@@ -512,47 +615,51 @@ export function Slider({
           </span>
         )}
 
-        {/* Input field */}
+        {/* Input field (single or range 2) */}
         {finalShowInput && (
-          <>
-            <style>{`
-              .recursica-slider-number-input > div > .recursica-number-input-wrapper {
-                min-width: var(${inputWidthVar}, 60px) !important;
-                max-width: var(${inputWidthVar}, 60px) !important;
-              }
-            `}</style>
-            <NumberInput
-              min={min}
-              max={max}
-              step={step}
-              value={singleValue}
-              onChange={(e) => {
-                if (!readOnly) {
-                  const newValue = Number(e.target.value)
-                  if (!isNaN(newValue)) {
+          <NumberInput
+            min={min}
+            max={max}
+            step={step}
+            value={isRange ? value[1] : singleValue}
+            state={disabled ? 'disabled' : state}
+            onChange={(e) => {
+              if (!readOnly) {
+                const newValue = Number(e.target.value)
+                if (!isNaN(newValue)) {
+                  if (isRange) {
+                    const clampedValue = Math.max(value[0], Math.min(max, newValue))
+                    onChange([value[0], clampedValue])
+                  } else {
                     const clampedValue = Math.max(min, Math.min(max, newValue))
-                    if (isRange) {
-                      onChange([clampedValue, value[1]])
-                    } else {
-                      onChange(clampedValue)
-                    }
+                    onChange(clampedValue)
                   }
                 }
-              }}
-              state={disabled ? 'disabled' : 'default'}
-              readOnly={readOnly}
-              layer="layer-0"
-              disableTopBottomMargin={true}
-              className="recursica-slider-number-input"
-              style={{
-                fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
-                margin: 0,
-              }}
-            />
-          </>
+              }
+            }}
+            readOnly={readOnly}
+            layer="layer-0"
+            disableTopBottomMargin={true}
+            className="recursica-slider-number-input"
+            style={{
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              margin: 0,
+              width: `var(${inputWidthVar})`,
+              height: `var(${inputHeightVar})`,
+              paddingTop: `var(${inputPaddingVerticalVar})`,
+              paddingBottom: `var(${inputPaddingVerticalVar})`,
+              paddingLeft: `var(${inputPaddingLeftVar})`,
+              paddingRight: `var(${inputPaddingRightVar})`
+            }}
+          />
         )}
       </div>
-    )
+      {!Component && state === 'error' && errorText && (() => {
+        const ErrorIcon = iconNameToReactComponent('warning')
+        return <AssistiveElement text={typeof errorText === 'string' ? errorText : ''} icon={typeof errorText !== 'string' ? errorText : (ErrorIcon ? <ErrorIcon /> : undefined)} variant="error" layer={layer} />
+      })()}
+    </div>
+  )
 
     // Calculate the width of the max value display to align value label above it
     const maxValueWidth = 30 // Approximate width for max value display
@@ -628,8 +735,7 @@ export function Slider({
     } else {
       displayValue = singleValue
     }
-  } catch (error) {
-    console.warn('Error calculating value label:', error)
+  } catch (_e) {
     displayValue = singleValue
   }
   // Ensure displayValue is always a non-empty string for rendering
@@ -653,7 +759,10 @@ export function Slider({
         min={min}
         max={max}
         step={step}
-        disabled={disabled}
+        disabled={disabled || state === 'disabled'}
+        state={state}
+        errorText={errorText}
+        type={type}
         layout={layout}
         layer={layer}
         label={shouldHandleLabelRow ? undefined : label}
@@ -664,6 +773,9 @@ export function Slider({
         minLabel={minLabel}
         maxLabel={maxLabel}
         showMinMaxLabels={finalShowMinMaxLabels}
+        minIcon={minIcon}
+        maxIcon={maxIcon}
+        iconSize={iconSize}
         readOnly={readOnly}
         className={className}
         style={style}
@@ -789,7 +901,10 @@ export function Slider({
             min={min}
             max={max}
             step={step}
-            disabled={disabled}
+            type={type}
+            disabled={disabled || state === 'disabled'}
+            state={state}
+            errorText={errorText}
             layout={layout}
             layer={layer}
             label={label}
@@ -800,6 +915,10 @@ export function Slider({
             minLabel={minLabel}
             maxLabel={maxLabel}
             showMinMaxLabels={finalShowMinMaxLabels}
+            minIcon={minIcon}
+            maxIcon={maxIcon}
+            iconSize={iconSize}
+            readOnly={readOnly}
             className={className}
             style={style}
             mantine={mantine}

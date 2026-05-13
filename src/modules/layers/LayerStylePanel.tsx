@@ -287,6 +287,7 @@ function BrandDimensionSliderInline({
       onChangeCommitted={handleSliderCommit}
       min={0}
       max={tokens.length - 1}
+      type="discrete"
       step={1}
       layer={layer}
       layout="stacked"
@@ -493,6 +494,7 @@ function ElevationSliderInline({
       onChangeCommitted={handleSliderCommit}
       min={0}
       max={tokens.length - 1}
+      type="discrete"
       step={1}
       layer={layer}
       layout="stacked"

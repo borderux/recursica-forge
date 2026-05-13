@@ -13,6 +13,14 @@
           "label": "Thumb unselected",
           "visible": true
         },
+        "icon-selected": {
+          "label": "Icon selected",
+          "visible": true
+        },
+        "icon-unselected": {
+          "label": "Icon unselected",
+          "visible": true
+        },
         "thumb-height": {
           "label": "Thumb height",
           "visible": true
@@ -58,15 +66,53 @@
         }
       }
     },
-    "label-switch-gap": {
-      "icon": "split-horizontal",
-      "label": "Gap between label and switch",
-      "visible": true
-    },
-    "label-text": {
+
+    "text": {
       "icon": "text-aa",
       "label": "Label text style",
-      "visible": true
+      "visible": true,
+      "group": {
+        "text": {
+          "label": "Color",
+          "visible": true
+        }
+      }
+    },
+    "label": {
+      "icon": "text-t",
+      "label": "Label",
+      "visible": true,
+      "group": {
+        "label-gap": {
+          "label": "Switch-label gap",
+          "visible": true
+        },
+        "text-color": {
+          "label": "Text color",
+          "visible": true
+        },
+        "label-max-width": {
+          "label": "Max width",
+          "visible": true,
+          "min": 40,
+          "max": 500
+        }
+      }
+    },
+    "disabled": {
+      "icon": "prohibit",
+      "label": "Disabled state",
+      "visible": true,
+      "group": {
+        "disabled-text": {
+          "label": "Text color",
+          "visible": true
+        },
+        "disabled-opacity": {
+          "label": "Opacity",
+          "visible": true
+        }
+      }
     },
 
     "elevation": {

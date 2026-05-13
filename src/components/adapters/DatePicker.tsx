@@ -223,6 +223,12 @@ export function DatePicker({
                                     cursor: state === 'disabled' ? 'default' : 'pointer',
                                 }}
                             />
+                            <style>{`
+                              #${inputId}::placeholder {
+                                color: var(${textVar}) !important;
+                                opacity: var(${placeholderOpacityVar}) !important;
+                              }
+                            `}</style>
                         </div>
                         {assistiveElement}
                     </div>
@@ -257,6 +263,12 @@ export function DatePicker({
                                     cursor: state === 'disabled' ? 'default' : 'pointer',
                                 }}
                             />
+                            <style>{`
+                              #${inputId}::placeholder {
+                                color: var(${textVar}) !important;
+                                opacity: var(${placeholderOpacityVar}) !important;
+                              }
+                            `}</style>
                             {assistiveElement}
                         </div>
                     </div>

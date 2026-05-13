@@ -122,6 +122,7 @@ export function buildComponentCssVarPath(
   const componentNameMap: Record<string, string> = {
     'checkbox-group-item': 'checkbox-item',
     'radio-button-group-item': 'radio-button-item',
+    'switch-group-item': 'switch-item',
     'hover-card-/-popover': 'hover-card-popover',
   }
   let componentKebab = pascalToKebabCase(component)

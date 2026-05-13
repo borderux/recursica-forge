@@ -13,20 +13,55 @@
         }
     },
     "props": {
-        "colors": {
+        "active-colors": {
             "icon": "paint-bucket",
-            "label": "Background",
+            "label": "Active",
             "visible": true,
+            "floatingPaletteLabel": "Active Colors",
             "group": {
                 "active-background": {
                     "icon": "paint-bucket",
-                    "label": "Active",
-                    "visible": true
+                    "label": "Background",
+                    "visible": true,
+                    "floatingPaletteLabel": "Active Background"
                 },
+                "active-border-color": {
+                    "icon": "paint-brush-broad",
+                    "label": "Border",
+                    "visible": true,
+                    "floatingPaletteLabel": "Active Border Color",
+                    "showForVariants": [
+                        "default",
+                        "icon",
+                        "icon-alternative",
+                        "avatar"
+                    ]
+                }
+            }
+        },
+        "inactive-colors": {
+            "icon": "paint-bucket",
+            "label": "Inactive",
+            "visible": true,
+            "floatingPaletteLabel": "Inactive Colors",
+            "group": {
                 "inactive-background": {
                     "icon": "paint-bucket",
-                    "label": "Inactive",
-                    "visible": true
+                    "label": "Background",
+                    "visible": true,
+                    "floatingPaletteLabel": "Inactive Background"
+                },
+                "inactive-border-color": {
+                    "icon": "paint-brush-broad",
+                    "label": "Border",
+                    "visible": true,
+                    "floatingPaletteLabel": "Inactive Border Color",
+                    "showForVariants": [
+                        "default",
+                        "icon",
+                        "icon-alternative",
+                        "avatar"
+                    ]
                 }
             }
         },
@@ -103,28 +138,6 @@
             "label": "Border",
             "visible": true,
             "group": {
-                "active-border-color": {
-                    "icon": "paint-bucket",
-                    "label": "Active color",
-                    "visible": true,
-                    "showForVariants": [
-                        "default",
-                        "icon",
-                        "icon-alternative",
-                        "avatar"
-                    ]
-                },
-                "inactive-border-color": {
-                    "icon": "paint-bucket",
-                    "label": "Inactive color",
-                    "visible": true,
-                    "showForVariants": [
-                        "default",
-                        "icon",
-                        "icon-alternative",
-                        "avatar"
-                    ]
-                },
                 "border-size": {
                     "icon": "arrows-left-right",
                     "label": "Size",
@@ -145,7 +158,12 @@
                 "border-radius": {
                     "icon": "corners-out",
                     "label": "Radius",
-                    "visible": true
+                    "visible": true,
+                    "showForVariants": [
+                        "default",
+                        "icon",
+                        "icon-alternative"
+                    ]
                 }
             }
         },
@@ -163,6 +181,12 @@
                     "icon": "resize",
                     "label": "Bullet",
                     "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        10,
+                        100
+                    ],
+                    "step": 1,
                     "showForVariants": [
                         "default",
                         "icon",

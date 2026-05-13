@@ -160,11 +160,9 @@ export function Modal({
                     backgroundColor: 'rgba(0,0,0,0.5)',
                     ...style
                 }}
-                onClick={onClose}
             >
                 <div
                     style={getModalFallbackStyles(layer, componentElevation, mode)}
-                    onClick={(e) => e.stopPropagation()}
                 >
                     {showHeader && (
                         <div style={{ padding: '16px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>

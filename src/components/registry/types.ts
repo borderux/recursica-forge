@@ -24,6 +24,8 @@ export type ComponentName =
   | 'Select'
   | 'Textarea'
   | 'Switch'
+  | 'SwitchGroup'
+  | 'SwitchItem'
   | 'Chip'
   | 'Badge'
   | 'Avatar'

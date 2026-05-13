@@ -130,7 +130,8 @@ export default function TokenSlider({
         onChange={handleChange}
         min={min}
         max={max}
-        step={1}
+        type="discrete"
+      step={1}
         layer={layer}
         layout="stacked"
         showInput={false}

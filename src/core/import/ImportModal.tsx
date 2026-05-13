@@ -34,6 +34,7 @@ import {
   EXPORT_FILENAME_UIKIT,
 } from "../export/EXPORT_FILENAMES";
 import { detectJsonFileType } from "./jsonImport";
+import { getVarsStore } from "../store/varsStore";
 
 const IMPORT_MODE_STORAGE_KEY = "recursica_import_preferredMode";
 
@@ -94,12 +95,28 @@ export function ImportModal({
     onClearFiles();
     try {
       const module = await (devTestFilesMap[path] as () => Promise<any>)();
-      const json = module.default || module;
-      setTestFileJson(json);
-      onGithubFilesFetched({ uikit: json }, [path.split('/').pop() || '']);
+      const partial = module.default || module;
+
+      // Shallow-merge focal components from the partial over the current uikit state.
+      // This reconstitutes a complete ui-kit so the import pipeline receives a valid full file.
+      const currentUikit = getVarsStore().getState().uikit as any;
+      const currentComponents = currentUikit?.['ui-kit']?.components ?? {};
+      const partialComponents = partial?.['ui-kit']?.components ?? {};
+
+      const merged = {
+        'ui-kit': {
+          ...currentUikit?.['ui-kit'],
+          components: {
+            ...currentComponents,
+            ...partialComponents,
+          },
+        },
+      };
+
+      setTestFileJson(merged);
+      onGithubFilesFetched({ uikit: merged }, [path.split('/').pop() || '']);
     } catch (err) {
       setError("Failed to load test file");
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -290,8 +307,13 @@ export function ImportModal({
     onImportClick();
     if (mode === "test-files" && selectedTestFile) {
       const baseName = selectedTestFile.split('/').pop()?.replace('.json', '') || '';
-      // Convert camelCase baseName to kebab-case slug
-      const slug = baseName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase();
+      // Override map for filenames whose kebab conversion doesn't match the route slug
+      const filenameSlugOverrides: Record<string, string> = {
+        'hoverCardPopover': 'hover-card',
+        'switch': 'switch-group',
+      }
+      const slug = filenameSlugOverrides[baseName]
+        ?? baseName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase()
       if (slug) {
         navigate(`/components/${slug}`);
       }

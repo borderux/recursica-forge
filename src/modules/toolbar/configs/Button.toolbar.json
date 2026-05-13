@@ -10,7 +10,17 @@
     },
     "content": {
       "icon": "text-columns",
-      "label": "Content"
+      "label": "Content",
+      "options": [
+        "icon-label",
+        "label",
+        "icon-only"
+      ],
+      "optionLabels": {
+        "icon-label": "Icon + Label",
+        "label": "Label",
+        "icon-only": "Icon Only"
+      }
     }
   },
   "props": {
