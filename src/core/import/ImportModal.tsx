@@ -34,6 +34,7 @@ import {
   EXPORT_FILENAME_UIKIT,
 } from "../export/EXPORT_FILENAMES";
 import { detectJsonFileType } from "./jsonImport";
+import { getVarsStore } from "../store/varsStore";
 
 const IMPORT_MODE_STORAGE_KEY = "recursica_import_preferredMode";
 
@@ -94,12 +95,29 @@ export function ImportModal({
     onClearFiles();
     try {
       const module = await (devTestFilesMap[path] as () => Promise<any>)();
-      const json = module.default || module;
-      setTestFileJson(json);
-      onGithubFilesFetched({ uikit: json }, [path.split('/').pop() || '']);
+      const partial = module.default || module;
+
+      // Shallow-merge focal components from the partial over the current uikit state.
+      // This reconstitutes a complete ui-kit so the import pipeline receives a valid full file.
+      const currentUikit = getVarsStore().getState().uikit as any;
+      const currentComponents = currentUikit?.['ui-kit']?.components ?? {};
+      const partialComponents = partial?.['ui-kit']?.components ?? {};
+
+      const merged = {
+        'ui-kit': {
+          ...currentUikit?.['ui-kit'],
+          globals: partial['ui-kit'].globals,
+          components: {
+            ...currentComponents,
+            ...partialComponents,
+          },
+        },
+      };
+
+      setTestFileJson(merged);
+      onGithubFilesFetched({ uikit: merged }, [path.split('/').pop() || '']);
     } catch (err) {
       setError("Failed to load test file");
-      console.error(err);
     } finally {
       setLoading(false);
     }
