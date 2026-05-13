@@ -901,6 +901,7 @@ export function Slider({
             min={min}
             max={max}
             step={step}
+            type={type}
             disabled={disabled || state === 'disabled'}
             state={state}
             errorText={errorText}

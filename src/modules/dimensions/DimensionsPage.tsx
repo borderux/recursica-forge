@@ -433,7 +433,8 @@ export default function DimensionsPage() {
                       }}
                       min={0}
                       max={availableSizeTokens.length - 1}
-                      step={1}
+                      type="discrete"
+                step={1}
                       layer="layer-0"
                       layout="side-by-side"
                       tooltipText={tooltipText}

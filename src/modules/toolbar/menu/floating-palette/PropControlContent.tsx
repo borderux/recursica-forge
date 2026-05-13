@@ -1359,15 +1359,40 @@ export default function PropControlContent({
       return (
         <>
           {Object.entries(groupedConfigs).map(([childPropName, childConfig], index) => {
-            // Find the child property in the component structure, ensuring we don't grab text-group properties (which are top-level only)
-            // Prefer a prop whose path contains the currently selected layer so layer-specific color props
-            // (e.g. colors.layer-1.text) resolve correctly instead of always picking layer-0.
-            const layerMatchedChildProp = structure.props.find(p =>
-              p.name.toLowerCase() === childPropName.toLowerCase() &&
-              p.type !== 'text-group' &&
-              p.path.includes(selectedLayer)
-            )
-            let childProp = layerMatchedChildProp ?? structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase() && p.type !== 'text-group')
+            // Find the child property in the component structure, ensuring we don't grab text-group properties (which are top-level only).
+            // When the parent prop (e.g. "inactive", "active", "tabs") implies a specific path segment,
+            // we prefer a prop whose path contains that segment AND whose variant matches the selected one.
+            const parentGroupKey = prop.name.toLowerCase()
+            // Determine if the parent group name is a path segment that disambiguates sibling groups
+            // (e.g. "inactive" vs "active" both have a child "border-size" with different paths)
+            const groupIsPathSegment = ['active', 'inactive', 'selected', 'unselected', 'selected-item', 'unselected-item',
+              'container', 'thumb-selected', 'thumb-unselected', 'track-selected', 'track-unselected'].includes(parentGroupKey)
+
+            const findChildProp = (requireLayer: boolean) =>
+              structure.props.find(p => {
+                if (p.name.toLowerCase() !== childPropName.toLowerCase() || p.type === 'text-group') return false
+                if (requireLayer && !p.path.includes(selectedLayer)) return false
+                // When the parent group name is a known path segment, require it in the prop's path
+                if (groupIsPathSegment && !p.path.includes(parentGroupKey)) return false
+                // Filter by selected style variant for style-variant-specific props
+                if (p.isVariantSpecific && p.variantProp) {
+                  const selectedVariant = selectedVariants[p.variantProp]
+                  if (!selectedVariant) return false
+                  if (!pathMatchesVariant(p.path, p.variantProp, selectedVariant)) return false
+                }
+                return true
+              })
+
+            // For component-level props (like min-width in the "tabs" group), find non-variant-specific ones
+            const findComponentLevelChildProp = () =>
+              structure.props.find(p =>
+                p.name.toLowerCase() === childPropName.toLowerCase() &&
+                p.type !== 'text-group' &&
+                !p.isVariantSpecific
+              )
+
+            const layerMatchedChildProp = findChildProp(true)
+            let childProp = layerMatchedChildProp ?? findChildProp(false) ?? findComponentLevelChildProp()
 
             // Special case: "text-color" in toolbar config maps to the "text" color prop
             // (mirrors the same special case in ComponentToolbar for grouped prop lookup)
@@ -1514,6 +1539,11 @@ export default function PropControlContent({
         const maxValue = propToRender.range ? propToRender.range[1] : 500
         const step = propToRender.step || 1
 
+        const isTokenBacked = (varName: string): boolean => {
+          const raw = readCssVar(varName)
+          return !!raw && /var\s*\(\s*--recursica_(tokens|brand)_/.test(raw)
+        }
+
         const [value, setValue] = useState(() => {
           const currentValue = readCssVar(primaryVar)
           const resolvedValue = readCssVarResolved(primaryVar)
@@ -1525,6 +1555,8 @@ export default function PropControlContent({
           const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
           return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
         })
+
+        const [discrete, setDiscrete] = useState(() => isTokenBacked(primaryVar))
 
         useEffect(() => {
           const handleUpdate = () => {
@@ -1542,6 +1574,7 @@ export default function PropControlContent({
                 setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
               }
             }
+            setDiscrete(isTokenBacked(primaryVar))
           }
           window.addEventListener('cssVarsUpdated', handleUpdate)
           return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
@@ -1581,6 +1614,7 @@ export default function PropControlContent({
             min={minValue}
             max={maxValue}
             step={step}
+            type={discrete ? 'discrete' : 'continuous'}
             layer={selectedLayer as any}
             layout="stacked"
             showInput={false}
@@ -4289,13 +4323,14 @@ export default function PropControlContent({
             }
           }
 
-          // Special case: tab-content-alignment is a component-level property for Tabs
+          // Special case: tab-content-alignment is now orientation-specific for Tabs
           if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
             const structure = parseComponentStructure(componentName)
             groupedProp = structure.props.find(p => {
               const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
-              const isComponentLevel = !p.isVariantSpecific
-              return nameMatches && isComponentLevel
+              const orientationMatches = !selectedVariants.orientation ||
+                pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
+              return nameMatches && orientationMatches
             })
             if (groupedProp) {
               prop.borderProps!.set(groupedPropKey, groupedProp)

@@ -1304,6 +1304,7 @@ export default function TextStyleToolbar({
             min={0}
             max={fontSizes.length - 1}
             step={1}
+            type="discrete"
             layer={(selectedLayer as any) || 'layer-0'}
             layout="stacked"
             showInput={false}
@@ -1368,6 +1369,7 @@ export default function TextStyleToolbar({
                 min={0}
                 max={fontWeights.length - 1}
                 step={1}
+                type="discrete"
                 layer={(selectedLayer as any) || 'layer-0'}
                 layout="stacked"
                 showInput={false}
@@ -1412,6 +1414,7 @@ export default function TextStyleToolbar({
                 min={0}
                 max={letterSpacings.length - 1}
                 step={1}
+                type="discrete"
                 layer={(selectedLayer as any) || 'layer-0'}
                 layout="stacked"
                 showInput={false}
@@ -1456,6 +1459,7 @@ export default function TextStyleToolbar({
                 min={0}
                 max={lineHeights.length - 1}
                 step={1}
+                type="discrete"
                 layer={(selectedLayer as any) || 'layer-0'}
                 layout="stacked"
                 showInput={false}

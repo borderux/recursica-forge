@@ -56,24 +56,24 @@
     border-bottom: none !important;
 }
 
-/* Vertical left: show only inline-end (right) border - full-height track. Track uses fixed 2px. */
+/* Vertical left: show only inline-end (right) border - full-height track. */
 .recursica-tabs[data-variant="default"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-list::before,
 .recursica-tabs[data-variant="default"][data-orientation="vertical"]:not([data-placement="right"]) [role="tablist"]::before {
     border-top: none !important;
     border-bottom: none !important;
     border-inline-start: none !important;
-    border-inline-end-width: 2px !important;
+    border-inline-end-width: var(--recursica_tabs_inactive_border-size, 2px) !important;
     border-inline-end-style: solid !important;
     border-inline-end-color: var(--recursica_tabs_inactive_border-color, rgba(0, 0, 0, 0.12)) !important;
 }
 
-/* Vertical right: show only inline-start (left) border - full-height track. Track uses fixed 2px. */
+/* Vertical right: show only inline-start (left) border - full-height track. */
 .recursica-tabs[data-variant="default"][data-orientation="vertical"][data-placement="right"] .mantine-Tabs-list::before,
 .recursica-tabs[data-variant="default"][data-orientation="vertical"][data-placement="right"] [role="tablist"]::before {
     border-top: none !important;
     border-bottom: none !important;
     border-inline-end: none !important;
-    border-inline-start-width: 2px !important;
+    border-inline-start-width: var(--recursica_tabs_inactive_border-size, 2px) !important;
     border-inline-start-style: solid !important;
     border-inline-start-color: var(--recursica_tabs_inactive_border-color, rgba(0, 0, 0, 0.12)) !important;
 }
@@ -144,12 +144,10 @@
     border-radius: 0 var(--recursica_tabs_border-radius, 0px) var(--recursica_tabs_border-radius, 0px) 0 !important;
 }
 
-/* Pills variant: uniform border-radius, size to content (no min/max width forcing extra space) */
+/* Pills variant: uniform border-radius */
 .recursica-tabs[data-variant="pills"] .mantine-Tabs-tab,
 .recursica-tabs[data-variant="pills"] [role="tab"] {
     border-radius: var(--recursica_tabs_border-radius, 0px) !important;
-    min-width: 0 !important;
-    max-width: none !important;
 }
 
 /* Outline variant: border-radius matches default (orientation/placement specific) */
@@ -546,7 +544,7 @@
 .recursica-tabs .mantine-Tabs-tab,
 .recursica-tabs [role="tab"] {
     display: flex !important;
-    justify-content: var(--recursica_tabs_content_justify, flex-start) !important;
+    justify-content: var(--recursica_tabs_content_align, left) !important;
     text-align: var(--recursica_tabs_content_align, left) !important;
 }
 
@@ -567,17 +565,29 @@
 .recursica-tabs [role="tab"]>span:not([data-position])>div {
     display: flex !important;
     align-items: center !important;
-    justify-content: var(--recursica_tabs_content_justify, flex-start) !important;
+    justify-content: var(--recursica_tabs_content_align, left) !important;
     gap: var(--recursica_tabs_element_gap, 8px) !important;
 }
 
 
-/* Vertical orientation - default variant only: indicator on right/left edge of tabs */
-/* List and tabs fill container width. When tab has max-width, constrain list to match. */
+/* Vertical orientation (all variants): min-width/max-width apply to the tab list column, not individual tab buttons.
+   Individual tabs fill the column via width:100%, so overriding min-width:0 prevents them from expanding beyond the column. */
+.recursica-tabs[data-orientation="vertical"] .mantine-Tabs-list,
+.recursica-tabs[data-orientation="vertical"] [role="tablist"] {
+    min-width: var(--recursica_tabs_min_width, 0) !important;
+    max-width: var(--recursica_tabs_max_width, none) !important;
+}
+
+.recursica-tabs[data-orientation="vertical"] .mantine-Tabs-tab,
+.recursica-tabs[data-orientation="vertical"] [role="tab"] {
+    min-width: 0 !important;
+    max-width: none !important;
+}
+
+/* Vertical orientation - default variant: list fills its column, tabs fill the list */
 .recursica-tabs[data-variant="default"][data-orientation="vertical"] .mantine-Tabs-list,
 .recursica-tabs[data-variant="default"][data-orientation="vertical"] [role="tablist"] {
     width: 100% !important;
-    max-width: var(--recursica_tabs_max_width, none) !important;
 }
 
 .recursica-tabs[data-variant="default"][data-orientation="vertical"] .mantine-Tabs-tab,

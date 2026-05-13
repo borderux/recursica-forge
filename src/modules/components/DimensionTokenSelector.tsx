@@ -835,7 +835,8 @@ export default function DimensionTokenSelector({
         onChangeCommitted={(val) => handlePixelCommit(typeof val === 'number' ? val : val[0])}
         min={minPixelValue}
         max={maxPixelValue}
-        step={1}
+        type="discrete"
+                step={1}
         layer="layer-3"
         layout="stacked"
         showInput={false}
@@ -866,7 +867,8 @@ export default function DimensionTokenSelector({
         onChangeCommitted={(val) => handlePixelCommit(typeof val === 'number' ? val : val[0])}
         min={currentMinPixelValue}
         max={currentMaxPixelValue}
-        step={1}
+        type="discrete"
+                step={1}
         layer="layer-3"
         layout="stacked"
         showInput={false}
@@ -897,7 +899,8 @@ export default function DimensionTokenSelector({
       }}
       min={0}
       max={Math.max(0, sortedTokens.length - 1)}
-      step={1}
+      type="discrete"
+                step={1}
       layer="layer-3"
       layout="stacked"
       showInput={false}

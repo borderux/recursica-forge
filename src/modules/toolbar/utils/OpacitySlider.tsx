@@ -195,6 +195,7 @@ export default function OpacitySlider({
       onChangeCommitted={handleSliderChange}
       min={0}
       max={opacityTokens.length - 1}
+      type="discrete"
       step={1}
       layer={layer}
       layout="stacked"

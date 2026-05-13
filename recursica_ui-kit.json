@@ -2314,7 +2314,7 @@
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.400.color.tone}"
+                      "$value": "{brand.palettes.palette-1.300.color.tone}"
                     }
                   },
                   "layer-1": {
@@ -2352,7 +2352,7 @@
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.400.color.tone}"
+                      "$value": "{brand.palettes.palette-1.300.color.tone}"
                     }
                   },
                   "layer-2": {
@@ -2390,7 +2390,7 @@
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.400.color.tone}"
+                      "$value": "{brand.palettes.palette-1.300.color.tone}"
                     }
                   },
                   "layer-3": {
@@ -2428,7 +2428,7 @@
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.400.color.tone}"
+                      "$value": "{brand.palettes.palette-1.300.color.tone}"
                     }
                   }
                 },
@@ -2933,11 +2933,11 @@
           },
           "track-height": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.default}"
           },
           "thumb-size": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "track-border-radius": {
             "$type": "dimension",
@@ -4559,6 +4559,14 @@
                 "border-radius": {
                   "$type": "dimension",
                   "$value": "{brand.dimensions.border-radii.sm}"
+                },
+                "hover-color": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.black.tone}"
+                },
+                "hover-opacity": {
+                  "$type": "number",
+                  "$value": "{tokens.opacity.mist}"
                 }
               },
               "orientation": {
@@ -4751,6 +4759,14 @@
                       "unit": "px"
                     }
                   }
+                },
+                "hover-color": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.black.tone}"
+                },
+                "hover-opacity": {
+                  "$type": "number",
+                  "$value": "{tokens.opacity.mist}"
                 }
               },
               "orientation": {
@@ -4943,6 +4959,14 @@
                       "unit": "px"
                     }
                   }
+                },
+                "hover-color": {
+                  "$type": "color",
+                  "$value": "{brand.palettes.core-colors.black.tone}"
+                },
+                "hover-opacity": {
+                  "$type": "number",
+                  "$value": "{tokens.opacity.mist}"
                 }
               },
               "orientation": {
@@ -4987,6 +5011,10 @@
                 "space-between-tabs": {
                   "$type": "dimension",
                   "$value": "{brand.dimensions.general.sm}"
+                },
+                "tab-content-alignment": {
+                  "$type": "string",
+                  "$value": "left"
                 }
               }
             },
@@ -5011,6 +5039,10 @@
                 "space-between-tabs": {
                   "$type": "dimension",
                   "$value": "{brand.dimensions.general.sm}"
+                },
+                "tab-content-alignment": {
+                  "$type": "string",
+                  "$value": "left"
                 }
               }
             }
@@ -5030,10 +5062,6 @@
               "value": 200,
               "unit": "px"
             }
-          },
-          "tab-content-alignment": {
-            "$type": "string",
-            "$value": "left"
           },
           "active-text": {
             "font-family": {
@@ -5102,14 +5130,6 @@
               "$type": "string",
               "$value": "{tokens.font.styles.normal}"
             }
-          },
-          "hover-color": {
-            "$type": "color",
-            "$value": "{brand.palettes.core-colors.black.tone}"
-          },
-          "hover-opacity": {
-            "$type": "number",
-            "$value": "{tokens.opacity.mist}"
           }
         }
       },

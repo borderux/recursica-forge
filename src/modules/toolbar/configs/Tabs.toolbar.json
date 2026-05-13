@@ -49,7 +49,10 @@
         "border-size": {
           "icon": "arrows-left-right",
           "label": "Border size",
-          "visible": true
+          "visible": true,
+          "propertyType": "slider",
+          "range": [0, 10],
+          "step": 1
         }
       }
     },
@@ -81,7 +84,10 @@
         "border-size": {
           "icon": "arrows-left-right",
           "label": "Border size",
-          "visible": true
+          "visible": true,
+          "propertyType": "slider",
+          "range": [0, 10],
+          "step": 1
         }
       }
     },

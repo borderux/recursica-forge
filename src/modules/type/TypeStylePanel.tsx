@@ -841,6 +841,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 }}
                 min={0}
                 max={sortedSizeTokens.length - 1}
+                type="discrete"
                 step={1}
                 layer="layer-3"
                 layout="stacked"
@@ -870,6 +871,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 }}
                 min={0}
                 max={sortedWeightTokens.length - 1}
+                type="discrete"
                 step={1}
                 layer="layer-3"
                 layout="stacked"
@@ -899,6 +901,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 }}
                 min={0}
                 max={sortedSpacingTokens.length - 1}
+                type="discrete"
                 step={1}
                 layer="layer-3"
                 layout="stacked"
@@ -928,6 +931,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 }}
                 min={0}
                 max={sortedLineHeightTokens.length - 1}
+                type="discrete"
                 step={1}
                 layer="layer-3"
                 layout="stacked"

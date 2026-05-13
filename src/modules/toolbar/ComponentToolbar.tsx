@@ -400,6 +400,12 @@ export default function ComponentToolbar({
               //  with variantProp='style-secondary' must be invalidated because the 'style' dimension changed)
               (cachedProp?.isVariantSpecific && Object.entries(selectedVariants).some(([variantProp, variantValue]) => {
                 if (!variantValue || variantProp === cachedProp.variantProp) return false
+                // Only cross-invalidate if the prop's path actually traverses this variant category.
+                // (e.g., a Tabs border-size at variants.styles.default.… has variantProp='style';
+                //  changing orientation to 'vertical' must NOT invalidate it, because border-size
+                //  lives entirely within the styles axis and has no orientation segment.)
+                const categoryKey = VARIANT_PROP_TO_CATEGORY[variantProp] || variantProp + 's'
+                if (!cachedProp.path.includes(categoryKey)) return false
                 return !pathMatchesVariant(cachedProp.path, variantProp, variantValue)
               }))
 
@@ -454,13 +460,14 @@ export default function ComponentToolbar({
                 })
               }
 
-              // Special case: tab-content-alignment is a component-level property for Tabs
-              // It's in the "spacing" group but doesn't have "spacing" in its path
+              // Special case: tab-content-alignment is now orientation-specific for Tabs
+              // It lives under variants.orientation.{orientation}.properties
               if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
                 groupedProp = liveStructure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
-                  const isComponentLevel = !p.isVariantSpecific
-                  return nameMatches && isComponentLevel
+                  const orientationMatches = !selectedVariants.orientation ||
+                    pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
+                  return nameMatches && orientationMatches
                 })
               }
               // tabs-content-gap is under both style and orientation; match by both
@@ -470,6 +477,15 @@ export default function ComponentToolbar({
                   const styleMatches = !selectedVariants.style || pathMatchesVariant(p.path, 'style', selectedVariants.style)
                   const orientationMatches = !selectedVariants.orientation || pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
                   return nameMatches && styleMatches && orientationMatches
+                })
+              }
+              // hover-color and hover-opacity are style-variant-specific for Tabs
+              // (they live under variants.styles.{style}.properties, not under a 'hover' path segment)
+              if (!groupedProp && (groupedPropKey === 'hover-color' || groupedPropKey === 'hover-opacity') && componentName.toLowerCase() === 'tabs') {
+                groupedProp = liveStructure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  const styleMatches = !selectedVariants.style || pathMatchesVariant(p.path, 'style', selectedVariants.style)
+                  return nameMatches && styleMatches
                 })
               }
 
@@ -605,8 +621,9 @@ export default function ComponentToolbar({
               }
 
 
-              // Special handling: if parent prop is "spacing", "dimensions", or "layout", collect props from all layout variants
-              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'dimensions' || parentPropName.toLowerCase() === 'layout')) {
+              // Special handling: if parent prop is "spacing", "dimensions", "layout", or "tabs",
+              // collect props from all layout/orientation variants or fall back to component-level.
+              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'dimensions' || parentPropName.toLowerCase() === 'layout' || parentPropName.toLowerCase() === 'tabs')) {
                 // Find props that match the name and are variant-specific for layout
                 const layoutProps = liveStructure.props.filter(p =>
                   p.name.toLowerCase() === groupedPropKey &&
