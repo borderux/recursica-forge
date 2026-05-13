@@ -13,7 +13,7 @@ import type { JsonLike } from '../resolvers/tokens'
 import { contrastRatio, blendHexWithOpacity } from '../../modules/theme/contrastUtil'
 import { findColorFamilyAndLevel, getAllFamilyColors, hexToCssVarRef, traceToTokenRef, getAllFamilyColorsByKey } from './layerColorStepping'
 import { updateCssVar } from '../css/updateCssVar'
-import { parseBrandCssVar, unwrapVar } from '../css/cssVarBuilder'
+import { parseBrandCssVar, unwrapVar, paletteCore } from '../css/cssVarBuilder'
 import { getVarsStore } from '../store/varsStore'
 
 // ─── Types ───
@@ -316,13 +316,16 @@ class ComplianceServiceImpl {
                         }
                     }
 
-                    // Check low-emphasis on-tone (on-tone blended at low emphasis opacity)
-                    if (!isNaN(lowOpacity) && lowOpacity < 1) {
+                    // Check low-emphasis on-tone. Only flag if high-emphasis issue for the
+                    // same var was NOT already added — the high-emphasis suggestion covers both.
+                    const paletteHighIssueAdded = issues.some(i => i.id === `palette-${paletteKey}-${level}-high-${mode}`)
+                    if (!isNaN(lowOpacity) && lowOpacity < 1 && !paletteHighIssueAdded) {
                         const blendedLow = blendHexWithOpacity(onToneHex, toneHex, lowOpacity)
                         if (blendedLow) {
                             const lowRatio = contrastRatio(toneHex, blendedLow)
                             if (lowRatio < AA_THRESHOLD) {
-                                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, lowOpacity)
+                                // Suggestion must satisfy BOTH high (1.0) and low (lowOpacity) emphasis
+                                const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, lowOpacity, 1)
                                 issues.push({
                                     id: `palette-${paletteKey}-${level}-low-${mode}`,
                                     type: 'palette-on-tone',
@@ -390,15 +393,19 @@ class ComplianceServiceImpl {
                 })
             }
 
-            // Check low-emphasis on-tone (on-tone blended at low emphasis opacity)
+            // Check low-emphasis on-tone (on-tone blended at low emphasis opacity).
+            // Only flag if a high-emphasis issue for the same var was NOT already added —
+            // the high-emphasis suggestion already satisfies the stricter constraint.
             const lowEmphasisVar = `--recursica_brand_themes_${mode}_text-emphasis_low`
             const opacity = readCssVarNumber(lowEmphasisVar, 1)
-            if (opacity < 1) {
+            const highIssueAlreadyAdded = issues.some(i => i.id === `core-${colorKey}-${mode}`)
+            if (opacity < 1 && !highIssueAlreadyAdded) {
                 const blendedHex = blendHexWithOpacity(onToneHex, toneHex, opacity)
                 if (blendedHex) {
                     const lowRatio = contrastRatio(toneHex, blendedHex)
                     if (lowRatio < AA_THRESHOLD) {
-                        const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, opacity)
+                        // Generate suggestion that satisfies BOTH high (1.0) and low (opacity) emphasis
+                        const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, opacity, 1)
                         issues.push({
                             id: `core-${colorKey}-low-emphasis-${mode}`,
                             type: 'core-on-tone',
@@ -721,7 +728,8 @@ class ComplianceServiceImpl {
         tokens: JsonLike,
         _tokenIndex: ReturnType<typeof buildTokenIndex>,
         _mode: 'light' | 'dark',
-        emphasisOpacity: number = 1
+        emphasisOpacity: number = 1,
+        otherEmphasisOpacity?: number
     ): SuggestedFix | null {
         try {
             // Get the current on-tone's color, and all levels in its family
@@ -736,7 +744,7 @@ class ComplianceServiceImpl {
                 ? getAllFamilyColorsByKey(traced.family, tokens)
                 : getAllFamilyColors(onToneHex, tokens)
                 
-            const candidate = this.findBestPassingColor(familyColors, toneHex, onToneHex, emphasisOpacity)
+            const candidate = this.findBestPassingColor(familyColors, toneHex, onToneHex, emphasisOpacity, undefined, otherEmphasisOpacity)
             if (candidate) {
                 const cssVarRef = hexToCssVarRef(candidate.hex, tokens)
                 if (cssVarRef) {
@@ -754,7 +762,7 @@ class ComplianceServiceImpl {
             }
 
             // 2. Try black and white token values
-            const bwResult = this.tryBlackWhiteTokens(toneHex, onToneCssVar, tokens, emphasisOpacity)
+            const bwResult = this.tryBlackWhiteTokens(toneHex, onToneCssVar, tokens, emphasisOpacity, undefined, otherEmphasisOpacity)
             if (bwResult) return bwResult
 
             // 3. Step the tone to adjacent levels and retry
@@ -922,7 +930,8 @@ class ComplianceServiceImpl {
         surfaceHex: string,
         originalHex: string,
         emphasisOpacity: number = 1,
-        otherSurfaceHex?: string
+        otherSurfaceHex?: string,
+        otherEmphasisOpacity?: number
     ): { hex: string; family: string; level: string } | null {
         let best: { hex: string; family: string; level: string } | null = null
         let bestDistance = Infinity
@@ -933,6 +942,16 @@ class ComplianceServiceImpl {
                 ? (blendHexWithOpacity(c.hex, surfaceHex, emphasisOpacity) || c.hex)
                 : c.hex
             const ratio = contrastRatio(surfaceHex, effectiveHex)
+
+            // Also verify the candidate passes at the other emphasis opacity (e.g. high=1.0
+            // when checking a low-emphasis suggestion) so one fix satisfies both issues.
+            let passesOtherEmphasis = true
+            if (otherEmphasisOpacity !== undefined && otherEmphasisOpacity !== emphasisOpacity) {
+                const otherEffective = otherEmphasisOpacity < 1
+                    ? (blendHexWithOpacity(c.hex, surfaceHex, otherEmphasisOpacity) || c.hex)
+                    : c.hex
+                if (contrastRatio(surfaceHex, otherEffective) < 4.5) passesOtherEmphasis = false
+            }
             
             let passesOther = true;
             if (otherSurfaceHex) {
@@ -943,7 +962,7 @@ class ComplianceServiceImpl {
                 if (otherRatio < 4.5) passesOther = false;
             }
 
-            if (ratio >= 4.5 && passesOther) {
+            if (ratio >= 4.5 && passesOther && passesOtherEmphasis) {
                 // Prefer the candidate closest to the threshold
                 const dist = Math.abs(ratio - 4.5)
                 if (dist < bestDistance) {
@@ -966,7 +985,8 @@ class ComplianceServiceImpl {
         targetCssVar: string,
         tokens: JsonLike,
         emphasisOpacity: number = 1,
-        otherSurfaceHex?: string
+        otherSurfaceHex?: string,
+        otherEmphasisOpacity?: number
     ): SuggestedFix | null {
         const modeMatch = targetCssVar.match(/_themes_(light|dark)_/);
         const mode = modeMatch ? modeMatch[1] : 'light';
@@ -1023,10 +1043,21 @@ class ComplianceServiceImpl {
             : [{ hex: actualWhiteHex, label: 'core white', ratio: whiteContrast, passesOther: whitePassesOther, key: 'white' }, { hex: actualBlackHex, label: 'core black', ratio: blackContrast, passesOther: blackPassesOther, key: 'black' }];
 
         for (const attempt of attempts) {
-            if (attempt.ratio >= 4.5 && attempt.passesOther) {
+            // Also verify this candidate passes at otherEmphasisOpacity if provided
+            let passesOtherEmphasis = true
+            if (otherEmphasisOpacity !== undefined && otherEmphasisOpacity !== emphasisOpacity) {
+                const otherEffective = otherEmphasisOpacity < 1
+                    ? (blendHexWithOpacity(attempt.hex, surfaceHex, otherEmphasisOpacity) || attempt.hex)
+                    : attempt.hex
+                if (contrastRatio(surfaceHex, otherEffective) < 4.5) passesOtherEmphasis = false
+            }
+
+            if (attempt.ratio >= 4.5 && attempt.passesOther && passesOtherEmphasis) {
                 let cssVarRef = hexToCssVarRef(attempt.hex, tokens);
                 if (!cssVarRef) {
-                    cssVarRef = `{brand.themes.${mode}.palettes.core-colors.${attempt.key}}`;
+                    // Emit a proper var() CSS reference, not a {brand...} DTCG reference,
+                    // so validateCssVarValue accepts it and the fix is actually applied.
+                    cssVarRef = `var(${paletteCore(mode, attempt.key, 'tone')})`;
                 }
                 return {
                     description: `Change to ${attempt.label} (${attempt.ratio.toFixed(2)}:1)`,
