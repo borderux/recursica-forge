@@ -14,6 +14,7 @@ import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 export type SwitchGroupProps = {
     children?: React.ReactNode
     label?: string
+    helpText?: string
     errorText?: string
     required?: boolean
     optional?: boolean

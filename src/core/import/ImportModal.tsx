@@ -106,7 +106,6 @@ export function ImportModal({
       const merged = {
         'ui-kit': {
           ...currentUikit?.['ui-kit'],
-          globals: partial['ui-kit'].globals,
           components: {
             ...currentComponents,
             ...partialComponents,

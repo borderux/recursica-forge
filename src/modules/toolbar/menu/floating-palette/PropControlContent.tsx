@@ -4640,6 +4640,7 @@ export default function PropControlContent({
 
   // Handle track prop
   if (prop.name.toLowerCase() === 'track' && (prop.trackSelectedProp || prop.trackUnselectedProp || prop.thumbProps)) {
+    const normalizedComponentName = componentName.toLowerCase().replace(/\s+/g, '-')
     const isSwitch = componentName.toLowerCase() === 'switch' || normalizedComponentName === 'switch-item' || normalizedComponentName === 'switch-group-item'
     const trackSelectedCssVars = prop.trackSelectedProp ? getCssVarsForProp(prop.trackSelectedProp) : []
     const trackUnselectedCssVars = prop.trackUnselectedProp ? getCssVarsForProp(prop.trackUnselectedProp) : []
@@ -4745,6 +4746,7 @@ export default function PropControlContent({
 
   // Handle thumb prop
   if (prop.name.toLowerCase() === 'thumb' && prop.thumbProps && prop.thumbProps.size > 0) {
+    const normalizedComponentName = componentName.toLowerCase().replace(/\s+/g, '-')
     const isSwitch = componentName.toLowerCase() === 'switch' || normalizedComponentName === 'switch-item' || normalizedComponentName === 'switch-group-item'
     const thumbSelectedProp = prop.thumbProps.get('thumb-selected')
     const thumbUnselectedProp = prop.thumbProps.get('thumb-unselected')
