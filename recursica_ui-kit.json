@@ -4364,7 +4364,7 @@
                 "border-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 0,
+                    "value": 2,
                     "unit": "px"
                   }
                 },
