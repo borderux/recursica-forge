@@ -421,6 +421,20 @@
     z-index: 2 !important;
 }
 
+/* Outline vertical: list hugs its widest tab (fit-content), respecting min/max-width tokens
+   (min-width/max-width are already set on the list by the general vertical rule above).
+   Tabs fill the list so all share the same column width and the ::before track aligns. */
+.recursica-tabs[data-variant="outline"][data-orientation="vertical"] .mantine-Tabs-list,
+.recursica-tabs[data-variant="outline"][data-orientation="vertical"] [role="tablist"] {
+    width: fit-content !important;
+}
+
+.recursica-tabs[data-variant="outline"][data-orientation="vertical"] .mantine-Tabs-tab,
+.recursica-tabs[data-variant="outline"][data-orientation="vertical"] [role="tab"] {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
 /* Outline vertical left (tabs on left): top, left, bottom on tabs; list::before provides right track */
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) .mantine-Tabs-tab,
 .recursica-tabs[data-variant="outline"][data-orientation="vertical"]:not([data-placement="right"]) [role="tab"] {
@@ -540,11 +554,16 @@
     margin-inline-end: var(--recursica_tabs_element_gap, 8px) !important;
 }
 
-/* Tab content alignment (icon/text/badge inside the tab button) */
+/* Tab content alignment (icon/text/badge inside the tab button).
+   The token value is 'left', 'center', or 'right' — valid for text-align but
+   NOT for flexbox justify-content (which needs flex-start / flex-end / center).
+   We remap via two chained CSS vars so any unrecognised value gracefully falls
+   back to flex-start. */
 .recursica-tabs .mantine-Tabs-tab,
 .recursica-tabs [role="tab"] {
     display: flex !important;
-    justify-content: var(--recursica_tabs_content_align, left) !important;
+    --_align-flex: var(--recursica_tabs_content_align_flex, flex-start);
+    justify-content: var(--_align-flex) !important;
     text-align: var(--recursica_tabs_content_align, left) !important;
 }
 
@@ -565,9 +584,14 @@
 .recursica-tabs [role="tab"]>span:not([data-position])>div {
     display: flex !important;
     align-items: center !important;
-    justify-content: var(--recursica_tabs_content_align, left) !important;
+    justify-content: var(--_align-flex) !important;
     gap: var(--recursica_tabs_element_gap, 8px) !important;
 }
+/* Map data-content-align attribute to the correct flex justify-content value */
+.recursica-tabs[data-content-align="left"] { --recursica_tabs_content_align_flex: flex-start; }
+.recursica-tabs[data-content-align="right"] { --recursica_tabs_content_align_flex: flex-end; }
+.recursica-tabs[data-content-align="center"] { --recursica_tabs_content_align_flex: center; }
+
 
 
 /* Vertical orientation (all variants): min-width/max-width apply to the tab list column, not individual tab buttons.

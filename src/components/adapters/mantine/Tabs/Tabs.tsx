@@ -100,6 +100,7 @@ export default function Tabs({
     orientation,
     variant: variant === 'pills' ? 'pills' : variant === 'outline' ? 'outline' : 'default',
     className: `recursica-tabs ${className || ''}`.trim(),
+    'data-content-align': tabContentAlignment,
     style: {
       // Set all CSS variables for the Tabs component
       // Active state
