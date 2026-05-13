@@ -24,11 +24,11 @@
                     "visible": true,
                     "floatingPaletteLabel": "Value Color"
                 },
-                "leading-icon": {
+                "icon": {
                     "icon": "diamond",
-                    "label": "Leading icon",
+                    "label": "Icon",
                     "visible": true,
-                    "floatingPaletteLabel": "Leading Icon Color"
+                    "floatingPaletteLabel": "Icon Color"
                 },
                 "placeholder-opacity": {
                     "icon": "eye",

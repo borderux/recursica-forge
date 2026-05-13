@@ -13049,13 +13049,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-1": {
@@ -13067,13 +13067,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-2": {
@@ -13085,13 +13085,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-3": {
@@ -13103,13 +13103,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   }
                 },
@@ -13131,13 +13131,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-error}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-1": {
@@ -13149,13 +13149,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-error}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-2": {
@@ -13167,13 +13167,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-error}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-3": {
@@ -13185,13 +13185,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-error}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   }
                 },
@@ -13213,13 +13213,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-1": {
@@ -13231,13 +13231,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-2": {
@@ -13249,13 +13249,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-3": {
@@ -13267,13 +13267,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border-focus}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   }
                 },
@@ -13295,13 +13295,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-1": {
@@ -13313,13 +13313,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-2": {
@@ -13331,13 +13331,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   },
                   "layer-3": {
@@ -13349,13 +13349,13 @@
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.disabled-text}"
                     },
-                    "leading-icon": {
-                      "$type": "color",
-                      "$value": "{ui-kit.globals.form.field.colors.icon}"
-                    },
                     "border-color": {
                       "$type": "color",
                       "$value": "{ui-kit.globals.form.field.colors.border}"
+                    },
+                    "icon": {
+                      "$type": "color",
+                      "$value": "{ui-kit.globals.form.field.colors.icon}"
                     }
                   }
                 },

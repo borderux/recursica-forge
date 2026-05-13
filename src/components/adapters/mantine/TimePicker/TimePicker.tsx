@@ -124,7 +124,7 @@ export default function TimePicker({
     const backgroundVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
     const borderVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
     const textVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
-    const iconColorVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
+    const iconColorVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'icon')
     const focusBorderVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', 'focus', 'properties', 'colors', layer, 'border-color')
     const focusBorderSizeVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', 'focus', 'properties', 'border-size')
     const borderSizeVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'border-size')
@@ -317,6 +317,7 @@ export default function TimePicker({
                     disabled={state === 'disabled'}
                     readOnly={domProps.readOnly}
                     autoFocus={domProps.autoFocus}
+                    data-has-value={internalTime ? 'true' : undefined}
                     className={`recursica-time-picker-input ${className || ''}`}
                     style={{
                         flex: 1,
@@ -330,6 +331,7 @@ export default function TimePicker({
                         textAlign: 'left',
                         lineHeight: 'normal',
                         fontSize: `var(${valueFontSizeVar}, 14px)`,
+                        textDecoration: `var(${valueTextDecorationVar})`,
                     } as React.CSSProperties}
                     {...mantine}
                 />
@@ -344,9 +346,19 @@ export default function TimePicker({
             text-transform: var(${valueTextTransformVar}) !important;
             font-style: var(${valueFontStyleVar}) !important;
           }
-          #${uniqueId}.recursica-time-picker-input::placeholder {
-            color: var(${textVar}) !important;
+          #${uniqueId}.recursica-time-picker-input:not([data-has-value="true"]) {
             opacity: var(${placeholderOpacityVar}) !important;
+          }
+          #${uniqueId}.recursica-time-picker-input::-webkit-datetime-edit,
+          #${uniqueId}.recursica-time-picker-input::-webkit-datetime-edit-fields-wrapper,
+          #${uniqueId}.recursica-time-picker-input::-webkit-datetime-edit-hour-field,
+          #${uniqueId}.recursica-time-picker-input::-webkit-datetime-edit-minute-field,
+          #${uniqueId}.recursica-time-picker-input::-webkit-datetime-edit-ampm-field,
+          #${uniqueId}.recursica-time-picker-input::-webkit-datetime-edit-text {
+            text-decoration: var(${valueTextDecorationVar}) !important;
+            font-style: var(${valueFontStyleVar}) !important;
+            font-weight: var(${valueFontWeightVar}) !important;
+            text-transform: var(${valueTextTransformVar}) !important;
           }
           .recursica-time-picker-wrapper:has(#${uniqueId}:focus),
           .recursica-time-picker-wrapper.focus {
@@ -367,6 +379,9 @@ export default function TimePicker({
     // Generate Dropdown CSS variable names that we need to override
     const ddBorderRadiusVar = getComponentLevelCssVar('Dropdown', 'border-radius')
     const ddVerticalPaddingVar = getComponentLevelCssVar('Dropdown', 'vertical-padding')
+    const ddHorizontalPaddingVar = getComponentLevelCssVar('Dropdown', 'horizontal-padding')
+    const ddMinHeightVar = getComponentLevelCssVar('Dropdown', 'min-height')
+    const ddIconSizeVar = getComponentLevelCssVar('Dropdown', 'icon-size')
     const ddFontSizeVar = getComponentTextCssVar('Dropdown', 'text', 'font-size')
     const ddFontFamilyVar = getComponentTextCssVar('Dropdown', 'text', 'font-family')
     const ddFontWeightVar = getComponentTextCssVar('Dropdown', 'text', 'font-weight')
@@ -375,18 +390,21 @@ export default function TimePicker({
     const ddTextDecorationVar = getComponentTextCssVar('Dropdown', 'text', 'text-decoration')
     const ddTextTransformVar = getComponentTextCssVar('Dropdown', 'text', 'text-transform')
     const ddFontStyleVar = getComponentTextCssVar('Dropdown', 'text', 'font-style')
-    const ddBorderSizeDefault = buildComponentCssVarPath('Dropdown', 'variants', 'states', 'default', 'properties', 'border-size')
-    const ddBorderSizeFocus = buildComponentCssVarPath('Dropdown', 'variants', 'states', 'focus', 'properties', 'border-size')
 
-    // Build overrides for all state×layer combinations for border-color and background
+    // Build overrides for all state×layer combinations for border-color, background, icon colors, and border-size
     const ddStateColorOverrides = ['default', 'focus', 'error', 'disabled'].map(s => {
         const ddBg = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'colors', layer, 'background')
         const ddBorder = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'colors', layer, 'border-color')
         const ddText = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'colors', layer, 'text')
+        const ddLeadIcon = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'colors', layer, 'leading-icon')
+        const ddTrailIcon = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'colors', layer, 'trailing-icon')
+        const ddBorderSize = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'border-size')
         const tpBg = buildComponentCssVarPath('TimePicker', 'variants', 'states', s, 'properties', 'colors', layer, 'background')
         const tpBorder = buildComponentCssVarPath('TimePicker', 'variants', 'states', s, 'properties', 'colors', layer, 'border-color')
         const tpText = buildComponentCssVarPath('TimePicker', 'variants', 'states', s, 'properties', 'colors', layer, 'text')
-        return `${ddBg}: var(${tpBg}) !important; ${ddBorder}: var(${tpBorder}) !important; ${ddText}: var(${tpText}) !important;`
+        const tpIcon = buildComponentCssVarPath('TimePicker', 'variants', 'states', s, 'properties', 'colors', layer, 'icon')
+        const tpBorderSize = buildComponentCssVarPath('TimePicker', 'variants', 'states', s, 'properties', 'border-size')
+        return `${ddBg}: var(${tpBg}) !important; ${ddBorder}: var(${tpBorder}) !important; ${ddText}: var(${tpText}) !important; ${ddLeadIcon}: var(${tpIcon}) !important; ${ddTrailIcon}: var(${tpIcon}) !important; ${ddBorderSize}: var(${tpBorderSize}) !important;`
     }).join(' ')
 
     const periodDropdown = (
@@ -395,8 +413,9 @@ export default function TimePicker({
                 #${periodContainerId} {
                     ${ddBorderRadiusVar}: var(${borderRadiusVar}) !important;
                     ${ddVerticalPaddingVar}: var(${verticalPaddingVar}) !important;
-                    ${ddBorderSizeDefault}: var(${borderSizeVar}) !important;
-                    ${ddBorderSizeFocus}: var(${focusBorderSizeVar}) !important;
+                    ${ddHorizontalPaddingVar}: var(${horizontalPaddingVar}) !important;
+                    ${ddMinHeightVar}: 0px !important;
+                    ${ddIconSizeVar}: var(${iconSizeVar}) !important;
                     ${ddFontSizeVar}: var(${valueFontSizeVar}) !important;
                     ${ddFontFamilyVar}: var(${valueFontFamilyVar}) !important;
                     ${ddFontWeightVar}: var(${valueFontWeightVar}) !important;

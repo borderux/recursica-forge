@@ -47,10 +47,10 @@ export default function TimePickerPreview({
             flexDirection: 'column',
             gap: verticalGutter,
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'center',
         }}>
             {layoutsToShow.map((layoutVariant) => (
-                <div key={layoutVariant} style={{ width: '100%', maxWidth: '700px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div key={layoutVariant} style={{ maxWidth: '700px', width: '100%', alignSelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                     <h2 style={h2Style}>
                         {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
                     </h2>
