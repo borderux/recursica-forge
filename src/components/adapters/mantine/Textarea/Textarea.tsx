@@ -41,7 +41,7 @@ export default function Textarea({
     const { mode } = useThemeMode()
 
     // Extract props that shouldn't be passed to DOM elements
-    const { optional, labelAlign, labelSize, editIcon, editIconGap, ...domProps } = restProps
+    const { optional, labelAlign, labelSize, editIcon, editIconGap, leadingIcon, trailingIcon, ...domProps } = restProps
 
     // Generate unique ID if not provided (needed for scoped styles)
     const uniqueId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`
@@ -187,6 +187,24 @@ export default function Textarea({
     ) : null
 
     // Textarea element
+    const iconSizeVar = getComponentLevelCssVar('Textarea', 'icon-size')
+    const iconTextGapVar = getComponentLevelCssVar('Textarea', 'icon-text-gap')
+
+    const iconStyle: React.CSSProperties = {
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        paddingTop: `var(${verticalPaddingVar})`,
+        paddingLeft: leadingIcon ? `var(${horizontalPaddingVar}, 12px)` : undefined,
+        paddingRight: trailingIcon ? `var(${horizontalPaddingVar}, 12px)` : undefined,
+        flexShrink: 0,
+        width: `var(${iconSizeVar}, 16px)`,
+        color: `var(${textVar})`,
+        fontSize: `var(${iconSizeVar}, 16px)`,
+        lineHeight: 1,
+        pointerEvents: 'none',
+    }
+
     const textareaWrapper = (
         <div
             className={`recursica-textarea-wrapper ${state === 'focus' ? 'focus' : ''}`}
@@ -195,6 +213,7 @@ export default function Textarea({
                 display: 'flex',
                 width: '100%',
                 maxWidth: `var(${maxWidthVar}, 100%)`,
+                minWidth: `var(${minWidthVar})`,
                 flexShrink: 0,
                 border: 'none',
                 borderRadius: `var(${borderRadiusVar})`,
@@ -204,6 +223,11 @@ export default function Textarea({
                 cursor: domProps.onClick ? 'pointer' : undefined,
             }}
         >
+            {leadingIcon && (
+                <span style={iconStyle}>
+                    {leadingIcon}
+                </span>
+            )}
             <textarea
                 id={uniqueId}
                 name={name}
@@ -222,8 +246,8 @@ export default function Textarea({
                     flex: 1,
                     minWidth: 0,
                     maxWidth: '100%',
-                    paddingLeft: `var(${horizontalPaddingVar}, 12px)`,
-                    paddingRight: `var(${horizontalPaddingVar}, 12px)`,
+                    paddingLeft: leadingIcon ? `var(${iconTextGapVar}, 8px)` : `var(${horizontalPaddingVar}, 12px)`,
+                    paddingRight: trailingIcon ? `var(${iconTextGapVar}, 8px)` : `var(${horizontalPaddingVar}, 12px)`,
                     paddingTop: `var(${verticalPaddingVar})`,
                     paddingBottom: `var(${verticalPaddingVar})`,
                     border: 'none',
@@ -236,6 +260,11 @@ export default function Textarea({
                 {...mantine}
                 {...domProps}
             />
+            {trailingIcon && (
+                <span style={{ ...iconStyle, paddingLeft: undefined, paddingRight: `var(${horizontalPaddingVar}, 12px)` }}>
+                    {trailingIcon}
+                </span>
+            )}
             <style>{`
         /* Value text styles - applied directly to textarea element - scoped to this instance */
         #${uniqueId}.recursica-textarea-input {

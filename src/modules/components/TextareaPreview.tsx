@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Textarea } from '../../components/adapters/Textarea'
+import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 
@@ -21,6 +22,10 @@ export default function TextareaPreview({
 
     // Get form vertical gutter CSS variable
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
+
+    // Get icon components for examples
+    const SmileyIcon = iconNameToReactComponent('star')
+    const HeartIcon = iconNameToReactComponent('warning')
 
     // Show both layouts
     const layoutsToShow: string[] = selectedVariants.layouts
@@ -101,24 +106,46 @@ export default function TextareaPreview({
 
                         {/* Disabled state */}
                         {state === 'disabled' && (
-                            <Textarea
-                                label="Forge Notes"
-                                placeholder="Describe the enchantment process..."
-                                state="disabled"
-                                layout={layoutVariant}
-                                layer={selectedLayer as any}
-                            />
+                            <>
+                                <Textarea
+                                    label="Forge Notes"
+                                    placeholder="Describe the enchantment process..."
+                                    leadingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
+                                    state="disabled"
+                                    layout={layoutVariant}
+                                    layer={selectedLayer as any}
+                                />
+                                <Textarea
+                                    label="Expedition Log"
+                                    placeholder="Record your journey through the deep mines..."
+                                    trailingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
+                                    state="disabled"
+                                    layout={layoutVariant}
+                                    layer={selectedLayer as any}
+                                />
+                            </>
                         )}
 
                         {/* Focus state (shows default with focus styling via CSS) */}
                         {state === 'focus' && (
-                            <Textarea
-                                label="Forge Notes"
-                                placeholder="Describe the enchantment process..."
-                                state="focus"
-                                layout={layoutVariant}
-                                layer={selectedLayer as any}
-                            />
+                            <>
+                                <Textarea
+                                    label="Forge Notes"
+                                    placeholder="Describe the enchantment process..."
+                                    leadingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
+                                    state="focus"
+                                    layout={layoutVariant}
+                                    layer={selectedLayer as any}
+                                />
+                                <Textarea
+                                    label="Expedition Log"
+                                    placeholder="Record your journey through the deep mines..."
+                                    trailingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
+                                    state="focus"
+                                    layout={layoutVariant}
+                                    layer={selectedLayer as any}
+                                />
+                            </>
                         )}
 
                         {/* Custom/unknown state — renders a basic field so styling changes are visible */}
