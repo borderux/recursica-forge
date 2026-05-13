@@ -110,24 +110,46 @@ export default function TextFieldPreview({
 
             {/* Disabled state */}
             {state === 'disabled' && (
-              <TextField
-                label="Forge Name"
-                placeholder="Enter artifact name..."
-                state="disabled"
-                layout={layoutVariant}
-                layer={selectedLayer as any}
-              />
+              <>
+                <TextField
+                  label="Forge Name"
+                  placeholder="Enter artifact name..."
+                  leadingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
+                  state="disabled"
+                  layout={layoutVariant}
+                  layer={selectedLayer as any}
+                />
+                <TextField
+                  label="Rune Inscription"
+                  placeholder="Enter rune sequence..."
+                  trailingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
+                  state="disabled"
+                  layout={layoutVariant}
+                  layer={selectedLayer as any}
+                />
+              </>
             )}
 
             {/* Focus state (shows default with focus styling via CSS) */}
             {state === 'focus' && (
-              <TextField
-                label="Forge Name"
-                placeholder="Enter artifact name..."
-                state="focus"
-                layout={layoutVariant}
-                layer={selectedLayer as any}
-              />
+              <>
+                <TextField
+                  label="Forge Name"
+                  placeholder="Enter artifact name..."
+                  leadingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
+                  state="focus"
+                  layout={layoutVariant}
+                  layer={selectedLayer as any}
+                />
+                <TextField
+                  label="Rune Inscription"
+                  placeholder="Enter rune sequence..."
+                  trailingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
+                  state="focus"
+                  layout={layoutVariant}
+                  layer={selectedLayer as any}
+                />
+              </>
             )}
             {/* Custom/unknown state — renders a basic field so styling changes are visible */}
             {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
