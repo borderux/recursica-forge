@@ -4,7 +4,7 @@ import { Tabs as MantineTabs } from '@mantine/core'
 import { iconNameToReactComponent } from './iconUtils'
 import { Badge } from '../../components/adapters/Badge'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { useCssVar } from '../../components/hooks/useCssVar'
+import { useRawCssVar } from '../../components/hooks/useCssVar'
 import { buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import { layerText } from '../../core/css/cssVarBuilder'
 
@@ -120,8 +120,8 @@ export default function TabsPreview({
     const [value6, setValue6] = useState<string | null>('gallery')
     const variant = (selectedVariants.style || 'default') as 'default' | 'pills' | 'outline'
     const orientation = (selectedVariants.orientation || 'horizontal') as 'horizontal' | 'vertical'
-    const tabContentAlignmentVar = buildComponentCssVarPath('Tabs', 'properties', 'tab-content-alignment')
-    const tabContentAlignmentRaw = useCssVar(tabContentAlignmentVar, 'left')
+    const tabContentAlignmentVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'tab-content-alignment')
+    const tabContentAlignmentRaw = useRawCssVar(tabContentAlignmentVar, 'left')
     const tabContentAlignment = (tabContentAlignmentRaw?.trim().replace(/^["']|["']$/g, '') || 'left') as 'left' | 'center' | 'right'
 
     const isHorizontal = orientation === 'horizontal'

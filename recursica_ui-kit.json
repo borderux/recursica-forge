@@ -5014,7 +5014,7 @@
                 },
                 "tab-content-alignment": {
                   "$type": "string",
-                  "$value": "left"
+                  "$value": "center"
                 }
               }
             },
@@ -5042,7 +5042,7 @@
                 },
                 "tab-content-alignment": {
                   "$type": "string",
-                  "$value": "left"
+                  "$value": "center"
                 }
               }
             }
