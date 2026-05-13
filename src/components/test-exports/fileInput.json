@@ -177,7 +177,7 @@
                     },
                     "trailing-icon": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                     },
                     "border-color": {
                       "$type": "color",

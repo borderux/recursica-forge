@@ -179,7 +179,7 @@ function extractBrandStructure(brand: JsonLike): BrandStructure {
 
   // Supply default core keys if none found
   if (corePaletteKeys.length === 0) {
-    corePaletteKeys.push('black', 'white', 'alert', 'warning', 'success', 'interactive')
+    corePaletteKeys.push('high-contrast', 'low-contrast', 'alert', 'warning', 'success', 'interactive')
   }
 
   // Layers — count from light mode

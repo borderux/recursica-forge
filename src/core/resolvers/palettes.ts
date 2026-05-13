@@ -112,7 +112,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
   const getColorVar = (v: any, depth: number = 0): string => {
     // Prevent infinite recursion
     if (depth > 5) {
-      return `var(${paletteCore(modeLower, 'black')})`
+      return `var(${paletteCore(modeLower, 'high-contrast')})`
     }
 
     // Extract $value if v is an object with $value property
@@ -132,10 +132,10 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
           let refMode = parsed.mode || modeLower
           if (pathParts.length >= 3 && (pathParts[1] === 'core-colors' || pathParts[1] === 'core')) {
             color = pathParts[2]
-          } else if (pathParts.length === 2 && (pathParts[1] === 'black' || pathParts[1] === 'white')) {
+          } else if (pathParts.length === 2 && (pathParts[1] === 'high-contrast' || pathParts[1] === 'low-contrast')) {
             color = pathParts[1]
           }
-          if (color && ['black', 'white'].includes(color.toLowerCase())) {
+          if (color && ['high-contrast', 'low-contrast'].includes(color.toLowerCase())) {
             // Resolve to the actual tone value from core-colors, not to the CSS var itself
             try {
               const root: any = (theme as any)?.brand ? (theme as any).brand : theme
@@ -170,7 +170,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     }
 
     // Fallback to black for current mode
-    return `var(${paletteCore(modeLower, 'black')})`
+    return `var(${paletteCore(modeLower, 'high-contrast')})`
   }
 
   // Read brand-level state from Brand JSON and emit brand vars
@@ -193,7 +193,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     vars[stateVar(modeLower, 'disabled')] = `var(${tokenOpacity('solid')})`
     vars[stateVar(modeLower, 'hover')] = `var(${tokenOpacity('solid')})`
     vars[stateVar(modeLower, 'overlay', 'opacity')] = `var(${tokenOpacity('solid')})`
-    vars[stateVar(modeLower, 'overlay', 'color')] = `var(${paletteCore(modeLower, 'black')})`
+    vars[stateVar(modeLower, 'overlay', 'color')] = `var(${paletteCore(modeLower, 'high-contrast')})`
   }
   const toLevelString = (lvl: string): string => {
     // Normalize token level to match CSS variable format
@@ -349,11 +349,17 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
           const s = onToneRaw.trim()
           const sLower = s.toLowerCase()
 
-          // Handle direct hex values and color names
-          if (sLower === '#ffffff' || sLower === 'white') {
-            onToneVar = `var(${paletteCore(modeLower, 'white')})`
-          } else if (sLower === '#000000' || sLower === 'black') {
-            onToneVar = `var(${paletteCore(modeLower, 'black')})`
+          // Map literal hex colours to the correct semantic core key for the current mode.
+          // Light: high-contrast=black, low-contrast=white → #fff→low-contrast, #000→high-contrast
+          // Dark:  high-contrast=white, low-contrast=black → #fff→high-contrast, #000→low-contrast
+          if (sLower === '#ffffff') {
+            onToneVar = modeLower === 'dark'
+              ? `var(${paletteCore(modeLower, 'high-contrast')})`
+              : `var(${paletteCore(modeLower, 'low-contrast')})`
+          } else if (sLower === '#000000') {
+            onToneVar = modeLower === 'dark'
+              ? `var(${paletteCore(modeLower, 'low-contrast')})`
+              : `var(${paletteCore(modeLower, 'high-contrast')})`
           } else {
             // Use centralized parser to handle all brand reference formats
             const parsed = parseTokenReference(onToneRaw, context)
@@ -362,16 +368,16 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
               // Check if it's a core color reference
               if (pathParts.length >= 3 && pathParts[0] === 'palettes' && (pathParts[1] === 'core-colors' || pathParts[1] === 'core')) {
                 const colorName = pathParts[pathParts.length - 1]
-                if (colorName === 'white') {
-                  onToneVar = `var(${paletteCore(modeLower, 'white')})`
-                } else if (colorName === 'black') {
-                  onToneVar = `var(${paletteCore(modeLower, 'black')})`
+                if (colorName === 'low-contrast') {
+                  onToneVar = `var(${paletteCore(modeLower, 'low-contrast')})`
+                } else if (colorName === 'high-contrast') {
+                  onToneVar = `var(${paletteCore(modeLower, 'high-contrast')})`
                 } else {
                   // Try to resolve as CSS var
                   const cssVar = resolveTokenReferenceToCssVar(onToneRaw, context)
-                  onToneVar = cssVar || `var(${paletteCore(modeLower, 'black')})`
+                  onToneVar = cssVar || `var(${paletteCore(modeLower, 'high-contrast')})`
                 }
-              } else if (pathParts.length >= 2 && pathParts[0] === 'palettes' && (pathParts[1] === 'white' || pathParts[1] === 'black')) {
+              } else if (pathParts.length >= 2 && pathParts[0] === 'palettes' && (pathParts[1] === 'low-contrast' || pathParts[1] === 'high-contrast')) {
                 // Handle {brand.palettes.white} or {brand.palettes.black}
                 const colorName = pathParts[1]
                 onToneVar = `var(${paletteCore(modeLower, colorName)})`
@@ -387,7 +393,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
                     onToneVar = onTone
                   } else {
                     // Default to black if unknown
-                    onToneVar = `var(${paletteCore(modeLower, 'black')})`
+                    onToneVar = `var(${paletteCore(modeLower, 'high-contrast')})`
                   }
                 }
               }
@@ -399,7 +405,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
                 onToneVar = cssVar
               } else {
                 // Default to black if token can't be resolved
-                onToneVar = `var(${paletteCore(modeLower, 'black')})`
+                onToneVar = `var(${paletteCore(modeLower, 'high-contrast')})`
               }
             } else {
               // Not a brand or token reference, try to resolve as theme reference
@@ -412,7 +418,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
                   onToneVar = onTone
                 } else {
                   // Default to black if unknown
-                  onToneVar = `var(${paletteCore(modeLower, 'black')})`
+                  onToneVar = `var(${paletteCore(modeLower, 'high-contrast')})`
                 }
               }
             }
@@ -420,7 +426,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
         } else {
           // Default to black - AA compliance will update this reactively in Phase 3
           // Always generate on-tone CSS variable, even if not found in JSON
-          onToneVar = `var(${paletteCore(modeLower, 'black')})`
+          onToneVar = `var(${paletteCore(modeLower, 'high-contrast')})`
         }
 
         // On-tone is emitted as-is from theme JSON. Theme JSON is the single source of truth.
@@ -527,14 +533,14 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
 
     // ─── Core color on-tone computation ───
     // Black/White: hardcoded opposites. Alert/Warning/Success: stepping algorithm.
-    const coreWhiteRef = `var(${paletteCore(modeLower, 'white')})`
-    const coreBlackRef = `var(${paletteCore(modeLower, 'black')})`
+    const coreWhiteRef = `var(${paletteCore(modeLower, 'low-contrast')})`
+    const coreBlackRef = `var(${paletteCore(modeLower, 'high-contrast')})`
 
     // Read emphasis opacities for stepping contrast checks
     // The vars may contain var() references like "var(--recursica_tokens_opacities_solid, 1)"
     // or plain numeric strings like "0.87". Extract the number.
 
-    const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success']
+    const coreColorKeys = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success']
     coreColorKeys.forEach((colorKey) => {
       const colorDef: any = coreColors?.[colorKey]
       if (colorDef?.tone) {
@@ -551,10 +557,10 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       if (colorDef?.['on-tone']) {
         const onToneValue = getColorVar(colorDef['on-tone'])
         vars[paletteCore(modeLower, colorKey, 'on-tone')] = onToneValue
-      } else if (colorKey === 'black') {
-        vars[paletteCore(modeLower, 'black', 'on-tone')] = coreWhiteRef
-      } else if (colorKey === 'white') {
-        vars[paletteCore(modeLower, 'white', 'on-tone')] = coreBlackRef
+      } else if (colorKey === 'high-contrast') {
+        vars[paletteCore(modeLower, 'high-contrast', 'on-tone')] = coreWhiteRef
+      } else if (colorKey === 'low-contrast') {
+        vars[paletteCore(modeLower, 'low-contrast', 'on-tone')] = coreBlackRef
       }
 
       // Interactive

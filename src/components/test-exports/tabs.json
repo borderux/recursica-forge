@@ -511,7 +511,7 @@
                 },
                 "hover-color": {
                   "$type": "color",
-                  "$value": "{brand.palettes.core-colors.black.tone}"
+                  "$value": "{brand.palettes.core-colors.high-contrast.tone}"
                 },
                 "hover-opacity": {
                   "$type": "number",
@@ -711,7 +711,7 @@
                 },
                 "hover-color": {
                   "$type": "color",
-                  "$value": "{brand.palettes.core-colors.black.tone}"
+                  "$value": "{brand.palettes.core-colors.high-contrast.tone}"
                 },
                 "hover-opacity": {
                   "$type": "number",

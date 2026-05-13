@@ -155,8 +155,11 @@ function expandRefPath(refPath: string, currentPath: string): string {
   for (const key of themeScoped) {
     if (afterBrand === key || afterBrand.startsWith(key + '.')) {
       let expanded = `brand.themes.${theme}.${afterBrand}`
-      if (afterBrand === 'palettes.black' || afterBrand === 'palettes.white') {
-        expanded = `brand.themes.${theme}.palettes.core-colors.${afterBrand.replace('palettes.', '')}.tone`
+      if (afterBrand === 'palettes.black' || afterBrand === 'palettes.white' ||
+          afterBrand === 'palettes.high-contrast' || afterBrand === 'palettes.low-contrast') {
+        const colorKey = afterBrand.replace('palettes.', '')
+        const normalizedKey = colorKey === 'black' ? 'high-contrast' : colorKey === 'white' ? 'low-contrast' : colorKey
+        expanded = `brand.themes.${theme}.palettes.core-colors.${normalizedKey}.tone`
       }
       return expanded
     }
@@ -186,11 +189,14 @@ function resolvePathAlias(path: string): string[] {
       candidates.push(path.replace(/\.me$/, '.md'))
     }
   }
-  const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white)$/)
-  if (m) candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${m[2]}.tone`)
+  const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white|high-contrast|low-contrast)$/)
+  if (m) {
+    const colorKey = m[2] === 'black' ? 'high-contrast' : m[2] === 'white' ? 'low-contrast' : m[2]
+    candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${colorKey}.tone`)
+  }
   const coreBlackWhiteShort = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-(black|white)$/)
-  if (coreBlackWhiteShort) candidates.push(`brand.themes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2]}.tone`)
-  const coreBlackWhite = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white)$/)
+  if (coreBlackWhiteShort) candidates.push(`brand.themes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2] === 'black' ? 'high-contrast' : 'low-contrast'}.tone`)
+  const coreBlackWhite = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|high-contrast|low-contrast)$/)
   if (coreBlackWhite) candidates.push(`${path}.tone`)
   const coreColor = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
   if (coreColor) candidates.push(`${path}.tone`)

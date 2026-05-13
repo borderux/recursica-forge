@@ -2259,8 +2259,8 @@ class VarsStore {
           // Map core color names to CSS variable names
           // Use --recursica_brand_themes_ format to match palettes.ts resolver
           const coreColorMap: Record<string, string> = {
-            black: `--recursica_brand_themes_${mode}_palettes_core-colors_black`,
-            white: `--recursica_brand_themes_${mode}_palettes_core-colors_white`,
+            black: `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast`,
+            white: `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast`,
             alert: `--recursica_brand_themes_${mode}_palettes_core-colors_alert`,
             warning: `--recursica_brand_themes_${mode}_palettes_core-colors_warning`,
             success: `--recursica_brand_themes_${mode}_palettes_core-colors_success`,
@@ -2847,7 +2847,7 @@ class VarsStore {
         const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']
         if (!coreColors) continue
 
-        const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success', 'interactive']
+        const coreColorKeys = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success', 'interactive']
         for (const colorKey of coreColorKeys) {
           const colorDef = coreColors[colorKey]
           if (!colorDef) continue
@@ -2900,7 +2900,7 @@ class VarsStore {
       const mode = currentMode === 'dark' ? 'dark' : 'light'
 
       // Get all core colors and update their on-tones
-      const coreColors = ['black', 'white', 'alert', 'warning', 'success']
+      const coreColors = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success']
 
       for (const colorName of coreColors) {
         // Get the tone hex for this core color
@@ -2915,7 +2915,7 @@ class VarsStore {
           // Update high/low emphasis on-tones with alternating pattern
           // CSS vars only, never JSON - pass no-op callback
           updateCoreColorOnTonesForCompliance(
-            colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
+            colorName as 'high-contrast' | 'low-contrast' | 'alert' | 'warning' | 'success',
             toneHex,
             this.state.tokens,
             this.state.theme,
@@ -2926,7 +2926,7 @@ class VarsStore {
           // Update interactive on-tone with alternating pattern on interactive scale
           // CSS vars only, never JSON - pass no-op callback
           updateCoreColorInteractiveOnToneForCompliance(
-            colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
+            colorName as 'high-contrast' | 'low-contrast' | 'alert' | 'warning' | 'success',
             toneHex,
             this.state.tokens,
             this.state.theme,

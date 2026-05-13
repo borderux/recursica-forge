@@ -65,7 +65,7 @@ function formatOnToneLabel(issue: ComplianceIssue): string {
         const toneLuminance = (0.299 * tr + 0.587 * tg + 0.114 * tb) / 255
 
         const isBlackBased = luminance < toneLuminance
-        const coreVar = paletteCore(issue.mode, isBlackBased ? 'black' : 'white')
+        const coreVar = paletteCore(issue.mode, isBlackBased ? 'high-contrast' : 'low-contrast')
         const resolved = getComputedStyle(document.documentElement).getPropertyValue(coreVar).trim()
 
         if (resolved && resolved.startsWith('#')) {
@@ -178,7 +178,7 @@ export function ThemeCompliance({ issues, runScan, applySuggestion }: ThemeCompl
         })
     }, [issues, fixedMap, handleFix])
 
-    const handleSuggestApply = useCallback((issue: ComplianceIssue, newHex: string, family: string, level: string, newOnToneColor?: 'white' | 'black') => {
+    const handleSuggestApply = useCallback((issue: ComplianceIssue, newHex: string, family: string, level: string, newOnToneColor?: 'high-contrast' | 'low-contrast') => {
         const store = getVarsStore()
         const tokens = store.getState().tokens
         if (!tokens) return

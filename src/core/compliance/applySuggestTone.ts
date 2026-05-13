@@ -18,7 +18,7 @@ export function applySuggestTone(
   newHex: string,
   family: string,
   level: string,
-  newOnToneColor?: 'white' | 'black'
+  newOnToneColor?: 'low-contrast' | 'high-contrast'
 ): void {
   const store = getVarsStore()
   const tokens = store.getState().tokens
@@ -63,12 +63,12 @@ export function applySuggestTone(
     const mode = modeMatch ? modeMatch[1] : 'light'
 
     // Use core-color references (white.tone = scale-02.000, black.tone = scale-02.1000)
-    const onToneValueJson = newOnToneColor === 'white'
-      ? `{brand.themes.${mode}.palettes.core-colors.white.tone}`
-      : `{brand.themes.${mode}.palettes.core-colors.black.tone}`
-    const onToneCssVarValue = newOnToneColor === 'white'
-      ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_white_tone)`
-      : `var(--recursica_brand_themes_${mode}_palettes_core-colors_black_tone)`
+    const onToneValueJson = newOnToneColor === 'low-contrast'
+      ? `{brand.themes.${mode}.palettes.core-colors.low-contrast.tone}`
+      : `{brand.themes.${mode}.palettes.core-colors.high-contrast.tone}`
+    const onToneCssVarValue = newOnToneColor === 'low-contrast'
+      ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone)`
+      : `var(--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast_tone)`
     
     // Update the brand JSON with JSON ref
     updateBrandValue(targetCssVar, onToneValueJson)

@@ -24,7 +24,7 @@ describe('applyCssVars', () => {
   it('should apply valid CSS variables', () => {
     const vars = {
       '--recursica_tokens_color_gray_500': '#808080',
-      '--recursica_brand_light_palettes_core_black': 'var(--recursica_tokens_color_gray_1000)'
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast': 'var(--recursica_tokens_color_gray_1000)'
     }
     
     const result = applyCssVars(vars)
@@ -33,12 +33,12 @@ describe('applyCssVars', () => {
     expect(result.errors).toBe(0)
     expect(result.warnings).toBe(0)
     expect(document.documentElement.style.getPropertyValue('--recursica_tokens_color_gray_500')).toBe('#808080')
-    expect(document.documentElement.style.getPropertyValue('--recursica_brand_light_palettes_core_black')).toBe('var(--recursica_tokens_color_gray_1000)')
+    expect(document.documentElement.style.getPropertyValue('--recursica_brand_themes_light_palettes_core-colors_high-contrast')).toBe('var(--recursica_tokens_color_gray_1000)')
   })
 
   it('should reject brand vars with hardcoded hex values', () => {
     const vars = {
-      '--recursica_brand_light_palettes_core_black': '#000000'
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast': '#000000'
     }
     
     // Function collects errors instead of throwing
@@ -63,7 +63,7 @@ describe('applyCssVars', () => {
     }
     
     const vars = {
-      '--recursica_brand_light_palettes_core_black': '#000000'
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast': '#000000'
     }
     
     const result = applyCssVars(vars, tokens)
@@ -150,7 +150,7 @@ describe('applyCssVarsDelta', () => {
   it('should validate delta changes', () => {
     const prev = {}
     const next = {
-      '--recursica_brand_light_palettes_core_black': '#000000'
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast': '#000000'
     }
     
     // Function collects errors instead of throwing

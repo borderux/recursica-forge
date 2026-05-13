@@ -34,7 +34,7 @@ export interface SuggestTonesModalProps {
     issue: ComplianceIssue
     isOpen: boolean
     onClose: () => void
-    onApply: (issue: ComplianceIssue, newHex: string, family: string, level: string, newOnToneColor?: 'white' | 'black') => void
+    onApply: (issue: ComplianceIssue, newHex: string, family: string, level: string, newOnToneColor?: 'low-contrast' | 'high-contrast') => void
 }
 
 export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTonesModalProps) {
@@ -140,7 +140,7 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                         const g = parseInt(h.slice(2, 4), 16) / 255
                         const b = parseInt(h.slice(4, 6), 16) / 255
                         const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
-                        failingTone.onToneColor = lum > 0.5 ? 'white' : 'black'
+                        failingTone.onToneColor = lum > 0.5 ? 'low-contrast' : 'high-contrast'
                     }
                 }
                 
@@ -158,7 +158,7 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
     const handleSave = () => {
         if (!selectedHex || !family || !level) return
         const selectedTone = tones.find(t => t?.hex === selectedHex)
-        const onToneColor = selectedTone?.onToneColor === 'white' || selectedTone?.onToneColor === 'black' ? selectedTone.onToneColor : undefined
+        const onToneColor = selectedTone?.onToneColor === 'low-contrast' || selectedTone?.onToneColor === 'high-contrast' ? selectedTone.onToneColor : undefined
         onApply(issue, selectedHex, family, level, onToneColor)
         setSelectedHex(null)
         onClose()
@@ -226,7 +226,7 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                     const showDividerAfterPrev = !tone.isReference && !tone.isFailing && prevTone?.isFailing
 
                     // Determine on-tone dot color
-                    const onToneHex = tone.onToneColor === 'white' ? '#ffffff' : '#000000'
+                    const onToneHex = tone.onToneColor === 'low-contrast' ? '#ffffff' : '#000000'
 
                     return (
                         <div key={`${tone.hex}-${idx}`}>
@@ -280,7 +280,7 @@ export function SuggestTonesModal({ issue, isOpen, onClose, onApply }: SuggestTo
                                             <WarningIcon
                                                 className="suggest-tones__warning-icon"
                                                 style={{
-                                                    color: tone.onToneColor === 'white' ? '#fff' : '#000',
+                                                    color: tone.onToneColor === 'low-contrast' ? '#fff' : '#000',
                                                     opacity: emphasisOpacity,
                                                 }}
                                             />

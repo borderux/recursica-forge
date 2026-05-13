@@ -11,7 +11,7 @@ describe('isTokenVar', () => {
   })
 
   it('should return false for brand vars', () => {
-    expect(isTokenVar('--recursica_brand_light_palettes_core_black')).toBe(false)
+    expect(isTokenVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast')).toBe(false)
   })
 
   it('should return false for custom vars', () => {
@@ -21,7 +21,7 @@ describe('isTokenVar', () => {
 
 describe('isBrandVar', () => {
   it('should return true for recursica-brand- prefix', () => {
-    expect(isBrandVar('--recursica_brand_light_palettes_core_black')).toBe(true)
+    expect(isBrandVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast')).toBe(true)
   })
 
   it('should return true for brand- prefix', () => {
@@ -40,7 +40,7 @@ describe('isBrandVar', () => {
 describe('validateCssVarValue', () => {
   it('should validate brand var with var() reference', () => {
     const result = validateCssVarValue(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       'var(--recursica_tokens_color_gray_1000)'
     )
     expect(result.valid).toBe(true)
@@ -48,7 +48,7 @@ describe('validateCssVarValue', () => {
 
   it('should validate brand var with color-mix() containing token reference', () => {
     const result = validateCssVarValue(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       'color-mix(in srgb, var(--recursica_tokens_color_gray_1000) 80%, transparent)'
     )
     expect(result.valid).toBe(true)
@@ -56,7 +56,7 @@ describe('validateCssVarValue', () => {
 
   it('should validate brand var with unprefixed token reference', () => {
     const result = validateCssVarValue(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       'var(--tokens-color-gray-1000)'
     )
     expect(result.valid).toBe(true)
@@ -64,7 +64,7 @@ describe('validateCssVarValue', () => {
 
   it('should reject brand var with hardcoded hex value', () => {
     const result = validateCssVarValue(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       '#000000'
     )
     expect(result.valid).toBe(false)
@@ -73,7 +73,7 @@ describe('validateCssVarValue', () => {
 
   it('should reject brand var with hardcoded RGB value', () => {
     const result = validateCssVarValue(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       'rgb(0, 0, 0)'
     )
     expect(result.valid).toBe(false)

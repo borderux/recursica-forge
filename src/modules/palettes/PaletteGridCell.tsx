@@ -139,10 +139,10 @@ export function PaletteEmphasisCell({
     const passesAA = currentRatio >= AA
 
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_black`
-    const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_white`
-    const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
-    const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
+    const coreHighContrastVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast`
+    const coreLowContrastVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast`
+    const blackHex = readCssVarResolved(coreHighContrastVar) || '#000000'
+    const whiteHex = readCssVarResolved(coreLowContrastVar) || '#ffffff'
     const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
     const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
 
@@ -494,31 +494,31 @@ export function PaletteEmphasisCell({
 
       {!shouldOpenColorPicker && !isPrimary && isHovered && !suggestOpen &&
         !(aaStatus != null && (!aaStatus.currentLowPasses || !aaStatus.currentHighPasses)) && (
-        <div
-          data-recursica-layer="1"
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            marginTop: 'var(--recursica_brand_dimensions_general_sm)',
-            padding: `var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_lg)`,
-            backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
-            border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
-            borderRadius: `var(--recursica_brand_dimensions_border-radii_default)`,
-            boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 1000,
-            fontSize: '12px',
-            whiteSpace: 'nowrap',
-          }}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-        >
-          <div style={{ color: `var(${genericLayerText(1, 'color')})` }}>
-            Set {level} as default
+          <div
+            data-recursica-layer="1"
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              marginTop: 'var(--recursica_brand_dimensions_general_sm)',
+              padding: `var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_lg)`,
+              backgroundColor: `var(${genericLayerProperty(1, 'surface')})`,
+              border: `1px solid var(${genericLayerProperty(1, 'border-color')})`,
+              borderRadius: `var(--recursica_brand_dimensions_border-radii_default)`,
+              boxShadow: layer1Elevation || '0 2px 8px rgba(0,0,0,0.15)',
+              zIndex: 1000,
+              fontSize: '12px',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            <div style={{ color: `var(${genericLayerText(1, 'color')})` }}>
+              Set {level} as default
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Stop-propagation wrapper prevents portal click events from bubbling
           back to the <td> onClick and immediately reopening the modal. */}

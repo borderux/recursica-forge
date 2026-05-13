@@ -155,11 +155,11 @@
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.black.tone}"
+                      "$value": "{brand.palettes.core-colors.high-contrast.tone}"
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                     }
                   },
                   "layer-1": {
@@ -326,7 +326,7 @@
                     },
                     "text-hover": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
@@ -399,7 +399,7 @@
                     },
                     "border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                     }
                   },
                   "layer-2": {
@@ -628,7 +628,7 @@
                 },
                 "hover-color": {
                   "$type": "color",
-                  "$value": "{brand.palettes.core-colors.black.tone}"
+                  "$value": "{brand.palettes.core-colors.high-contrast.tone}"
                 },
                 "hover-opacity": {
                   "$type": "number",

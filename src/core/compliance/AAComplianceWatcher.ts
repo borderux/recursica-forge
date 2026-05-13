@@ -110,8 +110,8 @@ export class AAComplianceWatcher {
     }
 
     // Read actual core black and white colors from CSS variables (not hardcoded)
-    const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_black_tone`
-    const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_white_tone`
+    const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast_tone`
+    const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone`
     const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
     const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
 
@@ -152,46 +152,46 @@ export class AAComplianceWatcher {
 
     // Determine best on-tone color based on AA compliance
     // Priority: both pass > low emphasis > high emphasis > baseline contrast
-    let chosen: 'black' | 'white'
+    let chosen: 'high-contrast' | 'low-contrast'
 
     // Priority 1: Both meet AA - choose based on baseline contrast first
     if (whiteMeetsBothAA && blackMeetsBothAA) {
       if (Math.abs(whiteBaseContrast - blackBaseContrast) > 1.0) {
-        chosen = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+        chosen = whiteBaseContrast >= blackBaseContrast ? 'low-contrast' : 'high-contrast'
       } else {
-        chosen = whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+        chosen = whiteLowContrast >= blackLowContrast ? 'low-contrast' : 'high-contrast'
       }
     }
     // Priority 2: Only one meets both AA levels
     else if (whiteMeetsBothAA) {
-      chosen = 'white'
+      chosen = 'low-contrast'
     } else if (blackMeetsBothAA) {
-      chosen = 'black'
+      chosen = 'high-contrast'
     }
     // Priority 3: Check low emphasis (harder case) - prioritize this
     else if (whiteMeetsLowAA && !blackMeetsLowAA) {
-      chosen = 'white'
+      chosen = 'low-contrast'
     } else if (blackMeetsLowAA && !whiteMeetsLowAA) {
-      chosen = 'black'
+      chosen = 'high-contrast'
     }
     // Priority 4: Check high emphasis
     else if (whiteMeetsHighAA && !blackMeetsHighAA) {
-      chosen = 'white'
+      chosen = 'low-contrast'
     } else if (blackMeetsHighAA && !whiteMeetsHighAA) {
-      chosen = 'black'
+      chosen = 'high-contrast'
     }
     // Priority 5: Neither meets AA - choose based on baseline contrast
     else {
       if (Math.abs(whiteBaseContrast - blackBaseContrast) > 0.5) {
-        chosen = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+        chosen = whiteBaseContrast >= blackBaseContrast ? 'low-contrast' : 'high-contrast'
       } else {
-        chosen = whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+        chosen = whiteLowContrast >= blackLowContrast ? 'low-contrast' : 'high-contrast'
       }
     }
 
-    const onToneValue = chosen === 'white'
-      ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_white)`
-      : `var(--recursica_brand_themes_${mode}_palettes_core-colors_black)`
+    const onToneValue = chosen === 'low-contrast'
+      ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast)`
+      : `var(--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast)`
 
     // Pass tokens to updateCssVar for validation
     updateCssVar(onToneVar, onToneValue, this.tokens)
@@ -844,8 +844,8 @@ export class AAComplianceWatcher {
         const pal: any = themes?.[mode]?.palettes || {}
 
         // Read core black/white from allVars
-        const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_black_tone`
-        const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_white_tone`
+        const coreBlackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast_tone`
+        const coreWhiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast_tone`
         const blackHex = this.resolveValueToHex(allVars[coreBlackVar] || '', allVars) || '#000000'
         const whiteHex = this.resolveValueToHex(allVars[coreWhiteVar] || '', allVars) || '#ffffff'
         const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
@@ -897,26 +897,26 @@ export class AAComplianceWatcher {
 
             // If one of core-black or core-white passes at both emphasis levels, use it
             if (whiteMeetsBothAA || blackMeetsBothAA) {
-              let chosen: 'black' | 'white'
+              let chosen: 'high-contrast' | 'low-contrast'
               const whiteBaseContrast = contrastRatio(toneHex, white)
               const blackBaseContrast = contrastRatio(toneHex, black)
 
               if (whiteMeetsBothAA && blackMeetsBothAA) {
                 chosen = Math.abs(whiteBaseContrast - blackBaseContrast) > 1.0
-                  ? (whiteBaseContrast >= blackBaseContrast ? 'white' : 'black')
-                  : (whiteLowContrast >= blackLowContrast ? 'white' : 'black')
+                  ? (whiteBaseContrast >= blackBaseContrast ? 'low-contrast' : 'high-contrast')
+                  : (whiteLowContrast >= blackLowContrast ? 'low-contrast' : 'high-contrast')
               } else {
-                chosen = whiteMeetsBothAA ? 'white' : 'black'
+                chosen = whiteMeetsBothAA ? 'low-contrast' : 'high-contrast'
               }
 
-              allVars[onToneVar] = chosen === 'white'
-                ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_white)`
-                : `var(--recursica_brand_themes_${mode}_palettes_core-colors_black)`
+              allVars[onToneVar] = chosen === 'low-contrast'
+                ? `var(--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast)`
+                : `var(--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast)`
             } else {
               // Neither core-black nor core-white passes at both emphasis levels.
               // Use findAaCompliantInMap to step through the black/white tone scales.
-              const blackToneRef = this.getCoreToneRefFromTheme('black', mode)
-              const whiteToneRef = this.getCoreToneRefFromTheme('white', mode)
+              const blackToneRef = this.getCoreToneRefFromTheme('high-contrast', mode)
+              const whiteToneRef = this.getCoreToneRefFromTheme('low-contrast', mode)
 
               let bestVar: string | null = null
               if (blackToneRef) {
@@ -945,7 +945,7 @@ export class AAComplianceWatcher {
     try {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
       const themes = root?.themes || root
-      const coreColors = ['black', 'white', 'alert', 'warning', 'success']
+      const coreColors = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success']
 
       for (const mode of ['light', 'dark'] as const) {
         const coreColorsObj = themes?.[mode]?.palettes?.['core-colors'] || themes?.[mode]?.palettes?.core || {}
@@ -976,8 +976,8 @@ export class AAComplianceWatcher {
           }
 
           // Find AA-compliant on-tone using black and white tone scales
-          const blackToneRef = this.getCoreToneRefFromTheme('black', mode)
-          const whiteToneRef = this.getCoreToneRefFromTheme('white', mode)
+          const blackToneRef = this.getCoreToneRefFromTheme('high-contrast', mode)
+          const whiteToneRef = this.getCoreToneRefFromTheme('low-contrast', mode)
 
           let bestVar: string | null = null
 
@@ -1017,7 +1017,7 @@ export class AAComplianceWatcher {
   /**
    * Gets core tone ref (family/level) from theme JSON.
    */
-  private getCoreToneRefFromTheme(coreColor: 'black' | 'white', mode: 'light' | 'dark'): { family: string; level: string } | null {
+  private getCoreToneRefFromTheme(coreColor: 'high-contrast' | 'low-contrast', mode: 'light' | 'dark'): { family: string; level: string } | null {
     try {
       const root: any = (this.theme as any)?.brand ? (this.theme as any).brand : this.theme
       const themes = root?.themes || root

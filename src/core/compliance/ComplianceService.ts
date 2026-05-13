@@ -269,7 +269,7 @@ class ComplianceServiceImpl {
                     const onToneHex = resolveCssVarToHex(onToneValue, tokenIndex as any)
                     if (!toneHex || !onToneHex) return
 
-                    // Check high-emphasis on-tone (on-tone blended at high emphasis opacity)
+                    // Check high-contrast on-tone (on-tone blended at high emphasis opacity)
                     if (!isNaN(highOpacity) && highOpacity < 1) {
                         const blendedHigh = blendHexWithOpacity(onToneHex, toneHex, highOpacity)
                         if (blendedHigh) {
@@ -316,8 +316,8 @@ class ComplianceServiceImpl {
                         }
                     }
 
-                    // Check low-emphasis on-tone. Only flag if high-emphasis issue for the
-                    // same var was NOT already added — the high-emphasis suggestion covers both.
+                    // Check low-contrast on-tone. Only flag if high-contrast issue for the
+                    // same var was NOT already added — the high-contrast suggestion covers both.
                     const paletteHighIssueAdded = issues.some(i => i.id === `palette-${paletteKey}-${level}-high-${mode}`)
                     if (!isNaN(lowOpacity) && lowOpacity < 1 && !paletteHighIssueAdded) {
                         const blendedLow = blendHexWithOpacity(onToneHex, toneHex, lowOpacity)
@@ -358,7 +358,13 @@ class ComplianceServiceImpl {
         mode: 'light' | 'dark'
     ) {
         // Simple core colors: tone / on-tone
-        const simpleCoreColors = ['alert', 'warning', 'success', 'black', 'white']
+        const simpleCoreColors = ['alert', 'warning', 'success', 'high-contrast', 'low-contrast']
+
+        const coreColorLabel = (key: string): string => {
+            if (key === 'high-contrast') return mode === 'light' ? 'High contrast (Black)' : 'High contrast (White)'
+            if (key === 'low-contrast') return mode === 'light' ? 'Low contrast (White)' : 'Low contrast (Black)'
+            return key.charAt(0).toUpperCase() + key.slice(1)
+        }
 
         simpleCoreColors.forEach((colorKey) => {
             const toneVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${colorKey}_tone`
@@ -380,7 +386,7 @@ class ComplianceServiceImpl {
                     id: `core-${colorKey}-${mode}`,
                     type: 'core-on-tone',
                     mode,
-                    location: `Core / ${colorKey.charAt(0).toUpperCase() + colorKey.slice(1)}`,
+                    location: `Core / ${coreColorLabel(colorKey)}`,
                     emphasis: 'high',
                     toneHex,
                     onToneHex,
@@ -393,9 +399,9 @@ class ComplianceServiceImpl {
                 })
             }
 
-            // Check low-emphasis on-tone (on-tone blended at low emphasis opacity).
-            // Only flag if a high-emphasis issue for the same var was NOT already added —
-            // the high-emphasis suggestion already satisfies the stricter constraint.
+            // Check low-contrast on-tone (on-tone blended at low emphasis opacity).
+            // Only flag if a high-contrast issue for the same var was NOT already added —
+            // the high-contrast suggestion already satisfies the stricter constraint.
             const lowEmphasisVar = `--recursica_brand_themes_${mode}_text-emphasis_low`
             const opacity = readCssVarNumber(lowEmphasisVar, 1)
             const highIssueAlreadyAdded = issues.some(i => i.id === `core-${colorKey}-${mode}`)
@@ -407,10 +413,10 @@ class ComplianceServiceImpl {
                         // Generate suggestion that satisfies BOTH high (1.0) and low (opacity) emphasis
                         const suggestion = this.generateOnToneSuggestion(toneHex, onToneVar, tokens, tokenIndex, mode, opacity, 1)
                         issues.push({
-                            id: `core-${colorKey}-low-emphasis-${mode}`,
+                            id: `core-${colorKey}-low-contrast-${mode}`,
                             type: 'core-on-tone',
                             mode,
-                            location: `Core / ${colorKey.charAt(0).toUpperCase() + colorKey.slice(1)}`,
+                            location: `Core / ${coreColorLabel(colorKey)}`,
                             emphasis: 'low',
                             toneHex,
                             onToneHex: blendedHex,
@@ -438,7 +444,7 @@ class ComplianceServiceImpl {
                             id: `core-${colorKey}-interactive-${mode}`,
                             type: 'core-on-tone',
                             mode,
-                            location: `Core / ${colorKey.charAt(0).toUpperCase() + colorKey.slice(1)}`,
+                            location: `Core / ${coreColorLabel(colorKey)}`,
                             
                             toneHex,
                             onToneHex: interactiveHex,
@@ -546,7 +552,7 @@ class ComplianceServiceImpl {
     }
 
     /**
-     * Check layer text colors with low-emphasis opacity applied.
+     * Check layer text colors with low-contrast opacity applied.
      * Blends text color with surface at the emphasis opacity to compute effective contrast.
      */
     private checkLayerTextEmphasis(
@@ -570,7 +576,7 @@ class ComplianceServiceImpl {
             const textHex = resolveCssVarToHex(textValue, tokenIndex as any)
             if (!textHex) continue
 
-            // Check low-emphasis text
+            // Check low-contrast text
             const lowEmphasisVar = `--recursica_brand_themes_${mode}_layers_layer-${layer}_elements_text-low-emphasis`
             const opacity = readCssVarNumber(lowEmphasisVar, 1)
             if (opacity >= 1) continue
@@ -582,7 +588,7 @@ class ComplianceServiceImpl {
             const ratio = contrastRatio(surfaceHex, blendedHex)
             if (ratio < AA_THRESHOLD) {
                 issues.push({
-                    id: `layer-${layer}-text-low-emphasis-${mode}`,
+                    id: `layer-${layer}-text-low-contrast-${mode}`,
                     type: 'layer-text',
                     mode,
                     location: `Layer ${layer} / Low emphasis text`,
@@ -944,7 +950,7 @@ class ComplianceServiceImpl {
             const ratio = contrastRatio(surfaceHex, effectiveHex)
 
             // Also verify the candidate passes at the other emphasis opacity (e.g. high=1.0
-            // when checking a low-emphasis suggestion) so one fix satisfies both issues.
+            // when checking a low-contrast suggestion) so one fix satisfies both issues.
             let passesOtherEmphasis = true
             if (otherEmphasisOpacity !== undefined && otherEmphasisOpacity !== emphasisOpacity) {
                 const otherEffective = otherEmphasisOpacity < 1
@@ -996,8 +1002,8 @@ class ComplianceServiceImpl {
 
         const tokenIndex = this.getTokens ? buildTokenIndex(this.getTokens()) : null;
         if (tokenIndex) {
-            const blackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_black`;
-            const whiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_white`;
+            const blackVar = `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast`;
+            const whiteVar = `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast`;
             
             const blackValue = readCssVar(blackVar);
             const whiteValue = readCssVar(whiteVar);
@@ -1039,8 +1045,8 @@ class ComplianceServiceImpl {
         }
 
         const attempts = blackContrast >= whiteContrast
-            ? [{ hex: actualBlackHex, label: 'core black', ratio: blackContrast, passesOther: blackPassesOther, key: 'black' }, { hex: actualWhiteHex, label: 'core white', ratio: whiteContrast, passesOther: whitePassesOther, key: 'white' }]
-            : [{ hex: actualWhiteHex, label: 'core white', ratio: whiteContrast, passesOther: whitePassesOther, key: 'white' }, { hex: actualBlackHex, label: 'core black', ratio: blackContrast, passesOther: blackPassesOther, key: 'black' }];
+            ? [{ hex: actualBlackHex, label: 'high emphasis', ratio: blackContrast, passesOther: blackPassesOther, key: 'high-contrast' }, { hex: actualWhiteHex, label: 'low emphasis', ratio: whiteContrast, passesOther: whitePassesOther, key: 'low-contrast' }]
+            : [{ hex: actualWhiteHex, label: 'low emphasis', ratio: whiteContrast, passesOther: whitePassesOther, key: 'low-contrast' }, { hex: actualBlackHex, label: 'high emphasis', ratio: blackContrast, passesOther: blackPassesOther, key: 'high-contrast' }];
 
         for (const attempt of attempts) {
             // Also verify this candidate passes at otherEmphasisOpacity if provided
@@ -1440,8 +1446,8 @@ class ComplianceServiceImpl {
     /**
      * Convert a CSS var reference to a theme JSON $value reference.
      * The theme JSON uses references like:
-     *   {brand.themes.light.palettes.core-colors.black.tone}
-     *   {brand.themes.light.palettes.core-colors.white.tone}
+     *   {brand.themes.light.palettes.core-colors.high-contrast.tone}
+     *   {brand.themes.light.palettes.core-colors.low-contrast.tone}
      *   {tokens.colors.scale-04.800}
      * We need to figure out what the suggestion maps to.
      */
@@ -1463,7 +1469,7 @@ class ComplianceServiceImpl {
                     const normalizedHex = resolvedHex.toLowerCase()
 
                     // Check against all core colors (black, white, alert, warning, success)
-                    const coreColors = ['black', 'white', 'alert', 'warning', 'success']
+                    const coreColors = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success']
                     for (const coreColor of coreColors) {
                         const coreCssVar = `--recursica_brand_themes_${mode}_palettes_core-colors_${coreColor}_tone`
                         const coreVal = readCssVar(coreCssVar)

@@ -242,23 +242,21 @@ export function PaletteScaleHeader({
 
                   if (themes?.[modeKey]?.palettes?.[paletteKey]?.[level]) {
                     // Read actual core colors from CSS vars
-                    const coreBlackVar = paletteCore(modeKey, 'black')
-                    const coreWhiteVar = paletteCore(modeKey, 'white')
-                    const black = (readCssVarResolved(coreBlackVar) || '#000000').toLowerCase()
-                    const white = (readCssVarResolved(coreWhiteVar) || '#ffffff').toLowerCase()
-                    const cBlack = contrastRatio(hex, black)
-                    const cWhite = contrastRatio(hex, white)
+                    const hcHex = (readCssVarResolved(paletteCore(modeKey, 'high-contrast')) || (modeKey === 'dark' ? '#fcfcfc' : '#131313')).toLowerCase()
+                    const lcHex = (readCssVarResolved(paletteCore(modeKey, 'low-contrast')) || (modeKey === 'dark' ? '#131313' : '#fcfcfc')).toLowerCase()
+                    const cHC = contrastRatio(hex, hcHex)
+                    const cLC = contrastRatio(hex, lcHex)
                     const AA = 4.5
 
-                    let chosen: 'black' | 'white'
-                    if (cBlack >= AA && cWhite >= AA) {
-                      chosen = cBlack >= cWhite ? 'black' : 'white'
-                    } else if (cBlack >= AA) {
-                      chosen = 'black'
-                    } else if (cWhite >= AA) {
-                      chosen = 'white'
+                    let chosen: 'high-contrast' | 'low-contrast'
+                    if (cHC >= AA && cLC >= AA) {
+                      chosen = cHC >= cLC ? 'high-contrast' : 'low-contrast'
+                    } else if (cHC >= AA) {
+                      chosen = 'high-contrast'
+                    } else if (cLC >= AA) {
+                      chosen = 'low-contrast'
                     } else {
-                      chosen = cBlack >= cWhite ? 'black' : 'white'
+                      chosen = cHC >= cLC ? 'high-contrast' : 'low-contrast'
                     }
 
                     // Update the on-tone value in theme JSON - use short alias format (no theme path)

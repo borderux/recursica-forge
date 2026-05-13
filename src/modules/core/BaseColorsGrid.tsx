@@ -16,13 +16,12 @@ import { layerProperty, layerText, paletteCore, state, textEmphasis } from '../.
 
 // Helper to get border color for swatches based on color type
 function getSwatchBorderColor(colorName: string, modeLower: string): string {
-  if (colorName === 'black') {
-    return `var(${paletteCore(modeLower, 'black')})`
+  if (colorName === 'high-contrast') {
+    return `var(${paletteCore(modeLower, 'high-contrast')})`
   }
-  if (colorName === 'white') {
+  if (colorName === 'low-contrast') {
     return `var(${layerProperty(modeLower, 1, 'border-color')})`
   }
-  // For other colors, use a slightly darker shade or border color
   return `var(${layerProperty(modeLower, 1, 'border-color')})`
 }
 
@@ -318,7 +317,7 @@ export default function BaseColorsGrid() {
     const currentCoreColors = currentThemes[modeLower].palettes['core-colors']
 
     // Reset each core color's tone and on-tone to original values
-    const coreColorNames = ['black', 'white', 'alert', 'warning', 'success']
+    const coreColorNames = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success']
     coreColorNames.forEach((colorName) => {
       const defaultColor = defaultCoreColors[colorName]
       if (!defaultColor) return
@@ -385,12 +384,19 @@ export default function BaseColorsGrid() {
     }, 100)
   }
 
-  const baseColors = ['black', 'white', 'alert', 'warning', 'success', 'interactive'] as const
+  const baseColors = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success', 'interactive'] as const
   const rows = [
-    { key: 'high', label: 'High', emphasisVar: textEmphasis(modeLower, 'high') },
-    { key: 'low', label: 'Low', emphasisVar: textEmphasis(modeLower, 'low') },
+    { key: 'high', label: 'High emphasis', emphasisVar: textEmphasis(modeLower, 'high') },
+    { key: 'low', label: 'Low emphasis', emphasisVar: textEmphasis(modeLower, 'low') },
     { key: 'interactive', label: 'Interactive', emphasisVar: null },
   ] as const
+
+  // Mode-aware display label for high-contrast and low-contrast
+  const colorColumnLabel = (colorName: string): string => {
+    if (colorName === 'high-contrast') return mode === 'light' ? 'High contrast (Black)' : 'High contrast (White)'
+    if (colorName === 'low-contrast') return mode === 'light' ? 'Low contrast (White)' : 'Low contrast (Black)'
+    return colorName.charAt(0).toUpperCase() + colorName.slice(1)
+  }
 
   const ResetIcon = iconNameToReactComponent('arrow-path')
 
@@ -426,7 +432,7 @@ export default function BaseColorsGrid() {
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: '80px repeat(6, 1fr)',
+        gridTemplateColumns: `auto repeat(6, 1fr)`,
         gridTemplateRows: `auto repeat(${rows.length}, auto)`,
         rowGap: 0,
         columnGap: 'var(--recursica_brand_dimensions_gutters_horizontal)',
@@ -448,7 +454,7 @@ export default function BaseColorsGrid() {
               padding: 'var(--recursica_brand_dimensions_general_sm)',
             }}
           >
-            {color.charAt(0).toUpperCase() + color.slice(1)}
+            {colorColumnLabel(color)}
           </div>
         ))}
 
@@ -465,8 +471,8 @@ export default function BaseColorsGrid() {
               fontSize: 'var(--recursica_brand_typography_body-font-size)',
               fontWeight: 'var(--recursica_brand_typography_body-font-weight)',
               color: `var(${layerText(modeLower, 1, 'color')})`,
-
               padding: 'var(--recursica_brand_dimensions_general_sm)',
+              whiteSpace: 'nowrap',
             }}
           >
             {row.label}

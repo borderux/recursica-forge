@@ -237,7 +237,7 @@
             "layer-3": {
               "background": {
                 "$type": "color",
-                "$value": "{brand.palettes.core-colors.black.tone}"
+                "$value": "{brand.palettes.core-colors.high-contrast.tone}"
               },
               "border-color": {
                 "$type": "color",

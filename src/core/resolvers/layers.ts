@@ -13,7 +13,13 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
 
   const mapBWHexToVar = (hex: string): string => {
     const h = (hex || '').toLowerCase()
-    return h === '#ffffff' ? `var(${paletteCore(mode, 'white')})` : `var(${paletteCore(mode, 'black')})`
+    // In light mode: high-contrast = black, low-contrast = white
+    // In dark mode:  high-contrast = white, low-contrast = black
+    // So #ffffff should map to low-contrast in light, high-contrast in dark.
+    if (mode === 'dark') {
+      return h === '#ffffff' ? `var(${paletteCore(mode, 'high-contrast')})` : `var(${paletteCore(mode, 'low-contrast')})`
+    }
+    return h === '#ffffff' ? `var(${paletteCore(mode, 'low-contrast')})` : `var(${paletteCore(mode, 'high-contrast')})`
   }
   const buildPaletteVar = (paletteKey: string, level: string, type: 'tone' | 'on-tone' | 'high-emphasis' | 'low-emphasis'): string => {
     const levelPart = level === 'primary' ? 'primary' : level
@@ -76,7 +82,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     } catch { }
     return null
   }
-  const parseCoreTokenRef = (name: 'interactive' | 'alert' | 'warning' | 'success' | 'black' | 'white'): { family: string; level: string } | null => {
+  const parseCoreTokenRef = (name: 'interactive' | 'alert' | 'warning' | 'success' | 'high-contrast' | 'low-contrast'): { family: string; level: string } | null => {
     try {
       const root: any = (theme as any)?.brand ? (theme as any).brand : theme
       // Support both old structure (brand.light.*) and new structure (brand.themes.light.*)
@@ -113,7 +119,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
       const s = typeof raw === 'string' ? raw.trim() : ''
       if (!s) return null
       // Direct var(--palette-*) → map to recursica brand core var
-      const mVar = /^var\(\s*(--palette-(black|white|interactive|alert|warning|success))\s*\)\s*$/i.exec(s)
+      const mVar = /^var\(\s*(--palette-(high-contrast|low-contrast|interactive|alert|warning|success))\s*\)\s*$/i.exec(s)
       if (mVar) {
         const label = (mVar[2] || '').toLowerCase()
         return paletteCore(mode, label)
@@ -128,12 +134,12 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
             let color: string | undefined
             if (pathParts.length >= 3 && (pathParts[1] === 'core-colors' || pathParts[1] === 'core')) {
               color = pathParts[2]
-            } else if (pathParts.length === 2 && (pathParts[1] === 'black' || pathParts[1] === 'white')) {
+            } else if (pathParts.length === 2 && (pathParts[1] === 'high-contrast' || pathParts[1] === 'low-contrast')) {
               color = pathParts[1]
             }
-            if (color && ['black', 'white', 'interactive', 'alert', 'warning', 'success'].includes(color.toLowerCase())) {
+            if (color && ['high-contrast', 'low-contrast', 'interactive', 'alert', 'warning', 'success'].includes(color.toLowerCase())) {
               const refMode = parsed.mode || mode
-              return `--recursica_brand_themes_${refMode}_palettes_core_${color.toLowerCase()}`
+              return `--recursica_brand_themes_${refMode}_palettes_core-colors_${color.toLowerCase()}`
             }
           }
         }
@@ -477,7 +483,7 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
     // Final fallback: if text color still wasn't set, default to black
     if (!result[`${brandTextBase}color`] && surfaceHex) {
       // Default to black - AA compliance will be handled reactively in Phase 3
-      result[`${brandTextBase}color`] = `var(${paletteCore(mode, 'black')})`
+      result[`${brandTextBase}color`] = `var(${paletteCore(mode, 'high-contrast')})`
     }
     // Emphasis opacities: always reference brand-level text emphasis (theme opacity)
     result[`${brandTextBase}high-emphasis`] = `var(${textEmphasisVar(mode, 'high')})`

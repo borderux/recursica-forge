@@ -37,11 +37,11 @@
   },
   "definitions": {
     "coreColorsGroup": {
-      "description": "Core colors palette group: black, white, alert, success, warning, interactive (no top-level $type/$value).",
+      "description": "Core colors palette group: high-contrast, low-contrast, alert, success, warning, interactive (no top-level $type/$value).",
       "type": "object",
-      "required": ["black", "white", "alert", "success", "warning", "interactive"],
+      "required": ["high-contrast", "low-contrast", "alert", "success", "warning", "interactive"],
       "properties": {
-        "black": {
+        "high-contrast": {
           "type": "object",
           "required": ["tone", "on-tone", "interactive"],
           "properties": {
@@ -51,7 +51,7 @@
           },
           "additionalProperties": false
         },
-        "white": {
+        "low-contrast": {
           "type": "object",
           "required": ["tone", "on-tone", "interactive"],
           "properties": {

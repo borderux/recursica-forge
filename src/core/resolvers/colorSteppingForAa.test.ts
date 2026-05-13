@@ -7,8 +7,8 @@ import * as readCssVarModule from '../css/readCssVar'
 vi.mock('../css/readCssVar', () => ({
   readCssVar: vi.fn((varName: string) => {
     const varMap: Record<string, string> = {
-      '--recursica_brand_light_palettes_core_white': '#ffffff',
-      '--recursica_brand_light_palettes_core_black': '#000000',
+      '--recursica_brand_themes_light_palettes_core-colors_low-contrast': '#ffffff',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast': '#000000',
       '--recursica_tokens_color_gray_000': '#ffffff',
       '--recursica_tokens_color_gray_050': '#f5f5f5',
       '--recursica_tokens_color_gray_100': '#e0e0e0',
