@@ -49,13 +49,7 @@
     "optional-text": {
       "icon": "text-aa",
       "label": "Optional text style",
-      "visible": true,
-      "group": {
-        "optional-text": {
-          "label": "Text style",
-          "visible": true
-        }
-      }
+      "visible": true
     },
     "spacing": {
       "icon": "square-logo",
