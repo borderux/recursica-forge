@@ -128,8 +128,8 @@ describe('findAaCompliantColor', () => {
     const result = findAaCompliantColor('#666666', null, 1, mockTokens)
     
     expect(result).toBeDefined()
-    // Should prefer white (higher contrast typically)
-    expect(result).toContain('white')
+    // Should prefer low-contrast (semantic name for white in light mode)
+    expect(result).toContain('low-contrast')
   })
 })
 
