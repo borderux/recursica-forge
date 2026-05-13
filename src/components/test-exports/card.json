@@ -2141,10 +2141,7 @@
               "properties": {
                 "top-bottom-margin": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 0,
-                    "unit": "px"
-                  }
+                  "$value": "{brand.dimensions.general.default}"
                 }
               }
             }
