@@ -1,5 +1,57 @@
 # recursica-forge
 
+## 0.15.0
+
+### Minor Changes
+
+- c9b00fb: ## Semantic Core Color System Migration
+
+  Renames the brand palette's legacy `black`/`white` core-color keys to semantic `high-contrast`/`low-contrast` aliases, completing a full system-wide migration for mode-aware accessibility.
+
+  ### What changed
+
+  **`recursica_brand.json`**
+
+  - Renamed `black` → `high-contrast` and `white` → `low-contrast` in both light and dark `core-colors` palette sections.
+  - Corrected 31+ dark-mode `on-tone` references that were failing the 4.5:1 AA contrast ratio, using programmatic contrast auditing to select the compliant semantic key per palette level.
+  - Fixed dark-mode `interactive` color references to use AA-compliant scale tokens (`scale-06.400` / `scale-06.300`).
+
+  **Architecture: Emphasis vs. Contrast**
+
+  - Formally separated opacity-based emphasis tokens (`high-emphasis`/`low-emphasis`) from color-based contrast tokens (`high-contrast`/`low-contrast`) — these are distinct concepts and must not be conflated.
+
+  **Source code (`src/`)**
+
+  - `layers.ts`: Mode resolver now maps `high-contrast`/`low-contrast` keys to the correct hex values per mode (e.g. `high-contrast` = near-white in dark, near-black in light).
+  - `cssVarBuilder.ts` / `ComplianceService.ts` / `varsStore.ts`: Corrected emphasis token variable names that were incorrectly renamed to contrast during an earlier pass.
+  - `structuralMetadata.ts`, `OverlayTokenPicker.tsx`, `ColorTokenPicker.tsx`, `PaletteColorControl.tsx`: Updated all `paletteCore('black'/'white')` calls and `coreColorKeys` arrays to use semantic keys, with mode-aware CSS var path construction.
+  - `PaletteColorSelector.tsx` / `PaletteScale.tsx`: Refactored `pickOnToneWithOpacity` and `recheckAACompliance` to return and consume `'high-contrast' | 'low-contrast'` instead of `'white' | 'black'`.
+  - `AAComplianceWatcher.ts`: Compliance watcher now checks `high-contrast`/`low-contrast` CSS vars directly.
+
+  **Export pipeline**
+
+  - `jsonExport.ts`: All backwards-compat normalizers updated to map legacy `black`/`white` refs to semantic keys with mode-awareness (e.g. `{brand.themes.dark.palettes.core-colors.white}` → `{brand.themes.dark.palettes.core-colors.high-contrast.tone}`).
+  - `recursicaJsonTransformScoped.ts`: `core-black`/`core-white` alias expansion now targets `high-contrast`/`low-contrast`.
+  - `normalizeUIKitBrandReferences`: UIKit ref normalizer updated to emit semantic keys.
+
+  **Test fixtures & test files**
+
+  - 22 component test-export JSONs under `src/components/test-exports/`: replaced all 44 `core-colors.white.tone` refs with `core-colors.low-contrast.tone` and 9 `core-colors.black.tone` refs with `core-colors.high-contrast.tone`.
+  - `colorSteppingForAa.test.ts`: Updated assertions to expect `low-contrast`/`high-contrast` return values and the correct CSS var prefix format.
+
+### Patch Changes
+
+- d1f32f3: Fix WCAG AA compliance fixes not persisting when palette scales or core colors are updated.
+
+  **`updateBrandValue`: wrong JSON write location**
+  The core bug — `cssVarToRef()` strips `themes.{mode}.` from brand references for component theme-agnosticism. `updateBrandValue` was using its output directly as the JSON navigation path, so writes landed at `brand.palettes.core-colors.*` (a non-existent node) instead of the correct `brand.themes.dark.palettes.core-colors.*`. Every fix was silently discarded, and `recomputeAndApplyAll` restored the original failing value on the next cycle. Fixed by reusing `cssVarToRef`'s battle-tested de-flattening rules (which also correctly resolves `elements_text-alert` → `elements.text.alert`, etc.) and then re-injecting the mode segment before navigation. Missing path segments now abort the write rather than auto-creating spurious nodes.
+
+  **`ComplianceService`: invalid suggestion value format**
+  When black or white was not an exact token-index match, `tryBlackWhiteTokens` generated a `{brand.themes.light.palettes.core-colors.white}` DTCG reference as the suggestion value. `validateCssVarValue` only accepts `var()` format, so the fix was silently rejected by `updateCssVar`. Fixed to emit a proper `var(--recursica_brand_themes_...)` reference via `paletteCore()`.
+
+  **`ComplianceService`: conflicting high/low emphasis suggestions**
+  High-emphasis and low-emphasis compliance issues for the same CSS var each generated independent suggestions. Applying them in sequence caused the last write to undo the first. Fixed by suppressing the low-emphasis issue when a high-emphasis issue already covers the same CSS var, and by threading an `otherEmphasisOpacity` constraint through `findBestPassingColor` and `tryBlackWhiteTokens` so that any generated suggestion is guaranteed to satisfy both emphasis levels simultaneously.
+
 ## 0.14.0
 
 ### Minor Changes
