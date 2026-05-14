@@ -387,9 +387,16 @@ export default function ComponentToolbar({
           // Also add any props from the group config that might not have been found yet
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
             const groupedPropKey = groupedPropName.toLowerCase()
-            // Check if we need to update the cached prop (if layer changed, variant changed, or prop doesn't exist)
             const cachedProp = groupedProps.get(groupedPropKey)
-            const needsUpdate = !cachedProp ||
+            // Check if we need to update the cached prop (if layer changed, variant changed, or prop doesn't exist)
+            // Special case: Button border-radius props live under content.{cv}.sizes.{size} — the structure parser
+            // assigns variantProp='size' to them (because it sees the nested 'sizes' category), so needsUpdate
+            // never fires on a content variant switch. Force re-entry whenever the cached prop isn't 'content'-typed.
+            const isButtonBorderRadiusCacheMiss =
+              componentName.toLowerCase() === 'button' &&
+              groupedPropKey === 'border-radius' &&
+              cachedProp?.variantProp !== 'content'
+            const needsUpdate = isButtonBorderRadiusCacheMiss || !cachedProp ||
               (cachedProp.path.some(part => part.startsWith('layer-')) &&
                 !cachedProp.path.includes(selectedLayer)) ||
               (cachedProp.isVariantSpecific && cachedProp.variantProp &&
@@ -645,7 +652,6 @@ export default function ComponentToolbar({
               }
 
               // Button: horizontal-padding is owned by the content variant (content × size)
-              // Build a virtual prop that points to the correct CSS variable for the selected content and size
               if (!groupedProp && componentName.toLowerCase() === 'button' && groupedPropKey === 'horizontal-padding') {
                 const contentVariant = selectedVariants.content || 'label'
                 const sizeVariant = selectedVariants.size || 'default'
@@ -655,6 +661,36 @@ export default function ComponentToolbar({
                   type: 'dimension',
                   cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'horizontal-padding'),
                   path: ['variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'horizontal-padding'],
+                  isVariantSpecific: true,
+                  variantProp: 'content',
+                }
+              }
+              // Button: border-radius is owned by the content variant (content × size).
+              // The structure parser assigns variantProp='size' to these tokens (nested sizes within content.{cv}),
+              // so we unconditionally override with a correctly-typed virtual prop — no !groupedProp guard.
+              if (componentName.toLowerCase() === 'button' && groupedPropKey === 'border-radius') {
+                const contentVariant = selectedVariants.content || 'label'
+                const sizeVariant = selectedVariants.size || 'default'
+                groupedProp = {
+                  name: 'border-radius',
+                  category: 'size',
+                  type: 'dimension',
+                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'border-radius'),
+                  path: ['variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'border-radius'],
+                  isVariantSpecific: true,
+                  variantProp: 'content',
+                }
+              }
+              // Button: min-width is owned by the content variant (content × size)
+              if (!groupedProp && componentName.toLowerCase() === 'button' && groupedPropKey === 'min-width') {
+                const contentVariant = selectedVariants.content || 'label'
+                const sizeVariant = selectedVariants.size || 'default'
+                groupedProp = {
+                  name: 'min-width',
+                  category: 'size',
+                  type: 'dimension',
+                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'min-width'),
+                  path: ['variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'min-width'],
                   isVariantSpecific: true,
                   variantProp: 'content',
                 }

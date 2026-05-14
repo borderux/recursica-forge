@@ -528,10 +528,6 @@
                     "$value": "{tokens.font.styles.normal}"
                   }
                 },
-                "border-radius": {
-                  "$type": "dimension",
-                  "$value": "{brand.dimensions.border-radii.xl}"
-                },
                 "max-label-width": {
                   "$type": "dimension",
                   "$value": {
@@ -615,10 +611,6 @@
                     "$value": "{tokens.font.styles.normal}"
                   }
                 },
-                "border-radius": {
-                  "$type": "dimension",
-                  "$value": "{brand.dimensions.border-radii.xl}"
-                },
                 "max-label-width": {
                   "$type": "dimension",
                   "$value": {
@@ -649,6 +641,17 @@
                     "horizontal-padding": {
                       "$type": "dimension",
                       "$value": "{brand.dimensions.general.lg}"
+                    },
+                    "border-radius": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.border-radii.xl}"
+                    },
+                    "min-width": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": 120,
+                        "unit": "px"
+                      }
                     }
                   }
                 },
@@ -657,6 +660,17 @@
                     "horizontal-padding": {
                       "$type": "dimension",
                       "$value": "{brand.dimensions.general.md}"
+                    },
+                    "border-radius": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.border-radii.xl}"
+                    },
+                    "min-width": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": 80,
+                        "unit": "px"
+                      }
                     }
                   }
                 }
@@ -669,6 +683,17 @@
                     "horizontal-padding": {
                       "$type": "dimension",
                       "$value": "{brand.dimensions.general.lg}"
+                    },
+                    "border-radius": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.border-radii.xl}"
+                    },
+                    "min-width": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": 120,
+                        "unit": "px"
+                      }
                     }
                   }
                 },
@@ -677,6 +702,17 @@
                     "horizontal-padding": {
                       "$type": "dimension",
                       "$value": "{brand.dimensions.general.md}"
+                    },
+                    "border-radius": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.border-radii.xl}"
+                    },
+                    "min-width": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": 80,
+                        "unit": "px"
+                      }
                     }
                   }
                 }
@@ -689,6 +725,17 @@
                     "horizontal-padding": {
                       "$type": "dimension",
                       "$value": "{brand.dimensions.general.default}"
+                    },
+                    "border-radius": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.border-radii.xl}"
+                    },
+                    "min-width": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": 48,
+                        "unit": "px"
+                      }
                     }
                   }
                 },
@@ -697,6 +744,17 @@
                     "horizontal-padding": {
                       "$type": "dimension",
                       "$value": "{brand.dimensions.general.sm}"
+                    },
+                    "border-radius": {
+                      "$type": "dimension",
+                      "$value": "{brand.dimensions.border-radii.xl}"
+                    },
+                    "min-width": {
+                      "$type": "dimension",
+                      "$value": {
+                        "value": 32,
+                        "unit": "px"
+                      }
                     }
                   }
                 }

@@ -244,6 +244,8 @@
 /* Always have relative positioning for hover overlay */
 .mantine-Button-root {
   position: relative;
+  min-width: var(--button-min-width) !important;
+  border-radius: var(--button-border-radius) !important;
 }
 
 

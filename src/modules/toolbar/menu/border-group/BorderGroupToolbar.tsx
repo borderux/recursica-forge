@@ -274,6 +274,15 @@ export default function BorderGroupToolbar({
   }, [borderSizeProp, componentName, selectedVariants, selectedLayer, uikit])
 
   const borderRadiusCssVars = useMemo(() => {
+    // Button border-radius lives at the content × size cross-variant axis.
+    // parseComponentStructure tags these tokens as variantProp='size', so getCssVarsForProp
+    // cannot resolve them correctly when the content variant changes.
+    // Compute the authoritative CSS var directly from selectedVariants.
+    if (componentName.toLowerCase() === 'button') {
+      const cv = selectedVariants.content || 'label'
+      const sv = selectedVariants.size || 'default'
+      return [buildComponentCssVarPath('Button', 'variants', 'content', cv, 'sizes', sv, 'properties', 'border-radius')]
+    }
     if (!borderRadiusProp) return []
     return getCssVarsForProp(borderRadiusProp, componentName, selectedVariants, selectedLayer, uikit)
   }, [borderRadiusProp, componentName, selectedVariants, selectedLayer, uikit])

@@ -1311,7 +1311,26 @@ export default function PropControlContent({
       return (
         <>
           {Array.from(prop.borderProps.entries()).map(([key, borderProp], index) => {
-            const cssVars = getCssVarsForProp(borderProp)
+            // Virtual props (isVariantSpecific) already have the exact CSS var set — use it directly.
+            // getCssVarsForProp would otherwise ignore the content-variant path and fall back to sizes-level.
+            let cssVars = (borderProp.isVariantSpecific && borderProp.cssVar)
+              ? [borderProp.cssVar]
+              : getCssVarsForProp(borderProp)
+
+            // Button border-radius lives at the content × size cross-variant axis.
+            // parseComponentStructure tags these tokens as variantProp='size' (not 'content'),
+            // so the find() in allProps always resolves to the icon-label prop regardless of selection.
+            // Compute the authoritative CSS var directly from selectedVariants — same path
+            // that ButtonPreview uses for its --button-border-radius inline style.
+            if (componentName.toLowerCase() === 'button' && key === 'border-radius') {
+              const cv = selectedVariants.content || 'label'
+              const sv = selectedVariants.size || 'default'
+              const authoritativeVar = buildComponentCssVarPath(
+                'Button', 'variants', 'content', cv, 'sizes', sv, 'properties', 'border-radius'
+              )
+              cssVars = [authoritativeVar]
+            }
+
             const primaryVar = cssVars[0] || borderProp.cssVar
             const label = getPropLabel(componentName, key) || toSentenceCase(key)
             const config = getPropConfig(componentName, key) || undefined
@@ -1392,7 +1411,14 @@ export default function PropControlContent({
               )
 
             const layerMatchedChildProp = findChildProp(true)
-            let childProp = layerMatchedChildProp ?? findChildProp(false) ?? findComponentLevelChildProp()
+            // Check if ComponentToolbar injected a virtual override for this child prop
+            // (e.g., Button border-radius / min-width pointing to the content-variant CSS var)
+            const borderPropsOverride = prop.borderProps?.get(childPropName)
+            const hasBorderPropsOverride = !!borderPropsOverride
+
+            let childProp: ReturnType<typeof findChildProp> = hasBorderPropsOverride
+              ? borderPropsOverride
+              : (layerMatchedChildProp ?? findChildProp(false) ?? findComponentLevelChildProp())
 
             // Special case: "text-color" in toolbar config maps to the "text" color prop
             // (mirrors the same special case in ComponentToolbar for grouped prop lookup)
@@ -1464,7 +1490,7 @@ export default function PropControlContent({
 
             if (!childProp) return null
 
-            const isVirtualProp = !layerMatchedChildProp && !structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase() && p.type !== 'text-group')
+            const isVirtualProp = hasBorderPropsOverride || (!layerMatchedChildProp && !structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase() && p.type !== 'text-group'))
             const cssVars = isVirtualProp ? [childProp.cssVar] : getCssVarsForProp(childProp)
             const primaryVar = cssVars[0] || childProp.cssVar
             const label = childConfig.label || getPropLabel(componentName, childPropName) || toSentenceCase(childPropName)
@@ -2474,14 +2500,17 @@ export default function PropControlContent({
       }
 
       // Use Slider component for Button width and height properties (must be before isSizeProp check)
-      if ((isButton && (propNameLower === 'min-width' || propNameLower === 'max-width' || propNameLower === 'height')) ||
+      if ((isButton && (propNameLower === 'min-width' || propNameLower === 'max-width' || propNameLower === 'max-label-width' || propNameLower === 'height')) ||
         (isSegmentedControlItem && propNameLower === 'height')) {
         const ButtonDimensionSlider = () => {
           let minValue = 0
           let maxValue = 500
           if (propNameLower === 'min-width') {
-            minValue = 0
-            maxValue = 500
+            minValue = 20
+            maxValue = 150
+          } else if (propNameLower === 'max-label-width') {
+            minValue = 40
+            maxValue = 200
           } else if (propNameLower === 'max-width') {
             minValue = 0
             maxValue = 1000

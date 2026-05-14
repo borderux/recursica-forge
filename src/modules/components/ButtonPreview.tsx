@@ -37,18 +37,32 @@ export default function ButtonPreview({
     'Button', 'variants', 'content', 'icon-label', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
   )
 
+  // Content variant border-radius CSS vars (content × size)
+  const labelBorderRadiusVar = buildComponentCssVarPath(
+    'Button', 'variants', 'content', 'label', 'sizes', sizePrefix, 'properties', 'border-radius'
+  )
+  const iconOnlyBorderRadiusVar = buildComponentCssVarPath(
+    'Button', 'variants', 'content', 'icon-only', 'sizes', sizePrefix, 'properties', 'border-radius'
+  )
+  const iconLabelBorderRadiusVar = buildComponentCssVarPath(
+    'Button', 'variants', 'content', 'icon-label', 'sizes', sizePrefix, 'properties', 'border-radius'
+  )
+
   // Style overrides for each content mode
   const labelPaddingStyle: React.CSSProperties = {
     paddingLeft: `var(${labelPaddingVar})`,
     paddingRight: `var(${labelPaddingVar})`,
+    ['--button-border-radius' as string]: `var(${labelBorderRadiusVar})`,
   }
   const iconOnlyPaddingStyle: React.CSSProperties = {
     paddingLeft: `var(${iconOnlyPaddingVar})`,
     paddingRight: `var(${iconOnlyPaddingVar})`,
+    ['--button-border-radius' as string]: `var(${iconOnlyBorderRadiusVar})`,
   }
   const iconLabelPaddingStyle: React.CSSProperties = {
     paddingLeft: `var(${iconLabelPaddingVar})`,
     paddingRight: `var(${iconLabelPaddingVar})`,
+    ['--button-border-radius' as string]: `var(${iconLabelBorderRadiusVar})`,
   }
 
   // Phosphor icon elements
