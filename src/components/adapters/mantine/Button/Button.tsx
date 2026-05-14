@@ -80,12 +80,16 @@ export default function Button({
   const iconGapVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon-text-gap')
   // Detect icon-only button (icon exists but no children) — needed early for padding var
   const isIconOnly = icon && !children
-  // Use content-variant-specific horizontal-padding: label vs icon-only have separate tokens
-  const contentVariant = isIconOnly ? 'icon-only' : 'label'
+  // Derive content variant from the actual props:
+  //   icon-only  → icon present, no children
+  //   icon-label → icon present with children
+  //   label      → no icon, just children
+  const contentVariant = isIconOnly ? 'icon-only' : (icon ? 'icon-label' : 'label')
   const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizePrefix, 'properties', 'horizontal-padding')
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
-  const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
-  const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'border-radius')
+  // min-width and border-radius are now content-variant-specific (content × size)
+  const minWidthVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizePrefix, 'properties', 'min-width')
+  const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizePrefix, 'properties', 'border-radius')
   const maxWidthVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'max-label-width')
 
   // Get all text properties from size-variant text property group
