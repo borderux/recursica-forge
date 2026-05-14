@@ -423,7 +423,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 height: swatch,
                 cursor: 'pointer',
                 background: 'transparent',
-                border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                 position: 'relative',
                 padding: isNoneSelected ? '1px' : '0',
                 borderRadius: isNoneSelected ? '5px' : '0',
@@ -442,7 +442,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 </svg>
                 {isNoneSelected && (
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                    {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` }} /> : '✓'}
+                    {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` }} /> : '✓'}
                   </div>
                 )}
               </div>
@@ -452,7 +452,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
         {/* Core colors row */}
         {(() => {
-          const coreColorNames = ['black', 'white', 'interactive', 'alert', 'success', 'warning']
+          const coreColorNames = ['high-contrast', 'low-contrast', 'interactive', 'alert', 'success', 'warning']
           const coreSwatches: { key: string; label: string; cssVar: string; onToneCssVar: string }[] = []
 
           try {
@@ -555,7 +555,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         height: swatch,
                         cursor: 'pointer',
                         background: `var(${s.cssVar})`,
-                        border: `1px solid ${isCoreSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                        border: `1px solid ${isCoreSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                         padding: isCoreSelected ? '1px' : '0',
                         borderRadius: isCoreSelected ? '5px' : '0',
                         boxSizing: 'border-box',
@@ -657,7 +657,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         height: swatch,
                         cursor: 'pointer',
                         background: `var(${s.cssVar})`,
-                        border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                        border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                         padding: isSelected ? '1px' : '0',
                         borderRadius: isSelected ? '5px' : '0',
                         boxSizing: 'border-box',

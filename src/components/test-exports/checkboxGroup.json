@@ -287,7 +287,7 @@
               },
               "border-unchecked": {
                 "$type": "color",
-                "$value": "{brand.palettes.core-colors.black.tone}"
+                "$value": "{brand.palettes.core-colors.high-contrast.tone}"
               },
               "border-checked": {
                 "$type": "color",
@@ -329,7 +329,7 @@
               },
               "border-unchecked": {
                 "$type": "color",
-                "$value": "{brand.palettes.core-colors.black.tone}"
+                "$value": "{brand.palettes.core-colors.high-contrast.tone}"
               },
               "border-checked": {
                 "$type": "color",
@@ -417,7 +417,7 @@
               },
               "border-checked": {
                 "$type": "color",
-                "$value": "{brand.palettes.core-colors.white.tone}"
+                "$value": "{brand.palettes.core-colors.low-contrast.tone}"
               },
               "background-indeterminate": {
                 "$type": "color",
@@ -429,7 +429,7 @@
               },
               "icon-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.core-colors.white.tone}"
+                "$value": "{brand.palettes.core-colors.low-contrast.tone}"
               },
               "disabled-background": {
                 "$type": "color",

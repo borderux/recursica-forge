@@ -40,24 +40,24 @@ describe('CSS Variable Propagation', () => {
     updateCssVar('--recursica_tokens_color_gray_500', '#808080')
     
     // Set brand var to reference token
-    updateCssVar('--recursica_brand_light_palettes_core_black', 'var(--recursica_tokens_color_gray_500)')
+    updateCssVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast', 'var(--recursica_tokens_color_gray_500)')
     
     // Change token
     updateCssVar('--recursica_tokens_color_gray_500', '#404040')
     
     // Brand var should still reference token (propagation happens via CSS cascade)
-    const brandVar = readCssVar('--recursica_brand_light_palettes_core_black')
+    const brandVar = readCssVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast')
     expect(brandVar).toBe('var(--recursica_tokens_color_gray_500)')
     
     // Resolved value should reflect new token value
-    const resolved = readCssVarResolved('--recursica_brand_light_palettes_core_black')
+    const resolved = readCssVarResolved('--recursica_brand_themes_light_palettes_core-colors_high-contrast')
     expect(resolved).toBe('#404040')
   })
 
   it('should handle nested var() references', () => {
     updateCssVar('--recursica_tokens_color_gray_500', '#808080')
-    updateCssVar('--recursica_brand_light_palettes_core_black', 'var(--recursica_tokens_color_gray_500)')
-    updateCssVar('--recursica_brand_light_layers_layer-0_properties_surface', 'var(--recursica_brand_light_palettes_core_black)')
+    updateCssVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast', 'var(--recursica_tokens_color_gray_500)')
+    updateCssVar('--recursica_brand_light_layers_layer-0_properties_surface', 'var(--recursica_brand_themes_light_palettes_core-colors_high-contrast)')
     
     const resolved = readCssVarResolved('--recursica_brand_light_layers_layer-0_properties_surface')
     expect(resolved).toBe('#808080')
@@ -66,15 +66,15 @@ describe('CSS Variable Propagation', () => {
   it('should maintain references when applying multiple vars', () => {
     const vars = {
       '--recursica_tokens_color_gray_500': '#808080',
-      '--recursica_brand_light_palettes_core_black': 'var(--recursica_tokens_color_gray_500)',
-      '--recursica_brand_light_layers_layer-0_properties_surface': 'var(--recursica_brand_light_palettes_core_black)'
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast': 'var(--recursica_tokens_color_gray_500)',
+      '--recursica_brand_light_layers_layer-0_properties_surface': 'var(--recursica_brand_themes_light_palettes_core-colors_high-contrast)'
     }
     
     applyCssVars(vars)
     
     expect(readCssVar('--recursica_tokens_color_gray_500')).toBe('#808080')
-    expect(readCssVar('--recursica_brand_light_palettes_core_black')).toBe('var(--recursica_tokens_color_gray_500)')
-    expect(readCssVar('--recursica_brand_light_layers_layer-0_properties_surface')).toBe('var(--recursica_brand_light_palettes_core_black)')
+    expect(readCssVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast')).toBe('var(--recursica_tokens_color_gray_500)')
+    expect(readCssVar('--recursica_brand_light_layers_layer-0_properties_surface')).toBe('var(--recursica_brand_themes_light_palettes_core-colors_high-contrast)')
     
     // Change token
     updateCssVar('--recursica_tokens_color_gray_500', '#404040')

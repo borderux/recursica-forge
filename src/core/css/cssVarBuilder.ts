@@ -94,7 +94,7 @@ export function brandDimensions(...segments: string[]): string {
 /**
  * `--recursica_brand_themes_{mode}_palettes_{pk}_{level}_{prop}`
  *
- * @param prop - e.g. 'tone', 'on-tone', 'high-emphasis', 'low-emphasis'
+ * @param prop - e.g. 'tone', 'on-tone', 'high-contrast', 'low-contrast'
  */
 export function palette(
   mode: string,
@@ -364,7 +364,7 @@ export function cssVarToRef(value: string): string | null {
       // interactive-tone and interactive-on-tone (flat structure)
       joined = joined.replace(/\.palettes\.core-colors\.(interactive)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
       // {colorKey}-tone and {colorKey}-on-tone (alert, warning, success, black, white)
-      joined = joined.replace(/\.palettes\.core-colors\.(alert|warning|success|black|white)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
+      joined = joined.replace(/\.palettes\.core-colors\.(alert|warning|success|high-contrast|low-contrast)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
     }
 
     return `{${joined}}`

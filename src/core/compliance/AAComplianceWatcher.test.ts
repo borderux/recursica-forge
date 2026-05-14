@@ -48,8 +48,8 @@ const mockTheme = {
       light: {
         palettes: {
           'core-colors': {
-            black: { $value: '{tokens.colors.scale-02.1000}' },
-            white: { $value: '{tokens.colors.scale-02.000}' },
+            'high-contrast': { $value: '{tokens.colors.scale-02.1000}' },
+            'low-contrast': { $value: '{tokens.colors.scale-02.000}' },
             interactive: { $value: '{tokens.colors.scale-02.500}' }
           }
         },
@@ -76,8 +76,8 @@ describe('AAComplianceWatcher', { timeout: 60000 }, () => {
     document.documentElement.style.setProperty('--recursica_tokens_color_gray_1000', '#000000')
     
     // Set up core palette CSS variables
-    document.documentElement.style.setProperty('--recursica_brand_themes_light_palettes_core_black', 'var(--recursica_tokens_color_gray_1000)')
-    document.documentElement.style.setProperty('--recursica_brand_themes_light_palettes_core_white', 'var(--recursica_tokens_color_gray_000)')
+    document.documentElement.style.setProperty('--recursica_brand_themes_light_palettes_core-colors_high-contrast', 'var(--recursica_tokens_color_gray_1000)')
+    document.documentElement.style.setProperty('--recursica_brand_themes_light_palettes_core-colors_low-contrast', 'var(--recursica_tokens_color_gray_000)')
   })
 
   it('should initialize and watch CSS variables', () => {
@@ -114,7 +114,7 @@ describe('AAComplianceWatcher', { timeout: 60000 }, () => {
     expect(onTone).toBeDefined()
     // Should be either black or white based on contrast
     // Gray (#808080) has better contrast with white (#ffffff) than black (#000000)
-    expect(['var(--recursica_brand_themes_light_palettes_core_black)', 'var(--recursica_brand_themes_light_palettes_core_white)']).toContain(onTone)
+    expect(['var(--recursica_brand_themes_light_palettes_core-colors_high-contrast)', 'var(--recursica_brand_themes_light_palettes_core-colors_low-contrast)']).toContain(onTone)
   })
 
   it('should update layer element colors when surface changes', async () => {

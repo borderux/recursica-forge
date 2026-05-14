@@ -270,7 +270,7 @@
                         },
                         "text-color": {
                           "$type": "color",
-                          "$value": "{brand.palettes.core-colors.white.tone}"
+                          "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                         },
                         "border-color": {
                           "$type": "color",
@@ -453,7 +453,7 @@
                         },
                         "border-color": {
                           "$type": "color",
-                          "$value": "{brand.palettes.core-colors.white.tone}"
+                          "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                         }
                       },
                       "layer-1": {
@@ -491,7 +491,7 @@
                         },
                         "icon-color": {
                           "$type": "color",
-                          "$value": "{brand.palettes.core-colors.white.tone}"
+                          "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                         },
                         "border-color": {
                           "$type": "color",

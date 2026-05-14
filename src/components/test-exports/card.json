@@ -164,7 +164,7 @@
               },
               "content": {
                 "$type": "color",
-                "$value": "{brand.palettes.core-colors.white.tone}"
+                "$value": "{brand.palettes.core-colors.low-contrast.tone}"
               }
             },
             "layer-1": {

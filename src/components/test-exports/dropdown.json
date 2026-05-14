@@ -415,7 +415,7 @@
                     },
                     "text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                     },
                     "leading-icon": {
                       "$type": "color",

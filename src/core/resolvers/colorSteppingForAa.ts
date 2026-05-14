@@ -71,8 +71,8 @@ export function findAaCompliantColor(
 
   // If no core token, try white/black
   if (!coreToken) {
-    const whiteHex = resolveCssVarToHex('var(--recursica_brand_light_palettes_core_white)', tokenIndex) || '#ffffff'
-    const blackHex = resolveCssVarToHex('var(--recursica_brand_light_palettes_core_black)', tokenIndex) || '#000000'
+    const whiteHex = resolveCssVarToHex('var(--recursica_brand_light_palettes_core_low-contrast)', tokenIndex) || '#ffffff'
+    const blackHex = resolveCssVarToHex('var(--recursica_brand_light_palettes_core_high-contrast)', tokenIndex) || '#000000'
 
     const whiteFinal = blendHexWithOpacity(whiteHex, surfaceHex, opacity) || whiteHex
     const blackFinal = blendHexWithOpacity(blackHex, surfaceHex, opacity) || blackHex
@@ -81,15 +81,15 @@ export function findAaCompliantColor(
     const blackContrast = contrastRatio(surfaceHex, blackFinal)
 
     if (whiteContrast >= AA) {
-      return 'var(--recursica_brand_light_palettes_core_white)'
+      return 'var(--recursica_brand_light_palettes_core_low-contrast)'
     }
     if (blackContrast >= AA) {
-      return 'var(--recursica_brand_light_palettes_core_black)'
+      return 'var(--recursica_brand_light_palettes_core_high-contrast)'
     }
     // Use the one with higher contrast
     return whiteContrast >= blackContrast
-      ? 'var(--recursica_brand_light_palettes_core_white)'
-      : 'var(--recursica_brand_light_palettes_core_black)'
+      ? 'var(--recursica_brand_light_palettes_core_low-contrast)'
+      : 'var(--recursica_brand_light_palettes_core_high-contrast)'
   }
 
   const normalizedStartLevel = coreToken.level === '000' ? '050' : coreToken.level
@@ -127,8 +127,8 @@ export function findAaCompliantColor(
   }
 
   // If no token level works, try white/black
-  const whiteHex = resolveCssVarToHex('var(--recursica_brand_light_palettes_core_white)', tokenIndex) || '#ffffff'
-  const blackHex = resolveCssVarToHex('var(--recursica_brand_light_palettes_core_black)', tokenIndex) || '#000000'
+  const whiteHex = resolveCssVarToHex('var(--recursica_brand_light_palettes_core_low-contrast)', tokenIndex) || '#ffffff'
+  const blackHex = resolveCssVarToHex('var(--recursica_brand_light_palettes_core_high-contrast)', tokenIndex) || '#000000'
 
   const whiteFinal = blendHexWithOpacity(whiteHex, surfaceHex, opacity) || whiteHex
   const blackFinal = blendHexWithOpacity(blackHex, surfaceHex, opacity) || blackHex
@@ -137,14 +137,14 @@ export function findAaCompliantColor(
   const blackContrast = contrastRatio(surfaceHex, blackFinal)
 
   if (whiteContrast >= AA) {
-    return 'var(--recursica_brand_light_palettes_core_white)'
+    return 'var(--recursica_brand_light_palettes_core_low-contrast)'
   }
   if (blackContrast >= AA) {
-    return 'var(--recursica_brand_light_palettes_core_black)'
+    return 'var(--recursica_brand_light_palettes_core_high-contrast)'
   }
   // Use the one with higher contrast
   return whiteContrast >= blackContrast
-    ? 'var(--recursica_brand_light_palettes_core_white)'
-    : 'var(--recursica_brand_light_palettes_core_black)'
+    ? 'var(--recursica_brand_light_palettes_core_low-contrast)'
+    : 'var(--recursica_brand_light_palettes_core_high-contrast)'
 }
 

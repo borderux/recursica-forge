@@ -53,24 +53,24 @@ describe('JSON Schema Validation', () => {
     it('should have brand.themes.light.palettes.core-colors', () => {
       const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
-      expect(coreColors?.black).toBeDefined()
-      expect(coreColors?.white).toBeDefined()
+      expect(coreColors?.['high-contrast']).toBeDefined()
+      expect(coreColors?.['low-contrast']).toBeDefined()
       expect(coreColors?.interactive).toBeDefined()
     })
 
     it('should have brand.themes.dark.palettes.core-colors', () => {
       const coreColors = brandJson.brand?.themes?.dark?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
-      expect(coreColors?.black).toBeDefined()
-      expect(coreColors?.white).toBeDefined()
+      expect(coreColors?.['high-contrast']).toBeDefined()
+      expect(coreColors?.['low-contrast']).toBeDefined()
       expect(coreColors?.interactive).toBeDefined()
     })
 
     it('should have required core-colors values', () => {
       const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
-      expect(coreColors?.black).toBeDefined()
-      expect(coreColors?.white).toBeDefined()
+      expect(coreColors?.['high-contrast']).toBeDefined()
+      expect(coreColors?.['low-contrast']).toBeDefined()
       expect(coreColors?.alert).toBeDefined()
       expect(coreColors?.success).toBeDefined()
       expect(coreColors?.warning).toBeDefined()
@@ -342,8 +342,8 @@ describe('JSON Schema Validation', () => {
                 'core-colors': {
                   $type: 'color',
                   $value: {
-                    black: '{tokens.colors.scale-02.900}',
-                    white: '{tokens.colors.scale-02.000}',
+                    'high-contrast': '{tokens.colors.scale-02.900}',
+                    'low-contrast': '{tokens.colors.scale-02.000}',
                     alert: '{tokens.colors.scale-02.900}',
                     success: '{tokens.colors.scale-02.900}',
                     warning: '{tokens.colors.scale-02.900}',
@@ -409,8 +409,8 @@ describe('JSON Schema Validation', () => {
                 'core-colors': {
                   $type: 'color',
                   $value: {
-                    black: '{tokens.colors.scale-02.900}',
-                    white: '{tokens.colors.scale-02.000}',
+                    'high-contrast': '{tokens.colors.scale-02.900}',
+                    'low-contrast': '{tokens.colors.scale-02.000}',
                     alert: '{tokens.colors.scale-02.900}',
                     success: '{tokens.colors.scale-02.900}',
                     warning: '{tokens.colors.scale-02.900}',

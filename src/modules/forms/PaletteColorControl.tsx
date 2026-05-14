@@ -292,11 +292,9 @@ export default function PaletteColorControl({
           const modeLower = mode.toLowerCase()
 
           // PRIORITY 1: Check core colors FIRST (before regular palettes)
-          // Core colors can be: black, white, alert-tone, warning-tone, success-tone, interactive-default-tone, interactive-hover-tone
-          // Also check without -tone suffix for backwards compatibility
           const coreColorKeys = [
-            'black', 'black-tone',
-            'white', 'white-tone',
+            'high-contrast', 'high-contrast-tone',
+            'low-contrast', 'low-contrast-tone',
             'interactive-default-tone', 'interactive-default',
             'interactive-hover-tone', 'interactive-hover',
             'alert-tone', 'alert',
@@ -304,7 +302,7 @@ export default function PaletteColorControl({
             'success-tone', 'success'
           ]
           for (const coreKey of coreColorKeys) {
-            const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core_${coreKey.replace(/-/g, '_')}`
+            const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${coreKey.replace(/-tone$/, '_tone')}`
             const coreHex = readCssVarResolved(coreCssVar, 10)
             if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a core color match! Format and return
@@ -460,11 +458,9 @@ export default function PaletteColorControl({
         const modeLower = mode.toLowerCase()
 
         // PRIORITY 1: Check core colors FIRST (before regular palettes)
-        // Core colors can be: black, white, alert-tone, warning-tone, success-tone, interactive-default-tone, interactive-hover-tone
-        // Also check without -tone suffix for backwards compatibility
         const coreColorKeys = [
-          'black', 'black-tone',
-          'white', 'white-tone',
+          'high-contrast', 'high-contrast-tone',
+          'low-contrast', 'low-contrast-tone',
           'interactive-default-tone', 'interactive-default',
           'interactive-hover-tone', 'interactive-hover',
           'alert-tone', 'alert',
@@ -472,7 +468,7 @@ export default function PaletteColorControl({
           'success-tone', 'success'
         ]
         for (const coreKey of coreColorKeys) {
-          const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core_${coreKey.replace(/-/g, '_')}`
+          const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${coreKey.replace(/-tone$/, '_tone')}`
           const coreHex = readCssVarResolved(coreCssVar, 10)
           if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
             // Found a core color match! Return the core color reference
@@ -557,11 +553,9 @@ export default function PaletteColorControl({
           const modeLower = mode.toLowerCase()
 
           // PRIORITY 1: Check core colors FIRST (before regular palettes)
-          // Core colors can be: black, white, alert-tone, warning-tone, success-tone, interactive-default-tone, interactive-hover-tone
-          // Also check without -tone suffix for backwards compatibility
           const coreColorKeys = [
-            'black', 'black-tone',
-            'white', 'white-tone',
+            'high-contrast', 'high-contrast-tone',
+            'low-contrast', 'low-contrast-tone',
             'interactive-default-tone', 'interactive-default',
             'interactive-hover-tone', 'interactive-hover',
             'alert-tone', 'alert',
@@ -569,7 +563,7 @@ export default function PaletteColorControl({
             'success-tone', 'success'
           ]
           for (const coreKey of coreColorKeys) {
-            const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core_${coreKey.replace(/-/g, '_')}`
+            const coreCssVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${coreKey.replace(/-tone$/, '_tone')}`
             const coreHex = readCssVarResolved(coreCssVar, 10)
             if (coreHex && coreHex.trim().toLowerCase() === normalizedResolvedHex) {
               // Found a core color match! Format and display

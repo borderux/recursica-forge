@@ -68,7 +68,7 @@ export function getConstants() {
     tokenColorLevels: ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000'],
     paletteLevels: ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000', 'default'],
     tones: ['tone', 'on-tone'],
-    coreColors: ['interactive', 'warning', 'success', 'alert', 'black', 'white'],
+    coreColors: ['interactive', 'warning', 'success', 'alert', 'high-contrast', 'low-contrast'],
     coreColorLevels: ['default', 'hover'],
     sizeTokens: ['none', '0-5x', 'default', '1-5x', '2x', '3x', '4x', '5x', '6x'],
     fontSizes: ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
@@ -170,11 +170,11 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{tokens.font.letter-spacings.${shiftValue(spacingsMatch[1], ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest'])}}`;
     }
     
-    // Palette on-tone contrast: {brand.palettes.black} / {brand.palettes.white}
+    // Palette on-tone contrast: {brand.palettes.high-contrast} / {brand.palettes.low-contrast}
     // These are the accessibility contrast colors used for on-tone values in palettes.
-    const paletteBlackWhiteMatch = content.match(/^brand\.palettes\.(black|white)$/);
-    if (paletteBlackWhiteMatch) {
-        return Math.random() < 0.5 ? '{brand.palettes.black}' : '{brand.palettes.white}';
+    const paletteContrastMatch = content.match(/^brand\.palettes\.(high-contrast|low-contrast|black|white)$/);
+    if (paletteContrastMatch) {
+        return Math.random() < 0.5 ? '{brand.palettes.high-contrast}' : '{brand.palettes.low-contrast}';
     }
 
     // Brand Color Palette: {brand.themes.light.palettes.neutral.100.color.tone} or ...neutral.default.color.tone

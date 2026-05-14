@@ -368,7 +368,7 @@
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                     },
                     "thumb": {
                       "$type": "color",
@@ -515,7 +515,7 @@
                     },
                     "input-border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
@@ -587,7 +587,7 @@
                     },
                     "input-text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.white.tone}"
+                      "$value": "{brand.palettes.core-colors.low-contrast.tone}"
                     },
                     "input-border-color": {
                       "$type": "color",
