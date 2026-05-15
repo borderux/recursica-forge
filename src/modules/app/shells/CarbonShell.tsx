@@ -521,6 +521,7 @@ export default function CarbonShell({
                     window.dispatchEvent(new CustomEvent('complianceReset'));
                     clearOverrides(tokensJson as any);
                     resetAll();
+                    localStorage.clear();
                     resetSaveReminder();
                     setTimeout(() => runScan(), 1000);
                   }}

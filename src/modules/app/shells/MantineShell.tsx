@@ -785,6 +785,7 @@ export default function MantineShell({
             window.dispatchEvent(new CustomEvent('complianceReset'));
             clearOverrides(tokensJson as any);
             resetAll(resetTarget === 'original');
+            localStorage.clear();
             resetSaveReminder();
             setTimeout(() => {
               runScan();
