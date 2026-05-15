@@ -791,6 +791,27 @@ class VarsStore {
     return this.pristineUikit
   }
 
+  /** Returns the last user-imported brand JSON, or pristineBrand if none was ever imported. */
+  getImportedBrand(): JsonLike {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.importedBrand)
+      if (stored) return JSON.parse(stored)
+    } catch { /* noop */ }
+    return this.pristineBrand
+  }
+
+  /** Returns the last user-imported tokens JSON, or the bundled tokensImport if none was ever imported. */
+  getImportedTokens(): JsonLike {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.importedTokens)
+      if (stored) return JSON.parse(stored)
+    } catch { /* noop */ }
+    return tokensImport as JsonLike
+  }
+
+  /** Returns the pristine, unmodified tokens JSON (bundled at build time). */
+  getPristineTokens(): JsonLike { return tokensImport as JsonLike }
+
   /**
    * Atomically import all three JSON stores (tokens, brand, uikit) and
    * trigger a single recomputeAndApplyAll.
