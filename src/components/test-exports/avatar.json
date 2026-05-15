@@ -644,13 +644,6 @@
           "sizes": {
             "small": {
               "properties": {
-                "size": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": 32,
-                    "unit": "px"
-                  }
-                },
                 "width": {
                   "$type": "dimension",
                   "$value": {
@@ -718,13 +711,6 @@
             },
             "default": {
               "properties": {
-                "size": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": 40,
-                    "unit": "px"
-                  }
-                },
                 "width": {
                   "$type": "dimension",
                   "$value": {
@@ -792,13 +778,6 @@
             },
             "large": {
               "properties": {
-                "size": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": 64,
-                    "unit": "px"
-                  }
-                },
                 "width": {
                   "$type": "dimension",
                   "$value": {
