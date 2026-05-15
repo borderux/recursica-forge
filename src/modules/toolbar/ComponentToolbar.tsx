@@ -1096,7 +1096,7 @@ export default function ComponentToolbar({
     })
   }, [liveStructure.props, componentName, selectedVariants, selectedLayer, toolbarConfig, liveUikitVariantSignature])
 
-  const handleReset = () => {
+  const handleReset = (target: 'imported' | 'original' = 'original') => {
     let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
     // Normalize display names that differ from recursica_ui-kit.json keys
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
@@ -1104,15 +1104,10 @@ export default function ComponentToolbar({
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
 
     // Helper: check if a CSS var belongs to exactly this component (not a sub-component).
-    // CSS vars can have two formats:
-    //   Themed:     --recursica_ui-kit_themes_light_components_button_variants_...
-    //   Non-themed: --recursica_ui-kit_components_button_variants_...
-    // Both use underscores as segment separators.
     const isExactComponentVar = (cssVar: string) => {
       const marker = `_components_${componentKey}_`
       const idx = cssVar.indexOf(marker)
       if (idx === -1) return false
-      // Check what follows the component key to ensure it's not a sub-component
       const afterKey = cssVar.substring(idx + marker.length)
       const subComponentSuffixes = getSubComponentSuffixes(componentKey)
       for (const suffix of subComponentSuffixes) {
@@ -1122,49 +1117,47 @@ export default function ComponentToolbar({
     }
 
     // 1. Remove ALL overrides for this component from the document element
-    // This handles all modes, layers, and states by looking for the component key in the variable name
     if (typeof document !== 'undefined') {
       const style = document.documentElement.style
       const propsToRemove: string[] = []
-
       for (let i = 0; i < style.length; i++) {
         const prop = style[i]
         if (isExactComponentVar(prop)) {
           propsToRemove.push(prop)
         }
       }
-
       propsToRemove.forEach(prop => style.removeProperty(prop))
     }
 
-    // 2. Build default values from the PRISTINE uikit (deep-cloned at init, never mutated).
-    // Using uikitJson directly would include any in-place mutations made by updateUIKitValue
-    // (custom variants, color changes), causing reset to restore a modified state.
-    const pristineUikit = getVarsStore().getPristineUikit()
-    const lightUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, pristineUikit, 'light')
-    const darkUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, pristineUikit, 'dark')
+    // 2. Resolve the UIKit source based on the chosen target.
+    //    'imported' → last user-imported JSON (falls back to pristine if none exists)
+    //    'original' → bundled Forge defaults
+    const sourceUikit = target === 'imported'
+      ? getVarsStore().getImportedUikit()
+      : getVarsStore().getPristineUikit()
+
+    const lightUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, sourceUikit, 'light')
+    const darkUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, sourceUikit, 'dark')
 
     const componentDefaults: Record<string, string> = {}
 
     // Filter to only this component's variables from both modes
-    const filterAndAdd = (allVars: Record<string, string>, currentMode: 'light' | 'dark') => {
+    const filterAndAdd = (allVars: Record<string, string>) => {
       Object.entries(allVars).forEach(([cssVar, value]) => {
         if (isExactComponentVar(cssVar)) {
           componentDefaults[cssVar] = value
         }
-        // For checkbox-item, also include base checkbox component vars
         if (componentKey === 'checkbox-item' && cssVar.includes('-components-checkbox-')) {
           componentDefaults[cssVar] = value
         }
-        // For radio-button-item, also include base radio-button component vars
         if (componentKey === 'radio-button-item' && cssVar.includes('-components-radio-button-')) {
           componentDefaults[cssVar] = value
         }
       })
     }
 
-    filterAndAdd(lightUIKitVars, 'light')
-    filterAndAdd(darkUIKitVars, 'dark')
+    filterAndAdd(lightUIKitVars)
+    filterAndAdd(darkUIKitVars)
 
     // 3. Restore defaults from the pristine JSON.
     // noGlobalRefCheck=true is captured in each closure at call time, so the
@@ -1427,7 +1420,7 @@ export default function ComponentToolbar({
               setResetTarget('imported')
               setResetConfirmOpen(true)
             } else {
-              handleReset()
+              handleReset('original')
             }
           }}
           variant="outline"
@@ -1513,29 +1506,34 @@ export default function ComponentToolbar({
       <Modal
         isOpen={resetConfirmOpen}
         onClose={() => setResetConfirmOpen(false)}
-        title="Reset"
+        title={`Reset ${componentName}`}
         size="sm"
         layer="layer-1"
         primaryActionLabel="Reset"
         onPrimaryAction={() => {
           setResetConfirmOpen(false)
-          handleReset()
+          handleReset(resetTarget)
         }}
         secondaryActionLabel="Cancel"
         onSecondaryAction={() => setResetConfirmOpen(false)}
         content={
-          <RadioButtonGroup label="Reset destination" required>
-            <RadioButtonItem
-              selected={resetTarget === 'imported'}
-              onChange={() => setResetTarget('imported')}
-              label="Reset to last imported version"
-            />
-            <RadioButtonItem
-              selected={resetTarget === 'original'}
-              onChange={() => setResetTarget('original')}
-              label="Reset to app defaults"
-            />
-          </RadioButtonGroup>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-font-size)' }}>
+              Are you sure you want to reset your changes?
+            </p>
+            <RadioButtonGroup label="Version" required>
+              <RadioButtonItem
+                selected={resetTarget === 'imported'}
+                onChange={() => setResetTarget('imported')}
+                label="Reset to last imported version"
+              />
+              <RadioButtonItem
+                selected={resetTarget === 'original'}
+                onChange={() => setResetTarget('original')}
+                label="Reset to Forge defaults"
+              />
+            </RadioButtonGroup>
+          </div>
         }
       />
 

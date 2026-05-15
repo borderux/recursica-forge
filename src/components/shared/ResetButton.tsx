@@ -82,18 +82,23 @@ export function ResetButton({
         secondaryActionLabel="Cancel"
         onSecondaryAction={() => setModalOpen(false)}
         content={
-          <RadioButtonGroup label="Reset destination" required>
-            <RadioButtonItem
-              selected={resetTarget === 'imported'}
-              onChange={() => setResetTarget('imported')}
-              label="Reset to last imported version"
-            />
-            <RadioButtonItem
-              selected={resetTarget === 'original'}
-              onChange={() => setResetTarget('original')}
-              label="Reset to app defaults"
-            />
-          </RadioButtonGroup>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-font-size)' }}>
+              Are you sure you want to reset your changes?
+            </p>
+            <RadioButtonGroup label="Version" required>
+              <RadioButtonItem
+                selected={resetTarget === 'imported'}
+                onChange={() => setResetTarget('imported')}
+                label="Reset to last imported version"
+              />
+              <RadioButtonItem
+                selected={resetTarget === 'original'}
+                onChange={() => setResetTarget('original')}
+                label="Reset to Forge defaults"
+              />
+            </RadioButtonGroup>
+          </div>
         }
       />
     </>
