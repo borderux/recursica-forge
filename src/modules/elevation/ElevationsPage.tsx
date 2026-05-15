@@ -436,8 +436,6 @@ export default function ElevationsPage() {
               <ResetButton
                 onReset={() => handleResetAll()}
                 layer="layer-1"
-                modalTitle="Reset elevations"
-                modalMessage="All elevation customisations will be reset to their defaults."
               />
             </div>
             <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>

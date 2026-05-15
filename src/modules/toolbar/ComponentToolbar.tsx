@@ -1423,11 +1423,12 @@ export default function ComponentToolbar({
       <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})`, display: 'flex', flexDirection: 'row', gap: 'var(--recursica_brand_dimensions_gutters_horizontal)' }}>
         <Button
           onClick={() => {
-            const hasImported = getVarsStore().hasUserImportedFiles()
-            if (hasImported) {
+            if (getVarsStore().hasUserImportedFiles()) {
               setResetTarget('imported')
+              setResetConfirmOpen(true)
+            } else {
+              handleReset()
             }
-            setResetConfirmOpen(true)
           }}
           variant="outline"
           size="small"
@@ -1508,11 +1509,11 @@ export default function ComponentToolbar({
         customVariants={customVariants}
       />
 
-      {/* Reset Confirmation Modal */}
+      {/* Reset Confirmation Modal — only shown when user has imported files */}
       <Modal
         isOpen={resetConfirmOpen}
         onClose={() => setResetConfirmOpen(false)}
-        title="Reset component"
+        title="Reset"
         size="sm"
         layer="layer-1"
         primaryActionLabel="Reset"
@@ -1523,27 +1524,21 @@ export default function ComponentToolbar({
         secondaryActionLabel="Cancel"
         onSecondaryAction={() => setResetConfirmOpen(false)}
         content={
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-small-font-size)', opacity: 0.75 }}>
-              All customisations for {componentName} will be reset to their default token values.
-            </p>
-            {getVarsStore().hasUserImportedFiles() && (
-              <RadioButtonGroup label="Reset destination" required>
-                <RadioButtonItem
-                  selected={resetTarget === 'imported'}
-                  onChange={() => setResetTarget('imported')}
-                  label="Reset to last imported version"
-                />
-                <RadioButtonItem
-                  selected={resetTarget === 'original'}
-                  onChange={() => setResetTarget('original')}
-                  label="Reset to app defaults"
-                />
-              </RadioButtonGroup>
-            )}
-          </div>
+          <RadioButtonGroup label="Reset destination" required>
+            <RadioButtonItem
+              selected={resetTarget === 'imported'}
+              onChange={() => setResetTarget('imported')}
+              label="Reset to last imported version"
+            />
+            <RadioButtonItem
+              selected={resetTarget === 'original'}
+              onChange={() => setResetTarget('original')}
+              label="Reset to app defaults"
+            />
+          </RadioButtonGroup>
         }
       />
+
     </div>
   )
 }

@@ -150,8 +150,6 @@ export default function LayersPage() {
             <ResetButton
               onReset={() => handleResetAll()}
               layer="layer-1"
-              modalTitle="Reset layers"
-              modalMessage="All layer colour and spacing customisations will be reset to their defaults."
             />
           </div>
           <div style={{ display: 'grid', gap: 12 }}>

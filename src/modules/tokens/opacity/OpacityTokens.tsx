@@ -150,8 +150,6 @@ export default function OpacityTokens() {
           <ResetButton
             onReset={() => handleReset()}
             layer="layer-1"
-            modalTitle="Reset opacity tokens"
-            modalMessage="All opacity token values will be reset to their defaults."
           />
         </div>
 

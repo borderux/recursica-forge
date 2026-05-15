@@ -439,8 +439,6 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
             <ResetButton
               onReset={() => handleRevertAll()}
               layer="layer-2"
-              modalTitle="Reset component CSS vars"
-              modalMessage={`All CSS variable overrides for ${componentName} will be reset.`}
             />
           </div>
         </div>

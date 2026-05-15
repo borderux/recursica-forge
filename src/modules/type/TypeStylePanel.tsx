@@ -796,8 +796,6 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
     <ResetButton
       onReset={() => revert()}
       layer="layer-0"
-      modalTitle="Reset type style"
-      modalMessage="All customisations for the selected type style will be reset."
     />
   )
 

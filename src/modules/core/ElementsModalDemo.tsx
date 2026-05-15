@@ -430,8 +430,6 @@ export default function ElementsModalDemo() {
                   setSelectedDisabled(defaultDisabledToken)
                 }}
                 layer="layer-1"
-                modalTitle="Reset emphasis values"
-                modalMessage="All emphasis and disabled opacity values will be reset to their defaults."
               />
             </div>
           </div>

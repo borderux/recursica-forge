@@ -424,8 +424,6 @@ export default function BaseColorsGrid() {
         <ResetButton
           onReset={() => handleResetAll()}
           layer="layer-1"
-          modalTitle="Reset base colors"
-          modalMessage="All base color customisations will be reset to their defaults."
         />
       </div>
 

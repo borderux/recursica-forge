@@ -2,11 +2,9 @@
  * ResetButton
  *
  * A shared button that shows the "undo" icon and the label "Reset".
- * When clicked:
- *   - If the user has imported files, a modal appears asking whether to reset
- *     to the "imported" or "original" state. The resolved `resetTarget` is
- *     passed to the `onReset` callback.
- *   - If no files have been imported, `onReset('original')` is called directly.
+ * - No imported files: calls onReset('original') immediately (no modal).
+ * - Has imported files: shows a modal so the user can choose between
+ *   "reset to imported" or "reset to app defaults".
  *
  * Usage:
  *   <ResetButton onReset={(target) => myReset(target)} layer="layer-0" />
@@ -30,10 +28,6 @@ interface ResetButtonProps {
   size?: 'default' | 'small'
   /** Layer forwarded to the Button adapter. Defaults to "layer-0". */
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
-  /** Modal title. Defaults to "Reset". */
-  modalTitle?: string
-  /** Modal body copy when no import files are present. */
-  modalMessage?: string
   disabled?: boolean
   /** Optional override for the button label. Defaults to "Reset". */
   label?: string
@@ -44,8 +38,6 @@ export function ResetButton({
   variant = 'outline',
   size = 'small',
   layer = 'layer-0',
-  modalTitle = 'Reset',
-  modalMessage = 'This will discard all customisations and restore the default values.',
   disabled,
   label = 'Reset',
 }: ResetButtonProps) {
@@ -55,21 +47,13 @@ export function ResetButton({
   const UndoIcon = iconNameToReactComponent('arrow-uturn-left')
 
   const handleClick = () => {
-    const hasImported = getVarsStore().hasUserImportedFiles()
-    if (hasImported) {
+    if (getVarsStore().hasUserImportedFiles()) {
       setResetTarget('imported')
       setModalOpen(true)
     } else {
       onReset('original')
     }
   }
-
-  const handleConfirm = () => {
-    setModalOpen(false)
-    onReset(resetTarget)
-  }
-
-  const hasImported = getVarsStore().hasUserImportedFiles()
 
   return (
     <>
@@ -87,33 +71,29 @@ export function ResetButton({
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={modalTitle}
+        title="Reset"
         size="sm"
         layer="layer-1"
         primaryActionLabel="Reset"
-        onPrimaryAction={handleConfirm}
+        onPrimaryAction={() => {
+          setModalOpen(false)
+          onReset(resetTarget)
+        }}
         secondaryActionLabel="Cancel"
         onSecondaryAction={() => setModalOpen(false)}
         content={
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-small-font-size)', opacity: 0.75 }}>
-              {modalMessage}
-            </p>
-            {hasImported && (
-              <RadioButtonGroup label="Reset destination" required>
-                <RadioButtonItem
-                  selected={resetTarget === 'imported'}
-                  onChange={() => setResetTarget('imported')}
-                  label="Reset to last imported version"
-                />
-                <RadioButtonItem
-                  selected={resetTarget === 'original'}
-                  onChange={() => setResetTarget('original')}
-                  label="Reset to app defaults"
-                />
-              </RadioButtonGroup>
-            )}
-          </div>
+          <RadioButtonGroup label="Reset destination" required>
+            <RadioButtonItem
+              selected={resetTarget === 'imported'}
+              onChange={() => setResetTarget('imported')}
+              label="Reset to last imported version"
+            />
+            <RadioButtonItem
+              selected={resetTarget === 'original'}
+              onChange={() => setResetTarget('original')}
+              label="Reset to app defaults"
+            />
+          </RadioButtonGroup>
         }
       />
     </>

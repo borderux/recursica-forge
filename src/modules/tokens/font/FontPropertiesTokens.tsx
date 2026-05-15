@@ -132,8 +132,6 @@ export default function FontPropertiesTokens() {
             <ResetButton
               onReset={() => handleReset()}
               layer="layer-0"
-              modalTitle="Reset font tokens"
-              modalMessage="All font token values for the current tab will be reset to their defaults."
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_default)' }}>
               <span style={{

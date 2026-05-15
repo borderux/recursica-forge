@@ -367,8 +367,6 @@ export default function DimensionsPage() {
                 <ResetButton
                   onReset={() => handleReset(category)}
                   layer="layer-0"
-                  modalTitle="Reset dimensions"
-                  modalMessage={`All ${toTitleCase(category)} dimension values will be reset to their defaults.`}
                 />
               </div>
 

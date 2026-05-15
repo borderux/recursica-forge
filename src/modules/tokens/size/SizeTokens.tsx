@@ -124,8 +124,6 @@ export default function SizeTokens() {
           <ResetButton
             onReset={() => handleReset()}
             layer="layer-0"
-            modalTitle="Reset size tokens"
-            modalMessage="All size token values will be reset to their defaults."
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
             <span style={{

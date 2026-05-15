@@ -290,8 +290,6 @@ export default function ElevationStylePanel({
     <ResetButton
       onReset={() => revertSelected(new Set(selectedLevels))}
       layer="layer-0"
-      modalTitle="Reset elevation"
-      modalMessage="The selected elevation customisations will be reset to their defaults."
     />
   )
 

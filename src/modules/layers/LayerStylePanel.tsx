@@ -885,8 +885,6 @@ export default function LayerStylePanel({
     <ResetButton
       onReset={handleReset}
       layer="layer-0"
-      modalTitle="Reset layer"
-      modalMessage="The selected layer customisations will be reset to their defaults."
     />
   )
 
