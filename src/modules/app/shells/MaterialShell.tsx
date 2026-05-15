@@ -28,6 +28,7 @@ import {
 } from "../../../core/import/importWithDirtyData";
 import { createBugReport } from "../utils/bugReport";
 import { Button } from "../../../components/adapters/Button";
+import { Toast } from "../../../components/adapters/Toast";
 import { Tooltip } from "../../../components/adapters/Tooltip";
 import { Switch } from "../../../components/adapters/Switch";
 import { SegmentedControl } from "../../../components/adapters/SegmentedControl";
@@ -47,6 +48,7 @@ import {
   setCssAuditAutoRun,
 } from "../../../core/utils/cssAuditPreference";
 import { genericLayerText, genericLayerProperty } from "../../../core/css/cssVarBuilder";
+import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
 
 export default function MaterialShell({
   children,
@@ -89,6 +91,7 @@ export default function MaterialShell({
     handleGitHubExportCancel,
     handleGitHubExportSuccess,
   } = useJsonExport();
+  const { visible: reminderVisible, dismiss: dismissReminder, handleExport: reminderHandleExport, resetSaveReminder } = useSaveReminder(handleExport)
   const {
     selectedFiles,
     setSelectedFiles,
@@ -535,6 +538,7 @@ export default function MaterialShell({
                     window.dispatchEvent(new CustomEvent('complianceReset'));
                     clearOverrides(tokensJson as any);
                     resetAll();
+                    resetSaveReminder();
                     setTimeout(() => runScan(), 1000);
                   }}
                 />
@@ -851,7 +855,7 @@ export default function MaterialShell({
         />
         <ExportSelectionModalWrapper
           show={showSelectionModal}
-          onConfirm={handleSelectionConfirm}
+          onConfirm={(files) => { handleSelectionConfirm(files); resetSaveReminder(); }}
           onCancel={handleSelectionCancel}
           onExportToGithub={handleExportToGithub}
         />
@@ -889,6 +893,22 @@ export default function MaterialShell({
           missingNodes={errorNodes}
           onAcknowledge={handleDirtyCancel}
         />
+        {/* Save Reminder Toast */}
+        {reminderVisible && (
+          <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 40000 }}>
+            <Toast 
+              layer="layer-0"
+              onClose={dismissReminder}
+              action={
+                <Button variant="solid" size="small" layer="layer-0" onClick={reminderHandleExport} style={{ minWidth: 'auto' }}>
+                  Export
+                </Button>
+              }
+            >
+              It's been a while since you've exported your theme (to save it).
+            </Toast>
+          </div>
+        )}
       </div>
     </ThemeProvider>
   );

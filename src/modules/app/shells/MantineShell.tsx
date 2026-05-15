@@ -43,6 +43,7 @@ import {
   processUploadedFilesAsync,
 } from "../../../core/import/importWithDirtyData";
 import { Button } from "../../../components/adapters/Button";
+import { Toast } from "../../../components/adapters/Toast";
 import { Tooltip } from "../../../components/adapters/Tooltip";
 import { Switch } from "../../../components/adapters/Switch";
 import { SegmentedControl } from "../../../components/adapters/SegmentedControl";
@@ -65,6 +66,7 @@ import {
 import { captureCurrentSnapshot } from '../../../core/dev/exportImportValidator';
 import { startDiffSession } from '../../../core/dev/diffSession';
 import { downloadJsonFiles } from '../../../core/export/jsonExport';
+import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
 
 export default function MantineShell({
   children,
@@ -107,6 +109,7 @@ export default function MantineShell({
     handleGitHubExportCancel,
     handleGitHubExportSuccess,
   } = useJsonExport();
+  const { visible: reminderVisible, dismiss: dismissReminder, handleExport: reminderHandleExport, resetSaveReminder } = useSaveReminder(handleExport)
   const {
     selectedFiles,
     setSelectedFiles,
@@ -254,6 +257,9 @@ export default function MantineShell({
   const layer0TextColor = genericLayerText(0, 'color');
   const layer0TextHigh = genericLayerText(0, 'high-emphasis');
   const layer0TextLow = genericLayerText(0, 'low-emphasis');
+  const layer1Surface = genericLayerProperty(1, 'surface');
+  const layer1TextColor = genericLayerText(1, 'color');
+  const layer1Border = genericLayerProperty(1, 'border');
   const showSidebar = location.pathname.startsWith("/tokens");
   const showThemeSidebar = location.pathname.startsWith("/theme");
   const headerRef = useRef<HTMLElement>(null);
@@ -720,7 +726,7 @@ export default function MantineShell({
         />
         <ExportSelectionModalWrapper
           show={showSelectionModal}
-          onConfirm={handleSelectionConfirm}
+          onConfirm={(files) => { handleSelectionConfirm(files); resetSaveReminder(); }}
           onCancel={handleSelectionCancel}
           onExportToGithub={handleExportToGithub}
         />
@@ -779,6 +785,7 @@ export default function MantineShell({
             window.dispatchEvent(new CustomEvent('complianceReset'));
             clearOverrides(tokensJson as any);
             resetAll(resetTarget === 'original');
+            resetSaveReminder();
             setTimeout(() => {
               runScan();
               setIsResetting(false);
@@ -808,6 +815,22 @@ export default function MantineShell({
             </div>
           }
         />
+        {/* Save Reminder Toast */}
+        {reminderVisible && (
+          <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 40000 }}>
+            <Toast 
+              layer="layer-0"
+              onClose={dismissReminder}
+              action={
+                <Button variant="solid" size="small" layer="layer-0" onClick={reminderHandleExport} style={{ minWidth: 'auto' }}>
+                  Export
+                </Button>
+              }
+            >
+              It's been a while since you've exported your theme (to save it).
+            </Toast>
+          </div>
+        )}
       </div>
     </MantineProvider>
   );
