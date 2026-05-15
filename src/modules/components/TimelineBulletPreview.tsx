@@ -148,12 +148,12 @@ function buildCssVars(layer: string, bulletType: string) {
             ? getComputedStyle(document.documentElement).getPropertyValue(sizeVarName).trim().replace(/^["']|["']$/g, '')
             : 'default'
         const sizeKey = sizeValue === 'small' || sizeValue === 'large' ? sizeValue : 'default'
-        const avatarSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeKey, 'properties', 'size')
+        const avatarSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeKey, 'properties', 'width')
         Object.assign(baseVars, {
             '--_tl-bullet-size': `var(${avatarSizeVar}, 40px)`,
-            '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'size')}, 32px)`,
-            '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'size')}, 40px)`,
-            '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'size')}, 64px)`,
+            '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'width')}, 32px)`,
+            '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'width')}, 40px)`,
+            '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'width')}, 64px)`,
             '--timeline-avatar-bullet-size': `var(--timeline-avatar-size-${sizeKey}, 40px)`,
             '--timeline-avatar-active-bg': `var(${bulletColorVar('active-background')})`,
             '--timeline-avatar-inactive-bg': `var(${bulletColorVar('inactive-background')})`,

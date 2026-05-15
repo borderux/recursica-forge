@@ -44,9 +44,7 @@ export default function Avatar({
   // Reactively read border color to trigger re-renders when it changes
   const borderColorValue = useCssVar(borderVar, '')
   
-  // Get size and other CSS variables
-  const sizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'size')
-  
+
   // Get level CSS variables (border-size, border-radius, padding)
   const paddingStyleType = colorVariant.split('-')[0]
   const styleType = colorVariant.split('-').slice(1).join('-')
@@ -147,7 +145,6 @@ export default function Avatar({
         '--avatar-label': paddingStyleType === 'image' 
           ? (borderColorValue || `var(${borderVar})`) 
           : `var(${labelVar})`,
-        '--avatar-size': `var(${sizeVar})`,
         '--avatar-width': `var(${iconWidthVar})`,
         '--avatar-height': `var(${iconHeightVar})`,
         '--avatar-icon-size': `var(${iconSizeVar})`,

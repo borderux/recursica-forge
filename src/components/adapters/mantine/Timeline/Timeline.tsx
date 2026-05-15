@@ -105,9 +105,9 @@ export default function Timeline({
 
         // Avatar (from TimelineBullet > variants > types > avatar)
         // Avatar size resolves through Avatar component's sizes variants (small/default/large)
-        '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'size')}, 32px)`,
-        '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'size')}, 40px)`,
-        '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'size')}, 64px)`,
+        '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'width')}, 32px)`,
+        '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'width')}, 40px)`,
+        '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'width')}, 64px)`,
         // Read the stored avatar-size string and resolve to the correct Avatar size
         '--timeline-avatar-bullet-size': (() => {
             const sizeVarName = bulletPropVar('avatar', 'avatar-size')
