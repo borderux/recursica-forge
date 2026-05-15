@@ -47,7 +47,6 @@ export default function ToastPreview({
         layer={actualLayer}
         elevation={componentElevation}
         icon={styleVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : styleVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
-        onClose={styleVariant === 'success' || styleVariant === 'error' ? () => { } : undefined}
       >
         {styleVariant === 'default' ? 'The goblin forge is heating up — new runes detected in the chamber.' :
           styleVariant === 'success' ? 'Enchantment applied to the forge hammer successfully!' :
@@ -58,7 +57,7 @@ export default function ToastPreview({
         layer={actualLayer}
         elevation={componentElevation}
         icon={styleVariant === 'success' ? (CheckIcon ? <CheckIcon /> : <span>✓</span>) : styleVariant === 'error' ? (XIcon ? <XIcon /> : <span>✕</span>) : undefined}
-        onClose={styleVariant === 'success' || styleVariant === 'error' ? () => { } : undefined}
+        onClose={() => { }}
         action={
           <Button
             variant="text"
