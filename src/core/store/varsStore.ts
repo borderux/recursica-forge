@@ -2612,7 +2612,8 @@ class VarsStore {
 
             const sel = this.state.elevation.paletteSelections[mode]?.[key]
             if (sel) {
-              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}_color_tone`
+              const paletteToneSuffix = sel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'
+              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}${paletteToneSuffix}`
               const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
               return colorMixWithOpacityVar(paletteVarRef, alphaRef)
             }
@@ -2678,7 +2679,8 @@ class VarsStore {
 
             const statePaletteSel = this.state.elevation.paletteSelections[mode]?.[k]
             if (statePaletteSel) {
-              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.level}_color_tone`
+              const paletteToneSuffix2 = statePaletteSel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'
+              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.level}${paletteToneSuffix2}`
               const paletteVarRef = allPaletteVars[paletteVarName] ? allPaletteVars[paletteVarName] : `var(${paletteVarName})`
               vars[`${prefixedScope}_shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
             } else {

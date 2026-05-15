@@ -9,6 +9,7 @@ import { getVarsStore } from '../../core/store/varsStore'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import brandDefault from '../../../recursica_brand.json'
 import { Button } from '../../components/adapters/Button'
+import { ResetButton } from '../../components/shared/ResetButton'
 import { Tooltip } from '../../components/adapters/Tooltip'
 import { layerProperty, layerText, paletteCore, state, textEmphasis } from '../../core/css/cssVarBuilder'
 
@@ -420,14 +421,12 @@ export default function BaseColorsGrid() {
           color: `var(${layerText(modeLower, 1, 'color')})`,
 
         }}>Base colors</h2>
-        <Button
-          variant="outline"
-          size="small"
-          onClick={handleResetAll}
-          icon={<ResetIcon />}
-        >
-          Reset all
-        </Button>
+        <ResetButton
+          onReset={() => handleResetAll()}
+          layer="layer-1"
+          modalTitle="Reset base colors"
+          modalMessage="All base color customisations will be reset to their defaults."
+        />
       </div>
 
       <div style={{

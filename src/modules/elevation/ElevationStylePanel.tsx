@@ -1,15 +1,15 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
-import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
 import { Panel } from '../../components/adapters/Panel'
-import { TextField } from '../../components/adapters/TextField'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { applyElevationShadow } from './elevationShadowFactory'
+import { ResetButton } from '../../components/shared/ResetButton'
+import PaletteColorControl from '../forms/PaletteColorControl'
 
 type SizeToken = { name: string; value: number; label: string }
 
@@ -39,78 +39,6 @@ function useStoredOpacity(
   return 84
 }
 
-/**
- * A compact color control for the elevation shadow color.
- * Clicking opens the full PalettePicker (openPalettePicker on window).
- */
-function ShadowColorTokenControl({
-  targetCssVar,
-  targetCssVars,
-  paletteSelection,
-}: {
-  targetCssVar: string
-  targetCssVars: string[]
-  paletteSelection?: { paletteKey: string; level: string } | null
-}) {
-  const { mode } = useThemeMode()
-  const modeLower = mode.toLowerCase()
-  const containerRef = useRef<HTMLDivElement>(null)
-
-  const displayLabel = paletteSelection
-    ? `${paletteSelection.paletteKey.replace(/-/g, ' ').replace(/\b\w/g, m => m.toUpperCase())} / ${paletteSelection.level}`
-    : 'None'
-
-  const swatchColor = paletteSelection
-    ? `var(--recursica_brand_themes_${modeLower}_palettes_${paletteSelection.paletteKey}_${paletteSelection.level}_color_tone)`
-    : 'transparent'
-
-  const swatchBorderColor = `var(--recursica_brand_themes_${modeLower}_palettes_neutral_500_color_tone)`
-
-  const swatchIcon = (
-    <span
-      aria-hidden
-      style={{
-        width: 14,
-        height: 14,
-        display: 'block',
-        flex: '0 0 auto',
-        boxSizing: 'border-box',
-        border: `1px solid ${swatchBorderColor}`,
-        background: paletteSelection ? swatchColor : 'transparent',
-        flexShrink: 0,
-        position: 'relative',
-      }}
-    />
-  )
-
-  return (
-    <div ref={containerRef}>
-      <TextField
-        label="Shadow Color"
-        value={displayLabel}
-        leadingIcon={swatchIcon}
-        state="default"
-        readOnly={true}
-        layer="layer-0"
-        style={{ fontSize: 13, cursor: 'pointer' }}
-        onClick={(e) => {
-          e.stopPropagation()
-          const el = containerRef.current
-          if (!el) return
-          // Pass ALL vars (including the primary) as cssVarsArray — the picker updates all of them.
-          // Use targetCssVar as both the primary and include it in the array so none are skipped.
-          ;(window as any).openPalettePicker(
-            el,
-            targetCssVar,
-            targetCssVars.length > 1 ? targetCssVars : undefined,
-            undefined,
-            false,
-          )
-        }}
-      />
-    </div>
-  )
-}
 
 export type ElevationControl = {
   blur: number
@@ -359,18 +287,12 @@ export default function ElevationStylePanel({
   })()
 
   const panelFooter = (
-    <Button
-      variant="outline"
-      size="small"
-      onClick={() => revertSelected(new Set(selectedLevels))}
-      icon={(() => {
-        const ResetIcon = iconNameToReactComponent('arrow-path')
-        return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
-      })()}
+    <ResetButton
+      onReset={() => revertSelected(new Set(selectedLevels))}
       layer="layer-0"
-    >
-      Reset all
-    </Button>
+      modalTitle="Reset elevation"
+      modalMessage="The selected elevation customisations will be reset to their defaults."
+    />
   )
 
   return (
@@ -487,10 +409,14 @@ export default function ElevationStylePanel({
 
         {/* Shadow color picker + light/dark mirror toggle */}
         <div style={{ width: '100%', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <ShadowColorTokenControl
+          <PaletteColorControl
+            label="Shadow Color"
             targetCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(1)}
             targetCssVars={levelsArr.length > 0 ? levelsArr.map(lvl => getShadowColorCssVar(lvl)) : [getShadowColorCssVar(1)]}
-            paletteSelection={statePaletteSel ? { paletteKey: statePaletteSel.paletteKey, level: statePaletteSel.paletteLevel } : null}
+            currentValueCssVar={statePaletteSel
+              ? `--recursica_brand_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.paletteLevel}${statePaletteSel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'}`
+              : undefined}
+            onSelect={onShadowColorSelect}
           />
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Switch

@@ -15,6 +15,7 @@ import { parseTokenReference, type TokenReferenceContext } from '../../core/util
 import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { genericLayerProperty, genericLayerText, layerProperty, layerText, parseBrandCssVar } from '../../core/css/cssVarBuilder'
+import { ResetButton } from '../../components/shared/ResetButton'
 
 // Helper to format dimension label from key
 const formatDimensionLabel = (key: string): string => {
@@ -834,74 +835,59 @@ export default function LayerStylePanel({
   }
   const panelTitle = selectedLevels.length === 1 ? `Layer ${selectedLevels[0]}` : `Layers ${selectedLevels.join(', ')}`
 
+  const handleReset = () => {
+    const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
+    const themes = root?.themes || root
+    const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
+    const levels = selectedLevels.slice()
+    const rootEl = document.documentElement
+    const allLayerProperties = ['surface', 'border-color', 'padding', 'border-radius', 'border-size', 'elevation']
+    const allTextProperties = ['color', 'high-emphasis', 'low-emphasis']
+    levels.forEach((lvl) => {
+      allLayerProperties.forEach((prop) => {
+        rootEl.style.removeProperty(layerProperty(mode, lvl, prop))
+      })
+      allTextProperties.forEach((prop) => {
+        rootEl.style.removeProperty(layerText(mode, lvl, prop))
+      })
+      allLayerProperties.forEach((prop) => {
+        rootEl.style.removeProperty(`--recursica_brand_layer_${lvl}_properties_${prop}`)
+      })
+      allTextProperties.forEach((prop) => {
+        rootEl.style.removeProperty(`--recursica_brand_layer_${lvl}_elements_text-${prop}`)
+      })
+    })
+    levels.forEach((lvl) => {
+      const key = `layer-${lvl}`
+      const def = defaults[key]
+      if (def) {
+        onUpdate(() => JSON.parse(JSON.stringify(def)))
+      }
+    })
+    requestAnimationFrame(() => {
+      const updatedVars: string[] = []
+      levels.forEach((lvl) => {
+        updatedVars.push(layerProperty(mode, lvl, 'surface'))
+        updatedVars.push(layerProperty(mode, lvl, 'border-color'))
+        updatedVars.push(layerProperty(mode, lvl, 'padding'))
+        updatedVars.push(layerProperty(mode, lvl, 'border-radius'))
+        updatedVars.push(layerProperty(mode, lvl, 'border-size'))
+        updatedVars.push(layerProperty(mode, lvl, 'elevation'))
+        updatedVars.push(layerText(mode, lvl, 'color'))
+      })
+      window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+        detail: { cssVars: updatedVars }
+      }))
+    })
+  }
+
   const panelFooter = (
-    <Button
-      variant="outline"
-      size="small"
-      onClick={() => {
-        const root: any = (brandDefault as any)?.brand ? (brandDefault as any).brand : brandDefault
-        // Support both old structure (brand.light.layer) and new structure (brand.themes.light.layers)
-        const themes = root?.themes || root
-
-        // For regular layers
-        const defaults: any = themes?.[mode]?.layers || themes?.[mode]?.layer || root?.[mode]?.layers || root?.[mode]?.layer || {}
-        const levels = selectedLevels.slice()
-
-        // Clear ALL inline CSS variables for these layers so they regenerate from theme defaults
-        const rootEl = document.documentElement
-        const allLayerProperties = ['surface', 'border-color', 'padding', 'border-radius', 'border-size', 'elevation']
-        const allTextProperties = ['color', 'high-emphasis', 'low-emphasis']
-        levels.forEach((lvl) => {
-          // Themed vars
-          allLayerProperties.forEach((prop) => {
-            rootEl.style.removeProperty(layerProperty(mode, lvl, prop))
-          })
-          allTextProperties.forEach((prop) => {
-            rootEl.style.removeProperty(layerText(mode, lvl, prop))
-          })
-          // Scoped vars (set by slider live preview)
-          allLayerProperties.forEach((prop) => {
-            rootEl.style.removeProperty(`--recursica_brand_layer_${lvl}_properties_${prop}`)
-          })
-          allTextProperties.forEach((prop) => {
-            rootEl.style.removeProperty(`--recursica_brand_layer_${lvl}_elements_text-${prop}`)
-          })
-        })
-
-        // Update theme JSON with defaults
-        levels.forEach((lvl) => {
-          const key = `layer-${lvl}`
-          const def = defaults[key]
-          if (def) {
-            onUpdate(() => JSON.parse(JSON.stringify(def)))
-          }
-        })
-
-        // Notify PaletteColorControl and other listeners to refresh after reset
-        requestAnimationFrame(() => {
-          const updatedVars: string[] = []
-          levels.forEach((lvl) => {
-            updatedVars.push(layerProperty(mode, lvl, 'surface'))
-            updatedVars.push(layerProperty(mode, lvl, 'border-color'))
-            updatedVars.push(layerProperty(mode, lvl, 'padding'))
-            updatedVars.push(layerProperty(mode, lvl, 'border-radius'))
-            updatedVars.push(layerProperty(mode, lvl, 'border-size'))
-            updatedVars.push(layerProperty(mode, lvl, 'elevation'))
-            updatedVars.push(layerText(mode, lvl, 'color'))
-          })
-          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-            detail: { cssVars: updatedVars }
-          }))
-        })
-      }}
-      icon={(() => {
-        const ResetIcon = iconNameToReactComponent('arrow-path')
-        return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
-      })()}
+    <ResetButton
+      onReset={handleReset}
       layer="layer-0"
-    >
-      Reset all
-    </Button>
+      modalTitle="Reset layer"
+      modalMessage="The selected layer customisations will be reset to their defaults."
+    />
   )
 
   return (

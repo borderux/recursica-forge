@@ -42,6 +42,8 @@ import {
 import { CreateVariantModal } from './modals/CreateVariantModal'
 import { DeleteVariantModal } from './modals/DeleteVariantModal'
 import { Modal } from '../../components/adapters/Modal'
+import { RadioButtonGroup } from '../../components/adapters/RadioButtonGroup'
+import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
 
 export interface ComponentToolbarProps {
   componentName: ComponentName
@@ -83,6 +85,7 @@ export default function ComponentToolbar({
   const [createVariantModalOpen, setCreateVariantModalOpen] = useState(false)
   const [deleteVariantModalOpen, setDeleteVariantModalOpen] = useState(false)
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  const [resetTarget, setResetTarget] = useState<'imported' | 'original'>('imported')
   const [createVariantAxis, setCreateVariantAxis] = useState<string>('')
   const [createVariantExistingNames, setCreateVariantExistingNames] = useState<string[]>([])
 
@@ -1419,14 +1422,20 @@ export default function ComponentToolbar({
       {/* Reset + Delete Variant Buttons */}
       <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})`, display: 'flex', flexDirection: 'row', gap: 'var(--recursica_brand_dimensions_gutters_horizontal)' }}>
         <Button
-          onClick={() => setResetConfirmOpen(true)}
+          onClick={() => {
+            const hasImported = getVarsStore().hasUserImportedFiles()
+            if (hasImported) {
+              setResetTarget('imported')
+            }
+            setResetConfirmOpen(true)
+          }}
           variant="outline"
           size="small"
           layer="layer-0"
           style={{ flex: 1 }}
           icon={(() => {
-            const ResetIcon = iconNameToReactComponent('arrow-path')
-            return ResetIcon ? <ResetIcon style={{ width: 14, height: 14 }} /> : undefined
+            const UndoIcon = iconNameToReactComponent('arrow-uturn-left')
+            return UndoIcon ? <UndoIcon style={{ width: 14, height: 14 }} /> : undefined
           })()}
         >
           Reset
@@ -1513,11 +1522,28 @@ export default function ComponentToolbar({
         }}
         secondaryActionLabel="Cancel"
         onSecondaryAction={() => setResetConfirmOpen(false)}
-      >
-        <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-small-font-size)', opacity: 0.75 }}>
-          All customisations for {componentName} will be reset to their default token values.
-        </p>
-      </Modal>
+        content={
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-small-font-size)', opacity: 0.75 }}>
+              All customisations for {componentName} will be reset to their default token values.
+            </p>
+            {getVarsStore().hasUserImportedFiles() && (
+              <RadioButtonGroup label="Reset destination" required>
+                <RadioButtonItem
+                  selected={resetTarget === 'imported'}
+                  onChange={() => setResetTarget('imported')}
+                  label="Reset to last imported version"
+                />
+                <RadioButtonItem
+                  selected={resetTarget === 'original'}
+                  onChange={() => setResetTarget('original')}
+                  label="Reset to app defaults"
+                />
+              </RadioButtonGroup>
+            )}
+          </div>
+        }
+      />
     </div>
   )
 }

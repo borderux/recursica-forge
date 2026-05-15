@@ -4,10 +4,10 @@ import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import ElevationStylePanel from './ElevationStylePanel'
 import ElevationModule from './ElevationModule'
-import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { removeCssVar } from '../../core/css/updateCssVar'
 import { parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import { Button } from '../../components/adapters/Button'
+import { ResetButton } from '../../components/shared/ResetButton'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 import { getElevationColorMirror, setElevationColorMirror } from '../../core/elevation/elevationModeScope'
@@ -258,20 +258,38 @@ export default function ElevationsPage() {
         dark: { ...next.controls.dark }
       }
 
-      const baseX = Number((light['elevation-1']?.['$value']?.['x-direction']?.['$value'] ?? 1))
-      const baseY = Number((light['elevation-1']?.['$value']?.['y-direction']?.['$value'] ?? 1))
+      // Read base directions from PRISTINE elevation-1 so they are not affected by user edits
+      const pristineBase: any = pristineElevations['elevation-1']?.['$value'] || {}
+      const baseX = Number(pristineBase?.['x-direction']?.['$value'] ?? 1)
+      const baseY = Number(pristineBase?.['y-direction']?.['$value'] ?? 1)
 
       levels.forEach((lvl) => {
         const key = `elevation-${lvl}`
-        const node: any = light[key]?.['$value'] || {}
+        // ALL defaults come from the pristine (unedited) brand JSON
+        const pristineNode: any = pristineElevations[key]?.['$value'] || {}
 
-        // Get default values from theme
-        const defaultBlur = toNumeric(node?.blur)
-        const defaultSpread = toNumeric(node?.spread)
-        const defaultOffsetX = toNumeric(node?.x)
-        const defaultOffsetY = toNumeric(node?.y)
+        // Get default values from PRISTINE theme (not the user-mutated one)
+        const defaultBlur = toNumeric(pristineNode?.blur)
+        const defaultSpread = toNumeric(pristineNode?.spread)
+        const defaultOffsetX = toNumeric(pristineNode?.x)
+        const defaultOffsetY = toNumeric(pristineNode?.y)
 
-        // Restore control to brand JSON defaults (all 5 properties atomically)
+        // Restore opacity from PRISTINE node
+        const opRaw = pristineNode?.opacity
+        let defaultOpacity = 0.84
+        if (opRaw && typeof opRaw === 'object' && '$value' in opRaw) {
+          const ov = opRaw.$value
+          if (ov && typeof ov === 'object' && 'value' in ov) {
+            const raw = typeof ov.value === 'number' ? ov.value : Number(ov.value)
+            defaultOpacity = ov.unit === 'percentage' ? raw / 100 : raw
+          } else if (typeof ov === 'number') {
+            defaultOpacity = ov > 1 ? ov / 100 : ov
+          }
+        } else if (typeof opRaw === 'number') {
+          defaultOpacity = opRaw > 1 ? opRaw / 100 : opRaw
+        }
+
+        // Restore control to pristine defaults (all 5 properties atomically)
         next.controls[mode] = {
           ...next.controls[mode],
           [key]: {
@@ -279,7 +297,7 @@ export default function ElevationsPage() {
             spread: defaultSpread,
             offsetX: defaultOffsetX,
             offsetY: defaultOffsetY,
-            opacity: getThemeDefaults(key).opacity,
+            opacity: defaultOpacity,
           },
         }
 
@@ -296,8 +314,8 @@ export default function ElevationsPage() {
         updateToken(offsetXTokenName, defaultOffsetX)
         updateToken(offsetYTokenName, defaultOffsetY)
 
-        // Update color tokens
-        const colorToken = parseColorToken(node?.color)
+        // Update color tokens from pristine node
+        const colorToken = parseColorToken(pristineNode?.color)
         if (colorToken) {
           next.colorTokens = { ...next.colorTokens, [key]: colorToken }
         } else {
@@ -305,9 +323,8 @@ export default function ElevationsPage() {
           next.colorTokens = rest
         }
 
-        // Restore palette selection from PRISTINE brand JSON — avoids reading the user-mutated node
-        const elevForReset: any = pristineElevations[key]?.['$value'] || {}
-        const colorRefRaw = elevForReset?.color?.['$value'] ?? elevForReset?.color
+        // Restore palette selection from PRISTINE brand JSON
+        const colorRefRaw = pristineNode?.color?.['$value'] ?? pristineNode?.color
         const colorRefStr: string | undefined = typeof colorRefRaw === 'string' ? colorRefRaw : undefined
         const parsedColorRef = colorRefStr ? parseTokenReference(colorRefStr, { currentMode: mode }) : null
         let restoredPaletteSel: { paletteKey: string; level: string } | null = null
@@ -346,15 +363,13 @@ export default function ElevationsPage() {
         })
 
 
-        // Update directions (mode-specific)
+        // Restore directions from PRISTINE node
         if (!next.directions[mode]) next.directions[mode] = {}
-        const xraw = Number((node?.['x-direction']?.['$value'] ?? baseX))
-        const yraw = Number((node?.['y-direction']?.['$value'] ?? baseY))
+        const xraw = Number(pristineNode?.['x-direction']?.['$value'] ?? baseX)
+        const yraw = Number(pristineNode?.['y-direction']?.['$value'] ?? baseY)
         next.directions[mode] = {
-          ...next.directions[mode], [key]: {
-            x: xraw >= 0 ? 'right' : 'left',
-            y: yraw >= 0 ? 'down' : 'up'
-          }
+          ...next.directions[mode],
+          [key]: { x: xraw >= 0 ? 'right' : 'left', y: yraw >= 0 ? 'down' : 'up' }
         }
       })
 
@@ -418,18 +433,12 @@ export default function ElevationsPage() {
                 lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
                 color: `var(${genericLayerText(0, 'color')})`,
               }}>Elevations</h1>
-              <Button
-                variant="outline"
-                size="small"
-                onClick={handleResetAll}
-                icon={(() => {
-                  const ResetIcon = iconNameToReactComponent('arrow-path')
-                  return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
-                })()}
+              <ResetButton
+                onReset={() => handleResetAll()}
                 layer="layer-1"
-              >
-                Reset all
-              </Button>
+                modalTitle="Reset elevations"
+                modalMessage="All elevation customisations will be reset to their defaults."
+              />
             </div>
             <div style={{ border: '1px solid var(--layers-layer-1-properties-border-color)', borderRadius: 8, padding: 32, display: 'grid', gap: 16 }}>
               <div className="elevation-grid" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', isolation: 'isolate' }}>
@@ -492,7 +501,7 @@ export default function ElevationsPage() {
               }}
               revertSelected={revertSelected}
               onShadowColorSelect={(cssVar) => {
-                const match = cssVar.match(/palettes_([a-z0-9-]+)_(\w+)_color_tone/)
+                const match = cssVar.match(/palettes_([a-z0-9-]+)_([a-z0-9-]+?)_(?:color_)?tone/)
                 if (!match) return
                 const paletteKey = match[1]
                 const level = match[2]
@@ -508,27 +517,7 @@ export default function ElevationsPage() {
           )}
         </div>
       </div>
-      <PaletteSwatchPicker onSelect={(cssVar) => {
-        const match = cssVar.match(/palettes_([a-z0-9-]+)_(\d+)_color_tone/)
-        if (match) {
-          const paletteKey = match[1]
-          const level = match[2]
-          applyColorToMode(mode, paletteKey, level, selectedLevels)
-          if (colorMirrorEnabled) {
-            applyColorToMode(mode === 'light' ? 'dark' : 'light', paletteKey, level, selectedLevels)
-          }
-        } else if (cssVar === '') {
-          updateElevation((prev) => {
-            const next = { ...prev }
-            next.paletteSelections = { ...next.paletteSelections }
-            selectedLevels.forEach((lvl) => {
-              const { [`elevation-${lvl}`]: _, ...modeRest } = next.paletteSelections[mode] || {}
-              next.paletteSelections = { ...next.paletteSelections, [mode]: modeRest }
-            })
-            return next
-          })
-        }
-      }} />
+
     </>
   )
 }

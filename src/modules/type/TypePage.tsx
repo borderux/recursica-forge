@@ -9,7 +9,7 @@ import TypeStylePanel from './TypeStylePanel'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
 import { Checkbox } from '../../components/adapters/Checkbox'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, paletteCore } from '../../core/css/cssVarBuilder'
 
 // local helpers retained for legacy but no longer used directly in this file
 
@@ -117,7 +117,7 @@ export function TypePage() {
     // When selected, use core alert color for border instead of dropshadow
     const containerStyle = useMemo(() => {
       const borderColor = isSelected
-        ? `var(--recursica_brand_palettes_core_alert)`
+        ? `var(${paletteCore(mode, 'alert', 'tone')})`
         : `var(${genericLayerProperty(1, 'border-color')})`
 
       return {

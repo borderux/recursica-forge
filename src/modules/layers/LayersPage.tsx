@@ -6,6 +6,7 @@ import React from 'react'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { Button } from '../../components/adapters/Button'
+import { ResetButton } from '../../components/shared/ResetButton'
 import brandDefault from '../../../recursica_brand.json'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { getVarsStore } from '../../core/store/varsStore'
@@ -146,18 +147,12 @@ export default function LayersPage() {
               lineHeight: 'var(--recursica_brand_typography_h1-line-height)',
               color: `var(${genericLayerText(0, 'color')})`,
             }}>Layers</h1>
-            <Button
-              variant="outline"
-              size="small"
-              onClick={handleResetAll}
-              icon={(() => {
-                const ResetIcon = iconNameToReactComponent('arrow-path')
-                return ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
-              })()}
+            <ResetButton
+              onReset={() => handleResetAll()}
               layer="layer-1"
-            >
-              Reset all
-            </Button>
+              modalTitle="Reset layers"
+              modalMessage="All layer colour and spacing customisations will be reset to their defaults."
+            />
           </div>
           <div style={{ display: 'grid', gap: 12 }}>
             {layerModules}

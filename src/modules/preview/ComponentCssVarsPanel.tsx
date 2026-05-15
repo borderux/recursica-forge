@@ -11,6 +11,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { toCssVarName } from '../../components/utils/cssVarNames'
 import { genericLayerProperty, genericLayerText, parseTokenCssVar } from '../../core/css/cssVarBuilder'
+import { ResetButton } from '../../components/shared/ResetButton'
 
 /**
  * Extracts all CSS variables for a component from recursica_ui-kit.json
@@ -435,19 +436,12 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
           )}
           
           <div>
-            <button
-              type="button"
-              onClick={handleRevertAll}
-              style={{ 
-                padding: '8px 10px', 
-                border: `1px solid var(${genericLayerProperty(1, 'border-color')})`, 
-                background: 'transparent', 
-                borderRadius: 6, 
-                cursor: 'pointer' 
-              }}
-            >
-              Revert
-            </button>
+            <ResetButton
+              onReset={() => handleRevertAll()}
+              layer="layer-2"
+              modalTitle="Reset component CSS vars"
+              modalMessage={`All CSS variable overrides for ${componentName} will be reset.`}
+            />
           </div>
         </div>
       )}
