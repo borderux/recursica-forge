@@ -94,7 +94,7 @@ function SegmentedControlFromCssVar({
         items={items}
         value={cleanValue}
         onChange={(value) => {
-          cssVars.forEach((v) => updateCssVar(v, value))
+          cssVars.forEach((v) => updateCssVar(v, value, undefined, false, true))
         }}
         layer="layer-1"
         showLabel={false}
@@ -237,7 +237,7 @@ function DropdownFromCssVar({
         items={dropdownItems}
         value={cleanValue}
         onChange={(value) => {
-          cssVars.forEach((v) => updateCssVar(v, value))
+          cssVars.forEach((v) => updateCssVar(v, value, undefined, false, true))
           // Dispatch event to notify components of CSS var updates
           window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
             detail: { cssVars }
@@ -428,7 +428,7 @@ function BrandDimensionSliderInline_DEPRECATED({
       const tokenValue = `var(${selectedToken.name})`
 
       cssVars.forEach(cssVar => {
-        updateCssVar(cssVar, tokenValue)
+        updateCssVar(cssVar, tokenValue, undefined, false, true)
         justSetValueRef.current = tokenValue
         setTimeout(() => {
           justSetValueRef.current = null
@@ -701,7 +701,7 @@ function TypographySliderInline({
       const tokenValue = `var(${selectedToken.name})`
 
       cssVars.forEach(cssVar => {
-        updateCssVar(cssVar, tokenValue)
+        updateCssVar(cssVar, tokenValue, undefined, false, true)
         justSetValueRef.current = tokenValue
         setTimeout(() => {
           justSetValueRef.current = null

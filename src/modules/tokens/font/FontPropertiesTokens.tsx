@@ -7,6 +7,7 @@ import FontLineHeightTokens from './FontLineHeightTokens'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { useVars } from '../../vars/VarsContext'
 import { Button } from '../../../components/adapters/Button'
+import { ResetButton } from '../../../components/shared/ResetButton'
 import { Switch } from '../../../components/adapters/Switch'
 import { Tabs as TabsAdapter } from '../../../components/adapters/Tabs'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
@@ -128,17 +129,10 @@ export default function FontPropertiesTokens() {
             alignItems: 'center',
             gap: 'var(--recursica_brand_dimensions_general_default)',
           }}>
-            <Button
-              variant="outline"
-              size="small"
-              icon={(() => {
-                const RefreshIcon = iconNameToReactComponent('arrow-path')
-                return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
-              })()}
-              onClick={handleReset}
-            >
-              Reset all
-            </Button>
+            <ResetButton
+              onReset={() => handleReset()}
+              layer="layer-0"
+            />
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_default)' }}>
               <span style={{
                 fontSize: 'var(--recursica_brand_typography_body-small-font-size)',

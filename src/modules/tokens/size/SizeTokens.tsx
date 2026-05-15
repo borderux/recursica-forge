@@ -3,6 +3,7 @@ import { useThemeMode } from '../../theme/ThemeModeContext'
 import tokensImport from '../../../../recursica_tokens.json'
 import { Slider } from '../../../components/adapters/Slider'
 import { Button } from '../../../components/adapters/Button'
+import { ResetButton } from '../../../components/shared/ResetButton'
 import { Switch } from '../../../components/adapters/Switch'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { genericLayerText } from '../../../core/css/cssVarBuilder'
@@ -120,17 +121,10 @@ export default function SizeTokens() {
           Size
         </h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_md)' }}>
-          <Button
-            variant="outline"
-            size="small"
-            onClick={handleReset}
-            icon={(() => {
-              const RefreshIcon = iconNameToReactComponent('arrow-path')
-              return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
-            })()}
-          >
-            Reset all
-          </Button>
+          <ResetButton
+            onReset={() => handleReset()}
+            layer="layer-0"
+          />
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
             <span style={{
               fontSize: 'var(--recursica_brand_typography_body-small-font-size)',

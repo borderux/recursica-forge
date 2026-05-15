@@ -42,6 +42,8 @@ import {
 import { CreateVariantModal } from './modals/CreateVariantModal'
 import { DeleteVariantModal } from './modals/DeleteVariantModal'
 import { Modal } from '../../components/adapters/Modal'
+import { RadioButtonGroup } from '../../components/adapters/RadioButtonGroup'
+import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
 
 export interface ComponentToolbarProps {
   componentName: ComponentName
@@ -83,6 +85,7 @@ export default function ComponentToolbar({
   const [createVariantModalOpen, setCreateVariantModalOpen] = useState(false)
   const [deleteVariantModalOpen, setDeleteVariantModalOpen] = useState(false)
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  const [resetTarget, setResetTarget] = useState<'imported' | 'original'>('imported')
   const [createVariantAxis, setCreateVariantAxis] = useState<string>('')
   const [createVariantExistingNames, setCreateVariantExistingNames] = useState<string[]>([])
 
@@ -1093,7 +1096,7 @@ export default function ComponentToolbar({
     })
   }, [liveStructure.props, componentName, selectedVariants, selectedLayer, toolbarConfig, liveUikitVariantSignature])
 
-  const handleReset = () => {
+  const handleReset = (target: 'imported' | 'original' = 'original') => {
     let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
     // Normalize display names that differ from recursica_ui-kit.json keys
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
@@ -1101,15 +1104,10 @@ export default function ComponentToolbar({
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
 
     // Helper: check if a CSS var belongs to exactly this component (not a sub-component).
-    // CSS vars can have two formats:
-    //   Themed:     --recursica_ui-kit_themes_light_components_button_variants_...
-    //   Non-themed: --recursica_ui-kit_components_button_variants_...
-    // Both use underscores as segment separators.
     const isExactComponentVar = (cssVar: string) => {
       const marker = `_components_${componentKey}_`
       const idx = cssVar.indexOf(marker)
       if (idx === -1) return false
-      // Check what follows the component key to ensure it's not a sub-component
       const afterKey = cssVar.substring(idx + marker.length)
       const subComponentSuffixes = getSubComponentSuffixes(componentKey)
       for (const suffix of subComponentSuffixes) {
@@ -1119,59 +1117,57 @@ export default function ComponentToolbar({
     }
 
     // 1. Remove ALL overrides for this component from the document element
-    // This handles all modes, layers, and states by looking for the component key in the variable name
     if (typeof document !== 'undefined') {
       const style = document.documentElement.style
       const propsToRemove: string[] = []
-
       for (let i = 0; i < style.length; i++) {
         const prop = style[i]
         if (isExactComponentVar(prop)) {
           propsToRemove.push(prop)
         }
       }
-
       propsToRemove.forEach(prop => style.removeProperty(prop))
     }
 
-    // 2. Build default values from the PRISTINE uikit (deep-cloned at init, never mutated).
-    // Using uikitJson directly would include any in-place mutations made by updateUIKitValue
-    // (custom variants, color changes), causing reset to restore a modified state.
-    const pristineUikit = getVarsStore().getPristineUikit()
-    const lightUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, pristineUikit, 'light')
-    const darkUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, pristineUikit, 'dark')
+    // 2. Resolve the UIKit source based on the chosen target.
+    //    'imported' → last user-imported JSON (falls back to pristine if none exists)
+    //    'original' → bundled Forge defaults
+    const sourceUikit = target === 'imported'
+      ? getVarsStore().getImportedUikit()
+      : getVarsStore().getPristineUikit()
+
+    const lightUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, sourceUikit, 'light')
+    const darkUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, sourceUikit, 'dark')
 
     const componentDefaults: Record<string, string> = {}
 
     // Filter to only this component's variables from both modes
-    const filterAndAdd = (allVars: Record<string, string>, currentMode: 'light' | 'dark') => {
+    const filterAndAdd = (allVars: Record<string, string>) => {
       Object.entries(allVars).forEach(([cssVar, value]) => {
         if (isExactComponentVar(cssVar)) {
           componentDefaults[cssVar] = value
         }
-        // For checkbox-item, also include base checkbox component vars
         if (componentKey === 'checkbox-item' && cssVar.includes('-components-checkbox-')) {
           componentDefaults[cssVar] = value
         }
-        // For radio-button-item, also include base radio-button component vars
         if (componentKey === 'radio-button-item' && cssVar.includes('-components-radio-button-')) {
           componentDefaults[cssVar] = value
         }
       })
     }
 
-    filterAndAdd(lightUIKitVars, 'light')
-    filterAndAdd(darkUIKitVars, 'dark')
+    filterAndAdd(lightUIKitVars)
+    filterAndAdd(darkUIKitVars)
 
-    // 3. Restore defaults from the pristine JSON by setting them as explicit overrides
+    // 3. Restore defaults from the pristine JSON.
+    // noGlobalRefCheck=true is captured in each closure at call time, so the
+    // global-ref modal never fires regardless of when the debounce callback runs.
     Object.entries(componentDefaults).forEach(([cssVar, value]) => {
-      updateCssVar(cssVar, value, tokensJson as any)
+      updateCssVar(cssVar, value, tokensJson as any, false, false, true)
     })
 
     // 4. Re-apply CSS vars for any CUSTOM VARIANTS that exist in the current live uikit
-    // but not in the pristine uikit. Step 1 removed all component CSS vars from the DOM;
-    // Step 2-3 only restores original variants. Without this step, custom variant controls
-    // would show null swatches. Custom variants keep their current JSON-defined color values.
+    // but not in the pristine uikit.
     const currentUiKit = getVarsStore().getState().uikit
     const lightCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'light')
     const darkCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'dark')
@@ -1189,13 +1185,13 @@ export default function ComponentToolbar({
     addCustom(darkCurrentVars)
 
     Object.entries(customVariantDefaults).forEach(([cssVar, value]) => {
-      updateCssVar(cssVar, value, tokensJson as any)
+      updateCssVar(cssVar, value, tokensJson as any, false, false, true)
     })
 
     // Force a re-render and notification of reset
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
     window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars: [...Object.keys(componentDefaults), ...Object.keys(customVariantDefaults)] }
+      detail: { cssVars: Object.keys(componentDefaults) }
     }))
   }
 
@@ -1419,14 +1415,21 @@ export default function ComponentToolbar({
       {/* Reset + Delete Variant Buttons */}
       <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})`, display: 'flex', flexDirection: 'row', gap: 'var(--recursica_brand_dimensions_gutters_horizontal)' }}>
         <Button
-          onClick={() => setResetConfirmOpen(true)}
+          onClick={() => {
+            if (getVarsStore().hasUserImportedFiles()) {
+              setResetTarget('imported')
+              setResetConfirmOpen(true)
+            } else {
+              handleReset('original')
+            }
+          }}
           variant="outline"
           size="small"
           layer="layer-0"
           style={{ flex: 1 }}
           icon={(() => {
-            const ResetIcon = iconNameToReactComponent('arrow-path')
-            return ResetIcon ? <ResetIcon style={{ width: 14, height: 14 }} /> : undefined
+            const UndoIcon = iconNameToReactComponent('arrow-uturn-left')
+            return UndoIcon ? <UndoIcon style={{ width: 14, height: 14 }} /> : undefined
           })()}
         >
           Reset
@@ -1499,25 +1502,41 @@ export default function ComponentToolbar({
         customVariants={customVariants}
       />
 
-      {/* Reset Confirmation Modal */}
+      {/* Reset Confirmation Modal — only shown when user has imported files */}
       <Modal
         isOpen={resetConfirmOpen}
         onClose={() => setResetConfirmOpen(false)}
-        title="Reset component"
+        title={`Reset ${componentName}`}
         size="sm"
         layer="layer-1"
         primaryActionLabel="Reset"
         onPrimaryAction={() => {
           setResetConfirmOpen(false)
-          handleReset()
+          handleReset(resetTarget)
         }}
         secondaryActionLabel="Cancel"
         onSecondaryAction={() => setResetConfirmOpen(false)}
-      >
-        <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-small-font-size)', opacity: 0.75 }}>
-          All customisations for {componentName} will be reset to their default token values.
-        </p>
-      </Modal>
+        content={
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-font-size)' }}>
+              Are you sure you want to reset your changes?
+            </p>
+            <RadioButtonGroup label="Version" required>
+              <RadioButtonItem
+                selected={resetTarget === 'imported'}
+                onChange={() => setResetTarget('imported')}
+                label="Reset to last imported version"
+              />
+              <RadioButtonItem
+                selected={resetTarget === 'original'}
+                onChange={() => setResetTarget('original')}
+                label="Reset to Forge defaults"
+              />
+            </RadioButtonGroup>
+          </div>
+        }
+      />
+
     </div>
   )
 }

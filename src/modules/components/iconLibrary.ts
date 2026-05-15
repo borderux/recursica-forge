@@ -13,6 +13,7 @@ import React from 'react'
 // Import only the icons we actually use - this allows Vite to tree-shake unused icons
 import {
   Angle,
+  ArrowArcLeft,
   ArrowBendRightDown,
   ArrowClockwise,
   ArrowDown,
@@ -236,6 +237,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'arrow-bend-right-down': ArrowBendRightDown,
   'arrow-clockwise': ArrowClockwise,
   'arrow-path': ArrowClockwise,
+  'arrow-uturn-left': ArrowArcLeft,
+  'undo': ArrowArcLeft,
   'chevron-up': CaretUp,
   'chevron-down': CaretDown,
   'chevron-left': CaretLeft,

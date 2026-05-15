@@ -5,6 +5,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
+import { ResetButton } from '../../components/shared/ResetButton'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -792,7 +793,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   if (!open) return null
 
   const panelFooter = (
-    <Button onClick={revert} variant="outline" layer="layer-0">Revert</Button>
+    <ResetButton
+      onReset={() => revert()}
+      layer="layer-0"
+    />
   )
 
   return (

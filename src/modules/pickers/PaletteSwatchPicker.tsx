@@ -524,7 +524,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       onClick={() => {
                         const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                         const paletteVarRef = `var(${s.cssVar})`
-                        cssVarsToUpdate.forEach(v => updateCssVar(v, paletteVarRef, tokensJson))
+                        cssVarsToUpdate.forEach(v => updateCssVar(v, paletteVarRef, tokensJson, false, true))
 
                         if (isOverlay && themeJson) {
                           try {
@@ -626,7 +626,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         const paletteVarRef = `var(${s.cssVar})`
 
                         // Update CSS variables for immediate visual feedback
-                        cssVarsToUpdate.forEach((v) => updateCssVar(v, paletteVarRef, tokensJson))
+                        cssVarsToUpdate.forEach((v) => updateCssVar(v, paletteVarRef, tokensJson, false, true))
 
                         if (isOverlay && themeJson) {
                           try {

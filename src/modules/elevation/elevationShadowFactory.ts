@@ -41,7 +41,8 @@ export function applyElevationShadow(
     if (level === 0) continue // elevation-0 has no shadow
 
     const prefix = `--recursica_brand_themes_${mode}_elevations_elevation-${level}`
-    const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${values.paletteKey}_${values.paletteLevel}_color_tone`
+    const paletteToneSuffix = values.paletteKey.startsWith('core') ? '_tone' : '_color_tone'
+    const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${values.paletteKey}_${values.paletteLevel}${paletteToneSuffix}`
     const pct = (values.opacityNormalized * 100).toFixed(2)
     const shadowColor = `color-mix(in srgb, var(${paletteVarName}) ${pct}%, transparent)`
 

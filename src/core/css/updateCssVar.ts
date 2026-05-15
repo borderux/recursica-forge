@@ -82,7 +82,9 @@ export function updateCssVar(
   cssVarName: string,
   value: string,
   tokens?: any,
-  silent?: boolean
+  silent?: boolean,
+  immediate?: boolean,
+  noGlobalRefCheck?: boolean
 ): boolean {
   const root = document.documentElement
   const trimmedValue = value.trim()
@@ -149,14 +151,24 @@ export function updateCssVar(
     updateUIKitValue(cssVarName, trimmedValue)
   }
 
-  // Debounce delta tracking to avoid thrashing during rapid slider movement
-  cssVarDebounceTimers[cssVarName] = setTimeout(() => {
-    // JSON sync (state.tokens / state.theme / state.uikit) happens lazily at export time.
+  // For immediate (non-slider) interactions, skip the outer debounce and fire
+  // the global-ref check right away so the modal appears without delay.
+  if (immediate && isUIKitVar && cssVarName.includes('_components_')) {
+    if (!noGlobalRefCheck) {
+      checkForGlobalRef(cssVarName, trimmedValue, true)
+    }
+    if (!shouldBeSilent && !suppressEvents) {
+      pendingCssVars.add(cssVarName)
+      fireBatchedEvent()
+    }
+    return true
+  }
 
-    // For UIKit component vars: propagate global-ref conflicts if the property
-    // was backed by a {ui-kit.globals.*} reference in the pristine JSON.
-    if (isUIKitVar && cssVarName.includes('_components_')) {
-      checkForGlobalRef(cssVarName, trimmedValue)
+  // Debounce delta tracking to avoid thrashing during rapid slider movement.
+  // noGlobalRefCheck is captured here at call time — no timer-based suppression needed.
+  cssVarDebounceTimers[cssVarName] = setTimeout(() => {
+    if (!noGlobalRefCheck && isUIKitVar && cssVarName.includes('_components_')) {
+      checkForGlobalRef(cssVarName, trimmedValue, false)
     }
 
     // Schedule a compliance scan when brand vars change (color/opacity edits)

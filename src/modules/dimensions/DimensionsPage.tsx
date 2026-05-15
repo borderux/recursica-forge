@@ -11,6 +11,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
+import { ResetButton } from '../../components/shared/ResetButton'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import brandDefault from '../../../recursica_brand.json'
 import { getVarsStore } from '../../core/store/varsStore'
@@ -363,17 +364,10 @@ export default function DimensionsPage() {
                 }}>
                   {category.toLowerCase() === 'border-radii' ? 'Border Radius' : toTitleCase(category)}
                 </h2>
-                <Button
-                  variant="outline"
-                  size="small"
-                  onClick={() => handleReset(category)}
-                  icon={(() => {
-                    const RefreshIcon = iconNameToReactComponent('arrow-path')
-                    return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
-                  })()}
-                >
-                  Reset all
-                </Button>
+                <ResetButton
+                  onReset={() => handleReset(category)}
+                  layer="layer-0"
+                />
               </div>
 
               {/* Rows */}

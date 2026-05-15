@@ -409,7 +409,7 @@ export default function MantineShell({
                   variant='outline'
                   size='small'
                   icon={(() => {
-                    const RefreshIcon = iconNameToReactComponent("arrow-path");
+                    const RefreshIcon = iconNameToReactComponent("arrow-uturn-left");
                     return RefreshIcon ? (
                       <RefreshIcon
                         style={{
