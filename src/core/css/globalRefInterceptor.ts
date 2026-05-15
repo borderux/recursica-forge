@@ -48,7 +48,7 @@ export type GlobalRefPreference = 'ask' | 'always-override' | 'always-global'
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PREFERENCE_KEY = 'recursica_global_ref_preference'
-const DEBOUNCE_MS = 500
+const DEBOUNCE_MS = 150
 
 // ─── Internal state ───────────────────────────────────────────────────────────
 
@@ -254,6 +254,7 @@ function formatComponentName(name: string): string {
 export function checkForGlobalRef(
   cssVarName: string,
   newValue: string,
+  immediate = false,
 ): void {
   if (suppressInterception) return
 
@@ -304,8 +305,20 @@ export function checkForGlobalRef(
     return
   }
 
-  // Preference is 'ask' — debounce and then fire the modal event
+  // Preference is 'ask' — fire immediately or debounce depending on context
   pendingConflict = conflict
+
+  if (immediate) {
+    if (debounceTimer) {
+      clearTimeout(debounceTimer)
+      debounceTimer = null
+    }
+    window.dispatchEvent(
+      new CustomEvent('globalRefConflict', { detail: conflict })
+    )
+    pendingConflict = null
+    return
+  }
 
   if (debounceTimer) {
     clearTimeout(debounceTimer)

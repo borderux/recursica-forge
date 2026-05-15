@@ -1166,15 +1166,15 @@ export default function ComponentToolbar({
     filterAndAdd(lightUIKitVars, 'light')
     filterAndAdd(darkUIKitVars, 'dark')
 
-    // 3. Restore defaults from the pristine JSON by setting them as explicit overrides
+    // 3. Restore defaults from the pristine JSON.
+    // noGlobalRefCheck=true is captured in each closure at call time, so the
+    // global-ref modal never fires regardless of when the debounce callback runs.
     Object.entries(componentDefaults).forEach(([cssVar, value]) => {
-      updateCssVar(cssVar, value, tokensJson as any)
+      updateCssVar(cssVar, value, tokensJson as any, false, false, true)
     })
 
     // 4. Re-apply CSS vars for any CUSTOM VARIANTS that exist in the current live uikit
-    // but not in the pristine uikit. Step 1 removed all component CSS vars from the DOM;
-    // Step 2-3 only restores original variants. Without this step, custom variant controls
-    // would show null swatches. Custom variants keep their current JSON-defined color values.
+    // but not in the pristine uikit.
     const currentUiKit = getVarsStore().getState().uikit
     const lightCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'light')
     const darkCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'dark')
@@ -1192,13 +1192,13 @@ export default function ComponentToolbar({
     addCustom(darkCurrentVars)
 
     Object.entries(customVariantDefaults).forEach(([cssVar, value]) => {
-      updateCssVar(cssVar, value, tokensJson as any)
+      updateCssVar(cssVar, value, tokensJson as any, false, false, true)
     })
 
     // Force a re-render and notification of reset
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
     window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars: [...Object.keys(componentDefaults), ...Object.keys(customVariantDefaults)] }
+      detail: { cssVars: Object.keys(componentDefaults) }
     }))
   }
 
