@@ -19,6 +19,8 @@ import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Button } from '../../../components/adapters/Button'
 import { Chip } from '../../../components/adapters/Chip'
 import { Badge } from '../../../components/adapters/Badge'
+import { Modal } from '../../../components/adapters/Modal'
+import { Dropdown, DropdownItem } from '../../../components/adapters/Dropdown'
 import { getComponentCssVar } from '../../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../../components/utils/brandCssVars'
 import { readCssVarResolved } from '../../../core/css/readCssVar'
@@ -334,6 +336,8 @@ export default function FontFamiliesTokens() {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editModalRow, setEditModalRow] = useState<FamilyRow | null>(null)
+  const [deleteConfirmIndex, setDeleteConfirmIndex] = useState<number | null>(null)
+  const [fallbackFontId, setFallbackFontId] = useState<string>('primary')
 
   const buildRows = (): FamilyRow[] => {
     return getStoredFonts().map((f, index) => ({
@@ -772,67 +776,46 @@ export default function FontFamiliesTokens() {
     setDragOverIndex(null)
   }
 
-  const handleDelete = (index: number) => {
+  const handleDeleteFont = () => {
+    if (deleteConfirmIndex === null) return
     const fonts = getStoredFonts()
-    if (index === 0) return
-    if (fonts.length <= 1) return
+    const deletedFont = fonts[deleteConfirmIndex]
+    if (!deletedFont) return
+    const fontIdToDelete = deletedFont.id
 
-    const rowsToKeep = fonts.filter((_, idx) => idx !== index)
-
-    const updatedFonts = rowsToKeep.map((f, newIndex) => {
-      const sequentialName = ORDER[newIndex] || `custom-${newIndex + 1}`
-      if (f.id !== sequentialName) {
-        removeCssVar(`--tokens-font-typeface-${f.id}`)
-        const fSlug = f.slug || f.family?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || f.id
-        removeCssVar(tokenFont('typefaces', fSlug))
-        removeCssVar(tokenFont('families', fSlug))
-      }
-      return { ...f, id: sequentialName }
-    })
-
-    if (index < fonts.length) {
-      const deletedFont = fonts[index]
-      const deletedSlug = deletedFont.slug || deletedFont.family?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || deletedFont.id
-      removeCssVar(`--tokens-font-typeface-${deletedFont.id}`)
-      removeCssVar(tokenFont('typefaces', deletedSlug))
-      removeCssVar(tokenFont('families', deletedSlug))
-    }
-
-    saveStoredFonts(updatedFonts)
-
-    // Clean up fontVariants for the deleted font
     const store = getVarsStore()
+
+    // Guarantee localStorage is seeded — getStoredFonts() falls back to getDefaultFonts()
+    // (recursica_tokens.json) when the key is absent, which causes deleteFont to return early.
+    saveStoredFonts(fonts)
+
+    // Clean up fontVariants for the deleted font before store.deleteFont rewrites tokens
     const tokens = JSON.parse(JSON.stringify(store.getState().tokens)) as any
     const fontRoot = tokens?.tokens?.font || tokens?.font || {}
     if (fontRoot.fontVariants) {
-      const keptFontNames = new Set(updatedFonts.map(r => r.family.trim().replace(/^["']|["']$/g, '').toLowerCase()))
-      Object.keys(fontRoot.fontVariants).forEach(name => {
-        if (!keptFontNames.has(name)) delete fontRoot.fontVariants[name]
-      })
+      const deletedFamilyName = deletedFont.family.trim().replace(/^["']|["']$/g, '').toLowerCase()
+      delete fontRoot.fontVariants[deletedFamilyName]
       store.setTokensSilent(tokens)
     }
 
-    // Remove CSS vars for typeface keys that no longer exist
-    const keptKeys = new Set(updatedFonts.map(r => r.id))
-    const typefaceRoot = fontRoot.typefaces || fontRoot.typeface || {}
-    Object.keys(typefaceRoot).filter(k => !k.startsWith('$')).forEach(k => {
-      if (!keptKeys.has(k)) {
-        removeCssVar(`--tokens-font-typeface-${k}`)
-        removeCssVar(tokenFont('typefaces', k))
-        removeCssVar(tokenFont('families', k))
-      }
-    })
+    // Clean up typeface/family CSS vars for the deleted font
+    const deletedSlug = deletedFont.slug || deletedFont.family?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || deletedFont.id
+    removeCssVar(`--tokens-font-typeface-${deletedFont.id}`)
+    removeCssVar(tokenFont('typefaces', deletedSlug))
+    removeCssVar(tokenFont('families', deletedSlug))
 
+    // Clear typography font-family vars so they are regenerated with the new mapping
     const typographyPrefixes = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline']
     typographyPrefixes.forEach((prefix) => {
-      const cssVar = `--recursica_brand_typography_${prefix}-font-family`
-      if (typeof document !== 'undefined') document.documentElement.style.removeProperty(cssVar)
+      if (typeof document !== 'undefined') document.documentElement.style.removeProperty(`--recursica_brand_typography_${prefix}-font-family`)
     })
 
-    setRows(buildRows())
+    // Delegate ref-replacement, localStorage renumbering, and syncFontsToTokens to store
+    store.deleteFont(fontIdToDelete, fallbackFontId)
 
-    // syncFontsToTokens calls setTokens internally which triggers recomputeAndApplyAll once
-    store.syncFontsToTokens()
+    setRows(buildRows())
+    setDeleteConfirmIndex(null)
+    setFallbackFontId('primary')
   }
   const layer1Elevation = getLayerElevationBoxShadow(mode, 'layer-1')
   const interactiveColor = `--recursica_brand_${mode}-palettes-core-interactive`
@@ -845,6 +828,7 @@ export default function FontFamiliesTokens() {
   const buttonPadding = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
 
   return (
+    <>
     <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
         {rows.map((r, index) => {
@@ -931,7 +915,10 @@ export default function FontFamiliesTokens() {
                       size="small"
                       layer="layer-1"
                       icon={<TrashIcon />}
-                      onClick={() => handleDelete(index)}
+                      onClick={() => {
+                        setFallbackFontId('primary')
+                        setDeleteConfirmIndex(index)
+                      }}
                     />
                   ) : null
                 })()}
@@ -1387,5 +1374,57 @@ export default function FontFamiliesTokens() {
         }}
       />
     </div>
+
+    {/* Delete-font reassignment modal */}
+    {deleteConfirmIndex !== null && (() => {
+      const fonts = getStoredFonts()
+      const deletedFont = fonts[deleteConfirmIndex]
+      if (!deletedFont) return null
+
+      // The position slot that disappears is always the last one (fonts.length - 1)
+      const lastPositionId = ORDER[fonts.length - 1]
+      const lastPositionLabel = lastPositionId.charAt(0).toUpperCase() + lastPositionId.slice(1)
+
+      // Remaining positions after deletion (renumbered) — these are the fallback options
+      const remainingFonts = fonts.filter((_, i) => i !== deleteConfirmIndex)
+      const fallbackOptions: DropdownItem[] = remainingFonts.map((f, newIndex) => {
+        const newPositionId = ORDER[newIndex] || `custom-${newIndex + 1}`
+        const positionLabel = newPositionId.charAt(0).toUpperCase() + newPositionId.slice(1)
+        return {
+          value: newPositionId,
+          label: `${positionLabel} — ${f.family}`,
+        }
+      })
+
+      return (
+        <Modal
+          isOpen
+          onClose={() => setDeleteConfirmIndex(null)}
+          title="Delete font"
+          primaryActionLabel="Delete"
+          secondaryActionLabel="Cancel"
+          onPrimaryAction={handleDeleteFont}
+          onSecondaryAction={() => setDeleteConfirmIndex(null)}
+          layer="layer-1"
+          size="sm"
+        >
+          <div style={{ padding: '8px 0', display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
+            <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-font-size)' }}>
+              Removing this font leaves the <strong>{lastPositionLabel}</strong> slot empty. Choose a position to redirect any existing references to it.
+            </p>
+            <Dropdown
+              label="Redirect references to"
+              items={fallbackOptions}
+              value={fallbackFontId}
+              onChange={setFallbackFontId}
+              layer="layer-1"
+              disableTopBottomMargin
+            />
+          </div>
+        </Modal>
+      )
+    })()}
+
+    </>
   )
 }

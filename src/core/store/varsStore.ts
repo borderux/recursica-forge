@@ -642,6 +642,51 @@ class VarsStore {
     this.recomputeAndApplyAll()
   }
 
+  public deleteFont(fontIdToDelete: string, fallbackPositionId: string) {
+    const ORDER = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary']
+
+    // 1. Update recursica_fonts in localStorage — remove deleted, renumber kept
+    const storedFontsRaw = localStorage.getItem('recursica_fonts')
+    if (!storedFontsRaw) return
+    const storedFonts: any[] = JSON.parse(storedFontsRaw)
+
+    // The last position slot (e.g. "tertiary" when there are 3 fonts) always disappears after
+    // deletion, regardless of which font was deleted.  Remaining fonts shift down to fill gaps.
+    const lastPosition = ORDER[storedFonts.length - 1]
+
+    const keptFonts = storedFonts.filter(f => f.id !== fontIdToDelete)
+    keptFonts.forEach((f, newIndex) => {
+      f.id = ORDER[newIndex] || `custom-${newIndex + 1}`
+    })
+    localStorage.setItem('recursica_fonts', JSON.stringify(keptFonts))
+
+    // 2. The only stale refs are those pointing to lastPosition (which no longer exists).
+    //    All other position refs remain valid: renumbering in localStorage is enough because
+    //    syncFontsToTokens rebuilds brand.fonts.* from the updated localStorage.
+    let stateStr = JSON.stringify(this.state)
+    stateStr = stateStr.replace(
+      new RegExp(`\\{brand\\.fonts\\.${lastPosition}\\}`, 'g'),
+      `{brand.fonts.${fallbackPositionId}}`
+    )
+
+    // 3. Clear CSS vars for the stale last position and the deleted font's typeface slot
+    if (typeof document !== 'undefined') {
+      const style = document.documentElement.style
+      const toRemove: string[] = []
+      for (let i = 0; i < style.length; i++) {
+        const prop = style[i]
+        if (prop.includes(`_fonts_${lastPosition}`) || prop.includes(`_fonts_${fontIdToDelete}`)) {
+          toRemove.push(prop)
+        }
+      }
+      toRemove.forEach(p => style.removeProperty(p))
+    }
+
+    this.writeState(JSON.parse(stateStr))
+    this.syncFontsToTokens()
+  }
+
+
   setTokens(next: JsonLike) {
     this.writeState({ tokens: next })
     if (!this.isRecomputing) {
