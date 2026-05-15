@@ -1129,15 +1129,16 @@ export default function ComponentToolbar({
       propsToRemove.forEach(prop => style.removeProperty(prop))
     }
 
-    // 2. Resolve the UIKit source based on the chosen target.
-    //    'imported' → last user-imported JSON (falls back to pristine if none exists)
-    //    'original' → bundled Forge defaults
-    const sourceUikit = target === 'imported'
-      ? getVarsStore().getImportedUikit()
-      : getVarsStore().getPristineUikit()
+    // 2. Resolve all three JSON sources from the same target snapshot so that
+    //    buildUIKitVars produces values consistent with what was in place at
+    //    the chosen version (imported or Forge defaults).
+    const store = getVarsStore()
+    const sourceUikit  = target === 'imported' ? store.getImportedUikit()  : store.getPristineUikit()
+    const sourceTokens = target === 'imported' ? store.getImportedTokens() : store.getPristineTokens()
+    const sourceBrand  = target === 'imported' ? store.getImportedBrand()  : store.getPristineBrand()
 
-    const lightUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, sourceUikit, 'light')
-    const darkUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, sourceUikit, 'dark')
+    const lightUIKitVars = buildUIKitVars(sourceTokens, sourceBrand, sourceUikit, 'light')
+    const darkUIKitVars  = buildUIKitVars(sourceTokens, sourceBrand, sourceUikit, 'dark')
 
     const componentDefaults: Record<string, string> = {}
 
