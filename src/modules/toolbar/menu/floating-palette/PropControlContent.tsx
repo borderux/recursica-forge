@@ -1025,9 +1025,9 @@ export default function PropControlContent({
         if (!selectedVariant) return false
         if (!pathMatchesVariant(p.path, propToCheck.variantProp, selectedVariant)) return false
       }
-      // Props under both style and orientation (e.g. tabs-content-gap under styles.pills.orientation.horizontal)
+      // Props under both style and orientation (e.g. tabs-content-gap under styles.pills.variants.orientation.horizontal)
       // must match BOTH selectedVariants.style and selectedVariants.orientation
-      // Require path structure variants.styles.X.orientation.Y (not variants.orientation which is component-level)
+      // Require path structure variants.styles.X.variants.orientation.Y (not variants.orientation which is component-level)
       const stylesIdx = p.path.indexOf('styles')
       const orientationIdx = p.path.indexOf('orientation')
       const hasStyleAndOrientationInPath = stylesIdx >= 0 && orientationIdx >= 0 && stylesIdx < orientationIdx
@@ -1037,7 +1037,7 @@ export default function PropControlContent({
       }
       
       // CRITICAL FIX: Ensure deeply nested variants match their primary container variant.
-      // For Avatar (or similar components), if we're evaluating a nested style-secondary prop (like solid),
+      // For Avatar (or similar components), if evaluating a nested types prop (like solid),
       // we MUST also ensure the primary style (like icon or text) is present in the path.
       if (selectedVariants.style && stylesIdx >= 0) {
         if (!p.path.includes(selectedVariants.style)) return false
@@ -1326,7 +1326,7 @@ export default function PropControlContent({
               const cv = selectedVariants.content || 'label'
               const sv = selectedVariants.size || 'default'
               const authoritativeVar = buildComponentCssVarPath(
-                'Button', 'variants', 'content', cv, 'sizes', sv, 'properties', 'border-radius'
+                'Button', 'variants', 'content', cv, 'variants', 'sizes', sv, 'properties', 'border-radius'
               )
               cssVars = [authoritativeVar]
             }

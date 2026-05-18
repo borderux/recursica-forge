@@ -32,8 +32,10 @@
             },
             "properties": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.themes.light.elevations.elevation-0}"
+                "$value": "{brand.themes.light.elevations.elevation-0}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               },
               "surface": {
                 "$type": "color",
@@ -70,8 +72,10 @@
                 }
               },
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.themes.light.elevations.elevation-0}"
+                "$value": "{brand.themes.light.elevations.elevation-0}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               },
               "border-radius": {
                 "$type": "number",
@@ -120,8 +124,10 @@
           "layer-3": {
             "properties": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.themes.light.elevations.elevation-4}"
+                "$value": "{brand.themes.light.elevations.elevation-4}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               },
               "border-radius": {
                 "$type": "number",
@@ -211,8 +217,10 @@
                 "$value": "{tokens.sizes.2x}"
               },
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.themes.light.elevations.elevation-2}"
+                "$value": "{brand.themes.light.elevations.elevation-2}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               },
               "border-radius": {
                 "$type": "number",
@@ -860,7 +868,7 @@
         },
         "elevations": {
           "elevation-0": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -901,10 +909,13 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           },
           "elevation-1": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -945,10 +956,13 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           },
           "elevation-2": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -989,10 +1003,13 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           },
           "elevation-3": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -1033,10 +1050,13 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           },
           "elevation-4": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -1077,6 +1097,9 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           }
         }
@@ -1112,8 +1135,10 @@
             },
             "properties": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.themes.dark.elevations.elevation-0}"
+                "$value": "{brand.themes.dark.elevations.elevation-0}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               },
               "surface": {
                 "$type": "color",
@@ -1150,8 +1175,10 @@
                 }
               },
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.themes.dark.elevations.elevation-0}"
+                "$value": "{brand.themes.dark.elevations.elevation-0}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               },
               "border-radius": {
                 "$type": "number",
@@ -1200,8 +1227,10 @@
           "layer-3": {
             "properties": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.themes.dark.elevations.elevation-4}"
+                "$value": "{brand.themes.dark.elevations.elevation-4}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               },
               "border-radius": {
                 "$type": "number",
@@ -1291,8 +1320,10 @@
                 "$value": "{tokens.sizes.2x}"
               },
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.themes.dark.elevations.elevation-2}"
+                "$value": "{brand.themes.dark.elevations.elevation-2}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               },
               "border-radius": {
                 "$type": "number",
@@ -1940,7 +1971,7 @@
         },
         "elevations": {
           "elevation-0": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -1981,10 +2012,13 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           },
           "elevation-1": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -2025,10 +2059,13 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           },
           "elevation-2": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -2069,10 +2106,13 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           },
           "elevation-3": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -2113,10 +2153,13 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           },
           "elevation-4": {
-            "$type": "boxShadow",
+            "$type": "shadow",
             "$value": {
               "x": {
                 "$value": {
@@ -2157,6 +2200,9 @@
                 },
                 "$type": "number"
               }
+            },
+            "$extensions": {
+              "recursica.type": "boxShadow"
             }
           }
         }
@@ -2558,8 +2604,10 @@
       }
     }
   },
-  "$metadata": {
-    "exportedAt": "2026-05-06T17:14:27.179Z",
-    "version": "1.0.0"
+  "$extensions": {
+    "recursica.metadata": {
+      "exportedAt": "2026-05-06T17:14:27.179Z",
+      "version": "1.0.0"
+    }
   }
 }

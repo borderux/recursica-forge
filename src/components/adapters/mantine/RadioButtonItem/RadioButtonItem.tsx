@@ -30,23 +30,24 @@ export default function RadioButtonItem({
     const textDecorationVar = getComponentTextCssVar('RadioButtonItem', 'text', 'text-decoration')
     const textTransformVar = getComponentTextCssVar('RadioButtonItem', 'text', 'text-transform')
 
-    const getPropVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButtonItem', 'properties', prop)}, var(${buildComponentCssVarPath('RadioButton', 'properties', prop)}))`
-    const getColorVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButtonItem', 'properties', 'colors', layer, prop)}, var(${buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, prop)}))`
+    const getRadioPropVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButton', 'properties', prop)})`
+    const getRadioColorVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, prop)})`
+    const getRadioItemColorVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButtonItem', 'properties', 'colors', layer, prop)})`
 
     const cssVars = {
-        '--radio-size': getPropVar('size'),
-        '--radio-radius': getPropVar('border-radius'),
-        '--radio-border-width': getPropVar('border-size'),
-        '--radio-icon-size': getPropVar('icon-size'),
-        '--radio-bg-selected': getColorVar('background-selected'),
-        '--radio-border-selected': getColorVar('border-selected'),
-        '--radio-bg-unselected': getColorVar('background-unselected'),
-        '--radio-border-unselected': getColorVar('border-unselected'),
-        '--radio-icon-color': getColorVar('icon-color'),
-        '--radio-disabled-bg': getColorVar('disabled-background'),
-        '--radio-disabled-border': getColorVar('disabled-border'),
-        '--radio-disabled-icon': getColorVar('disabled-icon'),
-        '--radio-disabled-opacity': getPropVar('disabled-opacity'),
+        '--radio-size': getRadioPropVar('size'),
+        '--radio-radius': getRadioPropVar('border-radius'),
+        '--radio-border-width': getRadioPropVar('border-size'),
+        '--radio-icon-size': getRadioPropVar('icon-size'),
+        '--radio-bg-selected': getRadioColorVar('background-selected'),
+        '--radio-border-selected': getRadioColorVar('border-selected'),
+        '--radio-bg-unselected': getRadioColorVar('background-unselected'),
+        '--radio-border-unselected': getRadioColorVar('border-unselected'),
+        '--radio-icon-color': getRadioColorVar('icon-color'),
+        '--radio-disabled-bg': getRadioColorVar('disabled-background'),
+        '--radio-disabled-border': getRadioColorVar('disabled-border'),
+        '--radio-disabled-icon': getRadioColorVar('disabled-icon'),
+        '--radio-disabled-opacity': getRadioPropVar('disabled-opacity'),
         '--radio-item-gap': `var(${labelGapVar})`,
         '--radio-item-font-family': `var(${fontFamilyVar})`,
         '--radio-item-font-size': `var(${fontSizeVar})`,
@@ -56,8 +57,8 @@ export default function RadioButtonItem({
         '--radio-item-font-style': `var(${fontStyleVar})`,
         '--radio-item-text-decoration': `var(${textDecorationVar})`,
         '--radio-item-text-transform': `var(${textTransformVar})`,
-        '--radio-item-color': getColorVar('text'),
-        '--radio-item-disabled-color': getColorVar('disabled-text'),
+        '--radio-item-color': getRadioItemColorVar('text'),
+        '--radio-item-disabled-color': getRadioItemColorVar('disabled-text'),
         '--radio-item-max-width': `var(${maxWidthVar})`,
     }
 

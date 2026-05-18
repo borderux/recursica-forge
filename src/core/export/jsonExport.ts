@@ -13,6 +13,7 @@ import { cssVarToRef, TOKEN_PREFIX, unwrapVar, BRAND_PREFIX } from '../css/cssVa
 import tokensJson from '../../../recursica_tokens.json'
 import brandJson from '../../../recursica_brand.json'
 import uikitJson from '../../../recursica_ui-kit.json'
+import packageJson from '../../../package.json'
 import { getVarsStore } from '../store/varsStore'
 import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import {
@@ -645,10 +646,12 @@ export function exportTokensJson(): object {
   if (Object.keys(result.tokens.sizes).length === 0) delete result.tokens.sizes
   if (Object.keys(result.tokens.opacities).length === 0) delete result.tokens.opacities
 
-  // Add metadata with export timestamp
-  result.$metadata = {
-    exportedAt: new Date().toISOString(),
-    version: '1.0.0'
+  // Add metadata with export timestamp (DTCG-compliant: $metadata → $extensions.recursica.metadata)
+  result.$extensions = {
+    'recursica.metadata': {
+      exportedAt: new Date().toISOString(),
+      version: packageJson.version
+    }
   }
 
   // Validate the exported JSON before returning
@@ -1025,9 +1028,11 @@ export function exportBrandJson(): object {
   if (!theme?.brand) {
     return {
       brand: {},
-      $metadata: {
-        exportedAt: new Date().toISOString(),
-        version: '1.0.0'
+      $extensions: {
+        'recursica.metadata': {
+          exportedAt: new Date().toISOString(),
+          version: packageJson.version
+        }
       }
     }
   }
@@ -1086,9 +1091,11 @@ export function exportBrandJson(): object {
 
   const exportObject = {
     brand: normalized,
-    $metadata: {
-      exportedAt: new Date().toISOString(),
-      version: '1.0.0'
+    $extensions: {
+      'recursica.metadata': {
+        exportedAt: new Date().toISOString(),
+        version: packageJson.version
+      }
     }
   }
 
@@ -1154,9 +1161,11 @@ export function exportUIKitJson(): object {
   if (!uikit) {
     return {
       'ui-kit': {},
-      $metadata: {
-        exportedAt: new Date().toISOString(),
-        version: '1.0.0'
+      $extensions: {
+        'recursica.metadata': {
+          exportedAt: new Date().toISOString(),
+          version: packageJson.version
+        }
       }
     }
   }
@@ -1199,10 +1208,13 @@ export function exportUIKitJson(): object {
 
 
 
-  // Add metadata with export timestamp
-  normalized.$metadata = {
-    exportedAt: new Date().toISOString(),
-    version: '1.0.0'
+  // Add metadata with export timestamp (DTCG-compliant: use $extensions.recursica.metadata)
+  normalized.$extensions = {
+    ...((normalized.$extensions as Record<string, unknown>) ?? {}),
+    'recursica.metadata': {
+      exportedAt: new Date().toISOString(),
+      version: packageJson.version
+    }
   }
 
   // Validate the exported JSON before returning

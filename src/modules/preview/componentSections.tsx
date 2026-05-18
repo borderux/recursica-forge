@@ -82,7 +82,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
         <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: 'var(--recursica_brand_colors_text-primary, inherit)' }}>Stacked</h2>
+          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Stacked</h2>
           <SwitchGroup
             label="Goblin Preferences"
             layout="stacked"
@@ -94,7 +94,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         </div>
 
         <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: 'var(--recursica_brand_colors_text-primary, inherit)' }}>Side-by-side</h2>
+          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Side-by-side</h2>
           <SwitchGroup
             label="Loot Settings"
             layout="side-by-side"

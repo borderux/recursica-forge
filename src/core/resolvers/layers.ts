@@ -596,16 +596,13 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
 
     // Helper to get default reference for interactive properties
     const getDefaultInteractiveRef = (property: 'tone' | 'tone-hover' | 'on-tone' | 'on-tone-hover'): string => {
-      if (property === 'tone') {
-        return `var(${paletteCore(mode, 'interactive', 'default', 'tone')})`
-      } else if (property === 'tone-hover') {
-        return `var(${paletteCore(mode, 'interactive', 'hover', 'tone')})`
-      } else if (property === 'on-tone') {
-        return `var(${paletteCore(mode, 'interactive', 'default', 'on-tone')})`
-      } else if (property === 'on-tone-hover') {
-        return `var(${paletteCore(mode, 'interactive', 'hover', 'on-tone')})`
+      if (property === 'tone' || property === 'tone-hover') {
+        // brand JSON only has interactive.tone (no default/hover sub-keys)
+        return `var(${paletteCore(mode, 'interactive', 'tone')})`
+      } else {
+        // brand JSON only has interactive.on-tone (no default/hover sub-keys)
+        return `var(${paletteCore(mode, 'interactive', 'on-tone')})`
       }
-      return `var(${paletteCore(mode, 'interactive', 'default', 'tone')})`
     }
 
     // Set tone colors (background)
@@ -676,14 +673,14 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
         result[`${brandInterBase}hover-color`] = vref
       } else {
         // If coerceToVarRef failed, use default interactive hover tone instead of direct hex
-        result[`${brandInterBase}hover-color`] = `var(${paletteCore(mode, 'interactive', 'hover', 'tone')})`
+        result[`${brandInterBase}hover-color`] = `var(${paletteCore(mode, 'interactive', 'tone')})`
       }
     }
 
     // Generate layer-specific interactive on-tone variables for UIKit references
     // These reference the core palette on-tone variables
-    result[`${brandInterBase}default-on-tone`] = `var(${paletteCore(mode, 'interactive', 'default', 'on-tone')})`
-    result[`${brandInterBase}hover-on-tone`] = `var(${paletteCore(mode, 'interactive', 'hover', 'on-tone')})`
+    result[`${brandInterBase}default-on-tone`] = `var(${paletteCore(mode, 'interactive', 'on-tone')})`
+    result[`${brandInterBase}hover-on-tone`] = `var(${paletteCore(mode, 'interactive', 'on-tone')})`
   }
 
   // Dynamically process all available layers from the theme

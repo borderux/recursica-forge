@@ -102,7 +102,7 @@ function diffSnapshotTriple(
   const entries: DiffEntry[] = []
 
   for (const path of allPaths) {
-    if (path.startsWith('$metadata.')) continue
+    if (path.startsWith('$extensions.recursica.metadata.')) continue
 
     const origVal   = origLeaves.get(path)
     const exportVal = exportLeaves.get(path)

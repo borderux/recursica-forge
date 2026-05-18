@@ -292,7 +292,7 @@ export default function ElementsModalDemo() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: `var(${paletteCore(modeLower, 'interactive', 'default', 'tone')})`,
+                color: `var(${paletteCore(modeLower, 'interactive', 'tone')})`,
                 cursor: 'default', // Can't be closed
               }}>
                 <XIcon style={{ width: '16px', height: '16px' }} />

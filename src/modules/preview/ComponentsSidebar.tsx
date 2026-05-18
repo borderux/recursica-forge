@@ -13,7 +13,7 @@ import { componentNameToSlug, slugToComponentName } from './componentUrlUtils'
 import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { SidebarFooter } from '../app/SidebarFooter'
-import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { genericLayerProperty, genericLayerText, paletteCore } from '../../core/css/cssVarBuilder'
 
 type ComponentItem = {
   name: string
@@ -231,7 +231,7 @@ export function ComponentsSidebar({
 
 
 
-  const interactiveColor = `--recursica_brand_palettes_core_interactive`
+  const interactiveColor = paletteCore(mode, 'interactive', 'tone')
 
   const handleNavClick = (componentName: string) => {
     const slug = componentNameToSlug(componentName)

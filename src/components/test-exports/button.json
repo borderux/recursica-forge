@@ -631,41 +631,43 @@
           },
           "content": {
             "icon-label": {
-              "sizes": {
-                "default": {
-                  "properties": {
-                    "horizontal-padding": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.general.lg}"
-                    },
-                    "border-radius": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.border-radii.lg}"
-                    },
-                    "min-width": {
-                      "$type": "dimension",
-                      "$value": {
-                        "value": 79,
-                        "unit": "px"
+              "variants": {
+                "sizes": {
+                  "default": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.lg}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.lg}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 79,
+                          "unit": "px"
+                        }
                       }
                     }
-                  }
-                },
-                "small": {
-                  "properties": {
-                    "horizontal-padding": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.general.md}"
-                    },
-                    "border-radius": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.border-radii.lg}"
-                    },
-                    "min-width": {
-                      "$type": "dimension",
-                      "$value": {
-                        "value": 64,
-                        "unit": "px"
+                  },
+                  "small": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.md}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.lg}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 64,
+                          "unit": "px"
+                        }
                       }
                     }
                   }
@@ -673,41 +675,43 @@
               }
             },
             "label": {
-              "sizes": {
-                "default": {
-                  "properties": {
-                    "horizontal-padding": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.general.2xl}"
-                    },
-                    "border-radius": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.border-radii.lg}"
-                    },
-                    "min-width": {
-                      "$type": "dimension",
-                      "$value": {
-                        "value": 87,
-                        "unit": "px"
+              "variants": {
+                "sizes": {
+                  "default": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.2xl}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.lg}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 87,
+                          "unit": "px"
+                        }
                       }
                     }
-                  }
-                },
-                "small": {
-                  "properties": {
-                    "horizontal-padding": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.general.default}"
-                    },
-                    "border-radius": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.border-radii.lg}"
-                    },
-                    "min-width": {
-                      "$type": "dimension",
-                      "$value": {
-                        "value": 92,
-                        "unit": "px"
+                  },
+                  "small": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.default}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.lg}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 92,
+                          "unit": "px"
+                        }
                       }
                     }
                   }
@@ -715,41 +719,43 @@
               }
             },
             "icon-only": {
-              "sizes": {
-                "default": {
-                  "properties": {
-                    "horizontal-padding": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.general.default}"
-                    },
-                    "border-radius": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.border-radii.lg}"
-                    },
-                    "min-width": {
-                      "$type": "dimension",
-                      "$value": {
-                        "value": 108,
-                        "unit": "px"
+              "variants": {
+                "sizes": {
+                  "default": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.default}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.lg}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 108,
+                          "unit": "px"
+                        }
                       }
                     }
-                  }
-                },
-                "small": {
-                  "properties": {
-                    "horizontal-padding": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.general.sm}"
-                    },
-                    "border-radius": {
-                      "$type": "dimension",
-                      "$value": "{brand.dimensions.border-radii.lg}"
-                    },
-                    "min-width": {
-                      "$type": "dimension",
-                      "$value": {
-                        "value": 53,
-                        "unit": "px"
+                  },
+                  "small": {
+                    "properties": {
+                      "horizontal-padding": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.general.sm}"
+                      },
+                      "border-radius": {
+                        "$type": "dimension",
+                        "$value": "{brand.dimensions.border-radii.lg}"
+                      },
+                      "min-width": {
+                        "$type": "dimension",
+                        "$value": {
+                          "value": 53,
+                          "unit": "px"
+                        }
                       }
                     }
                   }

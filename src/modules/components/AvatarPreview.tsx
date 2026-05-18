@@ -14,16 +14,16 @@ export default function AvatarPreview({
 }: AvatarPreviewProps) {
   // Combine style variants if both are selected
   // Primary style: text, icon, image
-  // Secondary style: solid, ghost (only for text and icon)
+  // Appearance type: solid, ghost, outline (only for text and icon)
   const primaryStyle = selectedVariants.style || 'text'
-  const secondaryStyle = selectedVariants['style-secondary'] || 'ghost'
+  const appearanceType = selectedVariants.types || 'ghost'
 
   // Build combined variant string
   let colorVariant: string
   if (primaryStyle === 'image') {
     colorVariant = 'image'
   } else {
-    colorVariant = `${primaryStyle}-${secondaryStyle}`
+    colorVariant = `${primaryStyle}-${appearanceType}`
   }
   const sizeVariant = selectedVariants.size || 'default'
 

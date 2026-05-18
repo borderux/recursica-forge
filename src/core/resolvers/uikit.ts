@@ -124,10 +124,16 @@ function traverseUIKit(
     const cssVarKey = (key === 'sizes' && !isNewStructure) ? 'size' : key
     const currentPath = [...prefix, cssVarKey]
 
-    // If this is a value object with $type and $value
-    if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
+    // If this is a value object with $value (and optionally $type or $extensions.recursica.type)
+    if (value && typeof value === 'object' && '$value' in value) {
       const val = (value as any).$value
-      const type = (value as any).$type
+      // Prefer $type; fall back to $extensions['recursica.type'] for tokens whose type is
+      // expressed via extensions (e.g. elevation tokens post-DTCG refactor)
+      const dtcgType: string | undefined = typeof (value as any).$type === 'string' ? (value as any).$type : undefined
+      const extType: string | undefined = !dtcgType
+        ? ((value as any).$extensions as Record<string, unknown> | undefined)?.['recursica.type'] as string | undefined
+        : undefined
+      const type: string | undefined = dtcgType ?? extType
 
       const cssVarName = toCssVarName(currentPath.join('.'), mode)
 

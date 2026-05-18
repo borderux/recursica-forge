@@ -8,7 +8,7 @@
 import React, { Suspense, useState, useEffect, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { buildComponentCssVarPath } from '../utils/cssVarNames'
-import { parseElevationValue, extractElevationMode } from '../utils/brandCssVars'
+import { parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
@@ -51,15 +51,9 @@ export function Toast({
     return value ? parseElevationValue(value) : undefined
   })
 
-  const [elevationModeFromVar, setElevationModeFromVar] = useState<'light' | 'dark' | undefined>(() => {
-    const value = readCssVar(elevationVar)
-    return extractElevationMode(value, elevationVar)
-  })
-
   useEffect(() => {
     const value = readCssVar(elevationVar)
     setElevationFromVar(value ? parseElevationValue(value) : undefined)
-    setElevationModeFromVar(extractElevationMode(value, elevationVar))
   }, [elevationVar, mode])
 
   useEffect(() => {
@@ -68,13 +62,11 @@ export function Toast({
       if (!detail?.cssVars || detail.cssVars.includes(elevationVar)) {
         const value = readCssVar(elevationVar)
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
-        setElevationModeFromVar(extractElevationMode(value, elevationVar))
       }
     }
     const observer = new MutationObserver(() => {
       const value = readCssVar(elevationVar)
       setElevationFromVar(value ? parseElevationValue(value) : undefined)
-      setElevationModeFromVar(extractElevationMode(value, elevationVar))
     })
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] })
@@ -90,7 +82,6 @@ export function Toast({
     variant,
     layer,
     elevation: componentElevation,
-    elevationMode: elevationModeFromVar,
     className,
     style,
     icon,
@@ -110,7 +101,7 @@ export function Toast({
   )
 }
 
-function mapToastProps(props: ToastProps & { elevation?: string; elevationMode?: 'light' | 'dark' }): any {
+function mapToastProps(props: ToastProps & { elevation?: string }): any {
   const { mantine, material, carbon, ...rest } = props
   return {
     ...rest,
