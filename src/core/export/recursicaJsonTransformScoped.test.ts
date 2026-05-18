@@ -117,4 +117,27 @@ describe('recursicaJsonTransform (Scoped)', () => {
     expect(css).toMatch(/\.recursica_brand_typography_body\s*\{/)
     expect(css).toMatch(/recursica_brand_typography_body-small/)
   })
+
+  it('throws an error if a typography group reference targets a non-existent typography set', () => {
+    const invalidJson = {
+      tokens: { tokens: {} },
+      brand: { brand: { typography: { h2: { 'font-family': { $value: 'Arial' } } } } },
+      uikit: {
+        'ui-kit': {
+          components: {
+            card: {
+              properties: {
+                'header-style': {
+                  $type: 'typography',
+                  $value: '{brand.typography.invalid-set}'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    expect(() => recursicaJsonTransform(invalidJson as any)).toThrow(/targets non-existent var/i)
+  })
 })
