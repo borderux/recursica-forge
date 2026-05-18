@@ -13,7 +13,7 @@
 
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.2.0'
+const TRANSFORM_VERSION = '1.3.0'
 
 /** Maps brand.typography $value keys (camelCase) to CSS property names. */
 const TYPOGRAPHY_JSON_TO_CSS_PROP: Record<string, string> = {
@@ -387,10 +387,13 @@ function flattenInput(json: RecursicaJsonInput): FlatEntry[] {
   if (uikit) collectVars(uikit, 'ui-kit', out)
 
   injectVariantAliases(out)
+  injectTypographyAliases(out)
 
   if (brand) injectElevationComposites(brand as Record<string, unknown>, out)
   injectDarkLayer0InteractiveAliases(out)
-  return out
+  
+  // Remove original typography group references that were expanded into individual properties
+  return out.filter(e => e.type !== 'DELETED_TYPOGRAPHY_REF')
 }
 
 /**
@@ -414,6 +417,39 @@ function injectVariantAliases(out: FlatEntry[]): void {
         const newPath = entry.path + '.' + subPath
         out.push({ path: newPath, value: `{${child.path}}`, comment: `Variant Reference: ${inner}` })
       }
+    }
+  }
+}
+
+/**
+ * Traverses entries and finds typography tokens that reference other typography groups.
+ * For each property in the referenced typography group, creates a new alias variable
+ * under the typography's path, effectively mapping the typography group's styles.
+ */
+function injectTypographyAliases(out: FlatEntry[]): void {
+  const typographies = out.filter(e => e.type === 'typography' && typeof e.value === 'string')
+  for (const entry of typographies) {
+    const trimmed = (entry.value as string).trim()
+    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) continue
+    const inner = trimmed.slice(1, -1).trim()
+    const prefix = inner + '.'
+    
+    let injectedAny = false
+    const len = out.length
+    for (let i = 0; i < len; i++) {
+      const child = out[i]
+      if (child.path.startsWith(prefix)) {
+        const subPath = child.path.slice(prefix.length)
+        const newPath = entry.path + '.' + subPath
+        out.push({ path: newPath, value: `{${child.path}}`, type: child.type, comment: `Typography Reference: ${inner}` })
+        injectedAny = true
+      }
+    }
+    
+    // If we successfully injected children, mark the base group reference for deletion
+    // so we don't emit a meaningless base CSS variable.
+    if (injectedAny) {
+      entry.type = 'DELETED_TYPOGRAPHY_REF'
     }
   }
 }
@@ -840,6 +876,11 @@ function formatScopedCss(
   css += ` *    extracts all properties from the referenced variant and creates corresponding variables under the\n`
   css += ` *    active property's path. These aliased variables act as a pointer to the active variant's styles.\n`
   css += ` *    They are indicated in the CSS with a preceding comment indicating the variant reference.\n`
+  css += ` *\n`
+  css += ` * 8. Typography Expansion\n`
+  css += ` *    When a token is a reference to a typography group (e.g. {brand.typography.h2}), the exporter\n`
+  css += ` *    automatically expands the reference into individual variables for each property in the group\n`
+  css += ` *    (e.g., font-family, font-weight). The base reference variable is safely discarded.\n`
   css += ` *\n`
   css += ` * --- Disabled state (implicit rule) ---\n`
   css += ` * The brand theme exposes a single disabled token: --recursica_brand_states_disabled (generic\n`
