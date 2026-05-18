@@ -7,11 +7,10 @@
 import { Avatar as MantineAvatar } from '@mantine/core'
 import type { AvatarProps as AdapterAvatarProps } from '../../Avatar'
 import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
-import { getComponentColorVars } from '../../../utils/getComponentColorVars'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { useCssVar } from '../../../hooks/useCssVar'
-import { readCssVarResolved, readCssVar } from '../../../../core/css/readCssVar'
+import { readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useState, useEffect } from 'react'
 import './Avatar.css'
 
@@ -31,23 +30,26 @@ export default function Avatar({
 }: AdapterAvatarProps) {
   const { mode } = useThemeMode()
   
-  // Get color CSS variables using shared utility
-  const { bgVar, borderVar, labelVar } = getComponentColorVars({
-    componentName: 'Avatar',
-    colorVariant,
-    layer,
-    mode,
-    src,
-    imageError: false,
-  })
-  
+  // Derive style type and secondary type from colorVariant (e.g., 'text-ghost' → style='text', type='ghost')
+  const paddingStyleType = colorVariant.split('-')[0]
+  const styleType = colorVariant.split('-').slice(1).join('-') || 'solid'
+
+  // Build color CSS variable paths directly matching the JSON hierarchy:
+  // avatar.variants.styles.{style}.variants.types.{type}.properties.colors.{layer}.{property}
+  const bgVar = paddingStyleType === 'image'
+    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'colors', layer, 'background')
+    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', 'types', styleType, 'properties', 'colors', layer, 'background')
+  const borderVar = paddingStyleType === 'image'
+    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'colors', layer, 'border-color')
+    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', 'types', styleType, 'properties', 'colors', layer, 'border-color')
+  const labelVar = paddingStyleType === 'text'
+    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'text', 'variants', 'types', styleType, 'properties', 'colors', layer, 'text-color')
+    : paddingStyleType === 'icon'
+      ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'icon', 'variants', 'types', styleType, 'properties', 'colors', layer, 'icon-color')
+      : bgVar
+
   // Reactively read border color to trigger re-renders when it changes
   const borderColorValue = useCssVar(borderVar, '')
-  
-
-  // Get level CSS variables (border-size, border-radius, padding)
-  const paddingStyleType = colorVariant.split('-')[0]
-  const styleType = colorVariant.split('-').slice(1).join('-')
   // Image style variant uses a flat path (no secondary solid/outline/ghost nesting)
   // For text/icon styles, border-size is under styles.{type}.variants.types.{secondary}.properties.border-size
   const borderSizeStyleVar = paddingStyleType === 'image'

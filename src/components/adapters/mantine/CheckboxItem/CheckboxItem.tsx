@@ -31,25 +31,26 @@ export default function CheckboxItem({
     const textDecorationVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-decoration')
     const textTransformVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-transform')
 
-    const getPropVar = (prop: string) => `var(${buildComponentCssVarPath('CheckboxItem', 'properties', prop)}, var(${buildComponentCssVarPath('Checkbox', 'properties', prop)}))`
-    const getColorVar = (prop: string) => `var(${buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, prop)}, var(${buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, prop)}))`
+    const getCheckboxPropVar = (prop: string) => `var(${buildComponentCssVarPath('Checkbox', 'properties', prop)})`
+    const getCheckboxColorVar = (prop: string) => `var(${buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, prop)})`
+    const getCheckboxItemColorVar = (prop: string) => `var(${buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, prop)})`
 
     const cssVars = {
-        '--checkbox-size': getPropVar('size'),
-        '--checkbox-radius': getPropVar('border-radius'),
-        '--checkbox-border-width': getPropVar('border-size'),
-        '--checkbox-icon-size': getPropVar('icon-size'),
-        '--checkbox-bg-checked': getColorVar('background-checked'),
-        '--checkbox-border-checked': getColorVar('border-checked'),
-        '--checkbox-bg-unchecked': getColorVar('background-unchecked'),
-        '--checkbox-border-unchecked': getColorVar('border-unchecked'),
-        '--checkbox-bg-indeterminate': getColorVar('background-indeterminate'),
-        '--checkbox-border-indeterminate': getColorVar('border-indeterminate'),
-        '--checkbox-icon-color': getColorVar('icon-color'),
-        '--checkbox-disabled-bg': getColorVar('disabled-background'),
-        '--checkbox-disabled-border': getColorVar('disabled-border'),
-        '--checkbox-disabled-icon': getColorVar('disabled-icon'),
-        '--checkbox-disabled-opacity': getPropVar('disabled-opacity'),
+        '--checkbox-size': getCheckboxPropVar('size'),
+        '--checkbox-radius': getCheckboxPropVar('border-radius'),
+        '--checkbox-border-width': getCheckboxPropVar('border-size'),
+        '--checkbox-icon-size': getCheckboxPropVar('icon-size'),
+        '--checkbox-bg-checked': getCheckboxColorVar('background-checked'),
+        '--checkbox-border-checked': getCheckboxColorVar('border-checked'),
+        '--checkbox-bg-unchecked': getCheckboxColorVar('background-unchecked'),
+        '--checkbox-border-unchecked': getCheckboxColorVar('border-unchecked'),
+        '--checkbox-bg-indeterminate': getCheckboxColorVar('background-indeterminate'),
+        '--checkbox-border-indeterminate': getCheckboxColorVar('border-indeterminate'),
+        '--checkbox-icon-color': getCheckboxColorVar('icon-color'),
+        '--checkbox-disabled-bg': getCheckboxColorVar('disabled-background'),
+        '--checkbox-disabled-border': getCheckboxColorVar('disabled-border'),
+        '--checkbox-disabled-icon': getCheckboxColorVar('disabled-icon'),
+        '--checkbox-disabled-opacity': getCheckboxPropVar('disabled-opacity'),
         '--checkbox-item-gap': `var(${labelGapVar})`,
         '--checkbox-item-font-family': `var(${fontFamilyVar})`,
         '--checkbox-item-font-size': `var(${fontSizeVar})`,
@@ -59,8 +60,8 @@ export default function CheckboxItem({
         '--checkbox-item-font-style': `var(${fontStyleVar})`,
         '--checkbox-item-text-decoration': `var(${textDecorationVar})`,
         '--checkbox-item-text-transform': `var(${textTransformVar})`,
-        '--checkbox-item-color': getColorVar('text'),
-        '--checkbox-item-disabled-color': getColorVar('disabled-text'),
+        '--checkbox-item-color': getCheckboxItemColorVar('text'),
+        '--checkbox-item-disabled-color': getCheckboxItemColorVar('disabled-text'),
         '--checkbox-item-max-width': `var(${maxWidthVar})`,
     }
 

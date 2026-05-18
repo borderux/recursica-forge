@@ -216,7 +216,7 @@ export default function TransferList({
         fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
         fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
         fontWeight: `var(--recursica_brand_typography_${headerStyleValue}-font-weight)`,
-        letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-letter-spacing)`,
+        letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-font-letter-spacing)`,
         lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
         textDecoration: `var(--recursica_brand_typography_${headerStyleValue}-text-decoration)`,
         textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)` as any,

@@ -7254,6 +7254,10 @@
             "text-transform": {
               "$type": "string",
               "$value": "{tokens.font.cases.original}"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "required-indicator-gap": {
