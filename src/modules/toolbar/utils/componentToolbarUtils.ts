@@ -28,6 +28,7 @@ export interface ComponentProp {
   range?: [number, number] // For slider
   step?: number // For slider
   sourceComponent?: string // Component key in recursica_ui-kit.json where this prop actually lives (for cross-component references)
+  defaultValue?: string // Default option value for virtual props backed by $extensions.recursica.component.selected-variants
 }
 
 export interface ComponentStructure {
@@ -342,6 +343,36 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
           traverse(value, currentPath, variantProp || 'color')
         }
         return // Early return after handling variants
+      }
+
+      // Check for a recursica.component extension token:
+      // has $value (component group ref) but no $type — emit one virtual prop per selected-variants key.
+      if (value && typeof value === 'object' && '$value' in value && !('$type' in value)) {
+        const extComp = (value as any)['$extensions']?.['recursica.component']
+        if (extComp && typeof extComp === 'object') {
+          const selectedVariants = (extComp['selected-variants'] ?? {}) as Record<string, unknown>
+          const mode = typeof document !== 'undefined'
+            ? (document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null) ?? 'light'
+            : 'light'
+          for (const [dimKey, dimRef] of Object.entries(selectedVariants)) {
+            if (typeof dimRef !== 'string') continue
+            const leafMatch = /\.([^.}]+)\}$/.exec(dimRef)
+            const defaultVal = leafMatch ? leafMatch[1] : dimRef
+            const childPropName = `${key}-${dimKey}`
+            const fullPath = ['components', componentKey, 'properties', key, dimKey]
+            const cssVar = toCssVarName(fullPath.join('.'), mode)
+            props.push({
+              name: childPropName,
+              category: 'size',
+              type: 'string',
+              cssVar,
+              path: ['properties', key, dimKey],
+              isVariantSpecific: false,
+              defaultValue: defaultVal,
+            })
+          }
+          return // Do not recurse into this token node
+        }
       }
 
       // Check if this is a value object with $type and $value

@@ -300,98 +300,116 @@ export function validateUIKitVariantStructure(uikitJson: JsonLike): void {
 }
 
 /**
- * Validates every `recursica.component-slot` $extensions group in recursica_ui-kit.json.
+ * Validates `recursica.component` extension tokens in recursica_ui-kit.json.
  *
- * Rules (DTCG §6 + Recursica conventions):
- *  1. `component` must be a string matching a key in `ui-kit.components`.
- *  2. `selected-variants` values must be strings (plain variant names).
- *  3. Each `selected-variants` key must correspond to a recognised variant
- *     dimension on the referenced component (i.e., `button.variants.{dimension}`).
+ * A `recursica.component` token is a DTCG token (has `$value`) whose `$value`
+ * references a component group (e.g. `{ui-kit.components.button}`). The
+ * component identity is inferred from the `$value` reference path.
+ * `$extensions.recursica.component.selected-variants` values are reference
+ * strings pointing to variant group nodes (e.g.
+ * `{ui-kit.components.button.variants.styles.solid}`).
+ *
+ * Validates that every `selected-variants` key corresponds to a recognised
+ * variant dimension on the target component.
  *
  * Throws if any violation is found.
  */
-export function validateUIKitComponentSlots(uikitJson: JsonLike): void {
+export function validateUIKitComponentExtensions(uikitJson: JsonLike): void {
   const uikit = (uikitJson as any)?.['ui-kit'] ?? uikitJson as any
   const components: Record<string, unknown> = uikit?.components ?? {}
 
   const errors: string[] = []
 
-  /** Collect all `recursica.component-slot` extension groups at any depth. */
-  function findSlots(
-    obj: unknown,
-    path: string,
-  ): Array<{ slot: Record<string, unknown>; path: string }> {
-    if (obj === null || typeof obj !== 'object') return []
-    const results: Array<{ slot: Record<string, unknown>; path: string }> = []
-    const o = obj as Record<string, unknown>
+  /**
+   * Extract the component name from a `$value` reference string.
+   * e.g. "{ui-kit.components.button}" → "button"
+   */
+  function componentNameFromRef(ref: unknown): string | null {
+    if (typeof ref !== 'string') return null
+    const m = ref.match(/^\{ui-kit\.components\.([^.}]+)/)
+    return m ? m[1] : null
+  }
 
-    if ('$extensions' in o) {
-      const ext = o.$extensions as Record<string, unknown>
-      if (ext && typeof ext === 'object' && 'recursica.component-slot' in ext) {
-        results.push({ slot: ext['recursica.component-slot'] as Record<string, unknown>, path })
+  /**
+   * Validate `selected-variants` entries for a given target component.
+   * Values are reference strings (e.g. `{ui-kit.components.button.variants.styles.solid}`).
+   */
+  function validateSelectedVariants(
+    selectedVariants: unknown,
+    targetCompName: string,
+    contextPath: string,
+  ): void {
+    if (selectedVariants === undefined) return
+    if (typeof selectedVariants !== 'object' || selectedVariants === null || Array.isArray(selectedVariants)) {
+      errors.push(`${contextPath}.$extensions[recursica.component]: "selected-variants" must be a plain object`)
+      return
+    }
+    const targetComp = components[targetCompName] as Record<string, unknown>
+    const targetVariants = (targetComp?.['variants'] ?? {}) as Record<string, unknown>
+    const validDimensions = new Set(Object.keys(targetVariants))
+
+    for (const [dimKey, dimVal] of Object.entries(selectedVariants as Record<string, unknown>)) {
+      if (typeof dimVal !== 'string') {
+        errors.push(
+          `${contextPath}.$extensions[recursica.component].selected-variants.${dimKey}: ` +
+          `value must be a string (got ${JSON.stringify(dimVal)})`
+        )
+      }
+      // Map singular toolbar key names ("style", "size") → plural JSON dimension keys ("styles", "sizes")
+      const dimensionKeyPlural = dimKey.endsWith('s') ? dimKey : `${dimKey}s`
+      if (validDimensions.size > 0 && !validDimensions.has(dimKey) && !validDimensions.has(dimensionKeyPlural)) {
+        errors.push(
+          `${contextPath}.$extensions[recursica.component].selected-variants: ` +
+          `dimension "${dimKey}" is not a recognised variant category on component "${targetCompName}". ` +
+          `Valid dimensions: ${[...validDimensions].join(', ')}`
+        )
       }
     }
+  }
+
+  /**
+   * Recursively find and validate recursica.component token nodes.
+   * Per DTCG: a node with `$value` is a token (leaf). Recursion stops at tokens.
+   */
+  function traverse(obj: unknown, path: string): void {
+    if (obj === null || typeof obj !== 'object') return
+    const o = obj as Record<string, unknown>
+    const isTokenNode = Object.prototype.hasOwnProperty.call(o, '$value')
+
+    if (isTokenNode && '$extensions' in o) {
+      const ext = o.$extensions as Record<string, unknown>
+      if (ext && typeof ext === 'object' && 'recursica.component' in ext) {
+        const compExt = ext['recursica.component'] as Record<string, unknown>
+        const compName = componentNameFromRef(o.$value)
+        if (!compName) {
+          errors.push(
+            `${path}.$extensions[recursica.component]: $value must be a reference to a ui-kit component ` +
+            `(e.g. "{ui-kit.components.button}"), got ${JSON.stringify(o.$value)}`
+          )
+        } else if (!(compName in components)) {
+          errors.push(`${path}.$extensions[recursica.component]: component "${compName}" does not exist in ui-kit.components`)
+        } else {
+          validateSelectedVariants(compExt['selected-variants'], compName, path)
+        }
+      }
+    }
+
+    // Do not recurse into token children — the $value is the leaf per DTCG.
+    if (isTokenNode) return
 
     for (const [k, v] of Object.entries(o)) {
       if (k.startsWith('$')) continue
-      results.push(...findSlots(v, `${path}.${k}`))
+      traverse(v, `${path}.${k}`)
     }
-    return results
   }
 
   for (const [compName, compData] of Object.entries(components)) {
-    const slots = findSlots(compData, `components.${compName}`)
-
-    for (const { slot, path } of slots) {
-      // Rule 1: component must be a string and must exist in ui-kit.components
-      const compRef = slot['component']
-      if (typeof compRef !== 'string' || compRef.trim() === '') {
-        errors.push(`${path}.$extensions[recursica.component-slot]: "component" must be a non-empty string (got ${JSON.stringify(compRef)})`)
-        continue
-      }
-      if (!(compRef in components)) {
-        errors.push(`${path}.$extensions[recursica.component-slot]: component "${compRef}" does not exist in ui-kit.components`)
-        continue
-      }
-
-      // Rule 2 & 3: selected-variants values must be strings, keys must be valid variant dimensions
-      const selectedVariants = slot['selected-variants']
-      if (selectedVariants !== undefined) {
-        if (typeof selectedVariants !== 'object' || selectedVariants === null || Array.isArray(selectedVariants)) {
-          errors.push(`${path}.$extensions[recursica.component-slot]: "selected-variants" must be a plain object`)
-          continue
-        }
-        const targetComp = components[compRef] as Record<string, unknown>
-        const targetVariants = (targetComp?.['variants'] ?? {}) as Record<string, unknown>
-        // Recognised variant dimension names on the target component (e.g. styles, sizes, content)
-        const validDimensions = new Set(Object.keys(targetVariants))
-
-        for (const [dimKey, dimVal] of Object.entries(selectedVariants as Record<string, unknown>)) {
-          // Value must be a plain string
-          if (typeof dimVal !== 'string') {
-            errors.push(
-              `${path}.$extensions[recursica.component-slot].selected-variants.${dimKey}: ` +
-              `value must be a plain string variant name (got ${JSON.stringify(dimVal)})`
-            )
-          }
-          // Dimension key must match a variants container on the target component
-          // Map toolbar prop names ("style") → JSON dimension keys ("styles")
-          const dimensionKeyPlural = dimKey.endsWith('s') ? dimKey : `${dimKey}s`
-          if (validDimensions.size > 0 && !validDimensions.has(dimKey) && !validDimensions.has(dimensionKeyPlural)) {
-            errors.push(
-              `${path}.$extensions[recursica.component-slot].selected-variants: ` +
-              `dimension "${dimKey}" is not a recognised variant category on component "${compRef}". ` +
-              `Valid dimensions: ${[...validDimensions].join(', ')}`
-            )
-          }
-        }
-      }
-    }
+    traverse(compData, `components.${compName}`)
   }
 
   if (errors.length > 0) {
     throw new Error(
-      `recursica_ui-kit.json component-slot validation failed (${errors.length} error(s)):\n` +
+      `recursica_ui-kit.json component extension validation failed (${errors.length} error(s)):\n` +
       errors.map(e => `  - ${e}`).join('\n')
     )
   }
@@ -435,8 +453,8 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
   // Enforce variant nesting structure
   validateUIKitVariantStructure(uikitJson)
 
-  // Enforce component-slot $extensions integrity
-  validateUIKitComponentSlots(uikitJson)
+  // Enforce recursica.component $extensions integrity
+  validateUIKitComponentExtensions(uikitJson)
 }
 
 // --- DTCG reference validation ---
@@ -528,7 +546,7 @@ export const REF_WORKAROUND_IDS = [
   'brand-theme-agnostic→themes.light|dark',
   'typography-composite-subproperty',
   'variant-group-reference',
-  'component-slot-group',
+  'recursica-component-token',
 ] as const
 
 export type RefWorkaroundId = (typeof REF_WORKAROUND_IDS)[number]
@@ -684,6 +702,16 @@ function resolveRefToToken(
     }
   }
 
+  // recursica.component tokens use $value to reference the component group itself
+  // (e.g. {ui-kit.components.button}). Accept any existing ui-kit component group.
+  if (allowedWorkarounds.has('recursica-component-token')) {
+    if (path.startsWith('ui-kit.components.') && !path.includes('.variants.') && !path.includes('.properties.')) {
+      if (strict !== undefined && typeof strict === 'object' && !isToken(strict)) {
+        return { resolved: true, workaround: 'recursica-component-token' }
+      }
+    }
+  }
+
   if (strict !== undefined) {
     return { resolved: false, message: `Reference targets a group (path has no $value token at "${path}"). DTCG: refs must point to a token.` }
   }
@@ -738,7 +766,7 @@ export function validateReferences(
     if (inExtensions) {
       const node = getAtPath(combined, path)
       if (node !== undefined) {
-        results.push({ ref, location, valid: true, workaroundUsed: 'component-slot-group' })
+        results.push({ ref, location, valid: true, workaroundUsed: 'recursica-component-token' })
       } else {
         results.push({ ref, location, valid: false, message: `Reference target does not exist: "${path}".` })
         errors.push(`  ${location}: ${ref} → Reference target does not exist: "${path}".`)

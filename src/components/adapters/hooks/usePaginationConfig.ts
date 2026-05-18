@@ -16,6 +16,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { buildComponentCssVarPath } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
+import { getComponentExtensionDefaults } from '../../../modules/toolbar/utils/componentExtensionToolbar'
+
 type ButtonVariant = 'solid' | 'outline' | 'text'
 type ButtonSize = 'default' | 'small'
 type NavDisplay = 'icon-only' | 'label' | 'icon-label'
@@ -30,13 +32,15 @@ interface PaginationConfig {
     navDisplay: NavDisplay
 }
 
+const _ext = getComponentExtensionDefaults('pagination')
+
 const DEFAULTS: PaginationConfig = {
-    activeStyle: 'solid',
-    activeSize: 'small',
-    inactiveStyle: 'outline',
-    inactiveSize: 'small',
-    navStyle: 'text',
-    navSize: 'small',
+    activeStyle: (_ext['active-pages.style'] as ButtonVariant) ?? 'solid',
+    activeSize: (_ext['active-pages.size'] as ButtonSize) ?? 'small',
+    inactiveStyle: (_ext['inactive-pages.style'] as ButtonVariant) ?? 'outline',
+    inactiveSize: (_ext['inactive-pages.size'] as ButtonSize) ?? 'small',
+    navStyle: (_ext['navigation-controls.style'] as ButtonVariant) ?? 'text',
+    navSize: (_ext['navigation-controls.size'] as ButtonSize) ?? 'small',
     navDisplay: 'icon-only',
 }
 

@@ -202,15 +202,18 @@ function DropdownFromCssVar({
   label,
   options,
   layer = 'layer-1',
+  defaultValue,
 }: {
   primaryVar: string
   cssVars: string[]
   label: string
   options: Array<string | { label: string; value: string; icon?: string }>
   layer?: any
+  defaultValue?: string
 }) {
-  const currentValue = useRawCssVar(primaryVar, '')
-  let cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || (typeof options[0] === 'string' ? options[0] : options[0]?.value ?? '')
+  const currentValue = useRawCssVar(primaryVar, defaultValue ?? '')
+  const fallback = defaultValue ?? (typeof options[0] === 'string' ? options[0] : options[0]?.value ?? '')
+  let cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || fallback
 
   // Reverse map typography CSS vars back to their token references so dropdown matches option value
   const typographyMatch = /var\(--recursica_brand_typography_([^)]+)/.exec(cleanValue)
@@ -1375,8 +1378,24 @@ export default function PropControlContent({
     const groupedConfigs = getGroupedProps(componentName, prop.name)
     if (groupedConfigs) {
       const structure = parseComponentStructure(componentName)
+      const parentPropConfig = getPropConfig(componentName, prop.name)
+      const componentRefLabel = parentPropConfig?.componentRef
+        ? parentPropConfig.componentRef.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        : null
       return (
         <>
+          {componentRefLabel && (
+            <h4 style={{
+              margin: '0 0 6px 0',
+              fontSize: '11px',
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              opacity: 0.5,
+            }}>
+              {componentRefLabel}
+            </h4>
+          )}
           {Object.entries(groupedConfigs).map(([childPropName, childConfig], index) => {
             // Find the child property in the component structure, ensuring we don't grab text-group properties (which are top-level only).
             // When the parent prop (e.g. "inactive", "active", "tabs") implies a specific path segment,
@@ -1470,10 +1489,22 @@ export default function PropControlContent({
               const parentName = prop.name.toLowerCase()
               let cssVarPath: string
               let pathSegments: string[]
+              let virtualDefault: string | undefined
               if (childPropName.startsWith(parentName + '-')) {
                 const suffix = childPropName.slice(parentName.length + 1)
                 cssVarPath = buildComponentCssVarPath(componentName, 'properties', parentName, suffix)
                 pathSegments = ['properties', parentName, suffix]
+                // Use static import — the live store strips $-prefixed keys during processing,
+                // making $extensions inaccessible. The static uikitJson always has raw data intact.
+                const compKey = componentName.toLowerCase()
+                const rawComponents = (uikitJson as any)?.['ui-kit']?.components ?? {}
+                const parentNode = rawComponents?.[compKey]?.properties?.[parentName]
+                const extVariants = parentNode?.['$extensions']?.['recursica.component']?.['selected-variants']
+                if (extVariants?.[suffix]) {
+                  const ref = String(extVariants[suffix])
+                  const leafMatch = /\.([^.}]+)\}$/.exec(ref)
+                  if (leafMatch) virtualDefault = leafMatch[1]
+                }
               } else {
                 cssVarPath = buildComponentCssVarPath(componentName, 'properties', childPropName)
                 pathSegments = ['properties', childPropName]
@@ -1485,12 +1516,14 @@ export default function PropControlContent({
                 cssVar: cssVarPath,
                 path: pathSegments,
                 isVariantSpecific: false,
+                defaultValue: virtualDefault,
               }
             }
 
+
             if (!childProp) return null
 
-            const isVirtualProp = hasBorderPropsOverride || (!layerMatchedChildProp && !structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase() && p.type !== 'text-group'))
+            const isVirtualProp = hasBorderPropsOverride || childProp.type === 'string' || (!layerMatchedChildProp && !structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase() && p.type !== 'text-group'))
             const cssVars = isVirtualProp ? [childProp.cssVar] : getCssVarsForProp(childProp)
             const primaryVar = cssVars[0] || childProp.cssVar
             const label = childConfig.label || getPropLabel(componentName, childPropName) || toSentenceCase(childPropName)
@@ -1549,6 +1582,7 @@ export default function PropControlContent({
             label={label}
             options={configWithControl.options}
             layer={selectedLayer}
+            defaultValue={propToRender.defaultValue}
           />
         )
       }

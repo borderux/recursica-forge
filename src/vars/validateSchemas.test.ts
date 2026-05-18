@@ -10,6 +10,7 @@ import uikitJson from '../../recursica_ui-kit.json'
 import {
   validateReferences,
   validateDtcgStructure,
+  validateUIKitComponentExtensions,
   REF_WORKAROUND_IDS,
   type RefWorkaroundId,
 } from '../core/utils/validateJsonSchemas'
@@ -505,6 +506,7 @@ describe('DTCG reference validation', () => {
     expect(REF_WORKAROUND_IDS).toContain('tokens.opacity→opacities')
     expect(REF_WORKAROUND_IDS).toContain('brand-theme-agnostic→themes.light|dark')
     expect(REF_WORKAROUND_IDS).toContain('typography-composite-subproperty')
+    expect(REF_WORKAROUND_IDS).toContain('recursica-component-token')
   })
 
   it('should fail when ref points to group and work-arounds disabled', () => {
@@ -594,5 +596,107 @@ describe('DTCG structural compliance (validateDtcgStructure)', () => {
   it('should accept $extensions.recursica.metadata as a replacement for $metadata', () => {
     const valid = { brand: {}, $extensions: { 'recursica.metadata': { exportedAt: '2026-01-01', version: '1.0.0' } } }
     expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+  })
+})
+
+describe('validateUIKitComponentExtensions', () => {
+  it('should pass on seed ui-kit JSON', () => {
+    expect(() => validateUIKitComponentExtensions(uikitJson as any)).not.toThrow()
+  })
+
+  it('should validate recursica.component token with valid selected-variants', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          button: {
+            variants: {
+              styles: { solid: { properties: {} }, outline: { properties: {} } },
+              sizes: { small: { properties: {} } },
+            },
+          },
+          pagination: {
+            properties: {
+              'active-pages': {
+                $value: '{ui-kit.components.button}',
+                $extensions: {
+                  'recursica.component': {
+                    'selected-variants': {
+                      style: '{ui-kit.components.button.variants.styles.solid}',
+                      size: '{ui-kit.components.button.variants.sizes.small}',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    expect(() => validateUIKitComponentExtensions(uikit as any)).not.toThrow()
+  })
+
+  it('should fail when $value does not reference a ui-kit component', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          pagination: {
+            properties: {
+              'active-pages': {
+                $value: '{brand.some.token}',
+                $extensions: { 'recursica.component': { 'selected-variants': {} } },
+              },
+            },
+          },
+        },
+      },
+    }
+    expect(() => validateUIKitComponentExtensions(uikit as any)).toThrow(/\$value must be a reference to a ui-kit component/)
+  })
+
+  it('should fail when component name in $value does not exist', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          pagination: {
+            properties: {
+              'active-pages': {
+                $value: '{ui-kit.components.nonexistent}',
+                $extensions: { 'recursica.component': { 'selected-variants': {} } },
+              },
+            },
+          },
+        },
+      },
+    }
+    expect(() => validateUIKitComponentExtensions(uikit as any)).toThrow(/does not exist in ui-kit.components/)
+  })
+
+  it('should fail when selected-variants dimension key is not valid', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          button: {
+            variants: {
+              styles: { solid: { properties: {} } },
+            },
+          },
+          pagination: {
+            properties: {
+              'active-pages': {
+                $value: '{ui-kit.components.button}',
+                $extensions: {
+                  'recursica.component': {
+                    'selected-variants': {
+                      unknownDimension: '{ui-kit.components.button.variants.styles.solid}',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    expect(() => validateUIKitComponentExtensions(uikit as any)).toThrow(/is not a recognised variant category/)
   })
 })

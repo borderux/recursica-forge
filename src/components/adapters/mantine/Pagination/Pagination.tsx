@@ -48,13 +48,14 @@ export default function Pagination({
 
     // Helper to render nav button content based on display mode
     const getNavButtonProps = (icon: React.ReactNode, label: string) => {
-        if (navDisplay === 'label') {
+        const display = typeof navDisplay === 'string' ? navDisplay.trim() : ''
+        if (display === 'label') {
             return { children: label }
         }
-        if (navDisplay === 'icon-label') {
+        if (display === 'icon-label') {
             return { icon, children: label }
         }
-        // icon-only (default)
+        // icon-only (default for all other values including empty/unset)
         return { icon }
     }
 
@@ -124,9 +125,8 @@ export default function Pagination({
                         disabled={disabled}
                         onClick={() => pagination.setPage(item)}
                         title={`Page ${item}`}
-                    >
-                        {item}
-                    </Button>
+                        icon={<span style={{ fontVariantNumeric: 'tabular-nums' }}>{item}</span>}
+                    />
                 )
             })}
 
