@@ -1,5 +1,115 @@
 # recursica-forge
 
+## 0.16.0
+
+### Minor Changes
+
+- 4fd3e4f: ## DTCG Token Schema Compliance Refactor
+
+  Full alignment of `recursica_brand.json`, `recursica_tokens.json`, and `recursica_ui-kit.json` with the Design Token Community Group (DTCG) v2025.10 specification.
+
+  ### JSON Token Changes
+
+  - **`$metadata` removed from all three JSON files** — moved to `$extensions.recursica.metadata` per DTCG spec (only `$value`, `$type`, `$description`, `$extensions`, `$deprecated`, and `$extends` are reserved `$`-prefixed keys)
+  - **`$type: "elevation"` removed** from 8 ui-kit layer property tokens and 8 brand layer property tokens — type preserved as `$extensions.recursica.type: "elevation"` alongside an untyped `$value`
+  - **`$type: "boxShadow"` corrected** across 10 brand elevation tokens — replaced with `$type: "shadow"` (the DTCG-defined composite type for box-shadow) with `$extensions.recursica.type: "boxShadow"` retaining the original semantic
+  - **Pagination component slots** refactored to use `$extensions.recursica.component` for sub-component variant configuration instead of non-standard flat variant structures
+  - **Fixed typo** in pagination `navigation-controls` extension: `variants.contents` → `variants.content`
+
+  ### Schema Validator (`validateJsonSchemas.ts`)
+
+  - Added `validateDtcgStructure` — shared compliance checker for all three JSON files; enforces no unknown `$`-prefixed keys and no non-standard `$type` values; throws with a full list of violations
+  - Wired `validateDtcgStructure` into `validateBrandJson` and `validateTokensJson`
+  - Updated `collectRefs` to tag references inside `$extensions` blocks with `inExtensions: true`, allowing component-slot references to target groups/tokens (not only leaf tokens)
+  - Added `validateUIKitComponentSlots` to enforce structural integrity of `recursica.component` extension payloads
+
+  ### Runtime Resolvers & Export Transforms
+
+  - **`uikit.ts` resolver** — token detection guard updated from `'$value' in value && '$type' in value` to `'$value' in value`; effective token type now resolved as `$type ?? $extensions['recursica.type']`, so elevation tokens reach the correct handler
+  - **Both export transforms** (`recursicaJsonTransformScoped.ts`, `recursicaJsonTransformSpecific.ts`) — `collectVars` reads `$extensions['recursica.type']` as a fallback token type when `$type` is absent
+  - **`jsonExport.ts`** — all five metadata write sites migrated from `$metadata` to `$extensions.recursica.metadata`; `version` field now reads from `package.json` at runtime instead of a hardcoded string
+  - **`exportImportValidator.ts`** — round-trip diff path skip updated from `$metadata.` to `$extensions.recursica.metadata.`
+
+  ### Bug Fix
+
+  - **`PaletteColorControl.css`** — corrected `--recursica_brand_themes_*_palettes_core-colors_alert_color_tone` (non-existent) to `_alert_tone`; removed all fallback values from `var()` calls; removed hardcoded `rgba()` hover backgrounds
+
+  ### Tests
+
+  - 8 new `validateDtcgStructure` tests covering: seed JSON passes, `$metadata` rejection, `"elevation"` / `"boxShadow"` `$type` rejection, valid `"shadow"` + extensions pattern, typeless tokens via `recursica.type`, and `$extensions.recursica.metadata` acceptance
+  - Elevation test fixture updated from `$type: 'boxShadow'` to `$type: 'shadow'` with correct extensions structure
+  - All 37 schema tests and 299 suite tests passing
+
+### Patch Changes
+
+- 955f309: ## Avatar — remove redundant `properties.size` token
+
+  ### Background
+
+  The `sizes` variant group (`small` / `default` / `large`) previously had three dimension tokens under `properties`: `size`, `width`, and `height`. The `size` token predated the addition of separate `width` and `height` tokens and was left in place as a duplicate.
+
+  ### Changes
+
+  **`recursica_ui-kit.json` and `src/components/test-exports/avatar.json`**
+  Removed the `"size"` property token from `variants.sizes.small.properties`, `variants.sizes.default.properties`, and `variants.sizes.large.properties` in both files.
+
+  **Avatar adapters (Mantine, Carbon, Material)**
+
+  - Removed the dangling `--avatar-size` CSS custom property that was being set but never consumed by any CSS rule (CSS only ever read `--avatar-width` and `--avatar-height`).
+  - Material UI adapter: switched `sx.width` and `sx.height` from `var(properties.size)` to `var(properties.width)` / `var(properties.height)`.
+
+  **Timeline consumers**
+  Four files that derived avatar bullet sizing from `Avatar > variants > sizes > {size} > properties.size` were updated to use `properties.width` instead:
+
+  - `adapters/mantine/Timeline/Timeline.tsx`
+  - `modules/components/TimelinePreview.tsx`
+  - `modules/components/TimelineBulletPreview.tsx`
+
+- 312e60a: ## Reset Now Clears localStorage
+
+  - `localStorage.clear()` is called immediately after `resetAll()` in the reset handler of `MantineShell`, `MaterialShell`, and `CarbonShell`
+  - This ensures no stale versioned token state, cached overrides, or corrupted data persists after a hard reset to forge defaults
+  - The save reminder session counters (`sessionStorage`) are also cleared via `resetSaveReminder()` as part of the same reset flow
+
+- fe1cbd1: ## Save Reminder & Toast Component Improvements
+
+  ### Save Reminder (new feature)
+
+  - Added `useSaveReminder` hook (`src/core/hooks/useSaveReminder.ts`) that tracks cumulative CSS variable change batches and elapsed session time via `sessionStorage`
+  - Triggers a persistent Toast notification after 100 changes or 30 minutes of active editing — whichever comes first; repeats after each subsequent threshold
+  - Reminder resets on manual export or clicking "Reset All" in the shell header
+  - Developer shortcut: append `?remind=1` to any shell URL to trigger the toast immediately for QA
+  - Integrated into `MantineShell`, `MaterialShell`, and `CarbonShell` with shell-specific default positioning (`bottom: 24px, right: 24px`)
+  - Toast renders with `layer-0`, an "Export" action button (opens the export modal), and a dismiss close button
+
+  ### Toast Adapter
+
+  - Removed the fallback div render path from `Toast.tsx` — the adapter now exclusively delegates to the registered library-specific component (fail-loud on missing registration)
+  - Cleaned up unused imports (`Button`, `iconNameToReactComponent`, `getComponentCssVar`, etc.) from the adapter
+
+  ### Toast Component (Mantine)
+
+  - Fixed close (×) button visibility: replaced the Button adapter (which was collapsing to zero dimensions due to `--button-icon-size: 0px`) with a properly sized implementation using explicit CSS dimensions
+  - Fixed close button SVG sizing: added `min-width`, `min-height`, `max-width`, `max-height` overrides to prevent Button adapter icon-size tokens from zeroing out the icon
+  - Fixed close button color on success/error variants: `stroke` and `color` now explicitly use `--toast-button` to match the Undo button's interactive color
+  - `--button-icon-size: 16px` set on the close button container to override the default 0px token value
+
+  ### Toast Previews
+
+  - First preview toast now shows message-only (no action, no close) to demonstrate the base component
+  - Second preview toast shows both an "Undo" action button and a dismiss (×) close button across all variants (default, success, error)
+  - `onClose` is now always passed to all preview instances (was previously conditional on variant)
+
+  ### Avatar Variants
+
+  - Removed redundant `size` property from Avatar variant definitions in Mantine, Carbon, and Material adapters — `size` is a component prop, not a variant token
+  - Updated `avatar.json` test export to remove the now-invalid `size` field
+
+- 4f15865: **Font delete reassignment modal** — when a user deletes a font family, a confirmation modal now appears (mirroring the existing palette delete flow) that lets them redirect any existing references to the disappearing position slot to a remaining font position. The last position slot (e.g. Tertiary when three fonts are defined) always becomes the stale reference after renumbering; all other positions shift automatically and require no intervention.
+
+  - `varsStore.deleteFont(fontIdToDelete, fallbackPositionId)` — new store method that: removes the deleted font from `localStorage`, renumbers kept fonts, replaces all `{brand.fonts.<lastPosition>}` references in the serialized state with the chosen fallback position, clears stale CSS vars from the DOM, and calls `syncFontsToTokens` to rebuild brand and token JSON.
+  - `FontFamiliesTokens` — trash button now opens a delete-confirmation modal with a dropdown of remaining font positions (labeled with their new sequence name and family, e.g. "Secondary — Quattrocento") rather than deleting immediately. A `saveStoredFonts` call before deletion seeds the `recursica_fonts` localStorage key when fonts were being served from the `getDefaultFonts()` fallback (empty key caused `deleteFont` to silently no-op).
+
 ## 0.15.2
 
 ### Patch Changes
