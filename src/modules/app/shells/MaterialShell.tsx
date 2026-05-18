@@ -49,6 +49,7 @@ import {
 } from "../../../core/utils/cssAuditPreference";
 import { genericLayerText, genericLayerProperty } from "../../../core/css/cssVarBuilder";
 import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
+import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
 
 export default function MaterialShell({
   children,
@@ -92,6 +93,7 @@ export default function MaterialShell({
     handleGitHubExportSuccess,
   } = useJsonExport();
   const { visible: reminderVisible, dismiss: dismissReminder, handleExport: reminderHandleExport, resetSaveReminder } = useSaveReminder(handleExport)
+  const { updateAvailable, checkNow, dismissUpdate, simulateUpdate } = useVersionCheck()
   const {
     selectedFiles,
     setSelectedFiles,
@@ -540,6 +542,7 @@ export default function MaterialShell({
                     resetAll();
                     localStorage.clear();
                     resetSaveReminder();
+                    checkNow();
                     setTimeout(() => runScan(), 1000);
                   }}
                 />
@@ -587,26 +590,28 @@ export default function MaterialShell({
                 />
               </Tooltip>
 
-              <Tooltip label='Report a bug'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const BugIcon = iconNameToReactComponent("bug");
-                    return BugIcon ? (
-                      <BugIcon
-                        style={{
-                          width:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                          height:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => createBugReport()}
-                />
-              </Tooltip>
+              {!import.meta.env.DEV && (
+                <Tooltip label='Report a bug'>
+                  <Button
+                    variant='outline'
+                    size='small'
+                    icon={(() => {
+                      const BugIcon = iconNameToReactComponent("bug");
+                      return BugIcon ? (
+                        <BugIcon
+                          style={{
+                            width:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                            height:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                          }}
+                        />
+                      ) : null;
+                    })()}
+                    onClick={() => createBugReport()}
+                  />
+                </Tooltip>
+              )}
               {import.meta.env.DEV && (
                 <>
                   <Tooltip label='Randomize all variables (dev only)'>
@@ -656,6 +661,24 @@ export default function MaterialShell({
                         sizeVariant='small'
                       />
                     </div>
+                  </Tooltip>
+                  <Tooltip label='Simulate version update (dev only)'>
+                    <Button
+                      variant='outline'
+                      size='small'
+                      icon={(() => {
+                        const VersionIcon = iconNameToReactComponent('trend-up')
+                        return VersionIcon ? (
+                          <VersionIcon
+                            style={{
+                              width: 'var(--recursica_brand_dimensions_icons_default)',
+                              height: 'var(--recursica_brand_dimensions_icons_default)',
+                            }}
+                          />
+                        ) : null
+                      })()}
+                      onClick={simulateUpdate}
+                    />
                   </Tooltip>
                 </>
               )}
@@ -894,6 +917,23 @@ export default function MaterialShell({
           missingNodes={errorNodes}
           onAcknowledge={handleDirtyCancel}
         />
+        {/* Update Available Toast */}
+        {updateAvailable && (
+          <div style={{ position: 'fixed', bottom: reminderVisible ? '112px' : '24px', right: '24px', zIndex: 40001, transition: 'bottom 0.3s ease' }}>
+            <Toast
+              variant="error"
+              layer="layer-0"
+              onClose={dismissUpdate}
+              action={
+                <Button variant="solid" size="small" layer="layer-0" onClick={() => window.location.reload()} style={{ minWidth: 0, ['--button-min-width' as string]: '0' }}>
+                  Upgrade
+                </Button>
+              }
+            >
+              A new version of Forge is available. Upgrading won't lose any of your changes.
+            </Toast>
+          </div>
+        )}
         {/* Save Reminder Toast */}
         {reminderVisible && (
           <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 40000 }}>

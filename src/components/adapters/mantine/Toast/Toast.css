@@ -42,12 +42,15 @@
 
 .recursica-toast-action {
   flex-shrink: 0 !important;
+  white-space: nowrap !important;
 }
 
 .recursica-toast-action button {
   background-color: transparent !important;
   --button-bg: transparent !important;
   opacity: 1 !important;
+  white-space: nowrap !important;
+  min-width: fit-content !important;
 }
 
 /* Apply color override only when --toast-button is set (success/error variants) */
