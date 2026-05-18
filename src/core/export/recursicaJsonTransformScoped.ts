@@ -347,12 +347,17 @@ function collectVars(obj: unknown, pathPrefix: string, out: FlatEntry[]): void {
   if (typeof obj === 'object' && !Array.isArray(obj)) {
     const record = obj as Record<string, unknown>
     if ('$value' in record) {
+      // Skip recursica.component tokens: they reference a component node (not a scalar),
+      // so no CSS var should be emitted for them.
+      const extensions = record.$extensions as Record<string, unknown> | undefined
+      if (extensions?.['recursica.component'] != null) return
+
       const v = record.$value
       // Prefer $type; fall back to $extensions['recursica.type'] for tokens
       // whose type is expressed via extensions (e.g. elevation tokens post-DTCG refactor)
       const dtcgType = typeof record.$type === 'string' ? (record.$type as string) : undefined
       const extType = !dtcgType
-        ? (record.$extensions as Record<string, unknown> | undefined)?.['recursica.type'] as string | undefined
+        ? extensions?.['recursica.type'] as string | undefined
         : undefined
       const tokenType = dtcgType ?? extType
       if (v != null && typeof v === 'object' && !Array.isArray(v) && !('value' in v && 'unit' in v)) {
