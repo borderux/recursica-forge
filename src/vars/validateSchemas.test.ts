@@ -9,6 +9,7 @@ import tokensJson from '../../recursica_tokens.json'
 import uikitJson from '../../recursica_ui-kit.json'
 import {
   validateReferences,
+  validateDtcgStructure,
   REF_WORKAROUND_IDS,
   type RefWorkaroundId,
 } from '../core/utils/validateJsonSchemas'
@@ -463,14 +464,17 @@ describe('JSON Schema Validation', () => {
             light: {
               elevations: {
                 'elevation-0': {
-                  $type: 'boxShadow',
+                  // DTCG-compliant: $type:'shadow' (DTCG spec type for box-shadow)
+                  // with $extensions.recursica.type preserving the 'boxShadow' semantic
+                  $type: 'shadow',
+                  $extensions: { 'recursica.type': 'boxShadow' },
                   $value: {
                     x: { $value: '0', unit: 'px' },
                     y: { $value: '0', unit: 'px' },
                     blur: { $value: '0', unit: 'px' },
                     spread: { $value: '0', unit: 'px' },
                     color: { $value: '#000000', $type: 'color' },
-                    opacity: { $value: '{tokens.opacity.solid}', $type: 'opacity' }
+                    opacity: { $value: '{tokens.opacity.solid}', $type: 'number' }
                   }
                 }
               }
@@ -478,10 +482,10 @@ describe('JSON Schema Validation', () => {
           }
         }
       }
-      
+
       const validate = ajv.compile(brandSchema)
       const valid = validate(brandWithElevation)
-      
+
       // Should validate elevation structure
       expect(validate).toBeDefined()
     })
@@ -539,3 +543,56 @@ describe('DTCG reference validation', () => {
   })
 })
 
+
+describe('DTCG structural compliance (validateDtcgStructure)', () => {
+  it('should pass on the seed brand JSON', () => {
+    expect(() => validateDtcgStructure(brandJson as any, 'recursica_brand.json')).not.toThrow()
+  })
+
+  it('should pass on the seed tokens JSON', () => {
+    expect(() => validateDtcgStructure(tokensJson as any, 'recursica_tokens.json')).not.toThrow()
+  })
+
+  it('should pass on the seed ui-kit JSON', () => {
+    expect(() => validateDtcgStructure(uikitJson as any, 'recursica_ui-kit.json')).not.toThrow()
+  })
+
+  it('should throw when $metadata is used at root level', () => {
+    const bad = { brand: {}, $metadata: { exportedAt: '2026-01-01', version: '1.0.0' } }
+    expect(() => validateDtcgStructure(bad as any, 'test.json')).toThrow(/unknown-\$-key/)
+  })
+
+  it('should throw when $type is a non-standard value like "elevation"', () => {
+    const bad = { 'ui-kit': { layer: { elevation: { $type: 'elevation', $value: '{brand.elevations.elevation-0}' } } } }
+    expect(() => validateDtcgStructure(bad as any, 'test.json')).toThrow(/non-standard-\$type/)
+  })
+
+  it('should throw when $type is "boxShadow" (non-standard; should be "shadow")', () => {
+    const bad = { brand: { themes: { light: { elevations: { 'elevation-0': { $type: 'boxShadow', $value: {} } } } } } }
+    expect(() => validateDtcgStructure(bad as any, 'test.json')).toThrow(/non-standard-\$type/)
+  })
+
+  it('should accept $type:"shadow" with $extensions.recursica.type:"boxShadow"', () => {
+    const valid = {
+      brand: { themes: { light: { elevations: { 'elevation-0': {
+        $type: 'shadow',
+        $extensions: { 'recursica.type': 'boxShadow' },
+        $value: { x: 0, y: 0, blur: 0, spread: 0, color: '#000' },
+      } } } } },
+    }
+    expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+  })
+
+  it('should accept tokens with no $type (elevation via $extensions.recursica.type)', () => {
+    const valid = { 'ui-kit': { layer: { elevation: {
+      $extensions: { 'recursica.type': 'elevation' },
+      $value: '{brand.elevations.elevation-0}',
+    } } } }
+    expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+  })
+
+  it('should accept $extensions.recursica.metadata as a replacement for $metadata', () => {
+    const valid = { brand: {}, $extensions: { 'recursica.metadata': { exportedAt: '2026-01-01', version: '1.0.0' } } }
+    expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+  })
+})

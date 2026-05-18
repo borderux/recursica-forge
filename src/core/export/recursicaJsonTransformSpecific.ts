@@ -282,7 +282,13 @@ function collectVars(obj: unknown, pathPrefix: string, out: FlatEntry[]): void {
     const record = obj as Record<string, unknown>
     if ('$value' in record) {
       const v = record.$value
-      const tokenType = typeof record.$type === 'string' ? (record.$type as string) : undefined
+      // Prefer $type; fall back to $extensions['recursica.type'] for tokens
+      // whose type is expressed via extensions (e.g. elevation tokens post-DTCG refactor)
+      const dtcgType = typeof record.$type === 'string' ? (record.$type as string) : undefined
+      const extType = !dtcgType
+        ? (record.$extensions as Record<string, unknown> | undefined)?.['recursica.type'] as string | undefined
+        : undefined
+      const tokenType = dtcgType ?? extType
       if (v != null && typeof v === 'object' && !Array.isArray(v) && !('value' in v && 'unit' in v)) {
         for (const [k, child] of Object.entries(v)) {
           if (k.startsWith('$')) continue

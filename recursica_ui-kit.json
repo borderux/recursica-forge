@@ -237,12 +237,16 @@
                   }
                 },
                 "elevation": {
-                  "$type": "elevation",
-                  "$value": "{brand.elevations.elevation-0}"
+                  "$value": "{brand.elevations.elevation-0}",
+                  "$extensions": {
+                    "recursica.type": "elevation"
+                  }
                 },
                 "hover-elevation": {
-                  "$type": "elevation",
-                  "$value": "{brand.elevations.elevation-0}"
+                  "$value": "{brand.elevations.elevation-0}",
+                  "$extensions": {
+                    "recursica.type": "elevation"
+                  }
                 }
               }
             },
@@ -346,12 +350,16 @@
                   }
                 },
                 "elevation": {
-                  "$type": "elevation",
-                  "$value": "{brand.elevations.elevation-0}"
+                  "$value": "{brand.elevations.elevation-0}",
+                  "$extensions": {
+                    "recursica.type": "elevation"
+                  }
                 },
                 "hover-elevation": {
-                  "$type": "elevation",
-                  "$value": "{brand.elevations.elevation-0}"
+                  "$value": "{brand.elevations.elevation-0}",
+                  "$extensions": {
+                    "recursica.type": "elevation"
+                  }
                 }
               }
             },
@@ -455,12 +463,16 @@
                   }
                 },
                 "elevation": {
-                  "$type": "elevation",
-                  "$value": "{brand.elevations.elevation-0}"
+                  "$value": "{brand.elevations.elevation-0}",
+                  "$extensions": {
+                    "recursica.type": "elevation"
+                  }
                 },
                 "hover-elevation": {
-                  "$type": "elevation",
-                  "$value": "{brand.elevations.elevation-0}"
+                  "$value": "{brand.elevations.elevation-0}",
+                  "$extensions": {
+                    "recursica.type": "elevation"
+                  }
                 }
               }
             }
@@ -964,20 +976,28 @@
         "properties": {
           "elevation": {
             "layer-0": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-4}"
+              "$value": "{brand.elevations.elevation-4}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             },
             "layer-1": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-4}"
+              "$value": "{brand.elevations.elevation-4}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             },
             "layer-2": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-4}"
+              "$value": "{brand.elevations.elevation-4}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             },
             "layer-3": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-4}"
+              "$value": "{brand.elevations.elevation-4}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             }
           },
           "vertical-padding": {
@@ -1056,8 +1076,10 @@
       "tooltip": {
         "properties": {
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-4}"
+            "$value": "{brand.elevations.elevation-4}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "border-size": {
             "$type": "dimension",
@@ -1376,26 +1398,34 @@
           "elevations": {
             "layer-0": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.elevations.elevation-0}"
+                "$value": "{brand.elevations.elevation-0}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               }
             },
             "layer-1": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.elevations.elevation-2}"
+                "$value": "{brand.elevations.elevation-2}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               }
             },
             "layer-2": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.elevations.elevation-4}"
+                "$value": "{brand.elevations.elevation-4}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               }
             },
             "layer-3": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.elevations.elevation-4}"
+                "$value": "{brand.elevations.elevation-4}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               }
             }
           },
@@ -1986,8 +2016,10 @@
             "$value": "{brand.dimensions.text-size.default}"
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "text": {
             "font-family": {
@@ -2310,12 +2342,16 @@
             }
           },
           "thumb-elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "track-elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           }
         }
       },
@@ -3012,8 +3048,10 @@
             "$value": "{brand.dimensions.border-radii.lg}"
           },
           "thumb-elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "input-width": {
             "$type": "dimension",
@@ -5282,8 +5320,10 @@
             }
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "border-size": {
             "$type": "dimension",
@@ -5379,8 +5419,10 @@
               }
             },
             "elevation": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-1}"
+              "$value": "{brand.elevations.elevation-1}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             },
             "border-size": {
               "$type": "dimension",
@@ -5454,8 +5496,10 @@
               }
             },
             "elevation": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-0}"
+              "$value": "{brand.elevations.elevation-0}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             },
             "border-size": {
               "$type": "dimension",
@@ -5601,8 +5645,10 @@
             }
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "divider-size": {
             "$type": "dimension",
@@ -5732,12 +5778,16 @@
             "$value": "{brand.dimensions.border-radii.none}"
           },
           "elevation-item": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "elevation-content": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "colors": {
             "layer-0": {
@@ -6672,8 +6722,10 @@
         },
         "properties": {
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           }
         }
       },
@@ -6985,8 +7037,10 @@
             "$value": "{brand.dimensions.border-radii.2xl}"
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-0}"
+            "$value": "{brand.elevations.elevation-0}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           }
         }
       },
@@ -7023,37 +7077,37 @@
             "$value": "{brand.dimensions.general.sm}"
           },
           "active-pages": {
-            "style": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.styles.solid}"
-            },
-            "size": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.sizes.small}"
+            "$extensions": {
+              "recursica.component": {
+                "component": "{ui-kit.components.button}",
+                "selected-variants": {
+                  "style": "{ui-kit.components.button.variants.styles.solid}",
+                  "size": "{ui-kit.components.button.variants.sizes.small}"
+                }
+              }
             }
           },
           "inactive-pages": {
-            "style": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.styles.outline}"
-            },
-            "size": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.sizes.small}"
+            "$extensions": {
+              "recursica.component": {
+                "component": "{ui-kit.components.button}",
+                "selected-variants": {
+                  "style": "{ui-kit.components.button.variants.styles.outline}",
+                  "size": "{ui-kit.components.button.variants.sizes.small}"
+                }
+              }
             }
           },
           "navigation-controls": {
-            "style": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.styles.text}"
-            },
-            "size": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.sizes.small}"
-            },
-            "content": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.content.icon-only}"
+            "$extensions": {
+              "recursica.component": {
+                "component": "{ui-kit.components.button}",
+                "selected-variants": {
+                  "style": "{ui-kit.components.button.variants.styles.text}",
+                  "size": "{ui-kit.components.button.variants.sizes.small}",
+                  "content": "{ui-kit.components.button.variants.content.icon-only}"
+                }
+              }
             }
           }
         }
@@ -11871,8 +11925,10 @@
             }
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-1}"
+            "$value": "{brand.elevations.elevation-1}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "divider-height": {
             "$type": "dimension",
@@ -12760,8 +12816,10 @@
             }
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-3}"
+            "$value": "{brand.elevations.elevation-3}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "header-style": {
             "$type": "typography",
@@ -12908,8 +12966,10 @@
             }
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-1}"
+            "$value": "{brand.elevations.elevation-1}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           }
         }
       },
@@ -13082,8 +13142,10 @@
             }
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-3}"
+            "$value": "{brand.elevations.elevation-3}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "content-style": {
             "$type": "typography",
@@ -13946,8 +14008,10 @@
       }
     }
   },
-  "$metadata": {
-    "exportedAt": "2026-05-06T17:14:27.185Z",
-    "version": "1.0.0"
+  "$extensions": {
+    "recursica.metadata": {
+      "exportedAt": "2026-05-06T17:14:27.185Z",
+      "version": "1.0.0"
+    }
   }
 }
