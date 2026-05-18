@@ -170,8 +170,10 @@
             }
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-2}"
+            "$value": "{brand.elevations.elevation-2}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "divider-size": {
             "$type": "dimension",
@@ -301,12 +303,16 @@
             "$value": "{brand.dimensions.border-radii.default}"
           },
           "elevation-item": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-1}"
+            "$value": "{brand.elevations.elevation-1}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "elevation-content": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-2}"
+            "$value": "{brand.elevations.elevation-2}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "colors": {
             "layer-0": {

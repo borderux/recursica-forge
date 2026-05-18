@@ -7077,9 +7077,9 @@
             "$value": "{brand.dimensions.general.sm}"
           },
           "active-pages": {
+            "$value": "{ui-kit.components.button}",
             "$extensions": {
               "recursica.component": {
-                "component": "{ui-kit.components.button}",
                 "selected-variants": {
                   "style": "{ui-kit.components.button.variants.styles.solid}",
                   "size": "{ui-kit.components.button.variants.sizes.small}"
@@ -7088,9 +7088,9 @@
             }
           },
           "inactive-pages": {
+            "$value": "{ui-kit.components.button}",
             "$extensions": {
               "recursica.component": {
-                "component": "{ui-kit.components.button}",
                 "selected-variants": {
                   "style": "{ui-kit.components.button.variants.styles.outline}",
                   "size": "{ui-kit.components.button.variants.sizes.small}"
@@ -7099,9 +7099,9 @@
             }
           },
           "navigation-controls": {
+            "$value": "{ui-kit.components.button}",
             "$extensions": {
               "recursica.component": {
-                "component": "{ui-kit.components.button}",
                 "selected-variants": {
                   "style": "{ui-kit.components.button.variants.styles.text}",
                   "size": "{ui-kit.components.button.variants.sizes.small}",

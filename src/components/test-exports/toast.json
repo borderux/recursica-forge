@@ -328,20 +328,28 @@
         "properties": {
           "elevation": {
             "layer-0": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-2}"
+              "$value": "{brand.elevations.elevation-2}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             },
             "layer-1": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-3}"
+              "$value": "{brand.elevations.elevation-3}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             },
             "layer-2": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-2}"
+              "$value": "{brand.elevations.elevation-2}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             },
             "layer-3": {
-              "$type": "elevation",
-              "$value": "{brand.elevations.elevation-1}"
+              "$value": "{brand.elevations.elevation-1}",
+              "$extensions": {
+                "recursica.type": "elevation"
+              }
             }
           },
           "vertical-padding": {

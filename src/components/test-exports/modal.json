@@ -285,8 +285,10 @@
             }
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-2}"
+            "$value": "{brand.elevations.elevation-2}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "header-style": {
             "$type": "typography",

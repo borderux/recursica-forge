@@ -909,9 +909,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           },
           "elevation-1": {
@@ -956,9 +953,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           },
           "elevation-2": {
@@ -1003,9 +997,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           },
           "elevation-3": {
@@ -1050,9 +1041,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           },
           "elevation-4": {
@@ -1097,9 +1085,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           }
         }
@@ -2012,9 +1997,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           },
           "elevation-1": {
@@ -2059,9 +2041,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           },
           "elevation-2": {
@@ -2106,9 +2085,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           },
           "elevation-3": {
@@ -2153,9 +2129,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           },
           "elevation-4": {
@@ -2200,9 +2173,6 @@
                 },
                 "$type": "number"
               }
-            },
-            "$extensions": {
-              "recursica.type": "boxShadow"
             }
           }
         }

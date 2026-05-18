@@ -137,8 +137,10 @@
       "tooltip": {
         "properties": {
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-3}"
+            "$value": "{brand.elevations.elevation-3}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "border-size": {
             "$type": "dimension",
