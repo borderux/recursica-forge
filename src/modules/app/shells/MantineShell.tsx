@@ -67,6 +67,7 @@ import { captureCurrentSnapshot } from '../../../core/dev/exportImportValidator'
 import { startDiffSession } from '../../../core/dev/diffSession';
 import { downloadJsonFiles } from '../../../core/export/jsonExport';
 import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
+import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
 
 export default function MantineShell({
   children,
@@ -110,6 +111,7 @@ export default function MantineShell({
     handleGitHubExportSuccess,
   } = useJsonExport();
   const { visible: reminderVisible, dismiss: dismissReminder, handleExport: reminderHandleExport, resetSaveReminder } = useSaveReminder(handleExport)
+  const { updateAvailable, checkNow, dismissUpdate, simulateUpdate } = useVersionCheck()
   const {
     selectedFiles,
     setSelectedFiles,
@@ -478,26 +480,28 @@ export default function MantineShell({
                 />
               </Tooltip>
 
-              <Tooltip label='Report a bug'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const BugIcon = iconNameToReactComponent("bug");
-                    return BugIcon ? (
-                      <BugIcon
-                        style={{
-                          width:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                          height:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => createBugReport()}
-                />
-              </Tooltip>
+              {!import.meta.env.DEV && (
+                <Tooltip label='Report a bug'>
+                  <Button
+                    variant='outline'
+                    size='small'
+                    icon={(() => {
+                      const BugIcon = iconNameToReactComponent("bug");
+                      return BugIcon ? (
+                        <BugIcon
+                          style={{
+                            width:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                            height:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                          }}
+                        />
+                      ) : null;
+                    })()}
+                    onClick={() => createBugReport()}
+                  />
+                </Tooltip>
+              )}
               {import.meta.env.DEV && (
                 <>
                   <Tooltip label='Randomize all variables (dev only)'>
@@ -538,6 +542,24 @@ export default function MantineShell({
                         ) : null
                       })()}
                       onClick={handleRoundTripValidation}
+                    />
+                  </Tooltip>
+                  <Tooltip label='Simulate version update (dev only)'>
+                    <Button
+                      variant='outline'
+                      size='small'
+                      icon={(() => {
+                        const VersionIcon = iconNameToReactComponent('trend-up')
+                        return VersionIcon ? (
+                          <VersionIcon
+                            style={{
+                              width: 'var(--recursica_brand_dimensions_icons_default)',
+                              height: 'var(--recursica_brand_dimensions_icons_default)',
+                            }}
+                          />
+                        ) : null
+                      })()}
+                      onClick={simulateUpdate}
                     />
                   </Tooltip>
                   <Tooltip label='Auto-run CSS audit (dev only)'>
@@ -787,6 +809,7 @@ export default function MantineShell({
             resetAll(resetTarget === 'original');
             localStorage.clear();
             resetSaveReminder();
+            checkNow();
             setTimeout(() => {
               runScan();
               setIsResetting(false);
@@ -816,6 +839,23 @@ export default function MantineShell({
             </div>
           }
         />
+        {/* Update Available Toast */}
+        {updateAvailable && (
+          <div style={{ position: 'fixed', bottom: reminderVisible ? '112px' : '24px', right: '24px', zIndex: 40001, transition: 'bottom 0.3s ease' }}>
+            <Toast
+              variant="error"
+              layer="layer-0"
+              onClose={dismissUpdate}
+              action={
+                <Button variant="solid" size="small" layer="layer-0" onClick={() => window.location.reload()} style={{ minWidth: 0, ['--button-min-width' as string]: '0' }}>
+                  Upgrade
+                </Button>
+              }
+            >
+              A new version of Forge is available. Upgrading won't lose any of your changes.
+            </Toast>
+          </div>
+        )}
         {/* Save Reminder Toast */}
         {reminderVisible && (
           <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 40000 }}>
