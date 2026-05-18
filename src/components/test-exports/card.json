@@ -315,26 +315,34 @@
           "elevations": {
             "layer-0": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.elevations.elevation-1}"
+                "$value": "{brand.elevations.elevation-1}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               }
             },
             "layer-1": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.elevations.elevation-2}"
+                "$value": "{brand.elevations.elevation-2}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               }
             },
             "layer-2": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.elevations.elevation-4}"
+                "$value": "{brand.elevations.elevation-4}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               }
             },
             "layer-3": {
               "elevation": {
-                "$type": "elevation",
-                "$value": "{brand.elevations.elevation-4}"
+                "$value": "{brand.elevations.elevation-4}",
+                "$extensions": {
+                  "recursica.type": "elevation"
+                }
               }
             }
           },

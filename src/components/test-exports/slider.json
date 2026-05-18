@@ -839,8 +839,10 @@
             "$value": "{brand.dimensions.border-radii.none}"
           },
           "thumb-elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-1}"
+            "$value": "{brand.elevations.elevation-1}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           },
           "input-width": {
             "$type": "dimension",
@@ -920,6 +922,10 @@
               "$type": "string",
               "$value": "{tokens.font.styles.italic}"
             }
+          },
+          "input-border-size": {
+            "$type": "dimension",
+            "$value": "{ui-kit.globals.form.field.size.border-size-default}"
           },
           "input-border-radius": {
             "$type": "dimension",

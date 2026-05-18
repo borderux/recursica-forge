@@ -167,37 +167,37 @@
             "$value": "{brand.dimensions.general.default}"
           },
           "active-pages": {
-            "style": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.styles.text}"
-            },
-            "size": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.sizes.default}"
+            "$value": "{ui-kit.components.button}",
+            "$extensions": {
+              "recursica.component": {
+                "selected-variants": {
+                  "style": "{ui-kit.components.button.variants.styles.solid}",
+                  "size": "{ui-kit.components.button.variants.sizes.small}"
+                }
+              }
             }
           },
           "inactive-pages": {
-            "style": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.styles.solid}"
-            },
-            "size": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.sizes.default}"
+            "$value": "{ui-kit.components.button}",
+            "$extensions": {
+              "recursica.component": {
+                "selected-variants": {
+                  "style": "{ui-kit.components.button.variants.styles.outline}",
+                  "size": "{ui-kit.components.button.variants.sizes.small}"
+                }
+              }
             }
           },
           "navigation-controls": {
-            "style": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.styles.outline}"
-            },
-            "size": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.sizes.default}"
-            },
-            "content": {
-              "$type": "variant",
-              "$value": "{ui-kit.components.button.variants.content.icon-label}"
+            "$value": "{ui-kit.components.button}",
+            "$extensions": {
+              "recursica.component": {
+                "selected-variants": {
+                  "style": "{ui-kit.components.button.variants.styles.text}",
+                  "size": "{ui-kit.components.button.variants.sizes.small}",
+                  "content": "{ui-kit.components.button.variants.content.icon-only}"
+                }
+              }
             }
           }
         }

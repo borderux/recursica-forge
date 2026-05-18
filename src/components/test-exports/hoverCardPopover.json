@@ -196,7 +196,7 @@
           },
           "content-text": {
             "font-family": {
-              "$type": "fontFamily",
+              "$type": "string",
               "$value": "{brand.fonts.primary}"
             },
             "font-size": {
@@ -204,7 +204,7 @@
               "$value": "{tokens.font.sizes.2xl}"
             },
             "font-weight": {
-              "$type": "fontWeight",
+              "$type": "number",
               "$value": "{tokens.font.weights.thin}"
             },
             "letter-spacing": {
@@ -215,10 +215,6 @@
               "$type": "number",
               "$value": "{tokens.font.line-heights.tallest}"
             },
-            "font-style": {
-              "$type": "string",
-              "$value": "{brand.typography.body.fontStyle}"
-            },
             "text-decoration": {
               "$type": "string",
               "$value": "{tokens.font.decorations.underline}"
@@ -226,6 +222,10 @@
             "text-transform": {
               "$type": "string",
               "$value": "{tokens.font.cases.uppercase}"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "{brand.typography.body.fontStyle}"
             }
           },
           "border-radius": {
@@ -269,8 +269,10 @@
             }
           },
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-2}"
+            "$value": "{brand.elevations.elevation-2}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           }
         }
       }

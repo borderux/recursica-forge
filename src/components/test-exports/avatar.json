@@ -851,8 +851,10 @@
         },
         "properties": {
           "elevation": {
-            "$type": "elevation",
-            "$value": "{brand.elevations.elevation-1}"
+            "$value": "{brand.elevations.elevation-1}",
+            "$extensions": {
+              "recursica.type": "elevation"
+            }
           }
         }
       }
