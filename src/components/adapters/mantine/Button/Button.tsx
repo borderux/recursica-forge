@@ -85,11 +85,11 @@ export default function Button({
   //   icon-label → icon present with children
   //   label      → no icon, just children
   const contentVariant = isIconOnly ? 'icon-only' : (icon ? 'icon-label' : 'label')
-  const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizePrefix, 'properties', 'horizontal-padding')
+  const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding')
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   // min-width and border-radius are now content-variant-specific (content × size)
-  const minWidthVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizePrefix, 'properties', 'min-width')
-  const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizePrefix, 'properties', 'border-radius')
+  const minWidthVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'min-width')
+  const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'border-radius')
   const maxWidthVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'max-label-width')
 
   // Get all text properties from size-variant text property group

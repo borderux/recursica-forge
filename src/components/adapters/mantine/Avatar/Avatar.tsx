@@ -49,10 +49,10 @@ export default function Avatar({
   const paddingStyleType = colorVariant.split('-')[0]
   const styleType = colorVariant.split('-').slice(1).join('-')
   // Image style variant uses a flat path (no secondary solid/outline/ghost nesting)
-  // For text/icon styles, border-size is under styles.{type}.variants.{secondary}.properties.border-size
+  // For text/icon styles, border-size is under styles.{type}.variants.types.{secondary}.properties.border-size
   const borderSizeStyleVar = paddingStyleType === 'image'
     ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'border-size')
-    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', styleType, 'properties', 'border-size')
+    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', 'types', styleType, 'properties', 'border-size')
   
   const sizeBorderColorVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-color')
   const sizeBorderSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'border-size')

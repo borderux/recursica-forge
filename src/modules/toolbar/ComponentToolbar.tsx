@@ -392,7 +392,7 @@ export default function ComponentToolbar({
             const groupedPropKey = groupedPropName.toLowerCase()
             const cachedProp = groupedProps.get(groupedPropKey)
             // Check if we need to update the cached prop (if layer changed, variant changed, or prop doesn't exist)
-            // Special case: Button border-radius props live under content.{cv}.sizes.{size} — the structure parser
+            // Special case: Button border-radius props live under content.{cv}.variants.sizes.{size} — the structure parser
             // assigns variantProp='size' to them (because it sees the nested 'sizes' category), so needsUpdate
             // never fires on a content variant switch. Force re-entry whenever the cached prop isn't 'content'-typed.
             const isButtonBorderRadiusCacheMiss =
@@ -407,7 +407,7 @@ export default function ComponentToolbar({
                 !pathMatchesVariant(cachedProp.path, cachedProp.variantProp, selectedVariants[cachedProp.variantProp])) ||
               // Cross-check ALL variant dimensions against the cached prop's path
               // (e.g., when style changes from 'text' to 'image', a cached 'text.solid.border-size'
-              //  with variantProp='style-secondary' must be invalidated because the 'style' dimension changed)
+              //  with variantProp='types' must be invalidated because the 'style' dimension changed)
               (cachedProp?.isVariantSpecific && Object.entries(selectedVariants).some(([variantProp, variantValue]) => {
                 if (!variantValue || variantProp === cachedProp.variantProp) return false
                 // Only cross-invalidate if the prop's path actually traverses this variant category.
@@ -662,8 +662,8 @@ export default function ComponentToolbar({
                   name: 'horizontal-padding',
                   category: 'size',
                   type: 'dimension',
-                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'horizontal-padding'),
-                  path: ['variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'horizontal-padding'],
+                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'horizontal-padding'),
+                  path: ['variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'horizontal-padding'],
                   isVariantSpecific: true,
                   variantProp: 'content',
                 }
@@ -678,8 +678,8 @@ export default function ComponentToolbar({
                   name: 'border-radius',
                   category: 'size',
                   type: 'dimension',
-                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'border-radius'),
-                  path: ['variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'border-radius'],
+                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'border-radius'),
+                  path: ['variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'border-radius'],
                   isVariantSpecific: true,
                   variantProp: 'content',
                 }
@@ -692,8 +692,8 @@ export default function ComponentToolbar({
                   name: 'min-width',
                   category: 'size',
                   type: 'dimension',
-                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'min-width'),
-                  path: ['variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'min-width'],
+                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'min-width'),
+                  path: ['variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'min-width'],
                   isVariantSpecific: true,
                   variantProp: 'content',
                 }
@@ -975,7 +975,7 @@ export default function ComponentToolbar({
         }
 
         // Check if this prop belongs to the selected variant
-        // For nested variants (like Avatar's style and style-secondary), we need to check all variant levels
+        // For nested variants, check all variant levels are represented in the path
         const variantInPath = pathMatchesVariant(prop.path, prop.variantProp, selectedVariant)
 
         if (!variantInPath) {
@@ -998,42 +998,6 @@ export default function ComponentToolbar({
               // Size props should only match size variants
               const sizeVariant = selectedVariants['size']
               if (sizeVariant && !prop.path.includes(sizeVariant)) {
-                return false
-              }
-            } else if (prop.category === 'colors' && (prop.variantProp === 'style' || prop.variantProp === 'style-secondary')) {
-              // Color props with style variant should match both style and style-secondary if selected
-              const styleVariant = selectedVariants['style']
-              const styleSecondary = selectedVariants['style-secondary']
-
-              // Always check that the first-level variant (style) is in the path
-              if (styleVariant && !prop.path.includes(styleVariant)) {
-                return false
-              }
-
-              // If style-secondary is selected and the style is text or icon, check for secondary variant
-              // This applies to both style and style-secondary props (nested props need both levels)
-              if (styleSecondary && (styleVariant === 'text' || styleVariant === 'icon')) {
-                if (!prop.path.includes(styleSecondary)) {
-                  return false
-                }
-              }
-            }
-          }
-        } else {
-          // Primary variant is in path, but for nested variants we may need to check secondary
-          // For Avatar: if style="text" and style-secondary="solid", ensure both are in path
-          if ((prop.variantProp === 'style' || prop.variantProp === 'style-secondary') && prop.category === 'colors') {
-            const styleSecondary = selectedVariants['style-secondary']
-            const styleVariant = selectedVariants['style']
-
-            // For nested props (style-secondary), also check that the first-level variant is in path
-            if (prop.variantProp === 'style-secondary' && styleVariant && !prop.path.includes(styleVariant)) {
-              return false
-            }
-
-            // If style-secondary is selected and style is text or icon, both must be in path
-            if (styleSecondary && (styleVariant === 'text' || styleVariant === 'icon')) {
-              if (!prop.path.includes(styleSecondary)) {
                 return false
               }
             }

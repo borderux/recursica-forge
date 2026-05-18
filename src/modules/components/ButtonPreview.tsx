@@ -28,24 +28,24 @@ export default function ButtonPreview({
 
   // Content variant horizontal padding CSS vars (cross-variant: content × size)
   const labelPaddingVar = buildComponentCssVarPath(
-    'Button', 'variants', 'content', 'label', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
+    'Button', 'variants', 'content', 'label', 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
   )
   const iconOnlyPaddingVar = buildComponentCssVarPath(
-    'Button', 'variants', 'content', 'icon-only', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
+    'Button', 'variants', 'content', 'icon-only', 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
   )
   const iconLabelPaddingVar = buildComponentCssVarPath(
-    'Button', 'variants', 'content', 'icon-label', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
+    'Button', 'variants', 'content', 'icon-label', 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding'
   )
 
   // Content variant border-radius CSS vars (content × size)
   const labelBorderRadiusVar = buildComponentCssVarPath(
-    'Button', 'variants', 'content', 'label', 'sizes', sizePrefix, 'properties', 'border-radius'
+    'Button', 'variants', 'content', 'label', 'variants', 'sizes', sizePrefix, 'properties', 'border-radius'
   )
   const iconOnlyBorderRadiusVar = buildComponentCssVarPath(
-    'Button', 'variants', 'content', 'icon-only', 'sizes', sizePrefix, 'properties', 'border-radius'
+    'Button', 'variants', 'content', 'icon-only', 'variants', 'sizes', sizePrefix, 'properties', 'border-radius'
   )
   const iconLabelBorderRadiusVar = buildComponentCssVarPath(
-    'Button', 'variants', 'content', 'icon-label', 'sizes', sizePrefix, 'properties', 'border-radius'
+    'Button', 'variants', 'content', 'icon-label', 'variants', 'sizes', sizePrefix, 'properties', 'border-radius'
   )
 
   // Style overrides for each content mode

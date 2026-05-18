@@ -118,6 +118,116 @@ function findThemeReferences(
 }
 
 /**
+ * The set of known variant dimension category keys used in recursica_ui-kit.json.
+ * These keys may appear directly inside a `variants` container as dimension group names.
+ * When one of these keys (or any key whose children all look like variant values) appears
+ * directly on a variant *value* node, it signals a missing `variants` wrapper.
+ */
+const UIKIT_VARIANT_CATEGORY_KEYS = new Set([
+  'styles', 'sizes', 'layouts', 'orientation', 'fill-width', 'types', 'states', 'content',
+])
+
+/**
+ * Returns true when a node looks like a variant category: a plain object (not a token)
+ * whose every non-$ child itself has a `properties` or `variants` key.
+ */
+function looksLikeVariantCategory(node: unknown): boolean {
+  if (node === null || typeof node !== 'object') return false
+  if (Object.prototype.hasOwnProperty.call(node, '$value')) return false
+  const children = Object.entries(node as Record<string, unknown>).filter(([k]) => !k.startsWith('$'))
+  if (children.length === 0) return false
+  return children.every(([, v]) => {
+    if (v === null || typeof v !== 'object') return false
+    if (Object.prototype.hasOwnProperty.call(v, '$value')) return false
+    return (
+      Object.prototype.hasOwnProperty.call(v, 'properties') ||
+      Object.prototype.hasOwnProperty.call(v, 'variants')
+    )
+  })
+}
+
+/**
+ * Validates the structural nesting rule for component variants in recursica_ui-kit.json:
+ *
+ *   component
+ *     └── variants                ← container for dimension groups
+ *           └── [dimension-name]  ← e.g. "styles", "sizes", "content"
+ *                 └── [value]     ← e.g. "solid", "default", "icon-label"
+ *                       ├── properties  ← token values (optional)
+ *                       └── variants    ← sub-dimensions (optional, REQUIRED when nesting)
+ *
+ * A variant value node MUST only have `variants` and/or `properties` as non-$ children.
+ * Any other key that looks like a dimension category (its children all have `properties`/`variants`)
+ * is a structural error — it should have been wrapped in a `variants` node.
+ *
+ * Throws if violations are found.
+ */
+export function validateUIKitVariantStructure(uikitJson: JsonLike): void {
+  const components =
+    (uikitJson as any)?.['ui-kit']?.components ??
+    (uikitJson as any)?.components ??
+    {}
+
+  const errors: string[] = []
+
+  function checkVariantValue(path: string, node: unknown): void {
+    if (node === null || typeof node !== 'object') return
+    if (Object.prototype.hasOwnProperty.call(node, '$value')) return
+
+    const obj = node as Record<string, unknown>
+    const nonDollarKeys = Object.keys(obj).filter(k => !k.startsWith('$'))
+    const badKeys = nonDollarKeys.filter(k => k !== 'variants' && k !== 'properties')
+
+    for (const bk of badKeys) {
+      const bv = obj[bk]
+      if (
+        UIKIT_VARIANT_CATEGORY_KEYS.has(bk) && looksLikeVariantCategory(bv)
+        || (!UIKIT_VARIANT_CATEGORY_KEYS.has(bk) && looksLikeVariantCategory(bv))
+      ) {
+        errors.push(
+          `${path}: key "${bk}" looks like a variant dimension category but is not wrapped in a "variants" node. ` +
+          `Expected structure: { variants: { ${bk}: { ... } } }`
+        )
+      }
+    }
+
+    // Recurse into nested variants
+    if (obj.variants && typeof obj.variants === 'object' && !Object.prototype.hasOwnProperty.call(obj.variants, '$value')) {
+      checkVariantsContainer(`${path}.variants`, obj.variants)
+    }
+  }
+
+  function checkVariantsContainer(path: string, node: unknown): void {
+    if (node === null || typeof node !== 'object') return
+    const obj = node as Record<string, unknown>
+    for (const [catKey, catVal] of Object.entries(obj)) {
+      if (catKey.startsWith('$')) continue
+      if (catVal === null || typeof catVal !== 'object') continue
+      const catObj = catVal as Record<string, unknown>
+      for (const [valKey, valVal] of Object.entries(catObj)) {
+        if (valKey.startsWith('$')) continue
+        checkVariantValue(`${path}.${catKey}.${valKey}`, valVal)
+      }
+    }
+  }
+
+  for (const [compName, compData] of Object.entries(components as Record<string, unknown>)) {
+    if (compData === null || typeof compData !== 'object') continue
+    const compObj = compData as Record<string, unknown>
+    if (compObj.variants) {
+      checkVariantsContainer(`components.${compName}.variants`, compObj.variants)
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `recursica_ui-kit.json variant structure validation failed (${errors.length} error(s)):\n` +
+      errors.map(e => `  - ${e}`).join('\n')
+    )
+  }
+}
+
+/**
  * Validates recursica_ui-kit.json against its schema
  */
 export function validateUIKitJson(uikitJson: JsonLike): void {
@@ -151,6 +261,9 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
       `Theme references found:\n${errorMessages}`
     )
   }
+
+  // Enforce variant nesting structure
+  validateUIKitVariantStructure(uikitJson)
 }
 
 // --- DTCG reference validation ---

@@ -81,7 +81,7 @@ export default function BackgroundToolbar({
 
     if (hasVariantSpecificProps) {
       // There are variant-specific props, so we must match ALL active variant dimensions.
-      // A prop under text.solid must not match when style='image' just because style-secondary='solid'.
+      // A prop under text.solid must not match when style='image' just because types='solid'.
       const variantMatchingProp = layerMatchingProps.find(p => {
         if (!p.isVariantSpecific || !p.variantProp) return false
         const selectedVariant = selectedVariants[p.variantProp]
