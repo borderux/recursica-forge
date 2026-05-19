@@ -61,6 +61,12 @@ if (typeof window !== 'undefined') {
       event.preventDefault()
     }
   })
+
+  // Handle Vite chunk load errors gracefully (e.g. after a new deploy)
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault()
+    window.location.reload()
+  })
 }
 
 // Initialize theme before React mounts
