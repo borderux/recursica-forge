@@ -325,6 +325,21 @@ class VarsStore {
         tokensRaw = initKey(STORAGE_KEYS.editedTokens, STORAGE_KEYS.importedTokens, tokensRaw)
         themeImportRaw = initKey(STORAGE_KEYS.editedBrand, STORAGE_KEYS.importedBrand, themeImportRaw)
         uikitRaw = initKey(STORAGE_KEYS.editedUikit, STORAGE_KEYS.importedUikit, uikitRaw)
+
+        // Migration: fix corrupted elevation color refs where core-colors palette entries
+        // were incorrectly stored with a spurious `.color.` subgroup that doesn't exist
+        // (e.g. core-colors.alert.color.tone → core-colors.alert.tone).
+        if (themeImportRaw) {
+          let themeStr = typeof themeImportRaw === 'string' ? themeImportRaw : JSON.stringify(themeImportRaw)
+          const fixedStr = themeStr.replace(
+            /\{brand\.themes\.(light|dark)\.palettes\.core-colors\.([^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
+            '{brand.themes.$1.palettes.core-colors.$2.$3}'
+          )
+          if (fixedStr !== themeStr) {
+            themeImportRaw = JSON.parse(fixedStr)
+            try { localStorage.setItem(STORAGE_KEYS.editedBrand, fixedStr) } catch { /* noop */ }
+          }
+        }
       } catch (err) {
         console.error("Failed to initialize storage keys", err)
       }
@@ -1035,7 +1050,12 @@ class VarsStore {
             if (elevNode?.['$value']) {
               if (!elevNode['$value'].color) elevNode['$value'].color = {}
               elevNode['$value'].color.$type = 'color'
-              elevNode['$value'].color.$value = `{brand.themes.${m}.palettes.${paletteKey}.${level}.color.tone}`
+              // Core-colors entries are flat (e.g. alert.tone), regular palette steps
+              // have a .color. subgroup (e.g. neutral.500.color.tone).
+              const isCoreColors = paletteKey === 'core-colors'
+              elevNode['$value'].color.$value = isCoreColors
+                ? `{brand.themes.${m}.palettes.${paletteKey}.${level}.tone}`
+                : `{brand.themes.${m}.palettes.${paletteKey}.${level}.color.tone}`
             }
           }
 
