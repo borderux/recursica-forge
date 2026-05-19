@@ -361,9 +361,17 @@ export function cssVarToRef(value: string): string | null {
     // correct nested JSON paths. The CSS var builder collapses `core-colors.{key}.{prop}`
     // into `core_{key}-{prop}` (a single segment), which this transform reverses.
     if (joined.includes('.palettes.core-colors.')) {
+      // Strip spurious `.color.` intermediary: core-colors entries (alert, warning, etc.)
+      // have a flat structure — `alert.tone` not `alert.color.tone`. The color picker
+      // can insert `_color_` by treating these the same as regular numbered palette steps
+      // (which do have a `.color.` subgroup). Remove it before further processing.
+      joined = joined.replace(
+        /\.palettes\.core-colors\.([^.]+)\.color\.(tone|on-tone|interactive)$/,
+        '.palettes.core-colors.$1.$2'
+      )
       // interactive-tone and interactive-on-tone (flat structure)
       joined = joined.replace(/\.palettes\.core-colors\.(interactive)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
-      // {colorKey}-tone and {colorKey}-on-tone (alert, warning, success, black, white)
+      // {colorKey}-tone and {colorKey}-on-tone (alert, warning, success, high-contrast, low-contrast)
       joined = joined.replace(/\.palettes\.core-colors\.(alert|warning|success|high-contrast|low-contrast)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
     }
 

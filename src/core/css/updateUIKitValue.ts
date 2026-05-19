@@ -144,6 +144,44 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         }
     }
 
+    // Detect recursica.component extension tokens:
+    // When the parent node carries $extensions.recursica.component, the toolbar's
+    // virtual prop (e.g. "style" child of "active-pages") must update
+    // $extensions.recursica.component.selected-variants[finalKey] — not create a
+    // sibling token node.
+    const parentNode = current
+    const compExt = parentNode?.['$extensions']?.['recursica.component']
+    if (
+        compExt &&
+        typeof compExt === 'object' &&
+        '$value' in parentNode &&
+        typeof tokenValue === 'string' &&
+        !tokenValue.startsWith('{')
+    ) {
+        // Shallow-clone the extensions chain so Zustand detects the change.
+        parentNode['$extensions'] = { ...parentNode['$extensions'] }
+        parentNode['$extensions']['recursica.component'] = { ...compExt }
+        const selectedVariants = { ...(compExt['selected-variants'] ?? {}) } as Record<string, string>
+
+        // Reconstruct the full DTCG reference by replacing the leaf of the existing ref.
+        // e.g. existing = "{ui-kit.components.button.variants.styles.solid}", newValue = "outline"
+        // → "{ui-kit.components.button.variants.styles.outline}"
+        const existing = selectedVariants[finalKey]
+        if (existing && typeof existing === 'string' && existing.startsWith('{') && existing.endsWith('}')) {
+            const inner = existing.slice(1, -1)
+            const lastDot = inner.lastIndexOf('.')
+            const prefix = lastDot >= 0 ? inner.slice(0, lastDot + 1) : ''
+            selectedVariants[finalKey] = `{${prefix}${tokenValue}}`
+        } else {
+            // No existing reference to derive prefix from; store value as-is.
+            selectedVariants[finalKey] = tokenValue
+        }
+
+        parentNode['$extensions']['recursica.component']['selected-variants'] = selectedVariants
+        getVarsStore().setUiKitSilent(updatedUIKit)
+        return true
+    }
+
     // Update the value, preserving $type if it exists
     if (current[finalKey] && typeof current[finalKey] === 'object') {
         const existingType = (current[finalKey] as any).$type

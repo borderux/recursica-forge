@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from 'react'
-import JSZip from 'jszip'
+
 import { Modal } from '../../components/adapters/Modal'
 import { Button } from '../../components/adapters/Button'
 import { CheckboxItem as Checkbox } from '../../components/adapters/CheckboxItem'
@@ -65,18 +65,49 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
     try {
       const module = await (devTestFilesMap[selectedTestFile] as () => Promise<any>)()
       const testJson = module.default || module
-      const liveJson = exportUIKitJson()
-      
+      const liveJson = exportUIKitJson() as any
+
+      // Determine which component keys the test fixture covers.
+      const fixtureCompKeys: string[] = Object.keys(testJson?.['ui-kit']?.components ?? {})
+
+      // Also collect any components referenced via $extensions.recursica.component
+      // (e.g. pagination references button) so the component export is self-contained.
+      const referencedCompKeys = new Set<string>(fixtureCompKeys)
+      for (const compKey of fixtureCompKeys) {
+        const props = testJson['ui-kit'].components[compKey]?.properties ?? {}
+        for (const node of Object.values(props) as any[]) {
+          const compRef = node?.['$extensions']?.['recursica.component']
+          if (compRef) {
+            const m = /^\{ui-kit\.components\.([^.}]+)\}$/.exec(node['$value'] ?? '')
+            if (m) referencedCompKeys.add(m[1])
+          }
+        }
+      }
+
+      // Build trimmed component JSON: globals + only the needed components from live uikit.
+      const liveComponents: Record<string, unknown> = liveJson?.['ui-kit']?.components ?? {}
+      const trimmedComponents: Record<string, unknown> = {}
+      for (const key of referencedCompKeys) {
+        if (liveComponents[key]) trimmedComponents[key] = liveComponents[key]
+      }
+      const trimmedComponentJson = {
+        'ui-kit': {
+          globals: liveJson?.['ui-kit']?.globals,
+          components: trimmedComponents,
+        },
+      }
+
       const filename = selectedTestFile.split('/').pop() || 'test.json'
       const baseName = filename.replace(/\.json$/, '')
-      
+
+      const { default: JSZip } = await import('jszip')
       const zip = new JSZip()
       const folder = zip.folder(baseName)
       if (folder) {
-        folder.file(filename, JSON.stringify(testJson, null, 2))
+        folder.file(filename, JSON.stringify(trimmedComponentJson, null, 2))
         folder.file('recursica_ui-kit.json', JSON.stringify(liveJson, null, 2))
       }
-      
+
       const blob = await zip.generateAsync({ type: 'blob' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -88,7 +119,7 @@ export function ExportSelectionModal({ show, onExport, onCancel, onExportToGithu
       URL.revokeObjectURL(url)
       onCancel()
     } catch (err) {
-      console.error("Failed to download test file", err)
+      console.error('Failed to download test file', err)
     } finally {
       setIsDownloading(false)
     }

@@ -375,29 +375,29 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         }
       }
 
-      // Check if this is a value object with $type and $value
-      if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
+      // Check if this is a value object with $type (or $extensions['recursica.type']) and $value.
+      // Elevation tokens were migrated from $type:"elevation" to $extensions['recursica.type']:"elevation"
+      // so we must resolve the effective type from whichever location carries it.
+      const hasValue = value && typeof value === 'object' && '$value' in value
+      const dtcgType = hasValue ? (value as any).$type : undefined
+      const extType = hasValue && !dtcgType
+        ? (value as any)['$extensions']?.['recursica.type'] as string | undefined
+        : undefined
+      const effectiveType = dtcgType ?? extType
+      if (hasValue && effectiveType) {
         // Skip if this is a variant value (e.g., "small", "default", "large" inside size.variants)
         // Variant values should not be treated as props - they're the variant options themselves
         // Check if the immediate parent in the path is "variants"
         const isDirectVariantValue = prefix.length > 0 && prefix[prefix.length - 1] === 'variants'
 
         if (isDirectVariantValue) {
-          // This is a variant value (like size.variants.small, or variants.solid)
-          // In NEW STRUCTURE: variants.solid is an object containing colors, not a value
-          // In OLD STRUCTURE: size.variants.small could be a direct dimension value
-          // Check if this is actually a value (has $type and $value) or an object to traverse
-          // If it's a value, it's a variant option itself (like size variants)
-          // If it's an object, continue traversing (like color variants in new structure)
-          if ('$type' in value && '$value' in value) {
-            // This is a direct variant value (e.g., size.variants.small = dimension value)
-            // Don't add as prop, but continue traversing in case there are nested properties
+          if (effectiveType && '$value' in value) {
             traverse(value, currentPath, variantProp)
             return
           }
         }
 
-        const type = (value as any).$type
+        const type = effectiveType
         const fullPath = ['components', componentKey, ...currentPath]
         // Read mode from document to generate mode-specific CSS var names
         const mode = typeof document !== 'undefined'
@@ -495,7 +495,8 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
           const layerKeys = Object.keys(value).filter(k => k.startsWith('layer-'))
           const hasLayerElevations = layerKeys.length > 0 && layerKeys.every(layerKey => {
             const layerValue = (value as any)[layerKey]
-            return layerValue && typeof layerValue === 'object' && '$type' in layerValue && layerValue.$type === 'elevation'
+            if (!layerValue || typeof layerValue !== 'object' || !('$value' in layerValue)) return false
+            return layerValue.$type === 'elevation' || layerValue['$extensions']?.['recursica.type'] === 'elevation'
           })
 
           if (hasLayerElevations) {
