@@ -13,6 +13,7 @@ import { findTokenByHex, tokenToCssVar } from './tokenRefs'
 import { removeUIKitValue, updateUIKitValue } from './updateUIKitValue'
 import { getVarsStore } from '../store/varsStore'
 import { checkForGlobalRef } from './globalRefInterceptor'
+import { checkForOnToneConflict, readCurrentDtcgRef } from './onToneInterceptor'
 import { updateBrandValue } from './updateBrandValue'
 
 // Global flag to suppress events during bulk updates
@@ -82,10 +83,16 @@ export function updateCssVar(
   cssVarName: string,
   value: string,
   tokens?: any,
-  silent?: boolean,
+  options?: { silent?: boolean; immediate?: boolean; noGlobalRefCheck?: boolean; noOnToneCheck?: boolean } | boolean,
   immediate?: boolean,
   noGlobalRefCheck?: boolean
 ): boolean {
+  // Support both legacy positional args and new options object
+  const opts = options && typeof options === 'object' ? options : {}
+  const resolvedSilent    = opts.silent          ?? (typeof options === 'boolean' ? options : false)
+  const resolvedImmediate = opts.immediate        ?? immediate ?? false
+  const resolvedNoGRC     = opts.noGlobalRefCheck ?? noGlobalRefCheck ?? false
+  const resolvedNoOTC     = opts.noOnToneCheck    ?? false
   const root = document.documentElement
   const trimmedValue = value.trim()
 
@@ -96,7 +103,7 @@ export function updateCssVar(
   const isUIKitVar = cssVarName.includes('_ui-kit_') && (cssVarName.includes('_components_') || cssVarName.includes('_globals_'))
   // UIKit vars are ALWAYS silent, regardless of the silent parameter
   // For non-UIKit vars, respect the silent parameter
-  const shouldBeSilent = isUIKitVar || (silent === true)
+  const shouldBeSilent = isUIKitVar || resolvedSilent
 
   // Validate brand vars must use token references
   if (isBrandVar(cssVarName)) {
@@ -148,13 +155,24 @@ export function updateCssVar(
   if (isBrandVar(cssVarName)) {
     updateBrandValue(cssVarName, trimmedValue)
   } else if (isUIKitVar) {
+    // Capture the current DTCG ref BEFORE the write for the on-tone interceptor.
+    // updateUIKitValue overwrites the value, so we must read it first.
+    const oldDtcgRef = (!resolvedNoOTC && cssVarName.includes('_properties_colors_'))
+      ? readCurrentDtcgRef(cssVarName)
+      : null
+
     updateUIKitValue(cssVarName, trimmedValue)
+
+    // Fire on-tone interceptor after write (uses old ref captured above)
+    if (!resolvedNoOTC && cssVarName.includes('_properties_colors_')) {
+      checkForOnToneConflict(cssVarName, trimmedValue, oldDtcgRef, resolvedImmediate)
+    }
   }
 
   // For immediate (non-slider) interactions, skip the outer debounce and fire
   // the global-ref check right away so the modal appears without delay.
-  if (immediate && isUIKitVar && cssVarName.includes('_components_')) {
-    if (!noGlobalRefCheck) {
+  if (resolvedImmediate && isUIKitVar && cssVarName.includes('_components_')) {
+    if (!resolvedNoGRC) {
       checkForGlobalRef(cssVarName, trimmedValue, true)
     }
     if (!shouldBeSilent && !suppressEvents) {
@@ -165,9 +183,8 @@ export function updateCssVar(
   }
 
   // Debounce delta tracking to avoid thrashing during rapid slider movement.
-  // noGlobalRefCheck is captured here at call time — no timer-based suppression needed.
   cssVarDebounceTimers[cssVarName] = setTimeout(() => {
-    if (!noGlobalRefCheck && isUIKitVar && cssVarName.includes('_components_')) {
+    if (!resolvedNoGRC && isUIKitVar && cssVarName.includes('_components_')) {
       checkForGlobalRef(cssVarName, trimmedValue, false)
     }
 
