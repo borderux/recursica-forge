@@ -679,6 +679,12 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
       // Fix refs missing .color: {brand.palettes.X.600.tone} -> {brand.palettes.X.600.color.tone}
       .replace(/\{brand\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.tone\}/g, '{brand.palettes.$1.$2.color.tone}')
       .replace(/\{brand\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.on-tone\}/g, '{brand.palettes.$1.$2.color.on-tone}')
+      // Fix spurious .color. subgroup in core-colors refs: core-colors entries are flat
+      // (alert.tone) not nested (alert.color.tone). Strip the invalid .color. intermediary.
+      .replace(
+        /\{(brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.[^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
+        '{$1.$2}'
+      )
       // Fix malformed token references: {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
       .replace(/{tokens\.colors\.scale\.(\d+)-(\d{3,4})}/g, '{tokens.colors.scale-$1.$2}')
       // Sanitize stale/corrupt core-colors refs missing the .tone leaf.
@@ -793,6 +799,11 @@ function normalizeUIKitBrandReferences(obj: any, currentPath: string = ''): any 
           const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
           return `{brand.palettes.core-colors.${sem}.tone}`
         })
+      // ── Core-colors spurious .color. subgroup: alert.color.tone → alert.tone ──
+      .replace(
+        /\{(brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.[^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
+        '{$1.$2}'
+      )
       // ── Palette refs missing .color. segment ──
       .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.tone\}/g,
         '{brand.palettes.$1.$2.color.tone}')
