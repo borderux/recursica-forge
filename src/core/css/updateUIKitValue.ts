@@ -111,6 +111,20 @@ export function updateUIKitValue(cssVar: string, value: string): boolean {
         return false
     }
 
+    // ── Component color guard ──────────────────────────────────────────────────
+    // Properties under `_properties_colors_` MUST reference brand or ui-kit tokens.
+    // Raw values (hex, named colors) and token-level refs ({tokens.*}) are forbidden
+    // because component colors must always be driven by the brand design system.
+    if (cssVar.includes('_properties_colors_') && typeof tokenValue === 'string' && tokenValue.startsWith('{')) {
+        const inner = tokenValue.slice(1, -1)
+        if (!inner.startsWith('brand.') && !inner.startsWith('ui-kit.')) {
+            throw new Error(
+                `[updateUIKitValue] Component color properties must reference brand or ui-kit tokens. ` +
+                `Received: "${tokenValue}" at path: ${cssVar}`
+            )
+        }
+    }
+
     // Parse value if it's a pixel dimension
     let numericValue: string | number = tokenValue
     let isDimensionHint = false
