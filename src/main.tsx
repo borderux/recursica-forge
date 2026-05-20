@@ -138,7 +138,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <UnifiedThemeProvider>
               <GlobalRefModalProvider />
               <OnToneModalProvider />
-              <RouterProvider router={router} />
+              <RouterProvider router={router} future={{ v7_startTransition: true }} />
             </UnifiedThemeProvider>
           </ComplianceProvider>
         </VarsProvider>

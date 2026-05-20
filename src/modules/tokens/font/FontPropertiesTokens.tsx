@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Tabs as MantineTabs } from '@mantine/core'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import FontSizeTokens from './FontSizeTokens'
 import FontLetterSpacingTokens from './FontLetterSpacingTokens'
@@ -9,7 +8,7 @@ import { useVars } from '../../vars/VarsContext'
 import { Button } from '../../../components/adapters/Button'
 import { ResetButton } from '../../../components/shared/ResetButton'
 import { Switch } from '../../../components/adapters/Switch'
-import { Tabs as TabsAdapter } from '../../../components/adapters/Tabs'
+import { Tabs } from '../../../components/adapters/Tabs'
 import { readOverrides, writeOverrides } from '../../theme/tokenOverrides'
 import tokensImport from '../../../../recursica_tokens.json'
 import { genericLayerProperty, genericLayerText } from '../../../core/css/cssVarBuilder'
@@ -101,7 +100,7 @@ export default function FontPropertiesTokens() {
       borderRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
       padding: 0,
     }}>
-      <TabsAdapter
+      <Tabs
         value={activeTab}
         variant="pills"
         layer="layer-0"
@@ -118,11 +117,11 @@ export default function FontPropertiesTokens() {
           paddingRight: 'var(--recursica_brand_dimensions_gutters_horizontal)',
           borderBottom: `1px solid var(${genericLayerProperty(0, 'border-color')})`,
         }}>
-          <MantineTabs.List>
-            <MantineTabs.Tab value="size">Font size</MantineTabs.Tab>
-            <MantineTabs.Tab value="letter-spacing">Letter spacing</MantineTabs.Tab>
-            <MantineTabs.Tab value="line-height">Line height</MantineTabs.Tab>
-          </MantineTabs.List>
+          <Tabs.List>
+            <Tabs.Tab value="size">Font size</Tabs.Tab>
+            <Tabs.Tab value="letter-spacing">Letter spacing</Tabs.Tab>
+            <Tabs.Tab value="line-height">Line height</Tabs.Tab>
+          </Tabs.List>
           <div style={{
             display: 'flex',
             justifyContent: 'flex-end',
@@ -161,16 +160,16 @@ export default function FontPropertiesTokens() {
             </div>
           </div>
         </div>
-        <MantineTabs.Panel value="size">
+        <Tabs.Panel value="size">
           <FontSizeTokens autoScale={autoScaleSize} />
-        </MantineTabs.Panel>
-        <MantineTabs.Panel value="letter-spacing">
+        </Tabs.Panel>
+        <Tabs.Panel value="letter-spacing">
           <FontLetterSpacingTokens autoScale={autoScaleLetterSpacing} />
-        </MantineTabs.Panel>
-        <MantineTabs.Panel value="line-height">
+        </Tabs.Panel>
+        <Tabs.Panel value="line-height">
           <FontLineHeightTokens autoScale={autoScaleLineHeight} />
-        </MantineTabs.Panel>
-      </TabsAdapter>
+        </Tabs.Panel>
+      </Tabs>
     </div>
   )
 }

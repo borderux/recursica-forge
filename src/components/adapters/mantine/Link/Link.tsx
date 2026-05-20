@@ -30,6 +30,8 @@ export default function Link({
     endIcon,
     forceState,
     mantine,
+    showIcon,
+    iconPosition,
     ...props
 }: AdapterLinkProps) {
     const { mode } = useThemeMode()

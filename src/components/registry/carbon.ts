@@ -93,6 +93,9 @@ registerComponent('carbon', 'DatePicker', () => import('../adapters/carbon/DateP
 // Loader
 registerComponent('carbon', 'Loader', () => import('../adapters/carbon/Loader/Loader'))
 
+// Dropdown
+registerComponent('carbon', 'Dropdown', () => import('../adapters/carbon/Dropdown/Dropdown'))
+
 // Add more components as they're implemented
 
 

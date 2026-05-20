@@ -249,7 +249,6 @@ export default function MaterialShell({
     Toolbar,
     Container,
     CssBaseline,
-    Switch,
     FormControlLabel,
     Dialog,
     DialogTitle,

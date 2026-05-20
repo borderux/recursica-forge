@@ -51,6 +51,9 @@ registerComponent('material', 'Textarea', () => import('../adapters/material/Tex
 // NumberInput
 registerComponent('material', 'NumberInput', () => import('../adapters/material/NumberInput/NumberInput'))
 
+// Dropdown
+registerComponent('material', 'Dropdown', () => import('../adapters/material/Dropdown/Dropdown'))
+
 // Breadcrumb
 registerComponent('material', 'Breadcrumb', () => import('../adapters/material/Breadcrumb/Breadcrumb'))
 

@@ -41,7 +41,7 @@ export default function Textarea({
     const { mode } = useThemeMode()
 
     // Extract props that shouldn't be passed to DOM elements
-    const { optional, labelAlign, labelSize, ...domProps } = restProps
+    const { optional, labelAlign, labelSize, editIcon, editIconGap, ...domProps } = restProps
 
     // Generate unique ID if not provided (needed for scoped styles)
     const uniqueId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`

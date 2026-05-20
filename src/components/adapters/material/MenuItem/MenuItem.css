@@ -14,7 +14,7 @@
 .mui-menu-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--menu-item-icon-text-gap, 8px);
   width: 100%;
   min-width: var(--menu-item-min-width, 140px);
   max-width: var(--menu-item-max-width, 464px);
@@ -33,6 +33,7 @@
   font-family: inherit;
   font-size: inherit;
   transition: background-color 0.15s ease;
+  box-sizing: border-box;
 }
 
 .mui-menu-item:hover:not([data-disabled="true"]) {
@@ -65,14 +66,28 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: var(--menu-item-leading-icon-size, 20px);
+  height: var(--menu-item-leading-icon-size, 20px);
+  min-width: var(--menu-item-leading-icon-size, 20px);
+  min-height: var(--menu-item-leading-icon-size, 20px);
+  max-width: var(--menu-item-leading-icon-size, 20px);
+  max-height: var(--menu-item-leading-icon-size, 20px);
+  color: var(--menu-item-leading-icon-color, var(--menu-item-text));
+}
+
+.mui-menu-item-leading-icon svg {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  flex-shrink: 0;
 }
 
 .mui-menu-item-leading-icon[data-icon-type="radio"] .mui-menu-item-radio-icon {
   width: 16px;
   height: 16px;
-  border: 1.5px solid var(--menu-item-text);
+  border: 1.5px solid var(--menu-item-leading-icon-color, var(--menu-item-text));
   border-radius: 50%;
   background: transparent;
 }
@@ -80,7 +95,7 @@
 .mui-menu-item-leading-icon[data-icon-type="checkbox"] .mui-menu-item-checkbox-icon {
   width: 16px;
   height: 16px;
-  border: 1.5px solid var(--menu-item-text);
+  border: 1.5px solid var(--menu-item-leading-icon-color, var(--menu-item-text));
   border-radius: 2px;
   background: transparent;
 }
@@ -89,40 +104,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
-  color: var(--menu-item-text);
+  width: var(--menu-item-leading-icon-size, 20px);
+  height: var(--menu-item-leading-icon-size, 20px);
 }
 
 .mui-menu-item-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--menu-item-text-gap, 4px);
   min-width: 0;
-  /* Allow text truncation */
 }
 
 .mui-menu-item-text {
   color: var(--menu-item-text);
-  /* Text styles are applied via inline styles from text style toolbar */
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  /* Ensure descenders aren't clipped */
   padding: 3px 0;
 }
 
 .mui-menu-item-supporting-text {
   color: var(--menu-item-supporting-text-color, var(--menu-item-text, #666));
   opacity: var(--menu-item-supporting-text-opacity, 0.7);
-  /* Supporting text styles are applied via inline styles from text style toolbar */
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  /* Ensure descenders aren't clipped */
   padding: 3px 0;
 }
 
@@ -131,10 +140,41 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  color: var(--menu-item-text);
+  width: var(--menu-item-trailing-icon-size, 20px);
+  height: var(--menu-item-trailing-icon-size, 20px);
+  min-width: var(--menu-item-trailing-icon-size, 20px);
+  min-height: var(--menu-item-trailing-icon-size, 20px);
+  max-width: var(--menu-item-trailing-icon-size, 20px);
+  max-height: var(--menu-item-trailing-icon-size, 20px);
+  color: var(--menu-item-trailing-icon-color, var(--menu-item-text));
   margin-left: auto;
+}
+
+.mui-menu-item-trailing-icon svg {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  flex-shrink: 0;
+}
+
+.mui-menu-item-radio-icon.selected {
+  background-color: var(--menu-item-leading-icon-color, var(--menu-item-text));
+  box-shadow: inset 0 0 0 3px var(--menu-item-bg, #ffffff);
+}
+
+.mui-menu-item-checkbox-icon.selected {
+  background-color: var(--menu-item-leading-icon-color, var(--menu-item-text));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mui-menu-item-checkbox-icon.selected::after {
+  content: '✓';
+  color: var(--menu-item-bg, #ffffff);
+  font-size: 10px;
 }
 
 .mui-menu-item-divider {
