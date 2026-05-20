@@ -44,8 +44,7 @@ export default function Dropdown({
     className,
     style,
     zIndex,
-    mantine,
-    material,
+
     carbon,
 }: AdapterDropdownProps & { labelId?: string; helpId?: string; errorId?: string }) {
     const { mode } = useThemeMode()

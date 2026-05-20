@@ -117,7 +117,7 @@ export function Button({
   
   if (!Component) {
     // Fallback to native button if component not available
-    const sizePrefix = size === 'small' ? 'small' : 'default'
+    const sizePrefix = size === 'small' ? 'sm' : size === ('large' as any) ? 'lg' : (size || 'default')
     const iconSizeVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon')
     const iconGapVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon-text-gap')
     
@@ -215,8 +215,8 @@ function getButtonStyles(
   const textTransformVar = getComponentTextCssVar('Button', 'text', 'text-transform')
   const fontStyleVar = getComponentTextCssVar('Button', 'text', 'font-style')
   
-  // Size-specific vars - recursica_ui-kit.json structure: size.default.height, size.small.height
-  const sizePrefix = size === 'small' ? 'small' : 'default'
+  // Size-specific vars - recursica_ui-kit.json structure: size.default.height, size.sm.height
+  const sizePrefix = size === 'small' ? 'sm' : size === ('large' as any) ? 'lg' : (size || 'default')
   const sizeHeightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   const sizeMinWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
   const sizePaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)

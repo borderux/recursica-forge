@@ -47,8 +47,7 @@ export default function Dropdown({
     style,
     zIndex,
     mantine,
-    material,
-    carbon,
+
 }: AdapterDropdownProps & { labelId?: string; helpId?: string; errorId?: string }) {
     const { mode } = useThemeMode()
     const [opened, setOpened] = useState(false)

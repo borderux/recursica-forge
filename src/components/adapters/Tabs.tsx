@@ -12,6 +12,7 @@ import { useUiKit } from '../../modules/uikit/UiKitContext'
 import type { LibrarySpecificProps } from '../registry/types'
 import { Tabs as MantineTabs } from '@mantine/core'
 import { Tabs as MaterialTabs, Tab as MaterialTab } from '@mui/material'
+import { buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
 
 export type TabsProps = {
   value?: string
@@ -44,7 +45,7 @@ export function Tabs({
   orientation = 'horizontal',
   variant = 'default',
   tabContentAlignment = 'left',
-  layer,
+  layer = 'layer-0',
   children,
   className,
   style,
@@ -110,6 +111,30 @@ export function Tabs({
     )
   }
 
+  // Calculate CSS variables for Material and Carbon implementations
+  const variantStyle = variant || 'default'
+  const activeBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'background')
+  const activeBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'border-color')
+  const activeTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'text-color')
+  
+  const inactiveBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'background')
+  const inactiveBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'border-color')
+  const inactiveTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'text-color')
+
+  const borderRadiusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'border-radius')
+  const tabsContentGapVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'variants', 'orientation', orientation, 'properties', 'tabs-content-gap')
+
+  const cssVars = {
+    '--recursica_tabs_active_background': activeBackgroundVar ? `var(${activeBackgroundVar})` : undefined,
+    '--recursica_tabs_active_border-color': activeBorderColorVar ? `var(${activeBorderColorVar})` : undefined,
+    '--recursica_tabs_active_text-color': activeTextColorVar ? `var(${activeTextColorVar})` : undefined,
+    '--recursica_tabs_inactive_background': inactiveBackgroundVar ? `var(${inactiveBackgroundVar})` : undefined,
+    '--recursica_tabs_inactive_border-color': inactiveBorderColorVar ? `var(${inactiveBorderColorVar})` : undefined,
+    '--recursica_tabs_inactive_text-color': inactiveTextColorVar ? `var(${inactiveTextColorVar})` : undefined,
+    '--recursica_tabs_border-radius': borderRadiusVar ? `var(${borderRadiusVar})` : undefined,
+    '--recursica_tabs_gap': tabsContentGapVar ? `var(${tabsContentGapVar})` : undefined,
+  } as React.CSSProperties
+
   // Under Material or Carbon, we render the provider and a wrapping layout div.
   // The library-specific active component styling is delegated to Tabs.List and Tabs.Tab.
   return (
@@ -119,7 +144,8 @@ export function Tabs({
         style={{
           display: 'flex',
           flexDirection: orientation === 'vertical' ? 'row' : 'column',
-          gap: 'var(--recursica_brand_dimensions_general_default, 16px)',
+          gap: 'var(--recursica_tabs_gap, 16px)',
+          ...cssVars,
           ...style,
         }}
       >
@@ -170,7 +196,10 @@ export function TabsList({ children, style, className }: TabsListProps) {
         sx={{
           borderRight: orientation === 'vertical' ? 1 : 0,
           borderBottom: orientation === 'horizontal' ? 1 : 0,
-          borderColor: 'divider',
+          borderColor: 'var(--recursica_tabs_inactive_border-color, divider)',
+          '& .MuiTabs-indicator': {
+            backgroundColor: 'var(--recursica_tabs_active_border-color, primary.main)',
+          },
           ...(variant === 'pills' && {
             '& .MuiTabs-indicator': {
               display: 'none',
@@ -194,9 +223,9 @@ export function TabsList({ children, style, className }: TabsListProps) {
       style={{
         display: 'flex',
         flexDirection: orientation === 'vertical' ? 'column' : 'row',
-        gap: 'var(--recursica_brand_dimensions_general_default, 12px)',
-        borderBottom: orientation === 'horizontal' ? '1px solid var(--recursica_brand_palettes_neutral_100_color_border, #e2e8f0)' : 'none',
-        borderRight: orientation === 'vertical' ? '1px solid var(--recursica_brand_palettes_neutral_100_color_border, #e2e8f0)' : 'none',
+        gap: 'var(--recursica_tabs_gap, 12px)',
+        borderBottom: orientation === 'horizontal' ? '1px solid var(--recursica_tabs_inactive_border-color, var(--recursica_brand_palettes_neutral_100_color_border, #e2e8f0))' : 'none',
+        borderRight: orientation === 'vertical' ? '1px solid var(--recursica_tabs_inactive_border-color, var(--recursica_brand_palettes_neutral_100_color_border, #e2e8f0))' : 'none',
         ...style,
       }}
     >
@@ -232,7 +261,26 @@ export function TabsTab({
     throw new Error('Tabs.Tab must be used within a Tabs parent component')
   }
 
-  const { kit, value: activeValue, onChange } = context
+  const { kit, value: activeValue, onChange, variant } = context
+
+  const activeFontFamilyVar = getComponentTextCssVar('Tabs', 'active-text', 'font-family')
+  const activeFontSizeVar = getComponentTextCssVar('Tabs', 'active-text', 'font-size')
+  const activeFontWeightVar = getComponentTextCssVar('Tabs', 'active-text', 'font-weight')
+  const activeLetterSpacingVar = getComponentTextCssVar('Tabs', 'active-text', 'letter-spacing')
+  const activeLineHeightVar = getComponentTextCssVar('Tabs', 'active-text', 'line-height')
+  const activeTextDecorationVar = getComponentTextCssVar('Tabs', 'active-text', 'text-decoration')
+  const activeTextTransformVar = getComponentTextCssVar('Tabs', 'active-text', 'text-transform')
+  const activeFontStyleVar = getComponentTextCssVar('Tabs', 'active-text', 'font-style')
+
+  const inactiveFontFamilyVar = getComponentTextCssVar('Tabs', 'inactive-text', 'font-family')
+  const inactiveFontSizeVar = getComponentTextCssVar('Tabs', 'inactive-text', 'font-size')
+  const inactiveFontWeightVar = getComponentTextCssVar('Tabs', 'inactive-text', 'font-weight')
+  const inactiveLetterSpacingVar = getComponentTextCssVar('Tabs', 'inactive-text', 'letter-spacing')
+  const inactiveLineHeightVar = getComponentTextCssVar('Tabs', 'inactive-text', 'line-height')
+  const inactiveTextDecorationVar = getComponentTextCssVar('Tabs', 'inactive-text', 'text-decoration')
+  const inactiveTextTransformVar = getComponentTextCssVar('Tabs', 'inactive-text', 'text-transform')
+  const inactiveFontStyleVar = getComponentTextCssVar('Tabs', 'inactive-text', 'font-style')
+
   const isActive = activeValue === value
 
   if (kit === 'mantine') {
@@ -252,7 +300,6 @@ export function TabsTab({
 
   if (kit === 'material') {
     // Under MUI, MUI's Tabs clones Tab and injects value, selected, onChange directly.
-    // Forwarding props via {...props} lets these values cascade cleanly down to MaterialTab.
     return (
       <MaterialTab
         value={value}
@@ -266,6 +313,38 @@ export function TabsTab({
         }
         style={style}
         className={className}
+        sx={{
+          color: 'var(--recursica_tabs_inactive_text-color)',
+          fontFamily: `var(${inactiveFontFamilyVar})`,
+          fontSize: `var(${inactiveFontSizeVar})`,
+          fontWeight: `var(${inactiveFontWeightVar})`,
+          letterSpacing: `var(${inactiveLetterSpacingVar})`,
+          lineHeight: `var(${inactiveLineHeightVar})`,
+          textDecoration: `var(${inactiveTextDecorationVar})`,
+          textTransform: activeTextTransformVar ? `var(${inactiveTextTransformVar})` : 'none',
+          fontStyle: `var(${inactiveFontStyleVar})`,
+          minHeight: 'unset',
+          '&.Mui-selected': {
+            color: 'var(--recursica_tabs_active_text-color)',
+            fontFamily: `var(${activeFontFamilyVar})`,
+            fontSize: `var(${activeFontSizeVar})`,
+            fontWeight: `var(${activeFontWeightVar})`,
+            letterSpacing: `var(${activeLetterSpacingVar})`,
+            lineHeight: `var(${activeLineHeightVar})`,
+            textDecoration: `var(${activeTextDecorationVar})`,
+            textTransform: activeTextTransformVar ? `var(${activeTextTransformVar})` : 'none',
+            fontStyle: `var(${activeFontStyleVar})`,
+            backgroundColor: variant === 'pills' ? 'var(--recursica_tabs_active_background)' : 'transparent',
+          },
+          borderRadius: 'var(--recursica_tabs_border-radius, 0px)',
+          ...(variant === 'pills' && {
+            backgroundColor: 'var(--recursica_tabs_inactive_background)',
+            border: '1px solid var(--recursica_tabs_inactive_border-color, transparent)',
+            '&.Mui-selected': {
+              border: '1px solid var(--recursica_tabs_active_border-color, transparent)',
+            }
+          })
+        }}
         {...props}
       />
     )
@@ -290,15 +369,24 @@ export function TabsTab({
         gap: 'var(--recursica_brand_dimensions_general_xs, 8px)',
         padding: 'var(--recursica_brand_dimensions_general_default, 12px)',
         border: 'none',
+        borderBottom: variant !== 'pills' && isActive ? '2px solid var(--recursica_tabs_active_border-color)' : 'none',
+        borderRadius: 'var(--recursica_tabs_border-radius, 0px)',
         background: isActive
-          ? 'var(--recursica_brand_palettes_primary_100_color_tone, #e2e8f0)'
-          : 'transparent',
+          ? 'var(--recursica_tabs_active_background, var(--recursica_brand_palettes_primary_100_color_tone, #e2e8f0))'
+          : 'var(--recursica_tabs_inactive_background, transparent)',
         color: isActive
-          ? 'var(--recursica_brand_palettes_primary_100_color_on-tone, #1a202c)'
-          : 'var(--recursica_brand_palettes_neutral_100_color_on-tone, #4a5568)',
+          ? 'var(--recursica_tabs_active_text-color, var(--recursica_brand_palettes_primary_100_color_on-tone, #1a202c))'
+          : 'var(--recursica_tabs_inactive_text-color, var(--recursica_brand_palettes_neutral_100_color_on-tone, #4a5568))',
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.5 : 1,
-        fontWeight: isActive ? 600 : 400,
+        fontFamily: isActive ? `var(${activeFontFamilyVar})` : `var(${inactiveFontFamilyVar})`,
+        fontSize: isActive ? `var(${activeFontSizeVar})` : `var(${inactiveFontSizeVar})`,
+        fontWeight: isActive ? `var(${activeFontWeightVar}, 600)` : `var(${inactiveFontWeightVar}, 400)`,
+        letterSpacing: isActive ? `var(${activeLetterSpacingVar})` : `var(${inactiveLetterSpacingVar})`,
+        lineHeight: isActive ? `var(${activeLineHeightVar})` : `var(${inactiveLineHeightVar})`,
+        textDecoration: isActive ? `var(${activeTextDecorationVar})` : `var(${inactiveTextDecorationVar})`,
+        textTransform: isActive ? (activeTextTransformVar ? `var(${activeTextTransformVar})` : 'none') : (inactiveTextTransformVar ? `var(${inactiveTextTransformVar})` : 'none'),
+        fontStyle: isActive ? `var(${activeFontStyleVar})` : `var(${inactiveFontStyleVar})`,
         ...style,
       }}
     >
@@ -354,3 +442,4 @@ export function TabsPanel({ value, children, style, className }: TabsPanelProps)
 Tabs.List = TabsList
 Tabs.Tab = TabsTab
 Tabs.Panel = TabsPanel
+

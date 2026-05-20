@@ -35,10 +35,10 @@ export default function Button({
   const materialVariant = variant === 'solid' ? 'contained' : variant === 'outline' ? 'outlined' : 'text'
 
   // Map unified size to Material size
-  const materialSize = size === 'small' ? 'small' : 'medium'
+  const materialSize = size === ('sm' as any) || size === 'small' ? 'small' : size === ('lg' as any) || size === ('large' as any) ? 'large' : 'medium'
 
   // Determine size prefix for CSS variables
-  const sizePrefix = size === 'small' ? 'small' : 'default'
+  const sizePrefix = size === 'small' ? 'sm' : size === ('large' as any) ? 'lg' : (size || 'default')
 
   const cssVarVariant = variant
 

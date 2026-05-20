@@ -35,10 +35,10 @@ export default function Button({
   const carbonKind = variant === 'solid' ? 'primary' : variant === 'outline' ? 'secondary' : 'tertiary'
 
   // Map unified size to Carbon size
-  const carbonSize = size === 'small' ? 'sm' : 'md'
+  const carbonSize = size === ('sm' as any) || size === 'small' ? 'sm' : size === ('lg' as any) || size === ('large' as any) ? 'lg' : 'md'
 
   // Determine size prefix for CSS variables
-  const sizePrefix = size === 'small' ? 'small' : 'default'
+  const sizePrefix = size === 'small' ? 'sm' : size === ('large' as any) ? 'lg' : (size || 'default')
 
   const cssVarVariant = variant
 
