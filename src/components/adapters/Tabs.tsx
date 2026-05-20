@@ -395,7 +395,7 @@ export function TabsTab({
         letterSpacing: isActive ? `var(${activeLetterSpacingVar})` : `var(${inactiveLetterSpacingVar})`,
         lineHeight: isActive ? `var(${activeLineHeightVar})` : `var(${inactiveLineHeightVar})`,
         textDecoration: isActive ? `var(${activeTextDecorationVar})` : `var(${inactiveTextDecorationVar})`,
-        textTransform: isActive ? (activeTextTransformVar ? `var(${activeTextTransformVar})` : 'none') : (inactiveTextTransformVar ? `var(${inactiveTextTransformVar})` : 'none'),
+        textTransform: (isActive ? (activeTextTransformVar ? `var(${activeTextTransformVar})` : 'none') : (inactiveTextTransformVar ? `var(${inactiveTextTransformVar})` : 'none')) as React.CSSProperties['textTransform'],
         fontStyle: isActive ? `var(${activeFontStyleVar})` : `var(${inactiveFontStyleVar})`,
         ...style,
       }}
