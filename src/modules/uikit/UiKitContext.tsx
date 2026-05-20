@@ -16,23 +16,9 @@ type UiKitContextValue = {
 const UiKitContext = createContext<UiKitContextValue | undefined>(undefined)
 
 export function UiKitProvider({ children }: { children: ReactNode }) {
-  // Default to mantine (selector is disabled in UI, but allow programmatic changes for tests)
-  const [kit, setKitState] = useState<UiKit>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('recursica_active_uikit')
-      if (saved === 'mantine' || saved === 'material' || saved === 'carbon') {
-        return saved as UiKit
-      }
-    }
-    return 'mantine'
-  })
-  
-  const setKit = (next: UiKit) => {
-    setKitState(next)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('recursica_active_uikit', next)
-    }
-  }
+  // Locked to mantine — multi-library shell switching is temporarily disabled
+  const [kit] = useState<UiKit>('mantine')
+  const setKit = (_next: UiKit) => {}
 
   const value = useMemo(() => ({ kit, setKit }), [kit])
   return <UiKitContext.Provider value={value}>{children}</UiKitContext.Provider>

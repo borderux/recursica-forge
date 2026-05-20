@@ -548,18 +548,7 @@ export default function MantineShell({
                   </Tooltip>
                 </>
               )}
-              <Dropdown
-                value={kit}
-                onChange={(v) => onKitChange((v as UiKit) ?? "mantine")}
-                items={[
-                  { label: "Mantine", value: "mantine" },
-                  { label: "Material UI", value: "material" },
-                  { label: "Carbon", value: "carbon" },
-                ]}
-                style={{ width: 180 }}
-                layer='layer-0'
-                disableTopBottomMargin={true}
-              />
+              {/* Library switcher temporarily disabled — kit locked to mantine */}
             </div>
 
             {/* Chunk 4: Theme Mode Segmented Control */}
