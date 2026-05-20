@@ -673,7 +673,6 @@ export default function CarbonShell({
                   { label: "Material UI", value: "material" },
                   { label: "Carbon", value: "carbon" },
                 ]}
-                state='disabled'
                 style={{ width: 180 }}
                 layer='layer-0'
                 disableTopBottomMargin={true}

@@ -27,9 +27,7 @@ const ElevationsPage = React.lazy(() => import('./modules/elevation/ElevationsPa
 const ThemePage = React.lazy(() => import('./modules/theme/ThemePage'))
 const DimensionsPage = React.lazy(() => import('./modules/dimensions/DimensionsPage'))
 const CompliancePage = React.lazy(() => import('./modules/compliance/CompliancePage'))
-const RoundTripPage = import.meta.env.DEV
-  ? React.lazy(() => import('./core/dev/RoundTripPage').then((m) => ({ default: m.RoundTripPage })))
-  : null
+
 const RandomizerResultsPage = import.meta.env.DEV
   ? React.lazy(() => import('./modules/dev/RandomizerResults').then((m) => ({ default: m.RandomizerResults })))
   : null
@@ -114,9 +112,7 @@ const router = createBrowserRouter([
       },
       { path: '/random', element: <Navigate to="/tokens" state={{ showRandom: true }} replace /> },
       { path: '*', element: <NotFoundPage /> },
-      ...(import.meta.env.DEV && RoundTripPage
-        ? [{ path: '/dev/diff', element: <React.Suspense fallback={null}><RoundTripPage /></React.Suspense> }]
-        : []),
+
       ...(import.meta.env.DEV && RandomizerResultsPage
         ? [{ path: '/dev/random', element: <React.Suspense fallback={null}><RandomizerResultsPage /></React.Suspense> }]
         : []),

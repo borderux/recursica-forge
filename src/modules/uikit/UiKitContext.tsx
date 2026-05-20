@@ -18,13 +18,20 @@ const UiKitContext = createContext<UiKitContextValue | undefined>(undefined)
 export function UiKitProvider({ children }: { children: ReactNode }) {
   // Default to mantine (selector is disabled in UI, but allow programmatic changes for tests)
   const [kit, setKitState] = useState<UiKit>(() => {
-    // Default to mantine instead of reading from localStorage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('recursica_active_uikit')
+      if (saved === 'mantine' || saved === 'material' || saved === 'carbon') {
+        return saved as UiKit
+      }
+    }
     return 'mantine'
   })
   
   const setKit = (next: UiKit) => {
     setKitState(next)
-    // Note: We don't persist to localStorage since the selector is disabled
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('recursica_active_uikit', next)
+    }
   }
 
   const value = useMemo(() => ({ kit, setKit }), [kit])
