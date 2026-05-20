@@ -38,7 +38,7 @@ export default function Button({
   const carbonSize = size === ('sm' as any) || size === 'small' ? 'sm' : size === ('lg' as any) || size === ('large' as any) ? 'lg' : 'md'
 
   // Determine size prefix for CSS variables
-  const sizePrefix = size === 'small' ? 'sm' : size === ('large' as any) ? 'lg' : (size || 'default')
+  const sizePrefix = size || 'default'
 
   const cssVarVariant = variant
 
@@ -59,7 +59,7 @@ export default function Button({
   // Detect icon-only button early for padding var
   const isIconOnly = icon && !children
   // Use content-variant-specific horizontal-padding: label vs icon-only have separate tokens
-  const contentVariant = isIconOnly ? 'icon-only' : 'label'
+  const contentVariant = isIconOnly ? 'icon-only' : (icon ? 'icon-label' : 'label')
   const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding')
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)

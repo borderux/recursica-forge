@@ -45,6 +45,18 @@
   background-color: transparent !important;
 }
 
+/* Override MUI's ToggleButtonGroup grouped border-radius rules that flatten first/last child corners */
+.recursica-segmented-control.material-segmented-control .MuiToggleButtonGroup-grouped,
+.recursica-segmented-control.material-segmented-control .MuiToggleButtonGroup-grouped:first-of-type,
+.recursica-segmented-control.material-segmented-control .MuiToggleButtonGroup-grouped:last-of-type,
+.recursica-segmented-control.material-segmented-control .MuiToggleButtonGroup-grouped:not(:first-of-type),
+.recursica-segmented-control.material-segmented-control .MuiToggleButtonGroup-grouped:not(:last-of-type) {
+  border-radius: var(--segmented-control-item-border-radius) !important;
+  border: none !important;
+  margin: 0 !important;
+}
+
+
 /* Hide Material UI ripple effect that causes white flash */
 .recursica-segmented-control.material-segmented-control .MuiToggleButton-root .MuiTouchRipple-root {
   display: none !important;

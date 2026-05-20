@@ -20,7 +20,13 @@
   border-width: var(--badge-border-size, 0px) !important;
   border-style: solid !important;
   border-color: var(--badge-border-color, transparent) !important;
-  display: inline-block !important;
-  height: auto !important; /* Ensure min-height controls the height */
+  /* Prevent stretching inside flex containers */
+  display: inline-flex !important;
+  align-items: center !important;
+  align-self: flex-start !important;
+  width: fit-content !important;
+  height: auto !important;
+  min-height: 20px !important;
+  box-sizing: border-box !important;
 }
 

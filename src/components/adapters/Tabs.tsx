@@ -34,6 +34,7 @@ interface TabsContextValue {
   variant: 'default' | 'pills' | 'outline'
   layer?: string
   kit: 'mantine' | 'material' | 'carbon'
+  tabContentAlignment?: 'left' | 'center' | 'right'
 }
 
 const TabsContext = createContext<TabsContextValue | undefined>(undefined)
@@ -73,7 +74,8 @@ export function Tabs({
     variant,
     layer,
     kit,
-  }), [activeValue, orientation, variant, layer, kit])
+    tabContentAlignment,
+  }), [activeValue, orientation, variant, layer, kit, tabContentAlignment])
 
   if (kit === 'mantine') {
     const Component = useComponent('Tabs')
@@ -133,6 +135,7 @@ export function Tabs({
     '--recursica_tabs_inactive_text-color': inactiveTextColorVar ? `var(${inactiveTextColorVar})` : undefined,
     '--recursica_tabs_border-radius': borderRadiusVar ? `var(${borderRadiusVar})` : undefined,
     '--recursica_tabs_gap': tabsContentGapVar ? `var(${tabsContentGapVar})` : undefined,
+    '--recursica_tabs_content_align_flex': tabContentAlignment === 'center' ? 'center' : tabContentAlignment === 'right' ? 'flex-end' : 'flex-start',
   } as React.CSSProperties
 
   // Under Material or Carbon, we render the provider and a wrapping layout div.
@@ -261,7 +264,7 @@ export function TabsTab({
     throw new Error('Tabs.Tab must be used within a Tabs parent component')
   }
 
-  const { kit, value: activeValue, onChange, variant } = context
+  const { kit, value: activeValue, onChange, variant, tabContentAlignment } = context
 
   const activeFontFamilyVar = getComponentTextCssVar('Tabs', 'active-text', 'font-family')
   const activeFontSizeVar = getComponentTextCssVar('Tabs', 'active-text', 'font-size')
@@ -305,7 +308,13 @@ export function TabsTab({
         value={value}
         disabled={disabled}
         label={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'var(--recursica_tabs_content_align_flex, flex-start)',
+            width: '100%',
+            gap: '8px' 
+          }}>
             {leftSection}
             {children}
             {rightSection}
@@ -321,7 +330,7 @@ export function TabsTab({
           letterSpacing: `var(${inactiveLetterSpacingVar})`,
           lineHeight: `var(${inactiveLineHeightVar})`,
           textDecoration: `var(${inactiveTextDecorationVar})`,
-          textTransform: activeTextTransformVar ? `var(${inactiveTextTransformVar})` : 'none',
+          textTransform: inactiveTextTransformVar ? `var(${inactiveTextTransformVar})` : 'none',
           fontStyle: `var(${inactiveFontStyleVar})`,
           minHeight: 'unset',
           '&.Mui-selected': {
@@ -366,6 +375,7 @@ export function TabsTab({
       style={{
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'var(--recursica_tabs_content_align_flex, flex-start)',
         gap: 'var(--recursica_brand_dimensions_general_xs, 8px)',
         padding: 'var(--recursica_brand_dimensions_general_default, 12px)',
         border: 'none',

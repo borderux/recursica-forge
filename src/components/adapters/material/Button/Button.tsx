@@ -38,7 +38,7 @@ export default function Button({
   const materialSize = size === ('sm' as any) || size === 'small' ? 'small' : size === ('lg' as any) || size === ('large' as any) ? 'large' : 'medium'
 
   // Determine size prefix for CSS variables
-  const sizePrefix = size === 'small' ? 'sm' : size === ('large' as any) ? 'lg' : (size || 'default')
+  const sizePrefix = size || 'default'
 
   const cssVarVariant = variant
 
@@ -64,6 +64,7 @@ export default function Button({
   //   label      → no icon, just children
   const contentVariant = isIconOnly ? 'icon-only' : (icon ? 'icon-label' : 'label')
   const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding')
+
   const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
   // min-width and border-radius are now content-variant-specific (content × size)
   const minWidthVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'min-width')

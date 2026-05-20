@@ -42,7 +42,7 @@ import type { FileUploadItem } from "../../../components/adapters/FileUpload";
 import { Sidebar } from "../Sidebar";
 import { ThemeSidebar } from "../ThemeSidebar";
 import { Tabs } from "../../../components/adapters/Tabs";
-import { getComponentCssVar } from "../../../components/utils/cssVarNames";
+import { getComponentCssVar, buildComponentCssVarPath } from "../../../components/utils/cssVarNames";
 import { useCompliance } from "../../../core/compliance/ComplianceContext";
 import { randomizeAllVariables } from "../../../core/utils/randomizeVariables";
 import { RandomizeOptionsModal } from "../../../core/utils/RandomizeOptionsModal";
@@ -74,11 +74,16 @@ export default function CarbonShell({
   const { issueCount, runScan } = useCompliance();
   const location = useLocation();
   const navigate = useNavigate();
-  const buttonBorderRadius = getComponentCssVar(
+  const buttonBorderRadius = buildComponentCssVarPath(
     "Button",
-    "size",
+    "variants",
+    "content",
+    "label",
+    "variants",
+    "sizes",
+    "default",
+    "properties",
     "border-radius",
-    undefined,
   );
   const buttonHeight = getComponentCssVar(
     "Button",
@@ -505,7 +510,7 @@ export default function CarbonShell({
               <Tooltip label='Reset all changes'>
                 <Button
                   variant='outline'
-                  size='default'
+                  size='small'
                   icon={(() => {
                     const RefreshIcon = iconNameToReactComponent("arrow-path");
                     return RefreshIcon ? (
@@ -533,7 +538,7 @@ export default function CarbonShell({
               <Tooltip label='Import theme'>
                 <Button
                   variant='outline'
-                  size='default'
+                  size='small'
                   icon={(() => {
                     const UploadIcon =
                       iconNameToReactComponent("arrow-down-tray");
@@ -554,7 +559,7 @@ export default function CarbonShell({
               <Tooltip label='Export theme'>
                 <Button
                   variant='outline'
-                  size='default'
+                  size='small'
                   icon={(() => {
                     const DownloadIcon =
                       iconNameToReactComponent("arrow-up-tray");
@@ -681,11 +686,16 @@ export default function CarbonShell({
 
             {/* Chunk 4: Theme Mode Segmented Control */}
             {(() => {
-              const buttonBorderRadius = getComponentCssVar(
+              const buttonBorderRadius = buildComponentCssVarPath(
                 "Button",
-                "size",
+                "variants",
+                "content",
+                "label",
+                "variants",
+                "sizes",
+                "default",
+                "properties",
                 "border-radius",
-                undefined,
               );
               const buttonSmallHeight = getComponentCssVar(
                 "Button",
