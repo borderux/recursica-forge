@@ -63,9 +63,7 @@ import {
   getCssAuditAutoRun,
   setCssAuditAutoRun,
 } from "../../../core/utils/cssAuditPreference";
-import { captureCurrentSnapshot } from '../../../core/dev/exportImportValidator';
-import { startDiffSession } from '../../../core/dev/diffSession';
-import { downloadJsonFiles } from '../../../core/export/jsonExport';
+
 import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
 import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
 
@@ -124,30 +122,7 @@ export default function MantineShell({
     handleCancel: handleDirtyCancel,
     clearSelectedFiles,
   } = useJsonImport();
-  const handleRoundTripValidation = async () => {
-    setIsValidating(true)
-    try {
-      // 1. Capture the current state as the "original" snapshot before anything changes
-      const snapshot = captureCurrentSnapshot()
-      startDiffSession({
-        originalJson: { tokens: snapshot.tokens, brand: snapshot.brand, uikit: snapshot.uikit },
-        originalCss: snapshot.css,
-      })
 
-      // 2. Download a zip with all 3 JSON files so the user can re-import them
-      await downloadJsonFiles({ tokens: true, brand: true, uikit: true })
-
-      // 3. Reset the app to a clean slate
-      resetAll()
-
-      // 4. Open the import modal so the user can drop in the downloaded zip
-      setIsModalOpen(true)
-    } catch (e) {
-      console.error('[Diff] Failed to start diff session:', e)
-    } finally {
-      setIsValidating(false)
-    }
-  }
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -524,26 +499,7 @@ export default function MantineShell({
                       onClick={() => setShowRandomizeModal(true)}
                     />
                   </Tooltip>
-                  <Tooltip label='Export/Import validation (dev only)'>
-                    <Button
-                      variant='outline'
-                      size='small'
-                      disabled={isValidating}
-                      icon={(() => {
-                        const GitDiffIcon = iconNameToReactComponent('exclude')
-                        return GitDiffIcon ? (
-                          <GitDiffIcon
-                            style={{
-                              width: 'var(--recursica_brand_dimensions_icons_default)',
-                              height: 'var(--recursica_brand_dimensions_icons_default)',
-                              opacity: isValidating ? 0.5 : 1,
-                            }}
-                          />
-                        ) : null
-                      })()}
-                      onClick={handleRoundTripValidation}
-                    />
-                  </Tooltip>
+
                   <Tooltip label='Simulate version update (dev only)'>
                     <Button
                       variant='outline'
@@ -592,19 +548,7 @@ export default function MantineShell({
                   </Tooltip>
                 </>
               )}
-              <Dropdown
-                value={kit}
-                onChange={(v) => onKitChange((v as UiKit) ?? "mantine")}
-                items={[
-                  { label: "Mantine", value: "mantine" },
-                  { label: "Material UI", value: "material" },
-                  { label: "Carbon", value: "carbon" },
-                ]}
-                state='disabled'
-                style={{ width: 180 }}
-                layer='layer-0'
-                disableTopBottomMargin={true}
-              />
+              {/* Library switcher temporarily disabled — kit locked to mantine */}
             </div>
 
             {/* Chunk 4: Theme Mode Segmented Control */}

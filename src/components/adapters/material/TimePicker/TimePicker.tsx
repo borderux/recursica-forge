@@ -35,7 +35,7 @@ export default function TimePicker({
     period = 'AM', onPeriodChange, material, ...restProps
 }: AdapterTimePickerProps & { labelId?: string; helpId?: string; errorId?: string }) {
     const { mode } = useThemeMode()
-    const { optional, labelAlign, labelSize, ...domProps } = restProps
+    const { optional, labelAlign, labelSize, editIcon, editIconGap, ...domProps } = restProps
     const uniqueId = id || `time-picker-${Math.random().toString(36).substr(2, 9)}`
     const inputRef = useRef<HTMLInputElement>(null)
     const [pickerOpen, setPickerOpen] = useState(false)

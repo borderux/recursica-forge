@@ -6,7 +6,6 @@
  */
 
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Tabs as MantineTabs } from '@mantine/core'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { Tabs } from '../../components/adapters/Tabs'
 import { genericLayerProperty } from '../../core/css/cssVarBuilder'
@@ -86,13 +85,13 @@ export function Sidebar() {
           onChange={handleNavClick}
           style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
         >
-          <MantineTabs.List style={{ flexDirection: 'column', flex: 1 }}>
+          <Tabs.List style={{ flexDirection: 'column', flex: 1 }}>
             {navItems.map((item) => (
-              <MantineTabs.Tab key={item.key} value={item.key}>
+              <Tabs.Tab key={item.key} value={item.key}>
                 {item.label}
-              </MantineTabs.Tab>
+              </Tabs.Tab>
             ))}
-          </MantineTabs.List>
+          </Tabs.List>
         </Tabs>
       </nav>
 

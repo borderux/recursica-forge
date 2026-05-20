@@ -46,8 +46,7 @@ export default function Autocomplete({
     style,
     zIndex,
     mantine,
-    material,
-    carbon,
+
 }: AdapterAutocompleteProps & { labelId?: string; helpId?: string; errorId?: string }) {
     const { mode } = useThemeMode()
     const [opened, setOpened] = useState(false)

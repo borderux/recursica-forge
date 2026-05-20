@@ -16,16 +16,9 @@ type UiKitContextValue = {
 const UiKitContext = createContext<UiKitContextValue | undefined>(undefined)
 
 export function UiKitProvider({ children }: { children: ReactNode }) {
-  // Default to mantine (selector is disabled in UI, but allow programmatic changes for tests)
-  const [kit, setKitState] = useState<UiKit>(() => {
-    // Default to mantine instead of reading from localStorage
-    return 'mantine'
-  })
-  
-  const setKit = (next: UiKit) => {
-    setKitState(next)
-    // Note: We don't persist to localStorage since the selector is disabled
-  }
+  // Locked to mantine — multi-library shell switching is temporarily disabled
+  const [kit] = useState<UiKit>('mantine')
+  const setKit = (_next: UiKit) => {}
 
   const value = useMemo(() => ({ kit, setKit }), [kit])
   return <UiKitContext.Provider value={value}>{children}</UiKitContext.Provider>

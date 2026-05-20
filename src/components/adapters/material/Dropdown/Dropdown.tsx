@@ -1,22 +1,20 @@
 /**
- * Mantine Dropdown Implementation
+ * Material UI Dropdown Implementation
  * 
- * Mantine-specific Dropdown component that uses CSS variables for theming.
- * Uses Menu component from @mantine/core.
+ * Material UI-specific Dropdown component that uses CSS variables for theming.
+ * Uses Popover component from @mui/material.
  */
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { Menu, UnstyledButton, Group, Text } from '@mantine/core'
+import { Popover } from '@mui/material'
 import type { DropdownProps as AdapterDropdownProps } from '../../Dropdown'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
-import { getComponentLevelCssVar as getMenuItemLevelCssVar, buildComponentCssVarPath as buildMenuItemCssVarPath } from '../../../utils/cssVarNames'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'
 import { Menu as MenuAdapter } from '../../Menu'
 import { MenuItem as MenuItemAdapter } from '../../MenuItem'
-import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Dropdown.css'
 
@@ -46,12 +44,22 @@ export default function Dropdown({
     className,
     style,
     zIndex,
-    mantine,
+
+    material,
 
 }: AdapterDropdownProps & { labelId?: string; helpId?: string; errorId?: string }) {
     const { mode } = useThemeMode()
-    const [opened, setOpened] = useState(false)
+    const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
+    const opened = Boolean(anchorEl)
 
+    const handleTriggerClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (state === 'disabled') return
+        setAnchorEl(event.currentTarget)
+    }
+
+    const handleClose = () => {
+        setAnchorEl(null)
+    }
 
     // Generate unique ID if not provided
     const uniqueId = id || `dropdown-${Math.random().toString(36).substr(2, 9)}`
@@ -100,7 +108,19 @@ export default function Dropdown({
     useEffect(() => {
         const handleUpdate = () => forceUpdate(prev => prev + 1)
         window.addEventListener('cssVarsUpdated', handleUpdate)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+        
+        const observer = new MutationObserver(() => {
+            forceUpdate(prev => prev + 1)
+        })
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style'],
+        })
+
+        return () => {
+            window.removeEventListener('cssVarsUpdated', handleUpdate)
+            observer.disconnect()
+        }
     }, [])
 
     const effectiveMinWidth = minWidth !== undefined ? `${minWidth}px` : `var(${minWidthVar})`
@@ -149,10 +169,11 @@ export default function Dropdown({
     ) : null
 
     const dropdownTrigger = (
-        <UnstyledButton
+        <button
             id={uniqueId}
             disabled={state === 'disabled'}
             className={`recursica-dropdown-trigger ${opened || state === 'focus' ? 'opened focus' : ''} ${state === 'disabled' ? 'disabled' : ''}`}
+            onClick={handleTriggerClick}
             style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -172,14 +193,20 @@ export default function Dropdown({
                 color: `var(${textVar})`,
                 cursor: state === 'disabled' ? 'not-allowed' : 'pointer',
                 transition: 'box-shadow 0.2s, background-color 0.2s',
+                border: 'none',
+                outline: 'none',
+                fontFamily: 'inherit',
+                fontSize: 'inherit',
+                boxSizing: 'border-box',
+                textAlign: 'left',
             }}
         >
             {effectiveLeadingIcon && (
-                <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${leadingIconVar})`, display: 'flex', alignItems: 'center' }}>
+                <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${leadingIconVar})`, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                     {effectiveLeadingIcon}
                 </div>
             )}
-            <Text
+            <span
                 style={{
                     flex: 1,
                     overflow: 'hidden',
@@ -197,11 +224,11 @@ export default function Dropdown({
                 }}
             >
                 {displayLabel}
-            </Text>
-            <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${trailingIconVar})`, display: 'flex', alignItems: 'center', transition: 'transform 0.2s', transform: opened ? 'rotate(180deg)' : 'none' }}>
+            </span>
+            <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${trailingIconVar})`, display: 'flex', alignItems: 'center', transition: 'transform 0.2s', transform: opened ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>
                 {trailingIcon || (ChevronDown ? <ChevronDown /> : '▼')}
             </div>
-        </UnstyledButton>
+        </button>
     )
 
     return (
@@ -209,56 +236,57 @@ export default function Dropdown({
             <div style={{ display: 'flex', flexDirection: layout === 'side-by-side' ? 'row' : 'column', gap: layout === 'side-by-side' ? (buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter') ? `var(${buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')})` : '8px') : 0, width: '100%' }}>
                 {labelElement}
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                    <Menu
-                        disabled={state === 'disabled'}
-                        onOpen={() => setOpened(true)}
-                        onClose={() => setOpened(false)}
-                        position="bottom-start"
-                        width="target"
-                        offset={4}
-                        transitionProps={{ transition: 'pop', duration: 150 }}
-                        zIndex={zIndex}
-                        {...mantine}
-                    >
-                        <Menu.Target>
-                            {dropdownTrigger}
-                        </Menu.Target>
-
-                        <Menu.Dropdown
-                            p={0}
-                            style={{
+                    {dropdownTrigger}
+                    <Popover
+                        open={opened}
+                        anchorEl={anchorEl}
+                        onClose={handleClose}
+                        anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'left',
+                        }}
+                        transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'left',
+                        }}
+                        PaperProps={{
+                            style: {
                                 border: 'none',
                                 backgroundColor: 'transparent',
                                 boxShadow: 'none',
-                                minWidth: 'auto',
-                            }}
-                        >
-                            <MenuAdapter layer={layer} maxHeight={maxHeight}>
-                                {items.map((item) => (
-                                    <MenuItemAdapter
-                                        key={item.value}
-                                        onClick={() => {
-                                            onChange?.(item.value)
-                                            setOpened(false)
-                                        }}
-                                        disabled={item.disabled}
-                                        leadingIcon={item.leadingIcon || item.icon}
-                                        leadingIconType={(item.leadingIconType || ((item.leadingIcon || item.icon) ? 'icon' : 'none')) as any}
-                                        trailingIcon={item.trailingIcon}
-                                        supportingText={item.supportingText as string}
-                                        divider={item.divider}
-                                        layer={layer}
-                                        selected={value === item.value}
-                                        style={{
-                                            borderRadius: `calc(var(${borderRadiusVar}) - 2px)`,
-                                        }}
-                                    >
-                                        {item.label}
-                                    </MenuItemAdapter>
-                                ))}
-                            </MenuAdapter>
-                        </Menu.Dropdown>
-                    </Menu>
+                                minWidth: anchorEl ? `${anchorEl.clientWidth}px` : 'auto',
+                                maxWidth: anchorEl ? `${anchorEl.clientWidth}px` : 'auto',
+                                borderRadius: 0,
+                                zIndex: zIndex ?? 1300,
+                            }
+                        }}
+                        {...material}
+                    >
+                        <MenuAdapter layer={layer} maxHeight={maxHeight}>
+                            {items.map((item) => (
+                                <MenuItemAdapter
+                                    key={item.value}
+                                    onClick={() => {
+                                        onChange?.(item.value)
+                                        handleClose()
+                                    }}
+                                    disabled={item.disabled}
+                                    leadingIcon={item.leadingIcon || item.icon}
+                                    leadingIconType={(item.leadingIconType || ((item.leadingIcon || item.icon) ? 'icon' : 'none')) as any}
+                                    trailingIcon={item.trailingIcon}
+                                    supportingText={item.supportingText as string}
+                                    divider={item.divider}
+                                    layer={layer}
+                                    selected={value === item.value}
+                                    style={{
+                                        borderRadius: `calc(var(${borderRadiusVar}) - 2px)`,
+                                    }}
+                                >
+                                    {item.label}
+                                </MenuItemAdapter>
+                            ))}
+                        </MenuAdapter>
+                    </Popover>
                     {assistiveElement}
                 </div>
             </div>

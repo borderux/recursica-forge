@@ -8,7 +8,8 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Timeline as MantineTimeline, ThemeIcon } from '@mantine/core'
+import { ThemeIcon } from '@mantine/core'
+import { Timeline } from '../../components/adapters/Timeline'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
 import '../../components/adapters/mantine/Timeline/Timeline.css'
@@ -240,27 +241,18 @@ export default function TimelineBulletPreview({
                 alignItems: 'flex-start',
             }}
         >
-            <MantineTimeline
+            <Timeline
                 active={0}
                 align="left"
                 className="recursica-timeline"
                 style={cssVars as React.CSSProperties}
-            >
-                {ITEMS.map((item, i) => (
-                    <MantineTimeline.Item
-                        key={i}
-                        title={item.title}
-                        bullet={bullets[i]}
-                    >
-                        {item.description && (
-                            <div className="recursica-timeline-description">{item.description}</div>
-                        )}
-                        {item.timestamp && (
-                            <div className="recursica-timeline-timestamp">{item.timestamp}</div>
-                        )}
-                    </MantineTimeline.Item>
-                ))}
-            </MantineTimeline>
+                items={ITEMS.map((item, i) => ({
+                    title: item.title,
+                    description: item.description || undefined,
+                    timestamp: item.timestamp || undefined,
+                    bullet: bullets[i],
+                }))}
+            />
         </div>
     )
 }

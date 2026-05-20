@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Tabs } from '../../components/adapters/Tabs'
-import { Tabs as MantineTabs } from '@mantine/core'
+
 import { iconNameToReactComponent } from './iconUtils'
 import { Badge } from '../../components/adapters/Badge'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -57,25 +57,25 @@ function TabSet({
         >
             {isInverted ? (
                 <>
-                    <MantineTabs.Panel value="gallery" style={contentPanel}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                    <MantineTabs.Panel value="messages" style={contentPanel}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                    <MantineTabs.Panel value="settings" style={contentPanel}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
-                    <MantineTabs.List>
-                        <MantineTabs.Tab value="gallery">Forge</MantineTabs.Tab>
-                        <MantineTabs.Tab value="messages">Mines</MantineTabs.Tab>
-                        <MantineTabs.Tab value="settings">Armory</MantineTabs.Tab>
-                    </MantineTabs.List>
+                    <Tabs.Panel value="gallery" style={contentPanel}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                    <Tabs.Panel value="messages" style={contentPanel}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                    <Tabs.Panel value="settings" style={contentPanel}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
+                    <Tabs.List>
+                        <Tabs.Tab value="gallery">Forge</Tabs.Tab>
+                        <Tabs.Tab value="messages">Mines</Tabs.Tab>
+                        <Tabs.Tab value="settings">Armory</Tabs.Tab>
+                    </Tabs.List>
                 </>
             ) : (
                 <>
-                    <MantineTabs.List>
-                        <MantineTabs.Tab value="gallery">Forge</MantineTabs.Tab>
-                        <MantineTabs.Tab value="messages">Mines</MantineTabs.Tab>
-                        <MantineTabs.Tab value="settings">Armory</MantineTabs.Tab>
-                    </MantineTabs.List>
-                    <MantineTabs.Panel value="gallery" style={contentPanel}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                    <MantineTabs.Panel value="messages" style={contentPanel}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                    <MantineTabs.Panel value="settings" style={contentPanel}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
+                    <Tabs.List>
+                        <Tabs.Tab value="gallery">Forge</Tabs.Tab>
+                        <Tabs.Tab value="messages">Mines</Tabs.Tab>
+                        <Tabs.Tab value="settings">Armory</Tabs.Tab>
+                    </Tabs.List>
+                    <Tabs.Panel value="gallery" style={contentPanel}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                    <Tabs.Panel value="messages" style={contentPanel}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                    <Tabs.Panel value="settings" style={contentPanel}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
                 </>
             )}
         </Tabs>
@@ -154,43 +154,43 @@ export default function TabsPreview({
 
                         <div style={previewMargin}>
                             <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                                <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</MantineTabs.Tab>
-                                </MantineTabs.List>
-                                <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
+                                <Tabs.List>
+                                    <Tabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</Tabs.Tab>
+                                    <Tabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</Tabs.Tab>
+                                    <Tabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</Tabs.Tab>
+                                </Tabs.List>
+                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
                             </Tabs>
                         </div>
 
 
                         <div style={previewMargin}>
                             <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                                <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery">
+                                <Tabs.List>
+                                    <Tabs.Tab value="gallery">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Forge</span>
                                             <Badge variant="primary-color">42</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages">
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value="messages">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Mines</span>
                                             <Badge variant="primary-color">7</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings">
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value="settings">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Armory</span>
                                             <Badge variant="primary-color">104</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                </MantineTabs.List>
-                                <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
+                                    </Tabs.Tab>
+                                </Tabs.List>
+                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
                             </Tabs>
                         </div>
                     </div>
@@ -206,43 +206,43 @@ export default function TabsPreview({
 
                         <div style={previewMargin}>
                             <Tabs value={value5 ?? undefined} onChange={(v) => setValue5(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ inverted: true }} >
-                                <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
-                                <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</MantineTabs.Tab>
-                                </MantineTabs.List>
+                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
+                                <Tabs.List>
+                                    <Tabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</Tabs.Tab>
+                                    <Tabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</Tabs.Tab>
+                                    <Tabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</Tabs.Tab>
+                                </Tabs.List>
                             </Tabs>
                         </div>
 
 
                         <div style={previewMargin}>
                             <Tabs value={value6 ?? undefined} onChange={(v) => setValue6(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ inverted: true }} >
-                                <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
-                                <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery">
+                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
+                                <Tabs.List>
+                                    <Tabs.Tab value="gallery">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Forge</span>
                                             <Badge variant="primary-color">42</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages">
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value="messages">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Mines</span>
                                             <Badge variant="primary-color">7</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings">
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value="settings">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Armory</span>
                                             <Badge variant="primary-color">104</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                </MantineTabs.List>
+                                    </Tabs.Tab>
+                                </Tabs.List>
                             </Tabs>
                         </div>
                     </div>
@@ -260,43 +260,43 @@ export default function TabsPreview({
 
                         <div style={previewMargin}>
                             <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                                <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</MantineTabs.Tab>
-                                </MantineTabs.List>
-                                <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
+                                <Tabs.List>
+                                    <Tabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</Tabs.Tab>
+                                    <Tabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</Tabs.Tab>
+                                    <Tabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</Tabs.Tab>
+                                </Tabs.List>
+                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
                             </Tabs>
                         </div>
 
 
                         <div style={previewMargin}>
                             <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                                <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery">
+                                <Tabs.List>
+                                    <Tabs.Tab value="gallery">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Forge</span>
                                             <Badge variant="primary-color">42</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages">
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value="messages">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Mines</span>
                                             <Badge variant="primary-color">7</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings">
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value="settings">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Armory</span>
                                             <Badge variant="primary-color">104</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                </MantineTabs.List>
-                                <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
+                                    </Tabs.Tab>
+                                </Tabs.List>
+                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
                             </Tabs>
                         </div>
                     </div>
@@ -312,43 +312,43 @@ export default function TabsPreview({
 
                         <div style={previewMargin}>
                             <Tabs value={value5 ?? undefined} onChange={(v) => setValue5(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
-                                <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</MantineTabs.Tab>
-                                </MantineTabs.List>
-                                <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
+                                <Tabs.List>
+                                    <Tabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</Tabs.Tab>
+                                    <Tabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</Tabs.Tab>
+                                    <Tabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</Tabs.Tab>
+                                </Tabs.List>
+                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
                             </Tabs>
                         </div>
 
 
                         <div style={previewMargin}>
                             <Tabs value={value6 ?? undefined} onChange={(v) => setValue6(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
-                                <MantineTabs.List>
-                                    <MantineTabs.Tab value="gallery">
+                                <Tabs.List>
+                                    <Tabs.Tab value="gallery">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Forge</span>
                                             <Badge variant="primary-color">42</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                    <MantineTabs.Tab value="messages">
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value="messages">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Mines</span>
                                             <Badge variant="primary-color">7</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                    <MantineTabs.Tab value="settings">
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value="settings">
                                         <div style={{ display: 'flex', alignItems: 'center' }}>
                                             <span>Armory</span>
                                             <Badge variant="primary-color">104</Badge>
                                         </div>
-                                    </MantineTabs.Tab>
-                                </MantineTabs.List>
-                                <MantineTabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</MantineTabs.Panel>
-                                <MantineTabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</MantineTabs.Panel>
+                                    </Tabs.Tab>
+                                </Tabs.List>
+                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
+                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
+                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
                             </Tabs>
                         </div>
                     </div>

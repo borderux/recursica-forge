@@ -39,7 +39,7 @@ import { Sidebar } from "../Sidebar";
 import { ThemeSidebar } from "../ThemeSidebar";
 import { Modal } from "../../../components/adapters/Modal";
 import { Dropdown } from "../../../components/adapters/Dropdown";
-import { getComponentCssVar } from "../../../components/utils/cssVarNames";
+import { getComponentCssVar, buildComponentCssVarPath } from "../../../components/utils/cssVarNames";
 import { useCompliance } from "../../../core/compliance/ComplianceContext";
 import { randomizeAllVariables } from "../../../core/utils/randomizeVariables";
 import { RandomizeOptionsModal } from "../../../core/utils/RandomizeOptionsModal";
@@ -249,7 +249,6 @@ export default function MaterialShell({
     Toolbar,
     Container,
     CssBaseline,
-    Switch,
     FormControlLabel,
     Dialog,
     DialogTitle,
@@ -378,11 +377,16 @@ export default function MaterialShell({
                 "default-horizontal-padding",
                 undefined,
               );
-              const buttonBorderRadius = getComponentCssVar(
+              const buttonBorderRadius = buildComponentCssVarPath(
                 "Button",
-                "size",
+                "variants",
+                "content",
+                "label",
+                "variants",
+                "sizes",
+                "default",
+                "properties",
                 "border-radius",
-                undefined,
               );
 
               return (
@@ -690,7 +694,6 @@ export default function MaterialShell({
                   { label: "Material UI", value: "material" },
                   { label: "Carbon", value: "carbon" },
                 ]}
-                state='disabled'
                 style={{ width: 180, marginLeft: 8 }}
                 layer='layer-0'
                 disableTopBottomMargin={true}
@@ -699,11 +702,16 @@ export default function MaterialShell({
 
             {/* Chunk 4: Theme Mode Segmented Control */}
             {(() => {
-              const buttonBorderRadius = getComponentCssVar(
+              const buttonBorderRadius = buildComponentCssVarPath(
                 "Button",
-                "size",
+                "variants",
+                "content",
+                "label",
+                "variants",
+                "sizes",
+                "default",
+                "properties",
                 "border-radius",
-                undefined,
               );
               const buttonSmallHeight = getComponentCssVar(
                 "Button",

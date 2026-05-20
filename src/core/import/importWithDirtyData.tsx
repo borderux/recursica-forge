@@ -20,8 +20,6 @@ import {
 } from "../utils/validateJsonSchemas";
 import type { JsonLike } from "../resolvers/tokens";
 import JSZip from 'jszip';
-import { isDiffSessionPending, consumeDiffSession } from '../dev/diffSession';
-import { captureCurrentSnapshot, computeDiff, LOCAL_STORAGE_KEY } from '../dev/exportImportValidator';
 
 export interface ImportFiles {
   tokens?: object;
@@ -89,7 +87,6 @@ export function useJsonImport() {
 
   const handleImport = (onSuccess?: () => void) => {
     executeImport(selectedFiles, () => {
-      triggerDiffIfPending()
       if (onSuccess) onSuccess()
     })
   }
@@ -100,7 +97,6 @@ export function useJsonImport() {
       try {
         importJsonFiles(pendingImport);
         setPendingImport(null);
-        triggerDiffIfPending()
         if (onSuccess) onSuccess();
       } catch (error) {
         if (error instanceof ImportValidationError) {
@@ -183,41 +179,6 @@ export function ImportErrorModal({
   );
 }
 
-/**
- * If a diff session is pending (started via the Diff button), capture the
- * post-import snapshot, compute the diff, store it, and open the diff tab.
- */
-function triggerDiffIfPending(): void {
-  if (!isDiffSessionPending()) return
-
-  // Small delay to let recomputeAndApplyAll settle after import
-  setTimeout(() => {
-    const sessionData = consumeDiffSession()
-    if (!sessionData) return
-
-    const importedSnapshot = captureCurrentSnapshot()
-
-    const result = computeDiff(
-      { ...sessionData.originalJson, css: sessionData.originalCss },
-      // "exported" == the original state (what was downloaded) — same as original
-      // because we don't re-randomise; we just check if import preserved everything
-      { ...sessionData.originalJson, css: sessionData.originalCss },
-      importedSnapshot,
-    )
-
-
-
-    // Store result for the diff tab
-    if (typeof window !== 'undefined') {
-      ;(window as any).__RECURSICA_ROUNDTRIP_DATA__ = result
-    }
-    try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(result))
-    } catch { /* quota exceeded */ }
-
-    window.open(window.location.origin + '/dev/diff', '_blank')
-  }, 300)
-}
 
 /**
  * Processes uploaded files and detects their types.

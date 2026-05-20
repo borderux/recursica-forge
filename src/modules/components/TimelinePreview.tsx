@@ -12,7 +12,9 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Timeline as MantineTimeline, ThemeIcon, Avatar as MantineAvatar } from '@mantine/core'
+import { ThemeIcon } from '@mantine/core'
+import { Timeline } from '../../components/adapters/Timeline'
+import { Avatar } from '../../components/adapters/Avatar'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
 import '../../components/adapters/mantine/Timeline/Timeline.css'
@@ -264,7 +266,7 @@ function useBullets() {
             {CheckIcon ? <CheckIcon size={14} /> : null}
         </ThemeIcon>, // icon-alt
         <div className="recursica-timeline-avatar-container">
-            <MantineAvatar size={32} radius="xl" src="/goblin-avatar-smith.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-smith.png" className="recursica-timeline-avatar-bullet" />
         </div>, // avatar
         undefined, // default dot
         BellIcon ? <BellIcon size={14} /> : undefined, // icon
@@ -272,7 +274,7 @@ function useBullets() {
             {WarningIcon ? <WarningIcon size={14} /> : null}
         </ThemeIcon>, // icon-alt
         <div className="recursica-timeline-avatar-container">
-            <MantineAvatar size={32} radius="xl" src="/goblin-avatar-elder.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-elder.png" className="recursica-timeline-avatar-bullet" />
         </div>, // avatar
     ]
 
@@ -283,7 +285,7 @@ function useBullets() {
             {HeartIcon ? <HeartIcon size={14} /> : null}
         </ThemeIcon>,
         <div className="recursica-timeline-avatar-container">
-            <MantineAvatar size={32} radius="xl" src="/goblin-avatar-shaman.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-shaman.png" className="recursica-timeline-avatar-bullet" />
         </div>,
         undefined,
         InfoIcon ? <InfoIcon size={14} /> : undefined,
@@ -291,7 +293,7 @@ function useBullets() {
             {StarIcon ? <StarIcon size={14} /> : null}
         </ThemeIcon>,
         <div className="recursica-timeline-avatar-container">
-            <MantineAvatar size={32} radius="xl" src="/goblin-avatar-scout.png" className="recursica-timeline-avatar-bullet" />
+            <Avatar sizeVariant="small" shape="circle" colorVariant="image" src="/goblin-avatar-scout.png" className="recursica-timeline-avatar-bullet" />
         </div>,
     ]
 
@@ -306,7 +308,7 @@ export default function TimelinePreview({
     const [updateKey, setUpdateKey] = useState(0)
 
     useEffect(() => {
-        const handleCssVarUpdate = () => setUpdateKey(k => k + 1)
+        const handleCssVarUpdate = () => setUpdateKey((k: number) => k + 1)
         window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
         return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
     }, [])
@@ -339,45 +341,35 @@ export default function TimelinePreview({
             {/* Left-aligned timeline */}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <h2 style={h2Style}>Left aligned</h2>
-                <MantineTimeline
+                <Timeline
                     active={3}
                     align="left"
                     className="recursica-timeline"
                     style={cssVars as React.CSSProperties}
-                >
-                    {LEFT_ITEMS.map((item, i) => (
-                        <MantineTimeline.Item
-                            key={i}
-                            title={item.title}
-                            bullet={leftBullets[i]}
-                        >
-                            <div className="recursica-timeline-description">{item.description}</div>
-                            <div className="recursica-timeline-timestamp">{item.timestamp}</div>
-                        </MantineTimeline.Item>
-                    ))}
-                </MantineTimeline>
+                    items={LEFT_ITEMS.map((item, i) => ({
+                        title: item.title,
+                        description: item.description,
+                        timestamp: item.timestamp,
+                        bullet: leftBullets[i],
+                    }))}
+                />
             </div>
 
             {/* Right-aligned timeline */}
             <div style={{ flex: 1, minWidth: 0 }}>
                 <h2 style={{ ...h2Style, textAlign: 'right' }}>Right aligned</h2>
-                <MantineTimeline
+                <Timeline
                     active={3}
                     align="right"
                     className="recursica-timeline"
                     style={cssVars as React.CSSProperties}
-                >
-                    {RIGHT_ITEMS.map((item, i) => (
-                        <MantineTimeline.Item
-                            key={i}
-                            title={item.title}
-                            bullet={rightBullets[i]}
-                        >
-                            <div className="recursica-timeline-description">{item.description}</div>
-                            <div className="recursica-timeline-timestamp">{item.timestamp}</div>
-                        </MantineTimeline.Item>
-                    ))}
-                </MantineTimeline>
+                    items={RIGHT_ITEMS.map((item, i) => ({
+                        title: item.title,
+                        description: item.description,
+                        timestamp: item.timestamp,
+                        bullet: rightBullets[i],
+                    }))}
+                />
             </div>
         </div>
     )

@@ -1,22 +1,20 @@
 /**
- * Mantine Dropdown Implementation
+ * Carbon Dropdown Implementation
  * 
- * Mantine-specific Dropdown component that uses CSS variables for theming.
- * Uses Menu component from @mantine/core.
+ * Carbon-specific Dropdown component that uses CSS variables for theming.
+ * Uses a lightweight portal overlay to render the menu component.
  */
 
-import React, { useState, useEffect, useMemo } from 'react'
-import { Menu, UnstyledButton, Group, Text } from '@mantine/core'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import type { DropdownProps as AdapterDropdownProps } from '../../Dropdown'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
-import { getComponentLevelCssVar as getMenuItemLevelCssVar, buildComponentCssVarPath as buildMenuItemCssVarPath } from '../../../utils/cssVarNames'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'
 import { Menu as MenuAdapter } from '../../Menu'
 import { MenuItem as MenuItemAdapter } from '../../MenuItem'
-import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Dropdown.css'
 
@@ -46,15 +44,55 @@ export default function Dropdown({
     className,
     style,
     zIndex,
-    mantine,
 
+    carbon,
 }: AdapterDropdownProps & { labelId?: string; helpId?: string; errorId?: string }) {
     const { mode } = useThemeMode()
     const [opened, setOpened] = useState(false)
+    const triggerRef = useRef<HTMLButtonElement>(null)
+    const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
 
+    const handleTriggerClick = () => {
+        if (state === 'disabled') return
+        setOpened(prev => !prev)
+    }
+
+    const updatePosition = () => {
+        if (triggerRef.current) {
+            setTriggerRect(triggerRef.current.getBoundingClientRect())
+        }
+    }
 
     // Generate unique ID if not provided
     const uniqueId = id || `dropdown-${Math.random().toString(36).substr(2, 9)}`
+
+    // Position sync and click outside handling
+    useEffect(() => {
+        if (!opened) return
+
+        updatePosition()
+        window.addEventListener('resize', updatePosition)
+        window.addEventListener('scroll', updatePosition, true)
+
+        const handleOutsideClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement
+            if (
+                triggerRef.current?.contains(target) ||
+                document.getElementById(`portal-${uniqueId}`)?.contains(target)
+            ) {
+                return
+            }
+            setOpened(false)
+        }
+
+        document.addEventListener('mousedown', handleOutsideClick)
+
+        return () => {
+            window.removeEventListener('resize', updatePosition)
+            window.removeEventListener('scroll', updatePosition, true)
+            document.removeEventListener('mousedown', handleOutsideClick)
+        }
+    }, [opened, uniqueId])
 
     // Determine effective state
     const effectiveState = state
@@ -100,7 +138,19 @@ export default function Dropdown({
     useEffect(() => {
         const handleUpdate = () => forceUpdate(prev => prev + 1)
         window.addEventListener('cssVarsUpdated', handleUpdate)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+
+        const observer = new MutationObserver(() => {
+            forceUpdate(prev => prev + 1)
+        })
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style'],
+        })
+
+        return () => {
+            window.removeEventListener('cssVarsUpdated', handleUpdate)
+            observer.disconnect()
+        }
     }, [])
 
     const effectiveMinWidth = minWidth !== undefined ? `${minWidth}px` : `var(${minWidthVar})`
@@ -149,10 +199,12 @@ export default function Dropdown({
     ) : null
 
     const dropdownTrigger = (
-        <UnstyledButton
+        <button
+            ref={triggerRef}
             id={uniqueId}
             disabled={state === 'disabled'}
             className={`recursica-dropdown-trigger ${opened || state === 'focus' ? 'opened focus' : ''} ${state === 'disabled' ? 'disabled' : ''}`}
+            onClick={handleTriggerClick}
             style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -172,14 +224,21 @@ export default function Dropdown({
                 color: `var(${textVar})`,
                 cursor: state === 'disabled' ? 'not-allowed' : 'pointer',
                 transition: 'box-shadow 0.2s, background-color 0.2s',
+                border: 'none',
+                outline: 'none',
+                fontFamily: 'inherit',
+                fontSize: 'inherit',
+                boxSizing: 'border-box',
+                textAlign: 'left',
             }}
+            {...carbon}
         >
             {effectiveLeadingIcon && (
-                <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${leadingIconVar})`, display: 'flex', alignItems: 'center' }}>
+                <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${leadingIconVar})`, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                     {effectiveLeadingIcon}
                 </div>
             )}
-            <Text
+            <span
                 style={{
                     flex: 1,
                     overflow: 'hidden',
@@ -197,11 +256,11 @@ export default function Dropdown({
                 }}
             >
                 {displayLabel}
-            </Text>
-            <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${trailingIconVar})`, display: 'flex', alignItems: 'center', transition: 'transform 0.2s', transform: opened ? 'rotate(180deg)' : 'none' }}>
+            </span>
+            <div style={{ width: `var(${iconSizeVar})`, height: `var(${iconSizeVar})`, color: `var(${trailingIconVar})`, display: 'flex', alignItems: 'center', transition: 'transform 0.2s', transform: opened ? 'rotate(180deg)' : 'none', flexShrink: 0 }}>
                 {trailingIcon || (ChevronDown ? <ChevronDown /> : '▼')}
             </div>
-        </UnstyledButton>
+        </button>
     )
 
     return (
@@ -209,28 +268,18 @@ export default function Dropdown({
             <div style={{ display: 'flex', flexDirection: layout === 'side-by-side' ? 'row' : 'column', gap: layout === 'side-by-side' ? (buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter') ? `var(${buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')})` : '8px') : 0, width: '100%' }}>
                 {labelElement}
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-                    <Menu
-                        disabled={state === 'disabled'}
-                        onOpen={() => setOpened(true)}
-                        onClose={() => setOpened(false)}
-                        position="bottom-start"
-                        width="target"
-                        offset={4}
-                        transitionProps={{ transition: 'pop', duration: 150 }}
-                        zIndex={zIndex}
-                        {...mantine}
-                    >
-                        <Menu.Target>
-                            {dropdownTrigger}
-                        </Menu.Target>
-
-                        <Menu.Dropdown
-                            p={0}
+                    {dropdownTrigger}
+                    
+                    {opened && triggerRect && createPortal(
+                        <div
+                            id={`portal-${uniqueId}`}
                             style={{
-                                border: 'none',
-                                backgroundColor: 'transparent',
-                                boxShadow: 'none',
-                                minWidth: 'auto',
+                                position: 'absolute',
+                                top: `${triggerRect.bottom + window.scrollY}px`,
+                                left: `${triggerRect.left + window.scrollX}px`,
+                                width: `${triggerRect.width}px`,
+                                zIndex: zIndex ?? 9999,
+                                pointerEvents: 'auto',
                             }}
                         >
                             <MenuAdapter layer={layer} maxHeight={maxHeight}>
@@ -257,8 +306,10 @@ export default function Dropdown({
                                     </MenuItemAdapter>
                                 ))}
                             </MenuAdapter>
-                        </Menu.Dropdown>
-                    </Menu>
+                        </div>,
+                        document.body
+                    )}
+
                     {assistiveElement}
                 </div>
             </div>

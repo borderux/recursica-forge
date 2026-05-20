@@ -53,9 +53,16 @@ export default function Menu({
   const updateClampedHeight = useCallback(() => {
     if (menuRef.current) {
       const rect = menuRef.current.getBoundingClientRect()
+      // If the menu is not visible or has an empty rect during mounting, fallback to maxHeight
+      if (rect.width === 0 && rect.height === 0) {
+        setClampedMaxHeight(maxHeight)
+        return
+      }
       const viewportHeight = window.innerHeight
       const availableHeight = viewportHeight - rect.top
-      setClampedMaxHeight(Math.min(maxHeight, availableHeight))
+      // Clamp only if availableHeight is positive and reasonable (e.g., > 100px); otherwise fallback to maxHeight
+      const finalHeight = availableHeight > 100 ? availableHeight : maxHeight
+      setClampedMaxHeight(Math.min(maxHeight, finalHeight))
     } else {
       setClampedMaxHeight(maxHeight)
     }
