@@ -95,7 +95,33 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
 
   const finalKey = path[path.length - 1]
 
-  if (current[finalKey] && typeof current[finalKey] === 'object' && '$value' in current[finalKey]) {
+  // If current is a composite token (e.g., typography or shadow), its sub-properties are stored inside its $value object.
+  const isCompositeToken = current && typeof current === 'object' &&
+                           (current.$type === 'typography' || current.$type === 'shadow') &&
+                           current.$value && typeof current.$value === 'object'
+
+  if (isCompositeToken) {
+    const targetParent = current.$value
+    
+    if (targetParent[finalKey] && typeof targetParent[finalKey] === 'object' && '$value' in targetParent[finalKey]) {
+      const hasUnitObject =
+        targetParent[finalKey].$value &&
+        typeof targetParent[finalKey].$value === 'object' &&
+        'unit' in targetParent[finalKey].$value
+      if (hasUnitObject && typeof jsonValue === 'string') {
+        const match = jsonValue.trim().match(/^(-?\d+(?:\.\d+)?)(px|rem|em|%)?$/)
+        if (match) {
+          targetParent[finalKey].$value = { value: parseFloat(match[1]), unit: match[2] || 'px' }
+        } else {
+          targetParent[finalKey].$value = jsonValue
+        }
+      } else {
+        targetParent[finalKey].$value = jsonValue
+      }
+    } else {
+      targetParent[finalKey] = jsonValue
+    }
+  } else if (current[finalKey] && typeof current[finalKey] === 'object' && '$value' in current[finalKey]) {
     const hasUnitObject =
       current[finalKey].$value &&
       typeof current[finalKey].$value === 'object' &&
