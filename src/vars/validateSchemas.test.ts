@@ -597,6 +597,33 @@ describe('DTCG structural compliance (validateDtcgStructure)', () => {
     const valid = { brand: {}, $extensions: { 'recursica.metadata': { exportedAt: '2026-01-01', version: '1.0.0' } } }
     expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
   })
+
+  describe('dimension validation', () => {
+    it('should accept dimension token with valid value-unit object', () => {
+      const valid = { tokens: { sizes: { test: { $type: 'dimension', $value: { value: 200, unit: 'px' } } } } }
+      expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+    })
+
+    it('should accept dimension token with valid brace reference', () => {
+      const valid = { tokens: { sizes: { test: { $type: 'dimension', $value: '{brand.dimensions.general.sm}' } } } }
+      expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+    })
+
+    it('should accept dimension token with null value', () => {
+      const valid = { tokens: { sizes: { test: { $type: 'dimension', $value: null } } } }
+      expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+    })
+
+    it('should reject dimension token with raw value-unit string', () => {
+      const invalid = { tokens: { sizes: { test: { $type: 'dimension', $value: '200px' } } } }
+      expect(() => validateDtcgStructure(invalid as any, 'test.json')).toThrow(/type is "dimension" but value is not an object/)
+    })
+
+    it('should reject dimension token with missing unit', () => {
+      const invalid = { tokens: { sizes: { test: { $type: 'dimension', $value: { value: 200 } } } } }
+      expect(() => validateDtcgStructure(invalid as any, 'test.json')).toThrow(/type is "dimension" but value is not an object/)
+    })
+  })
 })
 
 describe('validateUIKitComponentExtensions', () => {

@@ -42,6 +42,7 @@ const DTCG_RESERVED_KEYS = new Set([
 export function validateDtcgStructure(json: JsonLike, filename: string): void {
   const unknownKeys: string[] = []
   const nonStandardTypes: string[] = []
+  const invalidDimensionValues: string[] = []
 
   function check(obj: unknown, path: string): void {
     if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) return
@@ -59,6 +60,21 @@ export function validateDtcgStructure(json: JsonLike, filename: string): void {
       if (typeof t === 'string' && !DTCG_STANDARD_TYPES.has(t)) {
         nonStandardTypes.push(`${path} → $type="${t}" (move to $extensions.recursica.type)`)
       }
+
+      const extType = (record.$extensions as Record<string, unknown> | undefined)?.['recursica.type']
+      const resolvedType = typeof t === 'string' ? t : (typeof extType === 'string' ? extType : undefined)
+
+      if (resolvedType === 'dimension') {
+        const val = record.$value
+        const isNullOrUndefined = val === null || val === undefined
+        const isRef = typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')
+        const isValidObj = val !== null && typeof val === 'object' && !Array.isArray(val) && 'value' in val && 'unit' in val
+
+        if (!isNullOrUndefined && !isRef && !isValidObj) {
+          invalidDimensionValues.push(`${path} → type is "dimension" but value is not an object containing "value" and "unit" (got ${JSON.stringify(val)})`)
+        }
+      }
+
       // Do not recurse into token children — $value is the leaf
       return
     }
@@ -74,6 +90,7 @@ export function validateDtcgStructure(json: JsonLike, filename: string): void {
   const errors: string[] = [
     ...unknownKeys.map(e => `  [unknown-$-key] ${e}`),
     ...nonStandardTypes.map(e => `  [non-standard-$type] ${e}`),
+    ...invalidDimensionValues.map(e => `  [invalid-dimension-token] ${e}`),
   ]
 
   if (errors.length > 0) {
@@ -455,6 +472,9 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
 
   // Enforce recursica.component $extensions integrity
   validateUIKitComponentExtensions(uikitJson)
+
+  // DTCG structural compliance
+  validateDtcgStructure(uikitJson, 'recursica_ui-kit.json')
 }
 
 // --- DTCG reference validation ---

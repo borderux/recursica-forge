@@ -2112,7 +2112,10 @@
           },
           "label-max-width": {
             "$type": "dimension",
-            "$value": "200px"
+            "$value": {
+              "value": 200,
+              "unit": "px"
+            }
           },
           "text": {
             "font-family": {
