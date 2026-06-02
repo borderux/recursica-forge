@@ -198,9 +198,6 @@ function traverseUIKit(
               // Preserve the brace reference for second pass resolution
               vars[cssVarName] = trimmed
             }
-          } else {
-            // Not a brace reference, use as-is (shouldn't happen for dimension type)
-            vars[cssVarName] = trimmed
           }
         }
       } else if (type === 'typography' && typeof val === 'string') {
