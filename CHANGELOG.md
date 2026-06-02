@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.19.1
+
+### Patch Changes
+
+- edb682e: Fixed incorrect dimension key
+
 ## 0.19.0
 
 ### Minor Changes
