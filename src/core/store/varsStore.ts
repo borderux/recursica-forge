@@ -1680,7 +1680,7 @@ class VarsStore {
         if (parsed && parsed.type === 'brand') {
           const pathStr = parsed.path.join('.')
           // Target format: palettes.neutral.500.color.tone
-          const paletteFlexMatch = /^palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)\.color\.(tone|on-tone)$/i.exec(pathStr)
+          const paletteFlexMatch = /^palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)(?:\.color)?\.(tone|on-tone)$/i.exec(pathStr)
           
           if (paletteFlexMatch) {
             const paletteKey = paletteFlexMatch[1]
