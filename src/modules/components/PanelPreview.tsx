@@ -10,6 +10,7 @@ import { getElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
 import type { PanelPosition } from '../../components/adapters/Panel'
+import { h2Style, pStyle } from './typographyStyles'
 
 interface PanelPreviewProps {
     selectedVariants: Record<string, string>
@@ -156,9 +157,9 @@ export default function PanelPreview({
     // The panel body content
     const panelBody = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_md)', ...bodyStyle }}>
-            <p style={{ margin: 0 }}>{goblinChapter}</p>
-            <p style={{ margin: 0 }}>{goblinParagraph2}</p>
-            <p style={{ margin: 0 }}>{goblinParagraph3}</p>
+            <p style={{ margin: 0, ...pStyle }}>{goblinChapter}</p>
+            <p style={{ margin: 0, ...pStyle }}>{goblinParagraph2}</p>
+            <p style={{ margin: 0, ...pStyle }}>{goblinParagraph3}</p>
         </div>
     )
 
