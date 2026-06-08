@@ -1,3 +1,4 @@
+import { useThemeMode } from "../../../theme/ThemeModeContext"
 /**
  * PaddingGroupToolbar Component
  * 
@@ -62,7 +63,8 @@ export default function PaddingGroupToolbar({
     : []
 
   // Find padding-related props from component structure
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const { mode } = useThemeMode()
+  const structure = useMemo(() => parseComponentStructure(componentName), [componentName, mode])
 
   // Single padding prop (e.g., Accordion)
   const singlePaddingProp = useMemo(() => {

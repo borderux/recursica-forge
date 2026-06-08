@@ -8,15 +8,10 @@
  */
 
 import { Loader } from '../../components/adapters/Loader'
+import { h2Style } from './typographyStyles'
 
-const h2Style: React.CSSProperties = {
-    margin: 0,
-    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-}
+
+
 
 interface LoaderPreviewProps {
     selectedVariants: Record<string, string>

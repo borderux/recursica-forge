@@ -1,3 +1,4 @@
+import { useThemeMode } from "../../../theme/ThemeModeContext"
 /**
  * BackgroundToolbar Component
  * 
@@ -43,9 +44,10 @@ export default function BackgroundToolbar({
 
   // Parse structure from the live uikit so custom variant names are included.
   // uikit is a reactive dep — the memo recomputes after reset or variant changes.
+  const { mode } = useThemeMode()
   const structure = useMemo(
     () => parseComponentStructure(componentName, uikit),
-    [componentName, uikit]
+    [componentName, uikit, mode]
   )
 
   const backgroundProp = useMemo(() => {

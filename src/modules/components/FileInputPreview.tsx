@@ -3,6 +3,8 @@ import { FileInput } from '../../components/adapters/FileInput'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { h2Style } from './typographyStyles'
+
 
 interface FileInputPreviewProps {
     selectedVariants: Record<string, string>
@@ -27,17 +29,6 @@ export default function FileInputPreview({
     const state = (selectedVariants.states || 'default') 
 
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
-
-    const h2Style = {
-        margin: 0,
-        marginBottom: 16,
-        textTransform: 'capitalize' as const,
-        fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-        fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-        fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-        letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-        lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-    } as React.CSSProperties
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 

@@ -7,6 +7,8 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { useRawCssVar } from '../../components/hooks/useCssVar'
 import { buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import { layerText } from '../../core/css/cssVarBuilder'
+import { h2Style } from './typographyStyles'
+
 
 interface TabsPreviewProps {
     selectedVariants: Record<string, string>
@@ -81,15 +83,6 @@ function TabSet({
         </Tabs>
     )
 }
-
-const h2Style = {
-    margin: 0,
-    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-} as React.CSSProperties
 
 const h3Style = {
     margin: 0,

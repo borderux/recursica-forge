@@ -18,6 +18,8 @@ import { Avatar } from '../../components/adapters/Avatar'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
 import '../../components/adapters/mantine/Timeline/Timeline.css'
+import { h2Style } from './typographyStyles'
+
 
 interface TimelinePreviewProps {
     selectedVariants: Record<string, string>
@@ -315,16 +317,6 @@ export default function TimelinePreview({
 
     const cssVars = buildCssVars(selectedLayer)
     const { leftBullets, rightBullets } = useBullets()
-
-    const h2Style = {
-        margin: 0,
-        marginBottom: 12,
-        fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-        fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-        fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-        letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-        lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-    } as React.CSSProperties
 
     return (
         <div

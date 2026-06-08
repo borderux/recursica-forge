@@ -1,3 +1,4 @@
+import { useThemeMode } from "../../../theme/ThemeModeContext"
 import { getVarsStore } from '../../../../core/store/varsStore'
 /**
  * IconGroupToolbar Component
@@ -74,7 +75,8 @@ export default function IconGroupToolbar({
     : []
 
   // Find icon-related props from component structure
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const { mode } = useThemeMode()
+  const structure = useMemo(() => parseComponentStructure(componentName), [componentName, mode])
 
   const iconSizeProp = useMemo(() => {
     return structure.props.find(p => {

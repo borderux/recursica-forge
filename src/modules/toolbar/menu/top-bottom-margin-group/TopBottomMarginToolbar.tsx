@@ -1,3 +1,4 @@
+import { useThemeMode } from "../../../theme/ThemeModeContext"
 import { getVarsStore } from '../../../../core/store/varsStore'
 /**
  * TopBottomMarginToolbar Component
@@ -32,7 +33,8 @@ export default function TopBottomMarginToolbar({
   onClose,
 }: TopBottomMarginToolbarProps) {
   // Find ALL top-bottom-margin props (both stacked and side-by-side)
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const { mode } = useThemeMode()
+  const structure = useMemo(() => parseComponentStructure(componentName), [componentName, mode])
   
   const topBottomMarginProps = useMemo(() => {
     const allMarginProps = structure.props.filter(p => {
