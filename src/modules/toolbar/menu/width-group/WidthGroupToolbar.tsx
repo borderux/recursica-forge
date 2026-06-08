@@ -1,3 +1,4 @@
+import { useThemeMode } from "../../../theme/ThemeModeContext"
 import { getVarsStore } from '../../../../core/store/varsStore'
 /**
  * WidthGroupToolbar Component
@@ -55,7 +56,8 @@ export default function WidthGroupToolbar({
   const maxHeightPropName = propNameMapping.maxHeight || 'max-height'
 
   // Find width-related props from component structure
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const { mode } = useThemeMode()
+  const structure = useMemo(() => parseComponentStructure(componentName), [componentName, mode])
 
   const minWidthProp = useMemo(() => {
     return structure.props.find(p => {

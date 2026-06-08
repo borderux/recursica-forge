@@ -128,7 +128,7 @@ export default function BorderGroupToolbar({
   // uikit is a reactive dep — the memo recomputes after reset or variant changes.
   const structure = useMemo(
     () => parseComponentStructure(componentName, uikit),
-    [componentName, uikit]
+    [componentName, uikit, mode]
   )
 
   const borderSizeProp = useMemo(() => {

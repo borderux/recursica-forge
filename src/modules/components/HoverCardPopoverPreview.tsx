@@ -160,7 +160,7 @@ export default function HoverCardPopoverPreview({
                     Without beak
                 </h2>
                 <div style={cardStyle}>
-                    <p style={{ margin: 0, ...pStyle }}>
+                    <p style={{ ...pStyle, margin: 0 }}>
                         The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal.
                     </p>
                 </div>
@@ -183,7 +183,7 @@ export default function HoverCardPopoverPreview({
                 <div style={{ paddingTop: beakSize / 2 + borderSize + 4 }}>
                     <div style={cardStyle}>
                         <div style={beakStyle} />
-                        <p style={{ margin: 0, ...pStyle }}>
+                        <p style={{ ...pStyle, margin: 0 }}>
                             Zog tightened his obsidian gauntlets and leapt across the Crystalline Abyss, chasing the fabled Lantern of Ereth.
                         </p>
                     </div>
@@ -199,7 +199,7 @@ export default function HoverCardPopoverPreview({
                 paddingTop: 'var(--recursica_brand_dimensions_general_lg)',
             }}>
                 <HoverCard
-                    content={<p style={{ margin: 0, ...pStyle }}>A curious goblin peeks from the shadows, eyes gleaming with mischief and pockets full of stolen trinkets.</p>}
+                    content={<p style={{ ...pStyle, margin: 0 }}>A curious goblin peeks from the shadows, eyes gleaming with mischief and pockets full of stolen trinkets.</p>}
                     layer={layer}
                     withBeak
                     position="bottom"
@@ -210,7 +210,7 @@ export default function HoverCardPopoverPreview({
                 </HoverCard>
 
                 <Popover
-                    content={<p style={{ margin: 0, ...pStyle }}>The goblin's lantern flickered, casting shifting patterns on the crystal walls of the ancient mine.</p>}
+                    content={<p style={{ ...pStyle, margin: 0 }}>The goblin's lantern flickered, casting shifting patterns on the crystal walls of the ancient mine.</p>}
                     layer={layer}
                     isOpen={popoverOpen}
                     onClose={() => setPopoverOpen(false)}

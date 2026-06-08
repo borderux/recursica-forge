@@ -111,14 +111,14 @@ export default function ComponentToolbar({
 
   // Use the static import for base structure so color edits (setUiKitSilent, same object
   // reference) do not re-run this memo and interrupt in-progress prop control interactions.
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const structure = useMemo(() => parseComponentStructure(componentName), [componentName, mode])
 
   // A separate parse from the LIVE store gives us props for custom variants only.
   // Keyed on liveUikitVariantSignature so it only recomputes when variants change.
   const liveStructure = useMemo(
     () => parseComponentStructure(componentName, getVarsStore().getState().uikit),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [componentName, liveUikitVariantSignature]
+    [componentName, liveUikitVariantSignature, mode]
   )
 
   // Get toolbar config to preserve order
