@@ -2,6 +2,8 @@ import { useMemo } from 'react'
 import { DatePicker } from '../../components/adapters/DatePicker'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { h2Style } from './typographyStyles'
+
 
 interface DatePickerPreviewProps {
     selectedVariants: Record<string, string> // e.g., { states: "default" }
@@ -21,17 +23,6 @@ export default function DatePickerPreview({
 
     // Get form vertical gutter CSS variable
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
-
-    const h2Style = {
-        margin: 0,
-        marginBottom: 16,
-        textTransform: 'capitalize' as const,
-        fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-        fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-        fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-        letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-        lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-    } as React.CSSProperties
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 

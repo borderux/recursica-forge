@@ -4,6 +4,8 @@ import { Label } from '../../components/adapters/Label'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { SpeakerLow, SpeakerHigh } from '@phosphor-icons/react'
+import { h2Style } from './typographyStyles'
+
 
 interface SliderPreviewProps {
   selectedVariants: Record<string, string>
@@ -85,16 +87,6 @@ export default function SliderPreview({
       Forge Resonance
     </Label>
   )
-
-  const h2Style = {
-    margin: 0,
-    marginBottom: 16,
-    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-  } as React.CSSProperties
 
   const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 

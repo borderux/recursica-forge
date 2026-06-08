@@ -1,6 +1,8 @@
 import { TextField } from '../../components/adapters/TextField'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { h2Style } from './typographyStyles'
+
 
 interface LabelPreviewProps {
   selectedVariants: Record<string, string> // e.g., { style: "default", layout: "stacked" }
@@ -22,15 +24,6 @@ export default function LabelPreview({
   // Get vertical gap token for form properties
   const formVerticalItemGapVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
   const verticalGapValue = `var(${formVerticalItemGapVar})`
-
-  const h2Style = {
-    margin: 0,
-    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-  } as React.CSSProperties
 
   const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 

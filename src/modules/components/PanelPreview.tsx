@@ -157,9 +157,9 @@ export default function PanelPreview({
     // The panel body content
     const panelBody = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_md)', ...bodyStyle }}>
-            <p style={{ margin: 0, ...pStyle }}>{goblinChapter}</p>
-            <p style={{ margin: 0, ...pStyle }}>{goblinParagraph2}</p>
-            <p style={{ margin: 0, ...pStyle }}>{goblinParagraph3}</p>
+            <p style={{ ...pStyle, margin: 0 }}>{goblinChapter}</p>
+            <p style={{ ...pStyle, margin: 0 }}>{goblinParagraph2}</p>
+            <p style={{ ...pStyle, margin: 0 }}>{goblinParagraph3}</p>
         </div>
     )
 
