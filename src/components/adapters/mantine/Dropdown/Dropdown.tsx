@@ -210,6 +210,8 @@ export default function Dropdown({
                 {labelElement}
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                     <Menu
+                        opened={opened}
+                        onChange={setOpened}
                         disabled={state === 'disabled'}
                         onOpen={() => setOpened(true)}
                         onClose={() => setOpened(false)}
@@ -237,7 +239,8 @@ export default function Dropdown({
                                 {items.map((item) => (
                                     <MenuItemAdapter
                                         key={item.value}
-                                        onClick={() => {
+                                        onClick={(e: React.MouseEvent) => {
+                                            e.stopPropagation()
                                             onChange?.(item.value)
                                             setOpened(false)
                                         }}

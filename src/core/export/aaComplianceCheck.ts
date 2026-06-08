@@ -162,26 +162,7 @@ export function checkAACompliance(): ComplianceIssue[] {
       const interactiveOnToneValue = readCssVar(interactiveOnToneVar)
       const interactiveColorValue = readCssVar(interactiveColorVar)
       
-      // Check interactive tone against surface
-      if (interactiveToneValue) {
-        const interactiveToneHex = resolveCssVarToHex(interactiveToneValue, tokenIndex as any)
-        
-        if (interactiveToneHex) {
-          const ratio = contrastRatio(surfaceHex, interactiveToneHex)
-          
-          if (ratio < AA_THRESHOLD) {
-            issues.push({
-              type: 'layer-interactive',
-              mode,
-              location: `Layer ${layer} (interactive tone)`,
-              toneHex: surfaceHex,
-              onToneHex: interactiveToneHex,
-              contrastRatio: ratio,
-              message: `Layer ${layer} (${mode}): Interactive tone contrast ratio ${ratio.toFixed(2)} < ${AA_THRESHOLD}`
-            })
-          }
-        }
-      }
+
       
       // Check interactive color against surface
       if (interactiveColorValue) {

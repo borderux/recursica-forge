@@ -1080,7 +1080,7 @@ export default function ComponentToolbar({
       return true
     }
 
-    // 1. Remove ALL overrides for this component from the document element
+    // 1. Remove ALL inline overrides for this component from the document element
     if (typeof document !== 'undefined') {
       const style = document.documentElement.style
       const propsToRemove: string[] = []
@@ -1093,71 +1093,38 @@ export default function ComponentToolbar({
       propsToRemove.forEach(prop => style.removeProperty(prop))
     }
 
-    // 2. Resolve all three JSON sources from the same target snapshot so that
-    //    buildUIKitVars produces values consistent with what was in place at
-    //    the chosen version (imported or Forge defaults).
+    // 2. Overwrite the component in the UIKit state with the base version
     const store = getVarsStore()
-    const sourceUikit  = target === 'imported' ? store.getImportedUikit()  : store.getPristineUikit()
-    const sourceTokens = target === 'imported' ? store.getImportedTokens() : store.getPristineTokens()
-    const sourceBrand  = target === 'imported' ? store.getImportedBrand()  : store.getPristineBrand()
-
-    const lightUIKitVars = buildUIKitVars(sourceTokens, sourceBrand, sourceUikit, 'light')
-    const darkUIKitVars  = buildUIKitVars(sourceTokens, sourceBrand, sourceUikit, 'dark')
-
-    const componentDefaults: Record<string, string> = {}
-
-    // Filter to only this component's variables from both modes
-    const filterAndAdd = (allVars: Record<string, string>) => {
-      Object.entries(allVars).forEach(([cssVar, value]) => {
-        if (isExactComponentVar(cssVar)) {
-          componentDefaults[cssVar] = value
-        }
-        if (componentKey === 'checkbox-item' && cssVar.includes('-components-checkbox-')) {
-          componentDefaults[cssVar] = value
-        }
-        if (componentKey === 'radio-button-item' && cssVar.includes('-components-radio-button-')) {
-          componentDefaults[cssVar] = value
-        }
-      })
+    const sourceUikit = target === 'imported' ? store.getImportedUikit() : store.getPristineUikit()
+    
+    // Deep clone the current state to modify it
+    const currentState = store.getState().uikit
+    const updatedUikit = JSON.parse(JSON.stringify(currentState))
+    
+    // Get the base component data
+    const baseComponents = sourceUikit?.['ui-kit']?.components || sourceUikit?.components || {}
+    const baseComponentData = baseComponents[componentKey]
+    
+    // Overwrite the component data in the state
+    if (updatedUikit?.['ui-kit']?.components) {
+      if (baseComponentData) {
+        updatedUikit['ui-kit'].components[componentKey] = JSON.parse(JSON.stringify(baseComponentData))
+      } else {
+        delete updatedUikit['ui-kit'].components[componentKey]
+      }
+    } else if (updatedUikit?.components) {
+      if (baseComponentData) {
+        updatedUikit.components[componentKey] = JSON.parse(JSON.stringify(baseComponentData))
+      } else {
+        delete updatedUikit.components[componentKey]
+      }
     }
 
-    filterAndAdd(lightUIKitVars)
-    filterAndAdd(darkUIKitVars)
-
-    // 3. Restore defaults from the pristine JSON.
-    // noGlobalRefCheck=true is captured in each closure at call time, so the
-    // global-ref modal never fires regardless of when the debounce callback runs.
-    Object.entries(componentDefaults).forEach(([cssVar, value]) => {
-      updateCssVar(cssVar, value, tokensJson as any, false, false, true)
-    })
-
-    // 4. Re-apply CSS vars for any CUSTOM VARIANTS that exist in the current live uikit
-    // but not in the pristine uikit.
-    const currentUiKit = getVarsStore().getState().uikit
-    const lightCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'light')
-    const darkCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'dark')
-    const pristineVarKeys = new Set(Object.keys(componentDefaults))
-
-    const customVariantDefaults: Record<string, string> = {}
-    const addCustom = (allVars: Record<string, string>) => {
-      Object.entries(allVars).forEach(([cssVar, value]) => {
-        if (isExactComponentVar(cssVar) && !pristineVarKeys.has(cssVar)) {
-          customVariantDefaults[cssVar] = value
-        }
-      })
-    }
-    addCustom(lightCurrentVars)
-    addCustom(darkCurrentVars)
-
-    Object.entries(customVariantDefaults).forEach(([cssVar, value]) => {
-      updateCssVar(cssVar, value, tokensJson as any, false, false, true)
-    })
+    // 3. Save the state and trigger a full CSS recompute
+    store.setUiKit(updatedUikit)
 
     // Force a re-render and notification of reset
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
-    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars: Object.keys(componentDefaults) }
-    }))
   }
 
 

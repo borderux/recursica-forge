@@ -304,7 +304,7 @@ export function removeCssVar(cssVarName: string, silent?: boolean): void {
   }
 
   // Ensure UIKit removal syncs with JSON store 
-  const isUIKitVar = cssVarName.includes('-ui-kit-') && (cssVarName.includes('-components-') || cssVarName.includes('-globals-'))
+  const isUIKitVar = cssVarName.includes('_ui-kit_') && (cssVarName.includes('_components_') || cssVarName.includes('_globals_'))
   if (isUIKitVar) {
     removeUIKitValue(cssVarName)
   }
