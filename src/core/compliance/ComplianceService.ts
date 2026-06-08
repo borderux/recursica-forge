@@ -1638,9 +1638,9 @@ class ComplianceServiceImpl {
                     fgProps: ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
                 },
                 {
-                    names: ['button'],
+                    names: ['button', 'toast'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'text-hover', 'icon-color']
+                    fgProps: ['text', 'text-hover', 'icon-color', 'button']
                 },
                 {
                     names: ['chip', 'badge'],
@@ -1891,6 +1891,278 @@ class ComplianceServiceImpl {
                 }
             }
 
+            // 6. Flat properties.colors components
+            const flatConfigs = [
+                { name: 'tooltip', fgProps: ['text'], hasBg: true },
+                { name: 'card', fgProps: ['title', 'content'], hasBg: true },
+                { name: 'switch-item', fgProps: ['text'], hasBg: false },
+                { name: 'checkbox-item', fgProps: ['text'], hasBg: false },
+                { name: 'radio-button-item', fgProps: ['text'], hasBg: false },
+                { name: 'label', fgProps: ['text', 'asterisk'], hasBg: false },
+                { name: 'read-only-field', fgProps: ['text'], hasBg: false },
+                { name: 'hover-card-popover', fgProps: ['content'], hasBg: true },
+                { name: 'panel', fgProps: ['title', 'content'], hasBg: true },
+                { name: 'modal', fgProps: ['title', 'content'], hasBg: true }
+            ]
+
+            for (const config of flatConfigs) {
+                const comp = components[config.name]
+                if (!comp?.properties?.colors) continue
+
+                for (const layer of layers) {
+                    const layerColors = comp.properties.colors[layer]
+                    if (!layerColors) continue
+
+                    let bgVar = `--recursica_ui-kit_themes_${mode}_components_${config.name}_properties_colors_${layer}_background`
+                    let bgValue = config.hasBg ? readCssVar(bgVar) : undefined
+                    let isFallbackBg = false
+                    if (!bgValue || bgValue === 'transparent') {
+                        bgVar = `--recursica_brand_themes_${mode}_layers_${layer}_properties_surface`
+                        bgValue = readCssVar(bgVar)
+                        isFallbackBg = true
+                    }
+                    if (!bgValue) continue
+                    const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                    if (!bgHex) continue
+
+                    const otherMode = mode === 'light' ? 'dark' : 'light';
+                    let otherBgVar = isFallbackBg 
+                        ? `--recursica_brand_themes_${otherMode}_layers_${layer}_properties_surface`
+                        : `--recursica_ui-kit_themes_${otherMode}_components_${config.name}_properties_colors_${layer}_background`
+                    let otherBgValue = config.hasBg ? readCssVar(otherBgVar) : undefined
+                    if (!isFallbackBg && (!otherBgValue || otherBgValue === 'transparent')) {
+                        otherBgVar = `--recursica_brand_themes_${otherMode}_layers_${layer}_properties_surface`
+                        otherBgValue = readCssVar(otherBgVar)
+                    }
+                    const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
+
+                    for (const prop of config.fgProps) {
+                        if (!layerColors[prop]) continue
+                        const fgVar = `--recursica_ui-kit_themes_${mode}_components_${config.name}_properties_colors_${layer}_${prop}`
+                        const fgValue = readCssVar(fgVar)
+                        if (!fgValue) continue
+                        const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                        if (!fgHex) continue
+
+                        const displayName = config.name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                        const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                        const location = `${displayName} / ${toLabel(layer)} / ${propLabel}`
+
+                        this.checkContrastAndAddIssue(
+                            fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                            propLabel, location, config.name, mode, prop, layer, 'default',
+                            tokens, tokenIndex, issues
+                        )
+                    }
+                }
+            }
+
+            // 7. Assistive Element (variants.types)
+            const assistive = components['assistive-element']
+            if (assistive?.variants?.types) {
+                for (const [typeName, typeObj] of Object.entries(assistive.variants.types)) {
+                    const colors = (typeObj as any)?.properties?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors) continue
+
+                        let bgVar = `--recursica_brand_themes_${mode}_layers_${layer}_properties_surface`
+                        const bgValue = readCssVar(bgVar)
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        const otherMode = mode === 'light' ? 'dark' : 'light';
+                        const otherBgVar = `--recursica_brand_themes_${otherMode}_layers_${layer}_properties_surface`
+                        const otherBgValue = readCssVar(otherBgVar)
+                        const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
+
+                        const fgProps = ['text-color', 'icon-color']
+                        for (const prop of fgProps) {
+                            if (!layerColors[prop]) continue
+                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_assistive-element_variants_types_${typeName}_properties_colors_${layer}_${prop}`
+                            const fgValue = readCssVar(fgVar)
+                            if (!fgValue) continue
+                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                            if (!fgHex) continue
+
+                            const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            const location = `Assistive Element / ${toLabel(typeName)} / ${toLabel(layer)} / ${propLabel}`
+
+                            this.checkContrastAndAddIssue(
+                                fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                                propLabel, location, 'assistive-element', mode, prop, layer, typeName,
+                                tokens, tokenIndex, issues
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 8. Segmented Control Item (selected & unselected sub-properties)
+            const segItem = components['segmented-control-item']
+            if (segItem?.properties) {
+                const states = ['selected', 'unselected']
+                for (const stateName of states) {
+                    const colors = (segItem.properties as any)?.[stateName]?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors) continue
+
+                        let bgVar = `--recursica_ui-kit_themes_${mode}_components_segmented-control-item_properties_${stateName}_colors_${layer}_background`
+                        let bgValue = readCssVar(bgVar)
+                        let isFallbackBg = false
+                        if (!bgValue || bgValue === 'transparent') {
+                            bgVar = `--recursica_brand_themes_${mode}_layers_${layer}_properties_surface`
+                            bgValue = readCssVar(bgVar)
+                            isFallbackBg = true
+                        }
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        const otherMode = mode === 'light' ? 'dark' : 'light';
+                        let otherBgVar = isFallbackBg 
+                            ? `--recursica_brand_themes_${otherMode}_layers_${layer}_properties_surface`
+                            : `--recursica_ui-kit_themes_${otherMode}_components_segmented-control-item_properties_${stateName}_colors_${layer}_background`
+                        let otherBgValue = readCssVar(otherBgVar)
+                        if (!isFallbackBg && (!otherBgValue || otherBgValue === 'transparent')) {
+                            otherBgVar = `--recursica_brand_themes_${otherMode}_layers_${layer}_properties_surface`
+                            otherBgValue = readCssVar(otherBgVar)
+                        }
+                        const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
+
+                        const fgVar = `--recursica_ui-kit_themes_${mode}_components_segmented-control-item_properties_${stateName}_colors_${layer}_text-color`
+                        const fgValue = readCssVar(fgVar)
+                        if (!fgValue) continue
+                        const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                        if (!fgHex) continue
+
+                        const location = `Segmented Control Item / ${toLabel(stateName)} / ${toLabel(layer)} / Text Color`
+
+                        this.checkContrastAndAddIssue(
+                            fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                            'Text Color', location, 'segmented-control-item', mode, 'text-color', layer, stateName,
+                            tokens, tokenIndex, issues
+                        )
+                    }
+                }
+            }
+
+            // 9. Avatar (variants.styles.text.variants.types)
+            const avatar = components['avatar']
+            const avatarTypes = avatar?.variants?.styles?.text?.variants?.types
+            if (avatarTypes) {
+                for (const [typeName, typeObj] of Object.entries(avatarTypes)) {
+                    const colors = (typeObj as any)?.properties?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors) continue
+
+                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_avatar_variants_styles_text_variants_types_${typeName}_properties_colors_${layer}_background`
+                        const bgValue = readCssVar(bgVar)
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        const otherMode = mode === 'light' ? 'dark' : 'light';
+                        const otherBgVar = `--recursica_ui-kit_themes_${otherMode}_components_avatar_variants_styles_text_variants_types_${typeName}_properties_colors_${layer}_background`
+                        const otherBgValue = readCssVar(otherBgVar)
+                        const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
+
+                        const fgVar = `--recursica_ui-kit_themes_${mode}_components_avatar_variants_styles_text_variants_types_${typeName}_properties_colors_${layer}_text-color`
+                        const fgValue = readCssVar(fgVar)
+                        if (!fgValue) continue
+                        const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                        if (!fgHex) continue
+
+                        const location = `Avatar / Text / ${toLabel(typeName)} / ${toLabel(layer)} / Text Color`
+
+                        this.checkContrastAndAddIssue(
+                            fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                            'Text Color', location, 'avatar', mode, 'text-color', layer, typeName,
+                            tokens, tokenIndex, issues
+                        )
+                    }
+                }
+            }
+
+            // 10. Stepper
+            const stepper = components['stepper']
+            if (stepper?.properties?.colors) {
+                for (const layer of layers) {
+                    const layerColors = stepper.properties.colors[layer]
+                    if (!layerColors) continue
+
+                    const otherMode = mode === 'light' ? 'dark' : 'light';
+
+                    // Indicator combinations
+                    const indicatorStates = ['completed', 'current', 'upcoming']
+                    for (const stateName of indicatorStates) {
+                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_stepper_properties_colors_${layer}_${stateName}-indicator-background`
+                        const bgValue = readCssVar(bgVar)
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        const otherBgVar = `--recursica_ui-kit_themes_${otherMode}_components_stepper_properties_colors_${layer}_${stateName}-indicator-background`
+                        const otherBgValue = readCssVar(otherBgVar)
+                        const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
+
+                        const fgVar = `--recursica_ui-kit_themes_${mode}_components_stepper_properties_colors_${layer}_${stateName}-indicator-text`
+                        const fgValue = readCssVar(fgVar)
+                        if (!fgValue) continue
+                        const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                        if (!fgHex) continue
+
+                        const location = `Stepper / ${toLabel(stateName)} Indicator / ${toLabel(layer)}`
+                        this.checkContrastAndAddIssue(
+                            fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                            'Indicator Text', location, 'stepper', mode, `${stateName}-indicator-text`, layer, stateName,
+                            tokens, tokenIndex, issues
+                        )
+                    }
+
+                    // Label & Description (against layer surface background)
+                    const textProps = [
+                        { key: 'label-color', label: 'Label Color' },
+                        { key: 'description-color', label: 'Description Color' }
+                    ]
+                    for (const stateName of ['completed', 'current', 'upcoming']) {
+                        let bgVar = `--recursica_brand_themes_${mode}_layers_${layer}_properties_surface`
+                        const bgValue = readCssVar(bgVar)
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        const otherBgVar = `--recursica_brand_themes_${otherMode}_layers_${layer}_properties_surface`
+                        const otherBgValue = readCssVar(otherBgVar)
+                        const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
+
+                        for (const prop of textProps) {
+                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_stepper_properties_colors_${layer}_${stateName}-${prop.key}`
+                            const fgValue = readCssVar(fgVar)
+                            if (!fgValue) continue
+                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                            if (!fgHex) continue
+
+                            const location = `Stepper / ${toLabel(stateName)} ${prop.label} / ${toLabel(layer)}`
+                            this.checkContrastAndAddIssue(
+                                fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                                prop.label, location, 'stepper', mode, `${stateName}-${prop.key}`, layer, stateName,
+                                tokens, tokenIndex, issues
+                            )
+                        }
+                    }
+                }
+            }
+
         } catch (e) {
             console.error('Error checking component text colors:', e)
         }
@@ -2010,9 +2282,9 @@ class ComplianceServiceImpl {
                     fgProps: ['text', 'leading-icon', 'trailing-icon', 'upload-icon', 'header-color']
                 },
                 {
-                    names: ['button'],
+                    names: ['button', 'toast'],
                     variantGroup: 'styles',
-                    fgProps: ['text', 'text-hover', 'icon-color']
+                    fgProps: ['text', 'text-hover', 'icon-color', 'button']
                 },
                 {
                     names: ['chip', 'badge'],
@@ -2099,6 +2371,208 @@ class ComplianceServiceImpl {
                         const bgTemplate = `--recursica_ui-kit_themes_MODE_components_menu-item_properties_colors_${layer}_${type}_background`
 
                         checkDualMode('menu-item', type, layer, 'text', 'Text', location, fgTemplate, bgTemplate)
+                    }
+                }
+            }
+
+            // 4. Tabs
+            const tabs = components['tabs']
+            if (tabs?.variants?.styles) {
+                const tabTypes = ['active', 'inactive']
+                const tabFgProps = ['text-color', 'icon-color']
+                for (const [styleName, styleObj] of Object.entries(tabs.variants.styles)) {
+                    const colors = (styleObj as any)?.properties
+                    if (!colors) continue
+
+                    for (const type of tabTypes) {
+                        const typeObj = colors[type]?.colors
+                        if (!typeObj) continue
+
+                        for (const layer of layers) {
+                            const layerColors = typeObj[layer]
+                            if (!layerColors) continue
+
+                            for (const prop of tabFgProps) {
+                                if (!layerColors[prop]) continue
+                                const displayName = `Tabs / ${toLabel(styleName)} / ${toLabel(type)}`
+                                const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                const location = `${displayName} / ${toLabel(layer)} / ${propLabel}`
+
+                                const fgTemplate = `--recursica_ui-kit_themes_MODE_components_tabs_variants_styles_${styleName}_properties_${type}_colors_${layer}_${prop}`
+                                const bgTemplate = `--recursica_ui-kit_themes_MODE_components_tabs_variants_styles_${styleName}_properties_${type}_colors_${layer}_background`
+
+                                checkDualMode('tabs', `${styleName}-${type}`, layer, prop, propLabel, location, fgTemplate, bgTemplate)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 5. Link
+            const link = components['link']
+            if (link?.variants?.states) {
+                const linkFgProps = ['text', 'icon']
+                for (const [stateName, stateObj] of Object.entries(link.variants.states)) {
+                    const colors = (stateObj as any)?.properties?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors) continue
+
+                        for (const prop of linkFgProps) {
+                            if (!layerColors[prop]) continue
+                            const displayName = `Link / ${toLabel(stateName)}`
+                            const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            const location = `${displayName} / ${toLabel(layer)} / ${propLabel}`
+
+                            const fgTemplate = `--recursica_ui-kit_themes_MODE_components_link_variants_states_${stateName}_properties_colors_${layer}_${prop}`
+                            const bgTemplate = `--recursica_ui-kit_themes_MODE_components_link_variants_states_${stateName}_properties_colors_${layer}_background`
+
+                            checkDualMode('link', stateName, layer, prop, propLabel, location, fgTemplate, bgTemplate)
+                        }
+                    }
+                }
+            }
+
+            // 6. Flat properties.colors components
+            const flatConfigs = [
+                { name: 'tooltip', fgProps: ['text'], hasBg: true },
+                { name: 'card', fgProps: ['title', 'content'], hasBg: true },
+                { name: 'switch-item', fgProps: ['text'], hasBg: false },
+                { name: 'checkbox-item', fgProps: ['text'], hasBg: false },
+                { name: 'radio-button-item', fgProps: ['text'], hasBg: false },
+                { name: 'label', fgProps: ['text', 'asterisk'], hasBg: false },
+                { name: 'read-only-field', fgProps: ['text'], hasBg: false },
+                { name: 'hover-card-popover', fgProps: ['content'], hasBg: true },
+                { name: 'panel', fgProps: ['title', 'content'], hasBg: true },
+                { name: 'modal', fgProps: ['title', 'content'], hasBg: true }
+            ]
+
+            for (const config of flatConfigs) {
+                const comp = components[config.name]
+                if (!comp?.properties?.colors) continue
+
+                for (const layer of layers) {
+                    const layerColors = comp.properties.colors[layer]
+                    if (!layerColors) continue
+
+                    for (const prop of config.fgProps) {
+                        if (!layerColors[prop]) continue
+                        const displayName = config.name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                        const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                        const location = `${displayName} / ${toLabel(layer)} / ${propLabel}`
+
+                        const fgTemplate = `--recursica_ui-kit_themes_MODE_components_${config.name}_properties_colors_${layer}_${prop}`
+                        const bgTemplate = config.hasBg 
+                            ? `--recursica_ui-kit_themes_MODE_components_${config.name}_properties_colors_${layer}_background`
+                            : `--recursica_brand_themes_MODE_layers_${layer}_properties_surface`
+
+                        checkDualMode(config.name, 'default', layer, prop, propLabel, location, fgTemplate, bgTemplate)
+                    }
+                }
+            }
+
+            // 7. Assistive Element
+            const assistive = components['assistive-element']
+            if (assistive?.variants?.types) {
+                for (const [typeName, typeObj] of Object.entries(assistive.variants.types)) {
+                    const colors = (typeObj as any)?.properties?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors) continue
+
+                        const fgProps = ['text-color', 'icon-color']
+                        for (const prop of fgProps) {
+                            if (!layerColors[prop]) continue
+                            const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            const location = `Assistive Element / ${toLabel(typeName)} / ${toLabel(layer)} / ${propLabel}`
+
+                            const fgTemplate = `--recursica_ui-kit_themes_MODE_components_assistive-element_variants_types_${typeName}_properties_colors_${layer}_${prop}`
+                            const bgTemplate = `--recursica_brand_themes_MODE_layers_${layer}_properties_surface`
+
+                            checkDualMode('assistive-element', typeName, layer, prop, propLabel, location, fgTemplate, bgTemplate)
+                        }
+                    }
+                }
+            }
+
+            // 8. Segmented Control Item
+            const segItem = components['segmented-control-item']
+            if (segItem?.properties) {
+                const states = ['selected', 'unselected']
+                for (const stateName of states) {
+                    const colors = (segItem.properties as any)?.[stateName]?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors) continue
+
+                        const location = `Segmented Control Item / ${toLabel(stateName)} / ${toLabel(layer)} / Text Color`
+
+                        const fgTemplate = `--recursica_ui-kit_themes_MODE_components_segmented-control-item_properties_${stateName}_colors_${layer}_text-color`
+                        const bgTemplate = `--recursica_ui-kit_themes_MODE_components_segmented-control-item_properties_${stateName}_colors_${layer}_background`
+
+                        checkDualMode('segmented-control-item', stateName, layer, 'text-color', 'Text Color', location, fgTemplate, bgTemplate)
+                    }
+                }
+            }
+
+            // 9. Avatar
+            const avatar = components['avatar']
+            const avatarTypes = avatar?.variants?.styles?.text?.variants?.types
+            if (avatarTypes) {
+                for (const [typeName, typeObj] of Object.entries(avatarTypes)) {
+                    const colors = (typeObj as any)?.properties?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors) continue
+
+                        const location = `Avatar / Text / ${toLabel(typeName)} / ${toLabel(layer)} / Text Color`
+
+                        const fgTemplate = `--recursica_ui-kit_themes_MODE_components_avatar_variants_styles_text_variants_types_${typeName}_properties_colors_${layer}_text-color`
+                        const bgTemplate = `--recursica_ui-kit_themes_MODE_components_avatar_variants_styles_text_variants_types_${typeName}_properties_colors_${layer}_background`
+
+                        checkDualMode('avatar', typeName, layer, 'text-color', 'Text Color', location, fgTemplate, bgTemplate)
+                    }
+                }
+            }
+
+            // 10. Stepper
+            const stepper = components['stepper']
+            if (stepper?.properties?.colors) {
+                for (const layer of layers) {
+                    const layerColors = stepper.properties.colors[layer]
+                    if (!layerColors) continue
+
+                    const indicatorStates = ['completed', 'current', 'upcoming']
+                    for (const stateName of indicatorStates) {
+                        const location = `Stepper / ${toLabel(stateName)} Indicator / ${toLabel(layer)}`
+
+                        const fgTemplate = `--recursica_ui-kit_themes_MODE_components_stepper_properties_colors_${layer}_${stateName}-indicator-text`
+                        const bgTemplate = `--recursica_ui-kit_themes_MODE_components_stepper_properties_colors_${layer}_${stateName}-indicator-background`
+
+                        checkDualMode('stepper', stateName, layer, `${stateName}-indicator-text`, 'Indicator Text', location, fgTemplate, bgTemplate)
+                    }
+
+                    const textProps = [
+                        { key: 'label-color', label: 'Label Color' },
+                        { key: 'description-color', label: 'Description Color' }
+                    ]
+                    for (const stateName of ['completed', 'current', 'upcoming']) {
+                        for (const prop of textProps) {
+                            const location = `Stepper / ${toLabel(stateName)} ${prop.label} / ${toLabel(layer)}`
+
+                            const fgTemplate = `--recursica_ui-kit_themes_MODE_components_stepper_properties_colors_${layer}_${stateName}-${prop.key}`
+                            const bgTemplate = `--recursica_brand_themes_MODE_layers_${layer}_properties_surface`
+
+                            checkDualMode('stepper', stateName, layer, `${stateName}-${prop.key}`, prop.label, location, fgTemplate, bgTemplate)
+                        }
                     }
                 }
             }
