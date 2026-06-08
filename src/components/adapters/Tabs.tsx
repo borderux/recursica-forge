@@ -144,6 +144,7 @@ export function Tabs({
     <TabsContext.Provider value={contextValue}>
       <div
         className={`recursica-tabs ${className || ''}`}
+        data-recursica-layer={layer.replace('layer-', '')}
         style={{
           display: 'flex',
           flexDirection: orientation === 'vertical' ? 'row' : 'column',
