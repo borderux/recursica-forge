@@ -10,6 +10,7 @@ import { useRef } from 'react'
 import { Tabs as MantineTabs } from '@mantine/core'
 import type { TabsProps as AdapterTabsProps } from '../../Tabs'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { useCssVar } from '../../../hooks/useCssVar'
 import './Tabs.css'
 
 export default function Tabs({
@@ -37,6 +38,13 @@ export default function Tabs({
   const activeTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'text-color')
   const activeIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'icon-color')
   const activeBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'border-size')
+
+  // Read computed active background color to check if it's transparent
+  const activeBgColor = useCssVar(activeBackgroundVar || '')
+  const isBgTransparent = !activeBgColor || activeBgColor === 'transparent' || activeBgColor === 'rgba(0, 0, 0, 0)'
+  const activeBorderTrackColor = isBgTransparent
+    ? `var(--recursica_tabs_surface_color)`
+    : `var(--recursica_tabs_active_background)`
 
   // Get inactive state colors
   const inactiveBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'background')
@@ -101,10 +109,12 @@ export default function Tabs({
     variant: variant === 'pills' ? 'pills' : variant === 'outline' ? 'outline' : 'default',
     className: `recursica-tabs ${className || ''}`.trim(),
     'data-content-align': tabContentAlignment,
+    'data-recursica-layer': layer.replace('layer-', ''),
     style: {
       // Set all CSS variables for the Tabs component
       // Active state
-      '--recursica_tabs_active_background': activeBackgroundVar ? `var(${activeBackgroundVar})` : undefined,
+      '--recursica_tabs_active_background': activeBackgroundVar ? `var(${activeBackgroundVar}, var(--recursica_tabs_surface_color, white))` : undefined,
+      '--recursica_tabs_active_border_track_color': activeBorderTrackColor,
       '--recursica_tabs_active_border-color': activeBorderColorVar ? `var(${activeBorderColorVar})` : undefined,
       '--recursica_tabs_active_text-color': activeTextColorVar ? `var(${activeTextColorVar})` : undefined,
       '--recursica_tabs_active_icon_color': activeIconColorVar ? `var(${activeIconColorVar})` : undefined,
@@ -152,6 +162,7 @@ export default function Tabs({
       // Hover state (inactive tabs only)
       '--recursica_tabs_hover_opacity': `var(${hoverOpacityVar})`,
       '--recursica_tabs_hover_color': `var(${hoverColorVar})`,
+      '--recursica_tabs_surface_color': `var(--recursica_brand_${layer.replace('-', '_')}_properties_surface, white)`,
       ...style,
       ...mantine?.style,
     },

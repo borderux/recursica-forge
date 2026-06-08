@@ -596,12 +596,14 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
 
     // Helper to get default reference for interactive properties
     const getDefaultInteractiveRef = (property: 'tone' | 'tone-hover' | 'on-tone' | 'on-tone-hover'): string => {
-      if (property === 'tone' || property === 'tone-hover') {
-        // brand JSON only has interactive.tone (no default/hover sub-keys)
-        return `var(${paletteCore(mode, 'interactive', 'tone')})`
+      if (property === 'tone') {
+        return `var(${paletteCore(mode, 'interactive', 'default', 'tone')}, var(${paletteCore(mode, 'interactive', 'tone')}))`
+      } else if (property === 'tone-hover') {
+        return `var(${paletteCore(mode, 'interactive', 'hover', 'tone')}, var(${paletteCore(mode, 'interactive', 'tone')}))`
+      } else if (property === 'on-tone') {
+        return `var(${paletteCore(mode, 'interactive', 'default', 'on-tone')}, var(${paletteCore(mode, 'interactive', 'on-tone')}))`
       } else {
-        // brand JSON only has interactive.on-tone (no default/hover sub-keys)
-        return `var(${paletteCore(mode, 'interactive', 'on-tone')})`
+        return `var(${paletteCore(mode, 'interactive', 'hover', 'on-tone')}, var(${paletteCore(mode, 'interactive', 'on-tone')}))`
       }
     }
 
@@ -679,8 +681,8 @@ export function buildLayerVars(tokens: JsonLike, theme: JsonLike, mode: 'light' 
 
     // Generate layer-specific interactive on-tone variables for UIKit references
     // These reference the core palette on-tone variables
-    result[`${brandInterBase}default-on-tone`] = `var(${paletteCore(mode, 'interactive', 'on-tone')})`
-    result[`${brandInterBase}hover-on-tone`] = `var(${paletteCore(mode, 'interactive', 'on-tone')})`
+    result[`${brandInterBase}default-on-tone`] = `var(${paletteCore(mode, 'interactive', 'default', 'on-tone')}, var(${paletteCore(mode, 'interactive', 'on-tone')}))`
+    result[`${brandInterBase}hover-on-tone`] = `var(${paletteCore(mode, 'interactive', 'hover', 'on-tone')}, var(${paletteCore(mode, 'interactive', 'on-tone')}))`
   }
 
   // Dynamically process all available layers from the theme
