@@ -254,6 +254,16 @@ export function removeUIKitValue(cssVar: string): boolean {
     const path = cssVarToUIKitPath(cssVar, currentUIKit)
     if (!path) return false
 
+    // Fetch original pristine/imported value
+    const baseUIKit = getVarsStore().getImportedUikit()
+    let baseCurrent: any = baseUIKit
+    for (let i = 0; i < path.length - 1; i++) {
+        if (!baseCurrent) break
+        baseCurrent = baseCurrent[path[i]]
+    }
+    const finalKey = path[path.length - 1]
+    const baseValue = baseCurrent?.[finalKey]
+
     const updatedUIKit = Array.isArray(currentUIKit) ? [...currentUIKit] : { ...currentUIKit }
     let current: any = updatedUIKit
     for (let i = 0; i < path.length - 1; i++) {
@@ -263,13 +273,18 @@ export function removeUIKitValue(cssVar: string): boolean {
         current = current[segment]
     }
 
-    const finalKey = path[path.length - 1]
-    if (current[finalKey] && typeof current[finalKey] === 'object') {
-        current[finalKey].$value = null
+    if (baseValue !== undefined) {
+        // Restore from base value
+        current[finalKey] = JSON.parse(JSON.stringify(baseValue))
     } else {
-        current[finalKey] = {
-            $type: 'color',
-            $value: null
+        // If it never existed in base, set to null as fallback
+        if (current[finalKey] && typeof current[finalKey] === 'object') {
+            current[finalKey].$value = null
+        } else {
+            current[finalKey] = {
+                $type: 'color',
+                $value: null
+            }
         }
     }
 
