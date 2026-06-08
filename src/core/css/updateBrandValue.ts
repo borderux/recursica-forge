@@ -86,9 +86,18 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
   for (let i = 0; i < path.length - 1; i++) {
     const segment = path[i]
     if (!current[segment] || typeof current[segment] !== 'object') {
-      // Path segment missing: the JSON structure doesn't match what the CSS var implies.
-      // Abort rather than auto-creating nodes in the wrong location.
-      return false
+      if (segment === 'interactive' || segment === 'default' || segment === 'hover') {
+        current[segment] = {}
+        if (segment === 'default') {
+          // Clean flat structure properties to avoid pollution
+          delete current.tone
+          delete current['on-tone']
+        }
+      } else {
+        // Path segment missing: the JSON structure doesn't match what the CSS var implies.
+        // Abort rather than auto-creating nodes in the wrong location.
+        return false
+      }
     }
     current = current[segment]
   }

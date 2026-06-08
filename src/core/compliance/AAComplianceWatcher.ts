@@ -337,6 +337,12 @@ export class AAComplianceWatcher {
         coreToken: parseCoreTokenRef('interactive', this.theme, mode)
       },
       {
+        name: 'interactive-color',
+        colorVar: `${brandBase}elements_interactive-color`,
+        opacityVar: `${brandBase}elements_interactive-high-emphasis`,
+        coreToken: parseCoreTokenRef('interactive', this.theme, mode)
+      },
+      {
         name: 'interactive-tone-hover',
         colorVar: `${brandBase}elements_interactive-tone-hover`,
         opacityVar: `${brandBase}elements_interactive-high-emphasis`,
@@ -453,7 +459,6 @@ export class AAComplianceWatcher {
       if (aaCompliantColor) {
         updateCssVar(currentColorCssVar, aaCompliantColor, this.tokens)
       }
-      return
     } else if (elementName === 'interactive-tone') {
       // Use stepping logic for interactive tone colors (background)
       const coreInteractiveVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`
@@ -462,6 +467,19 @@ export class AAComplianceWatcher {
 
       if (coreInteractiveHex) {
         // Step until AA compliant
+        const steppedHex = stepUntilAACompliant(coreInteractiveHex, surfaceHex, 'darker', this.tokens)
+        const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
+        if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)
+      }
+      return
+    } else if (elementName === 'interactive-color') {
+      // Use stepping logic for interactive color (text/foreground on surface)
+      const coreInteractiveVar = `var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive_tone)`
+      const coreInteractiveHex = resolveCssVarToHex(coreInteractiveVar, this.tokenIndex) ||
+        resolveCssVarToHex(`var(--recursica_brand_themes_${mode}_palettes_core-colors_interactive)`, this.tokenIndex)
+
+      if (coreInteractiveHex) {
+        // Step until AA compliant against surface
         const steppedHex = stepUntilAACompliant(coreInteractiveHex, surfaceHex, 'darker', this.tokens)
         const cssVarRef = hexToCssVarRef(steppedHex, this.tokens)
         if (cssVarRef) updateCssVar(currentColorCssVar, cssVarRef, this.tokens)

@@ -603,12 +603,11 @@
 
 
 
-/* Vertical orientation (all variants): min-width/max-width apply to the tab list column, not individual tab buttons.
-   Individual tabs fill the column via width:100%, so overriding min-width:0 prevents them from expanding beyond the column. */
 .recursica-tabs[data-orientation="vertical"] .mantine-Tabs-list,
 .recursica-tabs[data-orientation="vertical"] [role="tablist"] {
     min-width: var(--recursica_tabs_min_width, 0) !important;
     max-width: var(--recursica_tabs_max_width, none) !important;
+    flex-shrink: 0 !important;
 }
 
 .recursica-tabs[data-orientation="vertical"] .mantine-Tabs-tab,

@@ -5153,7 +5153,7 @@
                 },
                 "tab-content-alignment": {
                   "$type": "string",
-                  "$value": "center"
+                  "$value": "left"
                 }
               }
             }

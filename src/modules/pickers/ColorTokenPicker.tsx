@@ -562,18 +562,40 @@ export default function ColorTokenPicker() {
             coreColors.interactive = {}
           }
 
-          // Update tone in theme JSON (flat structure)
+          // Clean flat structure properties to avoid pollution
+          if (coreColors.interactive.tone && !coreColors.interactive.default) {
+            delete coreColors.interactive.tone
+          }
+          if (coreColors.interactive['on-tone'] && !coreColors.interactive.default) {
+            delete coreColors.interactive['on-tone']
+          }
+
+          if (!coreColors.interactive.default) coreColors.interactive.default = {}
+          if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
+
+          // Update tone in theme JSON (nested default)
           if (defaultToken) {
             const tokenParts = defaultToken.split('/')
             // Use new format (colors) for token references
             const tokenRef = `{tokens.colors.${tokenParts[1]}.${tokenParts[2]}}`
-            if (!coreColors.interactive.tone) coreColors.interactive.tone = {}
-            coreColors.interactive.tone.$value = tokenRef
+            if (!coreColors.interactive.default.tone) coreColors.interactive.default.tone = {}
+            coreColors.interactive.default.tone.$value = tokenRef
           }
 
-          // Update on-tone in theme JSON (flat structure)
-          coreColors.interactive['on-tone'] = {
+          // Update on-tone in theme JSON (nested default)
+          coreColors.interactive.default['on-tone'] = {
             $value: `{brand.themes.${modeLower}.palettes.core-colors.${defaultOnToneCore}.tone}`
+          }
+
+          // Update hover state in theme JSON (nested hover)
+          if (hoverToken) {
+            const tokenParts = hoverToken.split('/')
+            const tokenRef = `{tokens.colors.${tokenParts[1]}.${tokenParts[2]}}`
+            if (!coreColors.interactive.hover.tone) coreColors.interactive.hover.tone = {}
+            coreColors.interactive.hover.tone.$value = tokenRef
+          }
+          coreColors.interactive.hover['on-tone'] = {
+            $value: `{brand.themes.${modeLower}.palettes.core-colors.${hoverOnToneCore}.tone}`
           }
 
           // Update theme JSON synchronously - CSS vars were already updated above
