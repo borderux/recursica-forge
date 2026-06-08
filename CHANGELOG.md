@@ -1,5 +1,25 @@
 # recursica-forge
 
+## 0.20.0
+
+### Minor Changes
+
+- 51d79f7: Fixed component reset functionality and updated design system compliance:
+  - Refactored `handleReset` in `ComponentToolbar` to cleanly overwrite the component JSON node, fixing an issue where CSS variable aliases were incorrectly converted to hardcoded strings or `transparent` fallback colors on reset.
+  - Fixed typo in `updateCssVar.ts` that prevented single-property removals from properly syncing to the JSON store (`-ui-kit-` to `_ui-kit_`).
+  - Updated `removeUIKitValue` to correctly fall back to the original imported/pristine properties instead of forcibly setting property `$value` to `null`.
+  - Updated default values in `recursica_ui-kit.json` for Link visited/hover colors and Stepper text colors to ensure first-load AA accessibility compliance.
+
+### Patch Changes
+
+- f556f9f: - Fixed a mode-awareness bug in the toolbars where editing CSS variables updated the wrong theme mode paths due to stale memoized `mode` values.
+  - Overhauled the component `handleReset` logic to deeply clone pristine JSON nodes instead of iteratively removing variables, preventing orphaned variables and "null color" UI bugs.
+  - Standardized typography typestyles (`h2Style`, `pStyle`) across 22 component previews, correctly positioning the spread operator to preserve local overrides.
+- ee0312f: Fixed an issue where "Core/High Contrast" semantic colors failed to hydrate and fell back to 'None' during theme import due to overly restrictive regex parsing. Modified `parsePaletteSelection` to support both nested structured palette references and flat semantic references (e.g. `core-colors`).
+- 78740be: Standardized typography usage across component previews:
+  - Created a centralized `typographyStyles` helper to map `var(--recursica_brand_typography_...)` variables to React style objects.
+  - Updated `NumberInputPreview`, `ModalPreview`, `CardPreview`, `PanelPreview`, and `HoverCardPopoverPreview` to apply the proper design system typestyles (`h2Style`, `pStyle`) to all semantic `<h2>` and `<p>` tags, replacing hardcoded text formatting.
+
 ## 0.19.1
 
 ### Patch Changes
