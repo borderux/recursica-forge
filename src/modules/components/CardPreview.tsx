@@ -8,6 +8,7 @@ import { getElevationBoxShadow, parseElevationValue } from '../../components/uti
 import { getCardElevationLayer } from '../../components/adapters/Card'
 import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
+import { h2Style, pStyle } from './typographyStyles'
 
 interface CardPreviewProps {
     selectedVariants: Record<string, string>
@@ -202,8 +203,8 @@ export default function CardPreview({
                 gap: `var(${sectionGapVar})`,
                 ...bodyStyle
             }}>
-                <p style={{ margin: 0 }}>{goblinChapter}</p>
-                <p style={{ margin: 0 }}>{goblinParagraph2}</p>
+                <p style={{ margin: 0, ...pStyle }}>{goblinChapter}</p>
+                <p style={{ margin: 0, ...pStyle }}>{goblinParagraph2}</p>
             </div>
 
             {/* Footer */}
@@ -247,7 +248,7 @@ export default function CardPreview({
                     <Badge layer={cardLayer}>Rare</Badge>
                 </div>
                 <div style={{ ...bodyStyle }}>
-                    <p style={{ margin: 0 }}>{potionDescription}</p>
+                    <p style={{ margin: 0, ...pStyle }}>{potionDescription}</p>
                 </div>
                 <Button variant="solid" layer={cardLayer} style={{ alignSelf: 'flex-start' }}>
                     Add to Inventory
@@ -270,7 +271,7 @@ export default function CardPreview({
                     Grindlefax's Emporium
                 </HeadingTag>
                 <div style={bodyStyle}>
-                    <p style={{ margin: 0 }}>{shopDescription}</p>
+                    <p style={{ margin: 0, ...pStyle }}>{shopDescription}</p>
                 </div>
             </div>
             {/* Edge-to-edge image at bottom */}
