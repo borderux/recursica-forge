@@ -1785,6 +1785,112 @@ class ComplianceServiceImpl {
                 }
             }
 
+            // 4. Check Tabs (Custom nested structure)
+            const tabs = components['tabs']
+            if (tabs?.variants?.styles) {
+                const tabTypes = ['active', 'inactive']
+                const tabFgProps = ['text-color', 'icon-color']
+                for (const [styleName, styleObj] of Object.entries(tabs.variants.styles)) {
+                    const colors = (styleObj as any)?.properties
+                    if (!colors) continue
+
+                    for (const type of tabTypes) {
+                        const typeObj = colors[type]?.colors
+                        if (!typeObj) continue
+
+                        for (const layer of layers) {
+                            const layerColors = typeObj[layer]
+                            if (!layerColors) continue
+
+                            const bgVar = `--recursica_ui-kit_themes_${mode}_components_tabs_variants_styles_${styleName}_properties_${type}_colors_${layer}_background`
+                            let bgValue = readCssVar(bgVar)
+                            if (!bgValue || bgValue === 'transparent') {
+                                bgValue = readCssVar(`--recursica_brand_themes_${mode}_layers_${layer}_properties_surface`)
+                            }
+                            if (!bgValue) continue
+                            const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                            if (!bgHex) continue
+
+                            const otherMode = mode === 'light' ? 'dark' : 'light';
+                            let otherBgValue = readCssVar(bgVar.replace(`_themes_${mode}_`, `_themes_${otherMode}_`))
+                            if (!otherBgValue || otherBgValue === 'transparent') {
+                                otherBgValue = readCssVar(`--recursica_brand_themes_${otherMode}_layers_${layer}_properties_surface`)
+                            }
+                            const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
+
+                            for (const prop of tabFgProps) {
+                                if (!layerColors[prop]) continue
+                                const fgVar = `--recursica_ui-kit_themes_${mode}_components_tabs_variants_styles_${styleName}_properties_${type}_colors_${layer}_${prop}`
+                                const fgValue = readCssVar(fgVar)
+                                if (!fgValue) continue
+                                const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                                if (!fgHex) continue
+
+                                const displayName = `Tabs / ${toLabel(styleName)} / ${toLabel(type)}`
+                                const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                                const location = `${displayName} / ${toLabel(layer)} / ${propLabel}`
+
+                                this.checkContrastAndAddIssue(
+                                    fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                                    propLabel, location, 'tabs', mode, prop, layer, `${styleName}-${type}`,
+                                    tokens, tokenIndex, issues
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 5. Check Link (Custom nested structure)
+            const link = components['link']
+            if (link?.variants?.states) {
+                const linkFgProps = ['text', 'icon']
+                for (const [stateName, stateObj] of Object.entries(link.variants.states)) {
+                    const colors = (stateObj as any)?.properties?.colors
+                    if (!colors) continue
+
+                    for (const layer of layers) {
+                        const layerColors = colors[layer]
+                        if (!layerColors) continue
+
+                        const bgVar = `--recursica_ui-kit_themes_${mode}_components_link_variants_states_${stateName}_properties_colors_${layer}_background`
+                        let bgValue = readCssVar(bgVar)
+                        if (!bgValue || bgValue === 'transparent') {
+                            bgValue = readCssVar(`--recursica_brand_themes_${mode}_layers_${layer}_properties_surface`)
+                        }
+                        if (!bgValue) continue
+                        const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)
+                        if (!bgHex) continue
+
+                        const otherMode = mode === 'light' ? 'dark' : 'light';
+                        let otherBgValue = readCssVar(bgVar.replace(`_themes_${mode}_`, `_themes_${otherMode}_`))
+                        if (!otherBgValue || otherBgValue === 'transparent') {
+                            otherBgValue = readCssVar(`--recursica_brand_themes_${otherMode}_layers_${layer}_properties_surface`)
+                        }
+                        const otherBgHex = otherBgValue ? resolveCssVarToHex(otherBgValue, tokenIndex as any) : undefined;
+
+                        for (const prop of linkFgProps) {
+                            if (!layerColors[prop]) continue
+                            const fgVar = `--recursica_ui-kit_themes_${mode}_components_link_variants_states_${stateName}_properties_colors_${layer}_${prop}`
+                            const fgValue = readCssVar(fgVar)
+                            if (!fgValue) continue
+                            const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
+                            if (!fgHex) continue
+
+                            const displayName = `Link / ${toLabel(stateName)}`
+                            const propLabel = prop.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+                            const location = `${displayName} / ${toLabel(layer)} / ${propLabel}`
+
+                            this.checkContrastAndAddIssue(
+                                fgVar, bgVar, fgValue, bgValue, fgHex, bgHex, otherBgHex || undefined,
+                                propLabel, location, 'link', mode, prop, layer, stateName,
+                                tokens, tokenIndex, issues
+                            )
+                        }
+                    }
+                }
+            }
+
         } catch (e) {
             console.error('Error checking component text colors:', e)
         }
@@ -1833,7 +1939,11 @@ class ComplianceServiceImpl {
                     const fgVar = fgVarTemplate.replace('_themes_MODE_', `_themes_${mode}_`)
                     const bgVar = bgVarTemplate.replace('_themes_MODE_', `_themes_${mode}_`)
                     const fgValue = readCssVar(fgVar)
-                    const bgValue = readCssVar(bgVar)
+                    let bgValue = readCssVar(bgVar)
+                    if (!bgValue || bgValue === 'transparent') {
+                        const surfaceVar = `--recursica_brand_themes_${mode}_layers_${layer}_properties_surface`
+                        bgValue = readCssVar(surfaceVar)
+                    }
                     if (!fgValue || !bgValue) continue
                     const fgHex = resolveCssVarToHex(fgValue, tokenIndex as any)
                     const bgHex = resolveCssVarToHex(bgValue, tokenIndex as any)

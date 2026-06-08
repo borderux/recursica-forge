@@ -286,7 +286,8 @@ export default function Dropdown({
                                 {items.map((item) => (
                                     <MenuItemAdapter
                                         key={item.value}
-                                        onClick={() => {
+                                        onClick={(e: React.MouseEvent) => {
+                                            e.stopPropagation()
                                             onChange?.(item.value)
                                             setOpened(false)
                                         }}
