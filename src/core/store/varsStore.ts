@@ -888,39 +888,14 @@ class VarsStore {
     }
 
     if (files.brand) {
-      // Rebuild elevation state from the imported brand JSON
-      const brand: any = (files.brand as any)?.brand || files.brand
-      const themes = brand?.themes || brand
+      // Rebuild elevation state from the imported brand JSON, bypass local storage overlays
+      const elevation = this.initElevationState(files.brand, files.tokens ?? this.state.tokens, true)
 
-      const newPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
-      const newColorTokens: Record<string, string> = {}
-
-      for (const mode of ['light', 'dark'] as const) {
-        const els: any = themes?.[mode]?.elevations || {}
-        for (let i = 1; i <= 4; i++) {
-          const key = `elevation-${i}`
-          const colorRef = els[key]?.$value?.color?.$value
-          if (typeof colorRef === 'string') {
-            const palMatch = colorRef.match(/palettes\.([a-z0-9-]+)\.(\d+)\.color\.tone/)
-            if (palMatch) {
-              newPaletteSelections[mode][key] = { paletteKey: palMatch[1], level: palMatch[2] }
-            } else {
-              const tokMatch = colorRef.match(/tokens\.colors\.(scale-\d{2})\.(\d+)/)
-              if (tokMatch) {
-                newColorTokens[key] = `colors/${tokMatch[1]}/${tokMatch[2]}`
-              }
-            }
-          }
-        }
-      }
-
-      const elevation: ElevationState = {
-        ...this.state.elevation,
-        controls: { light: {}, dark: {} },
-        directions: { light: {}, dark: {} },
-        paletteSelections: newPaletteSelections,
-        colorTokens: newColorTokens,
-        alphaTokens: { light: {}, dark: {} },
+      // Sync imported palette selections into local storage so they persist properly
+      if (this.lsAvailable) {
+        try {
+          localStorage.setItem(STORAGE_KEYS.elevationPaletteSelections, JSON.stringify(elevation.paletteSelections))
+        } catch { }
       }
 
       this.writeState({ theme: files.brand, elevation })
@@ -1753,43 +1728,65 @@ class VarsStore {
       }
       // Get light mode elevations for shadow color control and palette selections (these are mode-independent settings)
       const lightElevations: any = themes?.light?.elevations || {}
-      const elev1: any = lightElevations?.['elevation-1']?.['$value'] || {}
+      const elev1: any = lightElevations?.['elevation-1']?.['$value'] || lightElevations?.['elevation-1'] || {}
       shadowColorControl = { colorToken: '', alphaToken: '' }
 
-      // Initialize palette selections from brand.json for each elevation, per mode
+      // Initialize palette selections and color tokens from brand.json for each elevation, per mode
       const initialPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
+      const tokensToUse = tokens || this.state?.tokens
       for (const m of ['light', 'dark'] as const) {
         const modeElevations: any = themes?.[m]?.elevations || {}
         for (let i = 0; i <= 4; i++) {
-          const elev: any = modeElevations?.[`elevation-${i}`]?.['$value'] || {}
+          const key = `elevation-${i}`
+          const elev: any = modeElevations?.[key]?.['$value'] || modeElevations?.[key] || {}
           const colorRef = elev?.color?.['$value'] ?? elev?.color
+          
           const paletteSel = parsePaletteSelection(colorRef)
           if (paletteSel) {
-            initialPaletteSelections[m][`elevation-${i}`] = paletteSel
+            initialPaletteSelections[m][key] = paletteSel
+          } else if (colorRef && tokensToUse) {
+            const context: TokenReferenceContext = {
+              currentMode: m,
+              tokenIndex: buildTokenIndex(tokensToUse),
+              theme: theme
+            }
+            const parsed = parseTokenReference(colorRef, context)
+            if (parsed && parsed.type === 'token') {
+              colorTokens[key] = parsed.path.join('/')
+            }
           }
         }
       }
-      const baseX = Number((elev1?.['x-direction']?.['$value'] ?? 1))
-      const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
+
+      const baseX = elev1?.['x-direction'] !== undefined ? toNumeric(elev1['x-direction']) : 1
+      const baseY = elev1?.['y-direction'] !== undefined ? toNumeric(elev1['y-direction']) : 1
       baseXDirection = baseX >= 0 ? 'right' : 'left'
       baseYDirection = baseY >= 0 ? 'down' : 'up'
 
       // Initialize directions per mode from theme
       for (const mode of ['light', 'dark'] as const) {
         const modeElevations: any = themes?.[mode]?.elevations || {}
-        const modeElev1: any = modeElevations?.['elevation-1']?.['$value'] || {}
-        const modeBaseX = Number((modeElev1?.['x-direction']?.['$value'] ?? baseX))
-        const modeBaseY = Number((modeElev1?.['y-direction']?.['$value'] ?? baseY))
-        const modeXDir = modeBaseX >= 0 ? 'right' : 'left'
-        const modeYDir = modeBaseY >= 0 ? 'down' : 'up'
+        const modeElev1Node = modeElevations?.['elevation-1']?.['$value'] || modeElevations?.['elevation-1'] || {}
+        const modeBaseX = modeElev1Node?.['x-direction'] !== undefined ? toNumeric(modeElev1Node['x-direction']) : baseX
+        const modeBaseY = modeElev1Node?.['y-direction'] !== undefined ? toNumeric(modeElev1Node['y-direction']) : baseY
+
         directions[mode] = {}
         for (let i = 1; i <= 4; i += 1) {
-          directions[mode][`elevation-${i}`] = { x: modeXDir, y: modeYDir }
+          const elevKey = `elevation-${i}`
+          const elevNode = modeElevations[elevKey]?.['$value'] || modeElevations[elevKey] || {}
+          
+          const xVal = elevNode?.['x-direction'] !== undefined ? toNumeric(elevNode['x-direction']) : modeBaseX
+          const yVal = elevNode?.['y-direction'] !== undefined ? toNumeric(elevNode['y-direction']) : modeBaseY
+          
+          directions[mode][elevKey] = {
+            x: xVal >= 0 ? 'right' : 'left',
+            y: yVal >= 0 ? 'down' : 'up'
+          }
         }
       }
       paletteSelections = { light: { ...initialPaletteSelections.light }, dark: { ...initialPaletteSelections.dark } }
       // Overlay user-customized palette selections persisted from previous sessions
-      if (isLocalStorageAvailable()) {
+      if (!forceRebuildFromTheme && isLocalStorageAvailable()) {
         try {
           const saved = localStorage.getItem(STORAGE_KEYS.elevationPaletteSelections)
           if (saved) {
