@@ -1000,6 +1000,10 @@
               }
             }
           },
+          "border-radius": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.border-radii.default}"
+          },
           "vertical-padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.default}"
