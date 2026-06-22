@@ -50,6 +50,18 @@
         }
       }
     },
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "visible": true,
+      "group": {
+        "border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius",
+          "visible": true
+        }
+      }
+    },
     "size": {
       "icon": "arrows-left-right",
       "label": "Size",
