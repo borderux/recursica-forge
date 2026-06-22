@@ -96,6 +96,11 @@ registerComponent('carbon', 'Loader', () => import('../adapters/carbon/Loader/Lo
 // Dropdown
 registerComponent('carbon', 'Dropdown', () => import('../adapters/carbon/Dropdown/Dropdown'))
 
+// Tree
+registerComponent('carbon', 'Tree', () => import('../adapters/carbon/Tree/Tree'))
+
+// Table
+registerComponent('carbon', 'Table', () => import('../adapters/carbon/Table/Table'))
+registerComponent('carbon', 'TableCell', () => import('../adapters/carbon/TableCell/TableCell'))
+
 // Add more components as they're implemented
-
-

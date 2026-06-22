@@ -123,5 +123,11 @@ registerComponent('mantine', 'Timeline', () => import('../adapters/mantine/Timel
 // TransferList
 registerComponent('mantine', 'TransferList', () => import('../adapters/mantine/TransferList/TransferList'))
 
-// Add more components as they're implemented
+// Tree
+registerComponent('mantine', 'Tree', () => import('../adapters/mantine/Tree/Tree'))
 
+// Table
+registerComponent('mantine', 'Table', () => import('../adapters/mantine/Table/Table'))
+registerComponent('mantine', 'TableCell', () => import('../adapters/mantine/TableCell/TableCell'))
+
+// Add more components as they're implemented

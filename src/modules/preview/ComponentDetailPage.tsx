@@ -559,6 +559,16 @@ export default function ComponentDetailPage() {
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
+                ) : component.name === 'Tree' ? (
+                  <div style={{
+                    width: '100%',
+                    minHeight: 200,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
+                  }}>
+                    {component.render?.(new Set([selectedLayer as any])) || <div>No preview available</div>}
+                  </div>
                 ) : (
                   <div style={{
                     minHeight: 200,
