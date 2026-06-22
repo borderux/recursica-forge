@@ -1004,6 +1004,17 @@
             "$type": "dimension",
             "$value": "{brand.dimensions.border-radii.default}"
           },
+          "border-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 0,
+              "unit": "px"
+            }
+          },
+          "border-color": {
+            "$type": "color",
+            "$value": null
+          },
           "vertical-padding": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.default}"

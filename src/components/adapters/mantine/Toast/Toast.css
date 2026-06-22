@@ -10,6 +10,7 @@
   background-color: var(--toast-bg, var(--recursica_ui-kit_components_toast_variants_styles_default_properties_colors_layer-0_background)) !important;
   color: var(--toast-text, var(--recursica_ui-kit_components_toast_variants_styles_default_properties_colors_layer-0_text)) !important;
   border-radius: var(--toast-border-radius, var(--recursica_ui-kit_components_toast_properties_border_radius)) !important;
+  border: var(--toast-border-size, var(--recursica_ui-kit_components_toast_properties_border_size)) solid var(--toast-border-color, var(--recursica_ui-kit_components_toast_properties_border_color)) !important;
 }
 
 .recursica-toast-content {

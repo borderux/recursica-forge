@@ -420,7 +420,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // 2. Inside component properties: ['properties', 'colors', 'layer-0', 'thumb-selected'] (Switch)
         // 3. Size properties: ['variants', 'sizes', 'default', 'properties', 'height'] or ['properties', 'border-radius']
         let category = prefix[0] || 'root'
-        if (currentPath.includes('colors')) {
+        if (currentPath.includes('colors') || type === 'color') {
           category = 'colors'
         } else if (currentPath.includes('size') || currentPath.includes('sizes')) {
           category = 'size'
