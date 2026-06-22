@@ -55,6 +55,14 @@
       "label": "Border",
       "visible": true,
       "group": {
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        },
+        "border-color": {
+          "label": "Color",
+          "visible": true
+        },
         "border-radius": {
           "icon": "corners-out",
           "label": "Corner radius",

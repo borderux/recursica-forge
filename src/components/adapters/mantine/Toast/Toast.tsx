@@ -42,6 +42,8 @@ export default function Toast({
   const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
   const borderRadiusVar = getComponentLevelCssVar('Toast', 'border-radius')
+  const borderSizeVar = getComponentLevelCssVar('Toast', 'border-size')
+  const borderColorVar = getComponentLevelCssVar('Toast', 'border-color')
   const minWidthVar = getComponentLevelCssVar('Toast', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Toast', 'max-width')
   const minHeightVar = getComponentLevelCssVar('Toast', 'min-height')
@@ -174,6 +176,8 @@ export default function Toast({
       '--toast-vertical-padding': `var(${verticalPaddingVar})`,
       '--toast-horizontal-padding': `var(${horizontalPaddingVar})`,
       '--toast-border-radius': `var(${borderRadiusVar})`,
+      '--toast-border-size': `var(${borderSizeVar})`,
+      '--toast-border-color': `var(${borderColorVar})`,
       '--toast-min-width': `var(${minWidthVar})`,
       '--toast-max-width': `var(${maxWidthVar})`,
       '--toast-min-height': `var(${minHeightVar})`,

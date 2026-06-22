@@ -187,7 +187,7 @@ export default function BorderGroupToolbar({
         propNameLower !== 'border') {
         return false
       }
-      if (p.category !== 'colors') return false
+      if (p.category !== 'colors' && p.type !== 'color') return false
 
       // Handle variant-specific props for all components generically
       if (p.isVariantSpecific && p.variantProp) {
