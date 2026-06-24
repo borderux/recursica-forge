@@ -48,7 +48,7 @@ function parseCoreTokenRef(name: 'interactive' | 'alert' | 'warning' | 'success'
     const s = typeof v === 'string' ? v : typeof (v?.['$value']) === 'string' ? String(v['$value']) : ''
     if (!s) return null
     const parsed = parseTokenReference(s)
-    if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
+    if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'colors') {
       return { family: parsed.path[1], level: parsed.path[2] }
     }
   } catch { }

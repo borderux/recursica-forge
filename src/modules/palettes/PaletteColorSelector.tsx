@@ -214,7 +214,7 @@ export default function PaletteColorSelector({
               }
             }
             // Handle old color format (color.family.level)
-            else if (parsed.path.length >= 2 && parsed.path[0] === 'color') {
+            else if (parsed.path.length >= 2 && parsed.path[0] === 'colors') {
               familyName = parsed.path[1]
             }
 
@@ -416,7 +416,7 @@ export default function PaletteColorSelector({
         theme: themeJson
       }
       const parsed = parseTokenReference(toneRaw, context)
-      if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color') {
+      if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'colors') {
         return parsed.path[2] // Return the token level (e.g., '050' for dark mode neutral 1000)
       }
     }
@@ -632,7 +632,7 @@ export default function PaletteColorSelector({
                     }
                   }
                 }
-              } else if (parsed.path[0] === 'color') {
+              } else if (parsed.path[0] === 'colors') {
                 familyForMode = parsed.path[1]
               }
               break

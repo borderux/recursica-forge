@@ -157,7 +157,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
     return tokens.sort((a, b) => a.value - b.value)
   }, [tokensJson])
   
-  // Extract token name from CSS var value (e.g., "var(--recursica_tokens_size_md)" -> "size/md")
+  // Extract token name from CSS var value (e.g., "var(--recursica_tokens_sizes_md)" -> "size/md")
   const extractTokenFromCssVar = (cssValue: string): string | null => {
     if (!cssValue) return null
     const parsed = parseTokenCssVar(cssValue)
@@ -305,7 +305,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                                   const token = sortedTokens[Math.round(idx)]
                                   if (token) {
                                     const tokenKey = token.name.replace('size/', '')
-                                    updateCssVar(cssVar, `var(--recursica_tokens_size_${tokenKey})`)
+                                    updateCssVar(cssVar, `var(--recursica_tokens_sizes_${tokenKey})`)
                                     setUpdateKey(k => k + 1)
                                   }
                                 }}
@@ -393,7 +393,7 @@ export default function ComponentCssVarsPanel({ open, componentName, onClose }: 
                         const token = sortedTokens[Math.round(idx)]
                         if (token) {
                           const tokenKey = token.name.replace('size/', '')
-                          updateCssVar(cssVar, `var(--recursica_tokens_size_${tokenKey})`)
+                          updateCssVar(cssVar, `var(--recursica_tokens_sizes_${tokenKey})`)
                           setUpdateKey(k => k + 1)
                         }
                       }}

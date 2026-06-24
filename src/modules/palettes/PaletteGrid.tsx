@@ -108,7 +108,7 @@ export default function PaletteGrid({ paletteKey, title, descriptiveLabel, defau
           tokenIndex
         }
         const parsed = parseTokenReference(toneRaw, context)
-        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'color') {
+        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'colors') {
           // Extract family name from token path (e.g., color/gray/100 -> gray)
           const detectedFamily = parsed.path[1]
           if (detectedFamily && families.includes(detectedFamily)) {

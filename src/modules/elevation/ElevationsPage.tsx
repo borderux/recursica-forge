@@ -235,7 +235,7 @@ export default function ElevationsPage() {
       const v: string | undefined = typeof s === 'string' ? s : (s?.['$value'] as any)
       if (!v) return undefined
       const parsed = parseTokenReference(v, {})
-      if (parsed && parsed.type === 'token' && parsed.path[0] === 'color' && parsed.path.length >= 3) {
+      if (parsed && parsed.type === 'token' && parsed.path[0] === 'colors' && parsed.path.length >= 3) {
         return `color/${parsed.path[1]}/${parsed.path[2]}`
       }
       return undefined

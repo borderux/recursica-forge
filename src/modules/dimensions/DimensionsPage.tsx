@@ -108,7 +108,7 @@ export default function DimensionsPage() {
             let tokenName: string | null = null
             if (typeof tokenRef === 'string') {
               const parsed = parseTokenReference(tokenRef)
-              if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'size') {
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'sizes') {
                 tokenName = parsed.path.slice(1).join('.')
               }
             }

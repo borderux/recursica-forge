@@ -338,3 +338,21 @@ export function hexToCssVarRef(hex: string, tokens: JsonLike): string | null {
   return null
 }
 
+/**
+ * Converts a hex color to a DTCG token reference.
+ * Only returns exact token matches or scale references. Returns null if no exact match found.
+ * Use this for injecting references into JSON instead of hexToCssVarRef.
+ */
+export function hexToTokenRef(hex: string, tokens: JsonLike): string | null {
+  const found = findColorFamilyAndLevel(hex, tokens)
+  if (!found) {
+    return null
+  }
+
+  // Token paths for DTCG references
+  if (found.family.startsWith('scale-')) {
+    return `{tokens.colors.${found.family}.${found.level}}`
+  }
+
+  return `{colors.${found.family}.${found.level}}`
+}

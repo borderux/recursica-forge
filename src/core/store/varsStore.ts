@@ -1186,7 +1186,7 @@ class VarsStore {
         }
         const px = toPxString(tokenValue)
         if (px) varsToUpdate[tokenSize(key)] = px
-      } else if (category === 'opacity' && rest.length >= 1) {
+      } else if (category === 'opacities' && rest.length >= 1) {
         const [key] = rest
         const tokenValue = tokensRoot?.opacities?.[key]?.$value
         if (tokenValue == null) return
@@ -1283,7 +1283,7 @@ class VarsStore {
             // Scale not found, create it (shouldn't happen normally)
           }
         }
-      } else if (category === 'size' && rest.length >= 1) {
+      } else if (category === 'sizes' && rest.length >= 1) {
         const [key] = rest
         if (!tokensRoot.sizes) tokensRoot.sizes = {}
         if (!tokensRoot.sizes[key]) tokensRoot.sizes[key] = {}
@@ -1293,7 +1293,7 @@ class VarsStore {
         } else {
           tokensRoot.sizes[key].$value = typeof value === 'number' ? value : String(value)
         }
-      } else if (category === 'opacity' && rest.length >= 1) {
+      } else if (category === 'opacities' && rest.length >= 1) {
         const [key] = rest
         if (!tokensRoot.opacities) tokensRoot.opacities = {}
         if (!tokensRoot.opacities[key]) tokensRoot.opacities[key] = {}
@@ -1394,7 +1394,7 @@ class VarsStore {
           // Color token used in palette(s) — schedule a read-only compliance scan
           this.scheduleComplianceScan()
         }
-      } else if (category === 'opacity' && rest.length >= 1) {
+      } else if (category === 'opacities' && rest.length >= 1) {
         const [key] = rest
         // Check if this opacity token is used for high/low emphasis in theme JSON
         const isEmphasisOpacity = this.isEmphasisOpacityToken(key)
@@ -2779,14 +2779,21 @@ class VarsStore {
               vars[`${prefixedScope}_shadow-color`] = shadowColorForLevel(i, allPaletteVars)
             }
 
-            vars[`${prefixedScope}_blur`] = `var(${tokenSize(`elevation-${i}-blur`)})`
-            vars[`${prefixedScope}_spread`] = `var(${tokenSize(`elevation-${i}-spread`)})`
-            vars[`${prefixedScope}_x-axis`] = dir.x === 'right' 
-              ? `var(${tokenSize(`elevation-${i}-offset-x`)})` 
-              : `calc(-1 * var(${tokenSize(`elevation-${i}-offset-x`)}))`
-            vars[`${prefixedScope}_y-axis`] = dir.y === 'down' 
-              ? `var(${tokenSize(`elevation-${i}-offset-y`)})` 
-              : `calc(-1 * var(${tokenSize(`elevation-${i}-offset-y`)}))`
+            if (!hasControlsInAnyMode) {
+              vars[`${prefixedScope}_blur`] = `var(${tokenSize(`elevation-${i}-blur`)})`
+              vars[`${prefixedScope}_spread`] = `var(${tokenSize(`elevation-${i}-spread`)})`
+              vars[`${prefixedScope}_x-axis`] = dir.x === 'right' 
+                ? `var(${tokenSize(`elevation-${i}-offset-x`)})` 
+                : `calc(-1 * var(${tokenSize(`elevation-${i}-offset-x`)}))`
+              vars[`${prefixedScope}_y-axis`] = dir.y === 'down' 
+                ? `var(${tokenSize(`elevation-${i}-offset-y`)})` 
+                : `calc(-1 * var(${tokenSize(`elevation-${i}-offset-y`)}))`
+            } else {
+              vars[`${prefixedScope}_blur`] = `${blurValue}px`
+              vars[`${prefixedScope}_spread`] = `${spreadValue}px`
+              vars[`${prefixedScope}_x-axis`] = dir.x === 'right' ? `${xValue}px` : `-${xValue}px`
+              vars[`${prefixedScope}_y-axis`] = dir.y === 'down' ? `${yValue}px` : `-${yValue}px`
+            }
           }
           Object.assign(allVars, vars)
         } catch { }
@@ -2916,7 +2923,7 @@ class VarsStore {
                     }
                     break // Found it, move to next palette
                   }
-                } else if (parsed.path[0] === 'color' && parsed.path.length >= 2) {
+                } else if (parsed.path[0] === 'colors' && parsed.path.length >= 2) {
                   const refFamily = parsed.path[1]
                   if (refFamily === familyAlias) {
                     // This palette uses this color - add it if not already added
@@ -2959,7 +2966,7 @@ class VarsStore {
               theme: this.state.theme
             }
             const parsed = parseTokenReference(toneRef, context)
-            if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color' && parsed.path[1] === family && parsed.path[2] === level) {
+            if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'colors' && parsed.path[1] === family && parsed.path[2] === level) {
               return true
             }
           }
@@ -2975,13 +2982,13 @@ class VarsStore {
             }
             if (defaultToneRef) {
               const parsed = parseTokenReference(defaultToneRef, context)
-              if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color' && parsed.path[1] === family && parsed.path[2] === level) {
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'colors' && parsed.path[1] === family && parsed.path[2] === level) {
                 return true
               }
             }
             if (hoverToneRef) {
               const parsed = parseTokenReference(hoverToneRef, context)
-              if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'color' && parsed.path[1] === family && parsed.path[2] === level) {
+              if (parsed && parsed.type === 'token' && parsed.path.length >= 3 && parsed.path[0] === 'colors' && parsed.path[1] === family && parsed.path[2] === level) {
                 return true
               }
             }
