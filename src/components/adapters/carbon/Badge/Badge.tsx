@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react'
 import type { BadgeProps as AdapterBadgeProps } from '../../Badge'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -27,9 +27,9 @@ export default function Badge({
   const { mode } = useThemeMode()
 
   // Get CSS variables
-  const bgVar = getComponentCssVar('Badge', 'colors', `${variant}-background`, layer)
-  const textVar = getComponentCssVar('Badge', 'colors', `${variant}-text`, layer)
-  const borderColorVar = getComponentCssVar('Badge', 'colors', `${variant}-border-color`, layer)
+  const bgVar = buildComponentCssVarPath('Badge', 'variants', 'styles', variant, 'properties', 'colors', layer, 'background')
+  const textVar = buildComponentCssVarPath('Badge', 'variants', 'styles', variant, 'properties', 'colors', layer, 'text')
+  const borderColorVar = buildComponentCssVarPath('Badge', 'variants', 'styles', variant, 'properties', 'colors', layer, 'border-color')
 
   // Get text CSS variables
   const fontFamilyVar = getComponentTextCssVar('Badge', 'text', 'font-family')

@@ -7,7 +7,7 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
+import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -190,15 +190,15 @@ function getButtonStyles(
   const cssVarVariant = variant
   
   // Use recursica_ui-kit.json button colors for standard layers
-  const bgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
-  const textVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
+  const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background')
+  const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text')
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const borderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   
-  const heightVar = getComponentCssVar('Button', 'size', 'height', undefined)
-  const minWidthVar = getComponentCssVar('Button', 'size', 'min-width', undefined)
-  const paddingVar = getComponentCssVar('Button', 'size', 'horizontal-padding', undefined)
-  const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
+  const heightVar = buildComponentCssVarPath('Button', 'properties', 'height')
+  const minWidthVar = buildComponentCssVarPath('Button', 'properties', 'min-width')
+  const paddingVar = buildComponentCssVarPath('Button', 'properties', 'horizontal-padding')
+  const borderRadiusVar = buildComponentCssVarPath('Button', 'properties', 'border-radius')
   
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')
@@ -217,9 +217,9 @@ function getButtonStyles(
   
   // Size-specific vars - recursica_ui-kit.json structure: size.default.height, size.sm.height
   const sizePrefix = size === 'small' ? 'sm' : size === ('large' as any) ? 'lg' : (size || 'default')
-  const sizeHeightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
-  const sizeMinWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
-  const sizePaddingVar = getComponentCssVar('Button', 'size', `${sizePrefix}-horizontal-padding`, undefined)
+  const sizeHeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'height')
+  const sizeMinWidthVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'min-width')
+  const sizePaddingVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding')
   
   // Use CSS variable references directly instead of reading values
   // This allows dynamic updates and proper CSS variable resolution

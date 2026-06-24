@@ -5,7 +5,7 @@
  */
 
 import type { MenuItemProps as AdapterMenuItemProps } from '../../MenuItem'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -41,8 +41,8 @@ export default function MenuItem({
   }
 
   // Get CSS variables for colors
-  const bgVar = getComponentCssVar('MenuItem', 'colors', `${effectiveVariant}-background`, layer)
-  const textVar = getComponentCssVar('MenuItem', 'colors', `${effectiveVariant}-text`, layer)
+  const bgVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', effectiveVariant, 'properties', 'colors', layer, 'background')
+  const textVar = buildComponentCssVarPath('MenuItem', 'variants', 'styles', effectiveVariant, 'properties', 'colors', layer, 'text')
 
   // Get selected-background from properties.colors (component-level, layer-specific)
   const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-background')

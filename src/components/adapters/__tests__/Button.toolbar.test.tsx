@@ -13,7 +13,7 @@ import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { getComponentCssVar, getComponentLevelCssVar } from '../../utils/cssVarNames'
+import { getComponentLevelCssVar , buildComponentCssVarPath } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
 describe.skip('Button Toolbar Props Integration', () => {
@@ -69,7 +69,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       const button = await waitForButton(container!, 'Test')
 
       // Get the CSS variable name that the toolbar would use
-      const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
+      const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
       
       // Wait for initial CSS variables to be set (check inline style where they're set)
       await waitFor(() => {
@@ -113,7 +113,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!, 'Test')
       
-      const textVar = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
+      const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'text')
       
       // Simulate toolbar update
       await act(async () => {
@@ -143,7 +143,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!, 'Test')
       
-      const textVar = getComponentCssVar('Button', 'colors', 'outline-text', 'layer-0')
+      const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'outline', 'properties', 'colors', 'layer-0', 'text')
       
       await act(async () => {
         updateCssVar(textVar, '#00ff00')
@@ -170,7 +170,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!, 'Test')
       
-      const textVar = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
+      const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'text', 'properties', 'colors', 'layer-0', 'text')
       
       await act(async () => {
         updateCssVar(textVar, '#ffff00')
@@ -202,7 +202,7 @@ describe.skip('Button Toolbar Props Integration', () => {
         })
         const button = await waitForButton(container!, 'Test')
         
-        const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', layer)
+        const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', layer, 'background')
         const testColor = `#${layer.replace('layer-', '')}00000`
         
         await act(async () => {
@@ -237,7 +237,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!, 'Test')
       
-      const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+      const heightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'default', 'properties', 'height')
       
       await act(async () => {
         updateCssVar(heightVar, '60px')
@@ -267,7 +267,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!)
       
-      const iconSizeVar = getComponentCssVar('Button', 'size', 'default-icon', undefined)
+      const iconSizeVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'default', 'properties', 'icon')
       
       await act(async () => {
         updateCssVar(iconSizeVar, '24px')
@@ -296,7 +296,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!, 'Test')
       
-      const paddingVar = getComponentCssVar('Button', 'size', 'default-horizontal-padding', undefined)
+      const paddingVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'default', 'properties', 'horizontal-padding')
       
       await act(async () => {
         updateCssVar(paddingVar, '32px')
@@ -323,7 +323,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!, 'Test')
       
-      const heightVar = getComponentCssVar('Button', 'size', 'small-height', undefined)
+      const heightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'small', 'properties', 'height')
       
       await act(async () => {
         updateCssVar(heightVar, '28px')
@@ -467,9 +467,9 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!, 'Test')
       
-      const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
-      const textVar = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
-      const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+      const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
+      const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'text')
+      const heightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'default', 'properties', 'height')
       const elevationVar = getComponentLevelCssVar('Button', 'elevation')
       
       // Update multiple CSS variables at once
@@ -519,7 +519,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       const button = await waitForButton(container!, 'Test')
       
       // Initially use solid variant
-      const solidBgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
+      const solidBgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
       await act(async () => {
         updateCssVar(solidBgVar, '#ff0000')
         window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
@@ -547,7 +547,7 @@ describe.skip('Button Toolbar Props Integration', () => {
         await new Promise(resolve => setTimeout(resolve, 0))
       })
 
-      const outlineTextVar = getComponentCssVar('Button', 'colors', 'outline-text', 'layer-0')
+      const outlineTextVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'outline', 'properties', 'colors', 'layer-0', 'text')
       await act(async () => {
         updateCssVar(outlineTextVar, '#00ff00')
         window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
@@ -575,7 +575,7 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!, 'Test')
       
-      const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
+      const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
       
       // Update CSS variable directly (simulating MutationObserver detection)
       await act(async () => {
@@ -602,8 +602,8 @@ describe.skip('Button Toolbar Props Integration', () => {
       })
       const button = await waitForButton(container!, 'Test')
       
-      const bgVar = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
-      const heightVar = getComponentCssVar('Button', 'size', 'default-height', undefined)
+      const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
+      const heightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'default', 'properties', 'height')
       
       // Update first variable
       await act(async () => {

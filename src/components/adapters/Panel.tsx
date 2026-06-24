@@ -9,7 +9,7 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getComponentLevelCssVar , buildComponentCssVarPath } from '../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -147,8 +147,8 @@ function getPanelFallbackStyles(
     mode: 'light' | 'dark' = 'light',
     additionalStyle?: React.CSSProperties
 ): React.CSSProperties {
-    const bgVar = getComponentCssVar('Panel', 'colors', 'background', layer)
-    const borderColorVar = getComponentCssVar('Panel', 'colors', 'border-color', layer)
+    const bgVar = buildComponentCssVarPath('Panel', 'properties', 'colors', layer, 'background')
+    const borderColorVar = buildComponentCssVarPath('Panel', 'properties', 'colors', layer, 'border-color')
     const hfHPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-horizontal-padding')
     const hfVPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-vertical-padding')
     const maxWidthVar = getComponentLevelCssVar('Panel', 'max-width')

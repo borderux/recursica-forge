@@ -7,7 +7,7 @@
 
 import { Suspense, useMemo, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { getComponentLevelCssVar, buildComponentCssVarPath } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import { parseElevationValue } from '../utils/brandCssVars'
@@ -121,7 +121,7 @@ export function Avatar({
   
   if (!Component) {
     // Fallback to native implementation if component not available
-    const sizeVar = getComponentCssVar('Avatar', 'size', sizeVariant, undefined)
+    const sizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeVariant, 'properties', 'size')
     
     return (
       <div

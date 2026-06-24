@@ -7,7 +7,7 @@
 import { Checkbox as CarbonCheckbox } from '@carbon/react'
 import { useId } from 'react'
 import type { CheckboxProps as AdapterCheckboxProps } from '../../Checkbox'
-import { getComponentCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Checkbox.css'
 
@@ -26,15 +26,15 @@ export default function Checkbox({
   const checkboxId = useId()
 
   // Checkbox Colors
-  const bgCheckedVar = getComponentCssVar('Checkbox', 'colors', 'background-checked', layer)
-  const bgUncheckedVar = getComponentCssVar('Checkbox', 'colors', 'background-unchecked', layer)
-  const borderCheckedVar = getComponentCssVar('Checkbox', 'colors', 'border-checked', layer)
-  const borderUncheckedVar = getComponentCssVar('Checkbox', 'colors', 'border-unchecked', layer)
-  const iconColorVar = getComponentCssVar('Checkbox', 'colors', 'icon-color', layer)
+  const bgCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-checked')
+  const bgUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-unchecked')
+  const borderCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-checked')
+  const borderUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-unchecked')
+  const iconColorVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color')
 
-  const disabledBgVar = getComponentCssVar('Checkbox', 'colors', 'disabled-background', layer)
-  const disabledBorderVar = getComponentCssVar('Checkbox', 'colors', 'disabled-border', layer)
-  const disabledIconVar = getComponentCssVar('Checkbox', 'colors', 'disabled-icon', layer)
+  const disabledBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background')
+  const disabledBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border')
+  const disabledIconVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-icon')
 
   // Checkbox Dimensions
   const sizeVar = buildComponentCssVarPath('Checkbox', 'properties', 'size')

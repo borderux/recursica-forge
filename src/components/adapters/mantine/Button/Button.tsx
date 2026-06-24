@@ -7,7 +7,7 @@
 import { Button as MantineButton } from '@mantine/core'
 import { useState, useEffect, useMemo, Children, isValidElement, cloneElement } from 'react'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
-import { getComponentCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
@@ -46,8 +46,8 @@ export default function Button({
   const cssVarVariant = variant
 
   // Use recursica_ui-kit.json button colors for standard layers
-  const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
-  const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
+  const buttonBgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background')
+  const buttonColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text')
 
   // Get hover color and opacity from the size variant (moved from component level)
   const hoverColorVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'hover-color')
@@ -86,7 +86,7 @@ export default function Button({
   //   label      → no icon, just children
   const contentVariant = isIconOnly ? 'icon-only' : (icon ? 'icon-label' : 'label')
   const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding')
-  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
+  const heightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'height')
   // min-width and border-radius are now content-variant-specific (content × size)
   const minWidthVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'min-width')
   const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'border-radius')
@@ -243,36 +243,20 @@ export default function Button({
           alignItems: 'center',
           justifyContent: 'center',
         } : {}),
-        // CRITICAL: Set border color for solid and outline variants to override Mantine's CSS-in-JS
-        // Note: CSS file will also set border with !important, but this helps ensure it's applied
-        // For outline buttons, ALWAYS set border using border-color property (never text color)
-        // Resolve the border color value to ensure it's always valid
-        ...(variant === 'outline' && buttonBorderColorVar ? {
+        // Apply CSS variable-driven border for all variants
+        // border-color null evaluates to undefined, falling back to transparent
+        ...(buttonBorderColorVar ? {
           borderColor: readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`,
-          border: `${borderSizeValue || '1px'} solid ${readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`}`,
+          border: `${borderSizeValue || '1px'} solid ${readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar}, transparent)`}`,
         } : {}),
-        // For solid buttons, set border if buttonBorderColor is available
-        ...(variant === 'solid' && buttonBorderColor ? {
-          borderColor: buttonBorderColor,
-          border: `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
-        } : {}),
-        // For text variant, use CSS variable-driven border (border-color null = invisible)
-        ...(variant === 'text' && {
-          borderColor: buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : undefined,
-          border: `${borderSizeValue || '1px'} solid ${buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : 'transparent'}`,
-        }),
         // Override disabled state to keep colors unchanged, only apply opacity
         // Note: CSS file handles disabled state with !important
         ...(disabled && {
-          backgroundColor: `var(${buttonBgVar})`,
+          backgroundColor: `var(${buttonBgVar}, transparent)`,
           color: buttonColorRef,
-          ...((variant === 'solid' || variant === 'outline') && buttonBorderColor && {
-            borderColor: buttonBorderColor,
-            border: `${borderSizeValue || '1px'} solid ${buttonBorderColor}`,
-          }),
-          ...(variant === 'text' && {
-            borderColor: buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : undefined,
-            border: `${borderSizeValue || '1px'} solid ${buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : 'transparent'}`,
+          ...(buttonBorderColorVar && {
+            borderColor: readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`,
+            border: `${borderSizeValue || '1px'} solid ${readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar}, transparent)`}`,
           }),
         }),
       },
@@ -291,14 +275,13 @@ export default function Button({
     style: (() => {
       return {
         // Use CSS variables for theming
-        // getComponentCssVar returns CSS variable names, so wrap in var() for standard layers
         // If background is transparent, set it directly to override library defaults
         // Otherwise, use CSS variable reference which will cascade automatically
         ...(bgColorValue === 'transparent' ? {
           backgroundColor: 'transparent',
           '--button-bg': 'transparent'
         } : {
-          '--button-bg': `var(${buttonBgVar})`
+          '--button-bg': `var(${buttonBgVar}, transparent)`
         }),
         '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
         '--button-hover-color': `var(${hoverColorVar}, #000000)`, // Hover color
@@ -332,14 +315,8 @@ export default function Button({
         '--button-max-width': `var(${maxWidthVar})`,
         // Use actual CSS border instead of box-shadow
         // Mantine uses --button-bd CSS variable for border
-        // Note: Border color is set via styles.root to override Mantine's CSS-in-JS
-        // For outline buttons, resolve the border color to ensure it's always valid
-        ...((variant === 'solid' || variant === 'outline') && buttonBorderColor ? {
-          '--button-bd': `${borderSizeValue || '1px'} solid ${variant === 'outline' && buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : buttonBorderColor}`,
-        } : {}),
-        // For text variant, use border from CSS variables (null border-color = transparent)
-        ...(variant === 'text' ? {
-          '--button-bd': `${borderSizeValue || '1px'} solid ${buttonBorderColorVar ? (readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`) : 'transparent'}`,
+        ...(buttonBorderColorVar ? {
+          '--button-bd': `${borderSizeValue || '1px'} solid ${readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar}, transparent)`}`,
         } : {}),
         '--button-height': `var(${heightVar})`,
         '--button-min-width': `var(${minWidthVar})`,

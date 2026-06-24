@@ -7,7 +7,7 @@
 import { Link as CarbonLink } from '@carbon/react'
 import { useState, useEffect } from 'react'
 import type { LinkProps as AdapterLinkProps } from '../../Link'
-import { getComponentCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'

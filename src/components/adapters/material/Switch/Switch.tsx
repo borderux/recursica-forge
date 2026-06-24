@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react'
 import { Switch as MaterialSwitch } from '@mui/material'
 import type { SwitchProps as AdapterSwitchProps } from '../../Switch'
-import { getComponentCssVar, getComponentLevelCssVar } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -37,23 +37,23 @@ export default function Switch({
   }, [mode])
   
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
-  const thumbSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-selected`, layer)
-  const thumbUnselectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-thumb-unselected`, layer)
-  const trackSelectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-track-selected`, layer)
-  const trackUnselectedVar = getComponentCssVar('Switch', 'colors', `${colorVariant}-track-unselected`, layer)
+  const thumbSelectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'thumb-selected')
+  const thumbUnselectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'thumb-unselected')
+  const trackSelectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'track-selected')
+  const trackUnselectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'track-unselected')
   const trackBorderRadiusVar = getComponentLevelCssVar('Switch', 'track-border-radius')
   const thumbBorderRadiusVar = getComponentLevelCssVar('Switch', 'thumb-border-radius')
-  const thumbHeightVar = getComponentCssVar('Switch', 'size', 'thumb-height', undefined)
-  const thumbWidthVar = getComponentCssVar('Switch', 'size', 'thumb-width', undefined)
-  const trackWidthVar = getComponentCssVar('Switch', 'size', 'track-width', undefined)
-  const trackInnerPaddingVar = getComponentCssVar('Switch', 'size', 'track-inner-padding', undefined)
-  const thumbIconSizeVar = getComponentCssVar('Switch', 'size', 'thumb-icon-size', undefined)
+  const thumbHeightVar = buildComponentCssVarPath('Switch', 'properties', 'thumb-height')
+  const thumbWidthVar = buildComponentCssVarPath('Switch', 'properties', 'thumb-width')
+  const trackWidthVar = buildComponentCssVarPath('Switch', 'properties', 'track-width')
+  const trackInnerPaddingVar = buildComponentCssVarPath('Switch', 'properties', 'track-inner-padding')
+  const thumbIconSizeVar = buildComponentCssVarPath('Switch', 'properties', 'thumb-icon-size')
   // Hardcode checkmark and x-mark for switch thumb state (as requested by user)
   const ThumbIconSelected = iconNameToReactComponent('check')
   const ThumbIconUnselected = iconNameToReactComponent('x-mark')
 
-  const thumbElevationVar = getComponentCssVar('Switch', 'size', 'thumb-elevation', undefined)
-  const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
+  const thumbElevationVar = buildComponentCssVarPath('Switch', 'properties', 'thumb-elevation')
+  const trackElevationVar = buildComponentCssVarPath('Switch', 'properties', 'track-elevation')
   
   // Use CSS variables directly - they already point to the correct layer-specific values from recursica_ui-kit.json
   const thumbSelectedColor = `var(${thumbSelectedVar})`

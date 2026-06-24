@@ -7,7 +7,7 @@
 
 import { Suspense, useState, useEffect, useRef } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
+import { getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { layerText } from '../../core/css/cssVarBuilder'

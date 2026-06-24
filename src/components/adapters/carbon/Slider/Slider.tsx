@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react'
 import { Slider as CarbonSlider } from '@carbon/react'
 import type { SliderProps as AdapterSliderProps } from '../../Slider'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, buildComponentCssVarPath, getFormCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/typographyUtils'

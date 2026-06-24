@@ -9,7 +9,7 @@
 
 import { Suspense, useState, useMemo } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentCssVar } from '../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar } from '../utils/cssVarNames'
 import { Label } from './Label'
 import { AssistiveElement } from './AssistiveElement'
 import { Chip } from './Chip'
@@ -104,7 +104,7 @@ export function FileInput({
     const iconTextGapVar = getComponentLevelCssVar('FileInput', 'icon-text-gap')
     const maxWidthVar = getComponentLevelCssVar('FileInput', 'max-width')
     const minWidthVar = getComponentLevelCssVar('FileInput', 'min-width')
-    const buttonHeightVar = getComponentCssVar('Button', 'size', 'small-height', undefined)
+    const buttonHeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'small', 'properties', 'height')
 
     // Get top-bottom-margin from layout variant
     const topBottomMarginVar = buildComponentCssVarPath('FileInput', 'variants', 'layouts', layout, 'properties', 'top-bottom-margin')

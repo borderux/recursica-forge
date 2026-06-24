@@ -6,7 +6,7 @@
 
 import { ToggleButtonGroup, ToggleButton } from '@mui/material'
 import type { SegmentedControlProps as AdapterSegmentedControlProps } from '../../SegmentedControl'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'

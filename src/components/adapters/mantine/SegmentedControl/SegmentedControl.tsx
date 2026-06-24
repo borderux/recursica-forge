@@ -6,7 +6,7 @@
 
 import { SegmentedControl as MantineSegmentedControl, Tooltip as MantineTooltip } from '@mantine/core'
 import type { SegmentedControlProps as AdapterSegmentedControlProps } from '../../SegmentedControl'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useState, useEffect, useRef } from 'react'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'

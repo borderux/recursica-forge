@@ -9,7 +9,7 @@ import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Link } from '../Link'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { getComponentCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
+import { getComponentTextCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
 
 describe.skip('Link Toolbar Props Integration', () => {
     beforeEach(() => {
