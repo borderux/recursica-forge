@@ -14265,13 +14265,6 @@
               "$type": "string",
               "$value": "{tokens.font.styles.normal}"
             }
-          },
-          "max-width": {
-            "$type": "dimension",
-            "$value": {
-              "value": 100,
-              "unit": "%"
-            }
           }
         }
       },
