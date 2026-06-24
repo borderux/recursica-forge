@@ -782,7 +782,7 @@ export default function ComponentToolbar({
         }
 
         // Check if this is a text-group prop that exists in recursica_ui-kit.json but wasn't parsed
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'step-number-text', 'selected-text', 'unselected-text']
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'step-number-text', 'selected-text', 'unselected-text', 'text-style', 'sorted-text-style', 'unsorted-text-style']
         if (textPropertyGroupNames.includes(propNameLower)) {
           // Try to find it in liveStructure.props - it should have been parsed
           const structureProp = liveStructure.props.find(p => p.name.toLowerCase() === propNameLower && p.type === 'text-group')

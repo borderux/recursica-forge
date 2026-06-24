@@ -102,5 +102,7 @@ registerComponent('material', 'Tree', () => import('../adapters/material/Tree/Tr
 // Table
 registerComponent('material', 'Table', () => import('../adapters/material/Table/Table'))
 registerComponent('material', 'TableCell', () => import('../adapters/material/TableCell/TableCell'))
+registerComponent('material', 'TableHeader', () => import('../adapters/material/TableCell/TableCell'))
+registerComponent('material', 'TableFooter', () => import('../adapters/material/TableCell/TableCell'))
 
 // Add more components as they're implemented

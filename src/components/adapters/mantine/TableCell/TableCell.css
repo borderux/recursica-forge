@@ -1,0 +1,20 @@
+/* Mantine TableCell overrides */
+
+.recursica-table-cell.mantine-table-cell {
+  padding: var(--table-cell-padding-v, 12px) var(--table-cell-padding-h, 12px) !important;
+  background-color: var(--table-cell-bg, transparent) !important;
+  color: var(--table-cell-color) !important;
+  font-family: var(--table-cell-font-family) !important;
+  font-size: var(--table-cell-font-size) !important;
+  font-weight: var(--table-cell-font-weight) !important;
+  font-style: var(--table-cell-font-style) !important;
+  letter-spacing: var(--table-cell-letter-spacing) !important;
+  line-height: var(--table-cell-line-height) !important;
+  text-transform: var(--table-cell-text-case) !important;
+  text-decoration: var(--table-cell-text-decoration) !important;
+  max-width: var(--table-cell-max-width, none) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  text-align: var(--table-cell-text-align, inherit) !important;
+}

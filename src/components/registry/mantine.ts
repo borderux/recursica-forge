@@ -129,5 +129,7 @@ registerComponent('mantine', 'Tree', () => import('../adapters/mantine/Tree/Tree
 // Table
 registerComponent('mantine', 'Table', () => import('../adapters/mantine/Table/Table'))
 registerComponent('mantine', 'TableCell', () => import('../adapters/mantine/TableCell/TableCell'))
+registerComponent('mantine', 'TableHeader', () => import('../adapters/mantine/TableHeader/TableHeader'))
+registerComponent('mantine', 'TableFooter', () => import('../adapters/mantine/TableFooter/TableFooter'))
 
 // Add more components as they're implemented

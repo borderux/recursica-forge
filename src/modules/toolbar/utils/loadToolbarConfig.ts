@@ -49,6 +49,8 @@ import TransferListConfig from '../configs/TransferList.toolbar.json'
 import TreeConfig from '../configs/Tree.toolbar.json'
 import TableConfig from '../configs/Table.toolbar.json'
 import TableCellConfig from '../configs/TableCell.toolbar.json'
+import TableHeaderConfig from '../configs/TableHeader.toolbar.json'
+import TableFooterConfig from '../configs/TableFooter.toolbar.json'
 import { buildComponentExtensionGroups } from './componentExtensionToolbar'
 
 export interface ToolbarPropConfig {
@@ -249,6 +251,12 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
     case 'table-cell':
     case 'table cell':
       staticConfig = TableCellConfig as unknown as ToolbarConfig; break
+    case 'table-header':
+    case 'table header':
+      staticConfig = TableHeaderConfig as unknown as ToolbarConfig; break
+    case 'table-footer':
+    case 'table footer':
+      staticConfig = TableFooterConfig as unknown as ToolbarConfig; break
     default:
       staticConfig = null
   }

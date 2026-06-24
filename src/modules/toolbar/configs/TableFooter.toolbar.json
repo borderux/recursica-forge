@@ -1,0 +1,65 @@
+{
+  "variants": {},
+  "props": {
+    "spacing": {
+      "icon": "arrows-pointing-out",
+      "label": "Spacing",
+      "visible": true,
+      "group": {
+        "padding-horizontal": {
+          "label": "Padding horizontal",
+          "visible": true,
+          "floatingPaletteLabel": "Horizontal Padding"
+        },
+        "padding-vertical": {
+          "label": "Padding vertical",
+          "visible": true,
+          "floatingPaletteLabel": "Vertical Padding"
+        }
+      }
+    },
+    "dividers": {
+      "icon": "minus",
+      "label": "Dividers",
+      "visible": true,
+      "group": {
+        "divider-size": {
+          "icon": "rows",
+          "label": "Divider size",
+          "visible": true,
+          "propertyType": "slider",
+          "range": [0, 8],
+          "step": 1
+        },
+        "divider-color": {
+          "icon": "paint-brush-broad",
+          "label": "Divider color",
+          "visible": true,
+          "floatingPaletteLabel": "Divider Color"
+        }
+      }
+    },
+    "colors": {
+      "icon": "paint-bucket",
+      "label": "Color",
+      "visible": true,
+      "group": {
+        "cell-color-enabled": {
+          "label": "Background",
+          "visible": true,
+          "floatingPaletteLabel": "Background"
+        },
+        "text-color-enabled": {
+          "label": "Text",
+          "visible": true,
+          "floatingPaletteLabel": "Text"
+        }
+      }
+    },
+    "text-style": {
+      "icon": "text-aa",
+      "label": "Text Style",
+      "visible": true
+    }
+  }
+}

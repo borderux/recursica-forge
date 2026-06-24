@@ -36,6 +36,8 @@ import { Timeline } from '../../components/adapters/Timeline'
 import { Tree } from '../../components/adapters/Tree'
 import { Table } from '../../components/adapters/Table'
 import { TableCell } from '../../components/adapters/TableCell'
+import { TableHeader } from '../../components/adapters/TableHeader'
+import { TableFooter } from '../../components/adapters/TableFooter'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -1411,6 +1413,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
             <Table layer={layer}>
               <thead>
                 <tr>
+                  <th style={{ width: 48 }}><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></th>
                   <th>Element</th>
                   <th>Mass</th>
                   <th>Symbol</th>
@@ -1418,31 +1421,36 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <tr data-selected="true">
+                  <td><CheckboxItem checked={true} onChange={() => {}} layer={layer as any} label="" /></td>
                   <td>Carbon</td>
                   <td>12.011</td>
                   <td>C</td>
                   <td>6</td>
                 </tr>
                 <tr>
+                  <td><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></td>
                   <td>Nitrogen</td>
                   <td>14.007</td>
                   <td>N</td>
                   <td>7</td>
                 </tr>
                 <tr>
+                  <td><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></td>
                   <td>Yttrium</td>
                   <td>88.906</td>
                   <td>Y</td>
                   <td>39</td>
                 </tr>
                 <tr>
+                  <td><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></td>
                   <td>Barium</td>
                   <td>137.33</td>
                   <td>Ba</td>
                   <td>56</td>
                 </tr>
                 <tr>
+                  <td><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></td>
                   <td>Cerium</td>
                   <td>140.12</td>
                   <td>Ce</td>
@@ -1467,6 +1475,42 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
                   <TableCell>Example Cell</TableCell>
                 </tr>
               </tbody>
+            </Table>
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Table header',
+      url: `${base}/table-header`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ width: '100%', maxWidth: 200 }}>
+            <Table layer={layer}>
+              <thead>
+                <tr>
+                  <TableHeader layer={layer as any}>Example Header</TableHeader>
+                </tr>
+              </thead>
+            </Table>
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Table footer',
+      url: `${base}/table-footer`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ width: '100%', maxWidth: 200 }}>
+            <Table layer={layer}>
+              <tfoot>
+                <tr>
+                  <TableFooter layer={layer as any}>Example Footer</TableFooter>
+                </tr>
+              </tfoot>
             </Table>
           </div>
         )

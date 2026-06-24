@@ -117,6 +117,8 @@ export function ComponentsSidebar({
       { name: 'Switch group item', url: `${base}/switch-group-item` },
       { name: 'Table', url: `${base}/table` },
       { name: 'Table cell', url: `${base}/table-cell` },
+      { name: 'Table header', url: `${base}/table-header` },
+      { name: 'Table footer', url: `${base}/table-footer` },
       { name: 'Tabs', url: `${base}/tabs` },
       { name: 'Text field', url: `${base}/text-field` },
       { name: 'Textarea', url: `${base}/textarea` },
@@ -141,12 +143,12 @@ export function ComponentsSidebar({
   // Build tree structure: group items ending with " item" under their parent
   const componentTree = useMemo(() => {
     const tree: TreeNode[] = []
-    const itemMap = new Map<string, ComponentItem>()
+    const itemMap = new Map<string, ComponentItem[]>()
     const parentMap = new Map<string, TreeNode>()
 
     // First pass: separate parents and child items
     allComponents.forEach(comp => {
-      const isItem = comp.name.endsWith(' item') || comp.name.endsWith(' bullet') || comp.name.endsWith(' cell')
+      const isItem = comp.name.endsWith(' item') || comp.name.endsWith(' bullet') || comp.name.endsWith(' cell') || comp.name.endsWith(' header') || comp.name.endsWith(' footer')
       // Derive parent name by stripping the suffix
       let parentName = comp.name
       if (comp.name.endsWith(' item')) {
@@ -155,11 +157,18 @@ export function ComponentsSidebar({
         parentName = comp.name.replace(/ bullet$/, '')
       } else if (comp.name.endsWith(' cell')) {
         parentName = comp.name.replace(/ cell$/, '')
+      } else if (comp.name.endsWith(' header')) {
+        parentName = comp.name.replace(/ header$/, '')
+      } else if (comp.name.endsWith(' footer')) {
+        parentName = comp.name.replace(/ footer$/, '')
       }
 
       if (isItem) {
         // Store item for second pass
-        itemMap.set(parentName, comp)
+        if (!itemMap.has(parentName)) {
+          itemMap.set(parentName, [])
+        }
+        itemMap.get(parentName)!.push(comp)
       } else {
         // Create parent node
         const node: TreeNode = {
@@ -175,14 +184,14 @@ export function ComponentsSidebar({
     // Second pass: attach items to their parents
     // If parent exists in tree, attach item to it
     // If parent doesn't exist but item should be shown, create parent node from baseComponents
-    itemMap.forEach((item, parentName) => {
+    itemMap.forEach((items, parentName) => {
       const parentNode = parentMap.get(parentName)
       if (parentNode) {
-        // Parent exists, attach item
+        // Parent exists, attach items
         if (!parentNode.children) {
           parentNode.children = []
         }
-        parentNode.children.push(item as TreeNode)
+        parentNode.children.push(...(items as TreeNode[]))
       } else {
         // Parent doesn't exist in filtered list, but item should be shown
         // Find parent in baseComponents to get its URL and create parent node
@@ -193,7 +202,7 @@ export function ComponentsSidebar({
             name: parentName,
             url: parentBase.url,
             isMapped: parentBase.isMapped,
-            children: [item as TreeNode],
+            children: items as TreeNode[],
           }
           tree.push(newNode)
           parentMap.set(parentName, newNode)
@@ -281,7 +290,15 @@ export function ComponentsSidebar({
         flexShrink: 0,
       }}
     >
-      <nav style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <nav style={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+        overflow: 'auto',
+        marginTop: '60px',
+        marginBottom: '60px',
+      }}>
         <Tree
           data={treeData}
           selected={currentComponent ? [currentComponent] : []}

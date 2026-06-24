@@ -1,0 +1,93 @@
+/* Mantine Table overrides */
+
+.recursica-table-outer-wrapper {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recursica-table-inner-wrapper {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: var(--table-border-size, 1px) solid var(--table-border-color, transparent) !important;
+  border-radius: var(--table-border-radius, 0px) !important;
+  overflow: auto !important;
+}
+
+.recursica-table.mantine-table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: none !important;
+  width: 100% !important;
+}
+
+.recursica-table.mantine-table thead,
+.recursica-table.mantine-table tfoot {
+  overflow: hidden !important;
+}
+
+/* Reset cell borders to let custom dividers govern */
+.recursica-table.mantine-table th,
+.recursica-table.mantine-table td {
+  border: none !important;
+}
+
+/* Re-apply row borders to body cells */
+.recursica-table.mantine-table tbody tr:not(:last-child) td {
+  border-bottom: var(--table-row-divider-size, 1px) solid var(--table-row-divider-color, transparent) !important;
+}
+
+/* Re-apply header bottom border to separate it from body */
+.recursica-table.mantine-table thead th:not(.recursica-table-header) {
+  border-bottom: var(--table-row-divider-size, 2px) solid var(--table-row-divider-color, transparent) !important;
+}
+
+/* Re-apply column dividers on cell level */
+.recursica-table.mantine-table th:not(:last-child),
+.recursica-table.mantine-table td:not(:last-child) {
+  border-right: var(--table-column-divider-size, 0px) solid var(--table-column-divider-color, transparent) !important;
+}
+
+/* Zebra striping background color on table cells */
+.recursica-table.mantine-table tbody tr:nth-of-type(odd) td {
+  background-color: color-mix(in srgb, var(--table-striped-color, var(--recursica_brand_palettes_neutral_default_color_tone, #888888)) calc(var(--table-striped-opacity, 0.1) * 100%), var(--table-cell-bg, transparent)) !important;
+}
+
+/* Highlight on hover background color on table cells */
+.recursica-table.mantine-table tbody tr:hover td {
+  background-color: color-mix(in srgb, var(--table-hover-color, var(--recursica_brand_palettes_neutral_default_color_tone, #888888)) calc(var(--table-hover-opacity, 0.1) * 100%), var(--table-cell-bg, transparent)) !important;
+}
+
+/* Selected row background color on table cells */
+.recursica-table.mantine-table tbody tr[data-selected="true"] td {
+  background-color: color-mix(in srgb, var(--table-selected-color, var(--recursica_brand_palettes_neutral_default_color_tone, #888888)) calc(var(--table-selected-opacity, 0.1) * 100%), var(--table-cell-bg, transparent)) !important;
+}
+
+/* Row padding on first and last columns */
+.recursica-table.mantine-table th.recursica-table-header.mantine-table-header:first-child {
+  padding-left: calc(var(--table-header-padding-h, 12px) + var(--table-row-padding, 0px)) !important;
+}
+.recursica-table.mantine-table th.recursica-table-header.mantine-table-header:last-child {
+  padding-right: calc(var(--table-header-padding-h, 12px) + var(--table-row-padding, 0px)) !important;
+}
+
+.recursica-table.mantine-table td.recursica-table-footer.mantine-table-footer:first-child {
+  padding-left: calc(var(--table-footer-padding-h, 12px) + var(--table-row-padding, 0px)) !important;
+}
+.recursica-table.mantine-table td.recursica-table-footer.mantine-table-footer:last-child {
+  padding-right: calc(var(--table-footer-padding-h, 12px) + var(--table-row-padding, 0px)) !important;
+}
+
+.recursica-table.mantine-table td.recursica-table-cell:first-child {
+  padding-left: calc(var(--table-cell-padding-h, 12px) + var(--table-row-padding, 0px)) !important;
+}
+.recursica-table.mantine-table td.recursica-table-cell:last-child {
+  padding-right: calc(var(--table-cell-padding-h, 12px) + var(--table-row-padding, 0px)) !important;
+}

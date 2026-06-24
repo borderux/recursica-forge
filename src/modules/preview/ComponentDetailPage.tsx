@@ -43,6 +43,7 @@ const StepperPreview = lazy(() => import('../components/StepperPreview'))
 const TimelinePreview = lazy(() => import('../components/TimelinePreview'))
 const TimelineBulletPreview = lazy(() => import('../components/TimelineBulletPreview'))
 const TransferListPreview = lazy(() => import('../components/TransferListPreview'))
+const TablePreview = lazy(() => import('../components/TablePreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Button } from '../../components/adapters/Button'
@@ -286,6 +287,7 @@ export default function ComponentDetailPage() {
         flex: debugMode ? undefined : 1,
         minHeight: debugMode ? undefined : 0,
         width: '100%',
+        overflow: 'hidden',
       }}>
         {/* Preview Area - Left Side */}
         <div style={{
@@ -293,10 +295,12 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          padding: 'var(--recursica_brand_dimensions_general_xl)',
+          padding: component.name.toLowerCase().includes('table') ? 0 : 'var(--recursica_brand_dimensions_general_xl)',
           position: 'sticky',
           top: 0,
-          alignSelf: 'flex-start',
+          alignSelf: component.name.toLowerCase().includes('table') ? 'stretch' : 'flex-start',
+          height: component.name.toLowerCase().includes('table') ? '100%' : undefined,
+          overflow: 'hidden',
         }}>
           {/* Preview Section */}
           <div style={{
@@ -307,7 +311,7 @@ export default function ComponentDetailPage() {
             justifyContent: 'space-between',
             gap: 'var(--recursica_brand_dimensions_general_md)',
             background: `var(${layerProperty(mode, layerNum, 'surface')})`,
-            padding: `var(${layerProperty(mode, layerNum, 'padding')})`,
+            padding: component.name.toLowerCase().includes('table') ? 0 : `var(${layerProperty(mode, layerNum, 'padding')})`,
             border: layerNum !== '0'
               ? `var(${layerProperty(mode, layerNum, 'border-size')}, 1px) solid var(${layerProperty(mode, layerNum, 'border-color')})`
               : 'none',
@@ -558,6 +562,36 @@ export default function ComponentDetailPage() {
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Table' ? (
+                  <TablePreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Table cell' ? (
+                  <TablePreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                    singleRowMode={true}
+                    hideSearch={true}
+                  />
+                ) : component.name === 'Table header' ? (
+                  <TablePreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                    singleRowMode={true}
+                    hideSearch={true}
+                  />
+                ) : component.name === 'Table footer' ? (
+                  <TablePreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                    singleRowMode={true}
+                    hideSearch={true}
                   />
                 ) : component.name === 'Tree' ? (
                   <div style={{

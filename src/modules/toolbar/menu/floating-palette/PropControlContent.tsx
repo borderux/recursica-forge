@@ -1468,6 +1468,8 @@ export default function PropControlContent({
     const isTooltip = componentName.toLowerCase() === 'tooltip'
     const isAssistiveElement = normalizedComponentName === 'assistive-element'
     const isTree = componentName.toLowerCase() === 'tree'
+    const isTableCell = normalizedComponentName === 'table-cell'
+
 
 
     if (propToRender.type === 'color') {
@@ -3728,6 +3730,9 @@ export default function PropControlContent({
       } else if (isTooltip && (propNameLower === 'beak-size' || propNameLower === 'beak-inset')) {
         minPixelValue = 0
         maxPixelValue = 50
+      } else if (isTableCell && propNameLower === 'max-width') {
+        minPixelValue = 40
+        maxPixelValue = 1000
       }
 
       if (dimensionType === 'px') {
@@ -3822,7 +3827,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text', 'step-number-text', 'input-text']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text', 'step-number-text', 'input-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style']
 
   // Always check recursica_ui-kit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly

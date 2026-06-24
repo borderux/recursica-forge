@@ -1,0 +1,16 @@
+/* Mantine TableFooter overrides */
+
+.recursica-table.mantine-table td.recursica-table-footer.mantine-table-footer {
+  padding: var(--table-footer-padding-v, 12px) var(--table-footer-padding-h, 12px) !important;
+  background-color: var(--table-footer-bg) !important;
+  color: var(--table-footer-color) !important;
+  font-family: var(--table-footer-font-family) !important;
+  font-size: var(--table-footer-font-size) !important;
+  font-weight: var(--table-footer-font-weight) !important;
+  font-style: var(--table-footer-font-style) !important;
+  letter-spacing: var(--table-footer-letter-spacing) !important;
+  line-height: var(--table-footer-line-height) !important;
+  text-transform: var(--table-footer-text-case) !important;
+  text-decoration: var(--table-footer-text-decoration) !important;
+  border-top: var(--table-footer-divider-size, 1px) solid var(--table-footer-divider-color, transparent) !important;
+}
