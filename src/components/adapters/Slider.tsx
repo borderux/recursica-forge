@@ -628,12 +628,44 @@ export function Slider({
                 const newValue = Number(e.target.value)
                 if (!isNaN(newValue)) {
                   if (isRange) {
-                    const clampedValue = Math.max(value[0], Math.min(max, newValue))
-                    onChange([value[0], clampedValue])
+                    onChange([value[0], newValue])
                   } else {
-                    const clampedValue = Math.max(min, Math.min(max, newValue))
+                    onChange(newValue)
+                  }
+                }
+              }
+            }}
+            onBlur={() => {
+              if (!readOnly) {
+                if (isRange) {
+                  const clampedValue = Math.max(value[0], Math.min(max, value[1]))
+                  if (value[1] !== clampedValue) {
+                    onChange([value[0], clampedValue])
+                  }
+                  if (onChangeCommitted) onChangeCommitted([value[0], clampedValue])
+                } else {
+                  const clampedValue = Math.max(min, Math.min(max, singleValue))
+                  if (singleValue !== clampedValue) {
                     onChange(clampedValue)
                   }
+                  if (onChangeCommitted) onChangeCommitted(clampedValue)
+                }
+              }
+            }}
+            onKeyDown={(e) => {
+              if (!readOnly && e.key === 'Enter') {
+                if (isRange) {
+                  const clampedValue = Math.max(value[0], Math.min(max, value[1]))
+                  if (value[1] !== clampedValue) {
+                    onChange([value[0], clampedValue])
+                  }
+                  if (onChangeCommitted) onChangeCommitted([value[0], clampedValue])
+                } else {
+                  const clampedValue = Math.max(min, Math.min(max, singleValue))
+                  if (singleValue !== clampedValue) {
+                    onChange(clampedValue)
+                  }
+                  if (onChangeCommitted) onChangeCommitted(clampedValue)
                 }
               }
             }}

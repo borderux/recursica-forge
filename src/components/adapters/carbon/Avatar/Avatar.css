@@ -6,8 +6,8 @@
 
 .cds--avatar {
   box-sizing: content-box !important;
-  width: var(--avatar-width) !important;
-  height: var(--avatar-height) !important;
+  width: var(--avatar-width);
+  height: var(--avatar-height);
   padding: var(--avatar-padding, 0px) !important;
   border-radius: var(--avatar-border-radius, 4px) !important;
   background-color: var(--avatar-bg) !important;

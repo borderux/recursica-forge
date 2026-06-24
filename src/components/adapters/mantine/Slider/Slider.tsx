@@ -355,20 +355,30 @@ export default function Slider({
             if (!readOnly) {
               const newValue = Number(e.target.value)
               if (!isNaN(newValue)) {
-                const clampedValue = Math.max(min, Math.min(value[1], newValue))
-                onChange([clampedValue, value[1]])
-                if (onChangeCommitted) onChangeCommitted([clampedValue, value[1]])
+                onChange([newValue, value[1]])
               }
             }
           }}
           onBlur={() => {
-            if (!readOnly && onChangeCommitted) {
-              onChangeCommitted([singleValue, value[1]])
+            if (!readOnly) {
+              const clampedValue = Math.max(min, Math.min(value[1], value[0]))
+              if (value[0] !== clampedValue) {
+                onChange([clampedValue, value[1]])
+              }
+              if (onChangeCommitted) {
+                onChangeCommitted([clampedValue, value[1]])
+              }
             }
           }}
           onKeyDown={(e) => {
-            if (!readOnly && e.key === 'Enter' && onChangeCommitted) {
-              onChangeCommitted([singleValue, value[1]])
+            if (!readOnly && e.key === 'Enter') {
+              const clampedValue = Math.max(min, Math.min(value[1], value[0]))
+              if (value[0] !== clampedValue) {
+                onChange([clampedValue, value[1]])
+              }
+              if (onChangeCommitted) {
+                onChangeCommitted([clampedValue, value[1]])
+              }
             }
           }}
           state={targetState}
@@ -547,32 +557,53 @@ export default function Slider({
             if (!readOnly) {
               const newValue = Number(e.target.value)
               if (!isNaN(newValue)) {
-                const clampedValue = Math.max(min, Math.min(max, newValue))
                 if (isRange) {
-                  onChange([value[0], clampedValue])
-                  if (onChangeCommitted) onChangeCommitted([value[0], clampedValue])
+                  onChange([value[0], newValue])
                 } else {
-                  onChange(clampedValue)
-                  if (onChangeCommitted) onChangeCommitted(clampedValue)
+                  onChange(newValue)
                 }
               }
             }
           }}
           onBlur={() => {
-            if (!readOnly && onChangeCommitted) {
+            if (!readOnly) {
               if (isRange) {
-                onChangeCommitted([singleValue, value[1]])
+                const clampedValue = Math.max(value[0], Math.min(max, value[1]))
+                if (value[1] !== clampedValue) {
+                  onChange([value[0], clampedValue])
+                }
+                if (onChangeCommitted) {
+                  onChangeCommitted([value[0], clampedValue])
+                }
               } else {
-                onChangeCommitted(singleValue)
+                const clampedValue = Math.max(min, Math.min(max, singleValue))
+                if (singleValue !== clampedValue) {
+                  onChange(clampedValue)
+                }
+                if (onChangeCommitted) {
+                  onChangeCommitted(clampedValue)
+                }
               }
             }
           }}
           onKeyDown={(e) => {
-            if (!readOnly && e.key === 'Enter' && onChangeCommitted) {
+            if (!readOnly && e.key === 'Enter') {
               if (isRange) {
-                onChangeCommitted([singleValue, value[1]])
+                const clampedValue = Math.max(value[0], Math.min(max, value[1]))
+                if (value[1] !== clampedValue) {
+                  onChange([value[0], clampedValue])
+                }
+                if (onChangeCommitted) {
+                  onChangeCommitted([value[0], clampedValue])
+                }
               } else {
-                onChangeCommitted(singleValue)
+                const clampedValue = Math.max(min, Math.min(max, singleValue))
+                if (singleValue !== clampedValue) {
+                  onChange(clampedValue)
+                }
+                if (onChangeCommitted) {
+                  onChangeCommitted(clampedValue)
+                }
               }
             }
           }}

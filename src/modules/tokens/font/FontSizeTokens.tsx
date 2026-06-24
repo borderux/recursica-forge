@@ -172,7 +172,7 @@ export default function FontSizeTokens({ autoScale = false }: FontSizeTokensProp
             }}>
               <Slider
                 min={8}
-                max={72}
+                max={120}
                 step={1}
                 value={current}
                 disabled={disabled}
