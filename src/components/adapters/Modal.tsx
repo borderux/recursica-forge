@@ -7,7 +7,7 @@
 
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar , buildComponentCssVarPath } from '../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -247,7 +247,7 @@ function getModalFallbackStyles(
     elevation?: string,
     mode: 'light' | 'dark' = 'light'
 ): React.CSSProperties {
-    const bgVar = getComponentCssVar('Modal', 'colors', 'background', layer)
+    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'background')
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const minWidthVar = getComponentLevelCssVar('Modal', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Modal', 'max-width')

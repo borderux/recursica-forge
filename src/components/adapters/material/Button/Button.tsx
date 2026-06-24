@@ -7,7 +7,7 @@
 import { Button as MaterialButton } from '@mui/material'
 import type { ButtonProps as AdapterButtonProps } from '../../Button'
 import { useState, useEffect } from 'react'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
@@ -43,8 +43,8 @@ export default function Button({
   const cssVarVariant = variant
 
   // Use recursica_ui-kit.json button colors for standard layers
-  const buttonBgVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-background`, layer)
-  const buttonColorVar = getComponentCssVar('Button', 'colors', `${cssVarVariant}-text`, layer)
+  const buttonBgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background')
+  const buttonColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text')
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   const iconColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color')
@@ -65,7 +65,7 @@ export default function Button({
   const contentVariant = isIconOnly ? 'icon-only' : (icon ? 'icon-label' : 'label')
   const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding')
 
-  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
+  const heightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'height')
   // min-width and border-radius are now content-variant-specific (content × size)
   const minWidthVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'min-width')
   const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'border-radius')
@@ -206,11 +206,10 @@ export default function Button({
       } : {}),
       '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
       '--button-hover-color': `var(${hoverColorVar}, #000000)`, // Hover color
-      // Don't set border inline - let CSS file handle it via --button-border-color
-      // For text variant, use CSS variable-driven border (null border-color = transparent)
-      ...(variant === 'text' ? {
-        border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar})`,
-        borderColor: `var(${buttonBorderColorVar || buttonColorVar})`,
+      // Apply CSS variable-driven border for all variants
+      ...(buttonBorderColorVar ? {
+        borderColor: readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`,
+        border: `${borderSizeValue || '1px'} solid ${readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar}, transparent)`}`,
       } : {}),
       fontFamily: `var(${fontFamilyVar})`,
       fontSize: `var(${fontSizeVar})`,
@@ -242,13 +241,12 @@ export default function Button({
       // Override Material UI's default disabled styles to keep colors unchanged
       ...(disabled && {
         opacity: `var(${buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'disabled-opacity')})`,
-        backgroundColor: `var(${buttonBgVar}) !important`,
+        // Override disabled state to keep colors unchanged, only apply opacity
+        backgroundColor: `var(${buttonBgVar}, transparent) !important`,
         color: `var(${buttonColorVar}) !important`,
-        ...((variant === 'solid' || variant === 'outline') && {
-          border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar}) !important`,
-        }),
-        ...(variant === 'text' && {
-          border: `${borderSizeValue || '1px'} solid var(${buttonBorderColorVar || buttonColorVar}) !important`,
+        ...(buttonBorderColorVar && {
+          borderColor: readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`,
+          border: `${borderSizeValue || '1px'} solid ${readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar}, transparent)`} !important`,
         }),
       }),
       // Apply elevation if set

@@ -8,7 +8,7 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
-import { buildComponentCssVarPath, getComponentCssVar, getComponentLevelCssVar } from '../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar } from '../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -52,7 +52,7 @@ export function Switch({
     const trackSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-selected')
     const trackUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-unselected')
     const borderRadiusVar = getComponentLevelCssVar('Switch', 'track-border-radius')
-    const trackElevationVar = getComponentCssVar('Switch', 'size', 'track-elevation', undefined)
+    const trackElevationVar = buildComponentCssVarPath('Switch', 'properties', 'track-elevation')
     
     // Reactively read track elevation from CSS variable
     const [trackElevationFromVar, setTrackElevationFromVar] = useState<string | undefined>(() => {

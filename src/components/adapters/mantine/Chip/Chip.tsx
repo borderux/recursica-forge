@@ -8,7 +8,7 @@
 import React, { useState, useEffect } from 'react'
 import { ActionIcon } from '@mantine/core'
 import type { ChipProps as AdapterChipProps } from '../../Chip'
-import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { buildVariantColorCssVar, getComponentLevelCssVar, getComponentTextCssVar , buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -136,9 +136,9 @@ export default function Chip({
   // Use Chip's own min-width so toolbar can control it
   // NEW STRUCTURE: properties.min-width, properties.max-width
   const sizePrefix = size === 'small' ? 'small' : 'default'
-  const minWidthVar = getComponentLevelCssVar('Chip', 'min-width') || getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
-  const maxWidthVar = getComponentLevelCssVar('Chip', 'max-width') || getComponentCssVar('Button', 'size', 'max-width', undefined)
-  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
+  const minWidthVar = getComponentLevelCssVar('Chip', 'min-width') || buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'min-width')
+  const maxWidthVar = getComponentLevelCssVar('Chip', 'max-width') || buildComponentCssVarPath('Button', 'properties', 'max-width')
+  const heightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'height')
 
   // Handle delete functionality - use ActionIcon in rightSection
   const CloseIcon = iconNameToReactComponent('x')

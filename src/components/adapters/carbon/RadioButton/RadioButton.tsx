@@ -7,7 +7,7 @@
 import { RadioButton as CarbonRadioButton } from '@carbon/react'
 import { useId } from 'react'
 import type { RadioButtonProps as AdapterRadioButtonProps } from '../../RadioButton'
-import { getComponentCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './RadioButton.css'
 
@@ -26,15 +26,15 @@ export default function RadioButton({
     const radioId = useId()
 
     // RadioButton Colors
-    const bgSelectedVar = getComponentCssVar('RadioButton', 'colors', 'background-selected', layer)
-    const bgUnselectedVar = getComponentCssVar('RadioButton', 'colors', 'background-unselected', layer)
-    const borderSelectedVar = getComponentCssVar('RadioButton', 'colors', 'border-selected', layer)
-    const borderUnselectedVar = getComponentCssVar('RadioButton', 'colors', 'border-unselected', layer)
-    const iconColorVar = getComponentCssVar('RadioButton', 'colors', 'icon-color', layer)
+    const bgSelectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-selected')
+    const bgUnselectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-unselected')
+    const borderSelectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-selected')
+    const borderUnselectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-unselected')
+    const iconColorVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'icon-color')
 
-    const disabledBgVar = getComponentCssVar('RadioButton', 'colors', 'disabled-background', layer)
-    const disabledBorderVar = getComponentCssVar('RadioButton', 'colors', 'disabled-border', layer)
-    const disabledIconVar = getComponentCssVar('RadioButton', 'colors', 'disabled-icon', layer)
+    const disabledBgVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-background')
+    const disabledBorderVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-border')
+    const disabledIconVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-icon')
 
     // RadioButton Dimensions
     const sizeVar = buildComponentCssVarPath('RadioButton', 'properties', 'size')

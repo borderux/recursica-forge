@@ -6,7 +6,7 @@
 
 import { Checkbox as MantineCheckbox } from '@mantine/core'
 import type { CheckboxProps as AdapterCheckboxProps } from '../../Checkbox'
-import { getComponentCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useCssVar } from '../../../hooks/useCssVar'
 import './Checkbox.css'
 

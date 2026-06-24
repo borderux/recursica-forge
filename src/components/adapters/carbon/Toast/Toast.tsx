@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { ToastProps as AdapterToastProps } from '../../Toast'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, extractElevationMode, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../../../core/css/readCssVar'
@@ -32,10 +32,10 @@ export default function Toast({
   const CloseIcon = iconNameToReactComponent('x-mark')
   
   // Use recursica_ui-kit.json toast colors for standard layers
-  const toastBgVar = getComponentCssVar('Toast', 'colors', `${variant}-background`, layer)
-  const toastTextVar = getComponentCssVar('Toast', 'colors', `${variant}-text`, layer)
+  const toastBgVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'background')
+  const toastTextVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'text')
   // Button color from recursica_ui-kit.json
-  const toastButtonVar = getComponentCssVar('Toast', 'colors', `${variant}-button`, layer)
+  const toastButtonVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'button')
   
   // Get component-level CSS variables (these are under toast.properties in recursica_ui-kit.json)
   const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')

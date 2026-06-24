@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { FileInputProps as AdapterFileInputProps } from '../../FileInput'
-import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar, getComponentCssVar } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { Label } from '../../Label'
 import { AssistiveElement } from '../../AssistiveElement'
@@ -77,7 +77,7 @@ export default function FileInput({
     const iconTextGapVar = getComponentLevelCssVar('FileInput', 'icon-text-gap')
     const maxWidthVar = getComponentLevelCssVar('FileInput', 'max-width')
     const minWidthVar = getComponentLevelCssVar('FileInput', 'min-width')
-    const buttonHeightVar = getComponentCssVar('Button', 'size', 'small-height', undefined)
+    const buttonHeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', 'small', 'properties', 'height')
     const placeholderOpacityVar = getComponentLevelCssVar('FileInput', 'placeholder-opacity')
 
     // Get text style CSS variables

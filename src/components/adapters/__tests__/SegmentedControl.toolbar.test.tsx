@@ -19,7 +19,7 @@ import { UiKitProvider } from '../../../modules/uikit/UiKitContext'
 import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { SegmentedControl } from '../SegmentedControl'
 import { updateCssVar } from '../../../core/css/updateCssVar'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
+import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
 
 describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, () => {
   // Note: We don't preload components here to avoid hanging issues
