@@ -23,7 +23,7 @@ const AA = 4.5
  * @param opacity - The opacity value (0-1) to apply
  * @param tokens - The tokens JSON
  * @param mode - The theme mode ('light' or 'dark')
- * @param coreColorName - The name of the core color ('black' or 'white') to determine which CSS var to return
+ * @param coreColorName - The name of the core color ('high-contrast' or 'low-contrast') to determine which CSS var to return
  * @returns The CSS variable reference for an AA-compliant color, or null if none found
  */
 function findAaCompliantWithAlternatingPattern(
@@ -32,7 +32,7 @@ function findAaCompliantWithAlternatingPattern(
   opacity: number,
   tokens: JsonLike,
   mode: 'light' | 'dark',
-  coreColorName: 'black' | 'white'
+  coreColorName: 'high-contrast' | 'low-contrast'
 ): string | null {
   const tokenIndex = buildTokenIndex(tokens)
   const normalizedStartLevel = coreToneRef.level === '000' ? '050' : coreToneRef.level
@@ -89,7 +89,7 @@ function findAaCompliantWithAlternatingPattern(
  * Finds the core tone reference (black or white) from theme JSON
  */
 function getCoreToneRef(
-  coreColor: 'black' | 'white',
+  coreColor: 'high-contrast' | 'low-contrast',
   tokens: JsonLike,
   theme: JsonLike,
   mode: 'light' | 'dark'
@@ -124,7 +124,7 @@ function getCoreToneRef(
  * For interactive: only uses interactive tone scale
  */
 export function updateCoreColorOnTonesForCompliance(
-  coreColorName: 'black' | 'white' | 'alert' | 'warning' | 'success',
+  coreColorName: 'high-contrast' | 'low-contrast' | 'alert' | 'warning' | 'success',
   toneHex: string,
   tokens: JsonLike,
   theme: JsonLike,
@@ -140,8 +140,8 @@ export function updateCoreColorOnTonesForCompliance(
   const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`) || 0.6
 
   // Get black and white tone references from theme
-  const blackToneRef = getCoreToneRef('black', tokens, theme, mode)
-  const whiteToneRef = getCoreToneRef('white', tokens, theme, mode)
+  const blackToneRef = getCoreToneRef('high-contrast', tokens, theme, mode)
+  const whiteToneRef = getCoreToneRef('low-contrast', tokens, theme, mode)
 
   // Update high emphasis on-tone
   const highOnToneVar = `--recursica_brand_themes_${modeLower}_palettes_core-colors_${coreColorName}_on-tone`
@@ -168,12 +168,12 @@ export function updateCoreColorOnTonesForCompliance(
 
     // Try black tone first with alternating pattern
     if (blackToneRef) {
-      highOnToneCssVar = findAaCompliantWithAlternatingPattern(toneHex, blackToneRef, highEmphasisOpacity, tokens, mode, 'black')
+      highOnToneCssVar = findAaCompliantWithAlternatingPattern(toneHex, blackToneRef, highEmphasisOpacity, tokens, mode, 'high-contrast')
     }
 
     // If black tone failed, try white tone
     if (!highOnToneCssVar && whiteToneRef) {
-      highOnToneCssVar = findAaCompliantWithAlternatingPattern(toneHex, whiteToneRef, highEmphasisOpacity, tokens, mode, 'white')
+      highOnToneCssVar = findAaCompliantWithAlternatingPattern(toneHex, whiteToneRef, highEmphasisOpacity, tokens, mode, 'low-contrast')
     }
 
     // Update CSS var if found
@@ -193,7 +193,7 @@ export function updateCoreColorOnTonesForCompliance(
  * Updates interactive on-tone value for a core color using only interactive tone scale
  */
 export function updateCoreColorInteractiveOnToneForCompliance(
-  coreColorName: 'black' | 'white' | 'alert' | 'warning' | 'success',
+  coreColorName: 'high-contrast' | 'low-contrast' | 'alert' | 'warning' | 'success',
   toneHex: string,
   tokens: JsonLike,
   theme: JsonLike,

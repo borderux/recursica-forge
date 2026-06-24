@@ -1,0 +1,36 @@
+/* Mantine TableFooter overrides */
+
+.recursica-table.mantine-table td.recursica-table-footer.mantine-table-footer {
+  padding: var(--table-footer-padding-v, 12px) var(--table-footer-padding-h, 12px) !important;
+  background-color: var(--table-footer-bg) !important;
+  color: var(--table-footer-color) !important;
+  font-family: var(--table-footer-font-family) !important;
+  font-size: var(--table-footer-font-size) !important;
+  font-weight: var(--table-footer-font-weight) !important;
+  font-style: var(--table-footer-font-style) !important;
+  letter-spacing: var(--table-footer-letter-spacing) !important;
+  line-height: var(--table-footer-line-height) !important;
+  text-transform: var(--table-footer-text-case) !important;
+  text-decoration: var(--table-footer-text-decoration) !important;
+  border-top: var(--table-footer-horizontal-divider-size, 1px) solid var(--table-footer-horizontal-divider-color, transparent) !important;
+  border-right: none !important;
+  position: relative !important;
+  vertical-align: middle !important;
+}
+
+.recursica-table.mantine-table td.recursica-table-footer.mantine-table-footer:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: var(--table-footer-vertical-margin, 0px);
+  bottom: var(--table-footer-vertical-margin, 0px);
+  width: var(--table-footer-vertical-divider-size, 0px);
+  background-color: var(--table-footer-vertical-divider-color, transparent);
+}
+
+.recursica-table-footer-content {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  margin-top: var(--table-footer-vertical-margin, 0px) !important;
+  margin-bottom: var(--table-footer-vertical-margin, 0px) !important;
+}

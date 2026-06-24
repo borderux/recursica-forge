@@ -55,9 +55,7 @@ export default function Chip({
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
     const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
-    const chipIconColorVarForListener = variant === 'error' || variant === 'error-selected'
-      ? getComponentLevelCssVar('Chip', 'colors.error.icon-color')
-      : chipColorVarForListener
+    const chipIconColorVarForListener = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
 
     const handleUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
@@ -102,17 +100,8 @@ export default function Chip({
   const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
-  // For error variant (including error-selected), use component-level error color CSS variables
-  let chipColorVar: string
-  let chipIconColorVar: string
-  if (variant === 'error' || variant === 'error-selected') {
-    chipColorVar = getComponentLevelCssVar('Chip', 'colors.error.text-color')
-    chipIconColorVar = getComponentLevelCssVar('Chip', 'colors.error.icon-color')
-  } else {
-    chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
-    // Non-error variants don't have icon colors defined, so use text color for icons
-    chipIconColorVar = chipColorVar
-  }
+  const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
+  const chipIconColorVar = chipColorVar
 
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)
   // NEW STRUCTURE: properties.{property}
@@ -257,10 +246,10 @@ export default function Chip({
       textTransform: textTransformVar ? `var(${textTransformVar})` as any : 'none',
       fontStyle: fontStyleVar ? `var(${fontStyleVar})` as any : 'normal',
       // Set CSS custom properties for CSS file
-      '--chip-icon-size': icon ? `var(${iconSizeVar})` : '0px',
+      '--chip-icon-size': (icon || showCheckmark) ? `var(${iconSizeVar})` : '0px',
       // Set icon-text-gap CSS variable that references UIKit variable directly (same approach as Button)
       // CSS custom properties are reactive - when UIKit variable on documentElement changes, this updates automatically
-      '--chip-icon-text-gap': (icon || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
+      '--chip-icon-text-gap': (icon || showCheckmark || (deletable && onDelete)) && children ? `var(${iconGapVar})` : '0px',
       // Use Button's min-width and max-width vars (same as Button component)
       // Don't use fixed height - let padding and content determine height naturally
       minWidth: `var(${minWidthVar})`,

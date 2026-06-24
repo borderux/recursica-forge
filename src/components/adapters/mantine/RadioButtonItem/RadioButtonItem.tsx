@@ -25,47 +25,40 @@ export default function RadioButtonItem({
     const fontSizeVar = getComponentTextCssVar('RadioButtonItem', 'text', 'font-size')
     const fontWeightVar = getComponentTextCssVar('RadioButtonItem', 'text', 'font-weight')
     const lineHeightVar = getComponentTextCssVar('RadioButtonItem', 'text', 'line-height')
+    const letterSpacingVar = getComponentTextCssVar('RadioButtonItem', 'text', 'letter-spacing')
+    const fontStyleVar = getComponentTextCssVar('RadioButtonItem', 'text', 'font-style')
+    const textDecorationVar = getComponentTextCssVar('RadioButtonItem', 'text', 'text-decoration')
+    const textTransformVar = getComponentTextCssVar('RadioButtonItem', 'text', 'text-transform')
 
-    const colorVar = getComponentTextCssVar('RadioButtonItem', 'text', 'color')
-
-    // RadioButton props from base RadioButton component
-    const sizeVar = buildComponentCssVarPath('RadioButton', 'properties', 'size')
-    const borderRadiusVar = buildComponentCssVarPath('RadioButton', 'properties', 'border-radius')
-    const borderWidthVar = buildComponentCssVarPath('RadioButton', 'properties', 'border-size')
-    const iconSizeVar = buildComponentCssVarPath('RadioButton', 'properties', 'icon-size')
-
-    // Color props from base RadioButton component
-    const selectedBgVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-selected')
-    const selectedBorderVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-selected')
-    const unselectedBgVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-unselected')
-    const unselectedBorderVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-unselected')
-    const iconColorVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'icon-color')
-    const disabledBgVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-background')
-    const disabledBorderVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-border')
-    const disabledIconVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-icon')
-    const disabledOpacityVar = buildComponentCssVarPath('RadioButton', 'properties', 'disabled-opacity')
+    const getRadioPropVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButton', 'properties', prop)})`
+    const getRadioColorVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, prop)})`
+    const getRadioItemColorVar = (prop: string) => `var(${buildComponentCssVarPath('RadioButtonItem', 'properties', 'colors', layer, prop)})`
 
     const cssVars = {
-        '--radio-size': `var(${sizeVar})`,
-        '--radio-radius': `var(${borderRadiusVar})`,
-        '--radio-border-width': `var(${borderWidthVar})`,
-        '--radio-icon-size': `var(${iconSizeVar})`,
-        '--radio-bg-selected': `var(${selectedBgVar})`,
-        '--radio-border-selected': `var(${selectedBorderVar})`,
-        '--radio-bg-unselected': `var(${unselectedBgVar})`,
-        '--radio-border-unselected': `var(${unselectedBorderVar})`,
-        '--radio-icon-color': `var(${iconColorVar})`,
-        '--radio-disabled-bg': `var(${disabledBgVar})`,
-        '--radio-disabled-border': `var(${disabledBorderVar})`,
-        '--radio-disabled-icon': `var(${disabledIconVar})`,
-        '--radio-disabled-opacity': `var(${disabledOpacityVar})`,
+        '--radio-size': getRadioPropVar('size'),
+        '--radio-radius': getRadioPropVar('border-radius'),
+        '--radio-border-width': getRadioPropVar('border-size'),
+        '--radio-icon-size': getRadioPropVar('icon-size'),
+        '--radio-bg-selected': getRadioColorVar('background-selected'),
+        '--radio-border-selected': getRadioColorVar('border-selected'),
+        '--radio-bg-unselected': getRadioColorVar('background-unselected'),
+        '--radio-border-unselected': getRadioColorVar('border-unselected'),
+        '--radio-icon-color': getRadioColorVar('icon-color'),
+        '--radio-disabled-bg': getRadioColorVar('disabled-background'),
+        '--radio-disabled-border': getRadioColorVar('disabled-border'),
+        '--radio-disabled-icon': getRadioColorVar('disabled-icon'),
+        '--radio-disabled-opacity': getRadioPropVar('disabled-opacity'),
         '--radio-item-gap': `var(${labelGapVar})`,
         '--radio-item-font-family': `var(${fontFamilyVar})`,
         '--radio-item-font-size': `var(${fontSizeVar})`,
         '--radio-item-font-weight': `var(${fontWeightVar})`,
         '--radio-item-line-height': `var(${lineHeightVar})`,
-
-        '--radio-item-color': `var(${colorVar})`,
+        '--radio-item-letter-spacing': `var(${letterSpacingVar})`,
+        '--radio-item-font-style': `var(${fontStyleVar})`,
+        '--radio-item-text-decoration': `var(${textDecorationVar})`,
+        '--radio-item-text-transform': `var(${textTransformVar})`,
+        '--radio-item-color': getRadioItemColorVar('text'),
+        '--radio-item-disabled-color': getRadioItemColorVar('disabled-text'),
         '--radio-item-max-width': `var(${maxWidthVar})`,
     }
 

@@ -1,105 +1,40 @@
 {
     "props": {
+        "colors": {
+            "icon": "paint-bucket",
+            "label": "Colors",
+            "visible": true,
+            "group": {
+                "dots-color": {
+                    "icon": "circle-dashed",
+                    "label": "Dots color",
+                    "visible": true
+                }
+            }
+        },
         "navigation-controls": {
             "icon": "arrows-left-right",
             "label": "Navigation controls",
             "visible": true,
             "group": {
-                "navigation-controls-style": {
-                    "icon": "squares-four",
-                    "label": "Style",
-                    "visible": true,
-                    "control": "dropdown",
-                    "options": [
-                        "solid",
-                        "outline",
-                        "text"
-                    ]
-                },
-                "navigation-controls-size": {
-                    "icon": "arrows-out-simple",
-                    "label": "Size",
-                    "visible": true,
-                    "control": "dropdown",
-                    "options": [
-                        "default",
-                        "small"
-                    ]
-                },
-                "navigation-controls-display": {
+                "navigation-controls-content": {
                     "icon": "text-columns",
-                    "label": "Display",
+                    "label": "Content",
                     "visible": true,
                     "control": "dropdown",
                     "options": [
                         {
                             "label": "Icon only",
-                            "value": "icon"
+                            "value": "icon-only"
                         },
                         {
-                            "label": "Text only",
-                            "value": "text"
+                            "label": "Label only",
+                            "value": "label"
                         },
                         {
-                            "label": "Icon + text",
-                            "value": "icon+text"
+                            "label": "Icon + label",
+                            "value": "icon-label"
                         }
-                    ]
-                }
-            }
-        },
-        "active-pages": {
-            "icon": "check-circle",
-            "label": "Active page",
-            "visible": true,
-            "group": {
-                "active-pages-style": {
-                    "icon": "squares-four",
-                    "label": "Style",
-                    "visible": true,
-                    "control": "dropdown",
-                    "options": [
-                        "solid",
-                        "outline",
-                        "text"
-                    ]
-                },
-                "active-pages-size": {
-                    "icon": "arrows-out-simple",
-                    "label": "Size",
-                    "visible": true,
-                    "control": "dropdown",
-                    "options": [
-                        "default",
-                        "small"
-                    ]
-                }
-            }
-        },
-        "inactive-pages": {
-            "icon": "circle",
-            "label": "Inactive page",
-            "visible": true,
-            "group": {
-                "inactive-pages-style": {
-                    "icon": "squares-four",
-                    "label": "Style",
-                    "visible": true,
-                    "control": "dropdown",
-                    "options": [
-                        "solid",
-                        "outline",
-                        "text"
-                    ]
-                },
-                "inactive-pages-size": {
-                    "icon": "arrows-out-simple",
-                    "label": "Size",
-                    "visible": true,
-                    "control": "dropdown",
-                    "options": [
-                        "default",
-                        "small"
                     ]
                 }
             }

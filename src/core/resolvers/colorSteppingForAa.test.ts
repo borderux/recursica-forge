@@ -7,8 +7,8 @@ import * as readCssVarModule from '../css/readCssVar'
 vi.mock('../css/readCssVar', () => ({
   readCssVar: vi.fn((varName: string) => {
     const varMap: Record<string, string> = {
-      '--recursica_brand_light_palettes_core_white': '#ffffff',
-      '--recursica_brand_light_palettes_core_black': '#000000',
+      '--recursica_brand_themes_light_palettes_core-colors_low-contrast': '#ffffff',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast': '#000000',
       '--recursica_tokens_color_gray_000': '#ffffff',
       '--recursica_tokens_color_gray_050': '#f5f5f5',
       '--recursica_tokens_color_gray_100': '#e0e0e0',
@@ -128,8 +128,8 @@ describe('findAaCompliantColor', () => {
     const result = findAaCompliantColor('#666666', null, 1, mockTokens)
     
     expect(result).toBeDefined()
-    // Should prefer white (higher contrast typically)
-    expect(result).toContain('white')
+    // Should prefer low-contrast (semantic name for white in light mode)
+    expect(result).toContain('low-contrast')
   })
 })
 

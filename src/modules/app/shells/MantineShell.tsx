@@ -43,6 +43,7 @@ import {
   processUploadedFilesAsync,
 } from "../../../core/import/importWithDirtyData";
 import { Button } from "../../../components/adapters/Button";
+import { Toast } from "../../../components/adapters/Toast";
 import { Tooltip } from "../../../components/adapters/Tooltip";
 import { Switch } from "../../../components/adapters/Switch";
 import { SegmentedControl } from "../../../components/adapters/SegmentedControl";
@@ -51,7 +52,8 @@ import { ImportModal } from "../../../core/import/ImportModal";
 import { Sidebar } from "../Sidebar";
 import { ThemeSidebar } from "../ThemeSidebar";
 import { ComponentsSidebar } from "../../preview/ComponentsSidebar";
-import { getComponentCssVar } from "../../../components/utils/cssVarNames";
+import { getComponentCssVar, buildComponentCssVarPath } from "../../../components/utils/cssVarNames";
+import { useRawCssVar } from "../../../components/hooks/useCssVar";
 import { genericLayerProperty, genericLayerText, paletteCore } from "../../../core/css/cssVarBuilder";
 import { createBugReport } from "../utils/bugReport";
 import { useCompliance } from "../../../core/compliance/ComplianceContext";
@@ -61,9 +63,9 @@ import {
   getCssAuditAutoRun,
   setCssAuditAutoRun,
 } from "../../../core/utils/cssAuditPreference";
-import { captureCurrentSnapshot } from '../../../core/dev/exportImportValidator';
-import { startDiffSession } from '../../../core/dev/diffSession';
-import { downloadJsonFiles } from '../../../core/export/jsonExport';
+
+import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
+import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
 
 export default function MantineShell({
   children,
@@ -106,6 +108,8 @@ export default function MantineShell({
     handleGitHubExportCancel,
     handleGitHubExportSuccess,
   } = useJsonExport();
+  const { visible: reminderVisible, dismiss: dismissReminder, handleExport: reminderHandleExport, resetSaveReminder } = useSaveReminder(handleExport)
+  const { updateAvailable, checkNow, dismissUpdate, simulateUpdate } = useVersionCheck()
   const {
     selectedFiles,
     setSelectedFiles,
@@ -118,30 +122,7 @@ export default function MantineShell({
     handleCancel: handleDirtyCancel,
     clearSelectedFiles,
   } = useJsonImport();
-  const handleRoundTripValidation = async () => {
-    setIsValidating(true)
-    try {
-      // 1. Capture the current state as the "original" snapshot before anything changes
-      const snapshot = captureCurrentSnapshot()
-      startDiffSession({
-        originalJson: { tokens: snapshot.tokens, brand: snapshot.brand, uikit: snapshot.uikit },
-        originalCss: snapshot.css,
-      })
 
-      // 2. Download a zip with all 3 JSON files so the user can re-import them
-      await downloadJsonFiles({ tokens: true, brand: true, uikit: true })
-
-      // 3. Reset the app to a clean slate
-      resetAll()
-
-      // 4. Open the import modal so the user can drop in the downloaded zip
-      setIsModalOpen(true)
-    } catch (e) {
-      console.error('[Diff] Failed to start diff session:', e)
-    } finally {
-      setIsValidating(false)
-    }
-  }
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -176,6 +157,11 @@ export default function MantineShell({
     if (location.pathname.startsWith("/components")) return "components";
     return "tokens";
   }, [location.pathname]);
+
+  // Read tab-content-alignment token for header nav tabs (pills, horizontal)
+  const headerTabAlignmentVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', 'horizontal', 'properties', 'tab-content-alignment')
+  const headerTabAlignmentRaw = useRawCssVar(headerTabAlignmentVar, 'left')
+  const headerTabContentAlignment = (headerTabAlignmentRaw?.trim().replace(/^["']|["']$/g, '') || 'left') as 'left' | 'center' | 'right'
 
   // Logo SVG
   const LogoIcon = () => (
@@ -248,6 +234,9 @@ export default function MantineShell({
   const layer0TextColor = genericLayerText(0, 'color');
   const layer0TextHigh = genericLayerText(0, 'high-emphasis');
   const layer0TextLow = genericLayerText(0, 'low-emphasis');
+  const layer1Surface = genericLayerProperty(1, 'surface');
+  const layer1TextColor = genericLayerText(1, 'color');
+  const layer1Border = genericLayerProperty(1, 'border');
   const showSidebar = location.pathname.startsWith("/tokens");
   const showThemeSidebar = location.pathname.startsWith("/theme");
   const headerRef = useRef<HTMLElement>(null);
@@ -352,6 +341,7 @@ export default function MantineShell({
               value={currentRoute}
               variant='pills'
               layer='layer-0'
+              tabContentAlignment={headerTabContentAlignment}
               style={{ flex: 1 }}
               onChange={(value) => {
                 if (value === "tokens") navigate("/tokens");
@@ -402,7 +392,7 @@ export default function MantineShell({
                   variant='outline'
                   size='small'
                   icon={(() => {
-                    const RefreshIcon = iconNameToReactComponent("arrow-path");
+                    const RefreshIcon = iconNameToReactComponent("arrow-uturn-left");
                     return RefreshIcon ? (
                       <RefreshIcon
                         style={{
@@ -428,7 +418,7 @@ export default function MantineShell({
                   size='small'
                   icon={(() => {
                     const UploadIcon =
-                      iconNameToReactComponent("arrow-up-tray");
+                      iconNameToReactComponent("arrow-down-tray");
                     return UploadIcon ? (
                       <UploadIcon
                         style={{
@@ -449,7 +439,7 @@ export default function MantineShell({
                   size='small'
                   icon={(() => {
                     const DownloadIcon =
-                      iconNameToReactComponent("arrow-down-tray");
+                      iconNameToReactComponent("arrow-up-tray");
                     return DownloadIcon ? (
                       <DownloadIcon
                         style={{
@@ -465,26 +455,28 @@ export default function MantineShell({
                 />
               </Tooltip>
 
-              <Tooltip label='Report a bug'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const BugIcon = iconNameToReactComponent("bug");
-                    return BugIcon ? (
-                      <BugIcon
-                        style={{
-                          width:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                          height:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => createBugReport()}
-                />
-              </Tooltip>
+              {!import.meta.env.DEV && (
+                <Tooltip label='Report a bug'>
+                  <Button
+                    variant='outline'
+                    size='small'
+                    icon={(() => {
+                      const BugIcon = iconNameToReactComponent("bug");
+                      return BugIcon ? (
+                        <BugIcon
+                          style={{
+                            width:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                            height:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                          }}
+                        />
+                      ) : null;
+                    })()}
+                    onClick={() => createBugReport()}
+                  />
+                </Tooltip>
+              )}
               {import.meta.env.DEV && (
                 <>
                   <Tooltip label='Randomize all variables (dev only)'>
@@ -507,24 +499,23 @@ export default function MantineShell({
                       onClick={() => setShowRandomizeModal(true)}
                     />
                   </Tooltip>
-                  <Tooltip label='Export/Import validation (dev only)'>
+
+                  <Tooltip label='Simulate version update (dev only)'>
                     <Button
                       variant='outline'
                       size='small'
-                      disabled={isValidating}
                       icon={(() => {
-                        const GitDiffIcon = iconNameToReactComponent('exclude')
-                        return GitDiffIcon ? (
-                          <GitDiffIcon
+                        const VersionIcon = iconNameToReactComponent('trend-up')
+                        return VersionIcon ? (
+                          <VersionIcon
                             style={{
                               width: 'var(--recursica_brand_dimensions_icons_default)',
                               height: 'var(--recursica_brand_dimensions_icons_default)',
-                              opacity: isValidating ? 0.5 : 1,
                             }}
                           />
                         ) : null
                       })()}
-                      onClick={handleRoundTripValidation}
+                      onClick={simulateUpdate}
                     />
                   </Tooltip>
                   <Tooltip label='Auto-run CSS audit (dev only)'>
@@ -557,19 +548,7 @@ export default function MantineShell({
                   </Tooltip>
                 </>
               )}
-              <Dropdown
-                value={kit}
-                onChange={(v) => onKitChange((v as UiKit) ?? "mantine")}
-                items={[
-                  { label: "Mantine", value: "mantine" },
-                  { label: "Material UI", value: "material" },
-                  { label: "Carbon", value: "carbon" },
-                ]}
-                state='disabled'
-                style={{ width: 180 }}
-                layer='layer-0'
-                disableTopBottomMargin={true}
-              />
+              {/* Library switcher temporarily disabled — kit locked to mantine */}
             </div>
 
             {/* Chunk 4: Theme Mode Segmented Control */}
@@ -713,7 +692,7 @@ export default function MantineShell({
         />
         <ExportSelectionModalWrapper
           show={showSelectionModal}
-          onConfirm={handleSelectionConfirm}
+          onConfirm={(files) => { handleSelectionConfirm(files); resetSaveReminder(); }}
           onCancel={handleSelectionCancel}
           onExportToGithub={handleExportToGithub}
         />
@@ -772,6 +751,9 @@ export default function MantineShell({
             window.dispatchEvent(new CustomEvent('complianceReset'));
             clearOverrides(tokensJson as any);
             resetAll(resetTarget === 'original');
+            localStorage.clear();
+            resetSaveReminder();
+            checkNow();
             setTimeout(() => {
               runScan();
               setIsResetting(false);
@@ -801,6 +783,39 @@ export default function MantineShell({
             </div>
           }
         />
+        {/* Update Available Toast */}
+        {updateAvailable && (
+          <div style={{ position: 'fixed', bottom: reminderVisible ? '112px' : '24px', right: '24px', zIndex: 40001, transition: 'bottom 0.3s ease' }}>
+            <Toast
+              variant="error"
+              layer="layer-0"
+              onClose={dismissUpdate}
+              action={
+                <Button variant="solid" size="small" layer="layer-0" onClick={() => window.location.reload()} style={{ minWidth: 0, ['--button-min-width' as string]: '0' }}>
+                  Upgrade
+                </Button>
+              }
+            >
+              A new version of Forge is available. Upgrading won't lose any of your changes.
+            </Toast>
+          </div>
+        )}
+        {/* Save Reminder Toast */}
+        {reminderVisible && (
+          <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 40000 }}>
+            <Toast 
+              layer="layer-0"
+              onClose={dismissReminder}
+              action={
+                <Button variant="solid" size="small" layer="layer-0" onClick={reminderHandleExport} style={{ minWidth: 'auto' }}>
+                  Export
+                </Button>
+              }
+            >
+              It's been a while since you've exported your theme (to save it).
+            </Toast>
+          </div>
+        )}
       </div>
     </MantineProvider>
   );

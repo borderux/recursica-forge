@@ -325,6 +325,21 @@ class VarsStore {
         tokensRaw = initKey(STORAGE_KEYS.editedTokens, STORAGE_KEYS.importedTokens, tokensRaw)
         themeImportRaw = initKey(STORAGE_KEYS.editedBrand, STORAGE_KEYS.importedBrand, themeImportRaw)
         uikitRaw = initKey(STORAGE_KEYS.editedUikit, STORAGE_KEYS.importedUikit, uikitRaw)
+
+        // Migration: fix corrupted elevation color refs where core-colors palette entries
+        // were incorrectly stored with a spurious `.color.` subgroup that doesn't exist
+        // (e.g. core-colors.alert.color.tone → core-colors.alert.tone).
+        if (themeImportRaw) {
+          let themeStr = typeof themeImportRaw === 'string' ? themeImportRaw : JSON.stringify(themeImportRaw)
+          const fixedStr = themeStr.replace(
+            /\{brand\.themes\.(light|dark)\.palettes\.core-colors\.([^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
+            '{brand.themes.$1.palettes.core-colors.$2.$3}'
+          )
+          if (fixedStr !== themeStr) {
+            themeImportRaw = JSON.parse(fixedStr)
+            try { localStorage.setItem(STORAGE_KEYS.editedBrand, fixedStr) } catch { /* noop */ }
+          }
+        }
       } catch (err) {
         console.error("Failed to initialize storage keys", err)
       }
@@ -345,12 +360,15 @@ class VarsStore {
     if (!(tokens as any).tokens) (tokens as any).tokens = {}
     this.state = { tokens, theme, uikit, palettes, elevation, version: 0 }
 
-    // Bundle version check: clear caches when source JSON files change
+    // Bundle version check: clear uikit cache when source JSON changes so new
+    // schema additions (e.g. new variant keys) are picked up after HMR reload.
     if (this.lsAvailable) {
       const bundleVersion = computeBundleVersion(tokensImport, themeImport, uikitImport)
       const storedVersion = localStorage.getItem(STORAGE_KEYS.version)
       if (storedVersion !== bundleVersion) {
         localStorage.setItem(STORAGE_KEYS.version, bundleVersion)
+        localStorage.removeItem(STORAGE_KEYS.editedUikit)
+        localStorage.removeItem(STORAGE_KEYS.importedUikit)
       }
     }
 
@@ -454,9 +472,7 @@ class VarsStore {
         if (next.tokens) localStorage.setItem(STORAGE_KEYS.editedTokens, JSON.stringify(this.state.tokens))
         if (next.theme) localStorage.setItem(STORAGE_KEYS.editedBrand, JSON.stringify(this.state.theme))
         if (next.uikit) localStorage.setItem(STORAGE_KEYS.editedUikit, JSON.stringify(this.state.uikit))
-      } catch (err) {
-        console.error("Failed to persist state to local storage", err)
-      }
+      } catch { }
     }
 
     // Update AA watcher if tokens or theme changed
@@ -641,6 +657,51 @@ class VarsStore {
     this.recomputeAndApplyAll()
   }
 
+  public deleteFont(fontIdToDelete: string, fallbackPositionId: string) {
+    const ORDER = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary']
+
+    // 1. Update recursica_fonts in localStorage — remove deleted, renumber kept
+    const storedFontsRaw = localStorage.getItem('recursica_fonts')
+    if (!storedFontsRaw) return
+    const storedFonts: any[] = JSON.parse(storedFontsRaw)
+
+    // The last position slot (e.g. "tertiary" when there are 3 fonts) always disappears after
+    // deletion, regardless of which font was deleted.  Remaining fonts shift down to fill gaps.
+    const lastPosition = ORDER[storedFonts.length - 1]
+
+    const keptFonts = storedFonts.filter(f => f.id !== fontIdToDelete)
+    keptFonts.forEach((f, newIndex) => {
+      f.id = ORDER[newIndex] || `custom-${newIndex + 1}`
+    })
+    localStorage.setItem('recursica_fonts', JSON.stringify(keptFonts))
+
+    // 2. The only stale refs are those pointing to lastPosition (which no longer exists).
+    //    All other position refs remain valid: renumbering in localStorage is enough because
+    //    syncFontsToTokens rebuilds brand.fonts.* from the updated localStorage.
+    let stateStr = JSON.stringify(this.state)
+    stateStr = stateStr.replace(
+      new RegExp(`\\{brand\\.fonts\\.${lastPosition}\\}`, 'g'),
+      `{brand.fonts.${fallbackPositionId}}`
+    )
+
+    // 3. Clear CSS vars for the stale last position and the deleted font's typeface slot
+    if (typeof document !== 'undefined') {
+      const style = document.documentElement.style
+      const toRemove: string[] = []
+      for (let i = 0; i < style.length; i++) {
+        const prop = style[i]
+        if (prop.includes(`_fonts_${lastPosition}`) || prop.includes(`_fonts_${fontIdToDelete}`)) {
+          toRemove.push(prop)
+        }
+      }
+      toRemove.forEach(p => style.removeProperty(p))
+    }
+
+    this.writeState(JSON.parse(stateStr))
+    this.syncFontsToTokens()
+  }
+
+
   setTokens(next: JsonLike) {
     this.writeState({ tokens: next })
     if (!this.isRecomputing) {
@@ -781,6 +842,36 @@ class VarsStore {
   getPristineUikit(): JsonLike { return this.pristineUikit }
   getPristineBrand(): JsonLike { return this.pristineBrand }
 
+  /** Returns the last user-imported uikit JSON, or pristineUikit if none was ever imported. */
+  getImportedUikit(): JsonLike {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.importedUikit)
+      if (stored) return JSON.parse(stored)
+    } catch { /* noop */ }
+    return this.pristineUikit
+  }
+
+  /** Returns the last user-imported brand JSON, or pristineBrand if none was ever imported. */
+  getImportedBrand(): JsonLike {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.importedBrand)
+      if (stored) return JSON.parse(stored)
+    } catch { /* noop */ }
+    return this.pristineBrand
+  }
+
+  /** Returns the last user-imported tokens JSON, or the bundled tokensImport if none was ever imported. */
+  getImportedTokens(): JsonLike {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.importedTokens)
+      if (stored) return JSON.parse(stored)
+    } catch { /* noop */ }
+    return tokensImport as JsonLike
+  }
+
+  /** Returns the pristine, unmodified tokens JSON (bundled at build time). */
+  getPristineTokens(): JsonLike { return tokensImport as JsonLike }
+
   /**
    * Atomically import all three JSON stores (tokens, brand, uikit) and
    * trigger a single recomputeAndApplyAll.
@@ -797,39 +888,14 @@ class VarsStore {
     }
 
     if (files.brand) {
-      // Rebuild elevation state from the imported brand JSON
-      const brand: any = (files.brand as any)?.brand || files.brand
-      const themes = brand?.themes || brand
+      // Rebuild elevation state from the imported brand JSON, bypass local storage overlays
+      const elevation = this.initElevationState(files.brand, files.tokens ?? this.state.tokens, true)
 
-      const newPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
-      const newColorTokens: Record<string, string> = {}
-
-      for (const mode of ['light', 'dark'] as const) {
-        const els: any = themes?.[mode]?.elevations || {}
-        for (let i = 1; i <= 4; i++) {
-          const key = `elevation-${i}`
-          const colorRef = els[key]?.$value?.color?.$value
-          if (typeof colorRef === 'string') {
-            const palMatch = colorRef.match(/palettes\.([a-z0-9-]+)\.(\d+)\.color\.tone/)
-            if (palMatch) {
-              newPaletteSelections[mode][key] = { paletteKey: palMatch[1], level: palMatch[2] }
-            } else {
-              const tokMatch = colorRef.match(/tokens\.colors\.(scale-\d{2})\.(\d+)/)
-              if (tokMatch) {
-                newColorTokens[key] = `colors/${tokMatch[1]}/${tokMatch[2]}`
-              }
-            }
-          }
-        }
-      }
-
-      const elevation: ElevationState = {
-        ...this.state.elevation,
-        controls: { light: {}, dark: {} },
-        directions: { light: {}, dark: {} },
-        paletteSelections: newPaletteSelections,
-        colorTokens: newColorTokens,
-        alphaTokens: { light: {}, dark: {} },
+      // Sync imported palette selections into local storage so they persist properly
+      if (this.lsAvailable) {
+        try {
+          localStorage.setItem(STORAGE_KEYS.elevationPaletteSelections, JSON.stringify(elevation.paletteSelections))
+        } catch { }
       }
 
       this.writeState({ theme: files.brand, elevation })
@@ -959,7 +1025,12 @@ class VarsStore {
             if (elevNode?.['$value']) {
               if (!elevNode['$value'].color) elevNode['$value'].color = {}
               elevNode['$value'].color.$type = 'color'
-              elevNode['$value'].color.$value = `{brand.themes.${m}.palettes.${paletteKey}.${level}.color.tone}`
+              // Core-colors entries are flat (e.g. alert.tone), regular palette steps
+              // have a .color. subgroup (e.g. neutral.500.color.tone).
+              const isCoreColors = paletteKey === 'core-colors'
+              elevNode['$value'].color.$value = isCoreColors
+                ? `{brand.themes.${m}.palettes.${paletteKey}.${level}.tone}`
+                : `{brand.themes.${m}.palettes.${paletteKey}.${level}.color.tone}`
             }
           }
 
@@ -1584,7 +1655,7 @@ class VarsStore {
         if (parsed && parsed.type === 'brand') {
           const pathStr = parsed.path.join('.')
           // Target format: palettes.neutral.500.color.tone
-          const paletteFlexMatch = /^palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)\.color\.(tone|on-tone)$/i.exec(pathStr)
+          const paletteFlexMatch = /^palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)(?:\.color)?\.(tone|on-tone)$/i.exec(pathStr)
           
           if (paletteFlexMatch) {
             const paletteKey = paletteFlexMatch[1]
@@ -1657,43 +1728,65 @@ class VarsStore {
       }
       // Get light mode elevations for shadow color control and palette selections (these are mode-independent settings)
       const lightElevations: any = themes?.light?.elevations || {}
-      const elev1: any = lightElevations?.['elevation-1']?.['$value'] || {}
+      const elev1: any = lightElevations?.['elevation-1']?.['$value'] || lightElevations?.['elevation-1'] || {}
       shadowColorControl = { colorToken: '', alphaToken: '' }
 
-      // Initialize palette selections from brand.json for each elevation, per mode
+      // Initialize palette selections and color tokens from brand.json for each elevation, per mode
       const initialPaletteSelections: Record<'light' | 'dark', Record<string, { paletteKey: string; level: string }>> = { light: {}, dark: {} }
+      const tokensToUse = tokens || this.state?.tokens
       for (const m of ['light', 'dark'] as const) {
         const modeElevations: any = themes?.[m]?.elevations || {}
         for (let i = 0; i <= 4; i++) {
-          const elev: any = modeElevations?.[`elevation-${i}`]?.['$value'] || {}
+          const key = `elevation-${i}`
+          const elev: any = modeElevations?.[key]?.['$value'] || modeElevations?.[key] || {}
           const colorRef = elev?.color?.['$value'] ?? elev?.color
+          
           const paletteSel = parsePaletteSelection(colorRef)
           if (paletteSel) {
-            initialPaletteSelections[m][`elevation-${i}`] = paletteSel
+            initialPaletteSelections[m][key] = paletteSel
+          } else if (colorRef && tokensToUse) {
+            const context: TokenReferenceContext = {
+              currentMode: m,
+              tokenIndex: buildTokenIndex(tokensToUse),
+              theme: theme
+            }
+            const parsed = parseTokenReference(colorRef, context)
+            if (parsed && parsed.type === 'token') {
+              colorTokens[key] = parsed.path.join('/')
+            }
           }
         }
       }
-      const baseX = Number((elev1?.['x-direction']?.['$value'] ?? 1))
-      const baseY = Number((elev1?.['y-direction']?.['$value'] ?? 1))
+
+      const baseX = elev1?.['x-direction'] !== undefined ? toNumeric(elev1['x-direction']) : 1
+      const baseY = elev1?.['y-direction'] !== undefined ? toNumeric(elev1['y-direction']) : 1
       baseXDirection = baseX >= 0 ? 'right' : 'left'
       baseYDirection = baseY >= 0 ? 'down' : 'up'
 
       // Initialize directions per mode from theme
       for (const mode of ['light', 'dark'] as const) {
         const modeElevations: any = themes?.[mode]?.elevations || {}
-        const modeElev1: any = modeElevations?.['elevation-1']?.['$value'] || {}
-        const modeBaseX = Number((modeElev1?.['x-direction']?.['$value'] ?? baseX))
-        const modeBaseY = Number((modeElev1?.['y-direction']?.['$value'] ?? baseY))
-        const modeXDir = modeBaseX >= 0 ? 'right' : 'left'
-        const modeYDir = modeBaseY >= 0 ? 'down' : 'up'
+        const modeElev1Node = modeElevations?.['elevation-1']?.['$value'] || modeElevations?.['elevation-1'] || {}
+        const modeBaseX = modeElev1Node?.['x-direction'] !== undefined ? toNumeric(modeElev1Node['x-direction']) : baseX
+        const modeBaseY = modeElev1Node?.['y-direction'] !== undefined ? toNumeric(modeElev1Node['y-direction']) : baseY
+
         directions[mode] = {}
         for (let i = 1; i <= 4; i += 1) {
-          directions[mode][`elevation-${i}`] = { x: modeXDir, y: modeYDir }
+          const elevKey = `elevation-${i}`
+          const elevNode = modeElevations[elevKey]?.['$value'] || modeElevations[elevKey] || {}
+          
+          const xVal = elevNode?.['x-direction'] !== undefined ? toNumeric(elevNode['x-direction']) : modeBaseX
+          const yVal = elevNode?.['y-direction'] !== undefined ? toNumeric(elevNode['y-direction']) : modeBaseY
+          
+          directions[mode][elevKey] = {
+            x: xVal >= 0 ? 'right' : 'left',
+            y: yVal >= 0 ? 'down' : 'up'
+          }
         }
       }
       paletteSelections = { light: { ...initialPaletteSelections.light }, dark: { ...initialPaletteSelections.dark } }
       // Overlay user-customized palette selections persisted from previous sessions
-      if (isLocalStorageAvailable()) {
+      if (!forceRebuildFromTheme && isLocalStorageAvailable()) {
         try {
           const saved = localStorage.getItem(STORAGE_KEYS.elevationPaletteSelections)
           if (saved) {
@@ -1819,10 +1912,19 @@ class VarsStore {
     try {
       localStorage.setItem('recursica_theme_mode', mode)
     } catch { }
-    // Skip if already recomputing to prevent infinite loops
-    if (!this.isRecomputing) {
+    if (this.isRecomputing) {
+      // A recompute is already in flight — defer one recompute so the mode
+      // change is guaranteed to apply once the current recompute finishes.
+      requestAnimationFrame(() => {
+        if (!this.isRecomputing) {
+          this.recomputeAndApplyAll()
+        } else {
+          // Still busy — push one more frame to ensure it runs
+          requestAnimationFrame(() => this.recomputeAndApplyAll())
+        }
+      })
+    } else {
       this.recomputeAndApplyAll()
-      // Compliance scan runs automatically via scheduleComplianceScan at end of recomputeAndApplyAll
     }
   }
 
@@ -1833,12 +1935,6 @@ class VarsStore {
       return
     }
     this.isRecomputing = true
-    
-    if (typeof document !== 'undefined') {
-      const domTheme = document.documentElement.getAttribute('data-recursica-theme')
-      const currentMode = this.getCurrentMode()
-      console.debug(`[recomputeAndApplyAll] DOM theme: ${domTheme}, Current Mode: ${currentMode}`)
-    }
 
     // Clear overlay CSS variables from DOM before recomputing to ensure new values from theme JSON are used
     if (typeof document !== 'undefined') {
@@ -2255,8 +2351,8 @@ class VarsStore {
           // Map core color names to CSS variable names
           // Use --recursica_brand_themes_ format to match palettes.ts resolver
           const coreColorMap: Record<string, string> = {
-            black: `--recursica_brand_themes_${mode}_palettes_core-colors_black`,
-            white: `--recursica_brand_themes_${mode}_palettes_core-colors_white`,
+            black: `--recursica_brand_themes_${mode}_palettes_core-colors_high-contrast`,
+            white: `--recursica_brand_themes_${mode}_palettes_core-colors_low-contrast`,
             alert: `--recursica_brand_themes_${mode}_palettes_core-colors_alert`,
             warning: `--recursica_brand_themes_${mode}_palettes_core-colors_warning`,
             success: `--recursica_brand_themes_${mode}_palettes_core-colors_success`,
@@ -2439,6 +2535,14 @@ class VarsStore {
               continue
             }
 
+            // Only preserve themed vars — non-themed vars are aliases regenerated
+            // from the current JSON state and must NOT be read from the DOM, because
+            // their inline values are stale from the previous recompute cycle and
+            // will incorrectly overwrite the freshly-computed JSON-derived values.
+            if (!cssVar.includes('_themes_light_') && !cssVar.includes('_themes_dark_')) {
+              continue
+            }
+
             const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
             const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
 
@@ -2600,7 +2704,8 @@ class VarsStore {
 
             const sel = this.state.elevation.paletteSelections[mode]?.[key]
             if (sel) {
-              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}_color_tone`
+              const paletteToneSuffix = sel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'
+              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${sel.paletteKey}_${sel.level}${paletteToneSuffix}`
               const paletteVarRef = paletteVars?.[paletteVarName] ? paletteVars[paletteVarName] : `var(${paletteVarName})`
               return colorMixWithOpacityVar(paletteVarRef, alphaRef)
             }
@@ -2666,7 +2771,8 @@ class VarsStore {
 
             const statePaletteSel = this.state.elevation.paletteSelections[mode]?.[k]
             if (statePaletteSel) {
-              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.level}_color_tone`
+              const paletteToneSuffix2 = statePaletteSel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'
+              const paletteVarName = `--recursica_brand_themes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.level}${paletteToneSuffix2}`
               const paletteVarRef = allPaletteVars[paletteVarName] ? allPaletteVars[paletteVarName] : `var(${paletteVarName})`
               vars[`${prefixedScope}_shadow-color`] = colorMixWithOpacityVar(paletteVarRef, alphaVarRef)
             } else {
@@ -2683,9 +2789,7 @@ class VarsStore {
               : `calc(-1 * var(${tokenSize(`elevation-${i}-offset-y`)}))`
           }
           Object.assign(allVars, vars)
-        } catch (e) {
-          throw e
-        }
+        } catch { }
       }
 
       // Compute layer element colors (text, interactive, status) based on layer surfaces.
@@ -2841,7 +2945,7 @@ class VarsStore {
         const coreColors = themes?.[mode]?.palettes?.['core-colors']?.$value || themes?.[mode]?.palettes?.['core-colors']
         if (!coreColors) continue
 
-        const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success', 'interactive']
+        const coreColorKeys = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success', 'interactive']
         for (const colorKey of coreColorKeys) {
           const colorDef = coreColors[colorKey]
           if (!colorDef) continue
@@ -2894,7 +2998,7 @@ class VarsStore {
       const mode = currentMode === 'dark' ? 'dark' : 'light'
 
       // Get all core colors and update their on-tones
-      const coreColors = ['black', 'white', 'alert', 'warning', 'success']
+      const coreColors = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success']
 
       for (const colorName of coreColors) {
         // Get the tone hex for this core color
@@ -2909,7 +3013,7 @@ class VarsStore {
           // Update high/low emphasis on-tones with alternating pattern
           // CSS vars only, never JSON - pass no-op callback
           updateCoreColorOnTonesForCompliance(
-            colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
+            colorName as 'high-contrast' | 'low-contrast' | 'alert' | 'warning' | 'success',
             toneHex,
             this.state.tokens,
             this.state.theme,
@@ -2920,7 +3024,7 @@ class VarsStore {
           // Update interactive on-tone with alternating pattern on interactive scale
           // CSS vars only, never JSON - pass no-op callback
           updateCoreColorInteractiveOnToneForCompliance(
-            colorName as 'black' | 'white' | 'alert' | 'warning' | 'success',
+            colorName as 'high-contrast' | 'low-contrast' | 'alert' | 'warning' | 'success',
             toneHex,
             this.state.tokens,
             this.state.theme,

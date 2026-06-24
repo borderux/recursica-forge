@@ -1,6 +1,8 @@
 import React from 'react'
 import { Button } from '../../components/adapters/Button'
 import { Switch } from '../../components/adapters/Switch'
+import { SwitchGroup } from '../../components/adapters/SwitchGroup'
+import { SwitchItem } from '../../components/adapters/SwitchItem'
 import { Avatar } from '../../components/adapters/Avatar'
 import { Toast } from '../../components/adapters/Toast'
 import { Label } from '../../components/adapters/Label'
@@ -31,6 +33,11 @@ import { Pagination } from '../../components/adapters/Pagination'
 import { TransferList } from '../../components/adapters/TransferList'
 import { DatePicker } from '../../components/adapters/DatePicker'
 import { Timeline } from '../../components/adapters/Timeline'
+import { Tree } from '../../components/adapters/Tree'
+import { Table } from '../../components/adapters/Table'
+import { TableCell } from '../../components/adapters/TableCell'
+import { TableHeader } from '../../components/adapters/TableHeader'
+import { TableFooter } from '../../components/adapters/TableFooter'
 import { getComponentCssVar, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
@@ -58,6 +65,54 @@ export function sortLayers(layers: LayerOption[]): LayerOption[] {
 
 export function getComponentSections(mode: 'light' | 'dark'): Section[] {
   // Define SwitchExamples inside getComponentSections to have access to mode
+
+  function SwitchItemExamples({ layer }: { layer: string }) {
+    const [checked1, setChecked1] = React.useState(true)
+    const [checked2, setChecked2] = React.useState(false)
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <SwitchItem checked={checked1} onChange={setChecked1} label="Squeak volume" layer={layer as any} />
+        <SwitchItem checked={checked2} onChange={setChecked2} label="Steal shiny object" disabled layer={layer as any} />
+      </div>
+    )
+  }
+
+  function SwitchGroupExample({ layer }: { layer: string }) {
+    const [checked1, setChecked1] = React.useState(true)
+    const [checked2, setChecked2] = React.useState(false)
+    const [checked3, setChecked3] = React.useState(true)
+    const [checked4, setChecked4] = React.useState(false)
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+        <div>
+          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Stacked</h2>
+          <SwitchGroup
+            label="Goblin Preferences"
+            layout="stacked"
+            layer={layer as any}
+          >
+            <SwitchItem checked={checked1} onChange={setChecked1} label="Enable goblin mode" layer={layer as any} />
+            <SwitchItem checked={checked2} onChange={setChecked2} label="Bite ankles" layer={layer as any} />
+          </SwitchGroup>
+        </div>
+
+        <div>
+          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Side-by-side</h2>
+          <SwitchGroup
+            label="Loot Settings"
+            layout="side-by-side"
+            layer={layer as any}
+          >
+            <SwitchItem checked={checked3} onChange={setChecked3} label="Hoard gold" layer={layer as any} />
+            <SwitchItem checked={checked4} onChange={setChecked4} label="Share with clan" layer={layer as any} />
+          </SwitchGroup>
+        </div>
+      </div>
+    )
+  }
+
   function SwitchExamples({ layer, colorVariant = 'default', sizeVariant = 'default' }: { layer: string; colorVariant?: string; sizeVariant?: string }) {
     const [checked1, setChecked1] = React.useState(true)
     const [checked2, setChecked2] = React.useState(false)
@@ -1133,16 +1188,19 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       ),
     },
     {
-      name: 'Switch',
-      url: `${base}/switch`,
+      name: 'Switch group item',
+      url: `${base}/switch-group-item`,
       render: (selectedLayers: Set<LayerOption>) => {
-        // Extract layer from selectedLayers Set (use first one, or default to layer-0)
-        const layer = selectedLayers.size > 0
-          ? Array.from(selectedLayers)[0] as string
-          : 'layer-0'
-
-        // Use default variants - the toolbar will update the CSS vars for the selected variant
-        return <SwitchExamples layer={layer} colorVariant="default" sizeVariant="default" />
+        const layer = selectedLayers.size > 0 ? Array.from(selectedLayers)[0] as string : 'layer-0'
+        return <SwitchItemExamples layer={layer} />
+      },
+    },
+    {
+      name: 'Switch group',
+      url: `${base}/switch-group`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = selectedLayers.size > 0 ? Array.from(selectedLayers)[0] as string : 'layer-0'
+        return <SwitchGroupExample layer={layer} />
       },
     },
     {
@@ -1345,6 +1403,178 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         )
       },
     },
+    {
+      name: 'Table',
+      url: `${base}/table`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ width: '100%', maxWidth: 600 }}>
+            <Table layer={layer}>
+              <thead>
+                <tr>
+                  <th style={{ width: 48 }}><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></th>
+                  <th>Element</th>
+                  <th>Mass</th>
+                  <th>Symbol</th>
+                  <th>Number</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-selected="true">
+                  <td><CheckboxItem checked={true} onChange={() => {}} layer={layer as any} label="" /></td>
+                  <td>Carbon</td>
+                  <td>12.011</td>
+                  <td>C</td>
+                  <td>6</td>
+                </tr>
+                <tr>
+                  <td><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></td>
+                  <td>Nitrogen</td>
+                  <td>14.007</td>
+                  <td>N</td>
+                  <td>7</td>
+                </tr>
+                <tr>
+                  <td><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></td>
+                  <td>Yttrium</td>
+                  <td>88.906</td>
+                  <td>Y</td>
+                  <td>39</td>
+                </tr>
+                <tr>
+                  <td><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></td>
+                  <td>Barium</td>
+                  <td>137.33</td>
+                  <td>Ba</td>
+                  <td>56</td>
+                </tr>
+                <tr>
+                  <td><CheckboxItem checked={false} onChange={() => {}} layer={layer as any} label="" /></td>
+                  <td>Cerium</td>
+                  <td>140.12</td>
+                  <td>Ce</td>
+                  <td>58</td>
+                </tr>
+              </tbody>
+            </Table>
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Table cell',
+      url: `${base}/table-cell`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ width: '100%', maxWidth: 200 }}>
+            <Table layer={layer}>
+              <tbody>
+                <tr>
+                  <TableCell>Example Cell</TableCell>
+                </tr>
+              </tbody>
+            </Table>
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Table header',
+      url: `${base}/table-header`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ width: '100%', maxWidth: 200 }}>
+            <Table layer={layer}>
+              <thead>
+                <tr>
+                  <TableHeader layer={layer as any}>Example Header</TableHeader>
+                </tr>
+              </thead>
+            </Table>
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Table footer',
+      url: `${base}/table-footer`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        return (
+          <div style={{ width: '100%', maxWidth: 200 }}>
+            <Table layer={layer}>
+              <tfoot>
+                <tr>
+                  <TableFooter layer={layer as any}>Example Footer</TableFooter>
+                </tr>
+              </tfoot>
+            </Table>
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Tree',
+      url: `${base}/tree`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const data = [
+          {
+            value: 'goblin-clans',
+            label: 'Goblin Clans',
+            children: [
+              {
+                value: 'mud-stompers',
+                label: 'Mud Stompers',
+                children: [
+                  {
+                    value: 'swamp-dwellers',
+                    label: 'Swamp Dwellers',
+                    children: [
+                      { value: 'froglok-riders', label: 'Froglok Riders' },
+                      { value: 'bog-witches', label: 'Bog Witches' },
+                    ]
+                  },
+                ]
+              },
+              {
+                value: 'cave-creepers',
+                label: 'Cave Creepers',
+                children: [
+                  { value: 'blind-miners', label: 'Blind Miners' }
+                ]
+              }
+            ],
+          },
+          {
+            value: 'goblin-artifacts',
+            label: 'Artifacts',
+            children: [
+              { value: 'shiny-rocks', label: 'Shiny Rocks' },
+              { value: 'stolen-spoons', label: 'Stolen Spoons' }
+            ]
+          },
+          {
+            value: 'goblin-territory',
+            label: 'Territory',
+          },
+        ]
+        
+        return <TreePreviewComponent data={data} layer={layer} />
+      },
+    },
   ]
     .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+const TreePreviewComponent = ({ data, layer }: { data: any; layer: any }) => {
+  const [selected, setSelected] = React.useState<string[]>([])
+  return (
+    <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
+      <Tree data={data} layer={layer} style={{ width: '100%' }} selected={selected} onSelect={setSelected} />
+    </div>
+  )
 }

@@ -46,6 +46,7 @@ export type DropdownProps = {
     optional?: boolean
     labelAlign?: 'left' | 'right'
     labelSize?: 'default' | 'small'
+    maxHeight?: number
     id?: string
     className?: string
     style?: React.CSSProperties
@@ -72,6 +73,7 @@ export function Dropdown({
     optional = false,
     labelAlign = 'left',
     labelSize,
+    maxHeight,
     id,
     className,
     style,
@@ -241,6 +243,7 @@ export function Dropdown({
                     optional={optional}
                     labelAlign={labelAlign}
                     labelSize={labelSize}
+                    maxHeight={maxHeight}
                     id={dropdownId}
                     labelId={labelId}
                     helpId={helpId}

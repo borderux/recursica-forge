@@ -13,7 +13,6 @@ import { Button } from '../../Button'
 import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { usePaginationConfig } from '../../hooks/usePaginationConfig'
-import { genericLayerText } from '../../../../core/css/cssVarBuilder'
 import type { PaginationProps as AdapterPaginationProps } from '../../Pagination'
 import './Pagination.css'
 
@@ -45,21 +44,18 @@ export default function Pagination({
 
     // Get CSS variable references for pagination-specific properties
     const itemGapVar = buildComponentCssVarPath('Pagination', 'properties', 'item-gap')
-
-    // Build the layer text color variable for the dots
-    const layerNum = layer.replace('layer-', '')
-    const textColorVar = genericLayerText(layerNum, 'color')
-    const highEmphasisVar = genericLayerText(layerNum, 'high-emphasis')
+    const dotsColorVar = buildComponentCssVarPath('Pagination', 'properties', 'colors', layer, 'dots-color')
 
     // Helper to render nav button content based on display mode
     const getNavButtonProps = (icon: React.ReactNode, label: string) => {
-        if (navDisplay === 'text') {
+        const display = typeof navDisplay === 'string' ? navDisplay.trim() : ''
+        if (display === 'label') {
             return { children: label }
         }
-        if (navDisplay === 'icon+text') {
+        if (display === 'icon-label') {
             return { icon, children: label }
         }
-        // icon only (default)
+        // icon-only (default for all other values including empty/unset)
         return { icon }
     }
 
@@ -110,8 +106,7 @@ export default function Pagination({
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                color: `var(${textColorVar})`,
-                                opacity: `var(${highEmphasisVar})`,
+                                color: `var(${dotsColorVar})`,
                             }}
                         >
                             <DotsThree size={20} weight="bold" />
@@ -130,9 +125,8 @@ export default function Pagination({
                         disabled={disabled}
                         onClick={() => pagination.setPage(item)}
                         title={`Page ${item}`}
-                    >
-                        {item}
-                    </Button>
+                        icon={<span style={{ fontVariantNumeric: 'tabular-nums' }}>{item}</span>}
+                    />
                 )
             })}
 

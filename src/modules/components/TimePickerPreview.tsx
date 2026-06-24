@@ -3,6 +3,8 @@ import { TimePicker } from '../../components/adapters/TimePicker'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { h2Style } from './typographyStyles'
+
 
 interface TimePickerPreviewProps {
     selectedVariants: Record<string, string> // e.g., { states: "default", layouts: "stacked" }
@@ -23,17 +25,6 @@ export default function TimePickerPreview({
     // Get form vertical gutter CSS variable
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
-    const h2Style = {
-        margin: 0,
-        marginBottom: 16,
-        textTransform: 'capitalize' as const,
-        fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-        fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-        fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-        letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-        lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-    } as React.CSSProperties
-
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
     // Show both layouts
@@ -46,11 +37,10 @@ export default function TimePickerPreview({
             display: 'flex',
             flexDirection: 'column',
             gap: verticalGutter,
-            width: '100%',
-            alignItems: 'center'
+            alignItems: 'center',
         }}>
             {layoutsToShow.map((layoutVariant) => (
-                <div key={layoutVariant} style={{ width: '100%', maxWidth: '700px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div key={layoutVariant} style={{ maxWidth: '700px', width: '100%', alignSelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                     <h2 style={h2Style}>
                         {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
                     </h2>
@@ -59,7 +49,7 @@ export default function TimePickerPreview({
                         {state === 'default' && (
                             <>
                                 <TimePicker
-                                    label="Start time"
+                                    label="Raid begins"
                                     defaultValue="09:30"
                                     period="AM"
                                     state="default"
@@ -67,9 +57,9 @@ export default function TimePickerPreview({
                                     layer={selectedLayer as any}
                                 />
                                 <TimePicker
-                                    label="End time"
-                                    placeholder="Select time"
-                                    helpText="Help message"
+                                    label="Raid ends"
+                                    placeholder="Set ambush hour"
+                                    helpText="Goblins sleep after midnight"
                                     period="PM"
                                     state="default"
                                     layout={layoutVariant}
@@ -82,18 +72,18 @@ export default function TimePickerPreview({
                         {state === 'error' && (
                             <>
                                 <TimePicker
-                                    label="Start time"
+                                    label="Potion brew start"
                                     defaultValue="09:30"
-                                    errorText="Error message"
+                                    errorText="The cauldron overflowed!"
                                     period="AM"
                                     state="error"
                                     layout={layoutVariant}
                                     layer={selectedLayer as any}
                                 />
                                 <TimePicker
-                                    label="End time"
-                                    placeholder="Select time"
-                                    errorText="Error message"
+                                    label="Brew finish"
+                                    placeholder="Set brew hour"
+                                    errorText="Invalid moon phase detected"
                                     period="PM"
                                     state="error"
                                     layout={layoutVariant}
@@ -105,7 +95,7 @@ export default function TimePickerPreview({
                         {/* Disabled state */}
                         {state === 'disabled' && (
                             <TimePicker
-                                label="Start time"
+                                label="Lair closing time"
                                 defaultValue=""
                                 period="AM"
                                 state="disabled"
@@ -117,8 +107,8 @@ export default function TimePickerPreview({
                         {/* Focus state */}
                         {state === 'focus' && (
                             <TimePicker
-                                label="Start time"
-                                placeholder="Select time"
+                                label="Dungeon curfew"
+                                placeholder="Set curfew hour"
                                 period="AM"
                                 state="focus"
                                 layout={layoutVariant}
@@ -129,7 +119,7 @@ export default function TimePickerPreview({
                         {/* Custom/unknown state — renders a basic field so styling changes are visible */}
                         {state !== 'default' && state !== 'error' && state !== 'disabled' && state !== 'focus' && (
                             <TimePicker
-                                label="TimePicker field"
+                                label="Goblin market hours"
                                 state={state as any}
                                 period="AM"
                                 layout={layoutVariant as any}

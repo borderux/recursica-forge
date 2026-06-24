@@ -8,7 +8,8 @@
  */
 
 import { useState, useEffect } from 'react'
-import { Timeline as MantineTimeline, ThemeIcon, Avatar as MantineAvatar } from '@mantine/core'
+import { ThemeIcon } from '@mantine/core'
+import { Timeline } from '../../components/adapters/Timeline'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
 import '../../components/adapters/mantine/Timeline/Timeline.css'
@@ -148,12 +149,12 @@ function buildCssVars(layer: string, bulletType: string) {
             ? getComputedStyle(document.documentElement).getPropertyValue(sizeVarName).trim().replace(/^["']|["']$/g, '')
             : 'default'
         const sizeKey = sizeValue === 'small' || sizeValue === 'large' ? sizeValue : 'default'
-        const avatarSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeKey, 'properties', 'size')
+        const avatarSizeVar = buildComponentCssVarPath('Avatar', 'variants', 'sizes', sizeKey, 'properties', 'width')
         Object.assign(baseVars, {
             '--_tl-bullet-size': `var(${avatarSizeVar}, 40px)`,
-            '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'size')}, 32px)`,
-            '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'size')}, 40px)`,
-            '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'size')}, 64px)`,
+            '--timeline-avatar-size-small': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'small', 'properties', 'width')}, 32px)`,
+            '--timeline-avatar-size-default': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'default', 'properties', 'width')}, 40px)`,
+            '--timeline-avatar-size-large': `var(${buildComponentCssVarPath('Avatar', 'variants', 'sizes', 'large', 'properties', 'width')}, 64px)`,
             '--timeline-avatar-bullet-size': `var(--timeline-avatar-size-${sizeKey}, 40px)`,
             '--timeline-avatar-active-bg': `var(${bulletColorVar('active-background')})`,
             '--timeline-avatar-inactive-bg': `var(${bulletColorVar('inactive-background')})`,
@@ -202,10 +203,10 @@ function useBullets(bulletType: string) {
     if (bulletType === 'avatar') {
         return [
             <div className="recursica-timeline-avatar-container">
-                <MantineAvatar size={32} radius="xl" src="/goblin-avatar-smith.png" className="recursica-timeline-avatar-bullet" />
+                <img src="/goblin-avatar-smith.png" className="recursica-timeline-avatar-bullet" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>,
             <div className="recursica-timeline-avatar-container">
-                <MantineAvatar size={32} radius="xl" src="/goblin-avatar-elder.png" className="recursica-timeline-avatar-bullet" />
+                <img src="/goblin-avatar-elder.png" className="recursica-timeline-avatar-bullet" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             </div>,
         ]
     }
@@ -240,27 +241,18 @@ export default function TimelineBulletPreview({
                 alignItems: 'flex-start',
             }}
         >
-            <MantineTimeline
+            <Timeline
                 active={0}
                 align="left"
                 className="recursica-timeline"
                 style={cssVars as React.CSSProperties}
-            >
-                {ITEMS.map((item, i) => (
-                    <MantineTimeline.Item
-                        key={i}
-                        title={item.title}
-                        bullet={bullets[i]}
-                    >
-                        {item.description && (
-                            <div className="recursica-timeline-description">{item.description}</div>
-                        )}
-                        {item.timestamp && (
-                            <div className="recursica-timeline-timestamp">{item.timestamp}</div>
-                        )}
-                    </MantineTimeline.Item>
-                ))}
-            </MantineTimeline>
+                items={ITEMS.map((item, i) => ({
+                    title: item.title,
+                    description: item.description || undefined,
+                    timestamp: item.timestamp || undefined,
+                    bullet: bullets[i],
+                }))}
+            />
         </div>
     )
 }

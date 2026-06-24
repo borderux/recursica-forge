@@ -29,6 +29,8 @@
   font-style: var(--chip-font-style) !important;
   display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
+  gap: var(--chip-icon-text-gap) !important;
   cursor: pointer !important;
   /* Use Chip's min-width and max-width CSS variables */
   /* This is reactive and updates in real time when the toolbar changes Chip's width */
@@ -40,6 +42,24 @@
 /* Note: Opacity is now set dynamically in the component's style prop based on theme mode */
 .recursica-chip-root[data-disabled] {
   cursor: not-allowed !important;
+}
+
+/* Ensure text label shrinks properly to avoid pushing the icon out of bounds,
+   and apply the standard descender fix */
+.recursica-chip-root .recursica-chip-label,
+.recursica-chip-root .recursica-chip-label span,
+.recursica-chip-root .mantine-Badge-label,
+.recursica-chip-root .mantine-Badge-label span,
+.recursica-chip-root span:not([class*="icon"]):not([class*="section"]) {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  text-align: center !important;
+  display: block !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  padding: 0.15em 0 !important;
 }
 
 /* Icon styling - use native leftSection */
@@ -56,16 +76,14 @@
   min-height: var(--chip-icon-size) !important;
   max-width: var(--chip-icon-size) !important;
   max-height: var(--chip-icon-size) !important;
-  /* Use CSS custom property set by component for real-time updates - CSS variables in stylesheets are reactive */
-  /* When toolbar updates UIKit variable on documentElement, component updates --chip-icon-text-gap which updates this automatically */
-  margin-inline-end: var(--chip-icon-text-gap) !important;
+  /* Margin is handled by parent gap */
+  margin: 0 !important;
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
   flex-basis: var(--chip-icon-size) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  overflow: hidden !important;
   box-sizing: border-box !important;
   visibility: visible !important;
   opacity: 1 !important;
@@ -84,24 +102,12 @@
   box-sizing: border-box !important;
   /* Ensure SVG respects container bounds */
   object-fit: contain !important;
-  /* Prevent SVG from expanding beyond container */
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
-/* Delete button styling - use native rightSection */
-/* Note: Mantine Badge uses .mantine-Badge-section for all sections,
-   so .recursica-chip-right-section may not match. Target the actual section wrapper
-   and .recursica-chip-delete directly. */
-.recursica-chip-root .recursica-chip-right-section,
-.recursica-chip-root .mantine-Badge-rightSection {
-  margin-inline-start: var(--chip-icon-text-gap, 4px) !important;
-}
-
-/* Reset the default Mantine 5px margin on the section wrapper containing the delete icon,
-   so the gap is fully controlled by .recursica-chip-delete's margin below */
-.recursica-chip-root .mantine-Badge-section[data-position="right"],
-.recursica-chip-root > .mantine-Badge-section:last-child:has(.recursica-chip-delete) {
-  margin-inline-start: 0 !important;
+/* Reset the default Mantine margins on section wrappers */
+.recursica-chip-root .mantine-Badge-section {
+  margin: 0 !important;
 }
 
 .recursica-chip-delete {
@@ -114,7 +120,7 @@
   max-height: var(--chip-close-icon-size) !important;
   font-size: var(--chip-close-icon-size) !important;
   line-height: 1 !important;
-  margin-inline-start: var(--chip-icon-text-gap, 4px) !important;
+  margin: 0 !important;
   opacity: 0.7 !important;
   display: inline-flex !important;
   align-items: center !important;

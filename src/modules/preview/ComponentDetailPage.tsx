@@ -43,6 +43,7 @@ const StepperPreview = lazy(() => import('../components/StepperPreview'))
 const TimelinePreview = lazy(() => import('../components/TimelinePreview'))
 const TimelineBulletPreview = lazy(() => import('../components/TimelineBulletPreview'))
 const TransferListPreview = lazy(() => import('../components/TransferListPreview'))
+const TablePreview = lazy(() => import('../components/TablePreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { Button } from '../../components/adapters/Button'
@@ -293,10 +294,14 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          padding: 'var(--recursica_brand_dimensions_general_xl)',
+          padding: component.name.toLowerCase().includes('table') ? 0 : 'var(--recursica_brand_dimensions_general_xl)',
           position: 'sticky',
           top: 0,
-          alignSelf: 'flex-start',
+          alignSelf: component.name.toLowerCase().includes('table') ? 'stretch' : 'flex-start',
+          height: component.name.toLowerCase().includes('table') ? '100%' : undefined,
+          overflow: 'hidden',
+          borderTopLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+          borderBottomLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         }}>
           {/* Preview Section */}
           <div style={{
@@ -307,7 +312,7 @@ export default function ComponentDetailPage() {
             justifyContent: 'space-between',
             gap: 'var(--recursica_brand_dimensions_general_md)',
             background: `var(${layerProperty(mode, layerNum, 'surface')})`,
-            padding: `var(${layerProperty(mode, layerNum, 'padding')})`,
+            padding: component.name.toLowerCase().includes('table') ? 0 : `var(${layerProperty(mode, layerNum, 'padding')})`,
             border: layerNum !== '0'
               ? `var(${layerProperty(mode, layerNum, 'border-size')}, 1px) solid var(${layerProperty(mode, layerNum, 'border-color')})`
               : 'none',
@@ -559,6 +564,46 @@ export default function ComponentDetailPage() {
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
+                ) : component.name === 'Table' ? (
+                  <TablePreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Table cell' ? (
+                  <TablePreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                    singleRowMode={true}
+                    hideSearch={true}
+                  />
+                ) : component.name === 'Table header' ? (
+                  <TablePreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                    singleRowMode={true}
+                    hideSearch={true}
+                  />
+                ) : component.name === 'Table footer' ? (
+                  <TablePreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                    singleRowMode={true}
+                    hideSearch={true}
+                  />
+                ) : component.name === 'Tree' ? (
+                  <div style={{
+                    width: '100%',
+                    minHeight: 200,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'flex-start',
+                  }}>
+                    {component.render?.(new Set([selectedLayer as any])) || <div>No preview available</div>}
+                  </div>
                 ) : (
                   <div style={{
                     minHeight: 200,
@@ -583,6 +628,9 @@ export default function ComponentDetailPage() {
           borderLeft: `1px solid var(${layerProperty(mode, 1, 'border-color')})`,
           minHeight: debugMode ? undefined : 0,
           height: debugMode ? undefined : '100%',
+          borderTopRightRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+          borderBottomRightRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+          overflow: 'hidden',
         }}>
           <ComponentToolbar
             componentName={componentName as ComponentName}

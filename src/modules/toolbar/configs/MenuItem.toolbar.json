@@ -24,17 +24,28 @@
           "visible": true,
           "floatingPaletteLabel": "Supporting Text Color"
         },
-        "supporting-text-opacity": {
-          "icon": "eye",
-          "label": "Supporting text opacity",
+        "leading-icon-color": {
+          "icon": "image-square",
+          "label": "Leading icon",
           "visible": true,
-          "floatingPaletteLabel": "Supporting Text Opacity"
+          "floatingPaletteLabel": "Leading Icon Color"
         },
-        "opacity": {
-          "icon": "eye",
-          "label": "Opacity",
+        "trailing-icon-color": {
+          "icon": "image-square",
+          "label": "Trailing icon",
           "visible": true,
-          "floatingPaletteLabel": "Opacity"
+          "floatingPaletteLabel": "Trailing Icon Color"
+        },
+        "hover-color": {
+          "icon": "cursor-click",
+          "label": "Hover color",
+          "visible": true,
+          "floatingPaletteLabel": "Hover Color"
+        },
+        "hover-opacity": {
+          "icon": "cursor-click",
+          "label": "Hover opacity",
+          "visible": true
         }
       }
     },
@@ -55,11 +66,34 @@
           "visible": true,
           "floatingPaletteLabel": "Selected Text Color"
         },
-        "opacity": {
-          "icon": "eye",
-          "label": "Opacity",
+        "supporting-text-color": {
+          "icon": "text-aa",
+          "label": "Supporting text",
           "visible": true,
-          "floatingPaletteLabel": "Selected Opacity"
+          "floatingPaletteLabel": "Selected Supporting Text Color"
+        },
+        "leading-icon-color": {
+          "icon": "image-square",
+          "label": "Leading icon",
+          "visible": true,
+          "floatingPaletteLabel": "Selected Leading Icon Color"
+        },
+        "trailing-icon-color": {
+          "icon": "image-square",
+          "label": "Trailing icon",
+          "visible": true,
+          "floatingPaletteLabel": "Selected Trailing Icon Color"
+        },
+        "hover-color": {
+          "icon": "cursor-click",
+          "label": "Hover color",
+          "visible": true,
+          "floatingPaletteLabel": "Hover Color"
+        },
+        "hover-opacity": {
+          "icon": "cursor-click",
+          "label": "Hover opacity",
+          "visible": true
         }
       }
     },
@@ -73,35 +107,34 @@
       "label": "Supporting text style",
       "visible": true
     },
+    "icon": {
+      "icon": "image-square",
+      "label": "Icon sizes",
+      "visible": true,
+      "group": {
+        "icon-leading-size": {
+          "icon": "image-square",
+          "label": "Leading icon size",
+          "visible": true,
+          "floatingPaletteLabel": "Leading Icon Size"
+        },
+        "icon-trailing-size": {
+          "icon": "image-square",
+          "label": "Trailing icon size",
+          "visible": true,
+          "floatingPaletteLabel": "Trailing Icon Size"
+        }
+      }
+    },
     "border-radius": {
       "icon": "corners-out",
       "label": "Corner radius",
       "visible": true,
       "floatingPaletteLabel": "Corner Radius"
     },
-    "width": {
-      "icon": "arrows-left-right",
-      "label": "Width",
-      "visible": true,
-      "floatingPaletteLabel": "Width",
-      "group": {
-        "min-width": {
-          "icon": "arrows-in-line-horizontal",
-          "label": "Min width",
-          "visible": true,
-          "floatingPaletteLabel": "Minimum Width"
-        },
-        "max-width": {
-          "icon": "arrows-out-line-horizontal",
-          "label": "Max width",
-          "visible": true,
-          "floatingPaletteLabel": "Maximum Width"
-        }
-      }
-    },
     "padding": {
       "icon": "square-logo",
-      "label": "Padding",
+      "label": "Padding and gaps",
       "visible": true,
       "floatingPaletteLabel": "Padding",
       "group": {
@@ -116,54 +149,26 @@
           "label": "Horizontal padding",
           "visible": true,
           "floatingPaletteLabel": "Horizontal Padding"
-        }
-      }
-    },
-    "divider": {
-      "icon": "minus",
-      "label": "Divider",
-      "visible": true,
-      "floatingPaletteLabel": "Divider",
-      "group": {
-        "divider-color": {
-          "icon": "paint-bucket",
-          "label": "Divider color",
-          "visible": true,
-          "floatingPaletteLabel": "Divider Color"
         },
-        "divider-height": {
-          "icon": "minus",
-          "label": "Size",
-          "visible": true
-        },
-        "divider-opacity": {
-          "icon": "eye",
-          "label": "Divider opacity",
-          "visible": true,
-          "floatingPaletteLabel": "Divider Opacity"
-        },
-        "divider-item-gap": {
+        "icon-text-gap": {
           "icon": "split-horizontal",
-          "label": "Item gap",
+          "label": "Icon gap",
           "visible": true,
-          "floatingPaletteLabel": "Item Gap"
+          "floatingPaletteLabel": "Icon Gap"
+        },
+        "text-gap": {
+          "icon": "rows",
+          "label": "Text gap",
+          "visible": true,
+          "floatingPaletteLabel": "Text Gap"
         }
       }
     },
-    "hover": {
-      "icon": "cursor-click",
-      "label": "Hover",
+    "disabled-opacity": {
+      "icon": "eye",
+      "label": "Disabled opacity",
       "visible": true,
-      "group": {
-        "hover-color": {
-          "label": "Color",
-          "visible": true
-        },
-        "hover-opacity": {
-          "label": "Opacity",
-          "visible": true
-        }
-      }
+      "floatingPaletteLabel": "Disabled Opacity"
     }
   }
 }

@@ -13,6 +13,7 @@ import React from 'react'
 // Import only the icons we actually use - this allows Vite to tree-shake unused icons
 import {
   Angle,
+  ArrowArcLeft,
   ArrowBendRightDown,
   ArrowClockwise,
   ArrowDown,
@@ -59,6 +60,7 @@ import {
   CornersIn,
   CornersOut,
   Crown,
+  Cursor,
   CursorClick,
   Diamond,
   DiamondsFour,
@@ -130,6 +132,7 @@ import {
   TextAlignRight,
   TextColumns,
   TextH,
+  TextHTwo,
   TextItalic,
   TextStrikethrough,
   TextT,
@@ -137,6 +140,7 @@ import {
   ThumbsUp,
   Trash,
   Tree,
+  TrendUp,
   Upload,
   User,
   UserCircle,
@@ -234,6 +238,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'arrow-bend-right-down': ArrowBendRightDown,
   'arrow-clockwise': ArrowClockwise,
   'arrow-path': ArrowClockwise,
+  'arrow-uturn-left': ArrowArcLeft,
+  'undo': ArrowArcLeft,
   'chevron-up': CaretUp,
   'chevron-down': CaretDown,
   'chevron-left': CaretLeft,
@@ -422,6 +428,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'git-diff': GitDiff,
   'shuffle': Shuffle,
   'tree': Tree,
+  'trend-up': TrendUp,
   'shield': Shield,
   'crown': Crown,
   'lightning': Lightning,
@@ -431,6 +438,10 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'wrench': Wrench,
   'image-square': ImageSquare,
   'prohibit': Prohibit,
+  'text-h-two': TextHTwo,
+  'text-input': TextT,
+  'cursor': Cursor,
+  'dots-three': DotsThree,
 }
 
 /**

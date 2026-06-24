@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Modal } from "../../components/adapters/Modal";
 import { Button } from "../../components/adapters/Button";
 import { TextField } from "../../components/adapters/TextField";
@@ -33,11 +34,20 @@ import {
   EXPORT_FILENAME_UIKIT,
 } from "../export/EXPORT_FILENAMES";
 import { detectJsonFileType } from "./jsonImport";
+import { getVarsStore } from "../store/varsStore";
 
 const IMPORT_MODE_STORAGE_KEY = "recursica_import_preferredMode";
 
-type ImportMode = "local" | "github";
+type ImportMode = "local" | "github" | "test-files";
 type GitHubStep = "auth" | "repositories" | "fetch-files";
+
+const devTestFilesMap = import.meta.env.DEV ? import.meta.glob('../../components/test-exports/*.json') : {};
+
+function toSentenceCase(filename: string) {
+  const base = filename.replace(/\.json$/, '');
+  const spaced = base.replace(/([A-Z])/g, ' $1').replace(/[-_]/g, ' ').trim();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase();
+}
 
 interface ImportModalProps {
   show: boolean;
@@ -73,6 +83,44 @@ export function ImportModal({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTestFile, setSelectedTestFile] = useState<string>("");
+  const [testFileJson, setTestFileJson] = useState<any>(null);
+
+  const navigate = useNavigate();
+
+  const handleTestFileSelect = async (path: string) => {
+    setSelectedTestFile(path);
+    setLoading(true);
+    setError(null);
+    onClearFiles();
+    try {
+      const module = await (devTestFilesMap[path] as () => Promise<any>)();
+      const partial = module.default || module;
+
+      // Shallow-merge focal components from the partial over the current uikit state.
+      // This reconstitutes a complete ui-kit so the import pipeline receives a valid full file.
+      const currentUikit = getVarsStore().getState().uikit as any;
+      const currentComponents = currentUikit?.['ui-kit']?.components ?? {};
+      const partialComponents = partial?.['ui-kit']?.components ?? {};
+
+      const merged = {
+        'ui-kit': {
+          ...currentUikit?.['ui-kit'],
+          components: {
+            ...currentComponents,
+            ...partialComponents,
+          },
+        },
+      };
+
+      setTestFileJson(merged);
+      onGithubFilesFetched({ uikit: merged }, [path.split('/').pop() || '']);
+    } catch (err) {
+      setError("Failed to load test file");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Initialization
   useEffect(() => {
@@ -80,8 +128,14 @@ export function ImportModal({
       const storedMode = localStorage.getItem(
         IMPORT_MODE_STORAGE_KEY,
       ) as ImportMode;
-      if (storedMode === "local" || storedMode === "github") {
+      if (storedMode === "local" || storedMode === "github" || storedMode === "test-files") {
         setMode(storedMode);
+        if (storedMode === "test-files" && import.meta.env.DEV) {
+          const keys = Object.keys(devTestFilesMap).sort();
+          if (keys.length > 0) {
+            handleTestFileSelect(keys[0]);
+          }
+        }
       }
 
       setGithubStep("auth");
@@ -106,6 +160,13 @@ export function ImportModal({
     onClearFiles();
     setUploadedFiles([]);
     setError(null);
+
+    if (newMode === "test-files" && import.meta.env.DEV) {
+      const keys = Object.keys(devTestFilesMap).sort();
+      if (keys.length > 0) {
+        handleTestFileSelect(keys[0]);
+      }
+    }
   };
 
   // GitHub Logic
@@ -242,15 +303,32 @@ export function ImportModal({
   const FolderIcon = iconNameToReactComponent("file-text");
   const GithubIcon = iconNameToReactComponent("stack"); // fallback for github if no github icon available
 
+  const handleImport = () => {
+    onImportClick();
+    if (mode === "test-files" && selectedTestFile) {
+      const baseName = selectedTestFile.split('/').pop()?.replace('.json', '') || '';
+      // Override map for filenames whose kebab conversion doesn't match the route slug
+      const filenameSlugOverrides: Record<string, string> = {
+        'hoverCardPopover': 'hover-card',
+        'switch': 'switch-group',
+      }
+      const slug = filenameSlugOverrides[baseName]
+        ?? baseName.replace(/([a-z0-9])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase()
+      if (slug) {
+        navigate(`/components/${slug}`);
+      }
+    }
+  };
+
   return (
     <Modal
       isOpen={show}
       onClose={onClose}
-      title='Import Design Tokens'
+      title='Import'
       layer='layer-1'
       size='md'
       primaryActionLabel='Import'
-      onPrimaryAction={onImportClick}
+      onPrimaryAction={handleImport}
       primaryActionDisabled={selectedFileNames.length === 0 || loading}
       onSecondaryAction={onClose}
     >
@@ -265,18 +343,16 @@ export function ImportModal({
           items={[
             {
               value: "local",
-              label: "Local Files",
-              icon: FolderIcon ? (
-                <FolderIcon style={{ width: 16, height: 16 }} />
-              ) : undefined,
+              label: "Local",
             },
             {
               value: "github",
               label: "GitHub",
-              icon: GithubIcon ? (
-                <GithubIcon style={{ width: 16, height: 16 }} />
-              ) : undefined,
             },
+            ...(import.meta.env.DEV ? [{
+              value: "test-files",
+              label: "Test",
+            }] : []),
           ]}
           value={mode}
           onChange={handleModeChange}
@@ -319,6 +395,36 @@ export function ImportModal({
                 onClearFiles();
               }}
             />
+          </div>
+        )}
+
+        {mode === "test-files" && import.meta.env.DEV && (
+          <div style={{ marginTop: "8px" }}>
+            <Dropdown
+              label="Component"
+              layer="layer-1"
+              value={selectedTestFile}
+              items={Object.keys(devTestFilesMap).sort().map(path => {
+                const name = path.split('/').pop() || '';
+                return { value: path, label: toSentenceCase(name) };
+              })}
+              onChange={handleTestFileSelect}
+              maxHeight={200}
+            />
+            {error && (
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px",
+                  backgroundColor: "#fee",
+                  color: "#c00",
+                  borderRadius: "4px",
+                  fontSize: "14px",
+                }}
+              >
+                {error}
+              </div>
+            )}
           </div>
         )}
 
@@ -467,15 +573,7 @@ export function ImportModal({
                             );
                             if (repo) handleRepoSelect(repo);
                           }}
-                          mantine={{
-                            styles: {
-                              dropdown: {
-                                maxHeight:
-                                  "calc(var(--recursica_component_menu_item_min_height, 36px) * 5.5)",
-                                overflowY: "auto",
-                              },
-                            },
-                          }}
+                          maxHeight={200}
                         />
                       )}
                     </>

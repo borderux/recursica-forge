@@ -197,7 +197,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
       }
       
       // Add other core colors
-      const coreColorKeys = ['black', 'white', 'alert', 'warning', 'success']
+      const coreColorKeys = ['high-contrast', 'low-contrast', 'alert', 'warning', 'success']
       coreColorKeys.forEach((colorKey) => {
         if (coreColorsObj[colorKey]) {
           colors.push({
@@ -555,7 +555,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
                   height: swatch,
                   cursor: 'pointer',
                   border: isSelected 
-                    ? `2px solid var(${paletteCore(modeLower, 'black')})` 
+                    ? `2px solid var(${paletteCore(modeLower, 'high-contrast')})` 
                     : `1px solid var(${palette(modeLower, 'neutral', '500', 'color_tone')})`,
                   flex: '0 0 auto',
                   padding: isSelected ? '1px' : '0',

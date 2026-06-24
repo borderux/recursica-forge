@@ -77,7 +77,13 @@
                 },
                 "min-width": {
                     "label": "Min width",
-                    "visible": true
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        30,
+                        200
+                    ],
+                    "step": 1
                 },
                 "max-width": {
                     "label": "Max width",
@@ -85,7 +91,13 @@
                 },
                 "min-height": {
                     "label": "Min height",
-                    "visible": true
+                    "visible": true,
+                    "propertyType": "slider",
+                    "range": [
+                        10,
+                        100
+                    ],
+                    "step": 1
                 }
             }
         }

@@ -95,3 +95,50 @@ export function readCssVarResolved(
   return value
 }
 
+/**
+ * Reads the RAW, uncomputed CSS variable value (e.g. "var(--other-var)")
+ * 
+ * This looks up the exact string assigned to the variable without resolving it.
+ * Useful when you need to parse the structure of a reference before the browser computes it.
+ * 
+ * @param cssVarName - The CSS variable name
+ * @param fallback - Optional fallback value
+ * @returns The raw, uncomputed value, or fallback if not found
+ */
+export function readRawCssVar(cssVarName: string, fallback?: string): string | undefined {
+  if (typeof document === 'undefined') return fallback
+
+  try {
+    // Check inline style first
+    const inlineValue = document.documentElement.style.getPropertyValue(cssVarName)
+    if (inlineValue !== '') return inlineValue.trim()
+
+    // Search through all style tags (this gets the uncomputed value like "var(...)")
+    // Start from the end to get the most recently applied styles
+    const styleElements = Array.from(document.querySelectorAll('style')).reverse()
+    
+    for (const style of styleElements) {
+      if (!style.textContent) continue
+      
+      // Simple regex to find the variable assignment
+      // Matches: --var-name: some-value; or --var-name: var(--other-var) /* comment */;
+      const regex = new RegExp(`${cssVarName}\\s*:\\s*([^;}]+)`, 'g')
+      let match
+      let lastMatch
+      
+      // Get the last occurrence in this style tag (CSS cascade within file)
+      while ((match = regex.exec(style.textContent)) !== null) {
+        lastMatch = match[1]
+      }
+      
+      if (lastMatch) {
+        // Remove trailing comments or whitespace
+        return lastMatch.replace(/\/\*[\s\S]*?\*\//g, '').trim()
+      }
+    }
+
+    return fallback
+  } catch {
+    return fallback
+  }
+}

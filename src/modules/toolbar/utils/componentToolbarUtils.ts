@@ -28,6 +28,7 @@ export interface ComponentProp {
   range?: [number, number] // For slider
   step?: number // For slider
   sourceComponent?: string // Component key in recursica_ui-kit.json where this prop actually lives (for cross-component references)
+  defaultValue?: string // Default option value for virtual props backed by $extensions.recursica.component.selected-variants
 }
 
 export interface ComponentStructure {
@@ -47,7 +48,6 @@ export const VARIANT_PROP_TO_CATEGORY: Record<string, string> = {
   'states': 'states',
   'orientation': 'orientation',
   'content': 'content',
-  'style-secondary': 'styles', // nested variant under styles
   'color': 'styles', // legacy mapping
 }
 
@@ -61,11 +61,8 @@ export const VARIANT_PROP_TO_CATEGORY: Record<string, string> = {
  */
 export function pathMatchesVariant(path: string[], variantProp: string, variantName: string): boolean {
   const categoryKey = VARIANT_PROP_TO_CATEGORY[variantProp]
-  // 'style-secondary' is a nested variant under styles, so it doesn't have a direct category container
-  // that precedes the variant name in the array (e.g., variants.styles.icon.variants.solid)
-  if (!categoryKey || variantProp === 'style-secondary') {
-    // Unknown variant prop — for deeply nested variants like 'style-secondary',
-    // the safest fallback is just checking if the variantName exists in the path
+  if (!categoryKey) {
+    // Unknown variant prop — fall back to simple inclusion check
     return path.includes(variantName)
   }
   // Find the category key in the path and check if the variant name follows it
@@ -97,6 +94,8 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+  if (componentKey === 'switch-group-item') componentKey = 'switch-item'
+  if (componentKey === 'switchitem') componentKey = 'switch-item'
   if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
   // Always prefer the live store uikit so custom variants created by cloneVariantInUIKit
   // (which deep-clones, making state.uikit diverge from the static module singleton) are
@@ -178,7 +177,10 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
           }
         }
 
-        // Continue traversing into the category container
+        // Traverse each variant value inside the category, explicitly handling
+        // properties and nested variants children (same pattern as categoryKeys.forEach).
+        // Calling traverse(categoryObj, ...) directly fails because individual variant
+        // value keys (e.g. 'horizontal', 'vertical') don't match any special-case in traverse.
         const variantPropName = categoryKey === 'styles' ? 'style'
           : categoryKey === 'sizes' ? 'size'
             : categoryKey === 'layouts' ? 'layout'
@@ -188,7 +190,26 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                     : categoryKey === 'states' ? 'states'
                       : categoryKey === 'content' ? 'content'
                         : categoryKey
-        traverse(categoryObj, currentPath, variantPropName)
+        const allCategoryKeys = ['styles', 'sizes', 'layouts', 'orientation', 'fill-width', 'types', 'states', 'content']
+        Object.keys(categoryObj).filter(k => !k.startsWith('$')).forEach(variantKey => {
+          const variantObj = (categoryObj as any)[variantKey]
+          if (!variantObj || typeof variantObj !== 'object') return
+          const variantPath = [...currentPath, variantKey]
+          if ('variants' in variantObj && typeof variantObj.variants === 'object') {
+            const nestedVariantsObj = variantObj.variants
+            const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && allCategoryKeys.includes(k))
+            if (nestedCategoryKeys.length > 0) {
+              traverse(nestedVariantsObj, [...variantPath, 'variants'], variantPropName)
+            }
+            if ('properties' in variantObj && typeof variantObj.properties === 'object') {
+              traverse(variantObj.properties, [...variantPath, 'properties'], variantPropName)
+            }
+          } else if ('properties' in variantObj && typeof variantObj.properties === 'object') {
+            traverse(variantObj.properties, [...variantPath, 'properties'], variantPropName)
+          } else {
+            traverse(variantObj, variantPath, variantPropName)
+          }
+        })
         return
       }
 
@@ -272,38 +293,13 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                     const nestedVariantsPath = [...currentPath, categoryKey, variantKey, 'variants']
                     const nestedVariantsObj = variantObj.variants
 
-                    // Check if nested variants contain category containers (sizes, layouts, styles)
-                    const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'content'))
+                    // Check if nested variants contain category containers (styles, sizes, layouts, orientation, fill-width, types, states, content)
+                    const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'orientation' || k === 'fill-width' || k === 'types' || k === 'states' || k === 'content'))
 
                     if (nestedCategoryKeys.length > 0) {
                       // Nested variants with category containers: variants.layouts.side-by-side.variants.sizes
+                      // or variants.styles.text.variants.types (Avatar appearance type)
                       traverse(nestedVariantsObj, nestedVariantsPath, variantPropName)
-                    } else {
-                      // Nested variants without category containers: variants.styles.text.variants.solid (Avatar)
-                      // Extract variant names directly (solid, text)
-                      const nestedVariantNames = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$'))
-
-                      if (nestedVariantNames.length > 0) {
-                        // This is a nested variant structure like Avatar's style-secondary
-                        const nestedVariantPropName = 'style-secondary'
-
-                        // Check if we already have this variant prop
-                        const existingNestedVariant = variants.find(v => v.propName === nestedVariantPropName)
-                        if (existingNestedVariant) {
-                          // Merge variant names, keeping unique values
-                          const mergedVariants = Array.from(new Set([...existingNestedVariant.variants, ...nestedVariantNames]))
-                          existingNestedVariant.variants = mergedVariants
-                        } else {
-                          variants.push({
-                            propName: nestedVariantPropName,
-                            variants: nestedVariantNames,
-                          })
-                          seenVariants.add(nestedVariantPropName)
-                        }
-                      }
-
-                      // Continue traversing into the nested variants to extract props
-                      traverse(nestedVariantsObj, nestedVariantsPath, 'style-secondary')
                     }
 
                     // Also traverse any properties if they exist
@@ -313,10 +309,6 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                   } else if ('properties' in variantObj && typeof variantObj.properties === 'object') {
                     // New structure: variants.styles.solid.properties.colors...
                     traverse(variantObj.properties, [...currentPath, categoryKey, variantKey, 'properties'], variantPropName)
-                    // Also traverse orientation when nested under style (e.g. Tabs styles.default.orientation)
-                    if ('orientation' in variantObj && typeof variantObj.orientation === 'object') {
-                      traverse(variantObj.orientation, [...currentPath, categoryKey, variantKey, 'orientation'], 'orientation')
-                    }
                   } else {
                     // Old structure or nested variants: traverse directly
                     traverse(variantObj, [...currentPath, categoryKey, variantKey], variantPropName)
@@ -338,111 +330,74 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
           })
           return // Early return to avoid processing as old structure
         } else {
-          // OLD STRUCTURE or direct variants (no styles/sizes categories)
-          // This handles cases like variants.solid or variants.text.variants.solid (Avatar)
+          // OLD STRUCTURE: direct variants without a category container key
+          // (e.g., legacy variants.solid or variants.text without a styles/sizes/types wrapper)
           const variantNames = Object.keys(value).filter(k => !k.startsWith('$'))
           if (variantNames.length > 0) {
-            // Check if this is a nested variant (variants inside variants)
-            const variantCount = currentPath.filter(p => p === 'variants').length
-            const isNestedVariant = variantCount > 1
-
-            // Determine prop name
-            let finalPropName: string
-            if (prefix.length > 0) {
-              const parentName = prefix[prefix.length - 1]
-              if (parentName === 'size') {
-                finalPropName = 'size'
-              } else if (isNestedVariant) {
-                finalPropName = 'style-secondary'
-              } else {
-                if (componentKey === 'avatar') {
-                  finalPropName = 'style'
-                } else {
-                  finalPropName = 'color'
-                }
-              }
-            } else {
-              if (isNestedVariant) {
-                finalPropName = 'style-secondary'
-              } else {
-                if (componentKey === 'avatar') {
-                  finalPropName = 'style'
-                } else {
-                  finalPropName = 'color'
-                }
-              }
-            }
-
-            // Only add variant if we haven't seen this finalPropName before
+            const finalPropName = variantProp || 'color'
             if (!seenVariants.has(finalPropName)) {
               seenVariants.add(finalPropName)
-              variants.push({
-                propName: finalPropName,
-                variants: variantNames,
-              })
+              variants.push({ propName: finalPropName, variants: variantNames })
             }
           }
-
-          // Continue traversing into variants
-          let variantPropName = variantProp
-          if (!variantPropName) {
-            if (prefix.length > 0) {
-              const parentName = prefix[prefix.length - 1]
-              if (parentName === 'size') {
-                variantPropName = 'size'
-              } else {
-                const variantCount = currentPath.filter(p => p === 'variants').length
-                if (variantCount > 1) {
-                  variantPropName = 'style-secondary'
-                } else {
-                  if (componentKey === 'avatar') {
-                    variantPropName = 'style'
-                  } else {
-                    variantPropName = 'color'
-                  }
-                }
-              }
-            } else {
-              const variantCount = currentPath.filter(p => p === 'variants').length
-              if (variantCount > 1) {
-                variantPropName = 'style-secondary'
-              } else {
-                if (componentKey === 'avatar') {
-                  variantPropName = 'style'
-                } else {
-                  variantPropName = 'color'
-                }
-              }
-            }
-          }
-          traverse(value, currentPath, variantPropName)
+          traverse(value, currentPath, variantProp || 'color')
         }
         return // Early return after handling variants
       }
 
-      // Check if this is a value object with $type and $value
-      if (value && typeof value === 'object' && '$value' in value && '$type' in value) {
+      // Check for a recursica.component extension token:
+      // has $value (component group ref) but no $type — emit one virtual prop per selected-variants key.
+      if (value && typeof value === 'object' && '$value' in value && !('$type' in value)) {
+        const extComp = (value as any)['$extensions']?.['recursica.component']
+        if (extComp && typeof extComp === 'object') {
+          const selectedVariants = (extComp['selected-variants'] ?? {}) as Record<string, unknown>
+          const mode = typeof document !== 'undefined'
+            ? (document.documentElement.getAttribute('data-theme-mode') as 'light' | 'dark' | null) ?? 'light'
+            : 'light'
+          for (const [dimKey, dimRef] of Object.entries(selectedVariants)) {
+            if (typeof dimRef !== 'string') continue
+            const leafMatch = /\.([^.}]+)\}$/.exec(dimRef)
+            const defaultVal = leafMatch ? leafMatch[1] : dimRef
+            const childPropName = `${key}-${dimKey}`
+            const fullPath = ['components', componentKey, 'properties', key, dimKey]
+            const cssVar = toCssVarName(fullPath.join('.'), mode)
+            props.push({
+              name: childPropName,
+              category: 'size',
+              type: 'string',
+              cssVar,
+              path: ['properties', key, dimKey],
+              isVariantSpecific: false,
+              defaultValue: defaultVal,
+            })
+          }
+          return // Do not recurse into this token node
+        }
+      }
+
+      // Check if this is a value object with $type (or $extensions['recursica.type']) and $value.
+      // Elevation tokens were migrated from $type:"elevation" to $extensions['recursica.type']:"elevation"
+      // so we must resolve the effective type from whichever location carries it.
+      const hasValue = value && typeof value === 'object' && '$value' in value
+      const dtcgType = hasValue ? (value as any).$type : undefined
+      const extType = hasValue && !dtcgType
+        ? (value as any)['$extensions']?.['recursica.type'] as string | undefined
+        : undefined
+      const effectiveType = dtcgType ?? extType
+      if (hasValue && effectiveType) {
         // Skip if this is a variant value (e.g., "small", "default", "large" inside size.variants)
         // Variant values should not be treated as props - they're the variant options themselves
         // Check if the immediate parent in the path is "variants"
         const isDirectVariantValue = prefix.length > 0 && prefix[prefix.length - 1] === 'variants'
 
         if (isDirectVariantValue) {
-          // This is a variant value (like size.variants.small, or variants.solid)
-          // In NEW STRUCTURE: variants.solid is an object containing colors, not a value
-          // In OLD STRUCTURE: size.variants.small could be a direct dimension value
-          // Check if this is actually a value (has $type and $value) or an object to traverse
-          // If it's a value, it's a variant option itself (like size variants)
-          // If it's an object, continue traversing (like color variants in new structure)
-          if ('$type' in value && '$value' in value) {
-            // This is a direct variant value (e.g., size.variants.small = dimension value)
-            // Don't add as prop, but continue traversing in case there are nested properties
+          if (effectiveType && '$value' in value) {
             traverse(value, currentPath, variantProp)
             return
           }
         }
 
-        const type = (value as any).$type
+        const type = effectiveType
         const fullPath = ['components', componentKey, ...currentPath]
         // Read mode from document to generate mode-specific CSS var names
         const mode = typeof document !== 'undefined'
@@ -454,7 +409,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // A prop is variant-specific if "variants" appears in its path
         const isVariantSpecific = currentPath.includes('variants')
 
-        // In new structure, variantProp is already set correctly (style or style-secondary or color)
+        // In new structure, variantProp is already set correctly (e.g., style, types, size, orientation)
         let variantPropName: string | undefined = undefined
         if (isVariantSpecific && variantProp) {
           variantPropName = variantProp
@@ -465,7 +420,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // 2. Inside component properties: ['properties', 'colors', 'layer-0', 'thumb-selected'] (Switch)
         // 3. Size properties: ['variants', 'sizes', 'default', 'properties', 'height'] or ['properties', 'border-radius']
         let category = prefix[0] || 'root'
-        if (currentPath.includes('colors')) {
+        if (currentPath.includes('colors') || type === 'color') {
           category = 'colors'
         } else if (currentPath.includes('size') || currentPath.includes('sizes')) {
           category = 'size'
@@ -490,7 +445,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text, min-max-label, read-only-value, value, placeholder)
         // Text property groups are objects containing text-related properties (font-family, font-size, etc.)
         // We need to create a prop for the parent group so it shows up in the toolbar
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder']
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'selected-text', 'unselected-text', 'step-number-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style']
         const isTextPropertyGroup = textPropertyGroupNames.includes(key.toLowerCase()) &&
           typeof value === 'object' &&
           value !== null &&
@@ -540,7 +495,8 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
           const layerKeys = Object.keys(value).filter(k => k.startsWith('layer-'))
           const hasLayerElevations = layerKeys.length > 0 && layerKeys.every(layerKey => {
             const layerValue = (value as any)[layerKey]
-            return layerValue && typeof layerValue === 'object' && '$type' in layerValue && layerValue.$type === 'elevation'
+            if (!layerValue || typeof layerValue !== 'object' || !('$value' in layerValue)) return false
+            return layerValue.$type === 'elevation' || layerValue['$extensions']?.['recursica.type'] === 'elevation'
           })
 
           if (hasLayerElevations) {
@@ -581,7 +537,9 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
       const baseStructure = parseComponentStructure('checkbox')
       // Add base checkbox props that aren't already defined on checkbox-item
       for (const baseProp of baseStructure.props) {
-        const exists = props.some(p => p.name === baseProp.name)
+        // A property is unique by its full path in the JSON tree, not just its name.
+        // Checking only by name causes layers 1, 2, 3 to be skipped because layer 0 was already added.
+        const exists = props.some(p => p.path.join('.') === baseProp.path.join('.'))
         if (!exists) {
           props.push({ ...baseProp, sourceComponent: 'checkbox' })
         }
@@ -597,9 +555,25 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
       const baseStructure = parseComponentStructure('radio-button')
       // Add base radio-button props that aren't already defined on radio-button-item
       for (const baseProp of baseStructure.props) {
-        const exists = props.some(p => p.name === baseProp.name)
+        // A property is unique by its full path in the JSON tree, not just its name.
+        const exists = props.some(p => p.path.join('.') === baseProp.path.join('.'))
         if (!exists) {
           props.push({ ...baseProp, sourceComponent: 'radio-button' })
+        }
+      }
+    }
+  }
+
+  // For switch-item, also include base switch props
+  // since size/border/colors now live on the base switch component
+  if (componentKey === 'switch-item') {
+    const baseSwitch = components['switch']
+    if (baseSwitch) {
+      const baseStructure = parseComponentStructure('switch')
+      for (const baseProp of baseStructure.props) {
+        const exists = props.some(p => p.path.join('.') === baseProp.path.join('.'))
+        if (!exists) {
+          props.push({ ...baseProp, sourceComponent: 'switch' })
         }
       }
     }
@@ -664,6 +638,8 @@ export function getComponentDefaultValues(componentName: string): Record<string,
   let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
   if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
   if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+  if (componentKey === 'switch-group-item') componentKey = 'switch-item'
+  if (componentKey === 'switchitem') componentKey = 'switch-item'
   if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
   const uikitRoot: any = uikitJson
   const components = uikitRoot?.['ui-kit']?.components || {}
@@ -728,6 +704,8 @@ export function getDimensionPropertyType(
     let componentKey = sourceComponent || componentName.toLowerCase().replace(/\s+/g, '-')
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
     if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+    if (componentKey === 'switch-group-item') componentKey = 'switch-item'
+    if (componentKey === 'switchitem') componentKey = 'switch-item'
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
     const uikitRoot: any = uikitJson
     const components = uikitRoot?.['ui-kit']?.components || {}
@@ -755,7 +733,9 @@ export function getDimensionPropertyType(
                   pathPart === 'orientation' ? 'orientation' :
                     pathPart === 'content' ? 'content' : pathPart
         const selectedVariant = selectedVariants[variantKey] || (pathPart === 'orientation' ? 'horizontal' : 'default')
-        current = current[pathPart]?.[selectedVariant]
+        const categoryObj = current[pathPart]
+        // Use the selected variant if it exists, otherwise fall back to the first available variant
+        current = categoryObj?.[selectedVariant] ?? (categoryObj ? categoryObj[Object.keys(categoryObj).filter(k => !k.startsWith('$'))[0]] : undefined)
         // Skip next path part if it's the variant value we just resolved (e.g. path has orientation, horizontal)
         if (propPath[i + 1] === selectedVariant) {
           i++
@@ -793,6 +773,82 @@ export function getDimensionPropertyType(
     return null
   } catch (error) {
     console.warn('Error checking dimension property type:', error)
+    return null
+  }
+}
+
+/**
+ * Gets the dimension category (e.g., 'border-radii', 'general') based on the token value in the UI Kit JSON.
+ */
+export function getDimensionCategoryFromValue(
+  componentName: string,
+  propPath: string[],
+  selectedVariants: Record<string, string> = {},
+  sourceComponent?: string
+): 'border-radii' | 'icons' | 'general' | 'text-size' | null {
+  try {
+    let componentKey = sourceComponent || componentName.toLowerCase().replace(/\s+/g, '-')
+    if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
+    if (componentKey === 'radio-button-group-item') componentKey = 'radio-button-item'
+    if (componentKey === 'switch-group-item') componentKey = 'switch-item'
+    if (componentKey === 'switchitem') componentKey = 'switch-item'
+    if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
+    const uikitRoot: any = uikitJson
+    const components = uikitRoot?.['ui-kit']?.components || {}
+    const component = components[componentKey]
+
+    if (!component) {
+      return null
+    }
+
+    // Navigate to the property using the path
+    let current: any = component
+    for (let i = 0; i < propPath.length; i++) {
+      const pathPart = propPath[i]
+      if (current == null || typeof current !== 'object') {
+        return null
+      }
+
+      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content') {
+        const variantKey = pathPart === 'styles' ? 'style' :
+          pathPart === 'sizes' ? 'size' :
+            pathPart === 'layouts' ? 'layout' :
+              pathPart === 'states' ? 'state' :
+                pathPart === 'types' ? 'type' :
+                  pathPart === 'orientation' ? 'orientation' :
+                    pathPart === 'content' ? 'content' : pathPart
+        const selectedVariant = selectedVariants[variantKey] || (pathPart === 'orientation' ? 'horizontal' : 'default')
+        const categoryObj = current[pathPart]
+        // Use the selected variant if it exists, otherwise fall back to the first available variant
+        current = categoryObj?.[selectedVariant] ?? (categoryObj ? categoryObj[Object.keys(categoryObj).filter(k => !k.startsWith('$'))[0]] : undefined)
+        if (propPath[i + 1] === selectedVariant) {
+          i++
+        }
+      } else {
+        current = current[pathPart]
+      }
+    }
+
+    // Check if we found a dimension property
+    if (current && typeof current === 'object' && '$type' in current && current.$type === 'dimension') {
+      const value = current.$value
+      let stringValue = ''
+
+      if (typeof value === 'string') {
+        stringValue = value
+      } else if (value && typeof value === 'object' && 'value' in value) {
+        stringValue = String(value.value)
+      }
+
+      if (stringValue.includes('.border-radii.')) return 'border-radii'
+      if (stringValue.includes('.icons.')) return 'icons'
+      if (stringValue.includes('.general.')) return 'general'
+      if (stringValue.includes('.text-size.')) return 'text-size'
+    }
+
+    return null
+  } catch (error) {
+    console.warn('Error checking dimension category:', error)
     return null
   }
 }

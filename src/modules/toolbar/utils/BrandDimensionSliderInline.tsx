@@ -49,7 +49,7 @@ export default function BrandDimensionSliderInline({
   targetCssVars = [],
   label,
   dimensionCategory,
-  layer = 'layer-1',
+  layer = 'layer-0',
 }: BrandDimensionSliderInlineProps) {
   const { theme } = useVars()
   const { mode } = useThemeMode()
@@ -202,7 +202,23 @@ export default function BrandDimensionSliderInline({
     }
   }, [readInitialValue, targetCssVar, targetCssVars])
 
-  const handleSliderChange = (value: number | [number, number]) => {
+  const handleDrag = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
+    setSelectedIndex(clampedIndex)
+
+    const selectedToken = tokens[clampedIndex]
+    if (selectedToken) {
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      const tokenValue = `var(${selectedToken.name})`
+
+      cssVars.forEach(cssVar => {
+        document.documentElement.style.setProperty(cssVar, tokenValue)
+      })
+    }
+  }
+
+  const handleCommit = (value: number | [number, number]) => {
     const numValue = typeof value === 'number' ? value : value[0]
     const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
     setSelectedIndex(clampedIndex)
@@ -265,10 +281,12 @@ export default function BrandDimensionSliderInline({
   return (
     <Slider
       value={safeSelectedIndex}
-      onChange={handleSliderChange}
+      onChange={handleDrag}
+      onChangeCommitted={handleCommit}
       min={0}
       max={tokens.length - 1}
       step={1}
+      type="discrete"
       layer={layer}
       layout="stacked"
       showInput={false}

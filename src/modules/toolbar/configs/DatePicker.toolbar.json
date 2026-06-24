@@ -82,6 +82,11 @@
                     "label": "Vertical padding",
                     "visible": true,
                     "floatingPaletteLabel": "Vertical Padding"
+                },
+                "min-height": {
+                    "icon": "arrows-up-down",
+                    "label": "Min height",
+                    "visible": true
                 }
             }
         },

@@ -44,7 +44,8 @@
 
 /* Target text content for truncation */
 .cds--btn>*:not(svg):not(.recursica-button-trailing-icon) {
-  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
   flex: 1 !important;

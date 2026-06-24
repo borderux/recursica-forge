@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react'
 import type { CardProps as AdapterCardProps } from '../../Card'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readRawCssVar as readCssVar } from '../../../../core/css/readCssVar'
 import './Card.css'
 
 export default function Card({
@@ -77,7 +77,19 @@ export default function Card({
         }
     }, [])
 
-    const headerStyleValue = readCssVar(headerStyleVar) || 'h3'
+    // Get header style value (extract from typography token or var)
+    const rawHeaderStyleValue = readCssVar(headerStyleVar) || 'h3'
+    let headerStyleValue = 'h3'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_(.+)-font-size/.exec(rawHeaderStyleValue)
+        if (match) {
+            headerStyleValue = match[1]
+        }
+    } else {
+        headerStyleValue = rawHeaderStyleValue
+    }
 
     const cardStyles = {
         '--card-bg': `var(${bgVar})`,
@@ -99,6 +111,8 @@ export default function Card({
         '--card-max-width': `var(${maxWidthVar})`,
         ...style,
     } as React.CSSProperties
+
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
 
     return (
         <MuiCard
@@ -123,16 +137,17 @@ export default function Card({
                     <CardHeader
                         className="recursica-card-header"
                         title={
-                            <span style={{
+                            <HeadingTag style={{
                                 color: 'var(--card-title-color)',
                                 fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
                                 fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
                                 fontWeight: `var(--recursica_brand_typography_${headerStyleValue}-font-weight)`,
                                 letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-letter-spacing)`,
                                 lineHeight: `var(--recursica_brand_typography_${headerStyleValue}-line-height)`,
+                                margin: 0,
                             }}>
                                 {title}
-                            </span>
+                            </HeadingTag>
                         }
                         sx={{
                             background: 'var(--card-header-bg)',

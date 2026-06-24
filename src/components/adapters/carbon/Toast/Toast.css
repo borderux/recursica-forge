@@ -9,7 +9,8 @@
   min-height: var(--toast-min-height, var(--recursica_ui-kit_components_toast_properties_min_height)) !important;
   background-color: var(--toast-bg, var(--recursica_ui-kit_components_toast_variants_styles_default_properties_colors_layer-0_background)) !important;
   color: var(--toast-text, var(--recursica_ui-kit_components_toast_variants_styles_default_properties_colors_layer-0_text)) !important;
-  border-radius: 8px !important;
+  border-radius: var(--toast-border-radius, var(--recursica_ui-kit_components_toast_properties_border_radius)) !important;
+  border: var(--toast-border-size, var(--recursica_ui-kit_components_toast_properties_border_size)) solid var(--toast-border-color, var(--recursica_ui-kit_components_toast_properties_border_color)) !important;
 }
 
 .recursica-toast-content {
@@ -40,12 +41,15 @@
 
 .recursica-toast-action {
   flex-shrink: 0 !important;
+  white-space: nowrap !important;
 }
 
 .recursica-toast-action button {
   background-color: transparent !important;
   --button-bg: transparent !important;
   opacity: 1 !important;
+  white-space: nowrap !important;
+  min-width: fit-content !important;
 }
 
 /* Apply color override only when --toast-button is set (success/error variants) */

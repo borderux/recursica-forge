@@ -1,3 +1,4 @@
+import { useThemeMode } from "../../../theme/ThemeModeContext"
 import { getVarsStore } from '../../../../core/store/varsStore'
 /**
  * IconGroupToolbar Component
@@ -74,7 +75,8 @@ export default function IconGroupToolbar({
     : []
 
   // Find icon-related props from component structure
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const { mode } = useThemeMode()
+  const structure = useMemo(() => parseComponentStructure(componentName), [componentName, mode])
 
   const iconSizeProp = useMemo(() => {
     return structure.props.find(p => {
@@ -326,20 +328,43 @@ export default function IconGroupToolbar({
         const maxValue = 500
         const [value, setValue] = useState(() => {
           const raw = readCssVar(maxWidthVar)
-          const match = (raw || '').match(/^(\d+(?:\.\d+)?)px$/i)
+          const resolvedValue = typeof document !== 'undefined' ? document.documentElement.style.getPropertyValue(maxWidthVar) || raw : raw
+          const match = (resolvedValue || '').match(/^(\d+(?:\.\d+)?)px$/i)
           return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : 200
         })
+
+        React.useEffect(() => {
+          const handleUpdate = () => {
+            const raw = readCssVar(maxWidthVar)
+            const resolvedValue = document.documentElement.style.getPropertyValue(maxWidthVar) || raw
+            const match = (resolvedValue || '').match(/^(\d+(?:\.\d+)?)px$/i)
+            if (match) {
+              setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+            }
+          }
+          window.addEventListener('cssVarsUpdated', handleUpdate)
+          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+        }, [])
+
         const handleChange = useCallback((val: number | [number, number]) => {
           const num = Math.max(minValue, Math.min(maxValue, Math.round(typeof val === 'number' ? val : val[0])))
           setValue(num)
+          document.documentElement.style.setProperty(maxWidthVar, `${num}px`)
+        }, [maxWidthVar])
+
+        const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+          const num = Math.max(minValue, Math.min(maxValue, Math.round(typeof val === 'number' ? val : val[0])))
+          setValue(num)
+          document.documentElement.style.setProperty(maxWidthVar, `${num}px`)
           updateCssVar(maxWidthVar, `${num}px`)
           window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: [maxWidthVar] } }))
         }, [maxWidthVar])
+
         return (
           <Slider
             value={value}
             onChange={handleChange}
-            onChangeCommitted={handleChange}
+            onChangeCommitted={handleChangeCommitted}
             min={minValue}
             max={maxValue}
             step={1}

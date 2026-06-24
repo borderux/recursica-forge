@@ -38,6 +38,33 @@ export function traceToTokenRef(cssVarName: string): { family: string; level: st
 /**
  * Resolves a CSS variable to its hex value, following var() references recursively
  */
+/**
+ * Helper to extract fallback value from a var() expression.
+ * E.g., `var(--a, var(--b))` -> `var(--b)`
+ * E.g., `var(--a, #ffffff)` -> `#ffffff`
+ */
+function getVarFallback(value: string): string | null {
+  if (!value) return null
+  const trimmed = value.trim()
+  if (!trimmed.startsWith('var(')) return null
+  
+  // Find the first comma at the top level of parentheses
+  let depth = 0
+  for (let i = 0; i < trimmed.length; i++) {
+    const char = trimmed[i]
+    if (char === '(') depth++
+    else if (char === ')') depth--
+    else if (char === ',' && depth === 1) {
+      const fallback = trimmed.slice(i + 1, trimmed.length - 1).trim()
+      return fallback || null
+    }
+  }
+  return null
+}
+
+/**
+ * Resolves a CSS variable to its hex value, following var() references recursively
+ */
 export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<string, any>, depth = 0): string | null {
   if (depth > 10) return null
   try {
@@ -52,6 +79,11 @@ export function resolveCssVarToHex(cssVar: string, tokenIndex: TokenIndex | Map<
       const value = readCssVar(varName)
       if (value) {
         return resolveCssVarToHex(value, tokenIndex, depth + 1)
+      }
+      // If the primary variable is empty/not set in the DOM, check for a fallback
+      const fallback = getVarFallback(trimmed)
+      if (fallback) {
+        return resolveCssVarToHex(fallback, tokenIndex, depth + 1)
       }
     }
 

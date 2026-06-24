@@ -14,6 +14,8 @@ import { getTypographyCssVar, extractTypographyStyleName } from '../../../utils/
 import { getElevationBoxShadow, parseElevationValue, getBrandStateCssVar } from '../../../utils/brandCssVars'
 import { genericLayerText } from '../../../../core/css/cssVarBuilder'
 import { NumberInput } from '../../NumberInput'
+import { AssistiveElement } from '../../AssistiveElement'
+import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import './Slider.css'
 
 export default function Slider({
@@ -34,7 +36,13 @@ export default function Slider({
   minLabel,
   maxLabel,
   showMinMaxLabels = true,
+  minIcon,
+  maxIcon,
+  iconSize,
   readOnly = false,
+  state = 'default',
+  errorText,
+  type = 'continuous',
   className,
   style,
   material,
@@ -42,10 +50,13 @@ export default function Slider({
 }: AdapterSliderProps) {
   const { mode } = useThemeMode()
 
+  // Determine effective state
+  const effectiveState = disabled ? 'disabled' : state
+
   // Get CSS variables for colors
-  const trackVar = buildComponentCssVarPath('Slider', 'properties', 'colors', layer, 'track')
-  const trackActiveVar = buildComponentCssVarPath('Slider', 'properties', 'colors', layer, 'track-active')
-  const thumbVar = buildComponentCssVarPath('Slider', 'properties', 'colors', layer, 'thumb')
+  const trackVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'track')
+  const trackActiveVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'track-active')
+  const thumbVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'thumb')
 
   // Get CSS variables for sizes
   const trackHeightVar = getComponentLevelCssVar('Slider', 'track-height')
@@ -53,12 +64,37 @@ export default function Slider({
   const trackBorderRadiusVar = getComponentLevelCssVar('Slider', 'track-border-radius')
   const thumbBorderRadiusVar = getComponentLevelCssVar('Slider', 'thumb-border-radius')
   const thumbElevationVar = getComponentLevelCssVar('Slider', 'thumb-elevation')
+  const iconSizeVar = getComponentLevelCssVar('Slider', 'icon-size')
+  const iconColorVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'icon-color')
+
+  // Input override vars
+  const inputBackgroundVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'input-background')
+  const inputTextVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'input-text')
+  const inputBorderColorVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'input-border-color')
+  const inputBorderSizeVar = buildComponentCssVarPath('Slider', 'variants', 'states', effectiveState, 'properties', 'input-border-size')
+  const inputBorderRadiusVar = getComponentLevelCssVar('Slider', 'input-border-radius')
+  const targetState = effectiveState
 
   // Get Label's gutter for side-by-side layout (Label component manages spacing)
   const labelGutterVar = layout === 'side-by-side'
     ? buildComponentCssVarPath('Label', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter')
     : null
 
+  const inputHeightVar = getComponentLevelCssVar('Slider', 'input-height')
+  const inputPaddingVerticalVar = getComponentLevelCssVar('Slider', 'input-padding-vertical')
+  const inputPaddingLeftVar = getComponentLevelCssVar('Slider', 'input-padding-left')
+  const inputPaddingRightVar = getComponentLevelCssVar('Slider', 'input-padding-right')
+  const stepIndicatorBorderRadiusVar = getComponentLevelCssVar('Slider', 'step-indicator-border-radius')
+  const stepIndicatorWidthVar = getComponentLevelCssVar('Slider', 'step-indicator-width')
+
+  const inputTextFontSizeVar = getComponentTextCssVar('Slider', 'input-text', 'font-size')
+  const inputTextFontFamilyVar = getComponentTextCssVar('Slider', 'input-text', 'font-family')
+  const inputTextFontWeightVar = getComponentTextCssVar('Slider', 'input-text', 'font-weight')
+  const inputTextLetterSpacingVar = getComponentTextCssVar('Slider', 'input-text', 'letter-spacing')
+  const inputTextLineHeightVar = getComponentTextCssVar('Slider', 'input-text', 'line-height')
+  const inputTextTextDecorationVar = getComponentTextCssVar('Slider', 'input-text', 'text-decoration')
+  const inputTextTextTransformVar = getComponentTextCssVar('Slider', 'input-text', 'text-transform')
+  const inputTextFontStyleVar = getComponentTextCssVar('Slider', 'input-text', 'font-style')
   // Get input width and gap if showing input
   const inputWidthVar = getComponentLevelCssVar('Slider', 'input-width')
   const inputGapVar = getComponentLevelCssVar('Slider', 'input-gap')
@@ -146,7 +182,6 @@ export default function Slider({
       displayValue = singleValue
     }
   } catch (error) {
-    console.warn('Error calculating value label:', error)
     displayValue = singleValue
   }
   const displayValueStr = (displayValue !== undefined && displayValue !== null && String(displayValue).trim() !== '')
@@ -224,100 +259,281 @@ export default function Slider({
     readOnlyValueLineHeightVar, readOnlyValueTextDecorationVar, readOnlyValueTextTransformVar, readOnlyValueFontStyleVar
   ])
 
+    const labelsBelow = layout === 'labels-below'
+
+    const labelsBelowContent = labelsBelow && (showMinMaxLabels || minIcon || maxIcon) ? (
+      <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: '4px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {minIcon && (
+            <span style={{ 
+              display: 'flex', 
+              fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+              color: `var(${iconColorVar}, var(${layerTextColorVar}))`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+            }}>
+              {minIcon}
+            </span>
+          )}
+          {showMinMaxLabels && (
+            <span style={{
+              fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
+              fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
+              fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
+              letterSpacing: minMaxLabelLetterSpacingVar ? `var(${minMaxLabelLetterSpacingVar})` : undefined,
+              lineHeight: minMaxLabelLineHeightVar ? `var(${minMaxLabelLineHeightVar})` : undefined,
+              textDecoration: minMaxLabelTextDecorationVar ? `var(${minMaxLabelTextDecorationVar})` : 'none',
+              textTransform: minMaxLabelTextTransformVar ? `var(${minMaxLabelTextTransformVar})` : 'none',
+              fontStyle: minMaxLabelFontStyleVar ? `var(${minMaxLabelFontStyleVar})` : 'normal',
+              color: `var(${layerTextColorVar})`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar})`,
+            } as React.CSSProperties}>
+              {minLabel ?? min}
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          {showMinMaxLabels && (
+            <span style={{
+              fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
+              fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
+              fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
+              letterSpacing: minMaxLabelLetterSpacingVar ? `var(${minMaxLabelLetterSpacingVar})` : undefined,
+              lineHeight: minMaxLabelLineHeightVar ? `var(${minMaxLabelLineHeightVar})` : undefined,
+              textDecoration: minMaxLabelTextDecorationVar ? `var(${minMaxLabelTextDecorationVar})` : 'none',
+              textTransform: minMaxLabelTextTransformVar ? `var(${minMaxLabelTextTransformVar})` : 'none',
+              fontStyle: minMaxLabelFontStyleVar ? `var(${minMaxLabelFontStyleVar})` : 'normal',
+              color: `var(${layerTextColorVar})`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar})`,
+            } as React.CSSProperties}>
+              {maxLabel ?? max}
+            </span>
+          )}
+          {maxIcon && (
+            <span style={{ 
+              display: 'flex', 
+              fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`, 
+              color: `var(${iconColorVar}, var(${layerTextColorVar}))`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1 
+            }}>
+              {maxIcon}
+            </span>
+          )}
+        </div>
+      </div>
+    ) : null;
+
   const sliderElement = (
     <div style={{ display: 'flex', alignItems: 'center', gap: (showInput || showValueLabel) ? `var(${inputGapVar}, 8px)` : 0, width: '100%', minWidth: 0 }}>
-      {/* Min value display */}
-      {showMinMaxLabels && (
-        <span style={{
-          fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
-          fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
-          fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
-          letterSpacing: minMaxLabelLetterSpacingVar ? `var(${minMaxLabelLetterSpacingVar})` : undefined,
-          lineHeight: minMaxLabelLineHeightVar ? `var(${minMaxLabelLineHeightVar})` : undefined,
-          textDecoration: minMaxLabelTextDecorationVar ? `var(${minMaxLabelTextDecorationVar})` : 'none',
-          textTransform: minMaxLabelTextTransformVar ? `var(${minMaxLabelTextTransformVar})` : 'none',
-          fontStyle: minMaxLabelFontStyleVar ? `var(${minMaxLabelFontStyleVar})` : 'normal',
-          color: `var(${layerTextColorVar})`,
-          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar})`,
-          flexShrink: 0,
-          marginRight: '8px',
-        } as React.CSSProperties}>
-          {minLabel ?? min}
-        </span>
+            {/* Min Icon display */}
+      {!labelsBelow && (showMinMaxLabels || minIcon) && (
+        <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, marginRight: '8px' }}>
+          <span style={{ 
+            display: 'flex', 
+            fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`,
+            color: `var(${iconColorVar}, var(${layerTextColorVar}))`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : 1
+          }}>
+            {minIcon}
+          </span>
+        </div>
       )}
-      <MaterialSlider
-        value={singleValue}
-        onChange={handleChange}
-        onChangeCommitted={handleChangeCommitted}
-        min={min}
-        max={max}
-        step={step}
-        disabled={disabled}
-        valueLabelDisplay="auto"
-        valueLabelFormat={tooltipText ? (val: number) => typeof tooltipText === 'function' ? tooltipText(val) : tooltipText : undefined}
-        className={className}
-        sx={{
-          color: trackActiveColor,
-          height: `var(${trackHeightVar}, 4px)`,
-          '& .MuiSlider-track': {
-            backgroundColor: trackActiveColor,
+
+{showInput && isRange && (
+        <>
+          <style>{`
+            .recursica-slider-number-input > div > .recursica-number-input-wrapper {
+              min-width: var(${inputWidthVar}, 60px) !important;
+              max-width: var(${inputWidthVar}, 60px) !important;
+            }
+          `}</style>
+          <NumberInput
+            min={min}
+            max={max}
+            step={step}
+            value={value[0]}
+            onChange={(e) => {
+              if (!readOnly) {
+                const newValue = Number(e.target.value)
+                if (!isNaN(newValue)) {
+                  const clampedValue = Math.max(min, Math.min(value[1], newValue))
+                  onChange([clampedValue, value[1]])
+                  if (onChangeCommitted) onChangeCommitted([clampedValue, value[1]])
+                }
+              }
+            }}
+            onBlur={() => {
+              if (!readOnly && onChangeCommitted) {
+                onChangeCommitted([value[0], value[1]])
+              }
+            }}
+            onKeyDown={(e) => {
+              if (!readOnly && e.key === 'Enter' && onChangeCommitted) {
+                onChangeCommitted([value[0], value[1]])
+              }
+            }}
+            state={targetState}
+            readOnly={readOnly}
+            layer="layer-0"
+            disableTopBottomMargin={true}
+            className="recursica-slider-number-input"
+            style={{
+              fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
+              [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'background')]: `var(${inputBackgroundVar})`,
+              [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'text')]: `var(${inputTextVar})`,
+              [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'border-color')]: `var(${inputBorderColorVar})`,
+              [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'border-size')]: `var(${inputBorderSizeVar})`,
+              [getComponentLevelCssVar('TextField', 'border-radius')]: `var(${inputBorderRadiusVar})`,
+            [getComponentLevelCssVar('TextField', 'min-height')]: `var(${inputHeightVar})`,
+            [getComponentLevelCssVar('TextField', 'vertical-padding')]: `var(${inputPaddingVerticalVar})`,
+            [getComponentLevelCssVar('TextField', 'horizontal-padding')]: `var(${inputPaddingLeftVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'font-size')]: `var(${inputTextFontSizeVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'font-family')]: `var(${inputTextFontFamilyVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'font-weight')]: `var(${inputTextFontWeightVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'letter-spacing')]: `var(${inputTextLetterSpacingVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'line-height')]: `var(${inputTextLineHeightVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'text-decoration')]: `var(${inputTextTextDecorationVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'text-transform')]: `var(${inputTextTextTransformVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'font-style')]: `var(${inputTextFontStyleVar})`,
+              [buildComponentCssVarPath('NumberInput', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'background')]: `var(${inputBackgroundVar})`,
+              [buildComponentCssVarPath('NumberInput', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'text')]: `var(${inputTextVar})`,
+              [buildComponentCssVarPath('NumberInput', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'border-color')]: `var(${inputBorderColorVar})`,
+              [buildComponentCssVarPath('NumberInput', 'variants', 'states', targetState, 'properties', 'border-size')]: `var(${inputBorderSizeVar})`,
+              [getComponentLevelCssVar('NumberInput', 'border-radius')]: `var(${inputBorderRadiusVar})`,
+            [getComponentLevelCssVar('NumberInput', 'min-height')]: `var(${inputHeightVar})`,
+            [getComponentLevelCssVar('NumberInput', 'vertical-padding')]: `var(${inputPaddingVerticalVar})`,
+            [getComponentLevelCssVar('NumberInput', 'horizontal-padding')]: `var(${inputPaddingLeftVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'font-size')]: `var(${inputTextFontSizeVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'font-family')]: `var(${inputTextFontFamilyVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'font-weight')]: `var(${inputTextFontWeightVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'letter-spacing')]: `var(${inputTextLetterSpacingVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'line-height')]: `var(${inputTextLineHeightVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'text-decoration')]: `var(${inputTextTextDecorationVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'text-transform')]: `var(${inputTextTextTransformVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'font-style')]: `var(${inputTextFontStyleVar})`,
+            } as any}
+          />
+        </>
+      )}
+
+      {/* Min Label display */}
+      {!labelsBelow && showMinMaxLabels && (
+        <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0, marginRight: '8px', marginLeft: (showInput && isRange) ? '8px' : 0 }}>
+          <span style={{
+            fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
+            fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
+            fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
+            letterSpacing: minMaxLabelLetterSpacingVar ? `var(${minMaxLabelLetterSpacingVar})` : undefined,
+            lineHeight: minMaxLabelLineHeightVar ? `var(${minMaxLabelLineHeightVar})` : undefined,
+            textDecoration: minMaxLabelTextDecorationVar ? `var(${minMaxLabelTextDecorationVar})` : 'none',
+            textTransform: minMaxLabelTextTransformVar ? `var(${minMaxLabelTextTransformVar})` : 'none',
+            fontStyle: minMaxLabelFontStyleVar ? `var(${minMaxLabelFontStyleVar})` : 'normal',
+            color: `var(${layerTextColorVar})`,
+            opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar})`,
+          } as React.CSSProperties}>
+            {minLabel ?? min}
+          </span>
+        </div>
+      )}
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <MaterialSlider
+          value={isRange ? (value as number[]) : singleValue}
+          onChange={handleChange}
+          onChangeCommitted={handleChangeCommitted}
+          min={min}
+          max={max}
+          step={step}
+          marks={type === 'discrete'}
+          disabled={disabled}
+          valueLabelDisplay="auto"
+          valueLabelFormat={tooltipText ? (val: number) => typeof tooltipText === 'function' ? tooltipText(val) : tooltipText : undefined}
+          className={className}
+          sx={{
+            color: trackActiveColor,
             height: `var(${trackHeightVar}, 4px)`,
-            borderRadius: `var(${trackBorderRadiusVar})`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
-          },
-          '&.Mui-disabled .MuiSlider-track': {
-            opacity: `var(${disabledOpacityVar})`,
-          },
-          '& .MuiSlider-rail': {
-            backgroundColor: trackColor,
-            height: `var(${trackHeightVar}, 4px)`,
-            borderRadius: `var(${trackBorderRadiusVar})`,
-            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
-          },
-          '&.Mui-disabled .MuiSlider-rail': {
-            opacity: `var(${disabledOpacityVar})`,
-          },
-          '& .MuiSlider-thumb': {
-            backgroundColor: thumbColor,
-            width: `var(${thumbSizeVar}, 20px)`,
-            height: `var(${thumbSizeVar}, 20px)`,
-            border: 'none',
-            borderRadius: `var(${thumbBorderRadiusVar})`,
-            ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.15)' }),
-            opacity: disabled ? `var(${disabledOpacityVar})` : 1,
-            '&:hover': {
-              ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' }),
+            '& .MuiSlider-track': {
+              backgroundColor: trackActiveColor,
+              height: `var(${trackHeightVar}, 4px)`,
+              borderRadius: `var(${trackBorderRadiusVar})`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1,
             },
-            '&.Mui-focusVisible': {
-              ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' }),
+            '&.Mui-disabled .MuiSlider-track': {
+              opacity: `var(${disabledOpacityVar})`,
             },
-          },
-          '&.Mui-disabled .MuiSlider-thumb': {
-            opacity: `var(${disabledOpacityVar})`,
-          },
-          ...style,
-        }}
-        {...material}
-        {...props}
-      />
+            '& .MuiSlider-rail': {
+              backgroundColor: trackColor,
+              height: `var(${trackHeightVar}, 4px)`,
+              borderRadius: `var(${trackBorderRadiusVar})`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1,
+            },
+            '&.Mui-disabled .MuiSlider-rail': {
+              opacity: `var(${disabledOpacityVar})`,
+            },
+            '& .MuiSlider-thumb': {
+              backgroundColor: thumbColor,
+              width: disabled ? '0px' : `var(${thumbSizeVar}, 20px)`,
+              height: disabled ? '0px' : `var(${thumbSizeVar}, 20px)`,
+              border: 'none',
+              borderRadius: `var(${thumbBorderRadiusVar})`,
+              ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 1px 2px rgba(0, 0, 0, 0.15)' }),
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1,
+              '&:hover': {
+                ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' }),
+              },
+              '&.Mui-focusVisible': {
+                ...(thumbElevationBoxShadow ? { boxShadow: thumbElevationBoxShadow } : { boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)' }),
+              },
+            },
+            '&.Mui-disabled .MuiSlider-thumb': {
+              opacity: `var(${disabledOpacityVar})`,
+            },
+
+            '& .MuiSlider-mark': {
+              width: `var(${buildComponentCssVarPath('Slider', 'properties', 'step-indicator-width')}, 2px)`,
+              height: `var(${buildComponentCssVarPath('Slider', 'properties', 'step-indicator-width')}, 2px)`,
+              borderRadius: `var(${buildComponentCssVarPath('Slider', 'properties', 'step-indicator-border-radius')}, 2px)`,
+              backgroundColor: `var(${buildComponentCssVarPath('Slider', 'variants', 'states', targetState, 'properties', 'colors', layer, 'step-indicator-color')}, transparent)`,
+            },
+            '& .MuiSlider-markActive': {
+              backgroundColor: `var(${buildComponentCssVarPath('Slider', 'variants', 'states', targetState, 'properties', 'colors', layer, 'step-indicator-color-active')}, transparent)`,
+            },
+
+            ...style,
+          }}
+          {...material}
+          {...props}
+        />
+        {labelsBelowContent}
+      </div>
       {/* Max value display */}
-      {showMinMaxLabels && (
-        <span style={{
-          fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
-          fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
-          fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
-          letterSpacing: minMaxLabelLetterSpacingVar ? `var(${minMaxLabelLetterSpacingVar})` : undefined,
-          lineHeight: minMaxLabelLineHeightVar ? `var(${minMaxLabelLineHeightVar})` : undefined,
-          textDecoration: minMaxLabelTextDecorationVar ? `var(${minMaxLabelTextDecorationVar})` : 'none',
-          textTransform: minMaxLabelTextTransformVar ? `var(${minMaxLabelTextTransformVar})` : 'none',
-          fontStyle: minMaxLabelFontStyleVar ? `var(${minMaxLabelFontStyleVar})` : 'normal',
-          color: `var(${layerTextColorVar})`,
-          opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar})`,
-          flexShrink: 0,
-          marginLeft: '8px',
-        } as React.CSSProperties}>
-          {maxLabel ?? max}
-        </span>
+      {!labelsBelow && (showMinMaxLabels || maxIcon) && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0, marginLeft: '8px' }}>
+          {showMinMaxLabels && (
+            <span style={{
+              fontFamily: minMaxLabelFontFamilyVar ? `var(${minMaxLabelFontFamilyVar})` : undefined,
+              fontSize: minMaxLabelFontSizeVar ? `var(${minMaxLabelFontSizeVar})` : '12px',
+              fontWeight: minMaxLabelFontWeightVar ? `var(${minMaxLabelFontWeightVar})` : undefined,
+              letterSpacing: minMaxLabelLetterSpacingVar ? `var(${minMaxLabelLetterSpacingVar})` : undefined,
+              lineHeight: minMaxLabelLineHeightVar ? `var(${minMaxLabelLineHeightVar})` : undefined,
+              textDecoration: minMaxLabelTextDecorationVar ? `var(${minMaxLabelTextDecorationVar})` : 'none',
+              textTransform: minMaxLabelTextTransformVar ? `var(${minMaxLabelTextTransformVar})` : 'none',
+              fontStyle: minMaxLabelFontStyleVar ? `var(${minMaxLabelFontStyleVar})` : 'normal',
+              color: `var(${layerTextColorVar})`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : `var(${layerTextEmphasisVar})`,
+            } as React.CSSProperties}>
+              {maxLabel ?? max}
+            </span>
+          )}
+          {maxIcon && (
+            <span style={{ 
+              display: 'flex', 
+              fontSize: iconSize ?? `var(${iconSizeVar}, 16px)`,
+              color: `var(${iconColorVar}, var(${layerTextColorVar}))`,
+              opacity: disabled ? `var(${disabledOpacityVar})` : 1
+            }}>
+              {maxIcon}
+            </span>
+          )}
+        </div>
       )}
       {showInput && (
         <>
@@ -331,15 +547,15 @@ export default function Slider({
             min={min}
             max={max}
             step={step}
-            value={singleValue}
+            value={isRange ? value[1] : singleValue}
             onChange={(e) => {
               if (!readOnly) {
                 const newValue = Number(e.target.value)
                 if (!isNaN(newValue)) {
                   const clampedValue = Math.max(min, Math.min(max, newValue))
                   if (isRange) {
-                    onChange([clampedValue, value[1]])
-                    if (onChangeCommitted) onChangeCommitted([clampedValue, value[1]])
+                    onChange([value[0], clampedValue])
+                    if (onChangeCommitted) onChangeCommitted([value[0], clampedValue])
                   } else {
                     onChange(clampedValue)
                     if (onChangeCommitted) onChangeCommitted(clampedValue)
@@ -365,14 +581,46 @@ export default function Slider({
                 }
               }
             }}
-            state={disabled ? 'disabled' : 'default'}
+            state={targetState}
             readOnly={readOnly}
             layer="layer-0"
             disableTopBottomMargin={true}
             className="recursica-slider-number-input"
             style={{
               fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
-            }}
+              [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'background')]: `var(${inputBackgroundVar})`,
+              [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'text')]: `var(${inputTextVar})`,
+              [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'border-color')]: `var(${inputBorderColorVar})`,
+              [buildComponentCssVarPath('TextField', 'variants', 'states', targetState, 'properties', 'border-size')]: `var(${inputBorderSizeVar})`,
+              [getComponentLevelCssVar('TextField', 'border-radius')]: `var(${inputBorderRadiusVar})`,
+            [getComponentLevelCssVar('TextField', 'min-height')]: `var(${inputHeightVar})`,
+            [getComponentLevelCssVar('TextField', 'vertical-padding')]: `var(${inputPaddingVerticalVar})`,
+            [getComponentLevelCssVar('TextField', 'horizontal-padding')]: `var(${inputPaddingLeftVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'font-size')]: `var(${inputTextFontSizeVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'font-family')]: `var(${inputTextFontFamilyVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'font-weight')]: `var(${inputTextFontWeightVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'letter-spacing')]: `var(${inputTextLetterSpacingVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'line-height')]: `var(${inputTextLineHeightVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'text-decoration')]: `var(${inputTextTextDecorationVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'text-transform')]: `var(${inputTextTextTransformVar})`,
+            [getComponentTextCssVar('TextField', 'text', 'font-style')]: `var(${inputTextFontStyleVar})`,
+              [buildComponentCssVarPath('NumberInput', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'background')]: `var(${inputBackgroundVar})`,
+              [buildComponentCssVarPath('NumberInput', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'text')]: `var(${inputTextVar})`,
+              [buildComponentCssVarPath('NumberInput', 'variants', 'states', targetState, 'properties', 'colors', 'layer-0', 'border-color')]: `var(${inputBorderColorVar})`,
+              [buildComponentCssVarPath('NumberInput', 'variants', 'states', targetState, 'properties', 'border-size')]: `var(${inputBorderSizeVar})`,
+              [getComponentLevelCssVar('NumberInput', 'border-radius')]: `var(${inputBorderRadiusVar})`,
+            [getComponentLevelCssVar('NumberInput', 'min-height')]: `var(${inputHeightVar})`,
+            [getComponentLevelCssVar('NumberInput', 'vertical-padding')]: `var(${inputPaddingVerticalVar})`,
+            [getComponentLevelCssVar('NumberInput', 'horizontal-padding')]: `var(${inputPaddingLeftVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'font-size')]: `var(${inputTextFontSizeVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'font-family')]: `var(${inputTextFontFamilyVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'font-weight')]: `var(${inputTextFontWeightVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'letter-spacing')]: `var(${inputTextLetterSpacingVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'line-height')]: `var(${inputTextLineHeightVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'text-decoration')]: `var(${inputTextTextDecorationVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'text-transform')]: `var(${inputTextTextTransformVar})`,
+            [getComponentTextCssVar('NumberInput', 'text', 'font-style')]: `var(${inputTextFontStyleVar})`,
+            } as any}
           />
         </>
       )}
@@ -412,9 +660,15 @@ export default function Slider({
           flex: 1,
           minWidth: 0,
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: 'column',
         }}>
-          {sliderElement}
+          <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+            {sliderElement}
+          </div>
+          {errorText && state === 'error' && (() => {
+            const ErrorIcon = iconNameToReactComponent('warning')
+            return <AssistiveElement text={typeof errorText === 'string' ? errorText : ''} icon={typeof errorText !== 'string' ? errorText : (ErrorIcon ? <ErrorIcon /> : undefined)} variant="error" layer={layer} />
+          })()}
         </div>
       </div>
     )
@@ -425,6 +679,10 @@ export default function Slider({
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', ...style }}>
       {label && <div>{label}</div>}
       {sliderElement}
+      {errorText && state === 'error' && (() => {
+        const ErrorIcon = iconNameToReactComponent('warning')
+        return <AssistiveElement text={typeof errorText === 'string' ? errorText : ''} icon={typeof errorText !== 'string' ? errorText : (ErrorIcon ? <ErrorIcon /> : undefined)} variant="error" layer={layer} />
+      })()}
     </div>
   )
 }

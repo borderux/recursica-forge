@@ -94,7 +94,7 @@ export function brandDimensions(...segments: string[]): string {
 /**
  * `--recursica_brand_themes_{mode}_palettes_{pk}_{level}_{prop}`
  *
- * @param prop - e.g. 'tone', 'on-tone', 'high-emphasis', 'low-emphasis'
+ * @param prop - e.g. 'tone', 'on-tone', 'high-contrast', 'low-contrast'
  */
 export function palette(
   mode: string,
@@ -330,6 +330,12 @@ export function cssVarToRef(value: string): string | null {
     }
 
     let joined = parts.join('.')
+    
+    // Strip theme prefix for brand variables since components are theme-agnostic
+    if (joined.startsWith('brand.themes.light.') || joined.startsWith('brand.themes.dark.')) {
+      joined = joined.replace(/^brand\.themes\.(light|dark)\./, 'brand.')
+    }
+
     // Restore nested JSON structure for layer elements that were flattened in CSS var names
     if (joined.includes('.elements.')) {
       joined = joined.replace(/\.elements\.(text-color|text-warning|text-success|text-alert|interactive-tone|interactive-color|interactive-on-tone|interactive-tone-hover|interactive-on-tone-hover)/, (match, p1) => {
@@ -337,7 +343,8 @@ export function cssVarToRef(value: string): string | null {
         if (p1 === 'text-warning') return '.elements.text.warning'
         if (p1 === 'text-success') return '.elements.text.success'
         if (p1 === 'text-alert') return '.elements.text.alert'
-        if (p1 === 'interactive-tone' || p1 === 'interactive-color') return '.elements.interactive.tone'
+        if (p1 === 'interactive-tone') return '.elements.interactive.tone'
+        if (p1 === 'interactive-color') return '.elements.interactive.color'
         if (p1 === 'interactive-on-tone') return '.elements.interactive.on-tone'
         if (p1 === 'interactive-tone-hover') return '.elements.interactive.tone-hover'
         if (p1 === 'interactive-on-tone-hover') return '.elements.interactive.on-tone-hover'
@@ -355,10 +362,18 @@ export function cssVarToRef(value: string): string | null {
     // correct nested JSON paths. The CSS var builder collapses `core-colors.{key}.{prop}`
     // into `core_{key}-{prop}` (a single segment), which this transform reverses.
     if (joined.includes('.palettes.core-colors.')) {
+      // Strip spurious `.color.` intermediary: core-colors entries (alert, warning, etc.)
+      // have a flat structure — `alert.tone` not `alert.color.tone`. The color picker
+      // can insert `_color_` by treating these the same as regular numbered palette steps
+      // (which do have a `.color.` subgroup). Remove it before further processing.
+      joined = joined.replace(
+        /\.palettes\.core-colors\.([^.]+)\.color\.(tone|on-tone|interactive)$/,
+        '.palettes.core-colors.$1.$2'
+      )
       // interactive-tone and interactive-on-tone (flat structure)
       joined = joined.replace(/\.palettes\.core-colors\.(interactive)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
-      // {colorKey}-tone and {colorKey}-on-tone (alert, warning, success, black, white)
-      joined = joined.replace(/\.palettes\.core-colors\.(alert|warning|success|black|white)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
+      // {colorKey}-tone and {colorKey}-on-tone (alert, warning, success, high-contrast, low-contrast)
+      joined = joined.replace(/\.palettes\.core-colors\.(alert|warning|success|high-contrast|low-contrast)-(on-tone|tone)$/, '.palettes.core-colors.$1.$2')
     }
 
     return `{${joined}}`

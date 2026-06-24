@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react'
-import { Box, Title, Text, Group, Paper, Badge, Table, Code, SegmentedControl } from '@mantine/core'
+import { Box, Title, Text, Group, Paper, Table, Code } from '@mantine/core'
 import { Accordion } from '../../components/adapters/Accordion'
 import type { AccordionItem } from '../../components/adapters/Accordion'
+import { Badge } from '../../components/adapters/Badge'
+import { SegmentedControl } from '../../components/adapters/SegmentedControl'
 
 interface Diff {
   path: string;
@@ -81,7 +83,6 @@ export function RandomizerResults() {
 
   const tokenDiffs = filteredDiffs.filter(d => d.path.startsWith('tokens.'));
   const themeDiffs = filteredDiffs.filter(d => d.path.startsWith('theme.'));
-  const uikitDiffs = filteredDiffs.filter(d => d.path.startsWith('uikit.'));
 
   // Group tokens by category
   const tokenGroupsMap: Record<string, Diff[]> = {};
@@ -94,17 +95,6 @@ export function RandomizerResults() {
       }
       if (!tokenGroupsMap[groupName]) tokenGroupsMap[groupName] = [];
       tokenGroupsMap[groupName].push(d);
-  });
-
-  // Group uikit diffs by component
-  const componentsMap: Record<string, Diff[]> = {};
-  uikitDiffs.forEach(d => {
-      const parts = d.path.split('.');
-      if (parts.length > 2 && parts[0] === 'uikit' && parts[1] === 'components') {
-          const compName = parts[2];
-          if (!componentsMap[compName]) componentsMap[compName] = [];
-          componentsMap[compName].push(d);
-      }
   });
 
   // Group theme diffs dynamically by section
@@ -141,8 +131,8 @@ export function RandomizerResults() {
       }
   });
   
-  // Sort diffs alphabetally
-  [tokenGroupsMap, componentsMap, themeGroupsMap].forEach(map => {
+  // Sort diffs alphabetically
+  [tokenGroupsMap, themeGroupsMap].forEach(map => {
       Object.keys(map).forEach(key => map[key].sort((a, b) => a.path.localeCompare(b.path)));
   });
 
@@ -158,7 +148,6 @@ export function RandomizerResults() {
         }
     }
     if (clean.startsWith('tokens.')) return clean.replace('tokens.', '');
-    if (clean.startsWith('uikit.components.')) return clean.replace('uikit.components.', '');
     return clean;
   };
 
@@ -188,7 +177,7 @@ export function RandomizerResults() {
                 {!isUnchanged ? (
                   afterFormatted
                 ) : (
-                  <Badge color="yellow" variant="light">Unchanged</Badge>
+                  <Badge variant="warning">Unchanged</Badge>
                 )}
               </Table.Td>
             </Table.Tr>
@@ -211,7 +200,7 @@ export function RandomizerResults() {
         title: (
           <Group>
             <Text>Tokens: {groupName.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</Text>
-            <Badge color={changed === diffs.length ? "green" : "orange"}>
+            <Badge variant={changed === diffs.length ? "success" : "alert"}>
               {changed} / {diffs.length} randomized
             </Badge>
           </Group>
@@ -229,25 +218,7 @@ export function RandomizerResults() {
         title: (
           <Group>
             <Text>Theme: {groupName}</Text>
-            <Badge color={changed === diffs.length ? "green" : "orange"}>
-              {changed} / {diffs.length} randomized
-            </Badge>
-          </Group>
-        ),
-        content: renderDiffTable(diffs),
-      });
-    });
-
-    // Component groups
-    Object.keys(componentsMap).forEach(compName => {
-      const diffs = componentsMap[compName];
-      const changed = getChangedCount(diffs);
-      items.push({
-        id: compName,
-        title: (
-          <Group>
-            <Text>Component: {compName.charAt(0).toUpperCase() + compName.slice(1)}</Text>
-            <Badge color={changed === diffs.length ? "green" : "orange"}>
+            <Badge variant={changed === diffs.length ? "success" : "alert"}>
               {changed} / {diffs.length} randomized
             </Badge>
           </Group>
@@ -257,7 +228,7 @@ export function RandomizerResults() {
     });
 
     return items;
-  }, [tokenGroupsMap, themeGroupsMap, componentsMap, filterMode]);
+  }, [tokenGroupsMap, themeGroupsMap, filterMode]);
 
   const totalChanged = filteredDiffs.filter(d => !isDiffUnchanged(d)).length;
 
@@ -268,7 +239,7 @@ export function RandomizerResults() {
         <SegmentedControl
           value={filterMode}
           onChange={setFilterMode}
-          data={[
+          items={[
             { label: 'All', value: 'all' },
             { label: 'Light', value: 'light' },
             { label: 'Dark', value: 'dark' },

@@ -126,21 +126,6 @@
         }
       }
     },
-    "header-hover": {
-      "icon": "cursor-click",
-      "label": "Header hover",
-      "visible": true,
-      "group": {
-        "hover-color": {
-          "label": "Color",
-          "visible": true
-        },
-        "hover-opacity": {
-          "label": "Opacity",
-          "visible": true
-        }
-      }
-    },
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",
@@ -152,6 +137,21 @@
         },
         "elevation-content": {
           "label": "Content",
+          "visible": true
+        }
+      }
+    },
+    "hover-color": {
+      "icon": "cursor",
+      "label": "Hover",
+      "visible": true,
+      "group": {
+        "hover-color": {
+          "label": "Color",
+          "visible": true
+        },
+        "hover-opacity": {
+          "label": "Opacity",
           "visible": true
         }
       }

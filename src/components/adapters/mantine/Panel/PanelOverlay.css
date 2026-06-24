@@ -82,7 +82,7 @@ html[data-theme-mode="dark"] .panel-overlay-backdrop {
     position: fixed;
     top: 0;
     bottom: 0;
-    width: 400px;
+    width: fit-content;
     z-index: 10000;
     pointer-events: auto;
 }

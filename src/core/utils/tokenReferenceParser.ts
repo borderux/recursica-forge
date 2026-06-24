@@ -362,7 +362,7 @@ export function resolveTokenReferenceToCssVar(
 
     // Palette core-colors references: palettes.core-colors.alert
     // Also handle normalized form: palettes.core.alert (stale refs)
-    const paletteCoreColorsMatch = /^palettes?\.core(?:-colors)?\.(alert|warning|success|interactive|black|white)$/i.exec(pathParts.join('.'))
+    const paletteCoreColorsMatch = /^palettes?\.core(?:-colors)?\.(alert|warning|success|interactive|high-contrast|low-contrast)$/i.exec(pathParts.join('.'))
     if (paletteCoreColorsMatch) {
       const [, coreColor] = paletteCoreColorsMatch
       return `var(${paletteCore(mode, coreColor)})`
@@ -399,7 +399,7 @@ export function resolveTokenReferenceToCssVar(
     }
 
     // Palette black/white shortcuts: palettes.black or palettes.white
-    const paletteBWMatch = /^palettes?\.(black|white)$/i.exec(pathParts.join('.'))
+    const paletteBWMatch = /^palettes?\.(high-contrast|low-contrast)$/i.exec(pathParts.join('.'))
     if (paletteBWMatch) {
       const [, color] = paletteBWMatch
       return `var(${paletteCore(mode, color)})`

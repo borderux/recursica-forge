@@ -42,6 +42,8 @@ import {
 import { CreateVariantModal } from './modals/CreateVariantModal'
 import { DeleteVariantModal } from './modals/DeleteVariantModal'
 import { Modal } from '../../components/adapters/Modal'
+import { RadioButtonGroup } from '../../components/adapters/RadioButtonGroup'
+import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
 
 export interface ComponentToolbarProps {
   componentName: ComponentName
@@ -83,6 +85,7 @@ export default function ComponentToolbar({
   const [createVariantModalOpen, setCreateVariantModalOpen] = useState(false)
   const [deleteVariantModalOpen, setDeleteVariantModalOpen] = useState(false)
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false)
+  const [resetTarget, setResetTarget] = useState<'imported' | 'original'>('imported')
   const [createVariantAxis, setCreateVariantAxis] = useState<string>('')
   const [createVariantExistingNames, setCreateVariantExistingNames] = useState<string[]>([])
 
@@ -108,14 +111,14 @@ export default function ComponentToolbar({
 
   // Use the static import for base structure so color edits (setUiKitSilent, same object
   // reference) do not re-run this memo and interrupt in-progress prop control interactions.
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const structure = useMemo(() => parseComponentStructure(componentName), [componentName, mode])
 
   // A separate parse from the LIVE store gives us props for custom variants only.
   // Keyed on liveUikitVariantSignature so it only recomputes when variants change.
   const liveStructure = useMemo(
     () => parseComponentStructure(componentName, getVarsStore().getState().uikit),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [componentName, liveUikitVariantSignature]
+    [componentName, liveUikitVariantSignature, mode]
   )
 
   // Get toolbar config to preserve order
@@ -387,9 +390,16 @@ export default function ComponentToolbar({
           // Also add any props from the group config that might not have been found yet
           for (const [groupedPropName] of Object.entries(parentPropConfig.group)) {
             const groupedPropKey = groupedPropName.toLowerCase()
-            // Check if we need to update the cached prop (if layer changed, variant changed, or prop doesn't exist)
             const cachedProp = groupedProps.get(groupedPropKey)
-            const needsUpdate = !cachedProp ||
+            // Check if we need to update the cached prop (if layer changed, variant changed, or prop doesn't exist)
+            // Special case: Button border-radius props live under content.{cv}.variants.sizes.{size} — the structure parser
+            // assigns variantProp='size' to them (because it sees the nested 'sizes' category), so needsUpdate
+            // never fires on a content variant switch. Force re-entry whenever the cached prop isn't 'content'-typed.
+            const isButtonBorderRadiusCacheMiss =
+              componentName.toLowerCase() === 'button' &&
+              groupedPropKey === 'border-radius' &&
+              cachedProp?.variantProp !== 'content'
+            const needsUpdate = isButtonBorderRadiusCacheMiss || !cachedProp ||
               (cachedProp.path.some(part => part.startsWith('layer-')) &&
                 !cachedProp.path.includes(selectedLayer)) ||
               (cachedProp.isVariantSpecific && cachedProp.variantProp &&
@@ -397,9 +407,15 @@ export default function ComponentToolbar({
                 !pathMatchesVariant(cachedProp.path, cachedProp.variantProp, selectedVariants[cachedProp.variantProp])) ||
               // Cross-check ALL variant dimensions against the cached prop's path
               // (e.g., when style changes from 'text' to 'image', a cached 'text.solid.border-size'
-              //  with variantProp='style-secondary' must be invalidated because the 'style' dimension changed)
+              //  with variantProp='types' must be invalidated because the 'style' dimension changed)
               (cachedProp?.isVariantSpecific && Object.entries(selectedVariants).some(([variantProp, variantValue]) => {
                 if (!variantValue || variantProp === cachedProp.variantProp) return false
+                // Only cross-invalidate if the prop's path actually traverses this variant category.
+                // (e.g., a Tabs border-size at variants.styles.default.… has variantProp='style';
+                //  changing orientation to 'vertical' must NOT invalidate it, because border-size
+                //  lives entirely within the styles axis and has no orientation segment.)
+                const categoryKey = VARIANT_PROP_TO_CATEGORY[variantProp] || variantProp + 's'
+                if (!cachedProp.path.includes(categoryKey)) return false
                 return !pathMatchesVariant(cachedProp.path, variantProp, variantValue)
               }))
 
@@ -407,7 +423,7 @@ export default function ComponentToolbar({
               // For nested property groups like "container", "selected", "selected-item", and "unselected-item", match props by name AND path
               // Check if the parent prop name is in the path (e.g., "container", "selected", "selected-item", or "unselected-item")
               const parentPropNameLower = parentPropName.toLowerCase()
-              const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'unselected' || parentPropNameLower === 'active' || parentPropNameLower === 'inactive' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item' || parentPropNameLower === 'thumb-selected' || parentPropNameLower === 'thumb-unselected' || parentPropNameLower === 'track-selected' || parentPropNameLower === 'track-unselected'
+              const isNestedPropertyGroup = parentPropNameLower === 'container' || parentPropNameLower === 'selected' || parentPropNameLower === 'unselected' || parentPropNameLower === 'active' || parentPropNameLower === 'inactive' || parentPropNameLower === 'selected-item' || parentPropNameLower === 'unselected-item' || parentPropNameLower === 'thumb-selected' || parentPropNameLower === 'thumb-unselected' || parentPropNameLower === 'track-selected' || parentPropNameLower === 'track-unselected' || parentPropNameLower === 'padding'
 
 
               let groupedProp = liveStructure.props.find(p => {
@@ -434,11 +450,11 @@ export default function ComponentToolbar({
               })
 
 
-              // Special case: placeholder-opacity is a component-level property, not a variant-level color
-              // It's in the "colors" group but doesn't have "colors" in its path
-              if (!groupedProp && groupedPropKey === 'placeholder-opacity') {
+              // Special case: placeholder-opacity / optional-text-opacity are component-level properties,
+              // not variant-level colors — they live directly under properties, not inside colors.{layer}
+              if (!groupedProp && (groupedPropKey === 'placeholder-opacity' || groupedPropKey === 'optional-text-opacity')) {
                 groupedProp = liveStructure.props.find(p => {
-                  const nameMatches = p.name.toLowerCase() === 'placeholder-opacity'
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
                   // Must be component-level (not variant-specific)
                   const isComponentLevel = !p.isVariantSpecific
                   return nameMatches && isComponentLevel
@@ -454,13 +470,14 @@ export default function ComponentToolbar({
                 })
               }
 
-              // Special case: tab-content-alignment is a component-level property for Tabs
-              // It's in the "spacing" group but doesn't have "spacing" in its path
+              // Special case: tab-content-alignment is now orientation-specific for Tabs
+              // It lives under variants.orientation.{orientation}.properties
               if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
                 groupedProp = liveStructure.props.find(p => {
                   const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
-                  const isComponentLevel = !p.isVariantSpecific
-                  return nameMatches && isComponentLevel
+                  const orientationMatches = !selectedVariants.orientation ||
+                    pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
+                  return nameMatches && orientationMatches
                 })
               }
               // tabs-content-gap is under both style and orientation; match by both
@@ -470,6 +487,15 @@ export default function ComponentToolbar({
                   const styleMatches = !selectedVariants.style || pathMatchesVariant(p.path, 'style', selectedVariants.style)
                   const orientationMatches = !selectedVariants.orientation || pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
                   return nameMatches && styleMatches && orientationMatches
+                })
+              }
+              // hover-color and hover-opacity are style-variant-specific for Tabs
+              // (they live under variants.styles.{style}.properties, not under a 'hover' path segment)
+              if (!groupedProp && (groupedPropKey === 'hover-color' || groupedPropKey === 'hover-opacity') && componentName.toLowerCase() === 'tabs') {
+                groupedProp = liveStructure.props.find(p => {
+                  const nameMatches = p.name.toLowerCase() === groupedPropKey
+                  const styleMatches = !selectedVariants.style || pathMatchesVariant(p.path, 'style', selectedVariants.style)
+                  return nameMatches && styleMatches
                 })
               }
 
@@ -605,8 +631,9 @@ export default function ComponentToolbar({
               }
 
 
-              // Special handling: if parent prop is "spacing", "dimensions", or "layout", collect props from all layout variants
-              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'dimensions' || parentPropName.toLowerCase() === 'layout')) {
+              // Special handling: if parent prop is "spacing", "dimensions", "layout", or "tabs",
+              // collect props from all layout/orientation variants or fall back to component-level.
+              if (!groupedProp && (parentPropName.toLowerCase() === 'spacing' || parentPropName.toLowerCase() === 'dimensions' || parentPropName.toLowerCase() === 'layout' || parentPropName.toLowerCase() === 'tabs')) {
                 // Find props that match the name and are variant-specific for layout
                 const layoutProps = liveStructure.props.filter(p =>
                   p.name.toLowerCase() === groupedPropKey &&
@@ -617,10 +644,17 @@ export default function ComponentToolbar({
                 if (layoutProps.length > 0) {
                   groupedProp = layoutProps[0]
                 }
+                // Fallback: also find component-level (non-variant-specific) dimension props in the spacing group
+                // e.g., vertical-element-gap, padding, item-gap which live directly under properties
+                if (!groupedProp) {
+                  groupedProp = liveStructure.props.find(p =>
+                    p.name.toLowerCase() === groupedPropKey &&
+                    !p.isVariantSpecific
+                  )
+                }
               }
 
               // Button: horizontal-padding is owned by the content variant (content × size)
-              // Build a virtual prop that points to the correct CSS variable for the selected content and size
               if (!groupedProp && componentName.toLowerCase() === 'button' && groupedPropKey === 'horizontal-padding') {
                 const contentVariant = selectedVariants.content || 'label'
                 const sizeVariant = selectedVariants.size || 'default'
@@ -628,8 +662,38 @@ export default function ComponentToolbar({
                   name: 'horizontal-padding',
                   category: 'size',
                   type: 'dimension',
-                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'horizontal-padding'),
-                  path: ['variants', 'content', contentVariant, 'sizes', sizeVariant, 'properties', 'horizontal-padding'],
+                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'horizontal-padding'),
+                  path: ['variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'horizontal-padding'],
+                  isVariantSpecific: true,
+                  variantProp: 'content',
+                }
+              }
+              // Button: border-radius is owned by the content variant (content × size).
+              // The structure parser assigns variantProp='size' to these tokens (nested sizes within content.{cv}),
+              // so we unconditionally override with a correctly-typed virtual prop — no !groupedProp guard.
+              if (componentName.toLowerCase() === 'button' && groupedPropKey === 'border-radius') {
+                const contentVariant = selectedVariants.content || 'label'
+                const sizeVariant = selectedVariants.size || 'default'
+                groupedProp = {
+                  name: 'border-radius',
+                  category: 'size',
+                  type: 'dimension',
+                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'border-radius'),
+                  path: ['variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'border-radius'],
+                  isVariantSpecific: true,
+                  variantProp: 'content',
+                }
+              }
+              // Button: min-width is owned by the content variant (content × size)
+              if (!groupedProp && componentName.toLowerCase() === 'button' && groupedPropKey === 'min-width') {
+                const contentVariant = selectedVariants.content || 'label'
+                const sizeVariant = selectedVariants.size || 'default'
+                groupedProp = {
+                  name: 'min-width',
+                  category: 'size',
+                  type: 'dimension',
+                  cssVar: buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'min-width'),
+                  path: ['variants', 'content', contentVariant, 'variants', 'sizes', sizeVariant, 'properties', 'min-width'],
                   isVariantSpecific: true,
                   variantProp: 'content',
                 }
@@ -718,7 +782,7 @@ export default function ComponentToolbar({
         }
 
         // Check if this is a text-group prop that exists in recursica_ui-kit.json but wasn't parsed
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text']
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'step-number-text', 'selected-text', 'unselected-text', 'text-style', 'sorted-text-style', 'unsorted-text-style']
         if (textPropertyGroupNames.includes(propNameLower)) {
           // Try to find it in liveStructure.props - it should have been parsed
           const structureProp = liveStructure.props.find(p => p.name.toLowerCase() === propNameLower && p.type === 'text-group')
@@ -800,6 +864,70 @@ export default function ComponentToolbar({
           seenProps.add(propNameLower)
         }
 
+        // Create virtual props for switch-group top-bottom-margin (stacked and side-by-side)
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'stacked-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'stacked-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'stacked', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'sbs-top-bottom-margin') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-top-bottom-margin',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'top-bottom-margin'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        
+        // Add virtual props for other switch-group layout spacing properties
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'stacked-label-field-gap') {
+          const virtualProp: ComponentProp = {
+            name: 'stacked-label-field-gap',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'stacked', 'properties', 'label-field-gap'),
+            path: ['variants', 'layouts', 'stacked', 'properties', 'label-field-gap'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'sbs-gutter') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-gutter',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'gutter'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'gutter'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+        if (componentName.toLowerCase().replace(/\s+/g, '-') === 'switch-group' && propNameLower === 'sbs-vertical-padding') {
+          const virtualProp: ComponentProp = {
+            name: 'sbs-vertical-padding',
+            category: 'size',
+            type: 'dimension',
+            cssVar: buildComponentCssVarPath('SwitchGroup', 'variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding'),
+            path: ['variants', 'layouts', 'side-by-side', 'properties', 'vertical-padding'],
+            isVariantSpecific: false,
+          }
+          propsMap.set(propNameLower, virtualProp)
+          seenProps.add(propNameLower)
+        }
+
         // Create virtual props for Pagination variant/size configuration
         if (componentName.toLowerCase() === 'pagination') {
           // New structure: active-pages/{style,size}, inactive-pages/{style,size}, navigation-controls/{style,size}
@@ -847,7 +975,7 @@ export default function ComponentToolbar({
         }
 
         // Check if this prop belongs to the selected variant
-        // For nested variants (like Avatar's style and style-secondary), we need to check all variant levels
+        // For nested variants, check all variant levels are represented in the path
         const variantInPath = pathMatchesVariant(prop.path, prop.variantProp, selectedVariant)
 
         if (!variantInPath) {
@@ -870,42 +998,6 @@ export default function ComponentToolbar({
               // Size props should only match size variants
               const sizeVariant = selectedVariants['size']
               if (sizeVariant && !prop.path.includes(sizeVariant)) {
-                return false
-              }
-            } else if (prop.category === 'colors' && (prop.variantProp === 'style' || prop.variantProp === 'style-secondary')) {
-              // Color props with style variant should match both style and style-secondary if selected
-              const styleVariant = selectedVariants['style']
-              const styleSecondary = selectedVariants['style-secondary']
-
-              // Always check that the first-level variant (style) is in the path
-              if (styleVariant && !prop.path.includes(styleVariant)) {
-                return false
-              }
-
-              // If style-secondary is selected and the style is text or icon, check for secondary variant
-              // This applies to both style and style-secondary props (nested props need both levels)
-              if (styleSecondary && (styleVariant === 'text' || styleVariant === 'icon')) {
-                if (!prop.path.includes(styleSecondary)) {
-                  return false
-                }
-              }
-            }
-          }
-        } else {
-          // Primary variant is in path, but for nested variants we may need to check secondary
-          // For Avatar: if style="text" and style-secondary="solid", ensure both are in path
-          if ((prop.variantProp === 'style' || prop.variantProp === 'style-secondary') && prop.category === 'colors') {
-            const styleSecondary = selectedVariants['style-secondary']
-            const styleVariant = selectedVariants['style']
-
-            // For nested props (style-secondary), also check that the first-level variant is in path
-            if (prop.variantProp === 'style-secondary' && styleVariant && !prop.path.includes(styleVariant)) {
-              return false
-            }
-
-            // If style-secondary is selected and style is text or icon, both must be in path
-            if (styleSecondary && (styleVariant === 'text' || styleVariant === 'icon')) {
-              if (!prop.path.includes(styleSecondary)) {
                 return false
               }
             }
@@ -968,7 +1060,7 @@ export default function ComponentToolbar({
     })
   }, [liveStructure.props, componentName, selectedVariants, selectedLayer, toolbarConfig, liveUikitVariantSignature])
 
-  const handleReset = () => {
+  const handleReset = (target: 'imported' | 'original' = 'original') => {
     let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
     // Normalize display names that differ from recursica_ui-kit.json keys
     if (componentKey === 'checkbox-group-item') componentKey = 'checkbox-item'
@@ -976,15 +1068,10 @@ export default function ComponentToolbar({
     if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
 
     // Helper: check if a CSS var belongs to exactly this component (not a sub-component).
-    // CSS vars can have two formats:
-    //   Themed:     --recursica_ui-kit_themes_light_components_button_variants_...
-    //   Non-themed: --recursica_ui-kit_components_button_variants_...
-    // Both use underscores as segment separators.
     const isExactComponentVar = (cssVar: string) => {
       const marker = `_components_${componentKey}_`
       const idx = cssVar.indexOf(marker)
       if (idx === -1) return false
-      // Check what follows the component key to ensure it's not a sub-component
       const afterKey = cssVar.substring(idx + marker.length)
       const subComponentSuffixes = getSubComponentSuffixes(componentKey)
       for (const suffix of subComponentSuffixes) {
@@ -993,85 +1080,51 @@ export default function ComponentToolbar({
       return true
     }
 
-    // 1. Remove ALL overrides for this component from the document element
-    // This handles all modes, layers, and states by looking for the component key in the variable name
+    // 1. Remove ALL inline overrides for this component from the document element
     if (typeof document !== 'undefined') {
       const style = document.documentElement.style
       const propsToRemove: string[] = []
-
       for (let i = 0; i < style.length; i++) {
         const prop = style[i]
         if (isExactComponentVar(prop)) {
           propsToRemove.push(prop)
         }
       }
-
       propsToRemove.forEach(prop => style.removeProperty(prop))
     }
 
-    // 2. Build default values from the PRISTINE uikit (deep-cloned at init, never mutated).
-    // Using uikitJson directly would include any in-place mutations made by updateUIKitValue
-    // (custom variants, color changes), causing reset to restore a modified state.
-    const pristineUikit = getVarsStore().getPristineUikit()
-    const lightUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, pristineUikit, 'light')
-    const darkUIKitVars = buildUIKitVars(tokensJson as any, brandJson as any, pristineUikit, 'dark')
-
-    const componentDefaults: Record<string, string> = {}
-
-    // Filter to only this component's variables from both modes
-    const filterAndAdd = (allVars: Record<string, string>, currentMode: 'light' | 'dark') => {
-      Object.entries(allVars).forEach(([cssVar, value]) => {
-        if (isExactComponentVar(cssVar)) {
-          componentDefaults[cssVar] = value
-        }
-        // For checkbox-item, also include base checkbox component vars
-        if (componentKey === 'checkbox-item' && cssVar.includes('-components-checkbox-')) {
-          componentDefaults[cssVar] = value
-        }
-        // For radio-button-item, also include base radio-button component vars
-        if (componentKey === 'radio-button-item' && cssVar.includes('-components-radio-button-')) {
-          componentDefaults[cssVar] = value
-        }
-      })
+    // 2. Overwrite the component in the UIKit state with the base version
+    const store = getVarsStore()
+    const sourceUikit = target === 'imported' ? store.getImportedUikit() : store.getPristineUikit()
+    
+    // Deep clone the current state to modify it
+    const currentState = store.getState().uikit
+    const updatedUikit = JSON.parse(JSON.stringify(currentState))
+    
+    // Get the base component data
+    const baseComponents = sourceUikit?.['ui-kit']?.components || sourceUikit?.components || {}
+    const baseComponentData = baseComponents[componentKey]
+    
+    // Overwrite the component data in the state
+    if (updatedUikit?.['ui-kit']?.components) {
+      if (baseComponentData) {
+        updatedUikit['ui-kit'].components[componentKey] = JSON.parse(JSON.stringify(baseComponentData))
+      } else {
+        delete updatedUikit['ui-kit'].components[componentKey]
+      }
+    } else if (updatedUikit?.components) {
+      if (baseComponentData) {
+        updatedUikit.components[componentKey] = JSON.parse(JSON.stringify(baseComponentData))
+      } else {
+        delete updatedUikit.components[componentKey]
+      }
     }
 
-    filterAndAdd(lightUIKitVars, 'light')
-    filterAndAdd(darkUIKitVars, 'dark')
-
-    // 3. Restore defaults from the pristine JSON by setting them as explicit overrides
-    Object.entries(componentDefaults).forEach(([cssVar, value]) => {
-      updateCssVar(cssVar, value, tokensJson as any)
-    })
-
-    // 4. Re-apply CSS vars for any CUSTOM VARIANTS that exist in the current live uikit
-    // but not in the pristine uikit. Step 1 removed all component CSS vars from the DOM;
-    // Step 2-3 only restores original variants. Without this step, custom variant controls
-    // would show null swatches. Custom variants keep their current JSON-defined color values.
-    const currentUiKit = getVarsStore().getState().uikit
-    const lightCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'light')
-    const darkCurrentVars = buildUIKitVars(tokensJson as any, brandJson as any, currentUiKit, 'dark')
-    const pristineVarKeys = new Set(Object.keys(componentDefaults))
-
-    const customVariantDefaults: Record<string, string> = {}
-    const addCustom = (allVars: Record<string, string>) => {
-      Object.entries(allVars).forEach(([cssVar, value]) => {
-        if (isExactComponentVar(cssVar) && !pristineVarKeys.has(cssVar)) {
-          customVariantDefaults[cssVar] = value
-        }
-      })
-    }
-    addCustom(lightCurrentVars)
-    addCustom(darkCurrentVars)
-
-    Object.entries(customVariantDefaults).forEach(([cssVar, value]) => {
-      updateCssVar(cssVar, value, tokensJson as any)
-    })
+    // 3. Save the state and trigger a full CSS recompute
+    store.setUiKit(updatedUikit)
 
     // Force a re-render and notification of reset
     window.dispatchEvent(new CustomEvent('cssVarsReset'))
-    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-      detail: { cssVars: [...Object.keys(componentDefaults), ...Object.keys(customVariantDefaults)] }
-    }))
   }
 
 
@@ -1294,14 +1347,21 @@ export default function ComponentToolbar({
       {/* Reset + Delete Variant Buttons */}
       <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderTop: `1px solid var(${layerProperty(mode, 0, 'border-color')})`, display: 'flex', flexDirection: 'row', gap: 'var(--recursica_brand_dimensions_gutters_horizontal)' }}>
         <Button
-          onClick={() => setResetConfirmOpen(true)}
+          onClick={() => {
+            if (getVarsStore().hasUserImportedFiles()) {
+              setResetTarget('imported')
+              setResetConfirmOpen(true)
+            } else {
+              handleReset('original')
+            }
+          }}
           variant="outline"
           size="small"
           layer="layer-0"
           style={{ flex: 1 }}
           icon={(() => {
-            const ResetIcon = iconNameToReactComponent('arrow-path')
-            return ResetIcon ? <ResetIcon style={{ width: 14, height: 14 }} /> : undefined
+            const UndoIcon = iconNameToReactComponent('arrow-uturn-left')
+            return UndoIcon ? <UndoIcon style={{ width: 14, height: 14 }} /> : undefined
           })()}
         >
           Reset
@@ -1374,25 +1434,41 @@ export default function ComponentToolbar({
         customVariants={customVariants}
       />
 
-      {/* Reset Confirmation Modal */}
+      {/* Reset Confirmation Modal — only shown when user has imported files */}
       <Modal
         isOpen={resetConfirmOpen}
         onClose={() => setResetConfirmOpen(false)}
-        title="Reset component"
+        title={`Reset ${componentName}`}
         size="sm"
         layer="layer-1"
         primaryActionLabel="Reset"
         onPrimaryAction={() => {
           setResetConfirmOpen(false)
-          handleReset()
+          handleReset(resetTarget)
         }}
         secondaryActionLabel="Cancel"
         onSecondaryAction={() => setResetConfirmOpen(false)}
-      >
-        <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-small-font-size)', opacity: 0.75 }}>
-          All customisations for {componentName} will be reset to their default token values.
-        </p>
-      </Modal>
+        content={
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <p style={{ margin: 0, fontSize: 'var(--recursica_brand_typography_body-font-size)' }}>
+              Are you sure you want to reset your changes?
+            </p>
+            <RadioButtonGroup label="Version" required>
+              <RadioButtonItem
+                selected={resetTarget === 'imported'}
+                onChange={() => setResetTarget('imported')}
+                label="Reset to last imported version"
+              />
+              <RadioButtonItem
+                selected={resetTarget === 'original'}
+                onChange={() => setResetTarget('original')}
+                label="Reset to Forge defaults"
+              />
+            </RadioButtonGroup>
+          </div>
+        }
+      />
+
     </div>
   )
 }

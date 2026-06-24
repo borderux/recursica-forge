@@ -10,6 +10,7 @@ import { VarsProvider } from './modules/vars/VarsContext'
 import { UnifiedThemeProvider } from './components/providers/UnifiedThemeProvider'
 import { ComplianceProvider } from './core/compliance/ComplianceContext'
 import { GlobalRefModalProvider } from './modules/toolbar/modals/GlobalRefModalProvider'
+import { OnToneModalProvider } from './modules/toolbar/modals/OnToneModalProvider'
 import './styles/index.css'
 import './styles/theme.css.ts'
 import { bootstrapTheme } from './core/bootstrap'
@@ -26,9 +27,7 @@ const ElevationsPage = React.lazy(() => import('./modules/elevation/ElevationsPa
 const ThemePage = React.lazy(() => import('./modules/theme/ThemePage'))
 const DimensionsPage = React.lazy(() => import('./modules/dimensions/DimensionsPage'))
 const CompliancePage = React.lazy(() => import('./modules/compliance/CompliancePage'))
-const RoundTripPage = import.meta.env.DEV
-  ? React.lazy(() => import('./core/dev/RoundTripPage').then((m) => ({ default: m.RoundTripPage })))
-  : null
+
 const RandomizerResultsPage = import.meta.env.DEV
   ? React.lazy(() => import('./modules/dev/RandomizerResults').then((m) => ({ default: m.RandomizerResults })))
   : null
@@ -60,6 +59,12 @@ if (typeof window !== 'undefined') {
       event.reason?.message?.includes('asynchronous response')) {
       event.preventDefault()
     }
+  })
+
+  // Handle Vite chunk load errors gracefully (e.g. after a new deploy)
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault()
+    window.location.reload()
   })
 }
 
@@ -107,9 +112,7 @@ const router = createBrowserRouter([
       },
       { path: '/random', element: <Navigate to="/tokens" state={{ showRandom: true }} replace /> },
       { path: '*', element: <NotFoundPage /> },
-      ...(import.meta.env.DEV && RoundTripPage
-        ? [{ path: '/dev/diff', element: <React.Suspense fallback={null}><RoundTripPage /></React.Suspense> }]
-        : []),
+
       ...(import.meta.env.DEV && RandomizerResultsPage
         ? [{ path: '/dev/random', element: <React.Suspense fallback={null}><RandomizerResultsPage /></React.Suspense> }]
         : []),
@@ -134,7 +137,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <ComplianceProvider>
             <UnifiedThemeProvider>
               <GlobalRefModalProvider />
-              <RouterProvider router={router} />
+              <OnToneModalProvider />
+              <RouterProvider router={router} future={{ v7_startTransition: true }} />
             </UnifiedThemeProvider>
           </ComplianceProvider>
         </VarsProvider>

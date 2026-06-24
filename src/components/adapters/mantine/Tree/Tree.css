@@ -1,0 +1,123 @@
+/* Mantine Tree overrides */
+
+.recursica-tree.mantine-tree {
+  max-width: var(--tree-max-width);
+}
+
+.recursica-tree.mantine-tree .mantine-Tree-root {
+  /* add any root overrides here */
+}
+
+.recursica-tree-node {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+  padding-left: calc(var(--tree-node-level, 0) * var(--tree-indent, 16px)) !important;
+  padding-inline-start: calc(var(--tree-node-level, 0) * var(--tree-indent, 16px)) !important;
+  cursor: pointer;
+  gap: var(--tree-button-node-gap, 8px);
+  user-select: none;
+  position: relative;
+  background-color: transparent;
+  margin-bottom: var(--tree-item-gap, 4px);
+}
+
+.recursica-tree-label {
+  padding: var(--tree-vertical-padding, 6px) var(--tree-horizontal-padding, 12px);
+  border-radius: var(--tree-border-radius, var(--recursica_brand_dimensions_border-radii_default));
+  transition: background-color 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+  opacity: var(--recursica_brand_layers_layer-0_text_low-emphasis);
+  font-family: var(--tree-unselected-font-family, var(--recursica_brand_typography_body-font-family));
+  font-size: var(--tree-unselected-font-size, var(--recursica_brand_typography_body-font-size));
+  font-weight: var(--tree-unselected-font-weight, var(--recursica_brand_typography_body-font-weight));
+  letter-spacing: var(--tree-unselected-letter-spacing, var(--recursica_brand_typography_body-font-letter-spacing));
+  line-height: var(--tree-unselected-line-height, var(--recursica_brand_typography_body-line-height));
+  text-decoration: var(--tree-unselected-text-decoration, none);
+  text-transform: var(--tree-unselected-text-transform, none);
+  font-style: var(--tree-unselected-font-style, normal);
+  color: var(--tree-unselected-text, var(--recursica_brand_layers_layer-0_text_color));
+  border: var(--tree-border-size, 0px) solid transparent;
+}
+
+.recursica-tree-label:hover {
+  background-color: var(--tree-hover-bg);
+  color: var(--tree-hover-text, var(--tree-unselected-text));
+  opacity: var(--recursica_brand_layers_layer-0_text_high-emphasis);
+  border: var(--tree-border-size, 0px) solid var(--tree-hover-border-color, transparent);
+}
+
+.recursica-tree-node.selected .recursica-tree-label {
+  background-color: var(--tree-selected-bg, transparent);
+  color: var(--tree-selected-text, var(--recursica_brand_layers_layer-0_text_color));
+  font-family: var(--tree-selected-font-family, var(--recursica_brand_typography_body-font-family));
+  font-size: var(--tree-selected-font-size, var(--recursica_brand_typography_body-font-size));
+  font-weight: var(--tree-selected-font-weight, 600);
+  letter-spacing: var(--tree-selected-letter-spacing, var(--recursica_brand_typography_body-font-letter-spacing));
+  line-height: var(--tree-selected-line-height, var(--recursica_brand_typography_body-line-height));
+  text-decoration: var(--tree-selected-text-decoration, none);
+  text-transform: var(--tree-selected-text-transform, none);
+  font-style: var(--tree-selected-font-style, normal);
+  opacity: var(--recursica_brand_layers_layer-0_text_high-emphasis);
+  border: var(--tree-border-size, 0px) solid var(--tree-selected-border-color, transparent);
+}
+
+.recursica-tree-active-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--recursica_brand_palettes_core_interactive_tone);
+  border-radius: 0 2px 2px 0;
+}
+
+.recursica-tree-chevron {
+  transition: transform 150ms ease;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: var(--recursica_brand_layers_layer-0_text_low-emphasis);
+  flex-shrink: 0;
+}
+
+/* Override any button component styles when used as a chevron icon */
+.recursica-tree-chevron button,
+.recursica-tree-chevron .mantine-Button-root {
+  padding: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin: 0 !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background-color: transparent !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: inherit !important;
+}
+
+.recursica-tree-chevron button:hover,
+.recursica-tree-chevron .mantine-Button-root:hover {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
+.recursica-tree-chevron .mantine-Button-label,
+.recursica-tree-chevron button * {
+  padding: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}

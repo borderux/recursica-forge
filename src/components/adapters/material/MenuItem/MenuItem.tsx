@@ -4,10 +4,10 @@
  * Material UI-specific MenuItem component that uses CSS variables for theming.
  */
 
+import React, { useState, useEffect } from 'react'
+import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import type { MenuItemProps as AdapterMenuItemProps } from '../../MenuItem'
-import { getComponentCssVar, getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
-import { getBrandStateCssVar } from '../../../utils/brandCssVars'
-import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
+import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { readCssVar } from '../../../../core/css/readCssVar'
 import './MenuItem.css'
 
@@ -30,7 +30,13 @@ export default function MenuItem({
   material,
   ...props
 }: AdapterMenuItemProps) {
-  const { mode } = useThemeMode()
+  const [, forceUpdate] = useState(0)
+
+  useEffect(() => {
+    const handleUpdate = () => forceUpdate(prev => prev + 1)
+    window.addEventListener('cssVarsUpdated', handleUpdate)
+    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+  }, [])
 
   // Determine effective variant
   let effectiveVariant = variant
@@ -40,12 +46,25 @@ export default function MenuItem({
     effectiveVariant = 'selected'
   }
 
-  // Get CSS variables for colors
-  const bgVar = getComponentCssVar('MenuItem', 'colors', `${effectiveVariant}-background`, layer)
-  const textVar = getComponentCssVar('MenuItem', 'colors', `${effectiveVariant}-text`, layer)
+  // Get selected/unselected colors from properties.colors (component-level, layer-specific)
+  const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'background')
+  const selectedTextVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'text')
+  const selectedSupportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'supporting-text-color')
+  const selectedLeadingIconColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'leading-icon-color')
+  const selectedTrailingIconColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'trailing-icon-color')
 
-  // Get selected-background from properties.colors (component-level, layer-specific)
-  const selectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-background')
+  const unselectedBgVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'background')
+  const unselectedTextVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'text')
+  const unselectedSupportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'supporting-text-color')
+  const unselectedLeadingIconColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'leading-icon-color')
+  const unselectedTrailingIconColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'trailing-icon-color')
+
+  // Resolve state-specific vars
+  const finalBgVar = effectiveVariant === 'selected' ? selectedBgVar : unselectedBgVar
+  const finalTextVar = effectiveVariant === 'selected' ? selectedTextVar : unselectedTextVar
+  const finalSupportingTextColorVar = effectiveVariant === 'selected' ? selectedSupportingTextColorVar : unselectedSupportingTextColorVar
+  const finalLeadingIconColorVar = effectiveVariant === 'selected' ? selectedLeadingIconColorVar : unselectedLeadingIconColorVar
+  const finalTrailingIconColorVar = effectiveVariant === 'selected' ? selectedTrailingIconColorVar : unselectedTrailingIconColorVar
 
   // Get component-level properties
   const borderRadiusVar = getComponentLevelCssVar('MenuItem', 'border-radius')
@@ -53,8 +72,11 @@ export default function MenuItem({
   const maxWidthVar = getComponentLevelCssVar('MenuItem', 'max-width')
   const verticalPaddingVar = getComponentLevelCssVar('MenuItem', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('MenuItem', 'horizontal-padding')
-  const supportingTextOpacityVar = getComponentLevelCssVar('MenuItem', 'supporting-text-opacity')
-  const supportingTextColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'supporting-text-color')
+  const iconTextGapVar = getComponentLevelCssVar('MenuItem', 'icon-text-gap')
+  const textGapVar = getComponentLevelCssVar('MenuItem', 'text-gap')
+  const leadingIconSizeVar = getComponentLevelCssVar('MenuItem', 'icon-leading-size')
+  const trailingIconSizeVar = getComponentLevelCssVar('MenuItem', 'icon-trailing-size')
+
   const dividerColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'divider-color')
   const dividerOpacityVar = getComponentLevelCssVar('MenuItem', 'divider-opacity')
   const dividerItemGapVar = getComponentLevelCssVar('MenuItem', 'divider-item-gap')
@@ -79,17 +101,17 @@ export default function MenuItem({
   const supportingTextTransformVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'text-transform')
   const supportingFontStyleVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-style')
 
-  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
-  const hoverColorVar = getComponentLevelCssVar('MenuItem', 'hover-color')
-  const hoverOpacityVar = getComponentLevelCssVar('MenuItem', 'hover-opacity')
+  // Get hover color and opacity from component-level UIKit tokens
+  const unselectedHoverColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'hover-color')
+  const unselectedHoverOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'hover-opacity')
+  const selectedHoverColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'hover-color')
+  const selectedHoverOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'hover-opacity')
+  const hoverColorVar = effectiveVariant === 'selected' ? selectedHoverColorVar : unselectedHoverColorVar
+  const hoverOpacityVar = effectiveVariant === 'selected' ? selectedHoverOpacityVar : unselectedHoverOpacityVar
+  const disabledOpacityVar = getComponentLevelCssVar('MenuItem', 'disabled-opacity')
 
   // Read background color to check if it's null/transparent
-  const bgColorValue = readCssVar(bgVar)
-  const hasBackground = bgColorValue && bgColorValue !== 'transparent' && bgColorValue !== 'null'
-
-  // For selected state, use selected-background instead of variant background
-  const finalBgVar = effectiveVariant === 'selected' ? selectedBgVar : bgVar
-  const finalBgColorValue = effectiveVariant === 'selected' ? readCssVar(selectedBgVar) : bgColorValue
+  const finalBgColorValue = readCssVar(finalBgVar)
   const finalHasBackground = finalBgColorValue && finalBgColorValue !== 'transparent' && finalBgColorValue !== 'null'
 
   return (
@@ -115,15 +137,20 @@ export default function MenuItem({
         style={{
           // Set CSS custom properties for CSS file to use
           ['--menu-item-bg' as string]: finalHasBackground ? `var(${finalBgVar})` : 'transparent',
-          ['--menu-item-text' as string]: `var(${textVar})`,
+          ['--menu-item-text' as string]: `var(${finalTextVar})`,
           ['--menu-item-border-radius' as string]: `var(${borderRadiusVar})`,
           ['--menu-item-min-width' as string]: `var(${minWidthVar})`,
           ['--menu-item-max-width' as string]: `var(${maxWidthVar})`,
           ['--menu-item-vertical-padding' as string]: `var(${verticalPaddingVar})`,
           ['--menu-item-horizontal-padding' as string]: `var(${horizontalPaddingVar})`,
-          ['--menu-item-supporting-text-opacity' as string]: `var(${supportingTextOpacityVar})`,
-          ['--menu-item-supporting-text-color' as string]: `var(${supportingTextColorVar})`,
-          ['--menu-item-opacity' as string]: disabled ? `var(${getBrandStateCssVar(mode, 'disabled')})` : '1',
+          ['--menu-item-icon-text-gap' as string]: `var(${iconTextGapVar}, 8px)`,
+          ['--menu-item-text-gap' as string]: `var(${textGapVar}, 4px)`,
+          ['--menu-item-leading-icon-size' as string]: `var(${leadingIconSizeVar}, 20px)`,
+          ['--menu-item-trailing-icon-size' as string]: `var(${trailingIconSizeVar}, 20px)`,
+          ['--menu-item-leading-icon-color' as string]: `var(${finalLeadingIconColorVar})`,
+          ['--menu-item-trailing-icon-color' as string]: `var(${finalTrailingIconColorVar})`,
+          ['--menu-item-supporting-text-color' as string]: `var(${finalSupportingTextColorVar})`,
+          ['--menu-item-opacity' as string]: disabled ? `var(${disabledOpacityVar})` : '1',
           ['--menu-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
           ['--menu-item-hover-color' as string]: `var(${hoverColorVar}, #000000)`, // Hover color
           // Apply text styles using CSS variables from text style toolbar
@@ -132,26 +159,43 @@ export default function MenuItem({
           fontWeight: fontWeightVar ? `var(${fontWeightVar})` : undefined,
           letterSpacing: letterSpacingVar ? `var(${letterSpacingVar})` : undefined,
           lineHeight: lineHeightVar ? `var(${lineHeightVar})` : undefined,
-          textDecoration: textDecorationVar ? `var(${textDecorationVar})` : 'none',
-          textTransform: textTransformVar ? `var(${textTransformVar})` : 'none',
-          fontStyle: fontStyleVar ? `var(${fontStyleVar})` : 'normal',
         } as React.CSSProperties}
         {...material}
         {...props}
       >
-        {leadingIcon && leadingIconType !== 'none' && (
-          <span className="mui-menu-item-leading-icon" data-icon-type={leadingIconType}>
+        {leadingIconType !== 'none' && (
+          <span
+            className="mui-menu-item-leading-icon"
+            data-icon-type={leadingIconType}
+            style={{
+              width: `var(${leadingIconSizeVar}, 20px)`,
+              height: `var(${leadingIconSizeVar}, 20px)`,
+              minWidth: `var(${leadingIconSizeVar}, 20px)`,
+              minHeight: `var(${leadingIconSizeVar}, 20px)`,
+              maxWidth: `var(${leadingIconSizeVar}, 20px)`,
+              maxHeight: `var(${leadingIconSizeVar}, 20px)`,
+            } as React.CSSProperties}
+          >
             {leadingIconType === 'radio' && !leadingIcon && (
-              <span className="mui-menu-item-radio-icon" />
+              <span className={`mui-menu-item-radio-icon ${selected ? 'selected' : ''}`} />
             )}
             {leadingIconType === 'checkbox' && !leadingIcon && (
-              <span className="mui-menu-item-checkbox-icon" />
+              <span className={`mui-menu-item-checkbox-icon ${selected ? 'selected' : ''}`} />
             )}
             {leadingIcon && <span className="mui-menu-item-custom-icon">{leadingIcon}</span>}
           </span>
         )}
         <div className="mui-menu-item-content">
-          <span className="mui-menu-item-text">{children}</span>
+          <span
+            className="mui-menu-item-text"
+            style={{
+              textDecoration: textDecorationVar ? `var(${textDecorationVar})` : 'none',
+              textTransform: textTransformVar ? `var(${textTransformVar})` : 'none',
+              fontStyle: fontStyleVar ? `var(${fontStyleVar})` : 'normal',
+            } as React.CSSProperties}
+          >
+            {children}
+          </span>
           {supportingText && (
             <span
               className="mui-menu-item-supporting-text"
@@ -170,8 +214,20 @@ export default function MenuItem({
             </span>
           )}
         </div>
-        {trailingIcon && (
-          <span className="mui-menu-item-trailing-icon">{trailingIcon}</span>
+        {(trailingIcon || selected) && (
+          <span
+            className="mui-menu-item-trailing-icon"
+            style={{
+              width: `var(${trailingIconSizeVar}, 20px)`,
+              height: `var(${trailingIconSizeVar}, 20px)`,
+              minWidth: `var(${trailingIconSizeVar}, 20px)`,
+              minHeight: `var(${trailingIconSizeVar}, 20px)`,
+              maxWidth: `var(${trailingIconSizeVar}, 20px)`,
+              maxHeight: `var(${trailingIconSizeVar}, 20px)`,
+            } as React.CSSProperties}
+          >
+            {trailingIcon || (selected && iconNameToReactComponent('check') ? React.createElement(iconNameToReactComponent('check')!) : (selected ? '✓' : null))}
+          </span>
         )}
       </button>
       {divider === 'bottom' && (
@@ -180,4 +236,5 @@ export default function MenuItem({
     </div>
   )
 }
+
 

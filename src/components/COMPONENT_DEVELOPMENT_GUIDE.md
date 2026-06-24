@@ -162,11 +162,13 @@ The recursica_ui-kit.json file uses a consistent structure for all components:
   - Structure: `avatar.variants.styles.text.variants.solid.properties.colors.layer-0.background`
   - Code: `getComponentCssVar('Avatar', 'colors', 'text-solid-background', 'layer-0')`
 
-### Property Value Guidelines for Randomization & Export
+### Property Value Guidelines for Token Resolution & Theme Customization
 
-To ensure components export properly and achieve 100% randomization coverage, follow these guidelines when defining property values in recursica_ui-kit.json:
+To ensure components export properly and inherit themes correctly, follow these guidelines when defining property values in `recursica_ui-kit.json`:
 
-#### 1. **Use Token References (Not Literal Values)**
+#### 1. **Use Design Token References (Not Hardcoded Literals)**
+
+Always reference global tokens defined in `recursica_brand.json` or `recursica_tokens.json`. Hardcoded literals will not adapt to theme changes or global token randomizations.
 
 **✅ CORRECT - Use token references:**
 ```json
@@ -186,26 +188,25 @@ To ensure components export properly and achieve 100% randomization coverage, fo
 }
 ```
 
-**❌ INCORRECT - Avoid literal values (they won't randomize well):**
+**❌ INCORRECT - Avoid hardcoded literal values:**
 ```json
 {
   "background": {
     "$type": "color",
-    "$value": "#3B82F6"  // ❌ Literal hex color
+    "$value": "#3B82F6"  // ❌ Hardcoded hex color
   },
   "padding": {
     "$type": "dimension",
-    "$value": { "value": 16, "unit": "px" }  // ❌ Literal dimension
+    "$value": { "value": 16, "unit": "px" }  // ❌ Hardcoded literal dimension
   }
 }
 ```
 
-#### 2. **Typography Properties - Use Token References or Randomizable Literals**
+#### 2. **Typography Properties - Use Token References**
 
 **Font Style, Text Transform, Text Decoration:**
-- **Preferred**: Use token references: `{tokens.font.styles.normal}`, `{tokens.font.cases.uppercase}`
-- **Acceptable**: Use literal values that will be randomized: `"normal"`, `"italic"`, `"none"`, `"uppercase"`, etc.
-- The randomization system will automatically change these to different values during export
+- **Preferred**: Always use token references from the design system, e.g., `{tokens.font.styles.normal}`, `{tokens.font.cases.uppercase}`.
+- Doing so ensures typography changes propagate cleanly from global type controls to your component.
 
 **Example:**
 ```json
@@ -213,21 +214,23 @@ To ensure components export properly and achieve 100% randomization coverage, fo
   "text": {
     "font-style": {
       "$type": "string",
-      "$value": "normal"  // ✅ Will be randomized to "italic"
+      "$value": "{tokens.font.styles.normal}"
     },
     "text-transform": {
       "$type": "string",
-      "$value": "none"  // ✅ Will be randomized to "uppercase", "lowercase", or "capitalize"
+      "$value": "{tokens.font.cases.none}"
     },
     "text-decoration": {
       "$type": "string",
-      "$value": "none"  // ✅ Will be randomized to "underline" or "line-through"
+      "$value": "{tokens.font.decorations.none}"
     }
   }
 }
 ```
 
-#### 3. **Dimension Properties - Avoid Null, Use Token References**
+#### 3. **Dimension Properties - Reference General Sizing & Gutters**
+
+Avoid null/missing dimensions. Use standard dimension tokens so padding and spacing align with the general layout scale.
 
 **✅ CORRECT:**
 ```json
@@ -243,46 +246,33 @@ To ensure components export properly and achieve 100% randomization coverage, fo
 }
 ```
 
-**⚠️ ACCEPTABLE (but will be randomized):**
-```json
-{
-  "padding": {
-    "$type": "dimension",
-    "$value": null  // Will be randomized to a dimension token reference
-  }
-}
-```
-
-**Note**: Null dimension values are acceptable but will be randomized to actual dimension token references during export. If you want a specific "no padding" behavior, use `{brand.dimensions.general.none}` or a zero-value token instead.
-
-**✅ Allowed as literal px values (these are NOT randomized):**
-
-The following dimension properties may use literal px values (`{ "value": N, "unit": "px" }`) because they represent fixed sizing that is intentionally not randomized:
+**✅ Allowed as literal px values (Fixed Constraints):**
+The following dimension properties may use literal px values (`{ "value": N, "unit": "px" }`) only if they represent structural boundaries or fixed sizing constraints:
 - `border-size` — border widths (e.g., 1px, 2px)
 - `divider-size` — divider/separator widths (e.g., 1px)
 - `min-width` / `max-width` — component width constraints
 - `min-height` / `max-height` — component height constraints
 
-#### 4. **Icon Properties - Use Descriptive Icon Names**
+#### 4. **Icon Properties - Standardized Icon Names**
 
-Icon name properties will be randomized to different icons during export:
-
+Use descriptive, standardized icon keys that resolve to configured SVG path variables or adapters:
 ```json
 {
   "thumb-icon-selected": {
     "$type": "string",
-    "$value": "check"  // ✅ Will be randomized to other icons
+    "$value": "check"
   },
   "thumb-icon-unselected": {
     "$type": "string",
-    "$value": "x-mark"  // ✅ Will be randomized to other icons
+    "$value": "x-mark"
   }
 }
 ```
-
-**Available icons for randomization**: check, x-mark, chevron-down, chevron-up, chevron-left, chevron-right, star, heart, plus, minus, search, settings
+Available standard icons in the adapter system: check, x-mark, chevron-down, chevron-up, chevron-left, chevron-right, star, heart, plus, minus, search, settings, arrow-down-tray, arrow-up-tray.
 
 #### 5. **Color Properties - Always Use Brand/Token References**
+
+Always map colors to semantic brand palette tokens so dark mode and custom brand definitions resolve automatically.
 
 **✅ CORRECT:**
 ```json
@@ -302,18 +292,9 @@ Icon name properties will be randomized to different icons during export:
 }
 ```
 
-**❌ INCORRECT:**
-```json
-{
-  "background": {
-    "$type": "color",
-    "$value": "#3B82F6"  // ❌ Won't randomize properly
-  }
-}
-```
-
 #### 6. **Elevation Properties - Use Brand Elevation References**
 
+Map elevation properties directly to the elevations group:
 ```json
 {
   "elevation": {
@@ -323,36 +304,13 @@ Icon name properties will be randomized to different icons during export:
 }
 ```
 
-**Note**: Elevation values like `"elevation-0"`, `"elevation-1"`, etc. are also acceptable and will be randomized.
+#### 7. **Theme and Global Randomization Inheritance**
 
-#### 7. **Randomization Coverage Expectations**
-
-Following these guidelines ensures:
-- **100% modification rate** during randomization exports
-- **0 static properties** (all properties will be randomized)
-- **Proper token reference resolution** in CSS exports
-- **Consistent behavior** across all components
-
-**Property Types and Randomization:**
-- ✅ **Colors**: Randomized to different palette/level/tone combinations
-- ✅ **Dimensions**: Randomized to different size scales
-- ✅ **Typography**: Font styles, transforms, and decorations randomized
-- ✅ **Icons**: Randomized to different icon names
-- ✅ **Elevations**: Randomized to different elevation levels
-- ✅ **Null values**: Converted to random token references
-
-#### 8. **Testing Your Component's Randomization**
-
-After adding a component to recursica_ui-kit.json:
-
-1. **Run randomization** from the toolbar
-2. **Export the UIKit** (JSON + CSS)
-3. **Check the export analysis report** for:
-   - Modification rate (should be 100%)
-   - Static properties (should be 0)
-   - CSS coverage (should be 100%)
-
-If you see static properties in the report, review your recursica_ui-kit.json values and ensure you're following these guidelines.
+Since component properties are defined strictly using design tokens, they automatically inherit global styling changes.
+When a developer runs the global **Brand & Theme Shuffler** in the toolbar:
+1. Brand dimension scales and typography mappings are shuffled.
+2. Color palettes (primary, neutral, core colors) are randomized.
+3. Because all components resolve their styles from these centralized variables, they will update their layouts, colors, and elevations dynamically in real-time without needing any component-level randomization files.
 
 
 ## Development Process

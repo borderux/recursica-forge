@@ -41,6 +41,9 @@ export default function Toast({
   // Get component-level CSS variables (these are under toast.properties in recursica_ui-kit.json)
   const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
+  const borderRadiusVar = getComponentLevelCssVar('Toast', 'border-radius')
+  const borderSizeVar = getComponentLevelCssVar('Toast', 'border-size')
+  const borderColorVar = getComponentLevelCssVar('Toast', 'border-color')
   const minWidthVar = getComponentLevelCssVar('Toast', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Toast', 'max-width')
   const minHeightVar = getComponentLevelCssVar('Toast', 'min-height')
@@ -172,6 +175,9 @@ export default function Toast({
       ...(toastButtonVar ? { '--toast-button': `var(${toastButtonVar})` } : {}),
       '--toast-vertical-padding': `var(${verticalPaddingVar})`,
       '--toast-horizontal-padding': `var(${horizontalPaddingVar})`,
+      '--toast-border-radius': `var(${borderRadiusVar})`,
+      '--toast-border-size': `var(${borderSizeVar})`,
+      '--toast-border-color': `var(${borderColorVar})`,
       '--toast-min-width': `var(${minWidthVar})`,
       '--toast-max-width': `var(${maxWidthVar})`,
       '--toast-min-height': `var(${minHeightVar})`,
@@ -208,28 +214,16 @@ export default function Toast({
           <span className="recursica-toast-action">{action}</span>
         )}
         {onClose && (
-          <Button
-            variant="text"
-            size="small"
-            layer={layer}
-            onClick={onClose}
-            style={{
-              backgroundColor: 'transparent',
-              '--button-bg': 'transparent',
-              opacity: 1,
-              minWidth: 'auto',
-              width: 'auto',
-              height: 'auto',
-              padding: 0,
-              flexShrink: 0,
-              ...(toastButtonVar ? {
-                color: `var(${toastButtonVar})`,
-                '--button-color': `var(${toastButtonVar})`,
-              } : {}),
-            } as React.CSSProperties}
-          >
-            {CloseIcon ? <CloseIcon /> : '×'}
-          </Button>
+          <span className="recursica-toast-action">
+            <Button
+              variant="text"
+              size="small"
+              layer={layer}
+              onClick={onClose}
+            >
+              {CloseIcon ? <CloseIcon style={{ width: 16, height: 16 }} /> : '×'}
+            </Button>
+          </span>
         )}
       </div>
     </Paper>

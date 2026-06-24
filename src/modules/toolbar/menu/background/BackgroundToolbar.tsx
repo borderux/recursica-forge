@@ -1,3 +1,4 @@
+import { useThemeMode } from "../../../theme/ThemeModeContext"
 /**
  * BackgroundToolbar Component
  * 
@@ -43,9 +44,10 @@ export default function BackgroundToolbar({
 
   // Parse structure from the live uikit so custom variant names are included.
   // uikit is a reactive dep — the memo recomputes after reset or variant changes.
+  const { mode } = useThemeMode()
   const structure = useMemo(
     () => parseComponentStructure(componentName, uikit),
-    [componentName, uikit]
+    [componentName, uikit, mode]
   )
 
   const backgroundProp = useMemo(() => {
@@ -81,7 +83,7 @@ export default function BackgroundToolbar({
 
     if (hasVariantSpecificProps) {
       // There are variant-specific props, so we must match ALL active variant dimensions.
-      // A prop under text.solid must not match when style='image' just because style-secondary='solid'.
+      // A prop under text.solid must not match when style='image' just because types='solid'.
       const variantMatchingProp = layerMatchingProps.find(p => {
         if (!p.isVariantSpecific || !p.variantProp) return false
         const selectedVariant = selectedVariants[p.variantProp]

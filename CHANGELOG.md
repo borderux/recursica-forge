@@ -1,5 +1,534 @@
 # recursica-forge
 
+## 0.21.1
+
+### Patch Changes
+
+- 81825c2: Fix sticky scrolling on the component preview page by removing `overflow: hidden` from the main content container and applying matching border radii directly to the preview and toolbar panels.
+
+## 0.21.0
+
+### Minor Changes
+
+- db0a61d: - Split TableHeader and TableFooter divider properties into separate horizontal (`horizontal-divider-size`, `horizontal-divider-color`) and vertical (`vertical-divider-size`, `vertical-divider-color`) settings.
+  - Added `vertical-margin` property to TableHeader and TableFooter using general brand dimension tokens, bounding the absolute-positioned column dividers within the margins.
+  - Updated Table row padding property to use general brand dimension tokens.
+  - Updated TableFooter currency column variants to consume the correct currency text styles.
+  - Updated TablePreview layouts to hug their actual content height in singleRowMode, resolving empty space issues in Table Cell, Header, and Footer previews.
+  - Added `table.json` test-exports with unique, fully-valid schema overrides for table components.
+  - Added temporary scratch/validation script patterns to `.gitignore`.
+
+## 0.20.3
+
+### Patch Changes
+
+- cad2f7c: Added `border-size` and `border-color` properties to the `toast` component. This includes updates to `recursica_ui-kit.json`, rendering support in Carbon, Material, and Mantine adapters, and exposing these properties to the UI via `Toast.toolbar.json`. Additionally, fixed a bug in the toolbar component property parser to correctly resolve the color category for root-level property variables (such as `border-color`), restoring their missing color pickers in the border configuration group.
+
+## 0.20.2
+
+### Patch Changes
+
+- 56c261f: Add border-radius property support to Toast component and its adapters (Material, Mantine, and Carbon) using the design token system, and expose it in the properties toolbar configuration.
+
+## 0.20.1
+
+### Patch Changes
+
+- 22f1f1a: Fix issues with exporting and importing custom elevation (shadow) configurations. Ensure level-specific shadow directions are properly parsed from theme JSON on import, resolve direct color token references, and properly reconstruct the elevation state during bulk imports rather than resetting controls to empty.
+
+## 0.20.0
+
+### Minor Changes
+
+- 51d79f7: Fixed component reset functionality and updated design system compliance:
+  - Refactored `handleReset` in `ComponentToolbar` to cleanly overwrite the component JSON node, fixing an issue where CSS variable aliases were incorrectly converted to hardcoded strings or `transparent` fallback colors on reset.
+  - Fixed typo in `updateCssVar.ts` that prevented single-property removals from properly syncing to the JSON store (`-ui-kit-` to `_ui-kit_`).
+  - Updated `removeUIKitValue` to correctly fall back to the original imported/pristine properties instead of forcibly setting property `$value` to `null`.
+  - Updated default values in `recursica_ui-kit.json` for Link visited/hover colors and Stepper text colors to ensure first-load AA accessibility compliance.
+
+### Patch Changes
+
+- f556f9f: - Fixed a mode-awareness bug in the toolbars where editing CSS variables updated the wrong theme mode paths due to stale memoized `mode` values.
+  - Overhauled the component `handleReset` logic to deeply clone pristine JSON nodes instead of iteratively removing variables, preventing orphaned variables and "null color" UI bugs.
+  - Standardized typography typestyles (`h2Style`, `pStyle`) across 22 component previews, correctly positioning the spread operator to preserve local overrides.
+- ee0312f: Fixed an issue where "Core/High Contrast" semantic colors failed to hydrate and fell back to 'None' during theme import due to overly restrictive regex parsing. Modified `parsePaletteSelection` to support both nested structured palette references and flat semantic references (e.g. `core-colors`).
+- 78740be: Standardized typography usage across component previews:
+  - Created a centralized `typographyStyles` helper to map `var(--recursica_brand_typography_...)` variables to React style objects.
+  - Updated `NumberInputPreview`, `ModalPreview`, `CardPreview`, `PanelPreview`, and `HoverCardPopoverPreview` to apply the proper design system typestyles (`h2Style`, `pStyle`) to all semantic `<h2>` and `<p>` tags, replacing hardcoded text formatting.
+
+## 0.19.1
+
+### Patch Changes
+
+- edb682e: Fixed incorrect dimension key
+
+## 0.19.0
+
+### Minor Changes
+
+- 88fe8dc: ## Adapter isolation & multi-library visual parity
+
+  ### Cross-library isolation
+
+  - Removed all cross-library prop references from component adapters — Material adapters no longer accept `carbon` props, Carbon adapters no longer accept `mantine`/`material` props, and vice versa. Each adapter is now strictly typed to its own library's pass-through props only.
+  - Removed dead Tabs variant logic that referenced other library implementations.
+
+  ### Visual parity fixes (Material UI & Carbon)
+
+  - **Button:** Fixed `sizePrefix` mapping (`small`/`default` tokens instead of `sm`/`lg` aliases) so icon-only buttons render at the correct size in all three libraries. Added missing `icon-label` content variant support.
+  - **Badge:** Applied `align-self: flex-start` and `width: fit-content` to prevent Badge stretching inside flex containers in Material and Carbon shells.
+  - **Tabs:** Fixed `tabContentAlignment` missing from `TabsContextValue` interface; font treatment (case, alignment) and border-radius tokens now apply correctly.
+  - **Dropdown:** Resolved `ReferenceError: material is not defined` crash in the Mantine Dropdown adapter caused by a stale cross-library reference.
+  - **SegmentedControl (Material):** Added CSS overrides for `.MuiToggleButtonGroup-grouped` first/last-of-type selectors that were overriding token-driven `border-radius` with MUI's built-in group rounding.
+  - **Switch (Carbon):** Aligned CSS custom property names between the TSX wrapper and the Carbon Toggle CSS overrides. Wrapper now injects `--switch-*` local properties for track/thumb sizing, colors, elevation, and border-radius; the CSS references these consistently.
+  - **Shell nav buttons:** Fixed broken `border-radius` token path in both `MaterialShell` and `CarbonShell` — replaced `getComponentCssVar('Button', 'size', 'border-radius')` (non-existent path) with `buildComponentCssVarPath('Button', 'variants', 'content', 'label', 'variants', 'sizes', 'default', 'properties', 'border-radius')`.
+  - **CarbonShell action buttons:** Changed `size='default'` to `size='small'` for Reset/Import/Export buttons to match Mantine and Material shells.
+
+  ### Codebase cleanup
+
+  - Removed `PropControlContent.tsx` legacy implementation (5 000+ lines of dead code).
+  - Removed `StyledSlider.tsx` standalone component in favour of the `Slider` adapter.
+  - Cleaned up `RandomizerResults.tsx`, `FontPropertiesTokens.tsx`, `TabsPreview.tsx`, and `ThemeSidebar.tsx`.
+  - Fixed `useComponent` hook to resolve lazy imports more reliably.
+
+  ### Kit locked to Mantine (temporary)
+
+  - `UiKitContext` now hardcodes `kit = 'mantine'` and makes `setKit` a no-op while multi-library visual parity work continues.
+  - Library switcher `<Dropdown>` hidden from the `MantineShell` header until re-enabled.
+  - Accordion integration tests for Material and Carbon marked `.skip` to match the locked kit.
+
+### Patch Changes
+
+- 8d16e8b: Fixed an issue in `updateBrandValue` where updates to sub-properties of composite tokens (such as typography and shadows) incorrectly created root-level keys instead of updating the values within the token's `$value` object.
+
+## 0.18.0
+
+### Minor Changes
+
+- f2dbdee: **On-tone color update prompt for component layer colors**
+
+  When a user changes a component layer color to a new palette tone and the same layer group contains sibling properties (e.g. `text`, `text-hover`, `icon-color`) that are currently set to the matching on-tone of the previous value, a modal prompts the user to also update those related on-tone properties. The modal lists affected properties in natural language ("text, text hover, and icon color"), offers "Update on-tones" or "Only update background", and includes a "Don't ask me again" checkbox persisted to `localStorage` (`recursica_on_tone_preference`). The preference can be silently auto-applied on future changes without re-prompting.
+
+  Matching is scoped to the same `layer-N` group and only fires when the sibling's on-tone base still matches the old tone — if a sibling was manually changed to a different palette, it is excluded from the prompt.
+
+  **Component color write guard**
+
+  Properties under `_properties_colors_` in the UIKit JSON now hard-reject any value that is not a `{brand.*}` or `{ui-kit.*}` reference. Attempts to write `{tokens.*}` refs or raw values (hex, named colors) throw immediately so the violation is visible rather than silently corrupting the design token store.
+
+  **Core-colors reference sanitization at export**
+
+  Both `normalizeBrandReferences` and `normalizeUIKitBrandReferences` in `jsonExport.ts` now strip the spurious `.color.` subgroup from `core-colors` palette references (e.g. `core-colors.alert.color.tone` → `core-colors.alert.tone`). Core-colors entries are flat leaf nodes and do not carry a `.color.` intermediary like numbered palettes do. This acts as a belt-and-suspenders export-time heal on top of the existing write-site fixes in `varsStore` and `cssVarBuilder`.
+
+### Patch Changes
+
+- 4558860: Fix load error on new release
+- 5ad0848: **On-tone color update prompt for component layer colors**
+
+  When a user changes a component layer color to a new palette tone and the same layer group contains sibling properties (e.g. `text`, `text-hover`, `icon-color`) that are currently set to the matching on-tone of the previous value, a modal prompts the user to also update those related on-tone properties. The modal lists affected properties in natural language ("text, text hover, and icon color"), offers "Update on-tones" or "Only update background", and includes a "Don't ask me again" checkbox persisted to `localStorage` (`recursica_on_tone_preference`). The preference can be silently auto-applied on future changes without re-prompting.
+
+  Matching is scoped to the same `layer-N` group and only fires when the sibling's on-tone base still matches the old tone — if a sibling was manually changed to a different palette, it is excluded from the prompt.
+
+  **Component color write guard**
+
+  Properties under `_properties_colors_` in the UIKit JSON now hard-reject any value that is not a `{brand.*}` or `{ui-kit.*}` reference. Attempts to write `{tokens.*}` refs or raw values (hex, named colors) throw immediately so the violation is visible rather than silently corrupting the design token store.
+
+  **Core-colors reference sanitization at export**
+
+  Both `normalizeBrandReferences` and `normalizeUIKitBrandReferences` in `jsonExport.ts` now strip the spurious `.color.` subgroup from `core-colors` palette references (e.g. `core-colors.alert.color.tone` → `core-colors.alert.tone`). Core-colors entries are flat leaf nodes and do not carry a `.color.` intermediary like numbered palettes do. This acts as a belt-and-suspenders export-time heal on top of the existing write-site fixes in `varsStore` and `cssVarBuilder`.
+
+## 0.17.1
+
+### Patch Changes
+
+- 0b06385: **Pagination toolbar variant selection & fixture sync**
+
+  - Fixed pagination toolbar not selecting the correct variant option on init; toolbar now correctly reflects the active CSS variable value on load
+  - Replaced hardcoded `Pagination.toolbar.json` config with a dynamic `componentExtensionToolbar` factory that auto-generates variant dropdowns and CSS variable orchestration from `recursica.component` extension tokens in `recursica_ui-kit.json`
+  - Added `componentToolbarUtils.ts` with shared helpers for the component extension toolbar pattern
+  - Updated `PropControlContent.tsx` to render virtual props and `h4` group headers for component extension groups
+  - Updated `loadToolbarConfig.ts` to route `recursica.component` tokens to the new factory
+  - Fixed pagination button layout: standardised icon-only approach so page number buttons clip correctly as squares/rounds; added `navDisplay` guard in `Pagination.tsx` to prevent UI breakage from stale CSS variable values
+  - Removed `boxShadow` from `recursica_brand.json` (replaced by `elevation` composite pattern)
+  - Synced all component test-export JSON fixtures (`accordion`, `avatar`, `badge`, `button`, `card`, `chip`, `hoverCardPopover`, `menu`, `modal`, `pagination`, `panel`, `segmentedControl`, `slider`, `switch`, `toast`, `tooltip`) to match the current `recursica_ui-kit.json` structure — preserving test values while adopting DTCG-compliant structural changes (elevation tokens converted from `$type: "elevation"` to `$extensions.recursica.type: "elevation"`, font tokens using generic DTCG primitive types)
+  - Fixed transform validators (`recursicaJsonTransformScoped`, `recursicaJsonTransformSpecific`): `collectVars` now skips tokens with `$extensions['recursica.component']` so component-reference pointers are never emitted as CSS vars or validated as scalar references
+  - Added `validateSchemas.test.ts` with schema compliance tests for all component fixtures; updated `validateJsonSchemas.ts` to support the revised schema shapes
+
+## 0.17.0
+
+### Minor Changes
+
+- 0566087: Added typography css var expansion to export
+
+### Patch Changes
+
+- 1206b4c: Add client-side version staleness detection and dev-mode improvements.
+
+  - **Version check hook** (`useVersionCheck`): polls `/index.html` every 7 minutes in production, comparing the fingerprinted JS entry chunk to detect new deployments. Completely disabled in development. Exposes `checkNow()` (triggered on app reset), `dismissUpdate()` (hides toast until next poll cycle), and `simulateUpdate()` (dev-only toggle).
+  - **Upgrade toast**: persistent `error`-variant toast with an "Upgrade" action button and a separate dismiss (×) button, rendered in all three shells (Mantine, Material, Carbon). Stacks above the save-reminder toast when both are visible. Width is fully controlled by the Toast design token (`max-width` / `min-width`).
+  - **Reset integration**: all three shells call `checkNow()` when the user resets to defaults, prompting an immediate version check before starting a fresh session.
+  - **Dev simulation button**: header button using the `trend-up` Phosphor icon (`outline` / `small`) lets developers toggle the upgrade toast without deploying. Only visible in development.
+  - **Bug report button**: hidden in development (`!import.meta.env.DEV`); visible in production only.
+  - **Toast CSS**: added `white-space: nowrap` and `min-width: fit-content` to `.recursica-toast-action` and its button across all three Toast CSS files, preventing text content from squeezing the action button.
+  - **Icon library**: registered `TrendUp` as `'trend-up'` in the Phosphor icon map.
+
+## 0.16.0
+
+### Minor Changes
+
+- 4fd3e4f: ## DTCG Token Schema Compliance Refactor
+
+  Full alignment of `recursica_brand.json`, `recursica_tokens.json`, and `recursica_ui-kit.json` with the Design Token Community Group (DTCG) v2025.10 specification.
+
+  ### JSON Token Changes
+
+  - **`$metadata` removed from all three JSON files** — moved to `$extensions.recursica.metadata` per DTCG spec (only `$value`, `$type`, `$description`, `$extensions`, `$deprecated`, and `$extends` are reserved `$`-prefixed keys)
+  - **`$type: "elevation"` removed** from 8 ui-kit layer property tokens and 8 brand layer property tokens — type preserved as `$extensions.recursica.type: "elevation"` alongside an untyped `$value`
+  - **`$type: "boxShadow"` corrected** across 10 brand elevation tokens — replaced with `$type: "shadow"` (the DTCG-defined composite type for box-shadow) with `$extensions.recursica.type: "boxShadow"` retaining the original semantic
+  - **Pagination component slots** refactored to use `$extensions.recursica.component` for sub-component variant configuration instead of non-standard flat variant structures
+  - **Fixed typo** in pagination `navigation-controls` extension: `variants.contents` → `variants.content`
+
+  ### Schema Validator (`validateJsonSchemas.ts`)
+
+  - Added `validateDtcgStructure` — shared compliance checker for all three JSON files; enforces no unknown `$`-prefixed keys and no non-standard `$type` values; throws with a full list of violations
+  - Wired `validateDtcgStructure` into `validateBrandJson` and `validateTokensJson`
+  - Updated `collectRefs` to tag references inside `$extensions` blocks with `inExtensions: true`, allowing component-slot references to target groups/tokens (not only leaf tokens)
+  - Added `validateUIKitComponentSlots` to enforce structural integrity of `recursica.component` extension payloads
+
+  ### Runtime Resolvers & Export Transforms
+
+  - **`uikit.ts` resolver** — token detection guard updated from `'$value' in value && '$type' in value` to `'$value' in value`; effective token type now resolved as `$type ?? $extensions['recursica.type']`, so elevation tokens reach the correct handler
+  - **Both export transforms** (`recursicaJsonTransformScoped.ts`, `recursicaJsonTransformSpecific.ts`) — `collectVars` reads `$extensions['recursica.type']` as a fallback token type when `$type` is absent
+  - **`jsonExport.ts`** — all five metadata write sites migrated from `$metadata` to `$extensions.recursica.metadata`; `version` field now reads from `package.json` at runtime instead of a hardcoded string
+  - **`exportImportValidator.ts`** — round-trip diff path skip updated from `$metadata.` to `$extensions.recursica.metadata.`
+
+  ### Bug Fix
+
+  - **`PaletteColorControl.css`** — corrected `--recursica_brand_themes_*_palettes_core-colors_alert_color_tone` (non-existent) to `_alert_tone`; removed all fallback values from `var()` calls; removed hardcoded `rgba()` hover backgrounds
+
+  ### Tests
+
+  - 8 new `validateDtcgStructure` tests covering: seed JSON passes, `$metadata` rejection, `"elevation"` / `"boxShadow"` `$type` rejection, valid `"shadow"` + extensions pattern, typeless tokens via `recursica.type`, and `$extensions.recursica.metadata` acceptance
+  - Elevation test fixture updated from `$type: 'boxShadow'` to `$type: 'shadow'` with correct extensions structure
+  - All 37 schema tests and 299 suite tests passing
+
+### Patch Changes
+
+- 955f309: ## Avatar — remove redundant `properties.size` token
+
+  ### Background
+
+  The `sizes` variant group (`small` / `default` / `large`) previously had three dimension tokens under `properties`: `size`, `width`, and `height`. The `size` token predated the addition of separate `width` and `height` tokens and was left in place as a duplicate.
+
+  ### Changes
+
+  **`recursica_ui-kit.json` and `src/components/test-exports/avatar.json`**
+  Removed the `"size"` property token from `variants.sizes.small.properties`, `variants.sizes.default.properties`, and `variants.sizes.large.properties` in both files.
+
+  **Avatar adapters (Mantine, Carbon, Material)**
+
+  - Removed the dangling `--avatar-size` CSS custom property that was being set but never consumed by any CSS rule (CSS only ever read `--avatar-width` and `--avatar-height`).
+  - Material UI adapter: switched `sx.width` and `sx.height` from `var(properties.size)` to `var(properties.width)` / `var(properties.height)`.
+
+  **Timeline consumers**
+  Four files that derived avatar bullet sizing from `Avatar > variants > sizes > {size} > properties.size` were updated to use `properties.width` instead:
+
+  - `adapters/mantine/Timeline/Timeline.tsx`
+  - `modules/components/TimelinePreview.tsx`
+  - `modules/components/TimelineBulletPreview.tsx`
+
+- 312e60a: ## Reset Now Clears localStorage
+
+  - `localStorage.clear()` is called immediately after `resetAll()` in the reset handler of `MantineShell`, `MaterialShell`, and `CarbonShell`
+  - This ensures no stale versioned token state, cached overrides, or corrupted data persists after a hard reset to forge defaults
+  - The save reminder session counters (`sessionStorage`) are also cleared via `resetSaveReminder()` as part of the same reset flow
+
+- fe1cbd1: ## Save Reminder & Toast Component Improvements
+
+  ### Save Reminder (new feature)
+
+  - Added `useSaveReminder` hook (`src/core/hooks/useSaveReminder.ts`) that tracks cumulative CSS variable change batches and elapsed session time via `sessionStorage`
+  - Triggers a persistent Toast notification after 100 changes or 30 minutes of active editing — whichever comes first; repeats after each subsequent threshold
+  - Reminder resets on manual export or clicking "Reset All" in the shell header
+  - Developer shortcut: append `?remind=1` to any shell URL to trigger the toast immediately for QA
+  - Integrated into `MantineShell`, `MaterialShell`, and `CarbonShell` with shell-specific default positioning (`bottom: 24px, right: 24px`)
+  - Toast renders with `layer-0`, an "Export" action button (opens the export modal), and a dismiss close button
+
+  ### Toast Adapter
+
+  - Removed the fallback div render path from `Toast.tsx` — the adapter now exclusively delegates to the registered library-specific component (fail-loud on missing registration)
+  - Cleaned up unused imports (`Button`, `iconNameToReactComponent`, `getComponentCssVar`, etc.) from the adapter
+
+  ### Toast Component (Mantine)
+
+  - Fixed close (×) button visibility: replaced the Button adapter (which was collapsing to zero dimensions due to `--button-icon-size: 0px`) with a properly sized implementation using explicit CSS dimensions
+  - Fixed close button SVG sizing: added `min-width`, `min-height`, `max-width`, `max-height` overrides to prevent Button adapter icon-size tokens from zeroing out the icon
+  - Fixed close button color on success/error variants: `stroke` and `color` now explicitly use `--toast-button` to match the Undo button's interactive color
+  - `--button-icon-size: 16px` set on the close button container to override the default 0px token value
+
+  ### Toast Previews
+
+  - First preview toast now shows message-only (no action, no close) to demonstrate the base component
+  - Second preview toast shows both an "Undo" action button and a dismiss (×) close button across all variants (default, success, error)
+  - `onClose` is now always passed to all preview instances (was previously conditional on variant)
+
+  ### Avatar Variants
+
+  - Removed redundant `size` property from Avatar variant definitions in Mantine, Carbon, and Material adapters — `size` is a component prop, not a variant token
+  - Updated `avatar.json` test export to remove the now-invalid `size` field
+
+- 4f15865: **Font delete reassignment modal** — when a user deletes a font family, a confirmation modal now appears (mirroring the existing palette delete flow) that lets them redirect any existing references to the disappearing position slot to a remaining font position. The last position slot (e.g. Tertiary when three fonts are defined) always becomes the stale reference after renumbering; all other positions shift automatically and require no intervention.
+
+  - `varsStore.deleteFont(fontIdToDelete, fallbackPositionId)` — new store method that: removes the deleted font from `localStorage`, renumbers kept fonts, replaces all `{brand.fonts.<lastPosition>}` references in the serialized state with the chosen fallback position, clears stale CSS vars from the DOM, and calls `syncFontsToTokens` to rebuild brand and token JSON.
+  - `FontFamiliesTokens` — trash button now opens a delete-confirmation modal with a dropdown of remaining font positions (labeled with their new sequence name and family, e.g. "Secondary — Quattrocento") rather than deleting immediately. A `saveStoredFonts` call before deletion seeds the `recursica_fonts` localStorage key when fonts were being served from the `getDefaultFonts()` fallback (empty key caused `deleteFont` to silently no-op).
+
+## 0.15.2
+
+### Patch Changes
+
+- 5ea38e9: ## Reset flow overhaul
+
+  ### Reset button — no more unconditional confirmation modal
+
+  `ResetButton` and the component toolbar's bespoke reset button now only show a modal when the user has previously imported files (i.e. there is an actual version choice to make). With no import present, clicking Reset immediately restores to Forge defaults with zero friction.
+
+  ### Reset modal improvements
+
+  - Modal title now includes the component name (e.g. "Reset Accordion").
+  - Added confirmation copy: "Are you sure you want to reset your changes?"
+  - Radio group label changed from "Reset destination" → **"Version"**.
+  - Second option renamed from "Reset to app defaults" → **"Reset to Forge defaults"**.
+
+  ### Reset to last imported version — now works correctly
+
+  `handleReset` previously always restored from the bundled Forge defaults regardless of which option the user selected. A new `getImportedUikit()` method on `VarsStore` reads the last user-imported UIKit JSON from `localStorage`, allowing the reset to correctly restore to either the imported state or Forge defaults based on the user's choice.
+
+  ### Reset no longer triggers the shared-property modal
+
+  Resetting a component restores many CSS variables simultaneously. Each call to `updateCssVar` was routing through the global-ref interceptor, causing the "Shared Property" modal to appear for every property that references a `{ui-kit.globals.*}` token — even when no changes were made. A new `noGlobalRefCheck` flag on `updateCssVar` (captured in the debounce closure at call time) suppresses the interceptor cleanly during reset without timers or timestamp windows.
+
+  ## Shared Property modal — immediate trigger for discrete interactions
+
+  The global-ref interceptor previously debounced all conflict events by 500 ms before opening the modal. This felt sluggish on discrete interactions (palette picks, dropdown selects, segmented control changes).
+
+  - Debounce reduced to 150 ms for slider interactions (still needed to avoid modal spam during drag).
+  - New `immediate` flag on `checkForGlobalRef` and `updateCssVar`: when set, the conflict event is dispatched synchronously, skipping both the outer `UPDATE_DEBOUNCE_MS` timer and the inner debounce. Discrete call sites (palette swatch clicks, dropdown selects, colour token selects, segmented controls) all pass `immediate: true`.
+
+  ## Elevation panel — PaletteColorControl standardisation
+
+  Replaced the bespoke `ShadowColorTokenControl` in `ElevationStylePanel` with the shared `PaletteColorControl`, matching the pattern used elsewhere in the app. The shadow color label now correctly displays the palette name (e.g. "Scale 03 / 600") by passing the unthemed generic palette CSS variable as `currentValueCssVar` for label resolution via `parseBrandCssVar`.
+
+  ## Type style panel — border persists on selection
+
+  Fixed a regression where selecting a type style was removing the container border. The border now correctly switches to the alert tone on selection rather than disappearing.
+
+  ## Elevation panel — reset fully clears state
+
+  Fixed the Elevations panel reset not fully clearing shadow color customisations. State is now completely cleared across both the DOM and the elevation store on reset.
+
+- ab01581: ## Component reset — consistent snapshot resolution
+
+  ### Bug
+
+  Clicking "Reset" on a component (to either last imported version or Forge defaults) had no visible effect when the user had made changes and the store contained edited brand or token values.
+
+  ### Root cause
+
+  `handleReset` called `buildUIKitVars(tokensJson, brandJson, sourceUikit, mode)` using the **live, edited** `tokensJson` and `brandJson` from component props. UIKit tokens reference brand paths such as `{brand.palettes.neutral.500.color.tone}`, so resolving them against an edited brand produced the same edited values even when `sourceUikit` was the pristine or imported JSON. The computed "defaults" matched the current store state, making the reset a no-op.
+
+  ### Fix
+
+  `handleReset` now resolves all three JSON sources — UIKit, brand, and tokens — from the same version snapshot:
+
+  | Target                  | UIKit                | Tokens                | Brand                |
+  | ----------------------- | -------------------- | --------------------- | -------------------- |
+  | Reset to last imported  | `getImportedUikit()` | `getImportedTokens()` | `getImportedBrand()` |
+  | Reset to Forge defaults | `getPristineUikit()` | `getPristineTokens()` | `getPristineBrand()` |
+
+  Three new getters were added to `VarsStore`: `getImportedBrand()`, `getImportedTokens()`, and `getPristineTokens()`, completing the set alongside the existing `getImportedUikit()`, `getPristineUikit()`, and `getPristineBrand()`.
+
+## 0.15.1
+
+### Patch Changes
+
+- fb873c6: Button: border-radius and min-width are now content-variant-specific (content × size)
+
+  Previously `border-radius` and `min-width` lived under `variants.sizes.{size}.properties` in `recursica_ui-kit.json`, meaning all content variants (label, icon-label, icon-only) shared the same values. These tokens have been moved to `variants.content.{content-variant}.sizes.{size}.properties`, enabling independent control per content variant and size combination.
+
+  **Token structure (`recursica_ui-kit.json`)**
+
+  - Removed `border-radius` from `variants.sizes.{size}.properties`
+  - Added `border-radius` and `min-width` to each `variants.content.{cv}.sizes.{size}.properties` node for all three content variants (label, icon-label, icon-only) × both sizes (default, small)
+
+  **Button adapter (`Button.tsx` / `Button.css`)**
+
+  - `borderRadiusVar` and `minWidthVar` now resolve from the content × size cross-variant CSS var path, matching the selected `contentVariant` and `sizePrefix` at render time
+
+  **ButtonPreview (`ButtonPreview.tsx`)**
+
+  - Per-content-type `--button-border-radius` override added to each preview button's inline style so the preview reflects the correct content-variant token
+
+  **Toolbar (`ComponentToolbar.tsx`)**
+
+  - Added virtual prop handlers for `border-radius` and `min-width` that construct the correct CSS var from `selectedVariants.content × selectedVariants.size`
+  - Added `isButtonBorderRadiusCacheMiss` guard to force grouped-prop cache invalidation when the content variant changes (bypasses the parser tagging these tokens as `variantProp='size'`)
+
+  **PropControlContent (`PropControlContent.tsx`)**
+
+  - Grouped prop rendering for Button `border-radius` bypasses `getCssVarsForProp` and computes the authoritative CSS var directly from `selectedVariants`
+  - Added `max-label-width` to the pixel-slider handler; adjusted `min-width` slider bounds to 20–150 px
+
+  **BorderGroupToolbar (`BorderGroupToolbar.tsx`)**
+
+  - `borderRadiusCssVars` for Button is now derived from `selectedVariants.content × selectedVariants.size` directly, fixing the corner-radius slider in the Border group not updating when the content variant changes
+
+## 0.15.0
+
+### Minor Changes
+
+- c9b00fb: ## Semantic Core Color System Migration
+
+  Renames the brand palette's legacy `black`/`white` core-color keys to semantic `high-contrast`/`low-contrast` aliases, completing a full system-wide migration for mode-aware accessibility.
+
+  ### What changed
+
+  **`recursica_brand.json`**
+
+  - Renamed `black` → `high-contrast` and `white` → `low-contrast` in both light and dark `core-colors` palette sections.
+  - Corrected 31+ dark-mode `on-tone` references that were failing the 4.5:1 AA contrast ratio, using programmatic contrast auditing to select the compliant semantic key per palette level.
+  - Fixed dark-mode `interactive` color references to use AA-compliant scale tokens (`scale-06.400` / `scale-06.300`).
+
+  **Architecture: Emphasis vs. Contrast**
+
+  - Formally separated opacity-based emphasis tokens (`high-emphasis`/`low-emphasis`) from color-based contrast tokens (`high-contrast`/`low-contrast`) — these are distinct concepts and must not be conflated.
+
+  **Source code (`src/`)**
+
+  - `layers.ts`: Mode resolver now maps `high-contrast`/`low-contrast` keys to the correct hex values per mode (e.g. `high-contrast` = near-white in dark, near-black in light).
+  - `cssVarBuilder.ts` / `ComplianceService.ts` / `varsStore.ts`: Corrected emphasis token variable names that were incorrectly renamed to contrast during an earlier pass.
+  - `structuralMetadata.ts`, `OverlayTokenPicker.tsx`, `ColorTokenPicker.tsx`, `PaletteColorControl.tsx`: Updated all `paletteCore('black'/'white')` calls and `coreColorKeys` arrays to use semantic keys, with mode-aware CSS var path construction.
+  - `PaletteColorSelector.tsx` / `PaletteScale.tsx`: Refactored `pickOnToneWithOpacity` and `recheckAACompliance` to return and consume `'high-contrast' | 'low-contrast'` instead of `'white' | 'black'`.
+  - `AAComplianceWatcher.ts`: Compliance watcher now checks `high-contrast`/`low-contrast` CSS vars directly.
+
+  **Export pipeline**
+
+  - `jsonExport.ts`: All backwards-compat normalizers updated to map legacy `black`/`white` refs to semantic keys with mode-awareness (e.g. `{brand.themes.dark.palettes.core-colors.white}` → `{brand.themes.dark.palettes.core-colors.high-contrast.tone}`).
+  - `recursicaJsonTransformScoped.ts`: `core-black`/`core-white` alias expansion now targets `high-contrast`/`low-contrast`.
+  - `normalizeUIKitBrandReferences`: UIKit ref normalizer updated to emit semantic keys.
+
+  **Test fixtures & test files**
+
+  - 22 component test-export JSONs under `src/components/test-exports/`: replaced all 44 `core-colors.white.tone` refs with `core-colors.low-contrast.tone` and 9 `core-colors.black.tone` refs with `core-colors.high-contrast.tone`.
+  - `colorSteppingForAa.test.ts`: Updated assertions to expect `low-contrast`/`high-contrast` return values and the correct CSS var prefix format.
+
+### Patch Changes
+
+- d1f32f3: Fix WCAG AA compliance fixes not persisting when palette scales or core colors are updated.
+
+  **`updateBrandValue`: wrong JSON write location**
+  The core bug — `cssVarToRef()` strips `themes.{mode}.` from brand references for component theme-agnosticism. `updateBrandValue` was using its output directly as the JSON navigation path, so writes landed at `brand.palettes.core-colors.*` (a non-existent node) instead of the correct `brand.themes.dark.palettes.core-colors.*`. Every fix was silently discarded, and `recomputeAndApplyAll` restored the original failing value on the next cycle. Fixed by reusing `cssVarToRef`'s battle-tested de-flattening rules (which also correctly resolves `elements_text-alert` → `elements.text.alert`, etc.) and then re-injecting the mode segment before navigation. Missing path segments now abort the write rather than auto-creating spurious nodes.
+
+  **`ComplianceService`: invalid suggestion value format**
+  When black or white was not an exact token-index match, `tryBlackWhiteTokens` generated a `{brand.themes.light.palettes.core-colors.white}` DTCG reference as the suggestion value. `validateCssVarValue` only accepts `var()` format, so the fix was silently rejected by `updateCssVar`. Fixed to emit a proper `var(--recursica_brand_themes_...)` reference via `paletteCore()`.
+
+  **`ComplianceService`: conflicting high/low emphasis suggestions**
+  High-emphasis and low-emphasis compliance issues for the same CSS var each generated independent suggestions. Applying them in sequence caused the last write to undo the first. Fixed by suppressing the low-emphasis issue when a high-emphasis issue already covers the same CSS var, and by threading an `otherEmphasisOpacity` constraint through `findBestPassingColor` and `tryBlackWhiteTokens` so that any generated suggestion is guaranteed to satisfy both emphasis levels simultaneously.
+
+## 0.14.0
+
+### Minor Changes
+
+- 9a6276b: ## Per-component test file architecture
+
+  Refactored the 37 test export JSON files from monolithic full-ui-kit snapshots (~500KB each, ~17MB total) into slim partial files that contain only the focal component(s) and shared globals (~15KB average, 643KB total — a 97% reduction).
+
+  ### Test file changes
+
+  - Each file now contains `ui-kit.globals` and only the component(s) relevant to that file
+  - Related sub-components are grouped together: `switch` / `switch-group` / `switch-item`, `checkbox` / `checkbox-group` / `checkbox-item`, `radio-button` / `radio-button-group` / `radio-button-item`, `menu` / `menu-item`, `accordion` / `accordion-item`, `segmented-control` / `segmented-control-item`, `timeline` / `timeline-bullet`
+  - All 37 files updated with focused, accurate token data validated against the current design system
+
+  ### Import pipeline changes (`ImportModal.tsx`)
+
+  - `handleTestFileSelect` now performs a shallow merge of the partial file's focal components over the current in-memory ui-kit state before passing to the import pipeline
+  - Runtime globals are used (not the test file's snapshot) so token references always resolve against the live design system
+  - The merged result is a complete, valid ui-kit that passes full DTCG reference validation
+
+  ### Bug fixes
+
+  - Fixed dangling DTCG reference in `recursica_ui-kit.json`: `transfer-list` side-by-side layout `top-bottom-margin` referenced non-existent `{ui-kit.globals.form.properties.horizontal-item-gap}`; corrected to `{ui-kit.globals.form.properties.vertical-item-gap}`
+  - Added `SwitchGroup` and `SwitchItem` to the `ComponentName` union type in `registry/types.ts`
+  - Added `helpText` prop to `SwitchGroupProps` in `SwitchGroup.tsx`
+  - Fixed `normalizedComponentName` out-of-scope references in `PropControlContent.tsx` (track and thumb handlers)
+  - Added `hover-color` and `hover-opacity` props to `AccordionItem.toolbar.json` to match the ui-kit schema and pass the toolbar coverage test
+
+  ### Per-component fixes and test file additions
+
+  Numerous individual component fixes landed alongside their test files across the branch, including: button, badge, avatar, autocomplete, assistive element, breadcrumb, card, chip, checkbox/radio groups, date picker, dropdown, file input, file upload, hover card/popover, label, link, loader, menu/menu-item, modal, number input, pagination, panel, read-only field, segmented control, slider (discrete sliders), stepper, switch group, tabs, text field, textarea, time picker, timeline, toast, tooltip, transfer list
+
+## 0.13.0
+
+### Minor Changes
+
+- 7b9acaa: Updated CSS output with variant handling
+
+## 0.12.7
+
+### Patch Changes
+
+- 9e0fe2b: - **Export Validation Hardening**: Removed silent catch blocks that previously suppressed validation errors during JSON serialization. All schema validation errors now cleanly propagate and display visually via the `ValidationErrorModal`.
+  - **Test Export Enhancements**: Updated the "Test" download option in the Export Modal to include both the static original test file and the current live `recursica_ui-kit.json`, isolating both files cleanly into a component-specific directory zip instead of blindly overwriting.
+  - **Theme-Agnostic Component Persistence**: The `cssVarToRef` mapping tool now successfully strips out specific theme prefixes (e.g., `themes.light.`) when parsing component CSS Variables so that exported UI Kit JSON tokens remain strictly theme-agnostic.
+  - **Dimension Token Stability**: Token categorization inside the toolbars is now strict based on property definitions. `border-radius` tokens no longer accidentally leak into general dimension inputs like `padding` or `gap`.
+
+## 0.12.6
+
+### Patch Changes
+
+- 21b0ea4: Fixes and improvements for Chip component rendering across all framework adapters (Mantine, Material, Carbon):
+  - **Prevented Icon Clipping**: Addressed layout issues where increasing the `icon-text-gap` or utilizing specific descenders would clip icons on the left/right boundaries. Swapped margin-based spacing for flex `gap` to create cleaner inner layouts.
+  - **Dynamic Centering & Spacing**: When `min-width` is greater than the chip's inner content, the text label will now naturally expand to fill the available space, centering the text while ensuring leading and trailing icons are pushed out toward the far edges.
+  - **Text Wrapping & Truncation**: Forced aggressive `display: block` and `white-space: nowrap` rules on all text-bearing elements. The chip text will strictly remain on one line and cleanly truncate with an ellipsis if it runs out of space, rather than wrapping onto two lines.
+  - **Checkmark Gap Logic**: Fixed an issue where the `icon-text-gap` wasn't being correctly applied to the checkmark if the user had not explicitly configured a leading icon.
+
+## 0.12.5
+
+### Patch Changes
+
+- 1cf1c4c: Updated base json colors and styles to fix all compliance issues
+
+## 0.12.4
+
+### Patch Changes
+
+- bd9477f: - Refactored component layout to prevent text descender clipping by standardizing `padding: 0.15em 0` on label elements and using `overflow-y: visible` with `overflow-x: hidden` for ellipsis.
+  - Resolved token resolution errors in JSON to CSS export pipeline to support direct references to typography groups (e.g., `{brand.typography.h2}`).
+  - Updated UI Kit components (Card, Panel, Modal, TransferList) to properly use brand typography tokens for `header-style` and `content-style`.
+  - Fixed build-time TypeScript type mismatches for dynamically generated `textTransform` CSS properties.
+- 9d06928: Fix token assignment logic during component randomization:
+  - Color randomizer previously injected bare token color references (`{tokens.colors.*}`) into component state. All component-level color randomizations will now strictly assign semantic palette references (`{brand.palettes.*.color.tone}`) for consistent theming architecture.
+  - Font family and font style property randomization was occasionally skipping due to incomplete token matching. Added missing token path resolution for `{brand.fonts.*}` and improved regex matching for `font-style` to properly cycle through values during component randomization.
+
+## 0.12.3
+
+### Patch Changes
+
+- f896cc8: Fix randomizer token injection, resolve DTCG schema validation regressions, and restore Link text properties panel:
+  - Prevented `.default` references in token color resolution by introducing `tokenColorLevels` to `randomizerFactories.ts`.
+  - Corrected the dimension reference generation path in `DimensionsPage.tsx` from `{tokens.size.X}` to `{tokens.sizes.X}`, fixing 102 critical `$type` schema validation errors.
+  - Integrated `validate-export.ts` into the `npm test` script pipeline.
+  - Removed the restrictive `allowedProps` configuration from `Link.toolbar.json`, restoring the full text styling panel including font, size, and the "show all properties" button.
+- 7976eea: Fix global ref modal cancellation logic.
+
+  When the global property conflict modal (e.g., "Apply global form changes") was dismissed via the "X" button or by clicking outside, it incorrectly kept the component-level override intact instead of cancelling the action.
+
+  This has been resolved by implementing a strict `cancel` decision flow in the `globalRefInterceptor`. When cancelled, the interceptor now forcibly restores the original CSS variable mapping to follow the global token, restores the original `{ui-kit.globals.*}` DTCG reference in the JSON store, and triggers a UI state update to correctly reset the toolbar controls back to their original values.
+
+- 631c5d0: Fix elevation UI state initialization and persistence bugs.
+
+  - **Regex Normalization**: Fixed regex patterns globally (`LayerStylePanel`, `ElevationControl`, `ElevationToolbar`, `PropControlContent`, `brandCssVars`) to use `/elevations?[._](elevation-\d+)/i`. This handles both dot-notation in JSON and underscore-notation in resolved CSS variables.
+  - **Elevation State Initialization**: Updated `LayerStylePanel` to compute the initial elevation value by reading directly from the `spec` JSON instead of relying on the browser's `getComputedStyle`, which destroyed the token reference by resolving into a literal box-shadow.
+  - **Elevation Persistence**: Updated `updateElevation` in `VarsStore` to correctly sync non-color UI control data (`blur`, `spread`, `opacity`, `offsetX`, `offsetY`, `x-direction`, `y-direction`) back into the `theme.brand` state so that these properties properly persist across browser sessions.
+
 ## 0.12.2
 
 ### Patch Changes

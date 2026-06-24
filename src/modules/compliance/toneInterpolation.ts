@@ -115,7 +115,7 @@ export interface SuggestedTone {
     isReference: boolean       // True for the adjacent levels (not selectable)
     isFailing: boolean         // True for the original failing tone
     isCompliant: boolean       // True if on-tone passes AA at this emphasis
-    onToneColor: 'black' | 'white' | null  // Which on-tone wins, or null if neither passes
+    onToneColor: 'high-contrast' | 'low-contrast' | null  // Which on-tone wins, or null if neither passes
     contrastRatio: number      // The best contrast ratio achieved
     label: string              // Display label (e.g., "600", "Suggested 1", "500")
     level?: string             // Scale level if this is a reference or the failing tone
@@ -132,7 +132,7 @@ export function testOnToneCompliance(
     emphasis: 'high' | 'low',
     emphasisOpacity: number,
     actualOnToneHex?: string
-): { onTone: 'black' | 'white' | null; ratio: number; isCompliant: boolean } {
+): { onTone: 'high-contrast' | 'low-contrast' | null; ratio: number; isCompliant: boolean } {
     // If the actual on-tone is provided, test against that specific color
     if (actualOnToneHex) {
         const effective = emphasis === 'high' && emphasisOpacity >= 1
@@ -141,7 +141,7 @@ export function testOnToneCompliance(
         const ratio = contrastRatio(toneHex, effective)
         const isCompliant = ratio >= AA_THRESHOLD
         // Determine if the actual on-tone is closer to black or white
-        const onTone = luminanceOf(actualOnToneHex) > 0.5 ? 'white' as const : 'black' as const
+        const onTone = luminanceOf(actualOnToneHex) > 0.5 ? 'low-contrast' as const : 'high-contrast' as const
         return { onTone, ratio, isCompliant }
     }
 
@@ -161,7 +161,7 @@ export function testOnToneCompliance(
     const ratioWhite = contrastRatio(toneHex, effectiveWhite)
 
     const bestRatio = Math.max(ratioBlack, ratioWhite)
-    const bestOnTone = ratioBlack >= ratioWhite ? 'black' as const : 'white' as const
+    const bestOnTone = ratioBlack >= ratioWhite ? 'high-contrast' as const : 'low-contrast' as const
     const isCompliant = bestRatio >= AA_THRESHOLD
 
     return {

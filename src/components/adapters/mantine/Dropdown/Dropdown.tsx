@@ -38,6 +38,7 @@ export default function Dropdown({
     optional = false,
     labelAlign = 'left',
     labelSize,
+    maxHeight,
     id,
     labelId,
     helpId,
@@ -46,8 +47,7 @@ export default function Dropdown({
     style,
     zIndex,
     mantine,
-    material,
-    carbon,
+
 }: AdapterDropdownProps & { labelId?: string; helpId?: string; errorId?: string }) {
     const { mode } = useThemeMode()
     const [opened, setOpened] = useState(false)
@@ -151,7 +151,7 @@ export default function Dropdown({
     const dropdownTrigger = (
         <UnstyledButton
             id={uniqueId}
-            onClick={() => state !== 'disabled' && setOpened(!opened)}
+            disabled={state === 'disabled'}
             className={`recursica-dropdown-trigger ${opened || state === 'focus' ? 'opened focus' : ''} ${state === 'disabled' ? 'disabled' : ''}`}
             style={{
                 display: 'flex',
@@ -182,7 +182,7 @@ export default function Dropdown({
             <Text
                 style={{
                     flex: 1,
-                    overflow: 'clip',
+                    overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     fontFamily: `var(${valueFontFamilyVar})`,
@@ -193,6 +193,7 @@ export default function Dropdown({
                     textDecoration: valueTextDecorationVar ? `var(${valueTextDecorationVar})` as any : 'none',
                     textTransform: valueTextTransformVar ? `var(${valueTextTransformVar})` as any : 'none',
                     fontStyle: valueFontStyleVar ? `var(${valueFontStyleVar})` as any : 'normal',
+                    padding: '0.1em 0', // Tiny padding to prevent descender clipping
                 }}
             >
                 {displayLabel}
@@ -211,6 +212,9 @@ export default function Dropdown({
                     <Menu
                         opened={opened}
                         onChange={setOpened}
+                        disabled={state === 'disabled'}
+                        onOpen={() => setOpened(true)}
+                        onClose={() => setOpened(false)}
                         position="bottom-start"
                         width="target"
                         offset={4}
@@ -231,11 +235,12 @@ export default function Dropdown({
                                 minWidth: 'auto',
                             }}
                         >
-                            <MenuAdapter layer={layer}>
+                            <MenuAdapter layer={layer} maxHeight={maxHeight}>
                                 {items.map((item) => (
                                     <MenuItemAdapter
                                         key={item.value}
-                                        onClick={() => {
+                                        onClick={(e: React.MouseEvent) => {
+                                            e.stopPropagation()
                                             onChange?.(item.value)
                                             setOpened(false)
                                         }}

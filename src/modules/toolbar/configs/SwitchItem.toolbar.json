@@ -1,0 +1,134 @@
+{
+  "props": {
+    "thumb": {
+      "icon": "sliders-horizontal",
+      "label": "Thumb",
+      "visible": true,
+      "group": {
+        "thumb-selected": {
+          "label": "Thumb selected",
+          "visible": true
+        },
+        "thumb-unselected": {
+          "label": "Thumb unselected",
+          "visible": true
+        },
+        "icon-selected": {
+          "label": "Icon selected",
+          "visible": true
+        },
+        "icon-unselected": {
+          "label": "Icon unselected",
+          "visible": true
+        },
+        "thumb-height": {
+          "label": "Thumb height",
+          "visible": true
+        },
+        "thumb-width": {
+          "label": "Thumb width",
+          "visible": true
+        },
+        "thumb-border-radius": {
+          "label": "Thumb corner radius",
+          "visible": true
+        },
+        "thumb-icon-size": {
+          "label": "Icon Size",
+          "visible": true
+        }
+      }
+    },
+    "track": {
+      "icon": "faders-horizontal",
+      "label": "Track",
+      "visible": true,
+      "group": {
+        "track-selected": {
+          "label": "Track selected",
+          "visible": true
+        },
+        "track-unselected": {
+          "label": "Track unselected",
+          "visible": true
+        },
+        "track-width": {
+          "label": "Track width",
+          "visible": true
+        },
+        "track-inner-padding": {
+          "label": "Track inner padding",
+          "visible": true
+        },
+        "track-border-radius": {
+          "label": "Track corner radius",
+          "visible": true
+        }
+      }
+    },
+
+    "text": {
+      "icon": "text-aa",
+      "label": "Label text style",
+      "visible": true,
+      "group": {
+        "text": {
+          "label": "Color",
+          "visible": true
+        }
+      }
+    },
+    "label": {
+      "icon": "text-t",
+      "label": "Label",
+      "visible": true,
+      "group": {
+        "label-gap": {
+          "label": "Switch-label gap",
+          "visible": true
+        },
+        "text-color": {
+          "label": "Text color",
+          "visible": true
+        },
+        "label-max-width": {
+          "label": "Max width",
+          "visible": true,
+          "min": 40,
+          "max": 500
+        }
+      }
+    },
+    "disabled": {
+      "icon": "prohibit",
+      "label": "Disabled state",
+      "visible": true,
+      "group": {
+        "disabled-text": {
+          "label": "Text color",
+          "visible": true
+        },
+        "disabled-opacity": {
+          "label": "Opacity",
+          "visible": true
+        }
+      }
+    },
+
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "visible": true,
+      "group": {
+        "thumb-elevation": {
+          "label": "Thumb",
+          "visible": true
+        },
+        "track-elevation": {
+          "label": "Track",
+          "visible": true
+        }
+      }
+    }
+  }
+}

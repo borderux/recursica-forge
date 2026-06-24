@@ -10,8 +10,7 @@ import type { JsonLike } from '../resolvers/tokens'
 import type { RandomizeOptions } from './RandomizeOptionsModal'
 import { randomizeTokens } from './randomizers/tokenRandomizer'
 import { randomizeTheme } from './randomizers/themeRandomizer'
-import * as ComponentRandomizers from './randomizers/components'
-import { updateCssVars, removeCssVar } from '../css/updateCssVar'
+import { removeCssVar } from '../css/updateCssVar'
 
 export function randomizeAllVariables(options?: RandomizeOptions): void {
   const opts: RandomizeOptions = options || {
@@ -24,7 +23,6 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       lineHeights: true 
     },
     theme: { coreProperties: true, corePropertyElements: true, overlay: true, type: true, palettes: true, elevations: true, dimensions: true, layers: true },
-    uikit: { components: {} as Record<string, boolean> },
   }
 
   if (process.env.NODE_ENV !== 'development') {
@@ -42,11 +40,9 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
 
   const initialTokens = JSON.parse(JSON.stringify(state.tokens)) as JsonLike
   const initialTheme = getVarsStore().getLatestThemeCopy() as JsonLike
-  const initialUiKit = JSON.parse(JSON.stringify(state.uikit)) as JsonLike
 
   const shouldRandomizeTokens = Object.values(opts.tokens).some(v => v === true)
   const shouldRandomizeTheme = Object.values(opts.theme).some(v => v === true)
-  const shouldRandomizeUIKit = Object.values(opts.uikit.components).some(v => v === true)
 
   const diffs: { path: string, before: any, after: any, changed?: boolean }[] = [];
 
@@ -151,103 +147,9 @@ export function randomizeAllVariables(options?: RandomizeOptions): void {
       store.setTheme(modifiedTheme);
   }
 
-  // Update UIKit
-  const uikitModifiedKeysCount: Record<string, { total: number, changed: number }> = {};
-  if (shouldRandomizeUIKit) {
-      const modifiedUiKit = JSON.parse(JSON.stringify(initialUiKit)) as any;
-      const componentsRoot = modifiedUiKit['ui-kit']?.components || {};
-      
-      for (const compKey of Object.keys(componentsRoot)) {
-          // Find the exact randomizer function for this component
-          // e.g. "hover-card-popover" -> randomizeHoverCardPopover
-          const funcName = 'randomize' + compKey.replace(/-./g, x => x[1].toUpperCase()).replace(/^./, x => x.toUpperCase());
-          const randomizerFunc = (ComponentRandomizers as any)[funcName];
-          
-          if (randomizerFunc) {
-              const startDiffCount = diffs.length;
-              randomizerFunc(componentsRoot[compKey], opts, diffs, `uikit.components.${compKey}`);
-              const endDiffCount = diffs.length;
-              
-              // Count total properties that have a value in the JSON for this component
-              let totalProps = 0;
-              const countProps = (obj: any) => {
-                 if (!obj || typeof obj !== 'object') return;
-                 if ('$value' in obj) { if (obj.$value !== null) totalProps++; return; }
-                 for (const k in obj) {
-                    if (k !== '$type' && k !== '$description') countProps(obj[k]);
-                 }
-              };
-              countProps(componentsRoot[compKey]);
-              
-              uikitModifiedKeysCount[compKey] = {
-                 changed: diffs.slice(startDiffCount).filter(d => d.changed !== false).length,
-                 total: endDiffCount - startDiffCount
-              };
-          }
-      }
-      
-      // Apply UI Kit changes as if the user triggered them via the Toolbar
-      // This pushes them to the active CSS variables and tracks them in the CSS Delta
-      const varsToUpdate: Record<string, string> = {};
-      const currentMode = typeof document !== 'undefined' ? (document.documentElement.getAttribute('data-theme-mode') || 'light') : 'light';
-      
-      diffs.forEach(diff => {
-          if (!diff.path.startsWith('uikit.components')) return;
-          // Clean the path to align with how CSS variables are actually generated (strip .$value)
-          // E.g., ...properties.border-size.$value -> ...properties.border-size
-          const cleanPath = diff.path.replace(/\.\$value$/, '');
-          const pathWithMode = cleanPath.replace('uikit.components', `ui-kit_themes_${currentMode}_components`);
-          const cssVarName = `--recursica_${pathWithMode.replace(/\./g, '_')}`;
-          
-          let val = diff.after;
-          if (typeof val === 'string' && val.startsWith('{') && val.endsWith('}')) {
-             val = `var(--recursica_${val.slice(1, -1).replace(/\./g, '_')})`;
-          } else if (typeof val === 'number') {
-             val = String(val); // Ensure string
-          }
-          
-          // Determine if we need to append a unit. If the original path ended with .$value, it implies this was 
-          // a dimension object where node.unit existed. We can look up the property safely:
-          if (diff.path.endsWith('.$value')) {
-             // Retrieve the unit from the JSON store directly
-             const pathSegments = cleanPath.split('.').slice(1); // skip 'uikit'
-             let currentNode: any = modifiedUiKit['ui-kit'] ?? modifiedUiKit;
-             for (const seg of pathSegments) {
-                 if (!currentNode) break;
-                 // Provide backward-compat map if 'components' prefix isn't 'ui-kit' root
-                 if (seg === 'components' && !currentNode.components && modifiedUiKit['ui-kit']?.components) {
-                     currentNode = modifiedUiKit['ui-kit'];
-                 } else {
-                     currentNode = currentNode[seg];
-                 }
-             }
-             if (currentNode && currentNode.$type === 'dimension' && currentNode.$value && currentNode.$value.unit) {
-                 const unit = currentNode.$value.unit;
-                 if (!String(val).endsWith(unit) && !String(val).startsWith('var(')) {
-                     val = String(val) + unit;
-                 }
-             }
-          }
-          
-          varsToUpdate[cssVarName] = val;
-      });
-      updateCssVars(varsToUpdate);
-      
-      // Dispatch a manual batch update event to synchronize the Toolbar prop controls
-      if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: Object.keys(varsToUpdate) }
-          }));
-      }
-      
-      // Store React JSON structure as fallback
-      store.setUiKitSilent(modifiedUiKit);
-  }
-
   // Save the run to sessionStorage
   try {
      sessionStorage.setItem('randomizer_diffs', JSON.stringify(diffs));
-     sessionStorage.setItem('randomizer_ratios', JSON.stringify(uikitModifiedKeysCount));
   } catch (e) {
      console.error("Failed to save diffs to sessionStorage", e);
   }

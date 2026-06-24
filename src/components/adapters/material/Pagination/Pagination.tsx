@@ -104,10 +104,10 @@ export default function Pagination({
 
     // Helper to render nav button content based on display mode
     const getNavButtonProps = (icon: React.ReactNode, label: string) => {
-        if (navDisplay === 'text') {
+        if (navDisplay === 'label') {
             return { children: label }
         }
-        if (navDisplay === 'icon+text') {
+        if (navDisplay === 'icon-label') {
             return { icon, children: label }
         }
         // icon only (default)

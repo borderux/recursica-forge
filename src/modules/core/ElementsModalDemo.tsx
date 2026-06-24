@@ -9,6 +9,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { updateCssVar } from '../../core/css/updateCssVar'
 import { getVarsStore } from '../../core/store/varsStore'
 import { tokenOpacity, layerProperty, layerText, elevation, state, textEmphasis, paletteCore } from '../../core/css/cssVarBuilder'
+import { ResetButton } from '../../components/shared/ResetButton'
 
 export default function ElementsModalDemo() {
   const { mode } = useThemeMode()
@@ -291,7 +292,7 @@ export default function ElementsModalDemo() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: `var(${paletteCore(modeLower, 'interactive', 'default', 'tone')})`,
+                color: `var(${paletteCore(modeLower, 'interactive', 'tone')})`,
                 cursor: 'default', // Can't be closed
               }}>
                 <XIcon style={{ width: '16px', height: '16px' }} />
@@ -404,52 +405,32 @@ export default function ElementsModalDemo() {
               zIndex={30000}
             />
 
-            {/* Reset all button */}
+            {/* Reset button */}
             <div style={{
               display: 'flex',
               justifyContent: 'flex-end',
               marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
             }}>
-              <Button
-                variant="outline"
-                size="small"
-                layer="layer-1"
-                icon={ResetIcon ? <ResetIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : undefined}
-                onClick={() => {
-                  // Reset all opacities to default values from recursica_brand.json
-                  try {
-                    // Default values from recursica_brand.json:
-                    // text-emphasis-high: {tokens.opacity.solid}
-                    // text-emphasis-low: {tokens.opacity.smoky}
-                    // state-disabled: {tokens.opacity.ghost}
-                    const defaultHighToken = 'solid'
-                    const defaultLowToken = 'smoky'
-                    const defaultDisabledToken = 'ghost'
-
-                    // Reset CSS variables to default token references (both modes)
-                    updateCssVar(textEmphasis(modeLower, 'high'), `var(--recursica_tokens_opacities_${defaultHighToken})`)
-                    updateCssVar(textEmphasis(modeLower, 'low'), `var(--recursica_tokens_opacities_${defaultLowToken})`)
-                    updateCssVar(state(modeLower, 'disabled'), `var(--recursica_tokens_opacities_${defaultDisabledToken})`)
-                    updateCssVar(textEmphasis(otherMode, 'high'), `var(--recursica_tokens_opacities_${defaultHighToken})`)
-                    updateCssVar(textEmphasis(otherMode, 'low'), `var(--recursica_tokens_opacities_${defaultLowToken})`)
-                    updateCssVar(state(otherMode, 'disabled'), `var(--recursica_tokens_opacities_${defaultDisabledToken})`)
-
-                    // Persist resets to theme JSON
-                    persistToThemeJson('text-emphasis-high', defaultHighToken)
-                    persistToThemeJson('text-emphasis-low', defaultLowToken)
-                    persistToThemeJson('state-disabled', defaultDisabledToken)
-
-                    // Update dropdown selections
-                    setSelectedHigh(defaultHighToken)
-                    setSelectedLow(defaultLowToken)
-                    setSelectedDisabled(defaultDisabledToken)
-                  } catch (err) {
-                    console.error('Failed to reset opacities:', err)
-                  }
+              <ResetButton
+                onReset={() => {
+                  const defaultHighToken = 'solid'
+                  const defaultLowToken = 'smoky'
+                  const defaultDisabledToken = 'ghost'
+                  updateCssVar(textEmphasis(modeLower, 'high'), `var(--recursica_tokens_opacities_${defaultHighToken})`)
+                  updateCssVar(textEmphasis(modeLower, 'low'), `var(--recursica_tokens_opacities_${defaultLowToken})`)
+                  updateCssVar(state(modeLower, 'disabled'), `var(--recursica_tokens_opacities_${defaultDisabledToken})`)
+                  updateCssVar(textEmphasis(otherMode, 'high'), `var(--recursica_tokens_opacities_${defaultHighToken})`)
+                  updateCssVar(textEmphasis(otherMode, 'low'), `var(--recursica_tokens_opacities_${defaultLowToken})`)
+                  updateCssVar(state(otherMode, 'disabled'), `var(--recursica_tokens_opacities_${defaultDisabledToken})`)
+                  persistToThemeJson('text-emphasis-high', defaultHighToken)
+                  persistToThemeJson('text-emphasis-low', defaultLowToken)
+                  persistToThemeJson('state-disabled', defaultDisabledToken)
+                  setSelectedHigh(defaultHighToken)
+                  setSelectedLow(defaultLowToken)
+                  setSelectedDisabled(defaultDisabledToken)
                 }}
-              >
-                Reset all
-              </Button>
+                layer="layer-1"
+              />
             </div>
           </div>
         </div>

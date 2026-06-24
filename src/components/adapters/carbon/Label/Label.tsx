@@ -6,6 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react'
+import { Button } from '../../Button'
 import type { LabelProps as AdapterLabelProps } from '../../Label'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
@@ -22,6 +23,8 @@ export default function Label({
   layer = 'layer-0',
   className,
   style,
+  editIcon,
+  editIconGap,
   carbon,
   ...props
 }: AdapterLabelProps) {
@@ -78,6 +81,10 @@ export default function Label({
   // Get CSS variables for layout-specific sizes
   const requiredIndicatorGapVar = getComponentLevelCssVar('Label', 'required-indicator-gap')
   const optionalTextGapVar = getComponentLevelCssVar('Label', 'label-optional-text-gap')
+  const editIconGapVar = getComponentLevelCssVar('Label', 'edit-icon-gap')
+  const finalEditIconGap = editIconGap !== undefined
+    ? (typeof editIconGap === 'number' ? `${editIconGap}px` : editIconGap)
+    : `var(${editIconGapVar})`
   
   // Get CSS variable for size-based width based on layout and size variants
   // Width is nested: variants.layouts.{layout}.variants.sizes.{size}.properties.width
@@ -232,7 +239,7 @@ export default function Label({
             : (align === 'right' ? 'flex-end' : 'stretch'),
           gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
         }}>
-          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align }}>{children}</span>
+          <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>{children}</span>
           <span
             style={{
               display: 'block',
@@ -249,22 +256,36 @@ export default function Label({
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
               textAlign: align,
+              padding: '0.15em 0',
             }}
           >
             (optional)
           </span>
         </div>
       ) : (
-        <span style={{ display: 'inline', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align }}>
-          {children}
-          {variant === 'required' && asteriskColorVar && (
-            <span
-              style={{
-                color: `var(${asteriskColorVar})`,
-                marginLeft: `var(${requiredIndicatorGapVar})`,
-              }}
-            >
-              *
+        <span style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
+          width: '100%',
+          gap: editIcon ? finalEditIconGap : 0 
+        }}>
+          <span style={{ display: 'inline-block', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>
+            {children}
+            {variant === 'required' && asteriskColorVar && (
+              <span
+                style={{
+                  color: `var(${asteriskColorVar})`,
+                  marginLeft: `var(${requiredIndicatorGapVar})`,
+                }}
+              >
+                *
+              </span>
+            )}
+          </span>
+          {editIcon && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+              <Button variant="text" size="small" icon={editIcon} layer={layer} />
             </span>
           )}
         </span>

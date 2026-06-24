@@ -177,18 +177,23 @@ export default function Switch({
       ref={toggleRef}
       className="recursica-carbon-toggle-wrapper"
       style={{
-        // Color wrapper vars (layer/variant-specific, need per-instance resolution)
-        ['--recursica_ui-kit_components_switch_thumb_bg_selected' as string]: thumbSelectedColor,
-        ['--recursica_ui-kit_components_switch_thumb_bg_unselected' as string]: thumbUnselectedColor,
-        ['--recursica_ui-kit_components_switch_track_checked' as string]: trackSelectedColor,
-        ['--recursica_ui-kit_components_switch_track_unchecked' as string]: trackUnselectedColor,
-        // Component-level properties are already on :root from recursica_ui-kit.json - don't create circular refs
-        // Only set computed values that depend on them
-        ['--recursica_ui-kit_components_switch_track_height' as string]: trackHeight, // Calculated: thumb-height + 2 * track-inner-padding
-        ['--recursica_ui-kit_components_switch_thumb_elevation' as string]: thumbElevationBoxShadow || 'none',
-        ['--recursica_ui-kit_components_switch_track_elevation' as string]: trackElevationBoxShadow || 'none',
-        ['--recursica-switch-thumb-icon-size' as string]: `var(${thumbIconSizeVar})`,
+        // Short local custom properties — the CSS file targets these for Carbon Toggle overrides
+        '--switch-thumb-selected': thumbSelectedColor,
+        '--switch-thumb-unselected': thumbUnselectedColor,
+        '--switch-track-selected': trackSelectedColor,
+        '--switch-track-unselected': trackUnselectedColor,
+        '--switch-track-height': trackHeight,
+        '--switch-thumb-elevation': thumbElevationBoxShadow || 'none',
+        '--switch-track-elevation': trackElevationBoxShadow || 'none',
+        '--switch-track-width': `var(${trackWidthVar})`,
+        '--switch-thumb-width': `var(${thumbWidthVar})`,
+        '--switch-thumb-height': `var(${thumbHeightVar})`,
+        '--switch-thumb-border-radius': `var(${thumbBorderRadiusVar})`,
+        '--switch-track-border-radius': `var(${trackBorderRadiusVar})`,
+        '--switch-track-inner-padding': `var(${trackInnerPaddingVar})`,
+        '--recursica-switch-thumb-icon-size': `var(${thumbIconSizeVar})`,
         width: `var(${trackWidthVar})`,
+        position: 'relative',
         ...style,
       } as React.CSSProperties}
     >

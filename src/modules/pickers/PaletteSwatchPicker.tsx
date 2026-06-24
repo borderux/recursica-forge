@@ -169,10 +169,30 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       const brandParsed = parseBrandCssVar(trimmed)
       if (brandParsed) {
         if (brandParsed.type === 'palette') {
+          const resolvedHex = targetResolvedValue.resolved
+          if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex)) {
+            // Verify the swatch's generic CSS var resolves to the same hex as the actual rendered color.
+            // If they differ (e.g. dark-mode component vs light-mode picker swatch), use hex matching.
+            const genericSwatchVar = `--recursica_brand_palettes_${brandParsed.paletteName}_${brandParsed.level}_color_tone`
+            const swatchHex = readCssVarResolved(genericSwatchVar)
+            if (swatchHex && swatchHex.toLowerCase() !== resolvedHex.toLowerCase()) {
+              return `hex:${resolvedHex.toLowerCase()}`
+            }
+          }
           return `${brandParsed.paletteName}-${brandParsed.level}`
         }
         if (brandParsed.type === 'core-color') {
           return `core-${brandParsed.path}`
+        }
+        // Layer-type var: the component var is pointing into a brand layer which may be
+        // overridden by the theme. Stop following the default chain and use the fully
+        // resolved hex so hex-matching finds the actual rendered swatch.
+        if (brandParsed.type === 'layer') {
+          const resolvedHex = targetResolvedValue.resolved
+          if (resolvedHex && /^#[0-9a-f]{6}$/i.test(resolvedHex)) {
+            return `hex:${resolvedHex.toLowerCase()}`
+          }
+          return null
         }
       }
 
@@ -217,13 +237,16 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
           }
           return firstHexMatchRef.current === paletteCssVar
         }
+        return false
       } else {
+        // Concrete palette reference — only match this exact palette+level swatch
         const swatchParsed = parseBrandCssVar(paletteCssVar)
         if (swatchParsed && swatchParsed.type === 'palette' && selectedPaletteSwatch === `${swatchParsed.paletteName}-${swatchParsed.level}`) return true
+        return false
       }
     }
 
-    // Hex match fallback — but skip if value is color-mix (blended colors don't correspond to a single swatch)
+    // Hex match fallback — only reached when no concrete token reference was resolved
     if (targetResolvedValue?.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
       const directVal = targetResolvedValue.direct?.trim() || ''
       const isColorMix = directVal.includes('color-mix')
@@ -372,6 +395,25 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 e.stopPropagation()
                 const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                 cssVarsToUpdate.forEach((v) => updateCssVar(v, 'transparent', tokensJson))
+                
+                if (isOverlay && themeJson) {
+                  try {
+                    const themeCopy = getVarsStore().getLatestThemeCopy()
+                    const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
+                    const themes = root?.themes || root
+                    const isDark = cssVarsToUpdate.some(v => v.includes('-dark-'))
+                    const modeKey = isDark ? 'dark' : 'light'
+                    if (!themes[modeKey]) themes[modeKey] = {}
+                    if (!themes[modeKey].states) themes[modeKey].states = {}
+                    if (!themes[modeKey].states.overlay) themes[modeKey].states.overlay = {}
+                    themes[modeKey].states.overlay.color = {
+                      $type: 'color',
+                      $value: null
+                    }
+                    getVarsStore().setThemeSilent(themeCopy)
+                  } catch (err) {}
+                }
+
                 setAnchor(null)
                 onSelect?.('')
                 window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
@@ -381,7 +423,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 height: swatch,
                 cursor: 'pointer',
                 background: 'transparent',
-                border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                border: `1px solid ${isNoneSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                 position: 'relative',
                 padding: isNoneSelected ? '1px' : '0',
                 borderRadius: isNoneSelected ? '5px' : '0',
@@ -400,7 +442,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 </svg>
                 {isNoneSelected && (
                   <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                    {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` }} /> : '✓'}
+                    {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` }} /> : '✓'}
                   </div>
                 )}
               </div>
@@ -410,7 +452,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
 
         {/* Core colors row */}
         {(() => {
-          const coreColorNames = ['black', 'white', 'interactive', 'alert', 'success', 'warning']
+          const coreColorNames = ['high-contrast', 'low-contrast', 'interactive', 'alert', 'success', 'warning']
           const coreSwatches: { key: string; label: string; cssVar: string; onToneCssVar: string }[] = []
 
           try {
@@ -445,17 +487,19 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                     if (currentVal?.trim() === `var(${s.cssVar})`) return true
                     if (selectedPaletteSwatch) {
                       if (selectedPaletteSwatch === `core-${s.key}_tone`) return true
-                      if (selectedPaletteSwatch.startsWith('hex:')) {
-                        const targetHex = selectedPaletteSwatch.slice(4)
-                        const swatchHex = readCssVarResolved(s.cssVar)
-                        if (swatchHex && targetHex === swatchHex.toLowerCase().trim()) {
-                          if (firstHexMatchRef.current === null) {
-                            firstHexMatchRef.current = s.cssVar
-                            return true
-                          }
-                          return firstHexMatchRef.current === s.cssVar
+                      // Concrete palette reference — do not also match core by hex
+                      if (!selectedPaletteSwatch.startsWith('hex:')) return false
+                      // hex: reference — compare resolved hex
+                      const targetHex = selectedPaletteSwatch.slice(4)
+                      const swatchHex = readCssVarResolved(s.cssVar)
+                      if (swatchHex && targetHex === swatchHex.toLowerCase().trim()) {
+                        if (firstHexMatchRef.current === null) {
+                          firstHexMatchRef.current = s.cssVar
+                          return true
                         }
+                        return firstHexMatchRef.current === s.cssVar
                       }
+                      return false
                     }
                     if (targetResolvedValue?.resolved && /^#[0-9a-f]{6}$/i.test(targetResolvedValue.resolved)) {
                       const directVal = targetResolvedValue.direct?.trim() || ''
@@ -480,7 +524,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       onClick={() => {
                         const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                         const paletteVarRef = `var(${s.cssVar})`
-                        cssVarsToUpdate.forEach(v => updateCssVar(v, paletteVarRef, tokensJson))
+                        cssVarsToUpdate.forEach(v => updateCssVar(v, paletteVarRef, tokensJson, false, true))
 
                         if (isOverlay && themeJson) {
                           try {
@@ -511,7 +555,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         height: swatch,
                         cursor: 'pointer',
                         background: `var(${s.cssVar})`,
-                        border: `1px solid ${isCoreSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                        border: `1px solid ${isCoreSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                         padding: isCoreSelected ? '1px' : '0',
                         borderRadius: isCoreSelected ? '5px' : '0',
                         boxSizing: 'border-box',
@@ -582,7 +626,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         const paletteVarRef = `var(${s.cssVar})`
 
                         // Update CSS variables for immediate visual feedback
-                        cssVarsToUpdate.forEach((v) => updateCssVar(v, paletteVarRef, tokensJson))
+                        cssVarsToUpdate.forEach((v) => updateCssVar(v, paletteVarRef, tokensJson, false, true))
 
                         if (isOverlay && themeJson) {
                           try {
@@ -613,7 +657,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         height: swatch,
                         cursor: 'pointer',
                         background: `var(${s.cssVar})`,
-                        border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                        border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                         padding: isSelected ? '1px' : '0',
                         borderRadius: isSelected ? '5px' : '0',
                         boxSizing: 'border-box',

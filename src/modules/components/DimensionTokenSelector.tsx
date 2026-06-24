@@ -114,10 +114,12 @@ export default function DimensionTokenSelector({
         })
       }
 
-      // For horizontal-padding, padding, item-gap, divider-item-gap, padding-horizontal, padding-vertical, and icon-text-gap props, only collect general dimensions
+      // For horizontal-padding, padding, item-gap, divider-item-gap, padding-horizontal, padding-vertical, row-padding, vertical-margin, and icon-text-gap props, only collect general dimensions
       if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' ||
         propNameLower === 'item-gap' || propNameLower === 'divider-item-gap' ||
         propNameLower === 'padding-horizontal' || propNameLower === 'padding-vertical' ||
+        propNameLower === 'row-padding' ||
+        propNameLower === 'vertical-margin' ||
         propNameLower === 'icon-text-gap') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
@@ -459,9 +461,8 @@ export default function DimensionTokenSelector({
           return firstPart === 'border' && cssVarParts[1] === 'radius'
         }
 
-        // For horizontal-padding, padding, item-gap, and divider-item-gap props, only keep general tokens
-        if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' ||
-          propNameLower === 'item-gap' || propNameLower === 'divider-item-gap') {
+        // For padding, margin, and gap props, only keep general tokens
+        if (propNameLower.includes('padding') || propNameLower.includes('margin') || propNameLower.includes('gap')) {
           // Only keep tokens that start with "general-"
           return firstPart === 'general'
         }
@@ -631,7 +632,7 @@ export default function DimensionTokenSelector({
         }
       }
 
-      // For divider-item-gap, padding, item-gap, vertical-padding, horizontal-padding, padding-horizontal, padding-vertical, and icon-text-gap, null means "none"
+      // For divider-item-gap, padding, item-gap, vertical-padding, horizontal-padding, padding-horizontal, padding-vertical, row-padding, vertical-margin, and icon-text-gap, null means "none"
       // Find the "none" token from recursica_brand.json (general-none)
       if (propNameLower === 'divider-item-gap' ||
         propNameLower === 'padding' ||
@@ -639,6 +640,8 @@ export default function DimensionTokenSelector({
         propNameLower === 'horizontal-padding' ||
         propNameLower === 'padding-horizontal' ||
         propNameLower === 'padding-vertical' ||
+        propNameLower === 'row-padding' ||
+        propNameLower === 'vertical-margin' ||
         propNameLower === 'icon-text-gap') {
         // These use general tokens
         const noneToken = dimensionTokens.find(t => t.name.includes('general-none'))
@@ -836,7 +839,8 @@ export default function DimensionTokenSelector({
         onChangeCommitted={(val) => handlePixelCommit(typeof val === 'number' ? val : val[0])}
         min={minPixelValue}
         max={maxPixelValue}
-        step={1}
+        type="discrete"
+                step={1}
         layer="layer-3"
         layout="stacked"
         showInput={false}
@@ -867,7 +871,8 @@ export default function DimensionTokenSelector({
         onChangeCommitted={(val) => handlePixelCommit(typeof val === 'number' ? val : val[0])}
         min={currentMinPixelValue}
         max={currentMaxPixelValue}
-        step={1}
+        type="discrete"
+                step={1}
         layer="layer-3"
         layout="stacked"
         showInput={false}
@@ -898,7 +903,8 @@ export default function DimensionTokenSelector({
       }}
       min={0}
       max={Math.max(0, sortedTokens.length - 1)}
-      step={1}
+      type="discrete"
+                step={1}
       layer="layer-3"
       layout="stacked"
       showInput={false}

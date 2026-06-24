@@ -1,7 +1,10 @@
 import { useMemo } from 'react'
 import { Textarea } from '../../components/adapters/Textarea'
+import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { h2Style } from './typographyStyles'
+
 
 interface TextareaPreviewProps {
     selectedVariants: Record<string, string> // e.g., { states: "default", layouts: "stacked" }
@@ -22,21 +25,14 @@ export default function TextareaPreview({
     // Get form vertical gutter CSS variable
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
+    // Get icon components for examples
+    const SmileyIcon = iconNameToReactComponent('star')
+    const HeartIcon = iconNameToReactComponent('warning')
+
     // Show both layouts
     const layoutsToShow: string[] = selectedVariants.layouts
         ? [selectedVariants.layouts]
         : ['stacked', 'side-by-side']
-
-    const h2Style = {
-        margin: 0,
-        marginBottom: 16,
-        textTransform: 'capitalize' as const,
-        fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-        fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-        fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-        letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-        lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-    } as React.CSSProperties
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
@@ -101,24 +97,46 @@ export default function TextareaPreview({
 
                         {/* Disabled state */}
                         {state === 'disabled' && (
-                            <Textarea
-                                label="Forge Notes"
-                                placeholder="Describe the enchantment process..."
-                                state="disabled"
-                                layout={layoutVariant}
-                                layer={selectedLayer as any}
-                            />
+                            <>
+                                <Textarea
+                                    label="Forge Notes"
+                                    placeholder="Describe the enchantment process..."
+                                    leadingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
+                                    state="disabled"
+                                    layout={layoutVariant}
+                                    layer={selectedLayer as any}
+                                />
+                                <Textarea
+                                    label="Expedition Log"
+                                    placeholder="Record your journey through the deep mines..."
+                                    trailingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
+                                    state="disabled"
+                                    layout={layoutVariant}
+                                    layer={selectedLayer as any}
+                                />
+                            </>
                         )}
 
                         {/* Focus state (shows default with focus styling via CSS) */}
                         {state === 'focus' && (
-                            <Textarea
-                                label="Forge Notes"
-                                placeholder="Describe the enchantment process..."
-                                state="focus"
-                                layout={layoutVariant}
-                                layer={selectedLayer as any}
-                            />
+                            <>
+                                <Textarea
+                                    label="Forge Notes"
+                                    placeholder="Describe the enchantment process..."
+                                    leadingIcon={SmileyIcon ? <SmileyIcon /> : <span>😊</span>}
+                                    state="focus"
+                                    layout={layoutVariant}
+                                    layer={selectedLayer as any}
+                                />
+                                <Textarea
+                                    label="Expedition Log"
+                                    placeholder="Record your journey through the deep mines..."
+                                    trailingIcon={HeartIcon ? <HeartIcon /> : <span>⚠</span>}
+                                    state="focus"
+                                    layout={layoutVariant}
+                                    layer={selectedLayer as any}
+                                />
+                            </>
                         )}
 
                         {/* Custom/unknown state — renders a basic field so styling changes are visible */}

@@ -20,6 +20,10 @@
   border-width: var(--badge-border-size, 0px) !important;
   border-style: solid !important;
   border-color: var(--badge-border-color, transparent) !important;
-  height: auto !important; /* Override Material UI Chip default height */
+  /* Prevent stretching inside flex containers */
+  align-self: flex-start !important;
+  width: fit-content !important;
+  height: auto !important;
+  min-height: 20px !important;
 }
 

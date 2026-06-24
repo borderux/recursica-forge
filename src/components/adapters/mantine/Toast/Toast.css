@@ -9,7 +9,8 @@
   min-height: var(--toast-min-height, var(--recursica_ui-kit_components_toast_properties_min_height)) !important;
   background-color: var(--toast-bg, var(--recursica_ui-kit_components_toast_variants_styles_default_properties_colors_layer-0_background)) !important;
   color: var(--toast-text, var(--recursica_ui-kit_components_toast_variants_styles_default_properties_colors_layer-0_text)) !important;
-  border-radius: 8px !important;
+  border-radius: var(--toast-border-radius, var(--recursica_ui-kit_components_toast_properties_border_radius)) !important;
+  border: var(--toast-border-size, var(--recursica_ui-kit_components_toast_properties_border_size)) solid var(--toast-border-color, var(--recursica_ui-kit_components_toast_properties_border_color)) !important;
 }
 
 .recursica-toast-content {
@@ -42,12 +43,15 @@
 
 .recursica-toast-action {
   flex-shrink: 0 !important;
+  white-space: nowrap !important;
 }
 
 .recursica-toast-action button {
   background-color: transparent !important;
   --button-bg: transparent !important;
   opacity: 1 !important;
+  white-space: nowrap !important;
+  min-width: fit-content !important;
 }
 
 /* Apply color override only when --toast-button is set (success/error variants) */
@@ -57,22 +61,39 @@
   --button-color: var(--toast-button) !important;
 }
 
-.recursica-toast-close {
-  background: none !important;
-  border: none !important;
-  cursor: pointer !important;
+/* Close button — explicit size so it doesn't collapse when icon-only */
+.recursica-toast .recursica-toast-content > span:last-child > button {
+  flex-shrink: 0 !important;
+  min-width: 24px !important;
+  width: 24px !important;
+  height: 24px !important;
   padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  opacity: 1 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 24px !important;
-  height: 24px !important;
-  flex-shrink: 0 !important;
-  color: inherit !important;
-  font-size: 20px !important;
-  line-height: 1 !important;
+  cursor: pointer !important;
 }
 
-.recursica-toast-close:hover {
-  opacity: 0.7 !important;
+/* Force icon size CSS var on the close button container */
+.recursica-toast .recursica-toast-content > span:last-child {
+  --button-icon-size: 16px;
+}
+
+.recursica-toast .recursica-toast-content > span:last-child svg {
+  width: 16px !important;
+  height: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Match close button SVG color to Undo button color on success/error variants */
+.recursica-toast[style*="--toast-button"] .recursica-toast-content > span:last-child svg {
+  color: var(--toast-button) !important;
+  stroke: var(--toast-button) !important;
 }

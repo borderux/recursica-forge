@@ -95,31 +95,13 @@ export function Modal({
     // Listen for CSS variable updates from the toolbar
     useEffect(() => {
         // Get text CSS variables for reactive updates
-        const headerFontFamilyVar = getComponentTextCssVar('Modal', 'header-text', 'font-family')
-        const headerFontSizeVar = getComponentTextCssVar('Modal', 'header-text', 'font-size')
-        const headerFontWeightVar = getComponentTextCssVar('Modal', 'header-text', 'font-weight')
-        const headerLetterSpacingVar = getComponentTextCssVar('Modal', 'header-text', 'letter-spacing')
-        const headerLineHeightVar = getComponentTextCssVar('Modal', 'header-text', 'line-height')
-        const headerFontStyleVar = getComponentTextCssVar('Modal', 'header-text', 'font-style')
-        const headerTextDecorationVar = getComponentTextCssVar('Modal', 'header-text', 'text-decoration')
-        const headerTextTransformVar = getComponentTextCssVar('Modal', 'header-text', 'text-transform')
+        const headerStyleVar = getComponentLevelCssVar('Modal', 'header-style')
 
-        const contentFontFamilyVar = getComponentTextCssVar('Modal', 'content-text', 'font-family')
-        const contentFontSizeVar = getComponentTextCssVar('Modal', 'content-text', 'font-size')
-        const contentFontWeightVar = getComponentTextCssVar('Modal', 'content-text', 'font-weight')
-        const contentLetterSpacingVar = getComponentTextCssVar('Modal', 'content-text', 'letter-spacing')
-        const contentLineHeightVar = getComponentTextCssVar('Modal', 'content-text', 'line-height')
-        const contentFontStyleVar = getComponentTextCssVar('Modal', 'content-text', 'font-style')
-        const contentTextDecorationVar = getComponentTextCssVar('Modal', 'content-text', 'text-decoration')
-        const contentTextTransformVar = getComponentTextCssVar('Modal', 'content-text', 'text-transform')
+        const contentStyleVar = getComponentLevelCssVar('Modal', 'content-style')
 
         const textCssVars = [
-            headerFontFamilyVar, headerFontSizeVar, headerFontWeightVar,
-            headerLetterSpacingVar, headerLineHeightVar, headerFontStyleVar,
-            headerTextDecorationVar, headerTextTransformVar,
-            contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar,
-            contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar,
-            contentTextDecorationVar, contentTextTransformVar
+            headerStyleVar,
+            contentStyleVar
         ]
 
         const handleCssVarUpdate = (e: Event) => {
@@ -178,11 +160,9 @@ export function Modal({
                     backgroundColor: 'rgba(0,0,0,0.5)',
                     ...style
                 }}
-                onClick={onClose}
             >
                 <div
                     style={getModalFallbackStyles(layer, componentElevation, mode)}
-                    onClick={(e) => e.stopPropagation()}
                 >
                     {showHeader && (
                         <div style={{ padding: '16px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>

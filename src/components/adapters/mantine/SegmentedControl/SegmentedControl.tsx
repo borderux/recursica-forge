@@ -39,13 +39,13 @@ export default function SegmentedControl({
   const isVertical = orientation === 'vertical'
 
   // Get CSS variables - container properties (always from SegmentedControl)
-  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'background')
-  const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'border-color')
-  const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-size')
-  const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-radius')
-  const containerElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'elevation')
-  const containerPaddingHorizontalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'padding-horizontal')
-  const containerPaddingVerticalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'padding-vertical')
+  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'background')
+  const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'border-color')
+  const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'border-size')
+  const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'border-radius')
+  const containerElevationVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'elevation')
+  const containerPaddingHorizontalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'padding-horizontal')
+  const containerPaddingVerticalVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'padding-vertical')
 
   // Get CSS variables - padding (applied to all items) - always use SegmentedControlItem for item properties
   const paddingHorizontalVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'padding-horizontal')
@@ -55,13 +55,21 @@ export default function SegmentedControl({
   const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background')
   const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color')
   const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-size')
+  const selectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-radius')
   const selectedElevationVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'elevation')
 
-  // Get CSS variables - item properties (applied to both regular and selected items)
+  // Get CSS variables - unselected properties
+  const unselectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'background')
+  const unselectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'border-color')
+  const unselectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'border-size')
+  const unselectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'border-radius')
+  const unselectedElevationVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'elevation')
+  const unselectedTextColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'text-color')
+
+  // Get CSS variables - item properties (applied to all items when no per-state override)
   const itemBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'border-radius')
 
-  // Get CSS variables - text colors - use SegmentedControl container for item text color
-  const textVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'text-color')
+  // Get CSS variables - text colors - use SegmentedControlItem for text colors (not parent container)
   const selectedTextVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'text-color')
 
   // Get other properties - always use SegmentedControlItem for item properties, SegmentedControl for container properties
@@ -80,19 +88,30 @@ export default function SegmentedControl({
   const dividerColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'divider-color')
   const dividerSizeVar = getComponentLevelCssVar('SegmentedControl', 'divider-size')
 
-  // Get text properties - always use SegmentedControlItem for item text properties
-  const fontFamilyVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'font-family')
-  const fontSizeVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'font-size')
-  const fontWeightVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'font-weight')
-  const letterSpacingVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'letter-spacing')
-  const lineHeightVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'line-height')
-  const textDecorationVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'text-decoration')
-  const textTransformVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'text-transform')
-  const fontStyleVar = getComponentTextCssVar('SegmentedControlItem', 'text', 'font-style')
+  // Get selected text properties
+  const selectedFontFamilyVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'font-family')
+  const selectedFontSizeVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'font-size')
+  const selectedFontWeightVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'font-weight')
+  const selectedLetterSpacingVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'letter-spacing')
+  const selectedLineHeightVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'line-height')
+  const selectedTextDecorationVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'text-decoration')
+  const selectedTextTransformVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'text-transform')
+  const selectedFontStyleVar = getComponentTextCssVar('SegmentedControlItem', 'selected-text', 'font-style')
+
+  // Get unselected text properties
+  const unselectedFontFamilyVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'font-family')
+  const unselectedFontSizeVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'font-size')
+  const unselectedFontWeightVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'font-weight')
+  const unselectedLetterSpacingVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'letter-spacing')
+  const unselectedLineHeightVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'line-height')
+  const unselectedTextDecorationVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'text-decoration')
+  const unselectedTextTransformVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'text-transform')
+  const unselectedFontStyleVar = getComponentTextCssVar('SegmentedControlItem', 'unselected-text', 'font-style')
 
   // Reactively read border-size and divider-size
   const borderSizeValue = useCssVar(containerBorderSizeVar, '1px')
   const selectedBorderSizeValue = useCssVar(selectedBorderSizeVar, '1px')
+  const unselectedBorderSizeValue = useCssVar(unselectedBorderSizeVar, '0px')
   const dividerSizeValue = useCssVar(dividerSizeVar, '1px')
 
   // Convert items to Mantine format with icons and labels
@@ -123,11 +142,7 @@ export default function SegmentedControl({
               {item.icon}
             </span>
           </span>
-          <span style={{
-            textDecoration: 'var(--segmented-control-text-decoration)',
-            textTransform: 'var(--segmented-control-text-transform)' as React.CSSProperties['textTransform'],
-            fontStyle: 'var(--segmented-control-font-style)',
-          }}>
+          <span>
             {item.label}
           </span>
         </span>
@@ -241,12 +256,52 @@ export default function SegmentedControl({
     }
   }, [selectedElevationVar])
 
+  // Get unselected elevation
+  const [unselectedElevationFromVar, setUnselectedElevationFromVar] = useState<string | undefined>(() => {
+    if (!unselectedElevationVar) return undefined
+    const value = readCssVar(unselectedElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+
+  useEffect(() => {
+    if (!unselectedElevationVar) return
+
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(unselectedElevationVar)) {
+        const value = readCssVar(unselectedElevationVar)
+        setUnselectedElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    }
+
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    window.addEventListener('cssVarsReset', handleCssVarUpdate)
+
+    const observer = new MutationObserver(() => {
+      const value = readCssVar(unselectedElevationVar)
+      setUnselectedElevationFromVar(value ? parseElevationValue(value) : undefined)
+    })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style'],
+    })
+
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [unselectedElevationVar])
+
   const componentElevation = elevation ?? containerElevationFromVar ?? undefined
   const elevationBoxShadow = componentElevation && componentElevation !== 'elevation-0'
     ? getElevationBoxShadow(mode, componentElevation)
     : undefined
   const selectedElevationBoxShadow = selectedElevationFromVar && selectedElevationFromVar !== 'elevation-0'
     ? getElevationBoxShadow(mode, selectedElevationFromVar)
+    : undefined
+  const unselectedElevationBoxShadow = unselectedElevationFromVar && unselectedElevationFromVar !== 'elevation-0'
+    ? getElevationBoxShadow(mode, unselectedElevationFromVar)
     : undefined
 
   const wrapperRef = useRef<HTMLDivElement>(null)
@@ -323,7 +378,7 @@ export default function SegmentedControl({
     return () => {
       observer.disconnect()
     }
-  }, [items, value, defaultValue, orientation, isVertical, itemGapVar, dividerSizeVar, dividerColorVar, containerBorderColorVar, textVar])
+  }, [items, value, defaultValue, orientation, isVertical, itemGapVar, dividerSizeVar, dividerColorVar, containerBorderColorVar, unselectedTextColorVar])
 
   // Add tooltips to segments when labels are hidden using Mantine Tooltip
   useEffect(() => {
@@ -438,15 +493,22 @@ export default function SegmentedControl({
     const relevantCssVars = new Set([
       dividerSizeVar,
       dividerColorVar,
-      textDecorationVar,
-      textTransformVar,
-      fontStyleVar,
+      selectedTextDecorationVar,
+      selectedTextTransformVar,
+      selectedFontStyleVar,
+      unselectedTextDecorationVar,
+      unselectedTextTransformVar,
+      unselectedFontStyleVar,
       selectedTextVar,
       selectedElevationVar,
       selectedBorderSizeVar,
+      unselectedBgVar,
+      unselectedBorderColorVar,
+      unselectedBorderSizeVar,
+      unselectedElevationVar,
+      unselectedTextColorVar,
       paddingHorizontalVar,
       heightVar,
-      textVar,
       selectedBgVar,
       selectedBorderColorVar,
       itemBorderRadiusVar,
@@ -459,7 +521,9 @@ export default function SegmentedControl({
       selectedBgVar,
       selectedTextVar,
       selectedBorderColorVar,
-      textVar,
+      unselectedBgVar,
+      unselectedBorderColorVar,
+      unselectedTextColorVar,
       dividerColorVar,
     ].filter(Boolean))
 
@@ -599,7 +663,7 @@ export default function SegmentedControl({
         clearTimeout(eventUpdateTimeout.current)
       }
     }
-  }, [dividerSizeVar, dividerColorVar, dividerSizeValue, textDecorationVar, textTransformVar, fontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, paddingHorizontalVar, heightVar, textVar, selectedBgVar, selectedBorderColorVar, itemBorderRadiusVar, iconGapVar, iconSizeVar, componentNameForCssVars, layer])
+  }, [dividerSizeVar, dividerColorVar, dividerSizeValue, selectedTextDecorationVar, selectedTextTransformVar, selectedFontStyleVar, unselectedTextDecorationVar, unselectedTextTransformVar, unselectedFontStyleVar, selectedTextVar, selectedElevationVar, selectedBorderSizeVar, unselectedBgVar, unselectedBorderColorVar, unselectedBorderSizeVar, unselectedElevationVar, unselectedTextColorVar, paddingHorizontalVar, heightVar, selectedBgVar, selectedBorderColorVar, itemBorderRadiusVar, iconGapVar, iconSizeVar, componentNameForCssVars, layer])
 
   const mantineProps = {
     data: mantineData,
@@ -614,17 +678,25 @@ export default function SegmentedControl({
     styles: {
       root: {
         '--segmented-control-bg': `var(${containerBgVar})`,
-        '--segmented-control-text': `var(${textVar})`,
+        '--segmented-control-text': `var(${unselectedTextColorVar})`,
         '--segmented-control-selected-bg': `var(${selectedBgVar})`,
         '--segmented-control-selected-text': `var(${selectedTextVar})`,
-        '--segmented-control-border-color': `var(${containerBorderColorVar || textVar})`,
+        '--segmented-control-unselected-bg': `var(${unselectedBgVar})`,
+        '--segmented-control-unselected-text': `var(${unselectedTextColorVar})`,
+        '--segmented-control-border-color': `var(${containerBorderColorVar || unselectedTextColorVar})`,
         '--segmented-control-selected-border-color': `var(${selectedBorderColorVar || selectedBgVar || containerBgVar})`,
+        '--segmented-control-unselected-border-color': `var(${unselectedBorderColorVar})`,
         '--segmented-control-border-radius': `var(${containerBorderRadiusVar})`,
         '--segmented-control-border-size': borderSizeValue,
         '--segmented-control-selected-border-size': selectedBorderSizeValue,
+        '--segmented-control-unselected-border-size': unselectedBorderSizeValue,
         '--segmented-control-item-border-radius': `var(${itemBorderRadiusVar})`,
+        '--segmented-control-selected-border-radius': `var(${selectedBorderRadiusVar}, var(${itemBorderRadiusVar}))`,
+        '--segmented-control-unselected-border-radius': `var(${unselectedBorderRadiusVar}, var(${itemBorderRadiusVar}))`,
         '--segmented-control-selected-elevation': selectedElevationFromVar || 'elevation-0',
         '--segmented-control-selected-elevation-shadow': selectedElevationBoxShadow || 'none',
+        '--segmented-control-unselected-elevation': unselectedElevationFromVar || 'elevation-0',
+        '--segmented-control-unselected-elevation-shadow': unselectedElevationBoxShadow || 'none',
         '--segmented-control-padding-horizontal': paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
         '--segmented-control-height': heightValue ? `var(${heightVar})` : 'auto',
         '--segmented-control-container-padding-horizontal': containerPaddingHorizontalValue ? `var(${containerPaddingHorizontalVar})` : '0px',
@@ -635,16 +707,24 @@ export default function SegmentedControl({
         paddingRight: containerPaddingHorizontalValue ? `var(${containerPaddingHorizontalVar})` : undefined,
         '--segmented-control-item-gap': `var(${itemGapVar})`,
         '--segmented-control-icon-text-gap': iconGapVar && iconGapValueForStyles ? `var(${iconGapVar})` : '0px',
-        '--segmented-control-divider-color': `var(${dividerColorVar || containerBorderColorVar || textVar})`,
+        '--segmented-control-divider-color': `var(${dividerColorVar || containerBorderColorVar || unselectedTextColorVar})`,
         '--segmented-control-divider-size': dividerSizeValue,
-        '--segmented-control-font-family': `var(${fontFamilyVar})`,
-        '--segmented-control-font-size': `var(${fontSizeVar})`,
-        '--segmented-control-font-weight': `var(${fontWeightVar})`,
-        '--segmented-control-letter-spacing': letterSpacingVar ? `var(${letterSpacingVar})` : 'normal',
-        '--segmented-control-line-height': `var(${lineHeightVar})`,
-        '--segmented-control-text-decoration': textDecorationVar ? `var(${textDecorationVar})` : 'none',
-        '--segmented-control-text-transform': textTransformVar ? `var(${textTransformVar})` : 'none',
-        '--segmented-control-font-style': fontStyleVar ? `var(${fontStyleVar})` : 'normal',
+        '--segmented-control-selected-font-family': `var(${selectedFontFamilyVar})`,
+        '--segmented-control-selected-font-size': `var(${selectedFontSizeVar})`,
+        '--segmented-control-selected-font-weight': `var(${selectedFontWeightVar})`,
+        '--segmented-control-selected-letter-spacing': selectedLetterSpacingVar ? `var(${selectedLetterSpacingVar})` : 'normal',
+        '--segmented-control-selected-line-height': `var(${selectedLineHeightVar})`,
+        '--segmented-control-selected-text-decoration': selectedTextDecorationVar ? `var(${selectedTextDecorationVar})` : 'none',
+        '--segmented-control-selected-text-transform': selectedTextTransformVar ? `var(${selectedTextTransformVar})` : 'none',
+        '--segmented-control-selected-font-style': selectedFontStyleVar ? `var(${selectedFontStyleVar})` : 'normal',
+        '--segmented-control-unselected-font-family': `var(${unselectedFontFamilyVar})`,
+        '--segmented-control-unselected-font-size': `var(${unselectedFontSizeVar})`,
+        '--segmented-control-unselected-font-weight': `var(${unselectedFontWeightVar})`,
+        '--segmented-control-unselected-letter-spacing': unselectedLetterSpacingVar ? `var(${unselectedLetterSpacingVar})` : 'normal',
+        '--segmented-control-unselected-line-height': `var(${unselectedLineHeightVar})`,
+        '--segmented-control-unselected-text-decoration': unselectedTextDecorationVar ? `var(${unselectedTextDecorationVar})` : 'none',
+        '--segmented-control-unselected-text-transform': unselectedTextTransformVar ? `var(${unselectedTextTransformVar})` : 'none',
+        '--segmented-control-unselected-font-style': unselectedFontStyleVar ? `var(${unselectedFontStyleVar})` : 'normal',
         '--segmented-control-full-width': fullWidth ? '1' : '0',
         // Ensure root element doesn't become block-level when fullWidth is false
         display: isVertical ? (fullWidth ? 'flex' : 'inline-flex') : (fullWidth ? 'flex' : 'inline-flex'),
@@ -658,12 +738,8 @@ export default function SegmentedControl({
         ...mantine?.styles?.root,
       },
       control: {
-        border: 'none',
-        borderLeft: 'none',
-        borderRight: 'none',
-        borderTop: 'none',
-        borderBottom: 'none',
-        borderColor: 'transparent',
+        // DO NOT set border: 'none' here — inline styles override CSS !important rules.
+        // Border styling is handled entirely by CSS per-state (:not([data-active]) and [data-active]).
         boxShadow: 'none',
         display: 'flex',
         alignItems: 'center',
@@ -675,8 +751,6 @@ export default function SegmentedControl({
         width: fullWidth && isVertical ? '100%' : 'auto',
         // Disable transitions to prevent flash
         transition: 'none',
-        // Ensure border-color is always set to prevent white flash
-        borderStyle: 'solid',
         ...mantine?.styles?.control,
       },
       // Apply elevation to the control element when selected, not the indicator

@@ -47,16 +47,16 @@ describe('updateCssVar', { timeout: 60000 }, () => {
 
   it('should update brand CSS variable with valid token reference', () => {
     const result = updateCssVar(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       'var(--recursica_tokens_color_gray_1000)'
     )
     expect(result).toBe(true)
-    expect(readCssVar('--recursica_brand_light_palettes_core_black')).toBe('var(--recursica_tokens_color_gray_1000)')
+    expect(readCssVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast')).toBe('var(--recursica_tokens_color_gray_1000)')
   })
 
   it('should reject brand CSS variable with hardcoded hex value', () => {
     const result = updateCssVar(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       '#000000'
     )
     expect(result).toBe(false)
@@ -75,13 +75,13 @@ describe('updateCssVar', { timeout: 60000 }, () => {
     }
     
     const result = updateCssVar(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       '#000000',
       tokens
     )
     
     expect(result).toBe(true)
-    const updatedValue = readCssVar('--recursica_brand_light_palettes_core_black')
+    const updatedValue = readCssVar('--recursica_brand_themes_light_palettes_core-colors_high-contrast')
     // The function may generate either old format (color-gray-900) or new format (colors-scale-XX-900)
     // Both are valid, so check for either
     expect(updatedValue).toMatch(/var\(--recursica_tokens_(color_gray_900|colors_scale-\d+_900)\)/)
@@ -89,7 +89,7 @@ describe('updateCssVar', { timeout: 60000 }, () => {
 
   it('should accept color-mix() with token references for brand vars', () => {
     const result = updateCssVar(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       'color-mix(in srgb, var(--recursica_tokens_color_gray_1000) 80%, transparent)'
     )
     expect(result).toBe(true)
@@ -97,7 +97,7 @@ describe('updateCssVar', { timeout: 60000 }, () => {
 
   it('should accept var() references with unprefixed tokens', () => {
     const result = updateCssVar(
-      '--recursica_brand_light_palettes_core_black',
+      '--recursica_brand_themes_light_palettes_core-colors_high-contrast',
       'var(--tokens-color-gray-1000)'
     )
     expect(result).toBe(true)

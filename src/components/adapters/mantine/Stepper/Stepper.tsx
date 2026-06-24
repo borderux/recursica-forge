@@ -61,7 +61,14 @@ export default function Stepper({
     const sizeVar = (prop: string) => buildComponentCssVarPath('Stepper', 'variants', 'sizes', size, 'properties', prop)
 
     const indicatorSizeVar = sizeVar('indicator-size')
-    const stepNumberFontSizeVar = sizeVar('step-number-font-size')
+    const stepNumFontFamilyVar = getComponentTextCssVar('Stepper', 'step-number-text', 'font-family', size)
+    const stepNumFontSizeVar = getComponentTextCssVar('Stepper', 'step-number-text', 'font-size', size)
+    const stepNumFontWeightVar = getComponentTextCssVar('Stepper', 'step-number-text', 'font-weight', size)
+    const stepNumLetterSpacingVar = getComponentTextCssVar('Stepper', 'step-number-text', 'letter-spacing', size)
+    const stepNumLineHeightVar = getComponentTextCssVar('Stepper', 'step-number-text', 'line-height', size)
+    const stepNumTextDecorationVar = getComponentTextCssVar('Stepper', 'step-number-text', 'text-decoration', size)
+    const stepNumTextTransformVar = getComponentTextCssVar('Stepper', 'step-number-text', 'text-transform', size)
+    const stepNumFontStyleVar = getComponentTextCssVar('Stepper', 'step-number-text', 'font-style', size)
     const indicatorBorderRadiusVar = sizeVar('indicator-border-radius')
     const indicatorBorderSizeVar = sizeVar('indicator-border-size')
     const completedIconSizeVar = sizeVar('completed-icon-size')
@@ -136,7 +143,15 @@ export default function Stepper({
         '--stepper-max-text-width': `var(${maxTextWidthVar})`,
         // Size
         '--stepper-indicator-size': `var(${indicatorSizeVar})`,
-        '--stepper-step-number-font-size': `var(${stepNumberFontSizeVar})`,
+        // Step number text style
+        '--stepper-step-num-font-family': `var(${stepNumFontFamilyVar})`,
+        '--stepper-step-num-font-size': `var(${stepNumFontSizeVar})`,
+        '--stepper-step-num-font-weight': `var(${stepNumFontWeightVar})`,
+        '--stepper-step-num-letter-spacing': `var(${stepNumLetterSpacingVar})`,
+        '--stepper-step-num-line-height': `var(${stepNumLineHeightVar})`,
+        '--stepper-step-num-text-decoration': `var(${stepNumTextDecorationVar})`,
+        '--stepper-step-num-text-transform': `var(${stepNumTextTransformVar})`,
+        '--stepper-step-num-font-style': `var(${stepNumFontStyleVar})`,
         // Label text style
         '--stepper-label-font-family': `var(${labelFontFamilyVar})`,
         '--stepper-label-font-size': `var(${labelFontSizeVar})`,

@@ -9,7 +9,8 @@
 import { useRef } from 'react'
 import { Tabs as MantineTabs } from '@mantine/core'
 import type { TabsProps as AdapterTabsProps } from '../../Tabs'
-import { getComponentCssVar, getComponentTextCssVar, getComponentLevelCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { buildComponentCssVarPath } from '../../../utils/cssVarNames'
+import { useCssVar } from '../../../hooks/useCssVar'
 import './Tabs.css'
 
 export default function Tabs({
@@ -37,6 +38,13 @@ export default function Tabs({
   const activeTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'text-color')
   const activeIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'icon-color')
   const activeBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'border-size')
+
+  // Read computed active background color to check if it's transparent
+  const activeBgColor = useCssVar(activeBackgroundVar || '')
+  const isBgTransparent = !activeBgColor || activeBgColor === 'transparent' || activeBgColor === 'rgba(0, 0, 0, 0)'
+  const activeBorderTrackColor = isBgTransparent
+    ? `var(--recursica_tabs_surface_color)`
+    : `var(--recursica_tabs_active_background)`
 
   // Get inactive state colors
   const inactiveBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'background')
@@ -73,16 +81,18 @@ export default function Tabs({
   const verticalPaddingVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'vertical-padding')
   const elementGapVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'element-gap')
   const spaceBetweenTabsVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'space-between-tabs')
-  const gapBetweenTabsAndContentVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'orientation', orientation, 'properties', 'tabs-content-gap')
+  const gapBetweenTabsAndContentVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'variants', 'orientation', orientation, 'properties', 'tabs-content-gap')
 
   // Get icon size from orientation variant
   const iconSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'icon-size')
   const minWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'min-width')
   const maxWidthVar = buildComponentCssVarPath('Tabs', 'properties', 'max-width')
+  // tab-content-alignment is orientation-specific
+  const tabContentAlignmentVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'tab-content-alignment')
 
-  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
-  const hoverColorVar = getComponentLevelCssVar('Tabs', 'hover-color')
-  const hoverOpacityVar = getComponentLevelCssVar('Tabs', 'hover-opacity')
+  // Get hover color and opacity from style-variant-specific UIKit tokens
+  const hoverColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'hover-color')
+  const hoverOpacityVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'hover-opacity')
 
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -98,10 +108,13 @@ export default function Tabs({
     orientation,
     variant: variant === 'pills' ? 'pills' : variant === 'outline' ? 'outline' : 'default',
     className: `recursica-tabs ${className || ''}`.trim(),
+    'data-content-align': tabContentAlignment,
+    'data-recursica-layer': layer.replace('layer-', ''),
     style: {
       // Set all CSS variables for the Tabs component
       // Active state
-      '--recursica_tabs_active_background': activeBackgroundVar ? `var(${activeBackgroundVar})` : undefined,
+      '--recursica_tabs_active_background': activeBackgroundVar ? `var(${activeBackgroundVar}, var(--recursica_tabs_surface_color, white))` : undefined,
+      '--recursica_tabs_active_border_track_color': activeBorderTrackColor,
       '--recursica_tabs_active_border-color': activeBorderColorVar ? `var(${activeBorderColorVar})` : undefined,
       '--recursica_tabs_active_text-color': activeTextColorVar ? `var(${activeTextColorVar})` : undefined,
       '--recursica_tabs_active_icon_color': activeIconColorVar ? `var(${activeIconColorVar})` : undefined,
@@ -144,12 +157,12 @@ export default function Tabs({
       // Tab sizing
       '--recursica_tabs_min_width': minWidthVar ? `var(${minWidthVar})` : undefined,
       '--recursica_tabs_max_width': maxWidthVar ? `var(${maxWidthVar})` : undefined,
-      // Tab content alignment (icon/text/badge inside tab button)
-      '--recursica_tabs_content_align': tabContentAlignment,
-      '--recursica_tabs_content_justify': tabContentAlignment === 'center' ? 'center' : tabContentAlignment === 'right' ? 'flex-end' : 'flex-start',
+      // Tab content alignment (orientation-specific: horizontal and vertical can differ)
+      '--recursica_tabs_content_align': tabContentAlignmentVar ? `var(${tabContentAlignmentVar}, ${tabContentAlignment})` : tabContentAlignment,
       // Hover state (inactive tabs only)
       '--recursica_tabs_hover_opacity': `var(${hoverOpacityVar})`,
       '--recursica_tabs_hover_color': `var(${hoverColorVar})`,
+      '--recursica_tabs_surface_color': `var(--recursica_brand_${layer.replace('-', '_')}_properties_surface, white)`,
       ...style,
       ...mantine?.style,
     },

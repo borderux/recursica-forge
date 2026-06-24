@@ -1,0 +1,45 @@
+/* Mantine TableHeader overrides */
+
+.recursica-table.mantine-table th.recursica-table-header.mantine-table-header {
+  padding: var(--table-header-padding-v, 12px) var(--table-header-padding-h, 12px) !important;
+  background-color: var(--table-header-bg) !important;
+  color: var(--table-header-color) !important;
+  font-family: var(--table-header-font-family) !important;
+  font-size: var(--table-header-font-size) !important;
+  font-weight: var(--table-header-font-weight) !important;
+  font-style: var(--table-header-font-style) !important;
+  letter-spacing: var(--table-header-letter-spacing) !important;
+  line-height: var(--table-header-line-height) !important;
+  text-transform: var(--table-header-text-case) !important;
+  text-decoration: var(--table-header-text-decoration) !important;
+  border-bottom: var(--table-header-horizontal-divider-size, 2px) solid var(--table-header-horizontal-divider-color, transparent) !important;
+  border-right: none !important;
+  position: relative !important;
+  vertical-align: middle !important;
+}
+
+.recursica-table.mantine-table th.recursica-table-header.mantine-table-header:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: var(--table-header-vertical-margin, 0px);
+  bottom: var(--table-header-vertical-margin, 0px);
+  width: var(--table-header-vertical-divider-size, 0px);
+  background-color: var(--table-header-vertical-divider-color, transparent);
+}
+
+.recursica-table-header-content {
+  display: inline-flex !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+  margin-top: var(--table-header-vertical-margin, 0px) !important;
+  margin-bottom: var(--table-header-vertical-margin, 0px) !important;
+}
+
+.recursica-table-header-sort-icon {
+  width: var(--table-header-icon-size, 16px) !important;
+  height: var(--table-header-icon-size, 16px) !important;
+  margin-left: var(--table-header-label-sort-gap, 8px) !important;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
+}

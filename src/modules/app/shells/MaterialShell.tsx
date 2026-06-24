@@ -28,6 +28,7 @@ import {
 } from "../../../core/import/importWithDirtyData";
 import { createBugReport } from "../utils/bugReport";
 import { Button } from "../../../components/adapters/Button";
+import { Toast } from "../../../components/adapters/Toast";
 import { Tooltip } from "../../../components/adapters/Tooltip";
 import { Switch } from "../../../components/adapters/Switch";
 import { SegmentedControl } from "../../../components/adapters/SegmentedControl";
@@ -38,7 +39,7 @@ import { Sidebar } from "../Sidebar";
 import { ThemeSidebar } from "../ThemeSidebar";
 import { Modal } from "../../../components/adapters/Modal";
 import { Dropdown } from "../../../components/adapters/Dropdown";
-import { getComponentCssVar } from "../../../components/utils/cssVarNames";
+import { getComponentCssVar, buildComponentCssVarPath } from "../../../components/utils/cssVarNames";
 import { useCompliance } from "../../../core/compliance/ComplianceContext";
 import { randomizeAllVariables } from "../../../core/utils/randomizeVariables";
 import { RandomizeOptionsModal } from "../../../core/utils/RandomizeOptionsModal";
@@ -47,6 +48,8 @@ import {
   setCssAuditAutoRun,
 } from "../../../core/utils/cssAuditPreference";
 import { genericLayerText, genericLayerProperty } from "../../../core/css/cssVarBuilder";
+import { useSaveReminder } from '../../../core/hooks/useSaveReminder';
+import { useVersionCheck } from '../../../core/hooks/useVersionCheck';
 
 export default function MaterialShell({
   children,
@@ -89,6 +92,8 @@ export default function MaterialShell({
     handleGitHubExportCancel,
     handleGitHubExportSuccess,
   } = useJsonExport();
+  const { visible: reminderVisible, dismiss: dismissReminder, handleExport: reminderHandleExport, resetSaveReminder } = useSaveReminder(handleExport)
+  const { updateAvailable, checkNow, dismissUpdate, simulateUpdate } = useVersionCheck()
   const {
     selectedFiles,
     setSelectedFiles,
@@ -244,7 +249,6 @@ export default function MaterialShell({
     Toolbar,
     Container,
     CssBaseline,
-    Switch,
     FormControlLabel,
     Dialog,
     DialogTitle,
@@ -373,11 +377,16 @@ export default function MaterialShell({
                 "default-horizontal-padding",
                 undefined,
               );
-              const buttonBorderRadius = getComponentCssVar(
+              const buttonBorderRadius = buildComponentCssVarPath(
                 "Button",
-                "size",
+                "variants",
+                "content",
+                "label",
+                "variants",
+                "sizes",
+                "default",
+                "properties",
                 "border-radius",
-                undefined,
               );
 
               return (
@@ -535,6 +544,9 @@ export default function MaterialShell({
                     window.dispatchEvent(new CustomEvent('complianceReset'));
                     clearOverrides(tokensJson as any);
                     resetAll();
+                    localStorage.clear();
+                    resetSaveReminder();
+                    checkNow();
                     setTimeout(() => runScan(), 1000);
                   }}
                 />
@@ -545,7 +557,7 @@ export default function MaterialShell({
                   size='small'
                   icon={(() => {
                     const UploadIcon =
-                      iconNameToReactComponent("arrow-up-tray");
+                      iconNameToReactComponent("arrow-down-tray");
                     return UploadIcon ? (
                       <UploadIcon
                         style={{
@@ -566,7 +578,7 @@ export default function MaterialShell({
                   size='small'
                   icon={(() => {
                     const DownloadIcon =
-                      iconNameToReactComponent("arrow-down-tray");
+                      iconNameToReactComponent("arrow-up-tray");
                     return DownloadIcon ? (
                       <DownloadIcon
                         style={{
@@ -582,26 +594,28 @@ export default function MaterialShell({
                 />
               </Tooltip>
 
-              <Tooltip label='Report a bug'>
-                <Button
-                  variant='outline'
-                  size='small'
-                  icon={(() => {
-                    const BugIcon = iconNameToReactComponent("bug");
-                    return BugIcon ? (
-                      <BugIcon
-                        style={{
-                          width:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                          height:
-                            "var(--recursica_brand_dimensions_icons_default)",
-                        }}
-                      />
-                    ) : null;
-                  })()}
-                  onClick={() => createBugReport()}
-                />
-              </Tooltip>
+              {!import.meta.env.DEV && (
+                <Tooltip label='Report a bug'>
+                  <Button
+                    variant='outline'
+                    size='small'
+                    icon={(() => {
+                      const BugIcon = iconNameToReactComponent("bug");
+                      return BugIcon ? (
+                        <BugIcon
+                          style={{
+                            width:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                            height:
+                              "var(--recursica_brand_dimensions_icons_default)",
+                          }}
+                        />
+                      ) : null;
+                    })()}
+                    onClick={() => createBugReport()}
+                  />
+                </Tooltip>
+              )}
               {import.meta.env.DEV && (
                 <>
                   <Tooltip label='Randomize all variables (dev only)'>
@@ -652,6 +666,24 @@ export default function MaterialShell({
                       />
                     </div>
                   </Tooltip>
+                  <Tooltip label='Simulate version update (dev only)'>
+                    <Button
+                      variant='outline'
+                      size='small'
+                      icon={(() => {
+                        const VersionIcon = iconNameToReactComponent('trend-up')
+                        return VersionIcon ? (
+                          <VersionIcon
+                            style={{
+                              width: 'var(--recursica_brand_dimensions_icons_default)',
+                              height: 'var(--recursica_brand_dimensions_icons_default)',
+                            }}
+                          />
+                        ) : null
+                      })()}
+                      onClick={simulateUpdate}
+                    />
+                  </Tooltip>
                 </>
               )}
               <Dropdown
@@ -662,7 +694,6 @@ export default function MaterialShell({
                   { label: "Material UI", value: "material" },
                   { label: "Carbon", value: "carbon" },
                 ]}
-                state='disabled'
                 style={{ width: 180, marginLeft: 8 }}
                 layer='layer-0'
                 disableTopBottomMargin={true}
@@ -671,11 +702,16 @@ export default function MaterialShell({
 
             {/* Chunk 4: Theme Mode Segmented Control */}
             {(() => {
-              const buttonBorderRadius = getComponentCssVar(
+              const buttonBorderRadius = buildComponentCssVarPath(
                 "Button",
-                "size",
+                "variants",
+                "content",
+                "label",
+                "variants",
+                "sizes",
+                "default",
+                "properties",
                 "border-radius",
-                undefined,
               );
               const buttonSmallHeight = getComponentCssVar(
                 "Button",
@@ -851,7 +887,7 @@ export default function MaterialShell({
         />
         <ExportSelectionModalWrapper
           show={showSelectionModal}
-          onConfirm={handleSelectionConfirm}
+          onConfirm={(files) => { handleSelectionConfirm(files); resetSaveReminder(); }}
           onCancel={handleSelectionCancel}
           onExportToGithub={handleExportToGithub}
         />
@@ -889,6 +925,39 @@ export default function MaterialShell({
           missingNodes={errorNodes}
           onAcknowledge={handleDirtyCancel}
         />
+        {/* Update Available Toast */}
+        {updateAvailable && (
+          <div style={{ position: 'fixed', bottom: reminderVisible ? '112px' : '24px', right: '24px', zIndex: 40001, transition: 'bottom 0.3s ease' }}>
+            <Toast
+              variant="error"
+              layer="layer-0"
+              onClose={dismissUpdate}
+              action={
+                <Button variant="solid" size="small" layer="layer-0" onClick={() => window.location.reload()} style={{ minWidth: 0, ['--button-min-width' as string]: '0' }}>
+                  Upgrade
+                </Button>
+              }
+            >
+              A new version of Forge is available. Upgrading won't lose any of your changes.
+            </Toast>
+          </div>
+        )}
+        {/* Save Reminder Toast */}
+        {reminderVisible && (
+          <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 40000 }}>
+            <Toast 
+              layer="layer-0"
+              onClose={dismissReminder}
+              action={
+                <Button variant="solid" size="small" layer="layer-0" onClick={reminderHandleExport} style={{ minWidth: 'auto' }}>
+                  Export
+                </Button>
+              }
+            >
+              It's been a while since you've exported your theme (to save it).
+            </Toast>
+          </div>
+        )}
       </div>
     </ThemeProvider>
   );

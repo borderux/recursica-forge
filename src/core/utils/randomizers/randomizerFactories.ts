@@ -68,7 +68,7 @@ export function getConstants() {
     tokenColorLevels: ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000'],
     paletteLevels: ['000', '050', '100', '200', '300', '400', '500', '600', '700', '800', '900', '1000', 'default'],
     tones: ['tone', 'on-tone'],
-    coreColors: ['interactive', 'warning', 'success', 'alert', 'black', 'white'],
+    coreColors: ['interactive', 'warning', 'success', 'alert', 'high-contrast', 'low-contrast'],
     coreColorLevels: ['default', 'hover'],
     sizeTokens: ['none', '0-5x', 'default', '1-5x', '2x', '3x', '4x', '5x', '6x'],
     fontSizes: ['2xs', 'xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl'],
@@ -113,6 +113,12 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const typefaceMatch = content.match(/^tokens\.font\.typefaces\.([a-z0-9-]+)$/);
     if (typefaceMatch) {
         return `{tokens.font.typefaces.${shiftValue(typefaceMatch[1], CONSTANTS.typefaces)}}`;
+    }
+
+    // Brand Fonts: {brand.fonts.primary}
+    const brandFontMatch = content.match(/^brand\.fonts\.([a-z0-9-]+)$/);
+    if (brandFontMatch) {
+        return `{brand.fonts.${shiftValue(brandFontMatch[1], ['primary', 'secondary', 'tertiary'])}}`;
     }
     
     // Brand Elevatons: {brand.elevations.elevation-1} or {brand.themes.light.elevations.elevation-1}
@@ -164,11 +170,11 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
         return `{tokens.font.letter-spacings.${shiftValue(spacingsMatch[1], ['tightest', 'tighter', 'tight', 'default', 'wide', 'wider', 'widest'])}}`;
     }
     
-    // Palette on-tone contrast: {brand.palettes.black} / {brand.palettes.white}
+    // Palette on-tone contrast: {brand.palettes.high-contrast} / {brand.palettes.low-contrast}
     // These are the accessibility contrast colors used for on-tone values in palettes.
-    const paletteBlackWhiteMatch = content.match(/^brand\.palettes\.(black|white)$/);
-    if (paletteBlackWhiteMatch) {
-        return Math.random() < 0.5 ? '{brand.palettes.black}' : '{brand.palettes.white}';
+    const paletteContrastMatch = content.match(/^brand\.palettes\.(high-contrast|low-contrast|black|white)$/);
+    if (paletteContrastMatch) {
+        return Math.random() < 0.5 ? '{brand.palettes.high-contrast}' : '{brand.palettes.low-contrast}';
     }
 
     // Brand Color Palette: {brand.themes.light.palettes.neutral.100.color.tone} or ...neutral.default.color.tone
@@ -185,30 +191,19 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     // Core Colors: {brand.themes.light.palettes.core-colors.interactive.default.tone}
     const coreColorMatch = content.match(/^brand\.(?:themes\.(?:light|dark)\.)?palettes\.core-colors\.([a-z-]+)(?:\.([a-z-]+))?(?:\.tone|(?:\.on-tone(?:-hover)?))?$/);
     if (coreColorMatch) {
-        if (originPath?.includes('overlay')) {
-           const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
-           const randomPalette = palettes[Math.floor(Math.random() * palettes.length)];
-           const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
-           return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
-        }
-        const randomScale = CONSTANTS.colorScales[Math.floor(Math.random() * CONSTANTS.colorScales.length)];
-        const randomLevel = CONSTANTS.tokenColorLevels[Math.floor(Math.random() * CONSTANTS.tokenColorLevels.length)];
-        return `{tokens.colors.${randomScale}.${randomLevel}}`;
+        const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
+        const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
+        const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
+        return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
     }
 
     // Color Tokens: {tokens.colors.scale-02.1000}
     const colorTokenMatch = content.match(/^tokens\.colors\.(scale-[0-9]{2})\.([0-9]+)$/);
     if (colorTokenMatch) {
-        if (originPath?.includes('overlay')) {
-           const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
-           const randomPalette = palettes[Math.floor(Math.random() * palettes.length)];
-           const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
-           return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
-        }
-        const [, scale, level] = colorTokenMatch;
-        const newScale = shiftValue(scale, CONSTANTS.colorScales);
-        const newLevel = shiftValue(level, CONSTANTS.tokenColorLevels);
-        return `{tokens.colors.${newScale}.${newLevel}}`;
+        const palettes = CONSTANTS.paletteNames.filter(p => p !== 'core-colors');
+        const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
+        const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
+        return `{brand.palettes.${randomPalette}.${randomLevel}.color.tone}`;
     }
 
     // Text Emphasis: {brand.text-emphasis.low} or {brand.themes.light.text-emphasis.low}
@@ -236,7 +231,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     }
 
     // Font styles
-    const styleMatch = content.match(/^tokens\.font\.styles\.([a-z0-9-]+)$/);
+    const styleMatch = content.match(/^tokens\.font\.styles?\.([a-z0-9-]+)$/);
     if (styleMatch) {
         return `{tokens.font.styles.${shiftValue(styleMatch[1], ['normal', 'italic'])}}`;
     }
@@ -346,13 +341,13 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
        }
     }
 
-    // Typography references: {brand.typography.h3.fontFamily}
-    const typographyMatch = content.match(/^brand\.typography\.([a-z0-9-]+)\.([a-zA-Z]+)$/);
+    // Typography references: {brand.typography.h3.fontFamily} or {brand.typography.h3}
+    const typographyMatch = content.match(/^brand\.typography\.([a-z0-9-]+)(?:\.([a-zA-Z]+))?$/);
     if (typographyMatch) {
        const [, level, prop] = typographyMatch;
        const levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle', 'subtitle-small', 'body', 'body-small', 'caption', 'overline'];
        const newLevel = shiftValue(level, levels);
-       return `{brand.typography.${newLevel}.${prop}}`;
+       return prop ? `{brand.typography.${newLevel}.${prop}}` : `{brand.typography.${newLevel}}`;
     }
 
     return tokenRef;
@@ -378,13 +373,11 @@ export function randomizeStringValue(propName: string, oldVal: string): string {
     const stringOptions: Record<string, string[]> = {
         'display': ['icon', 'text', 'icon+text'],
         'orientation': ['horizontal', 'vertical'],
-        'heading-level': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
         'position': ['top', 'bottom', 'left', 'right'],
         'alignment': ['start', 'center', 'end'],
         'search-icon-position': ['left', 'right'],
         'avatar-size': ['small', 'default', 'large'],
         'border-style': ['solid', 'dashed', 'dotted'],
-        'header-style': ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
         'tab-content-alignment': ['left', 'center', 'right'],
         'text-decoration': ['none', 'underline', 'line-through'],
         'text-transform': ['none', 'uppercase', 'lowercase', 'capitalize'],

@@ -40,50 +40,33 @@ function getCssVarsForProp(
       return false
     }
 
-    // Special handling for Avatar with nested variants (style and style-secondary)
-    if (componentName.toLowerCase() === 'avatar') {
-      const styleVariant = selectedVariants['style']
-      const styleSecondaryVariant = selectedVariants['style-secondary']
-
-      // Must have style variant in path
-      if (styleVariant && !p.path.includes(styleVariant)) return false
-
-      // For text/icon variants, must also have style-secondary variant in path
-      if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
-        if (!p.path.includes(styleSecondaryVariant)) return false
-      }
-    } else {
-      // Check variant matching for other components
-      if (p.isVariantSpecific && p.variantProp) {
-        const selectedVariant = selectedVariants[p.variantProp]
-        if (selectedVariant) {
-          const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-          if (!variantInPath) return false
+    // Check variant matching for all components generically
+    if (p.isVariantSpecific && p.variantProp) {
+      const selectedVariant = selectedVariants[p.variantProp]
+      if (selectedVariant) {
+        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+        if (!variantInPath) return false
+      } else {
+        // If no variant selected but prop is variant-specific, try to match default state
+        if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && p.variantProp === 'states') {
+          if (!p.path.includes('default')) return false
         } else {
-          // If no variant selected but prop is variant-specific, try to match default state
-          // For TextField and NumberInput, default state is 'default'
-          if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && p.variantProp === 'states') {
-            if (!p.path.includes('default')) return false
-          } else {
-            // For other components, require variant to be selected
-            return false
-          }
+          return false
         }
       }
+    }
 
-      // Also check propToCheck's variant requirements
-      if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
-        const selectedVariant = selectedVariants[propToCheck.variantProp]
-        if (selectedVariant) {
-          const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
-          if (!variantInPath) return false
+    // Also check propToCheck's variant requirements
+    if (propToCheck.isVariantSpecific && propToCheck.variantProp) {
+      const selectedVariant = selectedVariants[propToCheck.variantProp]
+      if (selectedVariant) {
+        const variantInPath = p.path.find(pathPart => pathPart === selectedVariant)
+        if (!variantInPath) return false
+      } else {
+        if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && propToCheck.variantProp === 'states') {
+          if (!p.path.includes('default')) return false
         } else {
-          // If no variant selected but propToCheck is variant-specific, try to match default state
-          if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && propToCheck.variantProp === 'states') {
-            if (!p.path.includes('default')) return false
-          } else {
-            return false
-          }
+          return false
         }
       }
     }
@@ -145,24 +128,14 @@ export default function BorderGroupToolbar({
   // uikit is a reactive dep — the memo recomputes after reset or variant changes.
   const structure = useMemo(
     () => parseComponentStructure(componentName, uikit),
-    [componentName, uikit]
+    [componentName, uikit, mode]
   )
 
   const borderSizeProp = useMemo(() => {
     return structure.props.find(p => {
       if (p.name.toLowerCase() !== sizePropName.toLowerCase()) return false
-      // Special handling for Avatar with nested variants (style and style-secondary)
-      if (componentName.toLowerCase() === 'avatar') {
-        const styleVariant = selectedVariants['style']
-        const styleSecondaryVariant = selectedVariants['style-secondary']
-        // Must have style variant in path
-        if (styleVariant && !p.path.includes(styleVariant)) return false
-        // For text/icon variants, must also have style-secondary variant in path
-        if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
-          if (!p.path.includes(styleSecondaryVariant)) return false
-        }
-      } else if (p.isVariantSpecific && p.variantProp) {
-        // Match variant if prop is variant-specific
+      // Match variant if prop is variant-specific (works for all components including Avatar with types)
+      if (p.isVariantSpecific && p.variantProp) {
         const selectedVariant = selectedVariants[p.variantProp]
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
@@ -177,17 +150,8 @@ export default function BorderGroupToolbar({
   const borderRadiusProp = useMemo(() => {
     return structure.props.find(p => {
       if (p.name.toLowerCase() !== radiusPropName.toLowerCase()) return false
-      // Special handling for Avatar with nested variants (style and style-secondary)
-      if (componentName.toLowerCase() === 'avatar') {
-        const styleVariant = selectedVariants['style']
-        const styleSecondaryVariant = selectedVariants['style-secondary']
-        // Must have style variant in path
-        if (styleVariant && !p.path.includes(styleVariant)) return false
-        // For text/icon variants, must also have style-secondary variant in path
-        if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
-          if (!p.path.includes(styleSecondaryVariant)) return false
-        }
-      } else if (p.isVariantSpecific && p.variantProp) {
+      // Match variant if prop is variant-specific (works for all components including Avatar with types)
+      if (p.isVariantSpecific && p.variantProp) {
         const selectedVariant = selectedVariants[p.variantProp]
         if (!selectedVariant) return false
         if (!p.path.includes(selectedVariant)) return false
@@ -223,39 +187,18 @@ export default function BorderGroupToolbar({
         propNameLower !== 'border') {
         return false
       }
-      if (p.category !== 'colors') return false
+      if (p.category !== 'colors' && p.type !== 'color') return false
 
-      // Special handling for Avatar with nested variants (style and style-secondary)
-      if (componentName.toLowerCase() === 'avatar') {
-        const styleVariant = selectedVariants['style']
-        const styleSecondaryVariant = selectedVariants['style-secondary']
-
-        // Must have style variant in path
-        if (styleVariant && !p.path.includes(styleVariant)) return false
-
-        // For text/icon variants, must also have style-secondary variant in path
-        if (styleSecondaryVariant && styleVariant && (styleVariant === 'text' || styleVariant === 'icon')) {
-          if (!p.path.includes(styleSecondaryVariant)) return false
-        }
-      } else {
-        // Handle variant-specific props for other components (like TextField with states variant)
-        if (p.isVariantSpecific && p.variantProp) {
-          const selectedVariant = selectedVariants[p.variantProp]
-          // If variant is required but not selected, don't match
-          // But if no variant is selected, try to match default/fallback props
-          if (selectedVariant) {
-            // Check if path includes the selected variant
-            if (!p.path.includes(selectedVariant)) return false
+      // Handle variant-specific props for all components generically
+      if (p.isVariantSpecific && p.variantProp) {
+        const selectedVariant = selectedVariants[p.variantProp]
+        if (selectedVariant) {
+          if (!p.path.includes(selectedVariant)) return false
+        } else {
+          if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && p.variantProp === 'states') {
+            if (!p.path.includes('default')) return false
           } else {
-            // If no variant selected but prop is variant-specific, try to match default state
-            // For TextField and NumberInput, default state is 'default'
-            if ((componentName.toLowerCase() === 'text-field' || componentName.toLowerCase() === 'number-input') && p.variantProp === 'states') {
-              // Try to match default state if no state is selected
-              if (!p.path.includes('default')) return false
-            } else {
-              // For other components, require variant to be selected
-              return false
-            }
+            return false
           }
         }
       }
@@ -274,6 +217,15 @@ export default function BorderGroupToolbar({
   }, [borderSizeProp, componentName, selectedVariants, selectedLayer, uikit])
 
   const borderRadiusCssVars = useMemo(() => {
+    // Button border-radius lives at the content × size cross-variant axis.
+    // parseComponentStructure tags these tokens as variantProp='size', so getCssVarsForProp
+    // cannot resolve them correctly when the content variant changes.
+    // Compute the authoritative CSS var directly from selectedVariants.
+    if (componentName.toLowerCase() === 'button') {
+      const cv = selectedVariants.content || 'label'
+      const sv = selectedVariants.size || 'default'
+      return [buildComponentCssVarPath('Button', 'variants', 'content', cv, 'variants', 'sizes', sv, 'properties', 'border-radius')]
+    }
     if (!borderRadiusProp) return []
     return getCssVarsForProp(borderRadiusProp, componentName, selectedVariants, selectedLayer, uikit)
   }, [borderRadiusProp, componentName, selectedVariants, selectedLayer, uikit])

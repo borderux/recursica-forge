@@ -15,7 +15,7 @@ import type { PanelProps as AdapterPanelProps } from '../../Panel'
 import { getComponentLevelCssVar } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readRawCssVar as readCssVar } from '../../../../core/css/readCssVar'
 import './Panel.css'
 import './PanelOverlay.css'
 
@@ -81,8 +81,9 @@ export default function Panel({
     const minWidthVar = getComponentLevelCssVar('Panel', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Panel', 'max-width')
 
-    // Header style
+    // Typography styles
     const headerStyleVar = getComponentLevelCssVar('Panel', 'header-style')
+    const contentStyleVar = getComponentLevelCssVar('Panel', 'content-style')
 
     // Elevation variable
     const internalElevationVar = getComponentLevelCssVar('Panel', 'elevation')
@@ -127,8 +128,35 @@ export default function Panel({
             borderRadius: `0 var(${borderRadiusVar}) var(${borderRadiusVar}) 0`,
         }
 
-    // Get header style value
-    const headerStyleValue = readCssVar(headerStyleVar) || 'h3'
+    // Get header style value (extract from typography token or var)
+    const rawHeaderStyleValue = readCssVar(headerStyleVar) || 'h3'
+    let headerStyleValue = 'h3'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawHeaderStyleValue)
+        if (match) {
+            headerStyleValue = match[1].replace(/-font-size$/, "")
+        }
+    } else {
+        headerStyleValue = rawHeaderStyleValue
+    }
+
+    // Get content style value
+    const rawContentStyleValue = readCssVar(contentStyleVar) || 'body'
+    let contentStyleValue = 'body'
+    if (rawContentStyleValue.startsWith('{brand.typography.')) {
+        contentStyleValue = rawContentStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawContentStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawContentStyleValue)
+        if (match) {
+            contentStyleValue = match[1].replace(/-font-size$/, "")
+        }
+    } else {
+        contentStyleValue = rawContentStyleValue
+    }
+
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
 
     // CSS custom properties for the component
     const panelStyles = {
@@ -190,7 +218,7 @@ export default function Panel({
                         background: 'var(--panel-hf-bg)',
                     }}
                 >
-                    <span style={{
+                    <HeadingTag style={{
                         color: 'var(--panel-title-color)',
                         fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
                         fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
@@ -206,9 +234,10 @@ export default function Panel({
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         paddingBottom: '0.15em',
+                        margin: 0,
                     } as any}>
                         {title}
-                    </span>
+                    </HeadingTag>
                     {onClose && (
                         <Button
                             variant="text"
@@ -228,6 +257,14 @@ export default function Panel({
                     padding: 'var(--panel-content-padding-y) var(--panel-content-padding-x)',
                     flex: 1,
                     overflowY: 'auto',
+                    fontFamily: `var(--recursica_brand_typography_${contentStyleValue}-font-family)`,
+                    fontSize: `var(--recursica_brand_typography_${contentStyleValue}-font-size)`,
+                    fontWeight: `var(--recursica_brand_typography_${contentStyleValue}-font-weight)`,
+                    letterSpacing: `var(--recursica_brand_typography_${contentStyleValue}-font-letter-spacing)`,
+                    lineHeight: `var(--recursica_brand_typography_${contentStyleValue}-line-height)`,
+                    fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
+                    textDecoration: 'none',
+                    textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)` as any,
                 }}
             >
                 {children}
@@ -253,7 +290,7 @@ export default function Panel({
         return createPortal(
             <div
                 className={`panel-overlay-container panel-overlay-container--${position}${closingClass}`}
-                style={{ width: width || '400px', zIndex: zIndex || 10000 }}
+                style={{ zIndex: zIndex || 10000 }}
                 data-recursica-layer={layerNum}
             >
                 {panelContent}

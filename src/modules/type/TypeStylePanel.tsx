@@ -5,6 +5,7 @@ import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
 import { Button } from '../../components/adapters/Button'
+import { ResetButton } from '../../components/shared/ResetButton'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
 import { Dropdown } from '../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -792,7 +793,10 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
   if (!open) return null
 
   const panelFooter = (
-    <Button onClick={revert} variant="outline" layer="layer-0">Revert</Button>
+    <ResetButton
+      onReset={() => revert()}
+      layer="layer-0"
+    />
   )
 
   return (
@@ -841,6 +845,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 }}
                 min={0}
                 max={sortedSizeTokens.length - 1}
+                type="discrete"
                 step={1}
                 layer="layer-3"
                 layout="stacked"
@@ -870,6 +875,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 }}
                 min={0}
                 max={sortedWeightTokens.length - 1}
+                type="discrete"
                 step={1}
                 layer="layer-3"
                 layout="stacked"
@@ -899,6 +905,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 }}
                 min={0}
                 max={sortedSpacingTokens.length - 1}
+                type="discrete"
                 step={1}
                 layer="layer-3"
                 layout="stacked"
@@ -928,6 +935,7 @@ export default function TypeStylePanel({ open, selectedPrefixes, title, onClose 
                 }}
                 min={0}
                 max={sortedLineHeightTokens.length - 1}
+                type="discrete"
                 step={1}
                 layer="layer-3"
                 layout="stacked"

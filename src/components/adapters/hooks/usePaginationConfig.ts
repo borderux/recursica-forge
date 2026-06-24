@@ -9,16 +9,18 @@
  *   - inactive-pages.size  → button size
  *   - navigation-controls.style   → button variant
  *   - navigation-controls.size    → button size
- *   - navigation-controls.display → icon | text | icon+text
+ *   - navigation-controls.content → icon-only | label | icon-label
  */
 
 import { useState, useEffect, useCallback } from 'react'
 import { buildComponentCssVarPath } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
+import { getComponentExtensionDefaults } from '../../../modules/toolbar/utils/componentExtensionToolbar'
+
 type ButtonVariant = 'solid' | 'outline' | 'text'
 type ButtonSize = 'default' | 'small'
-type NavDisplay = 'icon' | 'text' | 'icon+text'
+type NavDisplay = 'icon-only' | 'label' | 'icon-label'
 
 interface PaginationConfig {
     activeStyle: ButtonVariant
@@ -30,14 +32,16 @@ interface PaginationConfig {
     navDisplay: NavDisplay
 }
 
+const _ext = getComponentExtensionDefaults('pagination')
+
 const DEFAULTS: PaginationConfig = {
-    activeStyle: 'solid',
-    activeSize: 'small',
-    inactiveStyle: 'outline',
-    inactiveSize: 'small',
-    navStyle: 'text',
-    navSize: 'small',
-    navDisplay: 'icon',
+    activeStyle: (_ext['active-pages.style'] as ButtonVariant) ?? 'solid',
+    activeSize: (_ext['active-pages.size'] as ButtonSize) ?? 'small',
+    inactiveStyle: (_ext['inactive-pages.style'] as ButtonVariant) ?? 'outline',
+    inactiveSize: (_ext['inactive-pages.size'] as ButtonSize) ?? 'small',
+    navStyle: (_ext['navigation-controls.style'] as ButtonVariant) ?? 'text',
+    navSize: (_ext['navigation-controls.size'] as ButtonSize) ?? 'small',
+    navDisplay: 'icon-only',
 }
 
 function readConfigValue<T extends string>(cssVar: string, fallback: T): T {
@@ -54,7 +58,7 @@ export function usePaginationConfig(): PaginationConfig {
     const inactiveSizeVar = buildComponentCssVarPath('Pagination', 'properties', 'inactive-pages', 'size')
     const navStyleVar = buildComponentCssVarPath('Pagination', 'properties', 'navigation-controls', 'style')
     const navSizeVar = buildComponentCssVarPath('Pagination', 'properties', 'navigation-controls', 'size')
-    const navDisplayVar = buildComponentCssVarPath('Pagination', 'properties', 'navigation-controls', 'display')
+    const navDisplayVar = buildComponentCssVarPath('Pagination', 'properties', 'navigation-controls', 'content')
 
     const readAll = useCallback((): PaginationConfig => ({
         activeStyle: readConfigValue<ButtonVariant>(activeStyleVar, DEFAULTS.activeStyle),

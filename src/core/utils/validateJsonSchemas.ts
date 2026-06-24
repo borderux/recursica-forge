@@ -1,8 +1,12 @@
 /**
  * Runtime JSON Schema Validation Utility
- * 
+ *
  * Validates recursica_brand.json, recursica_tokens.json, and recursica_ui-kit.json against their schemas
  * and throws errors on critical validation failures.
+ *
+ * DTCG compliance is enforced via validateDtcgStructure which checks:
+ *  - No unrecognised $-prefixed keys (e.g. $metadata must be in $extensions.recursica.metadata)
+ *  - No non-standard $type values (custom types use $extensions.recursica.type + a DTCG base type or no $type)
  */
 
 import Ajv from 'ajv'
@@ -14,6 +18,87 @@ import type { JsonLike } from '../resolvers/tokens'
 
 const ajv = new Ajv({ allErrors: true, strict: false })
 addFormats(ajv)
+
+// DTCG v2025.10 defined token types
+const DTCG_STANDARD_TYPES = new Set([
+  'color', 'dimension', 'fontFamily', 'fontWeight', 'fontStyle',
+  'number', 'duration', 'cubicBezier', 'boolean', 'string',
+  'strokeStyle', 'border', 'transition', 'shadow', 'gradient', 'typography',
+])
+
+// DTCG reserved $-prefixed property names
+const DTCG_RESERVED_KEYS = new Set([
+  '$value', '$type', '$description', '$extensions', '$deprecated', '$extends',
+])
+
+/**
+ * Shared DTCG structural validator for brand, tokens, and ui-kit JSON.
+ * Enforces:
+ *   1. No unknown $-prefixed keys (only DTCG reserved keys are allowed)
+ *   2. No non-standard $type values — custom types must use $extensions.recursica.type
+ *
+ * Throws with a summary of all violations found.
+ */
+export function validateDtcgStructure(json: JsonLike, filename: string): void {
+  const unknownKeys: string[] = []
+  const nonStandardTypes: string[] = []
+  const invalidDimensionValues: string[] = []
+
+  function check(obj: unknown, path: string): void {
+    if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) return
+    const record = obj as Record<string, unknown>
+
+    for (const key of Object.keys(record)) {
+      if (key.startsWith('$') && !DTCG_RESERVED_KEYS.has(key)) {
+        unknownKeys.push(`${path || '(root)'} → "${key}" (use $extensions.recursica.* instead)`)
+      }
+    }
+
+    const hasValue = '$value' in record
+    if (hasValue) {
+      const t = record.$type
+      if (typeof t === 'string' && !DTCG_STANDARD_TYPES.has(t)) {
+        nonStandardTypes.push(`${path} → $type="${t}" (move to $extensions.recursica.type)`)
+      }
+
+      const extType = (record.$extensions as Record<string, unknown> | undefined)?.['recursica.type']
+      const resolvedType = typeof t === 'string' ? t : (typeof extType === 'string' ? extType : undefined)
+
+      if (resolvedType === 'dimension') {
+        const val = record.$value
+        const isNullOrUndefined = val === null || val === undefined
+        const isRef = typeof val === 'string' && val.trim().startsWith('{') && val.trim().endsWith('}')
+        const isValidObj = val !== null && typeof val === 'object' && !Array.isArray(val) && 'value' in val && 'unit' in val
+
+        if (!isNullOrUndefined && !isRef && !isValidObj) {
+          invalidDimensionValues.push(`${path} → type is "dimension" but value is not an object containing "value" and "unit" (got ${JSON.stringify(val)})`)
+        }
+      }
+
+      // Do not recurse into token children — $value is the leaf
+      return
+    }
+
+    for (const [key, value] of Object.entries(record)) {
+      if (key.startsWith('$')) continue
+      check(value, path ? `${path}.${key}` : key)
+    }
+  }
+
+  check(json, '')
+
+  const errors: string[] = [
+    ...unknownKeys.map(e => `  [unknown-$-key] ${e}`),
+    ...nonStandardTypes.map(e => `  [non-standard-$type] ${e}`),
+    ...invalidDimensionValues.map(e => `  [invalid-dimension-token] ${e}`),
+  ]
+
+  if (errors.length > 0) {
+    throw new Error(
+      `${filename} DTCG compliance failed (${errors.length} violation(s)):\n${errors.join('\n')}`
+    )
+  }
+}
 
 /**
  * Filters validation errors to only critical ones
@@ -47,13 +132,15 @@ export function validateBrandJson(brandJson: JsonLike): void {
     const criticalErrors = filterCriticalErrors(validate.errors)
 
     if (criticalErrors.length > 0) {
-
       throw new Error(
         `recursica_brand.json validation failed with ${criticalErrors.length} critical error(s). ` +
         `First error: ${JSON.stringify(criticalErrors[0])}`
       )
     }
   }
+
+  // DTCG structural compliance
+  validateDtcgStructure(brandJson, 'recursica_brand.json')
 }
 
 /**
@@ -67,13 +154,15 @@ export function validateTokensJson(tokensJson: JsonLike): void {
     const criticalErrors = filterCriticalErrors(validate.errors)
 
     if (criticalErrors.length > 0) {
-
       throw new Error(
         `recursica_tokens.json validation failed with ${criticalErrors.length} critical error(s). ` +
         `First error: ${JSON.stringify(criticalErrors[0])}`
       )
     }
   }
+
+  // DTCG structural compliance
+  validateDtcgStructure(tokensJson, 'recursica_tokens.json')
 }
 
 /**
@@ -118,6 +207,232 @@ function findThemeReferences(
 }
 
 /**
+ * The set of known variant dimension category keys used in recursica_ui-kit.json.
+ * These keys may appear directly inside a `variants` container as dimension group names.
+ * When one of these keys (or any key whose children all look like variant values) appears
+ * directly on a variant *value* node, it signals a missing `variants` wrapper.
+ */
+const UIKIT_VARIANT_CATEGORY_KEYS = new Set([
+  'styles', 'sizes', 'layouts', 'orientation', 'fill-width', 'types', 'states', 'content',
+])
+
+/**
+ * Returns true when a node looks like a variant category: a plain object (not a token)
+ * whose every non-$ child itself has a `properties` or `variants` key.
+ */
+function looksLikeVariantCategory(node: unknown): boolean {
+  if (node === null || typeof node !== 'object') return false
+  if (Object.prototype.hasOwnProperty.call(node, '$value')) return false
+  const children = Object.entries(node as Record<string, unknown>).filter(([k]) => !k.startsWith('$'))
+  if (children.length === 0) return false
+  return children.every(([, v]) => {
+    if (v === null || typeof v !== 'object') return false
+    if (Object.prototype.hasOwnProperty.call(v, '$value')) return false
+    return (
+      Object.prototype.hasOwnProperty.call(v, 'properties') ||
+      Object.prototype.hasOwnProperty.call(v, 'variants')
+    )
+  })
+}
+
+/**
+ * Validates the structural nesting rule for component variants in recursica_ui-kit.json:
+ *
+ *   component
+ *     └── variants                ← container for dimension groups
+ *           └── [dimension-name]  ← e.g. "styles", "sizes", "content"
+ *                 └── [value]     ← e.g. "solid", "default", "icon-label"
+ *                       ├── properties  ← token values (optional)
+ *                       └── variants    ← sub-dimensions (optional, REQUIRED when nesting)
+ *
+ * A variant value node MUST only have `variants` and/or `properties` as non-$ children.
+ * Any other key that looks like a dimension category (its children all have `properties`/`variants`)
+ * is a structural error — it should have been wrapped in a `variants` node.
+ *
+ * Throws if violations are found.
+ */
+export function validateUIKitVariantStructure(uikitJson: JsonLike): void {
+  const components =
+    (uikitJson as any)?.['ui-kit']?.components ??
+    (uikitJson as any)?.components ??
+    {}
+
+  const errors: string[] = []
+
+  function checkVariantValue(path: string, node: unknown): void {
+    if (node === null || typeof node !== 'object') return
+    if (Object.prototype.hasOwnProperty.call(node, '$value')) return
+
+    const obj = node as Record<string, unknown>
+    const nonDollarKeys = Object.keys(obj).filter(k => !k.startsWith('$'))
+    const badKeys = nonDollarKeys.filter(k => k !== 'variants' && k !== 'properties')
+
+    for (const bk of badKeys) {
+      const bv = obj[bk]
+      if (
+        UIKIT_VARIANT_CATEGORY_KEYS.has(bk) && looksLikeVariantCategory(bv)
+        || (!UIKIT_VARIANT_CATEGORY_KEYS.has(bk) && looksLikeVariantCategory(bv))
+      ) {
+        errors.push(
+          `${path}: key "${bk}" looks like a variant dimension category but is not wrapped in a "variants" node. ` +
+          `Expected structure: { variants: { ${bk}: { ... } } }`
+        )
+      }
+    }
+
+    // Recurse into nested variants
+    if (obj.variants && typeof obj.variants === 'object' && !Object.prototype.hasOwnProperty.call(obj.variants, '$value')) {
+      checkVariantsContainer(`${path}.variants`, obj.variants)
+    }
+  }
+
+  function checkVariantsContainer(path: string, node: unknown): void {
+    if (node === null || typeof node !== 'object') return
+    const obj = node as Record<string, unknown>
+    for (const [catKey, catVal] of Object.entries(obj)) {
+      if (catKey.startsWith('$')) continue
+      if (catVal === null || typeof catVal !== 'object') continue
+      const catObj = catVal as Record<string, unknown>
+      for (const [valKey, valVal] of Object.entries(catObj)) {
+        if (valKey.startsWith('$')) continue
+        checkVariantValue(`${path}.${catKey}.${valKey}`, valVal)
+      }
+    }
+  }
+
+  for (const [compName, compData] of Object.entries(components as Record<string, unknown>)) {
+    if (compData === null || typeof compData !== 'object') continue
+    const compObj = compData as Record<string, unknown>
+    if (compObj.variants) {
+      checkVariantsContainer(`components.${compName}.variants`, compObj.variants)
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `recursica_ui-kit.json variant structure validation failed (${errors.length} error(s)):\n` +
+      errors.map(e => `  - ${e}`).join('\n')
+    )
+  }
+}
+
+/**
+ * Validates `recursica.component` extension tokens in recursica_ui-kit.json.
+ *
+ * A `recursica.component` token is a DTCG token (has `$value`) whose `$value`
+ * references a component group (e.g. `{ui-kit.components.button}`). The
+ * component identity is inferred from the `$value` reference path.
+ * `$extensions.recursica.component.selected-variants` values are reference
+ * strings pointing to variant group nodes (e.g.
+ * `{ui-kit.components.button.variants.styles.solid}`).
+ *
+ * Validates that every `selected-variants` key corresponds to a recognised
+ * variant dimension on the target component.
+ *
+ * Throws if any violation is found.
+ */
+export function validateUIKitComponentExtensions(uikitJson: JsonLike): void {
+  const uikit = (uikitJson as any)?.['ui-kit'] ?? uikitJson as any
+  const components: Record<string, unknown> = uikit?.components ?? {}
+
+  const errors: string[] = []
+
+  /**
+   * Extract the component name from a `$value` reference string.
+   * e.g. "{ui-kit.components.button}" → "button"
+   */
+  function componentNameFromRef(ref: unknown): string | null {
+    if (typeof ref !== 'string') return null
+    const m = ref.match(/^\{ui-kit\.components\.([^.}]+)/)
+    return m ? m[1] : null
+  }
+
+  /**
+   * Validate `selected-variants` entries for a given target component.
+   * Values are reference strings (e.g. `{ui-kit.components.button.variants.styles.solid}`).
+   */
+  function validateSelectedVariants(
+    selectedVariants: unknown,
+    targetCompName: string,
+    contextPath: string,
+  ): void {
+    if (selectedVariants === undefined) return
+    if (typeof selectedVariants !== 'object' || selectedVariants === null || Array.isArray(selectedVariants)) {
+      errors.push(`${contextPath}.$extensions[recursica.component]: "selected-variants" must be a plain object`)
+      return
+    }
+    const targetComp = components[targetCompName] as Record<string, unknown>
+    const targetVariants = (targetComp?.['variants'] ?? {}) as Record<string, unknown>
+    const validDimensions = new Set(Object.keys(targetVariants))
+
+    for (const [dimKey, dimVal] of Object.entries(selectedVariants as Record<string, unknown>)) {
+      if (typeof dimVal !== 'string') {
+        errors.push(
+          `${contextPath}.$extensions[recursica.component].selected-variants.${dimKey}: ` +
+          `value must be a string (got ${JSON.stringify(dimVal)})`
+        )
+      }
+      // Map singular toolbar key names ("style", "size") → plural JSON dimension keys ("styles", "sizes")
+      const dimensionKeyPlural = dimKey.endsWith('s') ? dimKey : `${dimKey}s`
+      if (validDimensions.size > 0 && !validDimensions.has(dimKey) && !validDimensions.has(dimensionKeyPlural)) {
+        errors.push(
+          `${contextPath}.$extensions[recursica.component].selected-variants: ` +
+          `dimension "${dimKey}" is not a recognised variant category on component "${targetCompName}". ` +
+          `Valid dimensions: ${[...validDimensions].join(', ')}`
+        )
+      }
+    }
+  }
+
+  /**
+   * Recursively find and validate recursica.component token nodes.
+   * Per DTCG: a node with `$value` is a token (leaf). Recursion stops at tokens.
+   */
+  function traverse(obj: unknown, path: string): void {
+    if (obj === null || typeof obj !== 'object') return
+    const o = obj as Record<string, unknown>
+    const isTokenNode = Object.prototype.hasOwnProperty.call(o, '$value')
+
+    if (isTokenNode && '$extensions' in o) {
+      const ext = o.$extensions as Record<string, unknown>
+      if (ext && typeof ext === 'object' && 'recursica.component' in ext) {
+        const compExt = ext['recursica.component'] as Record<string, unknown>
+        const compName = componentNameFromRef(o.$value)
+        if (!compName) {
+          errors.push(
+            `${path}.$extensions[recursica.component]: $value must be a reference to a ui-kit component ` +
+            `(e.g. "{ui-kit.components.button}"), got ${JSON.stringify(o.$value)}`
+          )
+        } else if (!(compName in components)) {
+          errors.push(`${path}.$extensions[recursica.component]: component "${compName}" does not exist in ui-kit.components`)
+        } else {
+          validateSelectedVariants(compExt['selected-variants'], compName, path)
+        }
+      }
+    }
+
+    // Do not recurse into token children — the $value is the leaf per DTCG.
+    if (isTokenNode) return
+
+    for (const [k, v] of Object.entries(o)) {
+      if (k.startsWith('$')) continue
+      traverse(v, `${path}.${k}`)
+    }
+  }
+
+  for (const [compName, compData] of Object.entries(components)) {
+    traverse(compData, `components.${compName}`)
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `recursica_ui-kit.json component extension validation failed (${errors.length} error(s)):\n` +
+      errors.map(e => `  - ${e}`).join('\n')
+    )
+  }
+}
+
+/**
  * Validates recursica_ui-kit.json against its schema
  */
 export function validateUIKitJson(uikitJson: JsonLike): void {
@@ -151,6 +466,15 @@ export function validateUIKitJson(uikitJson: JsonLike): void {
       `Theme references found:\n${errorMessages}`
     )
   }
+
+  // Enforce variant nesting structure
+  validateUIKitVariantStructure(uikitJson)
+
+  // Enforce recursica.component $extensions integrity
+  validateUIKitComponentExtensions(uikitJson)
+
+  // DTCG structural compliance
+  validateDtcgStructure(uikitJson, 'recursica_ui-kit.json')
 }
 
 // --- DTCG reference validation ---
@@ -188,22 +512,26 @@ function getAtPath(root: unknown, path: string): unknown {
   return current
 }
 
-/** Collect all reference strings and raw CSS variable leaks, along with their location (path in JSON), from an object. */
+/** Collect all reference strings and raw CSS variable leaks, along with their location (path in JSON), from an object.
+ *  References inside `$extensions` blocks are tagged with `inExtensions: true` so the validator
+ *  can apply Recursica-specific rules (e.g. allow group references) rather than strict DTCG token-only rules.
+ */
 function collectRefs(
   obj: unknown,
   jsonPath: string[] = [],
-  out: Array<{ ref: string; location: string; isCssVar?: boolean }> = []
-): Array<{ ref: string; location: string; isCssVar?: boolean }> {
+  out: Array<{ ref: string; location: string; isCssVar?: boolean; inExtensions?: boolean }> = [],
+  inExtensions = false
+): Array<{ ref: string; location: string; isCssVar?: boolean; inExtensions?: boolean }> {
   if (obj === null || obj === undefined) return out
 
   if (typeof obj === 'string') {
-    if (isReferenceString(obj)) out.push({ ref: obj, location: jsonPath.join('.') })
+    if (isReferenceString(obj)) out.push({ ref: obj, location: jsonPath.join('.'), inExtensions })
     else if ((obj as string).includes('var(--')) out.push({ ref: obj, location: jsonPath.join('.'), isCssVar: true })
     return out
   }
 
   if (Array.isArray(obj)) {
-    obj.forEach((item, i) => collectRefs(item, [...jsonPath, String(i)], out))
+    obj.forEach((item, i) => collectRefs(item, [...jsonPath, String(i)], out, inExtensions))
     return out
   }
 
@@ -215,7 +543,9 @@ function collectRefs(
   if (typeof obj === 'object') {
     for (const [key, value] of Object.entries(obj)) {
       if (key.startsWith('$') && !DTCG_TOKEN_KEYS.has(key)) continue
-      collectRefs(value, [...jsonPath, key], out)
+      // Descend into $extensions with the flag set so refs there are validated with Recursica rules
+      const nextInExtensions = inExtensions || key === '$extensions'
+      collectRefs(value, [...jsonPath, key], out, nextInExtensions)
     }
   }
   return out
@@ -232,6 +562,7 @@ export const REF_WORKAROUND_IDS = [
   'brand-theme-agnostic→themes.light|dark',
   'typography-composite-subproperty',
   'variant-group-reference',
+  'recursica-component-token',
 ] as const
 
 export type RefWorkaroundId = (typeof REF_WORKAROUND_IDS)[number]
@@ -352,6 +683,16 @@ function resolveRefToToken(
     }
   }
 
+  // recursica.component tokens use $value to reference the component group itself
+  // (e.g. {ui-kit.components.button}). Accept any existing ui-kit component group.
+  if (allowedWorkarounds.has('recursica-component-token')) {
+    if (path.startsWith('ui-kit.components.') && !path.includes('.variants.') && !path.includes('.properties.')) {
+      if (strict !== undefined && typeof strict === 'object' && !isToken(strict)) {
+        return { resolved: true, workaround: 'recursica-component-token' }
+      }
+    }
+  }
+
   if (strict !== undefined) {
     return { resolved: false, message: `Reference targets a group (path has no $value token at "${path}"). DTCG: refs must point to a token.` }
   }
@@ -387,7 +728,7 @@ export function validateReferences(
   const results: RefValidationResult[] = []
   const errors: string[] = []
 
-  for (const { ref, location, isCssVar } of refs) {
+  for (const { ref, location, isCssVar, inExtensions } of refs) {
     if (isCssVar) {
       results.push({ ref, location, valid: false, message: 'Invalid exported value: Found CSS variable leaky state.' })
       errors.push(`  ${location}: ${ref} (CSS variable leak detected)`)
@@ -398,6 +739,19 @@ export function validateReferences(
     if (!path) {
       results.push({ ref, location, valid: false, message: 'Empty or invalid reference path' })
       errors.push(`  ${location}: ${ref} (empty path)`)
+      continue
+    }
+
+    // References inside $extensions are validated with Recursica rules:
+    // the path must exist in the combined tree (token or group), but need not resolve to a leaf token.
+    if (inExtensions) {
+      const node = getAtPath(combined, path)
+      if (node !== undefined) {
+        results.push({ ref, location, valid: true, workaroundUsed: 'recursica-component-token' })
+      } else {
+        results.push({ ref, location, valid: false, message: `Reference target does not exist: "${path}".` })
+        errors.push(`  ${location}: ${ref} → Reference target does not exist: "${path}".`)
+      }
       continue
     }
 

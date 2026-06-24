@@ -6,6 +6,7 @@ import tokensImport from '../../../../recursica_tokens.json'
 import OpacityPickerOverlay from '../../pickers/OpacityPickerOverlay'
 import { Slider } from '../../../components/adapters/Slider'
 import { Button } from '../../../components/adapters/Button'
+import { ResetButton } from '../../../components/shared/ResetButton'
 import { iconNameToReactComponent } from '../../components/iconUtils'
 import { genericLayerText } from '../../../core/css/cssVarBuilder'
 
@@ -146,17 +147,10 @@ export default function OpacityTokens() {
           }}>
             Opacity
           </h2>
-          <Button
-            variant="outline"
-            size="small"
-            onClick={handleReset}
-            icon={(() => {
-              const RefreshIcon = iconNameToReactComponent('arrow-path')
-              return RefreshIcon ? <RefreshIcon style={{ width: 'var(--recursica_brand_dimensions_icons_default)', height: 'var(--recursica_brand_dimensions_icons_default)' }} /> : null
-            })()}
-          >
-            Reset all
-          </Button>
+          <ResetButton
+            onReset={() => handleReset()}
+            layer="layer-1"
+          />
         </div>
 
         {/* Rows */}

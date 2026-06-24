@@ -3,6 +3,8 @@ import { Dropdown } from '../../components/adapters/Dropdown'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { h2Style } from './typographyStyles'
+
 
 interface DropdownPreviewProps {
     selectedVariants: Record<string, string>
@@ -42,17 +44,6 @@ export default function DropdownPreview({
         { value: 'option-8', label: 'Crystal Quenching Oil', leadingIconType: 'none' as const },
         { value: 'option-9', label: 'Shadow Ingot', leadingIconType: 'none' as const },
     ]
-
-    const h2Style = {
-        margin: 0,
-        marginBottom: 16,
-        textTransform: 'capitalize' as const,
-        fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
-        fontSize: 'var(--recursica_brand_typography_h2-font-size)',
-        fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
-        letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
-        lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
-    } as React.CSSProperties
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 

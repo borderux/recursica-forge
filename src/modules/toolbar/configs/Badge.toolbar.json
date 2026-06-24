@@ -67,11 +67,6 @@
         }
       }
     },
-    "height": {
-      "icon": "arrows-up-down",
-      "label": "Height",
-      "visible": true
-    },
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",

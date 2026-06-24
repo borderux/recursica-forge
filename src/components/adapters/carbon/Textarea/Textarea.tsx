@@ -41,7 +41,7 @@ export default function Textarea({
     const { mode } = useThemeMode()
 
     // Extract props that shouldn't be passed to DOM elements
-    const { optional, labelAlign, labelSize, ...domProps } = restProps
+    const { optional, labelAlign, labelSize, editIcon, editIconGap, ...domProps } = restProps
 
     // Generate unique ID if not provided (needed for scoped styles)
     const uniqueId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`
@@ -243,10 +243,7 @@ export default function Textarea({
           text-transform: var(${valueTextTransformVar}) !important;
           font-style: var(${valueFontStyleVar}) !important;
         }
-        #${uniqueId}.recursica-textarea-input::placeholder,
-        #${uniqueId}.recursica-textarea-input::-webkit-input-placeholder,
-        #${uniqueId}.recursica-textarea-input::-moz-placeholder,
-        #${uniqueId}.recursica-textarea-input:-ms-input-placeholder {
+        #${uniqueId}.recursica-textarea-input::placeholder {
           color: var(${textVar}) !important;
           opacity: var(${placeholderOpacityVar}) !important;
         }

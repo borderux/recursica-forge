@@ -35,10 +35,10 @@ export default function Button({
   const materialVariant = variant === 'solid' ? 'contained' : variant === 'outline' ? 'outlined' : 'text'
 
   // Map unified size to Material size
-  const materialSize = size === 'small' ? 'small' : 'medium'
+  const materialSize = size === ('sm' as any) || size === 'small' ? 'small' : size === ('lg' as any) || size === ('large' as any) ? 'large' : 'medium'
 
   // Determine size prefix for CSS variables
-  const sizePrefix = size === 'small' ? 'small' : 'default'
+  const sizePrefix = size || 'default'
 
   const cssVarVariant = variant
 
@@ -49,32 +49,37 @@ export default function Button({
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   const iconColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color')
 
-  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
-  const hoverColorVar = getComponentLevelCssVar('Button', 'hover-color')
-  const hoverOpacityVar = getComponentLevelCssVar('Button', 'hover-opacity')
+  // Get hover color and opacity from the size variant (moved from component level)
+  const hoverColorVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'hover-color')
+  const hoverOpacityVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'hover-opacity')
 
-  // Get icon size and gap CSS variables
+  // Get icon size and gap CSS variables — use full path matching JSON structure
   const iconSizeVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon')
   const iconGapVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'icon-text-gap')
-  // Detect icon-only button early for padding var
+  // Detect icon-only button (icon exists but no children) — needed early for padding var
   const isIconOnly = icon && !children
-  // Use content-variant-specific horizontal-padding: label vs icon-only have separate tokens
-  const contentVariant = isIconOnly ? 'icon-only' : 'label'
-  const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'sizes', sizePrefix, 'properties', 'horizontal-padding')
-  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
-  const minWidthVar = getComponentCssVar('Button', 'size', `${sizePrefix}-min-width`, undefined)
-  const borderRadiusVar = getComponentCssVar('Button', 'size', 'border-radius', undefined)
-  const maxWidthVar = getComponentCssVar('Button', 'size', 'max-label-width', undefined)
+  // Derive content variant from the actual props:
+  //   icon-only  → icon present, no children
+  //   icon-label → icon present with children
+  //   label      → no icon, just children
+  const contentVariant = isIconOnly ? 'icon-only' : (icon ? 'icon-label' : 'label')
+  const horizontalPaddingVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'horizontal-padding')
 
-  // Get all text properties from component text property group
-  const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
-  const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
-  const fontWeightVar = getComponentTextCssVar('Button', 'text', 'font-weight')
-  const letterSpacingVar = getComponentTextCssVar('Button', 'text', 'letter-spacing')
-  const lineHeightVar = getComponentTextCssVar('Button', 'text', 'line-height')
-  const textDecorationVar = getComponentTextCssVar('Button', 'text', 'text-decoration')
-  const textTransformVar = getComponentTextCssVar('Button', 'text', 'text-transform')
-  const fontStyleVar = getComponentTextCssVar('Button', 'text', 'font-style')
+  const heightVar = getComponentCssVar('Button', 'size', `${sizePrefix}-height`, undefined)
+  // min-width and border-radius are now content-variant-specific (content × size)
+  const minWidthVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'min-width')
+  const borderRadiusVar = buildComponentCssVarPath('Button', 'variants', 'content', contentVariant, 'variants', 'sizes', sizePrefix, 'properties', 'border-radius')
+  const maxWidthVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'max-label-width')
+
+  // Get all text properties from size-variant text property group
+  const fontFamilyVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'font-family')
+  const fontSizeVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'font-size')
+  const fontWeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'font-weight')
+  const letterSpacingVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'letter-spacing')
+  const lineHeightVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'line-height')
+  const textDecorationVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'text-decoration')
+  const textTransformVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'text-transform')
+  const fontStyleVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'text', 'font-style')
 
   // Get border-size CSS variable (variant-specific property)
   const borderSizeVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'border-size')

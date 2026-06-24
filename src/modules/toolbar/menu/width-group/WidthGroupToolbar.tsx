@@ -1,3 +1,4 @@
+import { useThemeMode } from "../../../theme/ThemeModeContext"
 import { getVarsStore } from '../../../../core/store/varsStore'
 /**
  * WidthGroupToolbar Component
@@ -55,7 +56,8 @@ export default function WidthGroupToolbar({
   const maxHeightPropName = propNameMapping.maxHeight || 'max-height'
 
   // Find width-related props from component structure
-  const structure = useMemo(() => parseComponentStructure(componentName), [componentName])
+  const { mode } = useThemeMode()
+  const structure = useMemo(() => parseComponentStructure(componentName), [componentName, mode])
 
   const minWidthProp = useMemo(() => {
     return structure.props.find(p => {
@@ -134,6 +136,9 @@ export default function WidthGroupToolbar({
     } else if (compNameLower === 'menu-item') {
       if (propNameLower === 'min-width') return { min: 50, max: 500 }
       if (propNameLower === 'max-width') return { min: 200, max: 1000 }
+    } else if (compNameLower === 'panel') {
+      if (propNameLower === 'min-width') return { min: 100, max: 800 }
+      if (propNameLower === 'max-width') return { min: 200, max: 2000 }
     } else if (compNameLower === 'toast') {
       if (propNameLower === 'min-width') return { min: 200, max: 800 }
       if (propNameLower === 'max-width') return { min: 400, max: 1200 }
@@ -183,10 +188,7 @@ export default function WidthGroupToolbar({
         const numValue = typeof val === 'number' ? val : val[0]
         const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
         setValue(clampedValue)
-        updateCssVar(minWidthVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [minWidthVar] }
-        }))
+        document.documentElement.style.setProperty(minWidthVar, `${clampedValue}px`)
       }, [minWidthVar, range])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -253,10 +255,7 @@ export default function WidthGroupToolbar({
         const numValue = typeof val === 'number' ? val : val[0]
         const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
         setValue(clampedValue)
-        updateCssVar(maxWidthVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [maxWidthVar] }
-        }))
+        document.documentElement.style.setProperty(maxWidthVar, `${clampedValue}px`)
       }, [maxWidthVar, range])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -323,10 +322,7 @@ export default function WidthGroupToolbar({
         const numValue = typeof val === 'number' ? val : val[0]
         const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
         setValue(clampedValue)
-        updateCssVar(minHeightVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [minHeightVar] }
-        }))
+        document.documentElement.style.setProperty(minHeightVar, `${clampedValue}px`)
       }, [minHeightVar, range])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -401,10 +397,7 @@ export default function WidthGroupToolbar({
         const numValue = typeof val === 'number' ? val : val[0]
         const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
         setValue(clampedValue)
-        updateCssVar(maxHeightVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [maxHeightVar] }
-        }))
+        document.documentElement.style.setProperty(maxHeightVar, `${clampedValue}px`)
       }, [maxHeightVar, range])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {

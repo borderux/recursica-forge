@@ -8,10 +8,10 @@ import { Modal as MantineModal, Box, Group } from '@mantine/core'
 import { iconNameToReactComponent } from '../../../../modules/components/iconUtils'
 import { useState, useEffect } from 'react'
 import type { ModalProps as AdapterModalProps } from '../../Modal'
-import { getComponentCssVar, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
+import { getComponentLevelCssVar, getComponentTextCssVar, buildComponentCssVarPath } from '../../../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
-import { readCssVar } from '../../../../core/css/readCssVar'
+import { readCssVar, readRawCssVar } from '../../../../core/css/readCssVar'
 import { Button } from '../../Button'
 import './Modal.css'
 
@@ -100,11 +100,11 @@ export default function Modal({
     }
 
     // Build CSS variable names
-    const bgVar = getComponentCssVar('Modal', 'colors', 'background', layer)
-    const titleColorVar = getComponentCssVar('Modal', 'colors', 'title', layer)
-    const contentColorVar = getComponentCssVar('Modal', 'colors', 'content', layer)
-    const borderColorVar = getComponentCssVar('Modal', 'colors', 'border-color', layer)
-    const dividerColorVar = getComponentCssVar('Modal', 'colors', 'scroll-divider', layer)
+    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'background')
+    const titleColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'title')
+    const contentColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'content')
+    const borderColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'border-color')
+    const dividerColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'scroll-divider')
 
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')
@@ -118,23 +118,9 @@ export default function Modal({
     const maxHeightVar = getComponentLevelCssVar('Modal', 'max-height')
 
     // Text properties
-    const headerFontFamilyVar = getComponentTextCssVar('Modal', 'header-text', 'font-family')
-    const headerFontSizeVar = getComponentTextCssVar('Modal', 'header-text', 'font-size')
-    const headerFontWeightVar = getComponentTextCssVar('Modal', 'header-text', 'font-weight')
-    const headerLetterSpacingVar = getComponentTextCssVar('Modal', 'header-text', 'letter-spacing')
-    const headerLineHeightVar = getComponentTextCssVar('Modal', 'header-text', 'line-height')
-    const headerFontStyleVar = getComponentTextCssVar('Modal', 'header-text', 'font-style')
-    const headerTextDecorationVar = getComponentTextCssVar('Modal', 'header-text', 'text-decoration')
-    const headerTextTransformVar = getComponentTextCssVar('Modal', 'header-text', 'text-transform')
+    const headerStyleVar = getComponentLevelCssVar('Modal', 'header-style')
 
-    const contentFontFamilyVar = getComponentTextCssVar('Modal', 'content-text', 'font-family')
-    const contentFontSizeVar = getComponentTextCssVar('Modal', 'content-text', 'font-size')
-    const contentFontWeightVar = getComponentTextCssVar('Modal', 'content-text', 'font-weight')
-    const contentLetterSpacingVar = getComponentTextCssVar('Modal', 'content-text', 'letter-spacing')
-    const contentLineHeightVar = getComponentTextCssVar('Modal', 'content-text', 'line-height')
-    const contentFontStyleVar = getComponentTextCssVar('Modal', 'content-text', 'font-style')
-    const contentTextDecorationVar = getComponentTextCssVar('Modal', 'content-text', 'text-decoration')
-    const contentTextTransformVar = getComponentTextCssVar('Modal', 'content-text', 'text-transform')
+    const contentStyleVar = getComponentLevelCssVar('Modal', 'content-style')
 
     // Elevation variable
     const internalElevationVar = getComponentLevelCssVar('Modal', 'elevation')
@@ -144,12 +130,8 @@ export default function Modal({
 
     useEffect(() => {
         const textCssVars = [
-            headerFontFamilyVar, headerFontSizeVar, headerFontWeightVar,
-            headerLetterSpacingVar, headerLineHeightVar, headerFontStyleVar,
-            headerTextDecorationVar, headerTextTransformVar,
-            contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar,
-            contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar,
-            contentTextDecorationVar, contentTextTransformVar,
+            headerStyleVar,
+            contentStyleVar,
             internalElevationVar, scrollDividerThicknessVar
         ]
 
@@ -177,7 +159,7 @@ export default function Modal({
             window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
             observer.disconnect()
         }
-    }, [headerFontFamilyVar, headerFontSizeVar, headerFontWeightVar, headerLetterSpacingVar, headerLineHeightVar, headerFontStyleVar, headerTextDecorationVar, headerTextTransformVar, contentFontFamilyVar, contentFontSizeVar, contentFontWeightVar, contentLetterSpacingVar, contentLineHeightVar, contentFontStyleVar, contentTextDecorationVar, contentTextTransformVar, internalElevationVar, scrollDividerThicknessVar])
+    }, [headerStyleVar, contentStyleVar, internalElevationVar, scrollDividerThicknessVar])
 
     const effectivePos = dragPos || position
 
@@ -197,23 +179,7 @@ export default function Modal({
         '--modal-content-max-width': effectivePos ? 'auto' : `var(${maxWidthVar})`,
         '--modal-content-min-height': effectivePos ? 'auto' : `var(${minHeightVar})`,
         '--modal-content-max-height': effectivePos ? 'auto' : `var(${maxHeightVar}, 80vh)`,
-        '--modal-header-font-family': `var(${headerFontFamilyVar})`,
-        '--modal-header-font-size': `var(${headerFontSizeVar})`,
-        '--modal-header-font-weight': `var(${headerFontWeightVar})`,
-        '--modal-header-letter-spacing': `var(${headerLetterSpacingVar})`,
-        '--modal-header-line-height': `var(${headerLineHeightVar})`,
-        '--modal-header-font-style': `var(${headerFontStyleVar})`,
-        '--modal-header-text-decoration': `var(${headerTextDecorationVar})`,
-        '--modal-header-text-transform': `var(${headerTextTransformVar})`,
         '--modal-content-color': `var(${contentColorVar})`,
-        '--modal-content-font-family': `var(${contentFontFamilyVar})`,
-        '--modal-content-font-size': `var(${contentFontSizeVar})`,
-        '--modal-content-font-weight': `var(${contentFontWeightVar})`,
-        '--modal-content-letter-spacing': `var(${contentLetterSpacingVar})`,
-        '--modal-content-line-height': `var(${contentLineHeightVar})`,
-        '--modal-content-font-style': `var(${contentFontStyleVar})`,
-        '--modal-content-text-decoration': `var(${contentTextDecorationVar})`,
-        '--modal-content-text-transform': `var(${contentTextTransformVar})`,
 
         // Position variables (for CSS file !important overrides)
         ...(effectivePos && !centered ? {
@@ -225,6 +191,33 @@ export default function Modal({
         } : {}),
         ...style,
     } as React.CSSProperties
+
+    const rawHeaderStyleValue = readRawCssVar(headerStyleVar) || 'h3'
+    let headerStyleValue = 'h3'
+    if (rawHeaderStyleValue.startsWith('{brand.typography.')) {
+        headerStyleValue = rawHeaderStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawHeaderStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawHeaderStyleValue)
+        if (match) {
+            headerStyleValue = match[1].replace(/-font-size$/, '')
+        }
+    } else {
+        headerStyleValue = rawHeaderStyleValue
+    }
+    const HeadingTag = (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(headerStyleValue) ? headerStyleValue : 'div') as keyof JSX.IntrinsicElements
+
+    const rawContentStyleValue = readRawCssVar(contentStyleVar) || 'body'
+    let contentStyleValue = 'body'
+    if (rawContentStyleValue.startsWith('{brand.typography.')) {
+        contentStyleValue = rawContentStyleValue.replace(/^\{brand\.typography\.(.+)\}$/, '$1')
+    } else if (rawContentStyleValue.includes('--recursica_brand_typography_')) {
+        const match = /--recursica_brand_typography_([^)]+)/.exec(rawContentStyleValue)
+        if (match) {
+            contentStyleValue = match[1].replace(/-font-size$/, '')
+        }
+    } else {
+        contentStyleValue = rawContentStyleValue
+    }
 
     // Get elevation value (either from prop or from CSS variable)
     const activeElevation = elevation || parseElevationValue(readCssVar(internalElevationVar))
@@ -255,6 +248,8 @@ export default function Modal({
             withOverlay={withOverlay}
             lockScroll={withOverlay}
             trapFocus={trapFocus ?? withOverlay}
+            closeOnClickOutside={false}
+            closeOnEscape={false}
             zIndex={zIndex}
             title={showHeader ? (
                 <Group
@@ -271,15 +266,15 @@ export default function Modal({
                         minWidth: 0,       // Allow the flex container to shrink
                     }}
                 >
-                    <span style={{
+                    <HeadingTag style={{
                         color: 'var(--modal-title-color)',
-                        fontFamily: 'var(--modal-header-font-family)',
-                        fontSize: 'var(--modal-header-font-size)',
-                        fontWeight: 'var(--modal-header-font-weight)',
-                        letterSpacing: 'var(--modal-header-letter-spacing)',
-                        fontStyle: 'var(--modal-header-font-style)',
-                        textDecoration: 'var(--modal-header-text-decoration)',
-                        textTransform: 'var(--modal-header-text-transform)',
+                        fontFamily: `var(--recursica_brand_typography_${headerStyleValue}-font-family)`,
+                        fontSize: `var(--recursica_brand_typography_${headerStyleValue}-font-size)`,
+                        fontWeight: `var(--recursica_brand_typography_${headerStyleValue}-font-weight)`,
+                        letterSpacing: `var(--recursica_brand_typography_${headerStyleValue}-font-letter-spacing)`,
+                        fontStyle: `var(--recursica_brand_typography_${headerStyleValue}-font-style)`,
+                        textDecoration: 'none',
+                        textTransform: `var(--recursica_brand_typography_${headerStyleValue}-text-transform)`,
                         userSelect: 'none',
                         pointerEvents: 'none',
                         whiteSpace: 'nowrap',
@@ -289,9 +284,10 @@ export default function Modal({
                         flex: 1,
                         padding: '0.1em 0', // Tiny padding to prevent descender clipping with overflow: hidden
                         lineHeight: '1.2', // Slightly more than 1 to ensure descenders have room
+                        margin: 0,
                     } as any}>
                         {title}
-                    </span>
+                    </HeadingTag>
                     <Button
                         variant="text"
                         size="small"
@@ -348,14 +344,14 @@ export default function Modal({
                     flexDirection: 'column',
                     flex: 1,
                     overflow: 'hidden',
-                    fontFamily: 'var(--modal-content-font-family)',
-                    fontSize: 'var(--modal-content-font-size)',
-                    fontWeight: 'var(--modal-content-font-weight)',
-                    letterSpacing: 'var(--modal-content-letter-spacing)',
-                    lineHeight: 'var(--modal-content-line-height)',
-                    fontStyle: 'var(--modal-content-font-style)',
-                    textDecoration: 'var(--modal-content-text-decoration)',
-                    textTransform: 'var(--modal-content-text-transform)',
+                    fontFamily: `var(--recursica_brand_typography_${contentStyleValue}-font-family)`,
+                    fontSize: `var(--recursica_brand_typography_${contentStyleValue}-font-size)`,
+                    fontWeight: `var(--recursica_brand_typography_${contentStyleValue}-font-weight)`,
+                    letterSpacing: `var(--recursica_brand_typography_${contentStyleValue}-font-letter-spacing)`,
+                    lineHeight: `var(--recursica_brand_typography_${contentStyleValue}-line-height)`,
+                    fontStyle: `var(--recursica_brand_typography_${contentStyleValue}-font-style)`,
+                    textDecoration: 'none',
+                    textTransform: `var(--recursica_brand_typography_${contentStyleValue}-text-transform)`,
                     position: 'relative',
                     zIndex: 1,
                 } as any,

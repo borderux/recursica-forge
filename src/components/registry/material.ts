@@ -51,6 +51,9 @@ registerComponent('material', 'Textarea', () => import('../adapters/material/Tex
 // NumberInput
 registerComponent('material', 'NumberInput', () => import('../adapters/material/NumberInput/NumberInput'))
 
+// Dropdown
+registerComponent('material', 'Dropdown', () => import('../adapters/material/Dropdown/Dropdown'))
+
 // Breadcrumb
 registerComponent('material', 'Breadcrumb', () => import('../adapters/material/Breadcrumb/Breadcrumb'))
 
@@ -93,6 +96,13 @@ registerComponent('material', 'DatePicker', () => import('../adapters/material/D
 // Loader
 registerComponent('material', 'Loader', () => import('../adapters/material/Loader/Loader'))
 
+// Tree
+registerComponent('material', 'Tree', () => import('../adapters/material/Tree/Tree'))
+
+// Table
+registerComponent('material', 'Table', () => import('../adapters/material/Table/Table'))
+registerComponent('material', 'TableCell', () => import('../adapters/material/TableCell/TableCell'))
+registerComponent('material', 'TableHeader', () => import('../adapters/material/TableCell/TableCell'))
+registerComponent('material', 'TableFooter', () => import('../adapters/material/TableCell/TableCell'))
+
 // Add more components as they're implemented
-
-

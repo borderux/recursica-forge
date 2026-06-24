@@ -9,6 +9,8 @@ import tokensJson from '../../recursica_tokens.json'
 import uikitJson from '../../recursica_ui-kit.json'
 import {
   validateReferences,
+  validateDtcgStructure,
+  validateUIKitComponentExtensions,
   REF_WORKAROUND_IDS,
   type RefWorkaroundId,
 } from '../core/utils/validateJsonSchemas'
@@ -53,24 +55,24 @@ describe('JSON Schema Validation', () => {
     it('should have brand.themes.light.palettes.core-colors', () => {
       const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
-      expect(coreColors?.black).toBeDefined()
-      expect(coreColors?.white).toBeDefined()
+      expect(coreColors?.['high-contrast']).toBeDefined()
+      expect(coreColors?.['low-contrast']).toBeDefined()
       expect(coreColors?.interactive).toBeDefined()
     })
 
     it('should have brand.themes.dark.palettes.core-colors', () => {
       const coreColors = brandJson.brand?.themes?.dark?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
-      expect(coreColors?.black).toBeDefined()
-      expect(coreColors?.white).toBeDefined()
+      expect(coreColors?.['high-contrast']).toBeDefined()
+      expect(coreColors?.['low-contrast']).toBeDefined()
       expect(coreColors?.interactive).toBeDefined()
     })
 
     it('should have required core-colors values', () => {
       const coreColors = brandJson.brand?.themes?.light?.palettes?.['core-colors']
       expect(coreColors).toBeDefined()
-      expect(coreColors?.black).toBeDefined()
-      expect(coreColors?.white).toBeDefined()
+      expect(coreColors?.['high-contrast']).toBeDefined()
+      expect(coreColors?.['low-contrast']).toBeDefined()
       expect(coreColors?.alert).toBeDefined()
       expect(coreColors?.success).toBeDefined()
       expect(coreColors?.warning).toBeDefined()
@@ -342,8 +344,8 @@ describe('JSON Schema Validation', () => {
                 'core-colors': {
                   $type: 'color',
                   $value: {
-                    black: '{tokens.colors.scale-02.900}',
-                    white: '{tokens.colors.scale-02.000}',
+                    'high-contrast': '{tokens.colors.scale-02.900}',
+                    'low-contrast': '{tokens.colors.scale-02.000}',
                     alert: '{tokens.colors.scale-02.900}',
                     success: '{tokens.colors.scale-02.900}',
                     warning: '{tokens.colors.scale-02.900}',
@@ -409,8 +411,8 @@ describe('JSON Schema Validation', () => {
                 'core-colors': {
                   $type: 'color',
                   $value: {
-                    black: '{tokens.colors.scale-02.900}',
-                    white: '{tokens.colors.scale-02.000}',
+                    'high-contrast': '{tokens.colors.scale-02.900}',
+                    'low-contrast': '{tokens.colors.scale-02.000}',
                     alert: '{tokens.colors.scale-02.900}',
                     success: '{tokens.colors.scale-02.900}',
                     warning: '{tokens.colors.scale-02.900}',
@@ -463,14 +465,17 @@ describe('JSON Schema Validation', () => {
             light: {
               elevations: {
                 'elevation-0': {
-                  $type: 'boxShadow',
+                  // DTCG-compliant: $type:'shadow' (DTCG spec type for box-shadow)
+                  // with $extensions.recursica.type preserving the 'boxShadow' semantic
+                  $type: 'shadow',
+                  $extensions: { 'recursica.type': 'boxShadow' },
                   $value: {
                     x: { $value: '0', unit: 'px' },
                     y: { $value: '0', unit: 'px' },
                     blur: { $value: '0', unit: 'px' },
                     spread: { $value: '0', unit: 'px' },
                     color: { $value: '#000000', $type: 'color' },
-                    opacity: { $value: '{tokens.opacities.solid}', $type: 'opacity' }
+                    opacity: { $value: '{tokens.opacities.solid}', $type: 'number' }
                   }
                 }
               }
@@ -478,10 +483,10 @@ describe('JSON Schema Validation', () => {
           }
         }
       }
-      
+
       const validate = ajv.compile(brandSchema)
       const valid = validate(brandWithElevation)
-      
+
       // Should validate elevation structure
       expect(validate).toBeDefined()
     })
@@ -499,6 +504,7 @@ describe('DTCG reference validation', () => {
     expect(REF_WORKAROUND_IDS.length).toBeGreaterThan(0)
     expect(REF_WORKAROUND_IDS).toContain('brand-theme-agnostic→themes.light|dark')
     expect(REF_WORKAROUND_IDS).toContain('typography-composite-subproperty')
+    expect(REF_WORKAROUND_IDS).toContain('recursica-component-token')
   })
 
   it('should fail when ref points to group and work-arounds disabled', () => {
@@ -537,3 +543,185 @@ describe('DTCG reference validation', () => {
   })
 })
 
+
+describe('DTCG structural compliance (validateDtcgStructure)', () => {
+  it('should pass on the seed brand JSON', () => {
+    expect(() => validateDtcgStructure(brandJson as any, 'recursica_brand.json')).not.toThrow()
+  })
+
+  it('should pass on the seed tokens JSON', () => {
+    expect(() => validateDtcgStructure(tokensJson as any, 'recursica_tokens.json')).not.toThrow()
+  })
+
+  it('should pass on the seed ui-kit JSON', () => {
+    expect(() => validateDtcgStructure(uikitJson as any, 'recursica_ui-kit.json')).not.toThrow()
+  })
+
+  it('should throw when $metadata is used at root level', () => {
+    const bad = { brand: {}, $metadata: { exportedAt: '2026-01-01', version: '1.0.0' } }
+    expect(() => validateDtcgStructure(bad as any, 'test.json')).toThrow(/unknown-\$-key/)
+  })
+
+  it('should throw when $type is a non-standard value like "elevation"', () => {
+    const bad = { 'ui-kit': { layer: { elevation: { $type: 'elevation', $value: '{brand.elevations.elevation-0}' } } } }
+    expect(() => validateDtcgStructure(bad as any, 'test.json')).toThrow(/non-standard-\$type/)
+  })
+
+  it('should throw when $type is "boxShadow" (non-standard; should be "shadow")', () => {
+    const bad = { brand: { themes: { light: { elevations: { 'elevation-0': { $type: 'boxShadow', $value: {} } } } } } }
+    expect(() => validateDtcgStructure(bad as any, 'test.json')).toThrow(/non-standard-\$type/)
+  })
+
+  it('should accept $type:"shadow" with $extensions.recursica.type:"boxShadow"', () => {
+    const valid = {
+      brand: { themes: { light: { elevations: { 'elevation-0': {
+        $type: 'shadow',
+        $extensions: { 'recursica.type': 'boxShadow' },
+        $value: { x: 0, y: 0, blur: 0, spread: 0, color: '#000' },
+      } } } } },
+    }
+    expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+  })
+
+  it('should accept tokens with no $type (elevation via $extensions.recursica.type)', () => {
+    const valid = { 'ui-kit': { layer: { elevation: {
+      $extensions: { 'recursica.type': 'elevation' },
+      $value: '{brand.elevations.elevation-0}',
+    } } } }
+    expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+  })
+
+  it('should accept $extensions.recursica.metadata as a replacement for $metadata', () => {
+    const valid = { brand: {}, $extensions: { 'recursica.metadata': { exportedAt: '2026-01-01', version: '1.0.0' } } }
+    expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+  })
+
+  describe('dimension validation', () => {
+    it('should accept dimension token with valid value-unit object', () => {
+      const valid = { tokens: { sizes: { test: { $type: 'dimension', $value: { value: 200, unit: 'px' } } } } }
+      expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+    })
+
+    it('should accept dimension token with valid brace reference', () => {
+      const valid = { tokens: { sizes: { test: { $type: 'dimension', $value: '{brand.dimensions.general.sm}' } } } }
+      expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+    })
+
+    it('should accept dimension token with null value', () => {
+      const valid = { tokens: { sizes: { test: { $type: 'dimension', $value: null } } } }
+      expect(() => validateDtcgStructure(valid as any, 'test.json')).not.toThrow()
+    })
+
+    it('should reject dimension token with raw value-unit string', () => {
+      const invalid = { tokens: { sizes: { test: { $type: 'dimension', $value: '200px' } } } }
+      expect(() => validateDtcgStructure(invalid as any, 'test.json')).toThrow(/type is "dimension" but value is not an object/)
+    })
+
+    it('should reject dimension token with missing unit', () => {
+      const invalid = { tokens: { sizes: { test: { $type: 'dimension', $value: { value: 200 } } } } }
+      expect(() => validateDtcgStructure(invalid as any, 'test.json')).toThrow(/type is "dimension" but value is not an object/)
+    })
+  })
+})
+
+describe('validateUIKitComponentExtensions', () => {
+  it('should pass on seed ui-kit JSON', () => {
+    expect(() => validateUIKitComponentExtensions(uikitJson as any)).not.toThrow()
+  })
+
+  it('should validate recursica.component token with valid selected-variants', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          button: {
+            variants: {
+              styles: { solid: { properties: {} }, outline: { properties: {} } },
+              sizes: { small: { properties: {} } },
+            },
+          },
+          pagination: {
+            properties: {
+              'active-pages': {
+                $value: '{ui-kit.components.button}',
+                $extensions: {
+                  'recursica.component': {
+                    'selected-variants': {
+                      style: '{ui-kit.components.button.variants.styles.solid}',
+                      size: '{ui-kit.components.button.variants.sizes.small}',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    expect(() => validateUIKitComponentExtensions(uikit as any)).not.toThrow()
+  })
+
+  it('should fail when $value does not reference a ui-kit component', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          pagination: {
+            properties: {
+              'active-pages': {
+                $value: '{brand.some.token}',
+                $extensions: { 'recursica.component': { 'selected-variants': {} } },
+              },
+            },
+          },
+        },
+      },
+    }
+    expect(() => validateUIKitComponentExtensions(uikit as any)).toThrow(/\$value must be a reference to a ui-kit component/)
+  })
+
+  it('should fail when component name in $value does not exist', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          pagination: {
+            properties: {
+              'active-pages': {
+                $value: '{ui-kit.components.nonexistent}',
+                $extensions: { 'recursica.component': { 'selected-variants': {} } },
+              },
+            },
+          },
+        },
+      },
+    }
+    expect(() => validateUIKitComponentExtensions(uikit as any)).toThrow(/does not exist in ui-kit.components/)
+  })
+
+  it('should fail when selected-variants dimension key is not valid', () => {
+    const uikit = {
+      'ui-kit': {
+        components: {
+          button: {
+            variants: {
+              styles: { solid: { properties: {} } },
+            },
+          },
+          pagination: {
+            properties: {
+              'active-pages': {
+                $value: '{ui-kit.components.button}',
+                $extensions: {
+                  'recursica.component': {
+                    'selected-variants': {
+                      unknownDimension: '{ui-kit.components.button.variants.styles.solid}',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    expect(() => validateUIKitComponentExtensions(uikit as any)).toThrow(/is not a recognised variant category/)
+  })
+})

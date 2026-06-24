@@ -198,7 +198,7 @@ export function Chip({
             </span>
           )
         })()}
-        <span style={{ display: 'inline-block', verticalAlign: 'middle', paddingBottom: '0.05em' }}>{children}</span>
+        <span style={{ display: 'inline-block', verticalAlign: 'middle', padding: '0.15em 0' }}>{children}</span>
         {deletable && onDelete && (() => {
           const CloseIcon = iconNameToReactComponent('x')
           return (

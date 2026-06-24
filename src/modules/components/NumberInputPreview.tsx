@@ -3,6 +3,7 @@ import { NumberInput } from '../../components/adapters/NumberInput'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
+import { h2Style, pStyle } from './typographyStyles'
 
 interface NumberInputPreviewProps {
     selectedVariants: Record<string, string> // e.g., { states: "default", layouts: "stacked" }
@@ -43,7 +44,7 @@ export default function NumberInputPreview({
         }}>
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={{ margin: 0, marginBottom: 16, textTransform: 'capitalize' }}>
+                    <h2 style={{ ...h2Style, margin: 0, marginBottom: 16, textTransform: 'capitalize' }}>
                         {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
                     </h2>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>

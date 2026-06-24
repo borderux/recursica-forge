@@ -85,6 +85,34 @@
         }
       }
     },
+    "divider": {
+      "icon": "minus",
+      "label": "Divider",
+      "visible": true,
+      "floatingPaletteLabel": "Divider",
+      "group": {
+        "divider-color": {
+          "icon": "paint-bucket",
+          "label": "Divider color",
+          "visible": true,
+          "floatingPaletteLabel": "Divider Color"
+        },
+        "divider-height": {
+          "icon": "minus",
+          "label": "Size",
+          "visible": true,
+          "propertyType": "slider",
+          "range": [0, 20],
+          "step": 1
+        },
+        "divider-opacity": {
+          "icon": "eye",
+          "label": "Divider opacity",
+          "visible": true,
+          "floatingPaletteLabel": "Divider Opacity"
+        }
+      }
+    },
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",

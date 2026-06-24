@@ -13,6 +13,7 @@ import { cssVarToRef, TOKEN_PREFIX, unwrapVar, BRAND_PREFIX } from '../css/cssVa
 import tokensJson from '../../../recursica_tokens.json'
 import brandJson from '../../../recursica_brand.json'
 import uikitJson from '../../../recursica_ui-kit.json'
+import packageJson from '../../../package.json'
 import { getVarsStore } from '../store/varsStore'
 import { validateTokensJson, validateBrandJson, validateUIKitJson } from '../utils/validateJsonSchemas'
 import {
@@ -645,11 +646,16 @@ export function exportTokensJson(): object {
   if (Object.keys(result.tokens.sizes).length === 0) delete result.tokens.sizes
   if (Object.keys(result.tokens.opacities).length === 0) delete result.tokens.opacities
 
-  // Add metadata with export timestamp
-  result.$metadata = {
-    exportedAt: new Date().toISOString(),
-    version: '1.0.0'
+  // Add metadata with export timestamp (DTCG-compliant: $metadata → $extensions.recursica.metadata)
+  result.$extensions = {
+    'recursica.metadata': {
+      exportedAt: new Date().toISOString(),
+      version: packageJson.version
+    }
   }
+
+  // Validate the exported JSON before returning
+  validateTokensJson(result as JsonLike)
 
   return result
 }
@@ -664,56 +670,76 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
     // Also fix malformed references that may have been created incorrectly
 
     let normalized = obj
-      // Fix malformed: {brand.palettes.core.white} / core.black -> token path (not core-white/core-black)
-      .replace(/\{brand\.palettes\.core\.white\}/g, '{brand.palettes.core-colors.white.tone}')
-      .replace(/\{brand\.palettes\.core\.black\}/g, '{brand.palettes.core-colors.black.tone}')
+      // Fix malformed: {brand.palettes.core.white} / core.black -> semantic contrast keys
+      .replace(/\{brand\.palettes\.core\.white\}/g, '{brand.palettes.core-colors.low-contrast.tone}')
+      .replace(/\{brand\.palettes\.core\.black\}/g, '{brand.palettes.core-colors.high-contrast.tone}')
       // Fix malformed references: {brand.palettes.palette.2.000.on.tone} -> {brand.palettes.palette-2.000.color.on-tone}
       .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.on\.tone}/g, '{brand.palettes.palette-$1.$2.color.on-tone}')
       .replace(/{brand\.palettes\.palette\.(\d+)\.(\d{3,4})\.tone}/g, '{brand.palettes.palette-$1.$2.color.tone}')
       // Fix refs missing .color: {brand.palettes.X.600.tone} -> {brand.palettes.X.600.color.tone}
       .replace(/\{brand\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.tone\}/g, '{brand.palettes.$1.$2.color.tone}')
       .replace(/\{brand\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.on-tone\}/g, '{brand.palettes.$1.$2.color.on-tone}')
+      // Fix spurious .color. subgroup in core-colors refs: core-colors entries are flat
+      // (alert.tone) not nested (alert.color.tone). Strip the invalid .color. intermediary.
+      .replace(
+        /\{(brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.[^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
+        '{$1.$2}'
+      )
       // Fix malformed token references: {tokens.colors.scale.01-100} -> {tokens.colors.scale-01.100}
       .replace(/{tokens\.colors\.scale\.(\d+)-(\d{3,4})}/g, '{tokens.colors.scale-$1.$2}')
       // Sanitize stale/corrupt core-colors refs missing the .tone leaf.
       // updateCoreColorOnTones previously wrote {brand.themes.light.palettes.core-colors.white}
-      // (no .tone) into state.theme; these point to a group not a token and fail DTCG validation.
-      // Match the fully theme-qualified form first so the theme prefix is preserved in brand exports.
+      // (no .tone) into state.theme; map to semantic contrast keys.
       .replace(
         /\{brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)\}/g,
-        (_, mode, leaf) => `{brand.themes.${mode}.palettes.core-colors.${leaf}.tone}`
+        (_, mode, leaf) => {
+          if (leaf === 'black') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'low-contrast' : 'high-contrast'}.tone}`
+          if (leaf === 'white') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'high-contrast' : 'low-contrast'}.tone}`
+          return `{brand.themes.${mode}.palettes.core-colors.${leaf}.tone}`
+        }
       )
-      // Then catch the theme-agnostic form (used in UIKit refs / interactiveColorUpdater fallbacks).
+      // Then catch the theme-agnostic form.
       .replace(
         /\{brand\.palettes\.core-colors\.([a-z0-9-]+)\}/g,
-        (_, leaf) => `{brand.palettes.core-colors.${leaf}.tone}`
+        (_, leaf) => {
+          if (leaf === 'black') return '{brand.palettes.core-colors.high-contrast.tone}'
+          if (leaf === 'white') return '{brand.palettes.core-colors.low-contrast.tone}'
+          return `{brand.palettes.core-colors.${leaf}.tone}`
+        }
       )
       // Fix theme-qualified palettes.core.* (no hyphen) → palettes.core-colors.*.tone
-      // Generated when syncDeltaToJson converts a paletteCore() CSS var name back to a DTCG ref
-      // using the old 'core' segment instead of 'core-colors'.
       .replace(
         /\{brand\.themes\.(light|dark)\.palettes\.core\.([a-z0-9-]+)\}/g,
-        (_, mode, leaf) => `{brand.themes.${mode}.palettes.core-colors.${leaf}.tone}`
+        (_, mode, leaf) => {
+          if (leaf === 'black') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'low-contrast' : 'high-contrast'}.tone}`
+          if (leaf === 'white') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'high-contrast' : 'low-contrast'}.tone}`
+          return `{brand.themes.${mode}.palettes.core-colors.${leaf}.tone}`
+        }
       )
       // Fix bare shortcut refs {brand.palettes.white} / {brand.palettes.black}
-      // Written by palette initialization before the source-fix in initializePaletteTheme.
       .replace(
         /\{brand\.palettes\.(white|black)\}/g,
-        (_, leaf) => `{brand.palettes.core-colors.${leaf}.tone}`
+        (_, leaf) => leaf === 'black' ? '{brand.palettes.core-colors.high-contrast.tone}' : '{brand.palettes.core-colors.low-contrast.tone}'
       )
 
 
     if (stripThemes) {
       normalized = normalized
-        // Core-colors: normalize to theme-agnostic token paths (.tone)
-        .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix || '.tone'}}`)
-        .replace(/{brand\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix || '.tone'}}`)
-        // Core-black/core-white: normalize to token path (core-colors.black.tone / core-colors.white.tone)
-        .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
-        .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.black.tone}' : '{brand.palettes.core-colors.white.tone}'))
-        // Already short form: {brand.palettes.core-black} / core-white -> token path
-        .replace(/\{brand\.palettes\.core-black\}/g, '{brand.palettes.core-colors.black.tone}')
-        .replace(/\{brand\.palettes\.core-white\}/g, '{brand.palettes.core-colors.white.tone}')
+        // Core-colors: normalize to theme-agnostic semantic keys
+        .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => {
+          const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
+          return `{brand.palettes.core-colors.${sem}${suffix || '.tone'}}`
+        })
+        .replace(/{brand\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => {
+          const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
+          return `{brand.palettes.core-colors.${sem}${suffix || '.tone'}}`
+        })
+        // Core-black/core-white: normalize to semantic contrast keys
+        .replace(/{brand\.themes\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.high-contrast.tone}' : '{brand.palettes.core-colors.low-contrast.tone}'))
+        .replace(/{brand\.(light|dark)\.palettes\.(core-white|core-black)}/g, (_, _mode, which) => (which === 'core-black' ? '{brand.palettes.core-colors.high-contrast.tone}' : '{brand.palettes.core-colors.low-contrast.tone}'))
+        // Already short form: {brand.palettes.core-black} / core-white -> semantic keys
+        .replace(/\{brand\.palettes\.core-black\}/g, '{brand.palettes.core-colors.high-contrast.tone}')
+        .replace(/\{brand\.palettes\.core-white\}/g, '{brand.palettes.core-colors.low-contrast.tone}')
         // Remove theme from all other palette references
         .replace(/{brand\.themes\.(light|dark)\.palettes\./g, '{brand.palettes.')
         .replace(/{brand\.(light|dark)\.palettes\./g, '{brand.palettes.')
@@ -761,13 +787,23 @@ function normalizeUIKitBrandReferences(obj: any, currentPath: string = ''): any 
       .replace(/{brand(?:\.themes\.(?:light|dark))?\.layers\.(layer-\d+)\.elements\.interactive-(tone|tone-hover|on-tone|on-tone-hover)}/g,
         '{brand.layers.$1.elements.interactive.$2}')
       // ── Core palette path: cssVarToRef flattens `core-colors` into `core` ──
-      // Fix: {brand.palettes.core.black.tone} → {brand.palettes.core-colors.black.tone}
-      // Also handles theme-qualified variants
+      // Fix: {brand.palettes.core.black.tone} → {brand.palettes.core-colors.high-contrast.tone}
       .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core\.([a-z0-9-]+)(?:\.(tone|on-tone))?}/g,
-        (_, leaf, suffix) => `{brand.palettes.core-colors.${leaf}${suffix ? '.' + suffix : '.tone'}}`)
-      // ── Core-colors toneless: ensure `.tone` suffix ──
+        (_, leaf, suffix) => {
+          const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
+          return `{brand.palettes.core-colors.${sem}${suffix ? '.' + suffix : '.tone'}}`
+        })
+      // ── Core-colors toneless: ensure `.tone` suffix and semantic keys ──
       .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.([a-z0-9-]+)}/g,
-        '{brand.palettes.core-colors.$1.tone}')
+        (_, leaf) => {
+          const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
+          return `{brand.palettes.core-colors.${sem}.tone}`
+        })
+      // ── Core-colors spurious .color. subgroup: alert.color.tone → alert.tone ──
+      .replace(
+        /\{(brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.[^.}]+)\.color\.(tone|on-tone|interactive)\}/g,
+        '{$1.$2}'
+      )
       // ── Palette refs missing .color. segment ──
       .replace(/\{brand(?:\.themes\.(?:light|dark))?\.palettes\.(neutral|palette-\d+)\.(default|\d{3,4})\.tone\}/g,
         '{brand.palettes.$1.$2.color.tone}')
@@ -992,9 +1028,11 @@ export function exportBrandJson(): object {
   if (!theme?.brand) {
     return {
       brand: {},
-      $metadata: {
-        exportedAt: new Date().toISOString(),
-        version: '1.0.0'
+      $extensions: {
+        'recursica.metadata': {
+          exportedAt: new Date().toISOString(),
+          version: packageJson.version
+        }
       }
     }
   }
@@ -1053,18 +1091,16 @@ export function exportBrandJson(): object {
 
   const exportObject = {
     brand: normalized,
-    $metadata: {
-      exportedAt: new Date().toISOString(),
-      version: '1.0.0'
+    $extensions: {
+      'recursica.metadata': {
+        exportedAt: new Date().toISOString(),
+        version: packageJson.version
+      }
     }
   }
 
   // Validate the exported JSON before returning
-  try {
-    validateBrandJson(exportObject as JsonLike)
-  } catch (error) {
-    // validation failed — error will be re-thrown by handleExport in exportWithCompliance
-  }
+  validateBrandJson(exportObject as JsonLike)
 
   return exportObject
 }
@@ -1125,9 +1161,11 @@ export function exportUIKitJson(): object {
   if (!uikit) {
     return {
       'ui-kit': {},
-      $metadata: {
-        exportedAt: new Date().toISOString(),
-        version: '1.0.0'
+      $extensions: {
+        'recursica.metadata': {
+          exportedAt: new Date().toISOString(),
+          version: packageJson.version
+        }
       }
     }
   }
@@ -1170,18 +1208,17 @@ export function exportUIKitJson(): object {
 
 
 
-  // Add metadata with export timestamp
-  normalized.$metadata = {
-    exportedAt: new Date().toISOString(),
-    version: '1.0.0'
+  // Add metadata with export timestamp (DTCG-compliant: use $extensions.recursica.metadata)
+  normalized.$extensions = {
+    ...((normalized.$extensions as Record<string, unknown>) ?? {}),
+    'recursica.metadata': {
+      exportedAt: new Date().toISOString(),
+      version: packageJson.version
+    }
   }
 
   // Validate the exported JSON before returning
-  try {
-    validateUIKitJson(normalized as JsonLike)
-  } catch (error) {
-    // validation failed — error will be re-thrown by handleExport in exportWithCompliance
-  }
+  validateUIKitJson(normalized as JsonLike)
 
   return normalized
 }

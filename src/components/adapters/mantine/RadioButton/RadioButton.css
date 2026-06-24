@@ -70,7 +70,7 @@
 
 /* Disabled State - use dedicated disabled colors */
 .recursica-radio-root .mantine-Radio-radio:disabled,
-.recursica-radio-root[data-disabled] .mantine-Radio-radio {
+.recursica-radio-root:has(.mantine-Radio-radio:disabled) .mantine-Radio-radio {
   background-color: var(--radio-disabled-bg) !important;
   border-color: var(--radio-disabled-border) !important;
   cursor: not-allowed !important;
@@ -78,9 +78,7 @@
 
 /* Disabled selected - keep disabled colors */
 .recursica-radio-root .mantine-Radio-radio:disabled:checked,
-.recursica-radio-root .mantine-Radio-radio:disabled[data-checked],
-.recursica-radio-root[data-disabled] .mantine-Radio-radio:checked,
-.recursica-radio-root[data-disabled] .mantine-Radio-radio[data-checked] {
+.recursica-radio-root .mantine-Radio-radio:disabled[data-checked] {
   background-color: var(--radio-disabled-bg) !important;
   border-color: var(--radio-disabled-border) !important;
 }
@@ -88,16 +86,12 @@
 /* Disabled icon - use disabled icon color */
 .recursica-radio-root .mantine-Radio-radio:disabled:checked+.mantine-Radio-icon,
 .recursica-radio-root .mantine-Radio-radio:disabled[data-checked]+.mantine-Radio-icon,
-.recursica-radio-root[data-disabled] .mantine-Radio-radio:checked+.mantine-Radio-icon,
-.recursica-radio-root[data-disabled] .mantine-Radio-radio[data-checked]+.mantine-Radio-icon,
 .recursica-radio-root .mantine-Radio-radio:disabled:checked~.mantine-Radio-icon,
-.recursica-radio-root .mantine-Radio-radio:disabled[data-checked]~.mantine-Radio-icon,
-.recursica-radio-root[data-disabled] .mantine-Radio-radio:checked~.mantine-Radio-icon,
-.recursica-radio-root[data-disabled] .mantine-Radio-radio[data-checked]~.mantine-Radio-icon {
+.recursica-radio-root .mantine-Radio-radio:disabled[data-checked]~.mantine-Radio-icon {
   color: var(--radio-disabled-icon) !important;
   visibility: visible !important;
 }
 
-.recursica-radio-root[data-disabled] .mantine-Radio-label {
+.recursica-radio-root:has(.mantine-Radio-radio:disabled) .mantine-Radio-label {
   opacity: var(--radio-disabled-opacity, 0.4) !important;
 }

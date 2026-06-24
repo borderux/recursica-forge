@@ -13,6 +13,7 @@ import { findTokenByHex, tokenToCssVar } from './tokenRefs'
 import { removeUIKitValue, updateUIKitValue } from './updateUIKitValue'
 import { getVarsStore } from '../store/varsStore'
 import { checkForGlobalRef } from './globalRefInterceptor'
+import { checkForOnToneConflict, readCurrentDtcgRef } from './onToneInterceptor'
 import { updateBrandValue } from './updateBrandValue'
 
 // Global flag to suppress events during bulk updates
@@ -82,8 +83,16 @@ export function updateCssVar(
   cssVarName: string,
   value: string,
   tokens?: any,
-  silent?: boolean
+  options?: { silent?: boolean; immediate?: boolean; noGlobalRefCheck?: boolean; noOnToneCheck?: boolean } | boolean,
+  immediate?: boolean,
+  noGlobalRefCheck?: boolean
 ): boolean {
+  // Support both legacy positional args and new options object
+  const opts = options && typeof options === 'object' ? options : {}
+  const resolvedSilent    = opts.silent          ?? (typeof options === 'boolean' ? options : false)
+  const resolvedImmediate = opts.immediate        ?? immediate ?? false
+  const resolvedNoGRC     = opts.noGlobalRefCheck ?? noGlobalRefCheck ?? false
+  const resolvedNoOTC     = opts.noOnToneCheck    ?? false
   const root = document.documentElement
   const trimmedValue = value.trim()
 
@@ -94,7 +103,7 @@ export function updateCssVar(
   const isUIKitVar = cssVarName.includes('_ui-kit_') && (cssVarName.includes('_components_') || cssVarName.includes('_globals_'))
   // UIKit vars are ALWAYS silent, regardless of the silent parameter
   // For non-UIKit vars, respect the silent parameter
-  const shouldBeSilent = isUIKitVar || (silent === true)
+  const shouldBeSilent = isUIKitVar || resolvedSilent
 
   // Validate brand vars must use token references
   if (isBrandVar(cssVarName)) {
@@ -123,6 +132,21 @@ export function updateCssVar(
   // IMMEDIATELY apply the CSS variable to the DOM to ensure 60fps live previews
   root.style.setProperty(cssVarName, trimmedValue)
 
+  // For mode-independent UIKit vars (dimensions, border-radius, padding, etc.), also
+  // mirror the change to the opposite-mode themed var immediately.
+  // Without this, the preservation loop in recomputeAndApplyAll reads the stale
+  // opposite-mode DOM value (from the last recompute) and treats it as a user change,
+  // overriding the correct JSON-derived value and reverting the user's edit.
+  // Color vars (_properties_colors_) are deliberately excluded — they ARE mode-dependent
+  // and must not be cross-copied between light and dark.
+  if (isUIKitVar && !cssVarName.includes('_properties_colors_')) {
+    if (cssVarName.includes('_themes_light_')) {
+      root.style.setProperty(cssVarName.replace('_themes_light_', '_themes_dark_'), trimmedValue)
+    } else if (cssVarName.includes('_themes_dark_')) {
+      root.style.setProperty(cssVarName.replace('_themes_dark_', '_themes_light_'), trimmedValue)
+    }
+  }
+
   // For brand CSS variables, synchronously sync state.theme so that any subsequent
   // recomputeAndApplyAll (e.g. from addPalette / deletePalette) reads the updated value
   // via buildPaletteVars. Without this, state.theme keeps the stale JSON value and the
@@ -131,17 +155,37 @@ export function updateCssVar(
   if (isBrandVar(cssVarName)) {
     updateBrandValue(cssVarName, trimmedValue)
   } else if (isUIKitVar) {
+    // Capture the current DTCG ref BEFORE the write for the on-tone interceptor.
+    // updateUIKitValue overwrites the value, so we must read it first.
+    const oldDtcgRef = (!resolvedNoOTC && cssVarName.includes('_properties_colors_'))
+      ? readCurrentDtcgRef(cssVarName)
+      : null
+
     updateUIKitValue(cssVarName, trimmedValue)
+
+    // Fire on-tone interceptor after write (uses old ref captured above)
+    if (!resolvedNoOTC && cssVarName.includes('_properties_colors_')) {
+      checkForOnToneConflict(cssVarName, trimmedValue, oldDtcgRef, resolvedImmediate)
+    }
   }
 
-  // Debounce delta tracking to avoid thrashing during rapid slider movement
-  cssVarDebounceTimers[cssVarName] = setTimeout(() => {
-    // JSON sync (state.tokens / state.theme / state.uikit) happens lazily at export time.
+  // For immediate (non-slider) interactions, skip the outer debounce and fire
+  // the global-ref check right away so the modal appears without delay.
+  if (resolvedImmediate && isUIKitVar && cssVarName.includes('_components_')) {
+    if (!resolvedNoGRC) {
+      checkForGlobalRef(cssVarName, trimmedValue, true)
+    }
+    if (!shouldBeSilent && !suppressEvents) {
+      pendingCssVars.add(cssVarName)
+      fireBatchedEvent()
+    }
+    return true
+  }
 
-    // For UIKit component vars: propagate global-ref conflicts if the property
-    // was backed by a {ui-kit.globals.*} reference in the pristine JSON.
-    if (isUIKitVar && cssVarName.includes('_components_')) {
-      checkForGlobalRef(cssVarName, trimmedValue)
+  // Debounce delta tracking to avoid thrashing during rapid slider movement.
+  cssVarDebounceTimers[cssVarName] = setTimeout(() => {
+    if (!resolvedNoGRC && isUIKitVar && cssVarName.includes('_components_')) {
+      checkForGlobalRef(cssVarName, trimmedValue, false)
     }
 
     // Schedule a compliance scan when brand vars change (color/opacity edits)
@@ -260,7 +304,7 @@ export function removeCssVar(cssVarName: string, silent?: boolean): void {
   }
 
   // Ensure UIKit removal syncs with JSON store 
-  const isUIKitVar = cssVarName.includes('-ui-kit-') && (cssVarName.includes('-components-') || cssVarName.includes('-globals-'))
+  const isUIKitVar = cssVarName.includes('_ui-kit_') && (cssVarName.includes('_components_') || cssVarName.includes('_globals_'))
   if (isUIKitVar) {
     removeUIKitValue(cssVarName)
   }

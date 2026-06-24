@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { toSentenceCase } from '../../utils/componentToolbarUtils'
-import { getVariantLabel } from '../../utils/loadToolbarConfig'
+import { getVariantLabel, getVariantOptionLabel } from '../../utils/loadToolbarConfig'
 import { Dropdown } from '../../../../components/adapters/Dropdown'
 import type { DropdownItem } from '../../../../components/adapters/Dropdown'
 import './Dropdown.css'
@@ -32,7 +32,7 @@ export default function VariantDropdown({
   const items: DropdownItem[] = useMemo(() => {
     const baseItems: DropdownItem[] = variants.map(v => ({
       value: v,
-      label: toSentenceCase(v)
+      label: getVariantOptionLabel(componentName, propName, v) ?? toSentenceCase(v)
     }))
 
     baseItems.push({

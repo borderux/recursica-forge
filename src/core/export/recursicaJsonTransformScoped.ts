@@ -13,7 +13,7 @@
 
 const FILENAME = 'recursica_variables_scoped.css'
 const PREFIX = '--recursica_'
-const TRANSFORM_VERSION = '1.1.0'
+const TRANSFORM_VERSION = '1.3.0'
 
 /** Maps brand.typography $value keys (camelCase) to CSS property names. */
 const TYPOGRAPHY_JSON_TO_CSS_PROP: Record<string, string> = {
@@ -155,8 +155,11 @@ function expandRefPath(refPath: string, currentPath: string): string {
   for (const key of themeScoped) {
     if (afterBrand === key || afterBrand.startsWith(key + '.')) {
       let expanded = `brand.themes.${theme}.${afterBrand}`
-      if (afterBrand === 'palettes.black' || afterBrand === 'palettes.white') {
-        expanded = `brand.themes.${theme}.palettes.core-colors.${afterBrand.replace('palettes.', '')}.tone`
+      if (afterBrand === 'palettes.black' || afterBrand === 'palettes.white' ||
+          afterBrand === 'palettes.high-contrast' || afterBrand === 'palettes.low-contrast') {
+        const colorKey = afterBrand.replace('palettes.', '')
+        const normalizedKey = colorKey === 'black' ? 'high-contrast' : colorKey === 'white' ? 'low-contrast' : colorKey
+        expanded = `brand.themes.${theme}.palettes.core-colors.${normalizedKey}.tone`
       }
       return expanded
     }
@@ -184,11 +187,14 @@ function resolvePathAlias(path: string): string[] {
       candidates.push(path.replace(/\.me$/, '.md'))
     }
   }
-  const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white)$/)
-  if (m) candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${m[2]}.tone`)
+  const m = path.match(/^brand\.themes\.(light|dark)\.palettes\.(black|white|high-contrast|low-contrast)$/)
+  if (m) {
+    const colorKey = m[2] === 'black' ? 'high-contrast' : m[2] === 'white' ? 'low-contrast' : m[2]
+    candidates.push(`brand.themes.${m[1]}.palettes.core-colors.${colorKey}.tone`)
+  }
   const coreBlackWhiteShort = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-(black|white)$/)
-  if (coreBlackWhiteShort) candidates.push(`brand.themes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2]}.tone`)
-  const coreBlackWhite = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white)$/)
+  if (coreBlackWhiteShort) candidates.push(`brand.themes.${coreBlackWhiteShort[1]}.palettes.core-colors.${coreBlackWhiteShort[2] === 'black' ? 'high-contrast' : 'low-contrast'}.tone`)
+  const coreBlackWhite = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|high-contrast|low-contrast)$/)
   if (coreBlackWhite) candidates.push(`${path}.tone`)
   const coreColor = path.match(/^brand\.themes\.(light|dark)\.palettes\.core-colors\.(warning|success|alert)$/)
   if (coreColor) candidates.push(`${path}.tone`)
@@ -249,10 +255,18 @@ function formatValue(
     const resolved: string | null = candidates.find((p) => allVarNames.has(pathToVarName(p))) ?? null
     if (!resolved) {
       const varName = pathToVarName(expanded)
-      errors.push({
-        path: currentPath,
-        message: `Reference '${val}' targets non-existent var ${varName}`
-      })
+      const isTypographyGroup = expanded.startsWith('brand.typography.') && 
+        (allVarNames.has(pathToVarName(`${expanded}.font-family`)) || 
+         allVarNames.has(pathToVarName(`${expanded}.fontFamily`)) ||
+         allVarNames.has(pathToVarName(`${expanded}.font-size`)) ||
+         allVarNames.has(pathToVarName(`${expanded}.fontSize`)))
+         
+      if (!isTypographyGroup) {
+        errors.push({
+          path: currentPath,
+          message: `Reference '${val}' targets non-existent var ${varName}`
+        })
+      }
       return `var(${refNamer(expanded)})`
     }
     return `var(${refNamer(resolved)})`
@@ -309,7 +323,7 @@ function formatValue(
 }
 
 /** Entry from flatten: path, value, and optional $type when the token had a $value wrapper. */
-type FlatEntry = { path: string; value: unknown; type?: string }
+type FlatEntry = { path: string; value: unknown; type?: string; comment?: string }
 
 /**
  * Recursively collects path/value pairs from the JSON structure.
@@ -331,8 +345,19 @@ function collectVars(obj: unknown, pathPrefix: string, out: FlatEntry[]): void {
   if (typeof obj === 'object' && !Array.isArray(obj)) {
     const record = obj as Record<string, unknown>
     if ('$value' in record) {
+      // Skip recursica.component tokens: they reference a component node (not a scalar),
+      // so no CSS var should be emitted for them.
+      const extensions = record.$extensions as Record<string, unknown> | undefined
+      if (extensions?.['recursica.component'] != null) return
+
       const v = record.$value
-      const tokenType = typeof record.$type === 'string' ? (record.$type as string) : undefined
+      // Prefer $type; fall back to $extensions['recursica.type'] for tokens
+      // whose type is expressed via extensions (e.g. elevation tokens post-DTCG refactor)
+      const dtcgType = typeof record.$type === 'string' ? (record.$type as string) : undefined
+      const extType = !dtcgType
+        ? extensions?.['recursica.type'] as string | undefined
+        : undefined
+      const tokenType = dtcgType ?? extType
       if (v != null && typeof v === 'object' && !Array.isArray(v) && !('value' in v && 'unit' in v)) {
         for (const [k, child] of Object.entries(v)) {
           if (k.startsWith('$')) continue
@@ -364,9 +389,72 @@ function flattenInput(json: RecursicaJsonInput): FlatEntry[] {
   if (brand) collectVars(brand, 'brand', out)
   if (uikit) collectVars(uikit, 'ui-kit', out)
 
+  injectVariantAliases(out)
+  injectTypographyAliases(out)
+
   if (brand) injectElevationComposites(brand as Record<string, unknown>, out)
   injectDarkLayer0InteractiveAliases(out)
-  return out
+  
+  // Remove original typography group references that were expanded into individual properties
+  return out.filter(e => e.type !== 'DELETED_TYPOGRAPHY_REF')
+}
+
+/**
+ * Traverses entries and finds variant tokens that reference other tokens.
+ * For each property in the referenced variant, creates a new alias variable
+ * under the variant's path, effectively mapping the active variant's styles.
+ */
+function injectVariantAliases(out: FlatEntry[]): void {
+  const variants = out.filter(e => e.type === 'variant' && typeof e.value === 'string')
+  for (const entry of variants) {
+    const trimmed = (entry.value as string).trim()
+    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) continue
+    const inner = trimmed.slice(1, -1).trim()
+    const prefix = inner + '.'
+    
+    const len = out.length
+    for (let i = 0; i < len; i++) {
+      const child = out[i]
+      if (child.path.startsWith(prefix)) {
+        const subPath = child.path.slice(prefix.length)
+        const newPath = entry.path + '.' + subPath
+        out.push({ path: newPath, value: `{${child.path}}`, comment: `Variant Reference: ${inner}` })
+      }
+    }
+  }
+}
+
+/**
+ * Traverses entries and finds typography tokens that reference other typography groups.
+ * For each property in the referenced typography group, creates a new alias variable
+ * under the typography's path, effectively mapping the typography group's styles.
+ */
+function injectTypographyAliases(out: FlatEntry[]): void {
+  const typographies = out.filter(e => e.type === 'typography' && typeof e.value === 'string')
+  for (const entry of typographies) {
+    const trimmed = (entry.value as string).trim()
+    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) continue
+    const inner = trimmed.slice(1, -1).trim()
+    const prefix = inner + '.'
+    
+    let injectedAny = false
+    const len = out.length
+    for (let i = 0; i < len; i++) {
+      const child = out[i]
+      if (child.path.startsWith(prefix)) {
+        const subPath = child.path.slice(prefix.length)
+        const newPath = entry.path + '.' + subPath
+        out.push({ path: newPath, value: `{${child.path}}`, type: child.type, comment: `Typography Reference: ${inner}` })
+        injectedAny = true
+      }
+    }
+    
+    // If we successfully injected children, mark the base group reference for deletion
+    // so we don't emit a meaningless base CSS variable.
+    if (injectedAny) {
+      entry.type = 'DELETED_TYPOGRAPHY_REF'
+    }
+  }
 }
 
 /**
@@ -595,6 +683,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     if (isLayerSpecificUIKitPath(path)) {
       allRootNames.add(pathToRootVarNameLayerSpecificUIKit(path, 'light'))
       allRootNames.add(pathToRootVarNameLayerSpecificUIKit(path, 'dark'))
+      allRootNames.add(pathToVarName(path)) // Add base path for validation of refs targeting it
     } else {
       allRootNames.add(pathToVarName(path))
     }
@@ -602,10 +691,10 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
 
   // 2. Build root vars: every entry with specific name, values use pathToVarName for refs
   const rootVarsMap = new Map<string, string>()
-  const rootOptions = { refNamer: pathToVarName }
+  const rootVarsComments = new Map<string, string>()
 
   for (const entry of entries) {
-    const { path, value, type: tokenType } = entry
+    const { path, value, type: tokenType, comment } = entry
     // Handle $type: "variant" — extract variant name from brace reference path
     // e.g. {ui-kit.components.button.variants.styles.solid} → "solid"
     if (tokenType === 'variant' && typeof value === 'string') {
@@ -615,6 +704,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
         const lastSegment = inner.split('.').pop() || inner
         const rootName = pathToVarName(path)
         rootVarsMap.set(rootName, `"${lastSegment}"`)
+        if (comment) rootVarsComments.set(rootName, comment)
         continue
       }
     }
@@ -623,21 +713,25 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
       if (layer == null) continue
       for (const theme of ['light', 'dark'] as const) {
         let formatted = formatValue(value, path, allRootNames, errors, {
-          ...rootOptions,
+          refNamer: (p: string) => isLayerSpecificUIKitPath(p) ? pathToRootVarNameLayerSpecificUIKit(p, theme) : pathToVarName(p),
           themeForExpand: theme
         })
         if (formatted == null) formatted = fallbackForNullByType(tokenType)
         if (formatted == null) continue
         const rootName = pathToRootVarNameLayerSpecificUIKit(path, theme)
         rootVarsMap.set(rootName, formatted)
+        if (comment) rootVarsComments.set(rootName, comment)
       }
       continue
     }
 
-    let formatted = formatValue(value, path, allRootNames, errors, rootOptions)
+    let formatted = formatValue(value, path, allRootNames, errors, {
+      refNamer: (p: string) => isLayerSpecificUIKitPath(p) ? pathToRootVarNameLayerSpecificUIKit(p, 'light') : pathToVarName(p)
+    })
     if (formatted == null) continue
     const rootName = pathToVarName(path)
     rootVarsMap.set(rootName, formatted)
+    if (comment) rootVarsComments.set(rootName, comment)
   }
 
   // Validate layer coverage in JSON (each canonical must be defined in all 4 layers)
@@ -692,7 +786,7 @@ export function recursicaJsonTransform(json: RecursicaJsonInput): ExportFile[] {
     themeAliases.set(theme, merged)
   }
 
-  const css = formatScopedCss(rootVarsMap, themeAliases, themeLayerAliases)
+  const css = formatScopedCss(rootVarsMap, themeAliases, themeLayerAliases, rootVarsComments)
   return [{ filename: FILENAME, contents: css }]
 }
 
@@ -728,7 +822,8 @@ function collectTypographyHelpers(
 function formatScopedCss(
   rootVarsMap: Map<string, string>,
   themeAliases: Map<string, Array<{ genericName: string; rootName: string }>>,
-  themeLayerAliases: Map<string, Array<{ genericName: string; rootName: string }>>
+  themeLayerAliases: Map<string, Array<{ genericName: string; rootName: string }>>,
+  rootVarsComments: Map<string, string>
 ): string {
   const buildDate = new Date().toUTCString()
 
@@ -779,6 +874,17 @@ function formatScopedCss(
   css += ` *    full type definition (family, size, weight, line-height, etc.) from brand.typography.\n`
   css += ` *    Class names follow the path: brand.typography.<typeName>.\n`
   css += ` *\n`
+  css += ` * 7. Variant Handling\n`
+  css += ` *    When a token is defined as a variant reference (e.g. $type: "variant"), the exporter automatically\n`
+  css += ` *    extracts all properties from the referenced variant and creates corresponding variables under the\n`
+  css += ` *    active property's path. These aliased variables act as a pointer to the active variant's styles.\n`
+  css += ` *    They are indicated in the CSS with a preceding comment indicating the variant reference.\n`
+  css += ` *\n`
+  css += ` * 8. Typography Expansion\n`
+  css += ` *    When a token is a reference to a typography group (e.g. {brand.typography.h2}), the exporter\n`
+  css += ` *    automatically expands the reference into individual variables for each property in the group\n`
+  css += ` *    (e.g., font-family, font-weight). The base reference variable is safely discarded.\n`
+  css += ` *\n`
   css += ` * --- Disabled state (implicit rule) ---\n`
   css += ` * The brand theme exposes a single disabled token: --recursica_brand_states_disabled (generic\n`
   css += ` * name; resolves per theme to an opacity value, e.g. from opacities_ghost). Use this for disabled\n`
@@ -806,6 +912,10 @@ function formatScopedCss(
   const rootVars = [...rootVarsMap.entries()].sort((a, b) => a[0].localeCompare(b[0]))
   css += `:root {\n`
   for (const [name, value] of rootVars) {
+    const comment = rootVarsComments.get(name)
+    if (comment) {
+      css += `  /* ${comment} */\n`
+    }
     css += `  ${name}: ${value};\n`
   }
   css += `}\n\n`

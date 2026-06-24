@@ -35,7 +35,7 @@ export default function TimePicker({
     period = 'AM', onPeriodChange, material, ...restProps
 }: AdapterTimePickerProps & { labelId?: string; helpId?: string; errorId?: string }) {
     const { mode } = useThemeMode()
-    const { optional, labelAlign, labelSize, ...domProps } = restProps
+    const { optional, labelAlign, labelSize, editIcon, editIconGap, ...domProps } = restProps
     const uniqueId = id || `time-picker-${Math.random().toString(36).substr(2, 9)}`
     const inputRef = useRef<HTMLInputElement>(null)
     const [pickerOpen, setPickerOpen] = useState(false)
@@ -151,9 +151,9 @@ export default function TimePicker({
             }}>
                 {ClockIcon && (<div className="recursica-time-picker-leading-icon" onClick={handleClockClick} style={{ width: `var(${iconSizeVar}, 20px)`, height: `var(${iconSizeVar}, 20px)`, flexShrink: 0, color: `var(${iconColorVar})`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: state !== 'disabled' ? 'pointer' : 'default', overflow: 'visible' }}><ClockIcon size={iconSizePixels} /></div>)}
                 <input ref={inputRef} id={uniqueId} name={name} type="time" value={value} defaultValue={defaultValue} onChange={onChange} onKeyDown={domProps.onKeyDown} onBlur={domProps.onBlur} placeholder={placeholder} disabled={state === 'disabled'} readOnly={domProps.readOnly} autoFocus={domProps.autoFocus} className={`recursica-time-picker-input ${className || ''}`}
-                    style={{ flex: 1, minWidth: 0, maxWidth: '100%', padding: 0, border: 'none', backgroundColor: 'transparent', color: `var(${textVar})`, outline: 'none', textAlign: 'left', lineHeight: `var(${valueLineHeightVar}, 1.5)`, fontSize: `var(${valueFontSizeVar}, 14px)` } as React.CSSProperties} {...material} />
+                    style={{ flex: 1, minWidth: 0, maxWidth: '100%', padding: 0, border: 'none', backgroundColor: 'transparent', color: `var(${textVar})`, outline: 'none', textAlign: 'left', lineHeight: 'normal', fontSize: `var(${valueFontSizeVar}, 14px)` } as React.CSSProperties} {...material} />
                 <style>{`
-          #${uniqueId}.recursica-time-picker-input { font-family: var(${valueFontFamilyVar}) !important; font-size: var(${valueFontSizeVar}) !important; font-weight: var(${valueFontWeightVar}) !important; letter-spacing: var(${valueLetterSpacingVar}) !important; line-height: var(${valueLineHeightVar}) !important; text-decoration: var(${valueTextDecorationVar}) !important; text-transform: var(${valueTextTransformVar}) !important; font-style: var(${valueFontStyleVar}) !important; }
+          #${uniqueId}.recursica-time-picker-input { font-family: var(${valueFontFamilyVar}) !important; font-size: var(${valueFontSizeVar}) !important; font-weight: var(${valueFontWeightVar}) !important; letter-spacing: var(${valueLetterSpacingVar}) !important; line-height: normal !important; text-decoration: var(${valueTextDecorationVar}) !important; text-transform: var(${valueTextTransformVar}) !important; font-style: var(${valueFontStyleVar}) !important; }
           #${uniqueId}.recursica-time-picker-input::placeholder { color: var(${textVar}) !important; opacity: var(${placeholderOpacityVar}) !important; }
           .recursica-time-picker-wrapper:has(#${uniqueId}:focus) { box-shadow: inset 0 0 0 var(${focusBorderSizeVar}) var(${focusBorderVar}) !important; }
         `}</style>

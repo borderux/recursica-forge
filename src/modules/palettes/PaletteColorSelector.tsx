@@ -55,75 +55,58 @@ export function getTokenLevelForMode(paletteLevel: string, mode: 'Light' | 'Dark
 
 // readCssVarNumber is now imported from centralized utility
 
-// Determine the correct on-tone color (white or black) considering opacity for AA compliance
-export function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'white' | 'black' {
+// Determine the correct on-tone color considering opacity for AA compliance.
+// Returns the semantic core-color key ('high-contrast' or 'low-contrast') that
+// provides the best readability against the given tone hex in the given mode.
+export function pickOnToneWithOpacity(toneHex: string, modeLabel: 'Light' | 'Dark'): 'high-contrast' | 'low-contrast' {
   const AA = 4.5
   const modeLower = modeLabel.toLowerCase()
 
-  // Read actual core black and white colors from CSS variables (not hardcoded)
-  const coreBlackVar = paletteCore(modeLower, 'black')
-  const coreWhiteVar = paletteCore(modeLower, 'white')
-  const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
-  const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
+  const hcHex = readCssVarResolved(paletteCore(modeLower, 'high-contrast')) || (modeLower === 'dark' ? '#fcfcfc' : '#131313')
+  const lcHex = readCssVarResolved(paletteCore(modeLower, 'low-contrast')) || (modeLower === 'dark' ? '#131313' : '#fcfcfc')
 
-  // Normalize hex values (ensure they start with # and are lowercase)
-  const black = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
-  const white = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
+  const hc = hcHex.startsWith('#') ? hcHex.toLowerCase() : `#${hcHex.toLowerCase()}`
+  const lc = lcHex.startsWith('#') ? lcHex.toLowerCase() : `#${lcHex.toLowerCase()}`
 
-  // First, check contrast without opacity (baseline)
-  const whiteBaseContrast = contrastRatio(toneHex, white)
-  const blackBaseContrast = contrastRatio(toneHex, black)
+  const hcBaseContrast = contrastRatio(toneHex, hc)
+  const lcBaseContrast = contrastRatio(toneHex, lc)
 
-  // Get emphasis opacity values from CSS variables
   const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_high`)
   const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`)
 
-  // Blend white and black with tone using both opacity values
-  const whiteHighBlended = blendHexWithOpacity(white, toneHex, highEmphasisOpacity)
-  const whiteLowBlended = blendHexWithOpacity(white, toneHex, lowEmphasisOpacity)
-  const blackHighBlended = blendHexWithOpacity(black, toneHex, highEmphasisOpacity)
-  const blackLowBlended = blendHexWithOpacity(black, toneHex, lowEmphasisOpacity)
+  const hcHighContrast = contrastRatio(toneHex, blendHexWithOpacity(hc, toneHex, highEmphasisOpacity))
+  const hcLowContrast = contrastRatio(toneHex, blendHexWithOpacity(hc, toneHex, lowEmphasisOpacity))
+  const lcHighContrast = contrastRatio(toneHex, blendHexWithOpacity(lc, toneHex, highEmphasisOpacity))
+  const lcLowContrast = contrastRatio(toneHex, blendHexWithOpacity(lc, toneHex, lowEmphasisOpacity))
 
-  // Calculate contrast ratios with opacity applied
-  const whiteHighContrast = contrastRatio(toneHex, whiteHighBlended)
-  const whiteLowContrast = contrastRatio(toneHex, whiteLowBlended)
-  const blackHighContrast = contrastRatio(toneHex, blackHighBlended)
-  const blackLowContrast = contrastRatio(toneHex, blackLowBlended)
+  const hcMeetsHighAA = hcHighContrast >= AA
+  const hcMeetsLowAA = hcLowContrast >= AA
+  const hcMeetsBothAA = hcMeetsHighAA && hcMeetsLowAA
 
-  // Check which option meets AA for both emphasis levels
-  const whiteMeetsHighAA = whiteHighContrast >= AA
-  const whiteMeetsLowAA = whiteLowContrast >= AA
-  const whiteMeetsBothAA = whiteMeetsHighAA && whiteMeetsLowAA
+  const lcMeetsHighAA = lcHighContrast >= AA
+  const lcMeetsLowAA = lcLowContrast >= AA
+  const lcMeetsBothAA = lcMeetsHighAA && lcMeetsLowAA
 
-  const blackMeetsHighAA = blackHighContrast >= AA
-  const blackMeetsLowAA = blackLowContrast >= AA
-  const blackMeetsBothAA = blackMeetsHighAA && blackMeetsLowAA
-
-  // Priority 1: Both meet AA - choose based on baseline contrast first
-  if (whiteMeetsBothAA && blackMeetsBothAA) {
-    if (Math.abs(whiteBaseContrast - blackBaseContrast) > 1.0) {
-      return whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+  if (hcMeetsBothAA && lcMeetsBothAA) {
+    if (Math.abs(hcBaseContrast - lcBaseContrast) > 1.0) {
+      return hcBaseContrast >= lcBaseContrast ? 'high-contrast' : 'low-contrast'
     }
-    return whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+    return hcLowContrast >= lcLowContrast ? 'high-contrast' : 'low-contrast'
   }
 
-  // Priority 2: Only one meets both AA levels
-  if (whiteMeetsBothAA) return 'white'
-  if (blackMeetsBothAA) return 'black'
+  if (hcMeetsBothAA) return 'high-contrast'
+  if (lcMeetsBothAA) return 'low-contrast'
 
-  // Priority 3: Check low emphasis (harder case) - prioritize this
-  if (whiteMeetsLowAA && !blackMeetsLowAA) return 'white'
-  if (blackMeetsLowAA && !whiteMeetsLowAA) return 'black'
+  if (hcMeetsLowAA && !lcMeetsLowAA) return 'high-contrast'
+  if (lcMeetsLowAA && !hcMeetsLowAA) return 'low-contrast'
 
-  // Priority 4: Check high emphasis
-  if (whiteMeetsHighAA && !blackMeetsHighAA) return 'white'
-  if (blackMeetsHighAA && !whiteMeetsHighAA) return 'black'
+  if (hcMeetsHighAA && !lcMeetsHighAA) return 'high-contrast'
+  if (lcMeetsHighAA && !hcMeetsHighAA) return 'low-contrast'
 
-  // Priority 5: Neither meets AA - choose based on baseline contrast
-  if (Math.abs(whiteBaseContrast - blackBaseContrast) > 0.5) {
-    return whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+  if (Math.abs(hcBaseContrast - lcBaseContrast) > 0.5) {
+    return hcBaseContrast >= lcBaseContrast ? 'high-contrast' : 'low-contrast'
   }
-  return whiteLowContrast >= blackLowContrast ? 'white' : 'black'
+  return hcLowContrast >= lcLowContrast ? 'high-contrast' : 'low-contrast'
 }
 
 export default function PaletteColorSelector({
@@ -454,7 +437,7 @@ export default function PaletteColorSelector({
     const modeLower = mode.toLowerCase()
 
     // Store verified on-tone values for theme JSON update
-    const verifiedOnTones: Record<string, 'white' | 'black'> = {}
+    const verifiedOnTones: Record<string, 'high-contrast' | 'low-contrast'> = {}
 
     // Resolve the correct token path format for the family
     const tokensRoot: any = (tokensJson as any)?.tokens || {}
@@ -480,62 +463,46 @@ export default function PaletteColorSelector({
       const tokenName = resolveTokenName(familyToUse, tokenLevel)
       const hex = getTokenValueByName(tokenName)
       if (typeof hex === 'string') {
-        // Get actual core color values (read from CSS variables to get current values)
-        const coreBlackVar = paletteCore(modeLower, 'black')
-        const coreWhiteVar = paletteCore(modeLower, 'white')
-        const blackHex = readCssVarResolved(coreBlackVar) || '#000000'
-        const whiteHex = readCssVarResolved(coreWhiteVar) || '#ffffff'
-        const normalizedBlack = blackHex.startsWith('#') ? blackHex.toLowerCase() : `#${blackHex.toLowerCase()}`
-        const normalizedWhite = whiteHex.startsWith('#') ? whiteHex.toLowerCase() : `#${whiteHex.toLowerCase()}`
+        const hcHex = readCssVarResolved(paletteCore(modeLower, 'high-contrast')) || (modeLower === 'dark' ? '#fcfcfc' : '#131313')
+        const lcHex = readCssVarResolved(paletteCore(modeLower, 'low-contrast')) || (modeLower === 'dark' ? '#131313' : '#fcfcfc')
+        const normalizedHC = hcHex.startsWith('#') ? hcHex.toLowerCase() : `#${hcHex.toLowerCase()}`
+        const normalizedLC = lcHex.startsWith('#') ? lcHex.toLowerCase() : `#${lcHex.toLowerCase()}`
 
-        // Get emphasis opacity values
         const highEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_high`)
         const lowEmphasisOpacity = readCssVarNumber(`--recursica_brand_themes_${modeLower}_text-emphasis_low`)
         const AA = 4.5
 
-        // Check both core colors with opacity blending
-        const whiteHighBlended = blendHexWithOpacity(normalizedWhite, hex, highEmphasisOpacity)
-        const whiteLowBlended = blendHexWithOpacity(normalizedWhite, hex, lowEmphasisOpacity)
-        const blackHighBlended = blendHexWithOpacity(normalizedBlack, hex, highEmphasisOpacity)
-        const blackLowBlended = blendHexWithOpacity(normalizedBlack, hex, lowEmphasisOpacity)
+        const hcHighContrast = contrastRatio(hex, blendHexWithOpacity(normalizedHC, hex, highEmphasisOpacity))
+        const hcLowContrast = contrastRatio(hex, blendHexWithOpacity(normalizedHC, hex, lowEmphasisOpacity))
+        const lcHighContrast = contrastRatio(hex, blendHexWithOpacity(normalizedLC, hex, highEmphasisOpacity))
+        const lcLowContrast = contrastRatio(hex, blendHexWithOpacity(normalizedLC, hex, lowEmphasisOpacity))
 
-        const whiteHighContrast = contrastRatio(hex, whiteHighBlended)
-        const whiteLowContrast = contrastRatio(hex, whiteLowBlended)
-        const blackHighContrast = contrastRatio(hex, blackHighBlended)
-        const blackLowContrast = contrastRatio(hex, blackLowBlended)
+        const hcPassesHigh = hcHighContrast >= AA
+        const hcPassesLow = hcLowContrast >= AA
+        const hcPassesBoth = hcPassesHigh && hcPassesLow
 
-        const whitePassesHigh = whiteHighContrast >= AA
-        const whitePassesLow = whiteLowContrast >= AA
-        const whitePassesBoth = whitePassesHigh && whitePassesLow
+        const lcPassesHigh = lcHighContrast >= AA
+        const lcPassesLow = lcLowContrast >= AA
+        const lcPassesBoth = lcPassesHigh && lcPassesLow
 
-        const blackPassesHigh = blackHighContrast >= AA
-        const blackPassesLow = blackLowContrast >= AA
-        const blackPassesBoth = blackPassesHigh && blackPassesLow
-
-        // Determine best on-tone color based on AA compliance
         // Priority: both pass > low emphasis > high emphasis > baseline contrast
-        let onToneCore: 'white' | 'black'
-        if (whitePassesBoth && blackPassesBoth) {
-          // Both pass - choose based on contrast
-          onToneCore = whiteLowContrast >= blackLowContrast ? 'white' : 'black'
-        } else if (whitePassesBoth) {
-          onToneCore = 'white'
-        } else if (blackPassesBoth) {
-          onToneCore = 'black'
-        } else if (whitePassesLow || blackPassesLow) {
-          // At least one passes low emphasis
-          onToneCore = whitePassesLow ? 'white' : 'black'
-        } else if (whitePassesHigh || blackPassesHigh) {
-          // At least one passes high emphasis
-          onToneCore = whitePassesHigh ? 'white' : 'black'
+        let onToneCore: 'high-contrast' | 'low-contrast'
+        if (hcPassesBoth && lcPassesBoth) {
+          onToneCore = hcLowContrast >= lcLowContrast ? 'high-contrast' : 'low-contrast'
+        } else if (hcPassesBoth) {
+          onToneCore = 'high-contrast'
+        } else if (lcPassesBoth) {
+          onToneCore = 'low-contrast'
+        } else if (hcPassesLow || lcPassesLow) {
+          onToneCore = hcPassesLow ? 'high-contrast' : 'low-contrast'
+        } else if (hcPassesHigh || lcPassesHigh) {
+          onToneCore = hcPassesHigh ? 'high-contrast' : 'low-contrast'
         } else {
-          // Neither passes - choose based on baseline contrast
-          const whiteBaseContrast = contrastRatio(hex, normalizedWhite)
-          const blackBaseContrast = contrastRatio(hex, normalizedBlack)
-          onToneCore = whiteBaseContrast >= blackBaseContrast ? 'white' : 'black'
+          const hcBase = contrastRatio(hex, normalizedHC)
+          const lcBase = contrastRatio(hex, normalizedLC)
+          onToneCore = hcBase >= lcBase ? 'high-contrast' : 'low-contrast'
         }
 
-        // Store verified value for theme JSON update
         verifiedOnTones[lvl] = onToneCore
       }
     })
@@ -556,7 +523,7 @@ export default function PaletteColorSelector({
             const hex = getTokenValueByName(tokenName)
             if (typeof hex === 'string') {
               // Use verified value for current mode
-              const onToneCore: 'white' | 'black' = verifiedOnTones[lvl] || 'white'
+              const onToneCore: 'high-contrast' | 'low-contrast' = verifiedOnTones[lvl] || 'high-contrast'
 
               if (!root[currentModeKey].palettes[paletteKey][lvl]) root[currentModeKey].palettes[paletteKey][lvl] = {}
               if (!root[currentModeKey].palettes[paletteKey][lvl].color) {

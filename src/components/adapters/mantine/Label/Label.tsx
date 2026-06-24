@@ -39,7 +39,6 @@ export default function Label({
 
   // Get CSS variables for text emphasis opacity
   const highEmphasisOpacityVar = `--recursica_brand_text-emphasis_high`
-  const lowEmphasisOpacityVar = `--recursica_brand_text-emphasis_low`
 
   // Get text properties from component text property groups
   const labelFontSizeVar = getComponentTextCssVar('Label', 'label-text', 'font-size')
@@ -59,6 +58,7 @@ export default function Label({
   const optionalTextDecorationVar = getComponentTextCssVar('Label', 'optional-text', 'text-decoration')
   const optionalTextTransformVar = getComponentTextCssVar('Label', 'optional-text', 'text-transform')
   const optionalFontStyleVar = getComponentTextCssVar('Label', 'optional-text', 'font-style')
+  const optionalTextOpacityVar = getComponentLevelCssVar('Label', 'optional-text-opacity')
 
   // State to force re-renders when CSS vars change (needed for Mantine to pick up CSS var changes)
   const [, setUpdateKey] = useState(0)
@@ -107,7 +107,8 @@ export default function Label({
       labelFontSizeVar, labelFontFamilyVar, labelFontWeightVar, labelLetterSpacingVar,
       labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
       optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
-      optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar
+      optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar,
+      optionalTextOpacityVar
     ]
 
     // Include width CSS vars in the update check
@@ -151,6 +152,7 @@ export default function Label({
     labelLineHeightVar, labelTextDecorationVar, labelTextTransformVar, labelFontStyleVar,
     optionalFontSizeVar, optionalFontFamilyVar, optionalFontWeightVar, optionalLetterSpacingVar,
     optionalLineHeightVar, optionalTextDecorationVar, optionalTextTransformVar, optionalFontStyleVar,
+    optionalTextOpacityVar,
     effectiveWidthVar, widthVar, labelWidthVar, effectiveSize, layout,
     bottomPaddingVar, stackedMinHeightVar, minHeightVar, verticalPaddingVar
   ])
@@ -226,11 +228,11 @@ export default function Label({
             : (align === 'right' ? 'flex-end' : 'stretch'),
           gap: optionalTextGapVar ? `var(${optionalTextGapVar})` : undefined,
         }}>
-          <span style={{ display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>{children}</span>
+          <span style={{ display: 'block', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>{children}</span>
           <span
             style={{
               display: 'block',
-              opacity: `var(${lowEmphasisOpacityVar})`,
+              opacity: `var(${optionalTextOpacityVar}, var(--recursica_brand_text-emphasis_low))`,
               fontSize: `var(${optionalFontSizeVar})`,
               fontFamily: `var(${optionalFontFamilyVar})`,
               fontWeight: `var(${optionalFontWeightVar})`,
@@ -257,7 +259,7 @@ export default function Label({
           width: '100%',
           gap: editIcon ? finalEditIconGap : 0
         }}>
-          <span style={{ display: 'inline-block', verticalAlign: 'middle', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, paddingBottom: '0.05em' }}>
+          <span style={{ display: 'inline-block', verticalAlign: 'middle', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: align, padding: '0.15em 0' }}>
             {children}
             {variant === 'required' && asteriskColorVar && (
               <span

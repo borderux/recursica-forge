@@ -305,7 +305,7 @@ export default function ColorTokenPicker() {
 
     // Determine mapping based on color name
     let mapping: { isInteractive?: boolean; isHover?: boolean } | null = null
-    if (colorName === 'black' || colorName === 'white' || colorName === 'alert' || colorName === 'warning' || colorName === 'success') {
+    if (colorName === 'high-contrast' || colorName === 'low-contrast' || colorName === 'alert' || colorName === 'warning' || colorName === 'success') {
       mapping = {}
     } else if (colorName === 'interactive') {
       mapping = { isInteractive: true }
@@ -391,7 +391,7 @@ export default function ColorTokenPicker() {
         if (!coreColors.interactive) {
           coreColors.interactive = {
             tone: { $value: tokenRef },
-            'on-tone': { $value: `{brand.themes.${modeLower}.palettes.core-colors.white.tone}` }
+            'on-tone': { $value: `{brand.themes.${modeLower}.palettes.core-colors.low-contrast.tone}` }
           }
         } else {
           // Update tone (flat structure)
@@ -404,7 +404,7 @@ export default function ColorTokenPicker() {
         if (!coreColors[colorName]) {
           coreColors[colorName] = {
             tone: { $value: tokenRef },
-            'on-tone': { $value: `{brand.themes.${mode}.palettes.core-colors.white}` },
+            'on-tone': { $value: `{brand.themes.${mode}.palettes.core-colors.low-contrast}` },
             interactive: { $value: `{tokens.colors.scale-05.300}` } // Default from recursica_brand.json - will be updated by AA compliance if needed
           }
         } else {
@@ -414,7 +414,7 @@ export default function ColorTokenPicker() {
           // AA compliance is now manual via header button - removed automatic on-tone update
           // Preserve existing on-tone if it exists, otherwise set default
           if (!coreColors[colorName]['on-tone']) {
-            coreColors[colorName]['on-tone'] = { $value: `{brand.themes.${mode}.palettes.core-colors.white}` }
+            coreColors[colorName]['on-tone'] = { $value: `{brand.themes.${mode}.palettes.core-colors.low-contrast}` }
           }
         }
       }
@@ -435,7 +435,7 @@ export default function ColorTokenPicker() {
 
       // If black or white changed, we must also update all palette on-tones
       // because they might be using black or white
-      if (colorName === 'black' || colorName === 'white') {
+      if (colorName === 'high-contrast' || colorName === 'low-contrast') {
         getVarsStore().aaWatcher?.checkAllPaletteOnTones()
       }
 
@@ -530,8 +530,12 @@ export default function ColorTokenPicker() {
           // Determine on-tone colors
           const defaultOnTone = pickAAOnTone(normalizedHex)
           const hoverOnTone = pickAAOnTone(hoverHex)
-          const defaultOnToneCore = defaultOnTone === '#ffffff' ? 'white' : 'black'
-          const hoverOnToneCore = hoverOnTone === '#ffffff' ? 'white' : 'black'
+          const coreKeyForOnTone = (onToneHex: string): 'high-contrast' | 'low-contrast' => {
+            const wantsLight = onToneHex === '#ffffff'
+            return wantsLight === (modeLower === 'dark') ? 'high-contrast' : 'low-contrast'
+          }
+          const defaultOnToneCore = coreKeyForOnTone(defaultOnTone)
+          const hoverOnToneCore = coreKeyForOnTone(hoverOnTone)
 
           // Extract token names from CSS var references using central parser
           const extractTokenFromCssVarRef = (cssVarRef: string | null): string | null => {
@@ -558,18 +562,40 @@ export default function ColorTokenPicker() {
             coreColors.interactive = {}
           }
 
-          // Update tone in theme JSON (flat structure)
+          // Clean flat structure properties to avoid pollution
+          if (coreColors.interactive.tone && !coreColors.interactive.default) {
+            delete coreColors.interactive.tone
+          }
+          if (coreColors.interactive['on-tone'] && !coreColors.interactive.default) {
+            delete coreColors.interactive['on-tone']
+          }
+
+          if (!coreColors.interactive.default) coreColors.interactive.default = {}
+          if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
+
+          // Update tone in theme JSON (nested default)
           if (defaultToken) {
             const tokenParts = defaultToken.split('/')
             // Use new format (colors) for token references
             const tokenRef = `{tokens.colors.${tokenParts[1]}.${tokenParts[2]}}`
-            if (!coreColors.interactive.tone) coreColors.interactive.tone = {}
-            coreColors.interactive.tone.$value = tokenRef
+            if (!coreColors.interactive.default.tone) coreColors.interactive.default.tone = {}
+            coreColors.interactive.default.tone.$value = tokenRef
           }
 
-          // Update on-tone in theme JSON (flat structure)
-          coreColors.interactive['on-tone'] = {
+          // Update on-tone in theme JSON (nested default)
+          coreColors.interactive.default['on-tone'] = {
             $value: `{brand.themes.${modeLower}.palettes.core-colors.${defaultOnToneCore}.tone}`
+          }
+
+          // Update hover state in theme JSON (nested hover)
+          if (hoverToken) {
+            const tokenParts = hoverToken.split('/')
+            const tokenRef = `{tokens.colors.${tokenParts[1]}.${tokenParts[2]}}`
+            if (!coreColors.interactive.hover.tone) coreColors.interactive.hover.tone = {}
+            coreColors.interactive.hover.tone.$value = tokenRef
+          }
+          coreColors.interactive.hover['on-tone'] = {
+            $value: `{brand.themes.${modeLower}.palettes.core-colors.${hoverOnToneCore}.tone}`
           }
 
           // Update theme JSON synchronously - CSS vars were already updated above
@@ -666,7 +692,7 @@ export default function ColorTokenPicker() {
               height: swatch,
               cursor: 'pointer',
               background: 'transparent',
-              border: `1px solid ${isNoneSelected ? `var(${paletteCore(modeLower, 'black')})` : `var(${layerProperty(modeLower, 3, 'border-color')})`}`,
+              border: `1px solid ${isNoneSelected ? `var(${paletteCore(modeLower, 'high-contrast')})` : `var(${layerProperty(modeLower, 3, 'border-color')})`}`,
               position: 'relative',
               padding: isNoneSelected ? '1px' : '0',
               borderRadius: isNoneSelected ? '5px' : '0',
@@ -685,7 +711,7 @@ export default function ColorTokenPicker() {
               </svg>
               {isNoneSelected && (
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex' }}>
-                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` }} /> : '✓'}
+                  {CheckIcon ? <CheckIcon size={12} weight="bold" style={{ color: `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` }} /> : '✓'}
                 </div>
               )}
             </div>
@@ -727,7 +753,7 @@ export default function ColorTokenPicker() {
                       height: swatch,
                       background: tokenCssVar ? `var(${tokenCssVar})` : it.value,
                       cursor: 'pointer',
-                      border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_black)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
+                      border: `1px solid ${isSelected ? `var(--recursica_brand_themes_${modeLower}_palettes_core_high-contrast)` : `var(--recursica_brand_themes_${modeLower}_layers_layer-3_properties_border-color)`}`,
                       padding: isSelected ? '1px' : '0',
                       borderRadius: isSelected ? '5px' : '0',
                       boxSizing: 'border-box',

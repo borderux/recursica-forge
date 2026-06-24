@@ -1,7 +1,15 @@
 import { getVarsStore } from '../../../../core/store/varsStore'
 // Extract the rendering logic from PropControl for use in accordions
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
-import { ComponentProp, toSentenceCase, parseComponentStructure, getDimensionPropertyType, pathMatchesVariant } from '../../utils/componentToolbarUtils'
+import {
+  parseComponentStructure,
+  getComponentCssVarsForVariants,
+  getDimensionPropertyType,
+  getDimensionCategoryFromValue,
+  type ComponentProp,
+  toSentenceCase,
+  pathMatchesVariant
+} from '../../utils/componentToolbarUtils'
 import { getPropLabel, getGroupedProps, getPropConfig, type ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
@@ -26,7 +34,7 @@ import TopBottomMarginToolbar from '../top-bottom-margin-group/TopBottomMarginTo
 import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
 import { SegmentedControl } from '../../../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
-import { useCssVar } from '../../../../components/hooks/useCssVar'
+import { useCssVar, useRawCssVar } from '../../../../components/hooks/useCssVar'
 import { Dropdown } from '../../../../components/adapters/Dropdown'
 import type { ComponentLayer } from '../../../../components/registry/types'
 import uikitJson from '../../../../../recursica_ui-kit.json'
@@ -66,7 +74,7 @@ function SegmentedControlFromCssVar({
   options: Array<string | { value: string; icon?: string }>
 }) {
   const firstValue = typeof options[0] === 'string' ? options[0] : options[0]?.value ?? ''
-  const currentValue = useCssVar(primaryVar, firstValue)
+  const currentValue = useRawCssVar(primaryVar, firstValue)
   const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || firstValue
   const items = options.map((opt) => {
     // Normalize: options can be plain strings or { value, icon } objects
@@ -86,12 +94,104 @@ function SegmentedControlFromCssVar({
         items={items}
         value={cleanValue}
         onChange={(value) => {
-          cssVars.forEach((v) => updateCssVar(v, value))
+          cssVars.forEach((v) => updateCssVar(v, value, undefined, false, true))
         }}
         layer="layer-1"
         showLabel={false}
       />
     </div>
+  )
+}
+
+/** Pixel slider for properties that use raw px values instead of tokens */
+function PixelValueSlider({
+  primaryVar,
+  cssVars,
+  label,
+  minPixelValue,
+  maxPixelValue,
+}: {
+  primaryVar: string
+  cssVars: string[]
+  label: string
+  minPixelValue: number
+  maxPixelValue: number
+}) {
+  const [value, setValue] = useState(() => {
+    const currentValue = readCssVar(primaryVar)
+    const resolvedValue = readCssVarResolved(primaryVar)
+    const valueStr = resolvedValue || currentValue || `${minPixelValue}px`
+    const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+    return match ? Math.max(minPixelValue, Math.min(maxPixelValue, parseFloat(match[1]))) : minPixelValue
+  })
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      const currentValue = readCssVar(primaryVar)
+      const resolvedValue = readCssVarResolved(primaryVar)
+      const valueStr = resolvedValue || currentValue || `${minPixelValue}px`
+      const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+      if (match) {
+        setValue(Math.max(minPixelValue, Math.min(maxPixelValue, parseFloat(match[1]))))
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleUpdate)
+    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+  }, [primaryVar, minPixelValue, maxPixelValue])
+
+  const updateCssVars = useCallback((clampedValue: number) => {
+    const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+    cssVarsToUpdate.forEach(cssVar => {
+      updateCssVar(cssVar, `${clampedValue}px`)
+    })
+
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars: cssVarsToUpdate }
+    }))
+  }, [cssVars, primaryVar])
+
+  const handleChange = (newValue: number | [number, number]) => {
+    const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+    const clampedValue = Math.max(minPixelValue, Math.min(maxPixelValue, numValue))
+    setValue(clampedValue)
+    const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+    cssVarsToUpdate.forEach(cssVar => {
+      document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+    })
+  }
+
+  const handleChangeCommitted = (newValue: number | [number, number]) => {
+    const numValue = typeof newValue === 'number' ? newValue : newValue[0]
+    const clampedValue = Math.max(minPixelValue, Math.min(maxPixelValue, numValue))
+    const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+    cssVarsToUpdate.forEach(cssVar => {
+      document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+    })
+    updateCssVars(clampedValue)
+  }
+
+  const getValueLabel = useCallback((val: number) => {
+    return `${Math.round(val)}px`
+  }, [])
+
+  return (
+    <Slider
+      value={value}
+      onChange={handleChange}
+      onChangeCommitted={handleChangeCommitted}
+      min={minPixelValue}
+      max={maxPixelValue}
+      step={1}
+      layer="layer-1"
+      layout="stacked"
+      showInput={false}
+      showValueLabel={true}
+      valueLabel={getValueLabel}
+      minLabel={`${minPixelValue}px`}
+      maxLabel={`${maxPixelValue}px`}
+      showMinMaxLabels={false}
+      label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+    />
   )
 }
 
@@ -102,15 +202,25 @@ function DropdownFromCssVar({
   label,
   options,
   layer = 'layer-1',
+  defaultValue,
 }: {
   primaryVar: string
   cssVars: string[]
   label: string
   options: Array<string | { label: string; value: string; icon?: string }>
   layer?: any
+  defaultValue?: string
 }) {
-  const currentValue = useCssVar(primaryVar, '')
-  const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || (typeof options[0] === 'string' ? options[0] : options[0]?.value ?? '')
+  const currentValue = useRawCssVar(primaryVar, defaultValue ?? '')
+  const fallback = defaultValue ?? (typeof options[0] === 'string' ? options[0] : options[0]?.value ?? '')
+  let cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || fallback
+
+  // Reverse map typography CSS vars back to their token references so dropdown matches option value
+  const typographyMatch = /var\(--recursica_brand_typography_([^)]+)/.exec(cleanValue)
+  if (typographyMatch) {
+    const style = typographyMatch[1].replace(/-font-size$/, '')
+    cleanValue = `{brand.typography.${style}}`
+  }
 
   const dropdownItems = options.map((opt) => {
     if (typeof opt === 'string') {
@@ -130,7 +240,7 @@ function DropdownFromCssVar({
         items={dropdownItems}
         value={cleanValue}
         onChange={(value) => {
-          cssVars.forEach((v) => updateCssVar(v, value))
+          cssVars.forEach((v) => updateCssVar(v, value, undefined, false, true))
           // Dispatch event to notify components of CSS var updates
           window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
             detail: { cssVars }
@@ -145,258 +255,14 @@ function DropdownFromCssVar({
   )
 }
 
-// Inline brand dimension slider component (deprecated - use BrandDimensionSliderInline from utils)
-function BrandDimensionSliderInline_DEPRECATED({
-  targetCssVar,
-  targetCssVars = [],
-  label,
-  dimensionCategory,
-  layer = 'layer-1',
-}: {
-  targetCssVar: string
-  targetCssVars?: string[]
-  label: string
-  dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size'
-  layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
-}) {
-  const { theme } = useVars()
-  const { mode } = useThemeMode()
 
-  // Build tokens list from brand dimension tokens, sorted by pixel value
-  const tokens = useMemo(() => {
-    const options: Array<{ name: string; value: number; label: string; key: string }> = []
-
-    try {
-      const root: any = (theme as any)?.brand ? (theme as any).brand : theme
-      const dimensions = root?.dimensions || {}
-      const dimensionCategoryData = dimensions[dimensionCategory] || {}
-
-      // Collect dimension tokens
-      Object.keys(dimensionCategoryData).forEach(dimensionKey => {
-        const dimensionValue = dimensionCategoryData[dimensionKey]
-        if (dimensionValue && typeof dimensionValue === 'object' && '$value' in dimensionValue) {
-          const cssVar = `--recursica_brand_dimensions_${dimensionCategory}_${dimensionKey}`
-          const cssValue = readCssVar(cssVar)
-
-          if (cssValue) {
-            const resolvedValue = readCssVarResolved(cssVar)
-            let numericValue: number | undefined
-
-            if (resolvedValue) {
-              const match = resolvedValue.match(/^(-?\d+(?:\.\d+)?)/)
-              if (match) {
-                numericValue = parseFloat(match[1])
-              }
-            }
-
-            const displayLabel = formatDimensionLabel(dimensionKey)
-
-            options.push({
-              name: cssVar,
-              value: numericValue ?? 0,
-              label: displayLabel,
-              key: dimensionKey,
-            })
-          }
-        }
-      })
-
-      // Sort by pixel value (smallest to largest), "none" first
-      const sortedTokens = options.sort((a, b) => {
-        if (a.key === 'none') return -1
-        if (b.key === 'none') return 1
-
-        if (a.value !== undefined && b.value !== undefined) {
-          return a.value - b.value
-        }
-        if (a.value !== undefined) return -1
-        if (b.value !== undefined) return 1
-
-        return a.label.localeCompare(b.label)
-      })
-
-      return sortedTokens
-    } catch (error) {
-      console.error(`Error loading ${dimensionCategory} tokens:`, error)
-      return []
-    }
-  }, [theme, mode, dimensionCategory])
-
-  const [selectedIndex, setSelectedIndex] = useState<number>(0)
-  const justSetValueRef = useRef<string | null>(null)
-
-  const readInitialValue = useCallback(() => {
-    const inlineValue = typeof document !== 'undefined'
-      ? document.documentElement.style.getPropertyValue(targetCssVar).trim()
-      : ''
-
-    if (justSetValueRef.current === inlineValue) {
-      return
-    }
-
-    const currentValue = inlineValue || readCssVar(targetCssVar)
-
-    if (!currentValue || currentValue === 'null' || currentValue === '') {
-      const noneIndex = tokens.findIndex(t => t.key === 'none')
-      setSelectedIndex(noneIndex >= 0 ? noneIndex : 0)
-      return
-    }
-
-    if (currentValue.trim().startsWith('var(--recursica_')) {
-      const matchingIndex = tokens.findIndex(t => {
-        const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}_`, '')
-        return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
-      })
-
-      if (matchingIndex >= 0) {
-        setSelectedIndex(matchingIndex)
-        return
-      }
-
-      const resolved = readCssVarResolved(targetCssVar)
-      if (resolved) {
-        const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
-        if (match) {
-          const pxValue = parseFloat(match[1])
-          if (pxValue === 0 && (dimensionCategory === 'border-radii' || dimensionCategory === 'general')) {
-            const noneIndex = tokens.findIndex(t => t.key === 'none')
-            if (noneIndex >= 0) {
-              setSelectedIndex(noneIndex)
-              return
-            }
-          }
-
-          const matchingIndex = tokens
-            .map((t, idx) => ({ token: t, index: idx, diff: Math.abs((t.value ?? 0) - pxValue) }))
-            .reduce((closest, current) => {
-              if (!closest) return current
-              return current.diff < closest.diff ? current : closest
-            }, undefined as { token: typeof tokens[0]; index: number; diff: number } | undefined)
-
-          if (matchingIndex && matchingIndex.diff < 1) {
-            setSelectedIndex(matchingIndex.index)
-            return
-          }
-        }
-      }
-    }
-
-    setSelectedIndex(0)
-  }, [targetCssVar, tokens, dimensionCategory])
-
-  useEffect(() => {
-    readInitialValue()
-  }, [readInitialValue])
-
-  useEffect(() => {
-    const handleReset = () => {
-      readInitialValue()
-    }
-
-    const handleCssVarUpdate = (event: CustomEvent) => {
-      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-      if (event.detail?.cssVars?.some((cv: string) => cssVars.includes(cv))) {
-        setTimeout(() => {
-          readInitialValue()
-        }, 0)
-      }
-    }
-
-    window.addEventListener('cssVarsReset', handleReset)
-    window.addEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    return () => {
-      window.removeEventListener('cssVarsReset', handleReset)
-      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate as EventListener)
-    }
-  }, [readInitialValue, targetCssVar, targetCssVars])
-
-  const handleSliderChange = (value: number | [number, number]) => {
-    const numValue = typeof value === 'number' ? value : value[0]
-    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
-    setSelectedIndex(clampedIndex)
-
-    const selectedToken = tokens[clampedIndex]
-    if (selectedToken) {
-      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-      const tokenValue = `var(${selectedToken.name})`
-
-      cssVars.forEach(cssVar => {
-        updateCssVar(cssVar, tokenValue)
-        justSetValueRef.current = tokenValue
-        setTimeout(() => {
-          justSetValueRef.current = null
-        }, 100)
-      })
-
-      requestAnimationFrame(() => {
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars }
-        }))
-      })
-    }
-  }
-
-  // Ensure we have valid tokens before rendering
-  if (tokens.length === 0) {
-    return (
-      <div style={{ padding: '8px', fontSize: 12, opacity: 0.7 }}>
-        Loading tokens...
-      </div>
-    )
-  }
-
-  // Ensure selectedIndex is within bounds
-  const safeSelectedIndex = Math.max(0, Math.min(selectedIndex, tokens.length - 1))
-  const currentToken = tokens[safeSelectedIndex]
-
-  const minToken = tokens[0]
-  const maxToken = tokens[tokens.length - 1]
-  const minLabel = minToken?.label || 'None'
-  const maxLabel = maxToken?.label || 'Xl'
-
-  // Get tooltip text - show token name (key) in tooltip
-  const tooltipText = currentToken?.key || currentToken?.label || String(safeSelectedIndex)
-
-  // Create a function that calculates the value label from the current slider value
-  // This ensures it updates when the slider changes
-  const getValueLabel = useCallback((value: number) => {
-    const index = Math.max(0, Math.min(Math.round(value), tokens.length - 1))
-    const token = tokens[index]
-    if (token) {
-      // Always return a non-empty string
-      const label = token.label || (token.key ? formatDimensionLabel(token.key) : '')
-      return label || String(index)
-    }
-    return String(index)
-  }, [tokens])
-
-  return (
-    <Slider
-      value={safeSelectedIndex}
-      onChange={handleSliderChange}
-      min={0}
-      max={tokens.length - 1}
-      step={1}
-      layer={layer}
-      layout="stacked"
-      showInput={false}
-      showValueLabel={true}
-      valueLabel={getValueLabel}
-      tooltipText={tooltipText}
-      minLabel={minLabel}
-      maxLabel={maxLabel}
-      showMinMaxLabels={false}
-      label={<Label layer={layer} layout="stacked">{label}</Label>}
-    />
-  )
-}
 
 // Inline typography slider component
 function TypographySliderInline({
   targetCssVar,
   targetCssVars = [],
   label,
-  layer = 'layer-1',
+  layer = 'layer-0',
 }: {
   targetCssVar: string
   targetCssVars?: string[]
@@ -567,7 +433,7 @@ function TypographySliderInline({
     }
   }, [readInitialValue, targetCssVar, targetCssVars])
 
-  const handleSliderChange = (value: number | [number, number]) => {
+  const handleDrag = (value: number | [number, number]) => {
     const numValue = typeof value === 'number' ? value : value[0]
     const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
     setSelectedIndex(clampedIndex)
@@ -578,7 +444,23 @@ function TypographySliderInline({
       const tokenValue = `var(${selectedToken.name})`
 
       cssVars.forEach(cssVar => {
-        updateCssVar(cssVar, tokenValue)
+        document.documentElement.style.setProperty(cssVar, tokenValue)
+      })
+    }
+  }
+
+  const handleCommit = (value: number | [number, number]) => {
+    const numValue = typeof value === 'number' ? value : value[0]
+    const clampedIndex = Math.max(0, Math.min(tokens.length - 1, Math.round(numValue)))
+    setSelectedIndex(clampedIndex)
+
+    const selectedToken = tokens[clampedIndex]
+    if (selectedToken) {
+      const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
+      const tokenValue = `var(${selectedToken.name})`
+
+      cssVars.forEach(cssVar => {
+        updateCssVar(cssVar, tokenValue, undefined, false, true)
         justSetValueRef.current = tokenValue
         setTimeout(() => {
           justSetValueRef.current = null
@@ -622,7 +504,8 @@ function TypographySliderInline({
   return (
     <Slider
       value={safeSelectedIndex}
-      onChange={handleSliderChange}
+      onChange={handleDrag}
+      onChangeCommitted={handleCommit}
       min={0}
       max={tokens.length - 1}
       step={1}
@@ -901,9 +784,9 @@ export default function PropControlContent({
         if (!selectedVariant) return false
         if (!pathMatchesVariant(p.path, propToCheck.variantProp, selectedVariant)) return false
       }
-      // Props under both style and orientation (e.g. tabs-content-gap under styles.pills.orientation.horizontal)
+      // Props under both style and orientation (e.g. tabs-content-gap under styles.pills.variants.orientation.horizontal)
       // must match BOTH selectedVariants.style and selectedVariants.orientation
-      // Require path structure variants.styles.X.orientation.Y (not variants.orientation which is component-level)
+      // Require path structure variants.styles.X.variants.orientation.Y (not variants.orientation which is component-level)
       const stylesIdx = p.path.indexOf('styles')
       const orientationIdx = p.path.indexOf('orientation')
       const hasStyleAndOrientationInPath = stylesIdx >= 0 && orientationIdx >= 0 && stylesIdx < orientationIdx
@@ -913,7 +796,7 @@ export default function PropControlContent({
       }
       
       // CRITICAL FIX: Ensure deeply nested variants match their primary container variant.
-      // For Avatar (or similar components), if we're evaluating a nested style-secondary prop (like solid),
+      // For Avatar (or similar components), if evaluating a nested types prop (like solid),
       // we MUST also ensure the primary style (like icon or text) is present in the path.
       if (selectedVariants.style && stylesIdx >= 0) {
         if (!p.path.includes(selectedVariants.style)) return false
@@ -1131,15 +1014,11 @@ export default function PropControlContent({
         const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
         setValue(clampedValue)
 
-        // Update CSS vars directly with pixel value
+        // Apply CSS immediately for real-time preview (no event dispatch)
         const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
         cssVarsToUpdate.forEach(cssVar => {
-          updateCssVar(cssVar, `${clampedValue}px`)
+          document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
         })
-        // Dispatch event to notify components of CSS var updates
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: cssVarsToUpdate }
-        }))
       }, [primaryVar, cssVars, minValue, maxValue])
 
       const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -1150,13 +1029,9 @@ export default function PropControlContent({
         // Update CSS vars directly with pixel value
         const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
         cssVarsToUpdate.forEach(cssVar => {
-          updateCssVar(cssVar, `${clampedValue}px`)
+          document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
         })
-        // Dispatch event to notify components of CSS var updates
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: cssVarsToUpdate }
-        }))
-      }, [primaryVar, cssVars, minValue, maxValue])
+        }, [primaryVar, cssVars, minValue, maxValue])
 
       const getValueLabel = useCallback((val: number) => {
         return `${Math.round(val)}px`
@@ -1195,7 +1070,26 @@ export default function PropControlContent({
       return (
         <>
           {Array.from(prop.borderProps.entries()).map(([key, borderProp], index) => {
-            const cssVars = getCssVarsForProp(borderProp)
+            // Virtual props (isVariantSpecific) already have the exact CSS var set — use it directly.
+            // getCssVarsForProp would otherwise ignore the content-variant path and fall back to sizes-level.
+            let cssVars = (borderProp.isVariantSpecific && borderProp.cssVar)
+              ? [borderProp.cssVar]
+              : getCssVarsForProp(borderProp)
+
+            // Button border-radius lives at the content × size cross-variant axis.
+            // parseComponentStructure tags these tokens as variantProp='size' (not 'content'),
+            // so the find() in allProps always resolves to the icon-label prop regardless of selection.
+            // Compute the authoritative CSS var directly from selectedVariants — same path
+            // that ButtonPreview uses for its --button-border-radius inline style.
+            if (componentName.toLowerCase() === 'button' && key === 'border-radius') {
+              const cv = selectedVariants.content || 'label'
+              const sv = selectedVariants.size || 'default'
+              const authoritativeVar = buildComponentCssVarPath(
+                'Button', 'variants', 'content', cv, 'variants', 'sizes', sv, 'properties', 'border-radius'
+              )
+              cssVars = [authoritativeVar]
+            }
+
             const primaryVar = cssVars[0] || borderProp.cssVar
             const label = getPropLabel(componentName, key) || toSentenceCase(key)
             const config = getPropConfig(componentName, key) || undefined
@@ -1240,11 +1134,110 @@ export default function PropControlContent({
     const groupedConfigs = getGroupedProps(componentName, prop.name)
     if (groupedConfigs) {
       const structure = parseComponentStructure(componentName)
+      const parentPropConfig = getPropConfig(componentName, prop.name)
+      const componentRefLabel = parentPropConfig?.componentRef
+        ? parentPropConfig.componentRef.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        : null
       return (
         <>
+          {componentRefLabel && (
+            <h4 style={{
+              margin: '0 0 6px 0',
+              fontSize: '11px',
+              fontWeight: 600,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              opacity: 0.5,
+            }}>
+              {componentRefLabel}
+            </h4>
+          )}
           {Object.entries(groupedConfigs).map(([childPropName, childConfig], index) => {
-            // Find the child property in the component structure
-            let childProp = structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase())
+            // Find the child property in the component structure, ensuring we don't grab text-group properties (which are top-level only).
+            // When the parent prop (e.g. "inactive", "active", "tabs") implies a specific path segment,
+            // we prefer a prop whose path contains that segment AND whose variant matches the selected one.
+            const parentGroupKey = prop.name.toLowerCase()
+            // Determine if the parent group name is a path segment that disambiguates sibling groups
+            // (e.g. "inactive" vs "active" both have a child "border-size" with different paths)
+            const groupIsPathSegment = ['active', 'inactive', 'selected', 'unselected', 'selected-item', 'unselected-item',
+              'container', 'thumb-selected', 'thumb-unselected', 'track-selected', 'track-unselected'].includes(parentGroupKey)
+
+            const findChildProp = (requireLayer: boolean) =>
+              structure.props.find(p => {
+                if (p.name.toLowerCase() !== childPropName.toLowerCase() || p.type === 'text-group') return false
+                if (requireLayer && !p.path.includes(selectedLayer)) return false
+                // When the parent group name is a known path segment, require it in the prop's path
+                if (groupIsPathSegment && !p.path.includes(parentGroupKey)) return false
+                // Filter by selected style variant for style-variant-specific props
+                if (p.isVariantSpecific && p.variantProp) {
+                  const selectedVariant = selectedVariants[p.variantProp]
+                  if (!selectedVariant) return false
+                  if (!pathMatchesVariant(p.path, p.variantProp, selectedVariant)) return false
+                }
+                return true
+              })
+
+            // For component-level props (like min-width in the "tabs" group), find non-variant-specific ones
+            const findComponentLevelChildProp = () =>
+              structure.props.find(p =>
+                p.name.toLowerCase() === childPropName.toLowerCase() &&
+                p.type !== 'text-group' &&
+                !p.isVariantSpecific
+              )
+
+            const layerMatchedChildProp = findChildProp(true)
+            // Check if ComponentToolbar injected a virtual override for this child prop
+            // (e.g., Button border-radius / min-width pointing to the content-variant CSS var)
+            const borderPropsOverride = prop.borderProps?.get(childPropName)
+            const hasBorderPropsOverride = !!borderPropsOverride
+
+            let childProp: ReturnType<typeof findChildProp> = hasBorderPropsOverride
+              ? borderPropsOverride
+              : (layerMatchedChildProp ?? findChildProp(false) ?? findComponentLevelChildProp())
+
+            // Special case: "text-color" in toolbar config maps to the "text" color prop
+            // (mirrors the same special case in ComponentToolbar for grouped prop lookup)
+            if (!childProp && childPropName.toLowerCase() === 'text-color') {
+              const textColorProp = structure.props.find(p => {
+                if (p.name.toLowerCase() !== 'text' || p.category !== 'colors' || !p.path.includes('colors')) return false
+                const layerInPath = p.path.find(part => part.startsWith('layer-'))
+                if (layerInPath && layerInPath !== selectedLayer) return false
+                return true
+              })
+              if (textColorProp) {
+                childProp = { ...textColorProp, name: 'text-color' }
+              }
+            }
+
+            // Generic resolver for layout-variant dimension props used by group components
+            // (e.g. switch-group, checkbox-group, radio-button-group).
+            // Toolbar configs express these as "{layout-alias}-{propname}" (e.g. "stacked-label-field-gap",
+            // "sbs-gutter") but the actual uikit path is variants.layouts.{layoutName}.properties.{propname}.
+            // The layout alias mapping: "stacked" -> "stacked", "sbs" -> "side-by-side".
+            if (!childProp) {
+              const layoutAliases: Record<string, string> = {
+                stacked: 'stacked',
+                sbs: 'side-by-side',
+              }
+              for (const [alias, layoutName] of Object.entries(layoutAliases)) {
+                if (childPropName.toLowerCase().startsWith(alias + '-')) {
+                  const layoutPropName = childPropName.slice(alias.length + 1)
+                  const cssVarPath = buildComponentCssVarPath(
+                    componentName,
+                    'variants', 'layouts', layoutName, 'properties', layoutPropName
+                  )
+                  childProp = {
+                    name: childPropName,
+                    category: 'size',
+                    type: 'dimension',
+                    cssVar: cssVarPath,
+                    path: ['variants', 'layouts', layoutName, 'properties', layoutPropName],
+                    isVariantSpecific: false,
+                  }
+                  break
+                }
+              }
+            }
 
             // If not found in structure, create a virtual prop (e.g., for Pagination config string props)
             if (!childProp && childConfig.options) {
@@ -1252,10 +1245,22 @@ export default function PropControlContent({
               const parentName = prop.name.toLowerCase()
               let cssVarPath: string
               let pathSegments: string[]
+              let virtualDefault: string | undefined
               if (childPropName.startsWith(parentName + '-')) {
                 const suffix = childPropName.slice(parentName.length + 1)
                 cssVarPath = buildComponentCssVarPath(componentName, 'properties', parentName, suffix)
                 pathSegments = ['properties', parentName, suffix]
+                // Use static import — the live store strips $-prefixed keys during processing,
+                // making $extensions inaccessible. The static uikitJson always has raw data intact.
+                const compKey = componentName.toLowerCase()
+                const rawComponents = (uikitJson as any)?.['ui-kit']?.components ?? {}
+                const parentNode = rawComponents?.[compKey]?.properties?.[parentName]
+                const extVariants = parentNode?.['$extensions']?.['recursica.component']?.['selected-variants']
+                if (extVariants?.[suffix]) {
+                  const ref = String(extVariants[suffix])
+                  const leafMatch = /\.([^.}]+)\}$/.exec(ref)
+                  if (leafMatch) virtualDefault = leafMatch[1]
+                }
               } else {
                 cssVarPath = buildComponentCssVarPath(componentName, 'properties', childPropName)
                 pathSegments = ['properties', childPropName]
@@ -1267,12 +1272,14 @@ export default function PropControlContent({
                 cssVar: cssVarPath,
                 path: pathSegments,
                 isVariantSpecific: false,
+                defaultValue: virtualDefault,
               }
             }
 
+
             if (!childProp) return null
 
-            const isVirtualProp = !structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase())
+            const isVirtualProp = hasBorderPropsOverride || childProp.type === 'string' || (!layerMatchedChildProp && !structure.props.find(p => p.name.toLowerCase() === childPropName.toLowerCase() && p.type !== 'text-group'))
             const cssVars = isVirtualProp ? [childProp.cssVar] : getCssVarsForProp(childProp)
             const primaryVar = cssVars[0] || childProp.cssVar
             const label = childConfig.label || getPropLabel(componentName, childPropName) || toSentenceCase(childPropName)
@@ -1331,6 +1338,7 @@ export default function PropControlContent({
             label={label}
             options={configWithControl.options}
             layer={selectedLayer}
+            defaultValue={propToRender.defaultValue}
           />
         )
       }
@@ -1347,6 +1355,11 @@ export default function PropControlContent({
         const maxValue = propToRender.range ? propToRender.range[1] : 500
         const step = propToRender.step || 1
 
+        const isTokenBacked = (varName: string): boolean => {
+          const raw = readCssVar(varName)
+          return !!raw && /var\s*\(\s*--recursica_(tokens|brand)_/.test(raw)
+        }
+
         const [value, setValue] = useState(() => {
           const currentValue = readCssVar(primaryVar)
           const resolvedValue = readCssVarResolved(primaryVar)
@@ -1358,6 +1371,8 @@ export default function PropControlContent({
           const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
           return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
         })
+
+        const [discrete, setDiscrete] = useState(() => isTokenBacked(primaryVar))
 
         useEffect(() => {
           const handleUpdate = () => {
@@ -1375,6 +1390,7 @@ export default function PropControlContent({
                 setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
               }
             }
+            setDiscrete(isTokenBacked(primaryVar))
           }
           window.addEventListener('cssVarsUpdated', handleUpdate)
           return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
@@ -1414,6 +1430,7 @@ export default function PropControlContent({
             min={minValue}
             max={maxValue}
             step={step}
+            type={discrete ? 'discrete' : 'continuous'}
             layer={selectedLayer as any}
             layout="stacked"
             showInput={false}
@@ -1442,7 +1459,7 @@ export default function PropControlContent({
     const isButton = componentName.toLowerCase() === 'button'
     const isChip = componentName.toLowerCase() === 'chip'
     const isSlider = componentName.toLowerCase() === 'slider'
-    const isSwitch = componentName.toLowerCase() === 'switch'
+    const isSwitch = componentName.toLowerCase() === 'switch' || normalizedComponentName === 'switch-item' || normalizedComponentName === 'switch-group-item'
     const isSegmentedControl = normalizedComponentName === 'segmented-control' || normalizedComponentName === 'segmented-control-item'
     const isSegmentedControlItem = normalizedComponentName === 'segmented-control-item'
     const isBadge = componentName.toLowerCase() === 'badge'
@@ -1450,6 +1467,9 @@ export default function PropControlContent({
     const isNumberInput = normalizedComponentName === 'number-input' || normalizedComponentName === 'number input'
     const isTooltip = componentName.toLowerCase() === 'tooltip'
     const isAssistiveElement = normalizedComponentName === 'assistive-element'
+    const isTree = componentName.toLowerCase() === 'tree'
+    const isTableCell = normalizedComponentName === 'table-cell'
+
 
 
     if (propToRender.type === 'color') {
@@ -1517,16 +1537,37 @@ export default function PropControlContent({
       const dimensionType = getDimensionPropertyType(componentName, propToRender.path, selectedVariants, propToRender.sourceComponent)
 
       // If recursica_ui-kit.json indicates this uses tokens, use BrandDimensionSliderInline (unless overridden below)
-      if (dimensionType === 'token') {
-        // Determine dimension category based on property name
-        let dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size' = 'general'
+      const isSliderOverride = isSlider && (
+        propNameLower === 'input-width' ||
+        propNameLower === 'input-height' ||
+        propNameLower === 'thumb-size' ||
+        propNameLower === 'thumb-border-radius' ||
+        propNameLower === 'track-height' ||
+        propNameLower === 'track-border-radius' ||
+        propNameLower === 'input-gap' ||
+        propNameLower === 'icon-size' ||
+        propNameLower === 'input-border-size' ||
+        propNameLower === 'input-padding-vertical' ||
+        propNameLower === 'input-padding-left' ||
+        propNameLower === 'input-padding-right'
+      )
 
-        if (propNameLower.includes('border-radius') || propNameLower.includes('corner-radius')) {
-          dimensionCategory = 'border-radii'
-        } else if (propNameLower.includes('icon-size') || (propNameLower.includes('icon') && propNameLower.includes('size'))) {
-          dimensionCategory = 'icons'
-        } else if (propNameLower.includes('text-size') || propNameLower.includes('font-size')) {
-          dimensionCategory = 'text-size'
+      if (dimensionType === 'token' && !isSliderOverride) {
+        // Determine dimension category based on the actual value in the JSON definition
+        let dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size' = 'general'
+        const categoryFromJSON = getDimensionCategoryFromValue(componentName, propToRender.path, selectedVariants, propToRender.sourceComponent)
+        
+        if (categoryFromJSON) {
+          dimensionCategory = categoryFromJSON
+        } else {
+          // Fallback to name-based heuristic if not found
+          if (propNameLower.includes('border-radius') || propNameLower.includes('corner-radius')) {
+            dimensionCategory = 'border-radii'
+          } else if (propNameLower.includes('icon-size') || (propNameLower.includes('icon') && propNameLower.includes('size'))) {
+            dimensionCategory = 'icons'
+          } else if (propNameLower.includes('text-size') || propNameLower.includes('font-size')) {
+            dimensionCategory = 'text-size'
+          }
         }
         // Default to 'general' for padding, gap, spacing (including tabs-content-gap)
 
@@ -1615,16 +1656,20 @@ export default function PropControlContent({
 
                     const cssVarsToUpdate = marginCssVars.length > 0 ? marginCssVars : [marginPrimaryVar]
                     cssVarsToUpdate.forEach(cssVar => {
-                      updateCssVar(cssVar, `${clampedValue}px`)
+                      document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
                     })
-                    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-                      detail: { cssVars: cssVarsToUpdate }
-                    }))
                   }, [marginPrimaryVar, marginCssVars, minValue, maxValue])
 
                   const handleChangeCommitted = useCallback((val: number | [number, number]) => {
-                    handleChange(val)
-                  }, [handleChange])
+                    const numValue = typeof val === 'number' ? val : val[0]
+                    const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+                    setValue(clampedValue)
+
+                    const cssVarsToUpdate = marginCssVars.length > 0 ? marginCssVars : [marginPrimaryVar]
+                    cssVarsToUpdate.forEach(cssVar => {
+                      document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+                    })
+                    }, [marginPrimaryVar, marginCssVars, minValue, maxValue])
 
                   return (
                     <Slider
@@ -1734,15 +1779,10 @@ export default function PropControlContent({
             const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
             setValue(clampedValue)
 
-            // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
           }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
@@ -1753,13 +1793,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const getValueLabel = useCallback((val: number) => {
             return `${Math.round(val)}px`
@@ -1812,9 +1848,12 @@ export default function PropControlContent({
         propNameLower === 'padding-horizontal' ||
         propNameLower === 'bottom-padding' ||
         propNameLower === 'item-gap' ||
+        propNameLower === 'button-node-gap' ||
         propNameLower === 'icon-label-gap' ||
         propNameLower === 'divider-item-gap' ||
         propNameLower === 'track-inner-padding' ||
+        propNameLower === 'row-padding' ||
+        propNameLower === 'vertical-margin' ||
         (propNameLower === 'top-bottom-margin' && !(prop.isVariantSpecific && prop.variantProp === 'layout'))
 
       if (isPaddingProp && !isTextField && !isNumberInput) {
@@ -1831,10 +1870,8 @@ export default function PropControlContent({
       }
 
       // Use brand dimension slider for border-radius properties
-      const isBorderRadiusProp = propNameLower === 'border-radius' ||
-        propNameLower === 'thumb-border-radius' ||
-        propNameLower === 'track-border-radius' ||
-        propNameLower === 'corner-radius'
+      const isBorderRadiusProp = propNameLower.includes('border-radius') ||
+        propNameLower.includes('corner-radius')
 
       if (isBorderRadiusProp) {
         return (
@@ -1844,6 +1881,23 @@ export default function PropControlContent({
             targetCssVars={cssVars.length > 0 ? cssVars : undefined}
             label={label}
             dimensionCategory="border-radii"
+            layer={selectedLayer as any}
+          />
+        )
+      }
+
+      // Use brand dimension slider for icon-size properties
+      const isIconSizeProp = propNameLower.includes('icon-size') ||
+        (propNameLower.includes('icon') && propNameLower.includes('size'))
+
+      if (isIconSizeProp && !isTextField && !isNumberInput && !isSlider) {
+        return (
+          <BrandDimensionSliderInline
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            targetCssVar={primaryVar}
+            targetCssVars={cssVars.length > 0 ? cssVars : undefined}
+            label={label}
+            dimensionCategory="icons"
             layer={selectedLayer as any}
           />
         )
@@ -1908,7 +1962,10 @@ export default function PropControlContent({
             setValue(clampedValue)
 
             // Always update CSS vars immediately during dragging
-            updateCssVars(clampedValue)
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+            })
           }
 
           const handleChangeCommitted = (newValue: number | [number, number]) => {
@@ -1946,89 +2003,6 @@ export default function PropControlContent({
 
         return (
           <LabelWidthSlider
-            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
-          />
-        )
-      }
-
-      // Use pixel slider for accordion min-width and max-width (raw pixel values, not tokens)
-      if ((propNameLower === 'min-width' || propNameLower === 'max-width') && componentName.toLowerCase() === 'accordion') {
-        const AccordionWidthSlider = () => {
-          const minValue = propNameLower === 'min-width' ? 20 : 100
-          const maxValue = propNameLower === 'min-width' ? 200 : 1500
-          const [value, setValue] = useState(() => {
-            const currentValue = readCssVar(primaryVar)
-            const resolvedValue = readCssVarResolved(primaryVar)
-            const valueStr = resolvedValue || currentValue || `${minValue}px`
-            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : minValue
-          })
-
-          useEffect(() => {
-            const handleUpdate = () => {
-              const currentValue = readCssVar(primaryVar)
-              const resolvedValue = readCssVarResolved(primaryVar)
-              const valueStr = resolvedValue || currentValue || `${minValue}px`
-              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-              if (match) {
-                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
-              }
-            }
-            window.addEventListener('cssVarsUpdated', handleUpdate)
-            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-          }, [primaryVar, minValue, maxValue])
-
-          const updateCssVars = useCallback((clampedValue: number) => {
-            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
-            cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
-            })
-
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [cssVars, primaryVar])
-
-          const handleChange = (newValue: number | [number, number]) => {
-            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
-            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
-            setValue(clampedValue)
-            updateCssVars(clampedValue)
-          }
-
-          const handleChangeCommitted = (newValue: number | [number, number]) => {
-            const numValue = typeof newValue === 'number' ? newValue : newValue[0]
-            const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
-            updateCssVars(clampedValue)
-          }
-
-          const getValueLabel = useCallback((val: number) => {
-            return `${Math.round(val)}px`
-          }, [])
-
-          return (
-            <Slider
-              value={value}
-              onChange={handleChange}
-              onChangeCommitted={handleChangeCommitted}
-              min={minValue}
-              max={maxValue}
-              step={1}
-              layer="layer-1"
-              layout="stacked"
-              showInput={false}
-              showValueLabel={true}
-              valueLabel={getValueLabel}
-              minLabel={`${minValue}px`}
-              maxLabel={`${maxValue}px`}
-              showMinMaxLabels={false}
-              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
-            />
-          )
-        }
-
-        return (
-          <AccordionWidthSlider
             key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
           />
         )
@@ -2096,7 +2070,10 @@ export default function PropControlContent({
             const numValue = typeof newValue === 'number' ? newValue : newValue[0]
             const clampedValue = Math.max(minValue, Math.min(maxValue, numValue))
             setValue(clampedValue)
-            updateCssVars(clampedValue)
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+            })
           }
 
           const handleChangeCommitted = (newValue: number | [number, number]) => {
@@ -2182,13 +2159,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2238,6 +2211,100 @@ export default function PropControlContent({
         )
       }
 
+      // Use Slider component for Tree border-size and max-width properties
+      if (isTree && (propNameLower === 'border-size' || propNameLower === 'max-width')) {
+        const TreeDimensionSlider = () => {
+          let minValue = 0
+          let maxValue = 500
+          if (propNameLower === 'border-size') {
+            minValue = 0
+            maxValue = 10
+          } else if (propNameLower === 'max-width') {
+            minValue = 100
+            maxValue = 2000
+          }
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : (propNameLower === 'max-width' ? 500 : 0)
+          })
+
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+            })
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+
+        return (
+          <TreeDimensionSlider
+            key={`${primaryVar}-${selectedVariants.size || ''}`}
+          />
+        )
+      }
+
       // Use Slider component for Label min-height property (must be before Button check)
       if (componentName.toLowerCase() === 'label' && propNameLower === 'min-height') {
         const LabelMinHeightSlider = () => {
@@ -2272,12 +2339,9 @@ export default function PropControlContent({
 
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2326,14 +2390,17 @@ export default function PropControlContent({
       }
 
       // Use Slider component for Button width and height properties (must be before isSizeProp check)
-      if ((isButton && (propNameLower === 'min-width' || propNameLower === 'max-width' || propNameLower === 'height')) ||
+      if ((isButton && (propNameLower === 'min-width' || propNameLower === 'max-width' || propNameLower === 'max-label-width' || propNameLower === 'height')) ||
         (isSegmentedControlItem && propNameLower === 'height')) {
         const ButtonDimensionSlider = () => {
           let minValue = 0
           let maxValue = 500
           if (propNameLower === 'min-width') {
-            minValue = 0
-            maxValue = 500
+            minValue = 20
+            maxValue = 150
+          } else if (propNameLower === 'max-label-width') {
+            minValue = 40
+            maxValue = 200
           } else if (propNameLower === 'max-width') {
             minValue = 0
             maxValue = 1000
@@ -2388,13 +2455,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const getValueLabel = useCallback((val: number) => {
             return `${Math.round(val)}px`
@@ -2497,13 +2560,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2588,13 +2647,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2679,13 +2734,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2770,13 +2821,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2854,12 +2901,9 @@ export default function PropControlContent({
 
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -2936,13 +2980,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3021,13 +3061,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3106,13 +3142,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3191,13 +3223,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3246,11 +3274,17 @@ export default function PropControlContent({
       // Use Slider component for Slider input-width, thumb-size, thumb-border-radius, track-height, track-border-radius, and input-gap properties
       if (isSlider && (
         propNameLower === 'input-width' ||
+        propNameLower === 'input-height' ||
         propNameLower === 'thumb-size' ||
         propNameLower === 'thumb-border-radius' ||
         propNameLower === 'track-height' ||
         propNameLower === 'track-border-radius' ||
-        propNameLower === 'input-gap'
+        propNameLower === 'input-gap' ||
+        propNameLower === 'icon-size' ||
+        propNameLower === 'input-border-size' ||
+        propNameLower === 'input-padding-vertical' ||
+        propNameLower === 'input-padding-left' ||
+        propNameLower === 'input-padding-right'
       )) {
         const SliderDimensionSlider = () => {
           let minValue = 0
@@ -3258,6 +3292,9 @@ export default function PropControlContent({
           if (propNameLower === 'input-width') {
             minValue = 40
             maxValue = 200
+          } else if (propNameLower === 'input-height') {
+            minValue = 10
+            maxValue = 100
           } else if (propNameLower === 'thumb-size') {
             minValue = 10
             maxValue = 40
@@ -3273,6 +3310,15 @@ export default function PropControlContent({
           } else if (propNameLower === 'input-gap') {
             minValue = 0
             maxValue = 100
+          } else if (propNameLower === 'icon-size') {
+            minValue = 12
+            maxValue = 48
+          } else if (propNameLower === 'input-border-size') {
+            minValue = 0
+            maxValue = 20
+          } else if (propNameLower === 'input-padding-vertical' || propNameLower === 'input-padding-left' || propNameLower === 'input-padding-right') {
+            minValue = 0
+            maxValue = 40
           }
           const [value, setValue] = useState(() => {
             const currentValue = readCssVar(primaryVar)
@@ -3304,13 +3350,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3413,13 +3455,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3518,13 +3556,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3617,13 +3651,9 @@ export default function PropControlContent({
             // Update CSS vars directly with pixel value
             const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
             cssVarsToUpdate.forEach(cssVar => {
-              updateCssVar(cssVar, `${clampedValue}px`)
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
             })
-            // Dispatch event to notify components of CSS var updates
-            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: cssVarsToUpdate }
-            }))
-          }, [primaryVar, cssVars, minValue, maxValue])
+            }, [primaryVar, cssVars, minValue, maxValue])
 
           const handleChangeCommitted = useCallback((val: number | [number, number]) => {
             const numValue = typeof val === 'number' ? val : val[0]
@@ -3702,8 +3732,23 @@ export default function PropControlContent({
       } else if (isTooltip && (propNameLower === 'beak-size' || propNameLower === 'beak-inset')) {
         minPixelValue = 0
         maxPixelValue = 50
+      } else if (isTableCell && propNameLower === 'max-width') {
+        minPixelValue = 40
+        maxPixelValue = 1000
       }
 
+      if (dimensionType === 'px') {
+        return (
+          <PixelValueSlider
+            key={`${primaryVar}-${selectedVariants.layout || ''}-${selectedVariants.size || ''}`}
+            primaryVar={primaryVar}
+            cssVars={cssVars}
+            label={label}
+            minPixelValue={minPixelValue ?? 0}
+            maxPixelValue={maxPixelValue ?? 1000}
+          />
+        )
+      }
 
       return (
         <DimensionTokenSelector
@@ -3784,7 +3829,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text', 'step-number-text', 'input-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style']
 
   // Always check recursica_ui-kit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly
@@ -3795,6 +3840,7 @@ export default function PropControlContent({
         const uikitRoot: any = uikitJson
         const components = uikitRoot?.['ui-kit']?.components || {}
         let componentKey = componentName.toLowerCase().replace(/\s+/g, '-')
+        if (componentKey === 'switchitem') componentKey = 'switch-item'
         if (componentKey === 'hover-card-/-popover') componentKey = 'hover-card-popover'
         const component = components[componentKey]
 
@@ -4169,12 +4215,12 @@ export default function PropControlContent({
             }
           }
 
-          // Special case: placeholder-opacity is a component-level property, not a variant-level color
-          // It's in the "colors" group but needs to be found as a component-level property
-          if (!groupedProp && groupedPropKey === 'placeholder-opacity') {
+          // Special case: placeholder-opacity / optional-text-opacity are component-level properties,
+          // not variant-level colors — they live directly under properties, not inside colors.{layer}
+          if (!groupedProp && (groupedPropKey === 'placeholder-opacity' || groupedPropKey === 'optional-text-opacity')) {
             const structure = parseComponentStructure(componentName)
             groupedProp = structure.props.find(p => {
-              const nameMatches = p.name.toLowerCase() === 'placeholder-opacity'
+              const nameMatches = p.name.toLowerCase() === groupedPropKey
               // Must be component-level (not variant-specific)
               const isComponentLevel = !p.isVariantSpecific
               return nameMatches && isComponentLevel
@@ -4199,13 +4245,14 @@ export default function PropControlContent({
             }
           }
 
-          // Special case: tab-content-alignment is a component-level property for Tabs
+          // Special case: tab-content-alignment is now orientation-specific for Tabs
           if (!groupedProp && groupedPropKey === 'tab-content-alignment' && componentName.toLowerCase() === 'tabs') {
             const structure = parseComponentStructure(componentName)
             groupedProp = structure.props.find(p => {
               const nameMatches = p.name.toLowerCase() === 'tab-content-alignment'
-              const isComponentLevel = !p.isVariantSpecific
-              return nameMatches && isComponentLevel
+              const orientationMatches = !selectedVariants.orientation ||
+                pathMatchesVariant(p.path, 'orientation', selectedVariants.orientation)
+              return nameMatches && orientationMatches
             })
             if (groupedProp) {
               prop.borderProps!.set(groupedPropKey, groupedProp)
@@ -4515,7 +4562,8 @@ export default function PropControlContent({
 
   // Handle track prop
   if (prop.name.toLowerCase() === 'track' && (prop.trackSelectedProp || prop.trackUnselectedProp || prop.thumbProps)) {
-    const isSwitch = componentName.toLowerCase() === 'switch'
+    const normalizedComponentName = componentName.toLowerCase().replace(/\s+/g, '-')
+    const isSwitch = componentName.toLowerCase() === 'switch' || normalizedComponentName === 'switch-item' || normalizedComponentName === 'switch-group-item'
     const trackSelectedCssVars = prop.trackSelectedProp ? getCssVarsForProp(prop.trackSelectedProp) : []
     const trackUnselectedCssVars = prop.trackUnselectedProp ? getCssVarsForProp(prop.trackUnselectedProp) : []
     const trackSelectedPrimaryVar = trackSelectedCssVars[0] || prop.trackSelectedProp?.cssVar
@@ -4620,7 +4668,8 @@ export default function PropControlContent({
 
   // Handle thumb prop
   if (prop.name.toLowerCase() === 'thumb' && prop.thumbProps && prop.thumbProps.size > 0) {
-    const isSwitch = componentName.toLowerCase() === 'switch'
+    const normalizedComponentName = componentName.toLowerCase().replace(/\s+/g, '-')
+    const isSwitch = componentName.toLowerCase() === 'switch' || normalizedComponentName === 'switch-item' || normalizedComponentName === 'switch-group-item'
     const thumbSelectedProp = prop.thumbProps.get('thumb-selected')
     const thumbUnselectedProp = prop.thumbProps.get('thumb-unselected')
     const thumbHeightProp = prop.thumbProps.get('thumb-height')

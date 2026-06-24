@@ -46,8 +46,7 @@ export default function Autocomplete({
     style,
     zIndex,
     mantine,
-    material,
-    carbon,
+
 }: AdapterAutocompleteProps & { labelId?: string; helpId?: string; errorId?: string }) {
     const { mode } = useThemeMode()
     const [opened, setOpened] = useState(false)
@@ -259,7 +258,7 @@ export default function Autocomplete({
                     fontSize: `var(${valueFontSizeVar})`,
                     fontWeight: `var(${valueFontWeightVar})` as any,
                     letterSpacing: `var(${valueLetterSpacingVar})`,
-                    lineHeight: `var(${valueLineHeightVar})`,
+                    lineHeight: 'normal',
                     textDecoration: valueTextDecorationVar ? `var(${valueTextDecorationVar})` as any : 'none',
                     textTransform: valueTextTransformVar ? `var(${valueTextTransformVar})` as any : 'none',
                     fontStyle: valueFontStyleVar ? `var(${valueFontStyleVar})` as any : 'normal',
