@@ -28,7 +28,7 @@ export default function OpacityTokens() {
       Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
-        if (Number.isFinite(num)) map[`opacity/${k}`] = num
+        if (Number.isFinite(num)) map[`opacities/${k}`] = num
       })
     } catch { }
     return map
@@ -42,7 +42,7 @@ export default function OpacityTokens() {
       Object.keys(src).filter((k) => !k.startsWith('$') && !k.startsWith('elevation-')).forEach((k) => {
         const v = src[k]?.$value
         const num = typeof v === 'number' ? v : Number(v)
-        if (Number.isFinite(num)) list.push({ name: `opacity/${k}`, value: num })
+        if (Number.isFinite(num)) list.push({ name: `opacities/${k}`, value: num })
       })
     } catch { }
     return list
@@ -106,7 +106,7 @@ export default function OpacityTokens() {
 
     // Keep all non-opacity overrides
     Object.keys(all).forEach((k) => {
-      if (!k.startsWith('opacity/')) {
+      if (!k.startsWith('opacities/')) {
         updated[k] = all[k]
       }
     })
@@ -156,7 +156,7 @@ export default function OpacityTokens() {
         {/* Rows */}
         <div style={{ display: 'grid', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
           {items.map((it, index) => {
-            const rawName = it.name.replace('opacity/', '')
+            const rawName = it.name.replace('opacities/', '')
             const label = toTitleCase(rawName)
             // Read current value from store (tokensJson) first, then fall back to overrides, then original value
             const storeValue = (() => {

@@ -91,8 +91,8 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     const CONSTANTS = getConstants();
     const content = tokenRef.slice(1, -1);
     
-    // Size tokens: {tokens.size.2x} or {tokens.sizes.2x}
-    const sizeMatch = content.match(/^tokens\.sizes?\.([a-z0-9-]+)$/);
+    // Size tokens: {tokens.sizes.2x}
+    const sizeMatch = content.match(/^tokens\.sizes\.([a-z0-9-]+)$/);
     if (sizeMatch) {
        return `{tokens.sizes.${shiftValue(sizeMatch[1], CONSTANTS.sizeTokens)}}`;
     }
@@ -100,13 +100,13 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
     // Font size tokens: {tokens.font.sizes.md}
     const fontSizeMatch = content.match(/^tokens\.font\.sizes\.([a-z0-9-]+)$/);
     if (fontSizeMatch) {
-        return `{tokens.font.sizes.${shiftValue(fontSizeMatch[1], CONSTANTS.fontSizes)}}`;
+         return `{tokens.font.sizes.${shiftValue(fontSizeMatch[1], CONSTANTS.fontSizes)}}`;
     }
     
-    // Opacity tokens: {tokens.opacities.solid} or {tokens.opacity.solid}
-    const opacityMatch = content.match(/^tokens\.(opacities|opacity)\.([a-z0-9-]+)$/);
+    // Opacity tokens: {tokens.opacities.solid}
+    const opacityMatch = content.match(/^tokens\.opacities\.([a-z0-9-]+)$/);
     if (opacityMatch) {
-        return `{tokens.${opacityMatch[1]}.${shiftValue(opacityMatch[2], CONSTANTS.opacities)}}`;
+         return `{tokens.opacities.${shiftValue(opacityMatch[1], CONSTANTS.opacities)}}`;
     }
 
     // Typefaces: {tokens.font.typefaces.primary}

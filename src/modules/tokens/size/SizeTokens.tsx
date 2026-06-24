@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react'
 import { useThemeMode } from '../../theme/ThemeModeContext'
+import { useVars } from '../../vars/VarsContext'
 import tokensImport from '../../../../recursica_tokens.json'
 import { Slider } from '../../../components/adapters/Slider'
 import { Button } from '../../../components/adapters/Button'
@@ -13,6 +14,7 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 
 export default function SizeTokens() {
   const { mode } = useThemeMode()
+  const { updateToken } = useVars()
 
   // Original values from the static JSON import (for reset)
   const originalValues = useMemo(() => {
@@ -88,6 +90,7 @@ export default function SizeTokens() {
   // Write a size value to the CSS var (and delta)
   const writeSizeCssVar = (key: string, num: number) => {
     updateCssVar(tokenSize(key), `${num}px`)
+    updateToken(`sizes/${key}`, num)
   }
 
   const handleReset = () => {

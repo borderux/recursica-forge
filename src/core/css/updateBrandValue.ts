@@ -66,15 +66,12 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
   if (resolvedRef) {
     jsonValue = resolvedRef
     // cssVarToRef strips `themes.{mode}.` from brand refs. Re-inject it so the stored
-    // $value correctly points to the mode-specific path in the JSON.
-    const mode = extractModeFromCssVar(cssVar)
-    if (
-      mode &&
-      typeof jsonValue === 'string' &&
-      jsonValue.startsWith('{brand.') &&
-      !jsonValue.startsWith('{brand.themes.')
-    ) {
-      jsonValue = jsonValue.replace('{brand.', `{brand.themes.${mode}.`)
+    // $value correctly points to the mode-specific path in the JSON (unless it is a global reference like dimensions or typography).
+    if (path.length > 2 && path[0] === 'brand' && path[1] === 'themes' && (path[2] === 'light' || path[2] === 'dark')) {
+      const mode = path[2]
+      if (typeof jsonValue === 'string' && jsonValue.startsWith('{brand.') && !jsonValue.startsWith('{brand.themes.') && !jsonValue.startsWith('{brand.dimensions.') && !jsonValue.startsWith('{brand.typography.')) {
+        jsonValue = jsonValue.replace('{brand.', `{brand.themes.${mode}.`)
+      }
     }
   } else if (value.includes('var(')) {
     // A var() reference that cssVarToRef couldn't convert — cannot persist safely.

@@ -10,7 +10,8 @@ import {
   findColorFamilyAndLevel,
   getSteppedColor,
   stepUntilAACompliant,
-  hexToCssVarRef
+  hexToCssVarRef,
+  hexToTokenRef
 } from '../../core/compliance/layerColorStepping'
 
 
@@ -300,8 +301,8 @@ function updateOnToneColors(
       if (!coreColors.interactive.default) coreColors.interactive.default = {}
       if (!coreColors.interactive.hover) coreColors.interactive.hover = {}
 
-      const defaultToneRef = hexToCssVarRef(defaultToneHex, tokens) || `{tokens.colors.scale-06.500}`
-      const hoverToneRef = hexToCssVarRef(hoverToneHex, tokens) || `{tokens.colors.scale-06.600}`
+      const defaultToneRef = hexToTokenRef(defaultToneHex, tokens) || `{tokens.colors.scale-06.500}`
+      const hoverToneRef = hexToTokenRef(hoverToneHex, tokens) || `{tokens.colors.scale-06.600}`
 
       // Update nested default
       coreColors.interactive.default.tone = {

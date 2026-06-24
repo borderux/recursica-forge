@@ -642,10 +642,7 @@ export default function PalettesPage() {
                     }
                   }
                 }
-                // Handle old color format (color.family.level)
-                else if (parsed.path[0] === 'color') {
-                  detectedFamily = parsed.path[1]
-                }
+                
 
                 if (detectedFamily) {
                   set.add(detectedFamily)

@@ -102,8 +102,6 @@ function expandRefPath(refPath: string, currentPath: string): string {
  */
 function resolvePathAlias(path: string): string[] {
   const candidates = [path]
-  if (path.startsWith('tokens.size.')) candidates.push(path.replace('tokens.size.', 'tokens.sizes.'))
-  if (path.startsWith('tokens.opacity.')) candidates.push(path.replace('tokens.opacity.', 'tokens.opacities.'))
   if (path.startsWith('tokens.font.')) {
     const fontAliases: [RegExp, string][] = [
       [/^tokens\.font\.letter-spacing\./, 'tokens.font.letter-spacings.'],

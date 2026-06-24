@@ -68,7 +68,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     try {
       if (typeof rawValue === 'string') {
         const parsed = parseTokenReference(rawValue, context)
-        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && (parsed.path[0] === 'opacity' || parsed.path[0] === 'opacities')) {
+        if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'opacities') {
           const tokenName = parsed.path[1]
           // Standardize on plural 'opacities' to match tokenRefs.ts and varsStore mapping
           return `var(${tokenOpacity(tokenName)})`
@@ -81,7 +81,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
       const sStr = String(s)
       // Try centralized parser on the resolved value
       const parsed = parseTokenReference(sStr, context)
-      if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && (parsed.path[0] === 'opacity' || parsed.path[0] === 'opacities')) {
+      if (parsed && parsed.type === 'token' && parsed.path.length >= 2 && parsed.path[0] === 'opacities') {
         return `var(${tokenOpacity(parsed.path[1])})`
       }
       // numeric fallback: if we resolved to a number, use it directly

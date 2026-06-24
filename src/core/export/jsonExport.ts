@@ -691,7 +691,7 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
       // updateCoreColorOnTones previously wrote {brand.themes.light.palettes.core-colors.white}
       // (no .tone) into state.theme; map to semantic contrast keys.
       .replace(
-        /\{brand\.themes\.(light|dark)\.palettes\.core-colors\.(white|black|alert|warning|success)\}/g,
+        /\{brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)\}/g,
         (_, mode, leaf) => {
           if (leaf === 'black') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'low-contrast' : 'high-contrast'}.tone}`
           if (leaf === 'white') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'high-contrast' : 'low-contrast'}.tone}`
@@ -700,7 +700,7 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
       )
       // Then catch the theme-agnostic form.
       .replace(
-        /\{brand\.palettes\.core-colors\.(white|black|alert|warning|success)\}/g,
+        /\{brand\.palettes\.core-colors\.([a-z0-9-]+)\}/g,
         (_, leaf) => {
           if (leaf === 'black') return '{brand.palettes.core-colors.high-contrast.tone}'
           if (leaf === 'white') return '{brand.palettes.core-colors.low-contrast.tone}'
@@ -709,7 +709,7 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
       )
       // Fix theme-qualified palettes.core.* (no hyphen) → palettes.core-colors.*.tone
       .replace(
-        /\{brand\.themes\.(light|dark)\.palettes\.core\.(white|black|alert|warning|success)\}/g,
+        /\{brand\.themes\.(light|dark)\.palettes\.core\.([a-z0-9-]+)\}/g,
         (_, mode, leaf) => {
           if (leaf === 'black') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'low-contrast' : 'high-contrast'}.tone}`
           if (leaf === 'white') return `{brand.themes.${mode}.palettes.core-colors.${mode === 'dark' ? 'high-contrast' : 'low-contrast'}.tone}`
@@ -726,11 +726,11 @@ function normalizeBrandReferences(obj: any, stripThemes: boolean = false): any {
     if (stripThemes) {
       normalized = normalized
         // Core-colors: normalize to theme-agnostic semantic keys
-        .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => {
+        .replace(/{brand\.themes\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => {
           const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
           return `{brand.palettes.core-colors.${sem}${suffix || '.tone'}}`
         })
-        .replace(/{brand\.(light|dark)\.palettes\.core-colors\.(black|white|alert|warning|success)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => {
+        .replace(/{brand\.(light|dark)\.palettes\.core-colors\.([a-z0-9-]+)(\.tone|\.on-tone)?}/g, (_, _mode, leaf, suffix) => {
           const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
           return `{brand.palettes.core-colors.${sem}${suffix || '.tone'}}`
         })
@@ -788,13 +788,13 @@ function normalizeUIKitBrandReferences(obj: any, currentPath: string = ''): any 
         '{brand.layers.$1.elements.interactive.$2}')
       // ── Core palette path: cssVarToRef flattens `core-colors` into `core` ──
       // Fix: {brand.palettes.core.black.tone} → {brand.palettes.core-colors.high-contrast.tone}
-      .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core\.(black|white|alert|warning|success)(?:\.(tone|on-tone))?}/g,
+      .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core\.([a-z0-9-]+)(?:\.(tone|on-tone))?}/g,
         (_, leaf, suffix) => {
           const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
           return `{brand.palettes.core-colors.${sem}${suffix ? '.' + suffix : '.tone'}}`
         })
       // ── Core-colors toneless: ensure `.tone` suffix and semantic keys ──
-      .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.(black|white|alert|warning|success)}/g,
+      .replace(/{brand(?:\.themes\.(?:light|dark))?\.palettes\.core-colors\.([a-z0-9-]+)}/g,
         (_, leaf) => {
           const sem = leaf === 'black' ? 'high-contrast' : leaf === 'white' ? 'low-contrast' : leaf
           return `{brand.palettes.core-colors.${sem}.tone}`
@@ -965,10 +965,8 @@ function ensurePaletteTypes(result: any): void {
 }
 
 /**
- * Ensures state and text-emphasis token references use the correct format.
- * The randomizer writes `{tokens.opacity.*}` (singular) but the schema
- * and source JSON use `{tokens.opacities.*}` (plural). This normalizes
- * those references and ensures `$type` is present.
+ * Ensures state and text-emphasis token references have the correct type.
+ * Normalizes those references and ensures `$type` is present.
  */
 function ensureStateTokenRefs(result: any): void {
   const themes = result?.themes
@@ -985,9 +983,6 @@ function ensureStateTokenRefs(result: any): void {
         const state = states[stateKey]
         if (state && typeof state === 'object') {
           if (!state.$type) state.$type = 'number'
-          if (typeof state.$value === 'string') {
-            state.$value = state.$value.replace('{tokens.opacity.', '{tokens.opacities.')
-          }
         }
       }
       // Fix overlay.opacity
@@ -995,9 +990,6 @@ function ensureStateTokenRefs(result: any): void {
       if (overlay && typeof overlay === 'object') {
         if (overlay.opacity && typeof overlay.opacity === 'object') {
           if (!overlay.opacity.$type) overlay.opacity.$type = 'number'
-          if (typeof overlay.opacity.$value === 'string') {
-            overlay.opacity.$value = overlay.opacity.$value.replace('{tokens.opacity.', '{tokens.opacities.')
-          }
         }
         if (overlay.color && typeof overlay.color === 'object') {
           if (!overlay.color.$type) overlay.color.$type = 'color'
@@ -1012,9 +1004,6 @@ function ensureStateTokenRefs(result: any): void {
         const emphasis = textEmphasis[emphasisKey]
         if (emphasis && typeof emphasis === 'object') {
           if (!emphasis.$type) emphasis.$type = 'number'
-          if (typeof emphasis.$value === 'string') {
-            emphasis.$value = emphasis.$value.replace('{tokens.opacity.', '{tokens.opacities.')
-          }
         }
       }
     }
@@ -1072,7 +1061,7 @@ export function exportBrandJson(): object {
       for (const key in node) {
         const val = node[key]
         if (typeof val === 'string') {
-          if (val.startsWith('{brand.') && !val.startsWith('{brand.themes.')) {
+          if (val.startsWith('{brand.') && !val.startsWith('{brand.themes.') && !val.startsWith('{brand.dimensions.') && !val.startsWith('{brand.typography.')) {
             node[key] = val.replace('{brand.', `{brand.themes.${mode}.`)
           }
         } else if (typeof val === 'object') {

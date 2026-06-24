@@ -475,7 +475,7 @@ describe('JSON Schema Validation', () => {
                     blur: { $value: '0', unit: 'px' },
                     spread: { $value: '0', unit: 'px' },
                     color: { $value: '#000000', $type: 'color' },
-                    opacity: { $value: '{tokens.opacity.solid}', $type: 'number' }
+                    opacity: { $value: '{tokens.opacities.solid}', $type: 'number' }
                   }
                 }
               }
@@ -502,8 +502,6 @@ describe('DTCG reference validation', () => {
 
   it('should export explicit work-around list', () => {
     expect(REF_WORKAROUND_IDS.length).toBeGreaterThan(0)
-    expect(REF_WORKAROUND_IDS).toContain('tokens.size→sizes')
-    expect(REF_WORKAROUND_IDS).toContain('tokens.opacity→opacities')
     expect(REF_WORKAROUND_IDS).toContain('brand-theme-agnostic→themes.light|dark')
     expect(REF_WORKAROUND_IDS).toContain('typography-composite-subproperty')
     expect(REF_WORKAROUND_IDS).toContain('recursica-component-token')

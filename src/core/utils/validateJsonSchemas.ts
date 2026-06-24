@@ -557,10 +557,6 @@ function collectRefs(
  * When strict resolution fails, these work-arounds are tried in order; if one resolves to a token, the ref is accepted.
  */
 export const REF_WORKAROUND_IDS = [
-  'tokens.size→sizes',
-  'tokens.opacity→opacities',
-  'palette-step-group→.color.tone|.color.on-tone',
-  'elements.interactive.color→.tone|.on-tone',
   'typography-kebab→camelCase',
   'palette-default→indirection',
   'brand-theme-agnostic→themes.light|dark',
@@ -638,30 +634,6 @@ function resolveRefToToken(
     }
   }
 
-  if (root === 'tokens' && allowedWorkarounds.has('tokens.size→sizes')) {
-    if (parts[1] === 'size') {
-      const alt = ['tokens', 'sizes', ...parts.slice(2)].join('.')
-      if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'tokens.size→sizes' }
-    }
-  }
-
-  if (root === 'tokens' && allowedWorkarounds.has('tokens.opacity→opacities')) {
-    if (parts[1] === 'opacity') {
-      const alt = ['tokens', 'opacities', ...parts.slice(2)].join('.')
-      if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'tokens.opacity→opacities' }
-    }
-  }
-
-  if (root === 'brand' && allowedWorkarounds.has('elements.interactive.color→.tone|.on-tone')) {
-    if (path.endsWith('.elements.interactive.color')) {
-      const base = path.slice(0, -'.color'.length)
-      const referrerOnTone = referrerLocation.endsWith('on-tone')
-      const suffix = referrerOnTone ? 'on-tone' : 'tone'
-      const alt = `${base}.${suffix}`
-      if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'elements.interactive.color→.tone|.on-tone' }
-    }
-  }
-
   if (root === 'brand' && allowedWorkarounds.has('typography-kebab→camelCase')) {
     const typoMatch = path.match(/^brand\.typography\.([^.]+)\.(font-family|font-size|font-weight|letter-spacing|line-height|font-style|text-transform|text-case|text-decoration)$/)
     if (typoMatch) {
@@ -679,17 +651,6 @@ function resolveRefToToken(
       const camel = kebabToCamel[typoMatch[2]] ?? typoMatch[2].replace(/-([a-z])/g, (_, c: string) => c.toUpperCase())
       const alt = `brand.typography.${typoMatch[1]}.${camel}`
       if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'typography-kebab→camelCase' }
-    }
-  }
-
-  if (root === 'brand' && allowedWorkarounds.has('palette-step-group→.color.tone|.color.on-tone')) {
-    const paletteStepMatch = path.match(/^brand\.themes\.(light|dark)\.palettes\.([a-z][a-z0-9-]*)\.(\d{3,4}|default|primary)$/)
-    if (paletteStepMatch) {
-      const [, theme, palette, step] = paletteStepMatch
-      const referrerOnTone = referrerLocation.endsWith('on-tone')
-      const suffix = referrerOnTone ? 'color.on-tone' : 'color.tone'
-      const alt = `brand.themes.${theme}.palettes.${palette}.${step}.${suffix}`
-      if (isToken(getAtPath(combined, alt))) return { resolved: true, workaround: 'palette-step-group→.color.tone|.color.on-tone' }
     }
   }
 

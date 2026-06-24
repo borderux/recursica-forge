@@ -614,17 +614,17 @@ export default function LayerStylePanel({
   const sizeOptions = useMemo(() => {
     const out: Array<{ label: string; value: string }> = []
     try {
-      const rec: any = (tokensJson as any)?.tokens?.size || {}
+      const rec: any = (tokensJson as any)?.tokens?.sizes || {}
       // Exclude elevation tokens - those are only in brand, not tokens
-      Object.keys(rec).filter((k) => !k.startsWith('elevation-')).forEach((k) => out.push({ label: k, value: `{tokens.size.${k}}` }))
+      Object.keys(rec).filter((k) => !k.startsWith('elevation-')).forEach((k) => out.push({ label: k, value: `{tokens.sizes.${k}}` }))
     } catch { }
     return out
   }, [tokensJson])
   const opacityOptions = useMemo(() => {
     const out: Array<{ label: string; value: string }> = []
     try {
-      const rec: any = (tokensJson as any)?.tokens?.opacity || {}
-      Object.keys(rec).forEach((k) => out.push({ label: k, value: `{tokens.opacity.${k}}` }))
+      const rec: any = (tokensJson as any)?.tokens?.opacities || {}
+      Object.keys(rec).forEach((k) => out.push({ label: k, value: `{tokens.opacities.${k}}` }))
     } catch { }
     return out
   }, [tokensJson])
