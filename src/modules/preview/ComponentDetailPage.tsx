@@ -287,7 +287,6 @@ export default function ComponentDetailPage() {
         flex: debugMode ? undefined : 1,
         minHeight: debugMode ? undefined : 0,
         width: '100%',
-        overflow: 'hidden',
       }}>
         {/* Preview Area - Left Side */}
         <div style={{
@@ -301,6 +300,8 @@ export default function ComponentDetailPage() {
           alignSelf: component.name.toLowerCase().includes('table') ? 'stretch' : 'flex-start',
           height: component.name.toLowerCase().includes('table') ? '100%' : undefined,
           overflow: 'hidden',
+          borderTopLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+          borderBottomLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         }}>
           {/* Preview Section */}
           <div style={{
@@ -627,6 +628,9 @@ export default function ComponentDetailPage() {
           borderLeft: `1px solid var(${layerProperty(mode, 1, 'border-color')})`,
           minHeight: debugMode ? undefined : 0,
           height: debugMode ? undefined : '100%',
+          borderTopRightRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+          borderBottomRightRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+          overflow: 'hidden',
         }}>
           <ComponentToolbar
             componentName={componentName as ComponentName}
