@@ -147,6 +147,7 @@ export default function Avatar({
         '--avatar-label': paddingStyleType === 'image' 
           ? (borderColorValue || `var(${borderVar})`) 
           : `var(${labelVar})`,
+        '--avatar-size': `var(${iconWidthVar})`,
         '--avatar-width': `var(${iconWidthVar})`,
         '--avatar-height': `var(${iconHeightVar})`,
         '--avatar-icon-size': `var(${iconSizeVar})`,

@@ -526,38 +526,59 @@ export default function Slider({
             step={step}
             value={isRange ? value[1] : singleValue}
           onChange={(e) => {
-              if (!readOnly) {
-                const newValue = Number(e.target.value)
-                if (!isNaN(newValue)) {
-                  const clampedValue = Math.max(min, Math.min(max, newValue))
-                  if (isRange) {
-                    onChange([value[0], clampedValue])
-                    if (onChangeCommitted) onChangeCommitted([value[0], clampedValue])
-                  } else {
-                    onChange(clampedValue)
-                    if (onChangeCommitted) onChangeCommitted(clampedValue)
-                  }
-                }
-              }
-            }}
-            onBlur={() => {
-              if (!readOnly && onChangeCommitted) {
+            if (!readOnly) {
+              const newValue = Number(e.target.value)
+              if (!isNaN(newValue)) {
                 if (isRange) {
-                  onChangeCommitted([singleValue, value[1]])
+                  onChange([value[0], newValue])
                 } else {
-                  onChangeCommitted(singleValue)
+                  onChange(newValue)
                 }
               }
-            }}
-            onKeyDown={(e) => {
-              if (!readOnly && e.key === 'Enter' && onChangeCommitted) {
-                if (isRange) {
-                  onChangeCommitted([singleValue, value[1]])
-                } else {
-                  onChangeCommitted(singleValue)
+            }
+          }}
+          onBlur={() => {
+            if (!readOnly) {
+              if (isRange) {
+                const clampedValue = Math.max(value[0], Math.min(max, value[1]))
+                if (value[1] !== clampedValue) {
+                  onChange([value[0], clampedValue])
+                }
+                if (onChangeCommitted) {
+                  onChangeCommitted([value[0], clampedValue])
+                }
+              } else {
+                const clampedValue = Math.max(min, Math.min(max, singleValue))
+                if (singleValue !== clampedValue) {
+                  onChange(clampedValue)
+                }
+                if (onChangeCommitted) {
+                  onChangeCommitted(clampedValue)
                 }
               }
-            }}
+            }
+          }}
+          onKeyDown={(e) => {
+            if (!readOnly && e.key === 'Enter') {
+              if (isRange) {
+                const clampedValue = Math.max(value[0], Math.min(max, value[1]))
+                if (value[1] !== clampedValue) {
+                  onChange([value[0], clampedValue])
+                }
+                if (onChangeCommitted) {
+                  onChangeCommitted([value[0], clampedValue])
+                }
+              } else {
+                const clampedValue = Math.max(min, Math.min(max, singleValue))
+                if (singleValue !== clampedValue) {
+                  onChange(clampedValue)
+                }
+                if (onChangeCommitted) {
+                  onChangeCommitted(clampedValue)
+                }
+              }
+            }
+          }}
             state={targetState}
             readOnly={readOnly}
             layer="layer-0"

@@ -48,7 +48,7 @@ export function useVersionCheck() {
     if (import.meta.env.DEV) return
     dismissedRef.current = false
     try {
-      const res = await fetch('/index.html', { cache: 'no-store' })
+      const res = await fetch(`/index.html?t=${Date.now()}`, { cache: 'no-store' })
       if (!res.ok) return
       const html = await res.text()
       const latestSrc = extractMainScriptSrc(html)
