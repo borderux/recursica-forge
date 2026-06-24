@@ -251,15 +251,15 @@ export default function TablePreview({
       display: 'flex',
       flexDirection: 'column',
       width: '100%',
-      height: '100%',
+      height: singleRowMode ? 'auto' : '100%',
       alignSelf: 'stretch',
       gap: 16,
     }}>
 
 
-      {/* Table Wrapper (Full Height) */}
+      {/* Table Wrapper (Full Height or Auto depending on singleRowMode) */}
       <div style={{
-        flex: 1,
+        flex: singleRowMode ? 'none' : 1,
         overflow: 'hidden',
         position: 'relative',
         display: 'flex',
@@ -277,7 +277,7 @@ export default function TablePreview({
             horizontalSpacing: 'md',
             stickyHeader: true,
           }}
-          style={{ width: '100%', height: '100%' }}
+          style={{ width: '100%', height: singleRowMode ? 'auto' : '100%' }}
         >
           <thead>
             <tr style={{
