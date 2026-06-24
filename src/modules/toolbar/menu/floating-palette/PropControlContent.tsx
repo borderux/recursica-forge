@@ -1852,6 +1852,8 @@ export default function PropControlContent({
         propNameLower === 'icon-label-gap' ||
         propNameLower === 'divider-item-gap' ||
         propNameLower === 'track-inner-padding' ||
+        propNameLower === 'row-padding' ||
+        propNameLower === 'vertical-margin' ||
         (propNameLower === 'top-bottom-margin' && !(prop.isVariantSpecific && prop.variantProp === 'layout'))
 
       if (isPaddingProp && !isTextField && !isNumberInput) {

@@ -30,9 +30,10 @@ export default function Badge({
 
   // Get CSS variables — use buildVariantColorCssVar so any variant name (including
   // custom variants like 'my-badge') maps directly to the correct CSS var path.
-  const bgVar = buildVariantColorCssVar('Badge', variant, 'background', layer as any)
-  const textVar = buildVariantColorCssVar('Badge', variant, 'text', layer as any)
-  const borderColorVar = buildVariantColorCssVar('Badge', variant, 'border-color', layer as any)
+  const resolvedVariant = variant === 'warn' ? 'warning' : variant
+  const bgVar = buildVariantColorCssVar('Badge', resolvedVariant, 'background', layer as any)
+  const textVar = buildVariantColorCssVar('Badge', resolvedVariant, 'text', layer as any)
+  const borderColorVar = buildVariantColorCssVar('Badge', resolvedVariant, 'border-color', layer as any)
 
   // Get text CSS variables
   const fontFamilyVar = getComponentTextCssVar('Badge', 'text', 'font-family')

@@ -34,7 +34,10 @@
           "label": "Border size",
           "visible": true,
           "propertyType": "slider",
-          "range": [0, 8],
+          "range": [
+            0,
+            8
+          ],
           "step": 1
         },
         "border-radius": {
@@ -42,7 +45,10 @@
           "label": "Corner radius",
           "visible": true,
           "propertyType": "slider",
-          "range": [0, 48],
+          "range": [
+            0,
+            48
+          ],
           "step": 4
         }
       }
@@ -57,7 +63,10 @@
           "label": "Row divider size",
           "visible": true,
           "propertyType": "slider",
-          "range": [0, 8],
+          "range": [
+            0,
+            8
+          ],
           "step": 1
         },
         "row-divider-color": {
@@ -71,7 +80,10 @@
           "label": "Column divider size",
           "visible": true,
           "propertyType": "slider",
-          "range": [0, 8],
+          "range": [
+            0,
+            8
+          ],
           "step": 1
         },
         "column-divider-color": {
@@ -82,9 +94,9 @@
         }
       }
     },
-    "colors": {
+    "row-colors": {
       "icon": "paint-bucket",
-      "label": "Colors",
+      "label": "Row colors",
       "visible": true,
       "group": {
         "striped-color": {
@@ -93,22 +105,15 @@
           "floatingPaletteLabel": "Striped Color"
         },
         "highlight-on-hover-color": {
-          "label": "Highlight on hover",
+          "label": "Hover color",
           "visible": true,
-          "floatingPaletteLabel": "Highlight on Hover Color"
+          "floatingPaletteLabel": "Hover Color"
         },
         "selected-color": {
           "label": "Selected color",
           "visible": true,
           "floatingPaletteLabel": "Selected Color"
-        }
-      }
-    },
-    "opacities": {
-      "icon": "circle-half",
-      "label": "Opacities",
-      "visible": true,
-      "group": {
+        },
         "striped-opacity": {
           "label": "Striped opacity",
           "visible": true,

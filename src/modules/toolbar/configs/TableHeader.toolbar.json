@@ -16,6 +16,11 @@
           "visible": true,
           "floatingPaletteLabel": "Vertical Padding"
         },
+        "vertical-margin": {
+          "label": "Vertical margin",
+          "visible": true,
+          "floatingPaletteLabel": "Vertical Margin"
+        },
         "label-sort-gap": {
           "icon": "arrows-left-right",
           "label": "Label sort gap",
@@ -46,19 +51,33 @@
       "label": "Dividers",
       "visible": true,
       "group": {
-        "divider-size": {
+        "horizontal-divider-size": {
           "icon": "rows",
-          "label": "Divider size",
+          "label": "Horizontal divider size",
           "visible": true,
           "propertyType": "slider",
           "range": [0, 8],
           "step": 1
         },
-        "divider-color": {
+        "horizontal-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Divider color",
+          "label": "Horizontal divider color",
           "visible": true,
-          "floatingPaletteLabel": "Divider Color"
+          "floatingPaletteLabel": "Horizontal Divider Color"
+        },
+        "vertical-divider-size": {
+          "icon": "columns",
+          "label": "Vertical divider size",
+          "visible": true,
+          "propertyType": "slider",
+          "range": [0, 8],
+          "step": 1
+        },
+        "vertical-divider-color": {
+          "icon": "paint-brush-broad",
+          "label": "Vertical divider color",
+          "visible": true,
+          "floatingPaletteLabel": "Vertical Divider Color"
         }
       }
     },

@@ -13,25 +13,33 @@ export default function TableFooter({
   className,
   style,
   disabled = false,
+  variant,
   mantine,
   ...props
 }: AdapterTableFooterProps) {
   const paddingHVar = getComponentLevelCssVar('TableFooter', 'padding-horizontal')
   const paddingVVar = getComponentLevelCssVar('TableFooter', 'padding-vertical')
-  const dividerSizeVar = getComponentLevelCssVar('TableFooter', 'divider-size')
+  const verticalMarginVar = getComponentLevelCssVar('TableFooter', 'vertical-margin')
+  const horizontalDividerSizeVar = getComponentLevelCssVar('TableFooter', 'horizontal-divider-size')
+  const verticalDividerSizeVar = getComponentLevelCssVar('TableFooter', 'vertical-divider-size')
 
-  const textFamilyVar = getComponentTextCssVar('TableFooter', 'text-style', 'font-family')
-  const textSizeVar = getComponentTextCssVar('TableFooter', 'text-style', 'font-size')
-  const textWeightVar = getComponentTextCssVar('TableFooter', 'text-style', 'font-weight')
-  const textStyleVar = getComponentTextCssVar('TableFooter', 'text-style', 'font-style')
-  const textLetterSpacingVar = getComponentTextCssVar('TableFooter', 'text-style', 'letter-spacing')
-  const textLineHeightVar = getComponentTextCssVar('TableFooter', 'text-style', 'line-height')
-  const textCaseVar = getComponentTextCssVar('TableFooter', 'text-style', 'text-transform')
-  const textDecorationVar = getComponentTextCssVar('TableFooter', 'text-style', 'text-decoration')
+  const isCurrency = variant === 'currency'
+  const textComponent = isCurrency ? 'TableCell' : 'TableFooter'
+  const textStyleKey = isCurrency ? 'currency-style' : 'text-style'
+
+  const textFamilyVar = getComponentTextCssVar(textComponent, textStyleKey, 'font-family')
+  const textSizeVar = getComponentTextCssVar(textComponent, textStyleKey, 'font-size')
+  const textWeightVar = getComponentTextCssVar(textComponent, textStyleKey, 'font-weight')
+  const textStyleVar = getComponentTextCssVar(textComponent, textStyleKey, 'font-style')
+  const textLetterSpacingVar = getComponentTextCssVar(textComponent, textStyleKey, 'letter-spacing')
+  const textLineHeightVar = getComponentTextCssVar(textComponent, textStyleKey, 'line-height')
+  const textCaseVar = getComponentTextCssVar(textComponent, textStyleKey, 'text-transform')
+  const textDecorationVar = getComponentTextCssVar(textComponent, textStyleKey, 'text-decoration')
 
   const textColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'text-color-enabled')
   const cellColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'cell-color-enabled')
-  const dividerColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'divider-color')
+  const horizontalDividerColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'horizontal-divider-color')
+  const verticalDividerColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'vertical-divider-color')
 
   return (
     <MantineTable.Td
@@ -39,8 +47,11 @@ export default function TableFooter({
       style={{
         ['--table-footer-padding-h' as string]: `var(${paddingHVar})`,
         ['--table-footer-padding-v' as string]: `var(${paddingVVar})`,
-        ['--table-footer-divider-size' as string]: `var(${dividerSizeVar})`,
-        ['--table-footer-divider-color' as string]: `var(${dividerColorVar})`,
+        ['--table-footer-vertical-margin' as string]: `var(${verticalMarginVar})`,
+        ['--table-footer-horizontal-divider-size' as string]: `var(${horizontalDividerSizeVar})`,
+        ['--table-footer-horizontal-divider-color' as string]: `var(${horizontalDividerColorVar})`,
+        ['--table-footer-vertical-divider-size' as string]: `var(${verticalDividerSizeVar})`,
+        ['--table-footer-vertical-divider-color' as string]: `var(${verticalDividerColorVar})`,
         ['--table-footer-bg' as string]: `var(${cellColorVar})`,
         ['--table-footer-color' as string]: `var(${textColorVar})`,
         ['--table-footer-font-family' as string]: `var(${textFamilyVar})`,
@@ -56,7 +67,9 @@ export default function TableFooter({
       {...mantine}
       {...props}
     >
-      {children}
+      <div className="recursica-table-footer-content">
+        {children}
+      </div>
     </MantineTable.Td>
   )
 }

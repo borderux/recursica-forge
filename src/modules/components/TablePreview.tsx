@@ -328,7 +328,7 @@ export default function TablePreview({
                 Priority
               </TableHeader>
               <TableHeader
-                style={headerTextStyle}
+                style={{ ...headerTextStyle, textAlign: 'right' }}
                 layer={selectedLayer as any}
                 sorted={sortField === 'loot' ? (sortAsc ? 'asc' : 'desc') : null}
                 onClick={() => handleSort('loot')}
@@ -381,10 +381,16 @@ export default function TablePreview({
                       layer={selectedLayer as any}
                     >
                       <Badge
+                        variant={
+                          row.status === 'Stable'
+                            ? 'success'
+                            : row.status === 'In Progress'
+                            ? 'warn'
+                            : row.status === 'Deprecated'
+                            ? 'alert'
+                            : 'primary-color'
+                        }
                         style={{
-                          backgroundColor: statusStyles.bg,
-                          color: statusStyles.text,
-                          border: `1px solid ${statusStyles.dot}`,
                           display: 'inline-flex',
                           alignItems: 'center',
                         }}
@@ -406,7 +412,7 @@ export default function TablePreview({
                     </TableCell>
                     {/* Loot Value GP */}
                     <TableCell variant="currency" layer={selectedLayer as any}>
-                      <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
+                      <span>
                         {row.loot.toLocaleString()} GP
                       </span>
                     </TableCell>
@@ -427,7 +433,7 @@ export default function TablePreview({
                           layer={selectedLayer as any}
                           sizeVariant="small"
                         />
-                        <span style={{ fontSize: '0.9em' }}>{row.assignee.name}</span>
+                        <span>{row.assignee.name}</span>
                       </div>
                     </TableCell>
                   </tr>
@@ -455,8 +461,8 @@ export default function TablePreview({
               <TableFooter layer={selectedLayer as any} />
               <TableFooter layer={selectedLayer as any} />
               <TableFooter layer={selectedLayer as any} />
-              <TableFooter layer={selectedLayer as any}>
-                <span style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
+              <TableFooter variant="currency" style={{ textAlign: 'right' }} layer={selectedLayer as any}>
+                <span style={{ fontWeight: 'bold' }}>
                   {useMemo(() => processedData.reduce((sum, r) => sum + r.loot, 0).toLocaleString(), [processedData])} GP
                 </span>
               </TableFooter>

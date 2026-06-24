@@ -14658,6 +14658,10 @@
             "$type": "dimension",
             "$value": "{ui-kit.globals.table.cell.padding-vertical}"
           },
+          "vertical-margin": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.none}"
+          },
           "label-sort-gap": {
             "$type": "dimension",
             "$value": "{brand.dimensions.general.sm}"
@@ -14669,10 +14673,17 @@
               "unit": "px"
             }
           },
-          "divider-size": {
+          "horizontal-divider-size": {
             "$type": "dimension",
             "$value": {
               "value": 2,
+              "unit": "px"
+            }
+          },
+          "vertical-divider-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 0,
               "unit": "px"
             }
           },
@@ -14778,7 +14789,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.elements.text.color}"
               },
-              "divider-color": {
+              "horizontal-divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.border-color}"
+              },
+              "vertical-divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.properties.border-color}"
               }
@@ -14816,7 +14831,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.text.color}"
               },
-              "divider-color": {
+              "horizontal-divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
+              },
+              "vertical-divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.border-color}"
               }
@@ -14854,7 +14873,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.text.color}"
               },
-              "divider-color": {
+              "horizontal-divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
+              },
+              "vertical-divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.properties.border-color}"
               }
@@ -14892,7 +14915,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.elements.text.color}"
               },
-              "divider-color": {
+              "horizontal-divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              },
+              "vertical-divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.properties.border-color}"
               }
@@ -14910,10 +14937,21 @@
             "$type": "dimension",
             "$value": "{ui-kit.globals.table.cell.padding-vertical}"
           },
-          "divider-size": {
+          "vertical-margin": {
+            "$type": "dimension",
+            "$value": "{brand.dimensions.general.none}"
+          },
+          "horizontal-divider-size": {
             "$type": "dimension",
             "$value": {
               "value": 1,
+              "unit": "px"
+            }
+          },
+          "vertical-divider-size": {
+            "$type": "dimension",
+            "$value": {
+              "value": 0,
               "unit": "px"
             }
           },
@@ -14969,7 +15007,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.properties.surface}"
               },
-              "divider-color": {
+              "horizontal-divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.border-color}"
+              },
+              "vertical-divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.properties.border-color}"
               }
@@ -14991,7 +15033,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.surface}"
               },
-              "divider-color": {
+              "horizontal-divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.border-color}"
+              },
+              "vertical-divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.border-color}"
               }
@@ -15013,7 +15059,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.properties.surface}"
               },
-              "divider-color": {
+              "horizontal-divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.border-color}"
+              },
+              "vertical-divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.properties.border-color}"
               }
@@ -15035,7 +15085,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.properties.surface}"
               },
-              "divider-color": {
+              "horizontal-divider-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.border-color}"
+              },
+              "vertical-divider-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.properties.border-color}"
               }

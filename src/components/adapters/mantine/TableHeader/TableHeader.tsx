@@ -23,9 +23,11 @@ export default function TableHeader({
 
   const paddingHVar = getComponentLevelCssVar('TableHeader', 'padding-horizontal')
   const paddingVVar = getComponentLevelCssVar('TableHeader', 'padding-vertical')
+  const verticalMarginVar = getComponentLevelCssVar('TableHeader', 'vertical-margin')
   const labelSortGapVar = getComponentLevelCssVar('TableHeader', 'label-sort-gap')
   const iconSizeVar = getComponentLevelCssVar('TableHeader', 'icon-size')
-  const dividerSizeVar = getComponentLevelCssVar('TableHeader', 'divider-size')
+  const horizontalDividerSizeVar = getComponentLevelCssVar('TableHeader', 'horizontal-divider-size')
+  const verticalDividerSizeVar = getComponentLevelCssVar('TableHeader', 'vertical-divider-size')
 
   const textFamilyVar = getComponentTextCssVar('TableHeader', textStyleGroupName, 'font-family')
   const textSizeVar = getComponentTextCssVar('TableHeader', textStyleGroupName, 'font-size')
@@ -39,7 +41,8 @@ export default function TableHeader({
   // Colors
   let textColorVar = ''
   let cellColorVar = ''
-  let dividerColorVar = buildComponentCssVarPath('TableHeader', 'properties', 'colors', layer, 'divider-color')
+  const horizontalDividerColorVar = buildComponentCssVarPath('TableHeader', 'properties', 'colors', layer, 'horizontal-divider-color')
+  const verticalDividerColorVar = buildComponentCssVarPath('TableHeader', 'properties', 'colors', layer, 'vertical-divider-color')
 
   if (disabled) {
     textColorVar = buildComponentCssVarPath('TableHeader', 'properties', 'colors', layer, 'text-color-disabled')
@@ -61,10 +64,13 @@ export default function TableHeader({
       style={{
         ['--table-header-padding-h' as string]: `var(${paddingHVar})`,
         ['--table-header-padding-v' as string]: `var(${paddingVVar})`,
+        ['--table-header-vertical-margin' as string]: `var(${verticalMarginVar})`,
         ['--table-header-label-sort-gap' as string]: `var(${labelSortGapVar})`,
         ['--table-header-icon-size' as string]: `var(${iconSizeVar})`,
-        ['--table-header-divider-size' as string]: `var(${dividerSizeVar})`,
-        ['--table-header-divider-color' as string]: `var(${dividerColorVar})`,
+        ['--table-header-horizontal-divider-size' as string]: `var(${horizontalDividerSizeVar})`,
+        ['--table-header-horizontal-divider-color' as string]: `var(${horizontalDividerColorVar})`,
+        ['--table-header-vertical-divider-size' as string]: `var(${verticalDividerSizeVar})`,
+        ['--table-header-vertical-divider-color' as string]: `var(${verticalDividerColorVar})`,
         ['--table-header-bg' as string]: `var(${cellColorVar})`,
         ['--table-header-color' as string]: `var(${textColorVar})`,
         ['--table-header-font-family' as string]: `var(${textFamilyVar})`,

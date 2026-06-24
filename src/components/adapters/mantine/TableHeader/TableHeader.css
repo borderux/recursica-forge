@@ -12,13 +12,28 @@
   line-height: var(--table-header-line-height) !important;
   text-transform: var(--table-header-text-case) !important;
   text-decoration: var(--table-header-text-decoration) !important;
-  border-bottom: var(--table-header-divider-size, 2px) solid var(--table-header-divider-color, transparent) !important;
+  border-bottom: var(--table-header-horizontal-divider-size, 2px) solid var(--table-header-horizontal-divider-color, transparent) !important;
+  border-right: none !important;
+  position: relative !important;
+  vertical-align: middle !important;
+}
+
+.recursica-table.mantine-table th.recursica-table-header.mantine-table-header:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: var(--table-header-vertical-margin, 0px);
+  bottom: var(--table-header-vertical-margin, 0px);
+  width: var(--table-header-vertical-divider-size, 0px);
+  background-color: var(--table-header-vertical-divider-color, transparent);
 }
 
 .recursica-table-header-content {
   display: inline-flex !important;
   align-items: center !important;
   vertical-align: middle !important;
+  margin-top: var(--table-header-vertical-margin, 0px) !important;
+  margin-bottom: var(--table-header-vertical-margin, 0px) !important;
 }
 
 .recursica-table-header-sort-icon {
