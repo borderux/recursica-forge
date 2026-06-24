@@ -1,5 +1,11 @@
 # recursica-forge
 
+## 0.21.1
+
+### Patch Changes
+
+- 81825c2: Fix sticky scrolling on the component preview page by removing `overflow: hidden` from the main content container and applying matching border radii directly to the preview and toolbar panels.
+
 ## 0.21.0
 
 ### Minor Changes
