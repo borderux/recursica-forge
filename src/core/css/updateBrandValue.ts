@@ -46,7 +46,7 @@ export function updateBrandValue(cssVar: string, value: string): boolean {
     jsonValue = resolvedRef
     if (path.length > 2 && path[0] === 'brand' && path[1] === 'themes' && (path[2] === 'light' || path[2] === 'dark')) {
       const mode = path[2]
-      if (typeof jsonValue === 'string' && jsonValue.startsWith('{brand.') && !jsonValue.startsWith('{brand.themes.')) {
+      if (typeof jsonValue === 'string' && jsonValue.startsWith('{brand.') && !jsonValue.startsWith('{brand.themes.') && !jsonValue.startsWith('{brand.dimensions.') && !jsonValue.startsWith('{brand.typography.')) {
         jsonValue = jsonValue.replace('{brand.', `{brand.themes.${mode}.`)
       }
     }

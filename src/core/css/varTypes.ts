@@ -26,8 +26,10 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
 
   const trimmed = value.trim()
 
-  // If already a var() reference, return as-is
-  if (trimmed.startsWith('var(')) return value
+  // If it contains a token reference anywhere in it (e.g. inside calc() or var()), allow it
+  if (trimmed.includes('var(--recursica_tokens_') || trimmed.includes('var(--tokens-') || trimmed.startsWith('var(')) {
+    return value
+  }
 
   // If it's a hex/RGB value, this is an error
   if (/^#?[0-9a-f]{6}$/i.test(trimmed) || trimmed.startsWith('rgb') || trimmed.startsWith('rgba')) {
@@ -38,17 +40,6 @@ export function enforceBrandVarValue(cssVarName: string, value: string): string 
   if (cssVarName.includes('font-family')) {
     // Allow font-family values that look like valid CSS font-family declarations
     if (/^["']?[^"']+["']?\s*,\s*[^,]+/.test(trimmed) || /^["']?[^"']+["']?$/.test(trimmed)) {
-      return value
-    }
-  }
-
-  // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
-  // This allows mode-specific elevation values without token conflicts
-  if (cssVarName.includes('elevation') &&
-    (cssVarName.includes('_blur') || cssVarName.includes('_spread') ||
-      cssVarName.includes('_x-axis') || cssVarName.includes('_y-axis'))) {
-    // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
-    if (/^-?\d+px$/.test(trimmed)) {
       return value
     }
   }
@@ -84,16 +75,6 @@ export function validateCssVarValue(cssVarName: string, value: string): { valid:
       // Allow direct elevation names (e.g., "elevation-0", "elevation-1")
       if (/^elevation-\d+$/.test(trimmed)) {
         return { valid: true }
-      }
-      // Special case: elevation size properties (blur, spread, x-axis, y-axis) can use direct pixel values
-      // This allows mode-specific elevation values without token conflicts
-      // Tokens are shared between modes, so we bypass them for mode-specific elevation properties
-      if (cssVarName.includes('_blur') || cssVarName.includes('_spread') ||
-        cssVarName.includes('_x-axis') || cssVarName.includes('_y-axis')) {
-        // Allow pixel values like "0px", "4px", "-2px", etc. (including negative values)
-        if (/^-?\d+px$/.test(trimmed)) {
-          return { valid: true }
-        }
       }
       // Allow shadow-color values that use color-mix() with palette, brand, or token references
       if (cssVarName.includes('_shadow-color')) {

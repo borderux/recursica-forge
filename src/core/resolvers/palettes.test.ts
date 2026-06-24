@@ -62,14 +62,14 @@ describe('buildPaletteVars', () => {
             }
           },
           'text-emphasis': {
-            high: { $value: '{tokens.opacity.solid}' },
-            low: { $value: '{tokens.opacity.smoky}' }
+            high: { $value: '{tokens.opacities.solid}' },
+            low: { $value: '{tokens.opacities.smoky}' }
           },
           state: {
-            disabled: { $value: '{tokens.opacity.smoky}' },
+            disabled: { $value: '{tokens.opacities.smoky}' },
             overlay: {
               color: { $value: '{tokens.colors.scale-02.900}' },
-              opacity: { $value: '{tokens.opacity.smoky}' }
+              opacity: { $value: '{tokens.opacities.smoky}' }
             }
           }
         },

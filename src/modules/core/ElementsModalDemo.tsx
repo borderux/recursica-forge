@@ -22,7 +22,7 @@ export default function ElementsModalDemo() {
       const themeCopy = getVarsStore().getLatestThemeCopy()
       const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
       const themes = root?.themes || root
-      const newValue = `{tokens.opacity.${tokenKey}}`
+      const newValue = `{tokens.opacities.${tokenKey}}`
 
       // Update both modes
       for (const mk of ['light', 'dark']) {

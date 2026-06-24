@@ -2673,10 +2673,14 @@ class VarsStore {
               vars[`${prefixedScope}_shadow-color`] = shadowColorForLevel(i, allPaletteVars)
             }
 
-            vars[`${prefixedScope}_blur`] = `${blurValue}px`
-            vars[`${prefixedScope}_spread`] = `${spreadValue}px`
-            vars[`${prefixedScope}_x-axis`] = `${dir.x === 'right' ? xValue : -xValue}px`
-            vars[`${prefixedScope}_y-axis`] = `${dir.y === 'down' ? yValue : -yValue}px`
+            vars[`${prefixedScope}_blur`] = `var(${tokenSize(`elevation-${i}-blur`)})`
+            vars[`${prefixedScope}_spread`] = `var(${tokenSize(`elevation-${i}-spread`)})`
+            vars[`${prefixedScope}_x-axis`] = dir.x === 'right' 
+              ? `var(${tokenSize(`elevation-${i}-offset-x`)})` 
+              : `calc(-1 * var(${tokenSize(`elevation-${i}-offset-x`)}))`
+            vars[`${prefixedScope}_y-axis`] = dir.y === 'down' 
+              ? `var(${tokenSize(`elevation-${i}-offset-y`)})` 
+              : `calc(-1 * var(${tokenSize(`elevation-${i}-offset-y`)}))`
           }
           Object.assign(allVars, vars)
         } catch (e) {

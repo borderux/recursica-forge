@@ -162,7 +162,7 @@ export default function OverlayTokenPicker({ anchorElement, onClose }: OverlayTo
           
           themes[modeLower].states.overlay.opacity = {
             $type: 'number',
-            $value: `{tokens.opacity.${tokenKey}}`
+            $value: `{tokens.opacities.${tokenKey}}`
           }
           
           getVarsStore().setThemeSilent(themeCopy)

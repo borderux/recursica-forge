@@ -34,7 +34,7 @@ function traverseDimensions(
       // Dimensions are now at brand level, so CSS vars don't include mode
       const cssVarName = `--recursica_brand_dimensions_${currentPath.join('_')}`
 
-      // Check if value is a token reference (e.g., {tokens.size.2x})
+      // Check if value is a token reference (e.g., {tokens.sizes.2x})
       if (typeof val === 'string') {
         const context: TokenReferenceContext = {
           tokenIndex

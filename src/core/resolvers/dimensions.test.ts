@@ -18,15 +18,15 @@ describe('buildDimensionVars', () => {
       dimensions: {
         sm: {
           $type: 'number',
-          $value: '{tokens.size.sm}'
+          $value: '{tokens.sizes.sm}'
         },
         md: {
           $type: 'number',
-          $value: '{tokens.size.md}'
+          $value: '{tokens.sizes.md}'
         },
         lg: {
           $type: 'number',
-          $value: '{tokens.size.lg}'
+          $value: '{tokens.sizes.lg}'
         },
         'border-radius': {
           default: {

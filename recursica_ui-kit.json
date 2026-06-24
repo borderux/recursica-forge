@@ -545,7 +545,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 },
                 "disabled-opacity": {
                   "$type": "number",
@@ -632,7 +632,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 },
                 "disabled-opacity": {
                   "$type": "number",
@@ -4245,7 +4245,7 @@
           },
           "hover-opacity": {
             "$type": "number",
-            "$value": "{tokens.opacity.mist}"
+            "$value": "{tokens.opacities.mist}"
           }
         }
       },
@@ -4929,7 +4929,7 @@
           },
           "hover-opacity": {
             "$type": "number",
-            "$value": "{tokens.opacity.mist}"
+            "$value": "{tokens.opacities.mist}"
           }
         }
       },
@@ -10756,7 +10756,7 @@
           },
           "hover-opacity": {
             "$type": "number",
-            "$value": "{tokens.opacity.mist}"
+            "$value": "{tokens.opacities.mist}"
           }
         }
       },
