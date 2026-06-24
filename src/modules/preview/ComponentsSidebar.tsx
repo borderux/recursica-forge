@@ -14,6 +14,7 @@ import { getBrandStateCssVar } from '../../components/utils/brandCssVars'
 import { iconNameToReactComponent } from '../components/iconUtils'
 import { SidebarFooter } from '../app/SidebarFooter'
 import { genericLayerProperty, genericLayerText, paletteCore } from '../../core/css/cssVarBuilder'
+import { Tree } from '../../components/adapters/Tree'
 
 type ComponentItem = {
   name: string
@@ -114,6 +115,10 @@ export function ComponentsSidebar({
       { name: 'Stepper', url: `${base}/stepper` },
       { name: 'Switch group', url: `${base}/switch-group` },
       { name: 'Switch group item', url: `${base}/switch-group-item` },
+      { name: 'Table', url: `${base}/table` },
+      { name: 'Table cell', url: `${base}/table-cell` },
+      { name: 'Table header', url: `${base}/table-header` },
+      { name: 'Table footer', url: `${base}/table-footer` },
       { name: 'Tabs', url: `${base}/tabs` },
       { name: 'Text field', url: `${base}/text-field` },
       { name: 'Textarea', url: `${base}/textarea` },
@@ -123,6 +128,7 @@ export function ComponentsSidebar({
       { name: 'Toast', url: `${base}/toast` },
       { name: 'Tooltip', url: `${base}/tooltip` },
       { name: 'Transfer list', url: `${base}/transfer-list` },
+      { name: 'Tree', url: `${base}/tree` },
     ]
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(comp => ({
@@ -137,23 +143,32 @@ export function ComponentsSidebar({
   // Build tree structure: group items ending with " item" under their parent
   const componentTree = useMemo(() => {
     const tree: TreeNode[] = []
-    const itemMap = new Map<string, ComponentItem>()
+    const itemMap = new Map<string, ComponentItem[]>()
     const parentMap = new Map<string, TreeNode>()
 
     // First pass: separate parents and child items
     allComponents.forEach(comp => {
-      const isItem = comp.name.endsWith(' item') || comp.name.endsWith(' bullet')
+      const isItem = comp.name.endsWith(' item') || comp.name.endsWith(' bullet') || comp.name.endsWith(' cell') || comp.name.endsWith(' header') || comp.name.endsWith(' footer')
       // Derive parent name by stripping the suffix
       let parentName = comp.name
       if (comp.name.endsWith(' item')) {
         parentName = comp.name.replace(/ item$/, '')
       } else if (comp.name.endsWith(' bullet')) {
         parentName = comp.name.replace(/ bullet$/, '')
+      } else if (comp.name.endsWith(' cell')) {
+        parentName = comp.name.replace(/ cell$/, '')
+      } else if (comp.name.endsWith(' header')) {
+        parentName = comp.name.replace(/ header$/, '')
+      } else if (comp.name.endsWith(' footer')) {
+        parentName = comp.name.replace(/ footer$/, '')
       }
 
       if (isItem) {
         // Store item for second pass
-        itemMap.set(parentName, comp)
+        if (!itemMap.has(parentName)) {
+          itemMap.set(parentName, [])
+        }
+        itemMap.get(parentName)!.push(comp)
       } else {
         // Create parent node
         const node: TreeNode = {
@@ -169,14 +184,14 @@ export function ComponentsSidebar({
     // Second pass: attach items to their parents
     // If parent exists in tree, attach item to it
     // If parent doesn't exist but item should be shown, create parent node from baseComponents
-    itemMap.forEach((item, parentName) => {
+    itemMap.forEach((items, parentName) => {
       const parentNode = parentMap.get(parentName)
       if (parentNode) {
-        // Parent exists, attach item
+        // Parent exists, attach items
         if (!parentNode.children) {
           parentNode.children = []
         }
-        parentNode.children.push(item as TreeNode)
+        parentNode.children.push(...(items as TreeNode[]))
       } else {
         // Parent doesn't exist in filtered list, but item should be shown
         // Find parent in baseComponents to get its URL and create parent node
@@ -187,7 +202,7 @@ export function ComponentsSidebar({
             name: parentName,
             url: parentBase.url,
             isMapped: parentBase.isMapped,
-            children: [item as TreeNode],
+            children: items as TreeNode[],
           }
           tree.push(newNode)
           parentMap.set(parentName, newNode)
@@ -213,29 +228,45 @@ export function ComponentsSidebar({
 
   const currentComponent = getCurrentComponent()
 
-  // Track expanded nodes
-  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
-
-  // Auto-expand parent if child is active
-  useEffect(() => {
-    if (currentComponent) {
-      const parentNode = componentTree.find(node =>
-        node.children?.some(child => child.name === currentComponent)
-      )
-      if (parentNode) {
-        setExpandedNodes(prev => new Set([...prev, parentNode.name]))
-      }
-    }
+  const parentNodeName = useMemo(() => {
+    if (!currentComponent) return ''
+    const parentNode = componentTree.find(node =>
+      node.children?.some(child => child.name === currentComponent)
+    )
+    return parentNode ? parentNode.name : ''
   }, [currentComponent, componentTree])
 
-
-
-
-  const interactiveColor = paletteCore(mode, 'interactive', 'tone')
+  const treeData = useMemo(() => {
+    return componentTree.map(node => ({
+      value: node.name,
+      label: node.name,
+      children: node.children?.map(child => {
+        const displayLabel = (() => {
+          const parentName = node.name.toLowerCase()
+          const childName = child.name.toLowerCase()
+          if (childName.startsWith(parentName + ' ')) {
+            const suffix = child.name.substring(node.name.length + 1)
+            return suffix.charAt(0).toUpperCase() + suffix.slice(1)
+          }
+          return child.name
+        })()
+        return {
+          value: child.name,
+          label: displayLabel,
+        }
+      })
+    }))
+  }, [componentTree])
 
   const handleNavClick = (componentName: string) => {
     const slug = componentNameToSlug(componentName)
     navigate(`/components/${slug}`)
+  }
+
+  const handleSelect = (selectedKeys: string[]) => {
+    if (selectedKeys.length > 0) {
+      handleNavClick(selectedKeys[0])
+    }
   }
 
   return (
@@ -259,200 +290,22 @@ export function ComponentsSidebar({
         flexShrink: 0,
       }}
     >
-      {/* Navigation Items */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', flex: 1, minHeight: 0, overflow: 'auto' }}>
-        {componentTree.map((node) => {
-          const hasChildren = node.children && node.children.length > 0
-          const isExpanded = expandedNodes.has(node.name)
-          const isActive = currentComponent === node.name
-          const isUnmapped = !node.isMapped
-          const disabledOpacity = getBrandStateCssVar(mode, 'disabled')
-
-          const ChevronRightIcon = iconNameToReactComponent('chevron-right')
-          const ChevronDownIcon = iconNameToReactComponent('chevron-down')
-
-          const toggleExpand = (e: React.MouseEvent) => {
-            e.stopPropagation()
-            setExpandedNodes(prev => {
-              const next = new Set(prev)
-              if (isExpanded) {
-                next.delete(node.name)
-              } else {
-                next.add(node.name)
-              }
-              return next
-            })
-          }
-
-          return (
-            <div key={node.name} style={{ display: 'flex', flexDirection: 'column' }}>
-              {/* Parent Node */}
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {hasChildren && (
-                  <button
-                    onClick={toggleExpand}
-                    style={{
-                      border: 'none',
-                      background: 'transparent',
-                      cursor: 'pointer',
-                      padding: 'var(--recursica_brand_dimensions_general_default)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: `var(${genericLayerText(0, 'color')})`,
-                      opacity: `var(${genericLayerText(0, 'low-emphasis')})`,
-                    }}
-                    aria-label={isExpanded ? 'Collapse' : 'Expand'}
-                  >
-                    {isExpanded && ChevronDownIcon ? (
-                      <ChevronDownIcon style={{ width: '16px', height: '16px' }} />
-                    ) : ChevronRightIcon ? (
-                      <ChevronRightIcon style={{ width: '16px', height: '16px' }} />
-                    ) : null}
-                  </button>
-                )}
-                {!hasChildren && (
-                  <div style={{ width: '32px' }} />
-                )}
-                <button
-                  onClick={() => {
-                    // Auto-expand if node has children
-                    if (hasChildren && !isExpanded) {
-                      setExpandedNodes(prev => new Set([...prev, node.name]))
-                    }
-                    handleNavClick(node.name)
-                  }}
-                  style={{
-                    flex: 1,
-                    textAlign: 'left',
-                    padding: 'var(--recursica_brand_dimensions_general_default) var(--recursica_brand_dimensions_general_md)',
-                    borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
-                    border: 'none',
-                    background: 'transparent',
-                    color: `var(${genericLayerText(0, 'color')})`,
-                    opacity: isActive
-                      ? `var(${genericLayerText(0, 'high-emphasis')})`
-                      : isUnmapped
-                        ? `var(${disabledOpacity})`
-                        : `var(${genericLayerText(0, 'low-emphasis')})`,
-                    cursor: 'pointer',
-                    transition: 'opacity 0.2s',
-                    position: 'relative',
-                    fontFamily: 'var(--recursica_brand_typography_body-font-family)',
-                    fontSize: 'var(--recursica_brand_typography_body-font-size)',
-                    fontWeight: isActive ? 600 : 'var(--recursica_brand_typography_body-font-weight)',
-                    letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
-                    lineHeight: 'var(--recursica_brand_typography_body-line-height)',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive && !isUnmapped) {
-                      e.currentTarget.style.opacity = `var(${genericLayerText(0, 'high-emphasis')})`
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.opacity = isUnmapped
-                        ? `var(${disabledOpacity})`
-                        : `var(${genericLayerText(0, 'low-emphasis')})`
-                    }
-                  }}
-                >
-                  {/* Active indicator - red vertical bar */}
-                  {isActive && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: '3px',
-                        backgroundColor: `var(${interactiveColor})`,
-                        borderRadius: '0 2px 2px 0',
-                      }}
-                    />
-                  )}
-                  {node.name}
-                </button>
-              </div>
-
-              {/* Children Nodes */}
-              {hasChildren && isExpanded && node.children && (
-                <div style={{ display: 'flex', flexDirection: 'column', paddingLeft: '48px' }}>
-                  {node.children.map((child) => {
-                    const isChildActive = currentComponent === child.name
-                    const isChildUnmapped = !child.isMapped
-
-                    return (
-                      <button
-                        key={child.name}
-                        onClick={() => handleNavClick(child.name)}
-                        style={{
-                          textAlign: 'left',
-                          padding: 'var(--recursica_brand_dimensions_general_default) var(--recursica_brand_dimensions_general_md)',
-                          paddingLeft: 'var(--recursica_brand_dimensions_general_lg)',
-                          borderRadius: 'var(--recursica_brand_dimensions_border-radii_default)',
-                          border: 'none',
-                          background: 'transparent',
-                          color: `var(${genericLayerText(0, 'color')})`,
-                          opacity: isChildActive
-                            ? `var(${genericLayerText(0, 'high-emphasis')})`
-                            : isChildUnmapped
-                              ? `var(${disabledOpacity})`
-                              : `var(${genericLayerText(0, 'low-emphasis')})`,
-                          cursor: 'pointer',
-                          transition: 'opacity 0.2s',
-                          position: 'relative',
-                          fontFamily: 'var(--recursica_brand_typography_body-font-family)',
-                          fontSize: 'var(--recursica_brand_typography_body-font-size)',
-                          fontWeight: isChildActive ? 600 : 'var(--recursica_brand_typography_body-font-weight)',
-                          letterSpacing: 'var(--recursica_brand_typography_body-font-letter-spacing)',
-                          lineHeight: 'var(--recursica_brand_typography_body-line-height)',
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isChildActive && !isChildUnmapped) {
-                            e.currentTarget.style.opacity = `var(${genericLayerText(0, 'high-emphasis')})`
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isChildActive) {
-                            e.currentTarget.style.opacity = isChildUnmapped
-                              ? `var(${disabledOpacity})`
-                              : `var(${genericLayerText(0, 'low-emphasis')})`
-                          }
-                        }}
-                      >
-                        {/* Active indicator - red vertical bar */}
-                        {isChildActive && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              left: 0,
-                              top: 0,
-                              bottom: 0,
-                              width: '3px',
-                              backgroundColor: `var(${interactiveColor})`,
-                              borderRadius: '0 2px 2px 0',
-                            }}
-                          />
-                        )}
-                        {/* Display the suffix after the parent name, capitalized */}
-                        {(() => {
-                          const parentName = node.name.toLowerCase()
-                          const childName = child.name.toLowerCase()
-                          if (childName.startsWith(parentName + ' ')) {
-                            const suffix = child.name.substring(node.name.length + 1)
-                            return suffix.charAt(0).toUpperCase() + suffix.slice(1)
-                          }
-                          return child.name
-                        })()}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )
-        })}
+      <nav style={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+        overflow: 'auto',
+        marginTop: '60px',
+        marginBottom: '60px',
+      }}>
+        <Tree
+          data={treeData}
+          selected={currentComponent ? [currentComponent] : []}
+          onSelect={handleSelect}
+          layer="layer-0"
+          style={{ width: '100%' }}
+        />
       </nav>
 
       <SidebarFooter />

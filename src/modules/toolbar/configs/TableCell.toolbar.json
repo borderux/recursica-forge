@@ -1,0 +1,78 @@
+{
+  "variants": {},
+  "props": {
+    "spacing": {
+      "icon": "arrows-pointing-out",
+      "label": "Spacing",
+      "visible": true,
+      "group": {
+        "padding-horizontal": {
+          "label": "Padding horizontal",
+          "visible": true,
+          "floatingPaletteLabel": "Horizontal Padding"
+        },
+        "padding-vertical": {
+          "label": "Padding vertical",
+          "visible": true,
+          "floatingPaletteLabel": "Vertical Padding"
+        }
+      }
+    },
+    "layout": {
+      "icon": "arrows-pointing-out",
+      "label": "Layout",
+      "visible": true,
+      "group": {
+        "max-width": {
+          "label": "Max width",
+          "visible": true,
+          "floatingPaletteLabel": "Max Width"
+        }
+      }
+    },
+    "enabled-colors": {
+      "icon": "paint-bucket",
+      "label": "Enabled",
+      "visible": true,
+      "group": {
+        "cell-color-enabled": {
+          "label": "Background",
+          "visible": true,
+          "floatingPaletteLabel": "Background"
+        },
+        "text-color-enabled": {
+          "label": "Text",
+          "visible": true,
+          "floatingPaletteLabel": "Text"
+        }
+      }
+    },
+    "disabled-colors": {
+      "icon": "paint-bucket",
+      "label": "Disabled",
+      "visible": true,
+      "group": {
+        "cell-color-disabled": {
+          "label": "Background",
+          "visible": true,
+          "floatingPaletteLabel": "Background"
+        },
+        "text-color-disabled": {
+          "label": "Text",
+          "visible": true,
+          "floatingPaletteLabel": "Text"
+        }
+      }
+    },
+    "text-style": {
+      "icon": "text-aa",
+      "label": "Text Style",
+      "visible": true
+    },
+    "currency-style": {
+      "icon": "text-aa",
+      "label": "Currency Style",
+      "visible": true
+    }
+  }
+}

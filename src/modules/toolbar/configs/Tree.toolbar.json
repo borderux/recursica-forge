@@ -1,0 +1,217 @@
+{
+  "variants": {},
+  "props": {
+    "spacing": {
+      "icon": "arrows-pointing-out",
+      "label": "Spacing",
+      "visible": true,
+      "group": {
+        "indent": {
+          "label": "Indent",
+          "visible": true,
+          "floatingPaletteLabel": "Indent"
+        },
+        "item-gap": {
+          "label": "Item gap",
+          "visible": true,
+          "floatingPaletteLabel": "Item Gap"
+        },
+        "vertical-padding": {
+          "label": "Vertical padding",
+          "visible": true,
+          "floatingPaletteLabel": "Vertical Padding"
+        },
+        "horizontal-padding": {
+          "label": "Horizontal padding",
+          "visible": true,
+          "floatingPaletteLabel": "Horizontal Padding"
+        },
+        "button-node-gap": {
+          "label": "Button-node gap",
+          "visible": true,
+          "floatingPaletteLabel": "Button-node Gap"
+        }
+      }
+    },
+    "dimensions": {
+      "icon": "arrows-left-right",
+      "label": "Dimensions",
+      "visible": true,
+      "group": {
+        "max-width": {
+          "label": "Max width",
+          "visible": true,
+          "floatingPaletteLabel": "Maximum Width",
+          "range": [
+            100,
+            2000
+          ]
+        },
+        "border-size": {
+          "label": "Border size",
+          "visible": true,
+          "floatingPaletteLabel": "Border Size",
+          "range": [
+            0,
+            10
+          ]
+        },
+        "border-radius": {
+          "label": "Border radius",
+          "visible": true,
+          "floatingPaletteLabel": "Border Radius"
+        }
+      }
+    },
+    "selected-colors": {
+      "icon": "paint-bucket",
+      "label": "Selected colors",
+      "visible": true,
+      "group": {
+        "selected-background": {
+          "label": "Background",
+          "visible": true,
+          "floatingPaletteLabel": "Background"
+        },
+        "selected-text": {
+          "label": "Text",
+          "visible": true,
+          "floatingPaletteLabel": "Text"
+        },
+        "selected-border-color": {
+          "label": "Border",
+          "visible": true,
+          "floatingPaletteLabel": "Border"
+        }
+      }
+    },
+    "unselected-colors": {
+      "icon": "paint-bucket",
+      "label": "Unselected colors",
+      "visible": true,
+      "group": {
+        "unselected-text": {
+          "label": "Text",
+          "visible": true,
+          "floatingPaletteLabel": "Text"
+        }
+      }
+    },
+    "hover-colors": {
+      "icon": "paint-bucket",
+      "label": "Hover colors",
+      "visible": true,
+      "group": {
+        "hover-background": {
+          "label": "Background",
+          "visible": true,
+          "floatingPaletteLabel": "Background"
+        },
+        "hover-text": {
+          "label": "Text",
+          "visible": true,
+          "floatingPaletteLabel": "Text"
+        },
+        "hover-border-color": {
+          "label": "Border",
+          "visible": true,
+          "floatingPaletteLabel": "Border"
+        }
+      }
+    },
+    "selected-text": {
+      "icon": "text-aa",
+      "label": "Selected Text",
+      "visible": true,
+      "group": {
+        "font-family": {
+          "icon": "text-aa",
+          "label": "Font family",
+          "visible": true
+        },
+        "font-size": {
+          "icon": "text-aa",
+          "label": "Font size",
+          "visible": true
+        },
+        "font-weight": {
+          "icon": "text-aa",
+          "label": "Font weight",
+          "visible": true
+        },
+        "letter-spacing": {
+          "icon": "text-aa",
+          "label": "Letter spacing",
+          "visible": true
+        },
+        "line-height": {
+          "icon": "text-aa",
+          "label": "Line height",
+          "visible": true
+        },
+        "text-decoration": {
+          "icon": "text-aa",
+          "label": "Text decoration",
+          "visible": true
+        },
+        "text-transform": {
+          "icon": "text-aa",
+          "label": "Text transform",
+          "visible": true
+        },
+        "font-style": {
+          "icon": "text-aa",
+          "label": "Font style",
+          "visible": true
+        }
+      }
+    },
+    "unselected-text": {
+      "icon": "text-aa",
+      "label": "Unselected Text",
+      "visible": true,
+      "group": {
+        "font-family": {
+          "icon": "text-aa",
+          "label": "Font family",
+          "visible": true
+        },
+        "font-size": {
+          "icon": "text-aa",
+          "label": "Font size",
+          "visible": true
+        },
+        "font-weight": {
+          "icon": "text-aa",
+          "label": "Font weight",
+          "visible": true
+        },
+        "letter-spacing": {
+          "icon": "text-aa",
+          "label": "Letter spacing",
+          "visible": true
+        },
+        "line-height": {
+          "icon": "text-aa",
+          "label": "Line height",
+          "visible": true
+        },
+        "text-decoration": {
+          "icon": "text-aa",
+          "label": "Text decoration",
+          "visible": true
+        },
+        "text-transform": {
+          "icon": "text-aa",
+          "label": "Text transform",
+          "visible": true
+        },
+        "font-style": {
+          "icon": "text-aa",
+          "label": "Font style",
+          "visible": true
+        }
+      }
+    }
+  }
+}

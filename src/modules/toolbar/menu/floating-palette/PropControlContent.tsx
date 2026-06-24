@@ -1467,6 +1467,9 @@ export default function PropControlContent({
     const isNumberInput = normalizedComponentName === 'number-input' || normalizedComponentName === 'number input'
     const isTooltip = componentName.toLowerCase() === 'tooltip'
     const isAssistiveElement = normalizedComponentName === 'assistive-element'
+    const isTree = componentName.toLowerCase() === 'tree'
+    const isTableCell = normalizedComponentName === 'table-cell'
+
 
 
     if (propToRender.type === 'color') {
@@ -1845,9 +1848,12 @@ export default function PropControlContent({
         propNameLower === 'padding-horizontal' ||
         propNameLower === 'bottom-padding' ||
         propNameLower === 'item-gap' ||
+        propNameLower === 'button-node-gap' ||
         propNameLower === 'icon-label-gap' ||
         propNameLower === 'divider-item-gap' ||
         propNameLower === 'track-inner-padding' ||
+        propNameLower === 'row-padding' ||
+        propNameLower === 'vertical-margin' ||
         (propNameLower === 'top-bottom-margin' && !(prop.isVariantSpecific && prop.variantProp === 'layout'))
 
       if (isPaddingProp && !isTextField && !isNumberInput) {
@@ -2200,6 +2206,100 @@ export default function PropControlContent({
 
         return (
           <ChipDimensionSlider
+            key={`${primaryVar}-${selectedVariants.size || ''}`}
+          />
+        )
+      }
+
+      // Use Slider component for Tree border-size and max-width properties
+      if (isTree && (propNameLower === 'border-size' || propNameLower === 'max-width')) {
+        const TreeDimensionSlider = () => {
+          let minValue = 0
+          let maxValue = 500
+          if (propNameLower === 'border-size') {
+            minValue = 0
+            maxValue = 10
+          } else if (propNameLower === 'max-width') {
+            minValue = 100
+            maxValue = 2000
+          }
+          const [value, setValue] = useState(() => {
+            const currentValue = readCssVar(primaryVar)
+            const resolvedValue = readCssVarResolved(primaryVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            return match ? Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))) : (propNameLower === 'max-width' ? 500 : 0)
+          })
+
+          useEffect(() => {
+            const handleUpdate = () => {
+              const currentValue = readCssVar(primaryVar)
+              const resolvedValue = readCssVarResolved(primaryVar)
+              const valueStr = resolvedValue || currentValue || '0px'
+              const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+              if (match) {
+                setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+              }
+            }
+            window.addEventListener('cssVarsUpdated', handleUpdate)
+            return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          }, [primaryVar, minValue, maxValue])
+
+          const handleChange = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              document.documentElement.style.setProperty(cssVar, `${clampedValue}px`)
+            })
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+            const numValue = typeof val === 'number' ? val : val[0]
+            const clampedValue = Math.max(minValue, Math.min(maxValue, Math.round(numValue)))
+            setValue(clampedValue)
+
+            // Update CSS vars directly with pixel value
+            const cssVarsToUpdate = cssVars.length > 0 ? cssVars : [primaryVar]
+            cssVarsToUpdate.forEach(cssVar => {
+              updateCssVar(cssVar, `${clampedValue}px`)
+            })
+            // Dispatch event to notify components of CSS var updates
+            window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+              detail: { cssVars: cssVarsToUpdate }
+            }))
+          }, [primaryVar, cssVars, minValue, maxValue])
+
+          const getValueLabel = useCallback((val: number) => {
+            return `${Math.round(val)}px`
+          }, [])
+
+          return (
+            <Slider
+              value={value}
+              onChange={handleChange}
+              onChangeCommitted={handleChangeCommitted}
+              min={minValue}
+              max={maxValue}
+              step={1}
+              layer="layer-1"
+              layout="stacked"
+              showInput={false}
+              showValueLabel={true}
+              valueLabel={getValueLabel}
+              minLabel={`${minValue}px`}
+              maxLabel={`${maxValue}px`}
+              showMinMaxLabels={false}
+              label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+            />
+          )
+        }
+
+        return (
+          <TreeDimensionSlider
             key={`${primaryVar}-${selectedVariants.size || ''}`}
           />
         )
@@ -3632,6 +3732,9 @@ export default function PropControlContent({
       } else if (isTooltip && (propNameLower === 'beak-size' || propNameLower === 'beak-inset')) {
         minPixelValue = 0
         maxPixelValue = 50
+      } else if (isTableCell && propNameLower === 'max-width') {
+        minPixelValue = 40
+        maxPixelValue = 1000
       }
 
       if (dimensionType === 'px') {
@@ -3726,7 +3829,7 @@ export default function PropControlContent({
   // Text property groups have nested properties like font-family, font-size, etc.
   // This check MUST happen before grouped props check to ensure text groups are handled correctly
   const propNameLower = prop.name.toLowerCase()
-  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text', 'step-number-text', 'input-text']
+  const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text', 'step-number-text', 'input-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style']
 
   // Always check recursica_ui-kit.json structure directly for text property groups, regardless of prop type
   // This ensures we catch text property groups even if they weren't parsed correctly

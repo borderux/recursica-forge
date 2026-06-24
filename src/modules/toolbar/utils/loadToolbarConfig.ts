@@ -46,6 +46,11 @@ import StepperConfig from '../configs/Stepper.toolbar.json'
 import TimelineConfig from '../configs/Timeline.toolbar.json'
 import TimelineBulletConfig from '../configs/TimelineBullet.toolbar.json'
 import TransferListConfig from '../configs/TransferList.toolbar.json'
+import TreeConfig from '../configs/Tree.toolbar.json'
+import TableConfig from '../configs/Table.toolbar.json'
+import TableCellConfig from '../configs/TableCell.toolbar.json'
+import TableHeaderConfig from '../configs/TableHeader.toolbar.json'
+import TableFooterConfig from '../configs/TableFooter.toolbar.json'
 import { buildComponentExtensionGroups } from './componentExtensionToolbar'
 
 export interface ToolbarPropConfig {
@@ -239,6 +244,19 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
     case 'transfer list':
     case 'transferlist':
       staticConfig = TransferListConfig as unknown as ToolbarConfig; break
+    case 'tree':
+      staticConfig = TreeConfig as unknown as ToolbarConfig; break
+    case 'table':
+      staticConfig = TableConfig as unknown as ToolbarConfig; break
+    case 'table-cell':
+    case 'table cell':
+      staticConfig = TableCellConfig as unknown as ToolbarConfig; break
+    case 'table-header':
+    case 'table header':
+      staticConfig = TableHeaderConfig as unknown as ToolbarConfig; break
+    case 'table-footer':
+    case 'table footer':
+      staticConfig = TableFooterConfig as unknown as ToolbarConfig; break
     default:
       staticConfig = null
   }

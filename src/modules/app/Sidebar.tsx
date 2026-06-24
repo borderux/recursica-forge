@@ -76,7 +76,13 @@ export function Sidebar() {
       }}
     >
       {/* Navigation Items */}
-      <nav style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <nav style={{
+        flex: 1,
+        minHeight: 0,
+        overflow: 'auto',
+        marginTop: '60px',
+        marginBottom: '60px',
+      }}>
         <Tabs
           value={currentNavItem}
           variant="default"

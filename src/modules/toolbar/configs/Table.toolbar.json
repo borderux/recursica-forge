@@ -1,0 +1,135 @@
+{
+  "variants": {},
+  "props": {
+    "layout": {
+      "icon": "arrows-in-line-horizontal",
+      "label": "Layout",
+      "visible": true,
+      "group": {
+        "padding": {
+          "icon": "arrows-left-right",
+          "label": "Padding",
+          "visible": true
+        },
+        "row-padding": {
+          "icon": "arrows-left-right",
+          "label": "Row padding",
+          "visible": true
+        }
+      }
+    },
+    "border": {
+      "icon": "frame-corners",
+      "label": "Border",
+      "visible": true,
+      "group": {
+        "border-color": {
+          "icon": "paint-brush-broad",
+          "label": "Border color",
+          "visible": true,
+          "floatingPaletteLabel": "Border Color"
+        },
+        "border-size": {
+          "icon": "rows",
+          "label": "Border size",
+          "visible": true,
+          "propertyType": "slider",
+          "range": [
+            0,
+            8
+          ],
+          "step": 1
+        },
+        "border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius",
+          "visible": true,
+          "propertyType": "slider",
+          "range": [
+            0,
+            48
+          ],
+          "step": 4
+        }
+      }
+    },
+    "dividers": {
+      "icon": "minus",
+      "label": "Dividers",
+      "visible": true,
+      "group": {
+        "row-divider-size": {
+          "icon": "rows",
+          "label": "Row divider size",
+          "visible": true,
+          "propertyType": "slider",
+          "range": [
+            0,
+            8
+          ],
+          "step": 1
+        },
+        "row-divider-color": {
+          "icon": "paint-brush-broad",
+          "label": "Row divider color",
+          "visible": true,
+          "floatingPaletteLabel": "Row Divider Color"
+        },
+        "column-divider-size": {
+          "icon": "rows",
+          "label": "Column divider size",
+          "visible": true,
+          "propertyType": "slider",
+          "range": [
+            0,
+            8
+          ],
+          "step": 1
+        },
+        "column-divider-color": {
+          "icon": "paint-brush-broad",
+          "label": "Column divider color",
+          "visible": true,
+          "floatingPaletteLabel": "Column Divider Color"
+        }
+      }
+    },
+    "row-colors": {
+      "icon": "paint-bucket",
+      "label": "Row colors",
+      "visible": true,
+      "group": {
+        "striped-color": {
+          "label": "Striped color",
+          "visible": true,
+          "floatingPaletteLabel": "Striped Color"
+        },
+        "highlight-on-hover-color": {
+          "label": "Hover color",
+          "visible": true,
+          "floatingPaletteLabel": "Hover Color"
+        },
+        "selected-color": {
+          "label": "Selected color",
+          "visible": true,
+          "floatingPaletteLabel": "Selected Color"
+        },
+        "striped-opacity": {
+          "label": "Striped opacity",
+          "visible": true,
+          "floatingPaletteLabel": "Striped Opacity"
+        },
+        "highlight-on-hover-opacity": {
+          "label": "Hover opacity",
+          "visible": true,
+          "floatingPaletteLabel": "Hover Opacity"
+        },
+        "selected-opacity": {
+          "label": "Selected opacity",
+          "visible": true,
+          "floatingPaletteLabel": "Selected Opacity"
+        }
+      }
+    }
+  }
+}

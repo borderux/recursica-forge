@@ -24,3 +24,10 @@
     opacity: var(--checkbox-disabled-opacity, 0.4) !important;
     color: var(--checkbox-item-disabled-color) !important;
 }
+
+/* Hide empty label elements to avoid layout shift when checkbox is used without a label */
+.recursica-checkbox-item.recursica-checkbox-root .mantine-Checkbox-label:empty,
+.recursica-checkbox-item .mantine-Checkbox-body .mantine-Checkbox-label:empty {
+    display: none !important;
+    padding-left: 0 !important;
+}

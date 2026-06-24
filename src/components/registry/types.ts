@@ -64,6 +64,11 @@ export type ComponentName =
   | 'HoverCardPopover'
   | 'Label'
   | 'AssistiveElement'
+  | 'Tree'
+  | 'Table'
+  | 'TableCell'
+  | 'TableHeader'
+  | 'TableFooter'
 
 export type ComponentLayer = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 

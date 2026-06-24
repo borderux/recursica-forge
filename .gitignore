@@ -32,3 +32,9 @@ debug.log
 
 # Export testing
 test-utils/export-testing/
+
+# Temporary scratch/validation scripts
+scratch_*.ts
+scratch_*.js
+validate_*.ts
+validate_*.js

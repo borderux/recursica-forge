@@ -114,10 +114,12 @@ export default function DimensionTokenSelector({
         })
       }
 
-      // For horizontal-padding, padding, item-gap, divider-item-gap, padding-horizontal, padding-vertical, and icon-text-gap props, only collect general dimensions
+      // For horizontal-padding, padding, item-gap, divider-item-gap, padding-horizontal, padding-vertical, row-padding, vertical-margin, and icon-text-gap props, only collect general dimensions
       if (propNameLower === 'horizontal-padding' || propNameLower === 'padding' ||
         propNameLower === 'item-gap' || propNameLower === 'divider-item-gap' ||
         propNameLower === 'padding-horizontal' || propNameLower === 'padding-vertical' ||
+        propNameLower === 'row-padding' ||
+        propNameLower === 'vertical-margin' ||
         propNameLower === 'icon-text-gap') {
         const root: any = (theme as any)?.brand ? (theme as any).brand : theme
         const dimensions = root?.dimensions || {}
@@ -630,7 +632,7 @@ export default function DimensionTokenSelector({
         }
       }
 
-      // For divider-item-gap, padding, item-gap, vertical-padding, horizontal-padding, padding-horizontal, padding-vertical, and icon-text-gap, null means "none"
+      // For divider-item-gap, padding, item-gap, vertical-padding, horizontal-padding, padding-horizontal, padding-vertical, row-padding, vertical-margin, and icon-text-gap, null means "none"
       // Find the "none" token from recursica_brand.json (general-none)
       if (propNameLower === 'divider-item-gap' ||
         propNameLower === 'padding' ||
@@ -638,6 +640,8 @@ export default function DimensionTokenSelector({
         propNameLower === 'horizontal-padding' ||
         propNameLower === 'padding-horizontal' ||
         propNameLower === 'padding-vertical' ||
+        propNameLower === 'row-padding' ||
+        propNameLower === 'vertical-margin' ||
         propNameLower === 'icon-text-gap') {
         // These use general tokens
         const noneToken = dimensionTokens.find(t => t.name.includes('general-none'))
