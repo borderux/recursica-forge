@@ -4698,7 +4698,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               },
               "variants": {
@@ -4900,7 +4900,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               },
               "variants": {
@@ -5102,7 +5102,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               },
               "variants": {
@@ -5271,7 +5271,7 @@
           },
           "hover-color": {
             "$type": "color",
-            "$value": "{brand.palettes.core-colors.black.tone}"
+            "$value": "{brand.palettes.core-colors.high-contrast.tone}"
           },
           "hover-opacity": {
             "$type": "number",
@@ -11621,7 +11621,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               },
               "selected-item": {
@@ -11651,7 +11651,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               }
             },
@@ -11683,7 +11683,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               },
               "selected-item": {
@@ -11713,7 +11713,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               }
             },
@@ -11745,7 +11745,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               },
               "selected-item": {
@@ -11775,7 +11775,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               }
             },
@@ -11807,7 +11807,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               },
               "selected-item": {
@@ -11837,7 +11837,7 @@
                 },
                 "hover-opacity": {
                   "$type": "number",
-                  "$value": "{tokens.opacity.mist}"
+                  "$value": "{tokens.opacities.mist}"
                 }
               }
             }
@@ -14424,57 +14424,57 @@
             "layer-0": {
               "striped-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               },
               "highlight-on-hover-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               },
               "selected-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               }
             },
             "layer-1": {
               "striped-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               },
               "highlight-on-hover-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               },
               "selected-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               }
             },
             "layer-2": {
               "striped-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               },
               "highlight-on-hover-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               },
               "selected-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               }
             },
             "layer-3": {
               "striped-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               },
               "highlight-on-hover-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               },
               "selected-opacity": {
                 "$type": "number",
-                "$value": "{tokens.opacity.mist}"
+                "$value": "{tokens.opacities.mist}"
               }
             }
           }
