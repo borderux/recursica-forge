@@ -38,12 +38,12 @@ export default function Switch({
   
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
   // These will be mode-aware because buildComponentCssVarPath reads mode from document
-  const thumbSelectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'thumb-selected')
-  const thumbUnselectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'thumb-unselected')
-  const trackSelectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'track-selected')
-  const trackUnselectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'track-unselected')
-  const iconSelectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'icon-selected')
-  const iconUnselectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'icon-unselected')
+  const thumbSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-selected')
+  const thumbUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-unselected')
+  const trackSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-selected')
+  const trackUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-unselected')
+  const iconSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'icon-selected')
+  const iconUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'icon-unselected')
 
   const trackBorderRadiusVar = getComponentLevelCssVar('Switch', 'track-border-radius')
   const thumbBorderRadiusVar = getComponentLevelCssVar('Switch', 'thumb-border-radius')
