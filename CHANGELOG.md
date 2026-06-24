@@ -1,5 +1,19 @@
 # recursica-forge
 
+## 0.21.3
+
+### Patch Changes
+
+- 6023eb9: - **Slider Input Typing Fix:** typing multiple digits in any slider input (like token sizes) was failing because the `onChange` event instantly clamped the first typed digit. This was updated across all Slider components (Mantine, Material, Carbon, and generic) to allow free typing, only clamping on `blur` or when pressing `Enter`.
+  - **App Update Notification:** The polling mechanism wasn't detecting new versions in production because CDNs were caching the `fetch('/index.html')` requests. This was fixed by appending a cache-buster query string `?t=${Date.now()}`.
+  - **Avatar Width Overrides:** Removed `!important` tags from `width` and `height` properties inside the CSS files for Avatar adapters (Mantine, Material, and Carbon). Also directly passed our design system size via `--avatar-size` to Mantine. This allows users to pass standard styling props like `w` or `width` that will correctly override default sizes without being aggressively crushed by the component's internal CSS.
+  - **Font Size Max:** Increased the max allowed font size in the token selector from 72px to 120px.
+- 13af004: Fix bug where custom color scale family names would get reset or lost after navigating between pages. Custom names are now properly persisted into the JSON tokens file under the scale's `$extensions` object, ensuring they survive theme recomputes and page reloads.
+- d36ab30: - Created a JSON import migration utility to seamlessly upgrade legacy JSON file structures (e.g., `tokens.opacity` -> `tokens.opacities`) and convert raw CSS variable injections back to DTCG format upon import.
+  - Fixed 40+ false-positive errors in the CSS variable audit tool by properly parsing and allowing expected synthetic fallback variables (`interactive_hover_tone`, `interactive_default_on-tone`, etc.) in stylesheet traces.
+  - Suppressed false-positive undefined variable errors for components (like `Switch`) by adding inline computed style evaluation to `deepAuditCssVars`, accurately reflecting variables injected dynamically via React `style` props.
+- ad79237: Refactored component adapters (Mantine, Material, Carbon, and generic) to properly resolve CSS variables for custom variants. Replaced deprecated `getComponentCssVar` with `buildComponentCssVarPath` across all components to ensure robust CSS variable path generation aligned with `recursica_ui-kit.json`.
+
 ## 0.21.2
 
 ### Patch Changes
