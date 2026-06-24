@@ -51,6 +51,13 @@ export function getAllFamilyNames(tokensJson?: any): Record<string, string> {
       const alias = scale.alias
       if (typeof alias !== 'string' || !alias) return
 
+      // Check JSON extensions first!
+      const friendlyNameExt = scale.$extensions?.['com.recursica.friendlyName']
+      if (friendlyNameExt && typeof friendlyNameExt === 'string') {
+        names[alias] = friendlyNameExt
+        return
+      }
+
       // Read display name from CSS var (source of truth)
       const cssVar = tokenColorFamilyName(scaleKey)
       const displayName = readCssVar(cssVar)

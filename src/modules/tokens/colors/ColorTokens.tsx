@@ -106,6 +106,9 @@ export function AddColorScaleButton() {
     if (!tokensRoot.colors) tokensRoot.colors = {}
     tokensRoot.colors[scaleKey] = {
       alias: newFamilySlug,
+      $extensions: {
+        'com.recursica.friendlyName': toTitleCase(friendlyName)
+      },
       ...Object.fromEntries(
         Object.entries(tokenValues).map(([level, hex]) => [
           level,
@@ -534,6 +537,9 @@ export default function ColorTokens() {
     if (!tokensRoot.colors) tokensRoot.colors = {}
     tokensRoot.colors[scaleKey] = {
       alias: newFamilySlug,
+      $extensions: {
+        'com.recursica.friendlyName': toTitleCase(friendlyName)
+      },
       ...Object.fromEntries(
         Object.entries(tokenValues).map(([level, hex]) => [
           level,
@@ -823,8 +829,28 @@ export default function ColorTokens() {
   const handleFamilyNameChange = (family: string, newName: string) => {
     const v = toTitleCase(newName)
     const newFamilySlug = toKebabCase(newName)
+    
+    // Always persist the display name to JSON so it survives reloads
+    const store = getVarsStore()
+    const currentTokens = store.getState().tokens
+    const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
+    const tokensRoot = nextTokens?.tokens || {}
+    const colorsRoot = tokensRoot?.colors || {}
+    
+    const scaleKey = Object.keys(colorsRoot).find(k =>
+      k.startsWith('scale-') && colorsRoot[k]?.alias === family
+    )
 
-    // If the slug differs from the current family key, update local state to reflect the new slug
+    let tokensUpdated = false
+    if (scaleKey) {
+      if (!colorsRoot[scaleKey].$extensions) {
+        colorsRoot[scaleKey].$extensions = {}
+      }
+      colorsRoot[scaleKey].$extensions['com.recursica.friendlyName'] = v
+      tokensUpdated = true
+    }
+
+    // If the slug differs from the current family key, we also need to update the alias and all token references
     if (newFamilySlug && newFamilySlug !== family && newFamilySlug.length > 0) {
       // Update local values state
       const oldTokenNames = Object.keys(values).filter(name => name.startsWith(`colors/${family}/`))
@@ -850,22 +876,16 @@ export default function ColorTokens() {
       updatedFamilyNames[newFamilySlug] = v
       setFamilyNames(updatedFamilyNames)
 
-      // Update the alias in the tokens JSON so flatTokens re-derives correctly
-      const store = getVarsStore()
-      const currentTokens = store.getState().tokens
-      const nextTokens = JSON.parse(JSON.stringify(currentTokens)) as any
-      const tokensRoot = nextTokens?.tokens || {}
-      const colorsRoot = tokensRoot?.colors || {}
-      const scaleKey = Object.keys(colorsRoot).find(k =>
-        k.startsWith('scale-') && colorsRoot[k]?.alias === family
-      )
       if (scaleKey) {
         colorsRoot[scaleKey].alias = newFamilySlug
+      }
+
+      if (tokensUpdated) {
         if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
         setTokens(nextTokens)
       }
 
-      // Update CSS var display name (uses the now-updated tokens for lookup)
+      // Update CSS var display name
       renameFamilyName(family, newFamilySlug, v, nextTokens)
 
       // Close picker if open for this family
@@ -873,12 +893,17 @@ export default function ColorTokens() {
         setOpenPicker(null)
       }
 
-      return // Early return since we've handled the rename
+      return
     }
 
-    // If slug matches or rename failed, just update the display name
+    // If slug matches, just update the JSON with the display name and update the CSS var
+    if (tokensUpdated) {
+      if (!nextTokens.tokens) nextTokens.tokens = tokensRoot
+      setTokens(nextTokens)
+    }
+    
     setFamilyNames((prev) => ({ ...prev, [family]: v }))
-    setFamilyNameByAlias(family, v, tokensJson)
+    setFamilyNameByAlias(family, v, nextTokens)
   }
 
   const handleNameFromHex = async (family: string, hex: string) => {
