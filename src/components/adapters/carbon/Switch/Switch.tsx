@@ -40,10 +40,10 @@ export default function Switch({
   }, [mode])
   
   // Use getComponentCssVar to build CSS var names - matches what toolbar uses
-  const thumbSelectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'thumb-selected')
-  const thumbUnselectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'thumb-unselected')
-  const trackSelectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'track-selected')
-  const trackUnselectedVar = buildComponentCssVarPath('Switch', 'variants', 'styles', colorVariant, 'properties', 'colors', layer, 'track-unselected')
+  const thumbSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-selected')
+  const thumbUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-unselected')
+  const trackSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-selected')
+  const trackUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-unselected')
   const trackBorderRadiusVar = getComponentLevelCssVar('Switch', 'track-border-radius')
   const thumbBorderRadiusVar = getComponentLevelCssVar('Switch', 'thumb-border-radius')
   const thumbHeightVar = buildComponentCssVarPath('Switch', 'properties', 'thumb-height')

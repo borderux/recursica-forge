@@ -12,6 +12,7 @@ import uikitJson from "../../../recursica_ui-kit.json";
 import type { JsonLike } from "../resolvers/tokens";
 import { validateBrandJson, validateTokensJson, validateUIKitJson } from "../utils/validateJsonSchemas";
 import { validateImportedReferences } from "./importHydration";
+import { migrateImportedJson } from "./migrateImportedJson";
 
 /**
  * Clears CSS variables based on what's being imported
@@ -154,28 +155,33 @@ export function importJsonFiles(files: {
     ? ((files.uikit as any)?.['ui-kit'] ? files.uikit : { 'ui-kit': files.uikit })
     : undefined;
 
+  // Run structural migrations on the imported files to future-proof against older structures
+  const migratedTokens = normalizedTokens ? migrateImportedJson(normalizedTokens as JsonLike) : undefined;
+  const migratedBrand = normalizedBrand ? migrateImportedJson(normalizedBrand as JsonLike) : undefined;
+  const migratedUikit = normalizedUikit ? migrateImportedJson(normalizedUikit as JsonLike) : undefined;
+
   // Validate all files before importing
-    if (normalizedTokens) {
-      validateTokensJson(normalizedTokens as JsonLike);
-    }
-    if (normalizedBrand) {
-      validateBrandJson(normalizedBrand as JsonLike);
-    }
-    if (normalizedUikit) {
-      validateUIKitJson(normalizedUikit as JsonLike);
-    }
+  if (migratedTokens) {
+    validateTokensJson(migratedTokens);
+  }
+  if (migratedBrand) {
+    validateBrandJson(migratedBrand);
+  }
+  if (migratedUikit) {
+    validateUIKitJson(migratedUikit);
+  }
 
-    // Validate cross-references before importing
-    const currentState = store.getState();
-    const tempTokens = normalizedTokens || currentState.tokens;
-    const tempBrand = normalizedBrand || currentState.theme;
-    const tempUikit = normalizedUikit || currentState.uikit;
-    validateImportedReferences(tempTokens, tempBrand, tempUikit);
+  // Validate cross-references before importing
+  const currentState = store.getState();
+  const tempTokens = migratedTokens || currentState.tokens;
+  const tempBrand = migratedBrand || currentState.theme;
+  const tempUikit = migratedUikit || currentState.uikit;
+  validateImportedReferences(tempTokens, tempBrand, tempUikit);
 
-    store.bulkImport({
-      tokens: normalizedTokens as JsonLike | undefined,
-      brand: normalizedBrand as JsonLike | undefined,
-      uikit: normalizedUikit as JsonLike | undefined,
-    });
+  store.bulkImport({
+    tokens: migratedTokens,
+    brand: migratedBrand,
+    uikit: migratedUikit,
+  });
 }
 

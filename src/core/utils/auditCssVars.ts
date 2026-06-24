@@ -25,6 +25,9 @@ const COMPONENT_INSTANCE_VARS = new Set([
  */
 const COMPONENT_INSTANCE_VAR_PATTERNS = [
   /^--recursica_ui-kit_components_menu_item_variants_styles_(hover|selected|focused)-properties-colors-layer-\d+-background$/,
+  /^--recursica_brand_themes_(light|dark)_palettes_[a-z0-9-]+_interactive_(hover|default)_(tone|on-tone)$/,
+  /^--recursica_brand_themes_(light|dark)_palettes_[a-z0-9-]+_interactive_hover_on-tone$/,
+  /^--recursica_brand_themes_(light|dark)_palettes_[a-z0-9-]+_interactive_default_on-tone$/
 ]
 
 /**
@@ -240,6 +243,11 @@ export function auditRecursicaCssVars(): BrokenReference[] {
           continue
         }
         
+        // Check if it matches component-instance variable patterns
+        if (COMPONENT_INSTANCE_VAR_PATTERNS.some(pattern => pattern.test(referencedVar))) {
+          continue
+        }
+        
         // Check if this variable is used as a fallback for component-level variables
         let isUsedAsComponentFallback = false
         const checkValueForFallback = (value: string): boolean => {
@@ -365,6 +373,9 @@ export function auditRecursicaCssVars(): BrokenReference[] {
     if (varName.startsWith('usage-check:')) {
       const checkVar = varName.replace('usage-check:', '')
       if (COMPONENT_INSTANCE_VARS.has(checkVar)) {
+        continue
+      }
+      if (COMPONENT_INSTANCE_VAR_PATTERNS.some(pattern => pattern.test(checkVar))) {
         continue
       }
     }
@@ -579,6 +590,9 @@ export function auditRecursicaCssVars(): BrokenReference[] {
         if (COMPONENT_INSTANCE_VARS.has(referencedVar)) {
           continue
         }
+        if (COMPONENT_INSTANCE_VAR_PATTERNS.some(pattern => pattern.test(referencedVar))) {
+          continue
+        }
         
         // Check if this variable exists
         const existsInVars = allVars.has(referencedVar)
@@ -721,7 +735,8 @@ export function auditRecursicaCssVars(): BrokenReference[] {
         // If variable doesn't exist, add to broken references
         // Skip component-instance variables (calculated values set on component instances)
         // Skip variables used as fallbacks for component-level variables (e.g., --toast-text-size uses UIKit var as fallback)
-        if (!existsInVars && !existsInDom && !COMPONENT_INSTANCE_VARS.has(referencedVar) && 
+        const matchesPattern = COMPONENT_INSTANCE_VAR_PATTERNS.some(pattern => pattern.test(referencedVar))
+        if (!existsInVars && !existsInDom && !COMPONENT_INSTANCE_VARS.has(referencedVar) && !matchesPattern &&
             !isUsedAsComponentFallback) {
           const locationStr = Array.from(usageLocations).join(', ')
           // Extract stylesheet selector if available
@@ -921,17 +936,18 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
 
   // Helper to check if CSS variable is defined (including scoped variables)
   const isCssVarDefined = (varName: string, element?: HTMLElement): boolean => {
-    // Layer-scoped variables (e.g., --recursica_brand_layer_1_properties_surface)
+    // Layer-scoped variables and inline-styled component variables
     // must resolve on the specific element, not just globally.
-    // These are only defined within [data-recursica-layer="N"] selectors,
-    // so an element missing the correct ancestor won't have them.
-    // This check MUST come before allDefinedVars to avoid false positives:
-    // allDefinedVars may contain this var from other elements that DO have the
-    // correct data-recursica-layer ancestor, but this element may not.
-    const layerMatch = varName.match(/^--recursica_brand_layer_(\d+)_/)
-    if (layerMatch && element) {
+    // This check MUST come before allDefinedVars to avoid false positives
+    // and to catch variables defined via inline style props (like Switch component wrapper vars).
+    if (element) {
       const computedOnElement = getComputedStyle(element).getPropertyValue(varName)
-      return computedOnElement !== ''
+      if (computedOnElement !== '') return true
+      
+      // If it's a layer-scoped variable and it's not on this element, it's undefined for this context
+      if (varName.match(/^--recursica_brand_layer_(\d+)_/)) {
+        return false
+      }
     }
 
     // First check if we already collected this variable in the first pass
@@ -1280,6 +1296,10 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
         for (const varRef of varRefs) {
           if (checkedVars.has(`${cssProp}:${varRef}`)) continue
           checkedVars.add(`${cssProp}:${varRef}`)
+          
+          if (COMPONENT_INSTANCE_VAR_PATTERNS.some(pattern => pattern.test(varRef))) {
+            continue
+          }
 
           // Check if variable is defined
           const isDefined = isCssVarDefined(varRef, el as HTMLElement)
@@ -1354,6 +1374,11 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
             if (!trace.resolved && trace.chain.length > 1) {
               // Find which nested variable failed
               const failedVar = trace.chain[trace.chain.length - 1]
+              
+              if (COMPONENT_INSTANCE_VAR_PATTERNS.some(pattern => pattern.test(failedVar))) {
+                continue
+              }
+
               if (!isCssVarDefined(failedVar, el as HTMLElement)) {
                 if (!checkedVars.has(`${cssProp}:${failedVar}`)) {
                   checkedVars.add(`${cssProp}:${failedVar}`)
@@ -1413,6 +1438,10 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
           for (const varRef of varRefs) {
             if (checkedVars.has(`inline:${cssProp}:${varRef}`)) continue
             checkedVars.add(`inline:${cssProp}:${varRef}`)
+
+            if (COMPONENT_INSTANCE_VAR_PATTERNS.some(pattern => pattern.test(varRef))) {
+              continue
+            }
 
             const isDefined = isCssVarDefined(varRef, el as HTMLElement)
             
