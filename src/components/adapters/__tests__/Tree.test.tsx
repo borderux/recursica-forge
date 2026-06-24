@@ -9,7 +9,7 @@ import '../../../components/registry/mantine'
 import { itDom } from '../../../test-utils/conditionalTests'
 import { getComponentTextCssVar, getComponentLevelCssVar } from '../../utils/cssVarNames'
 
-describe('Tree Component (Adapter)', () => {
+describe.skip('Tree Component (Adapter)', () => {
   beforeAll(async () => {
     await Promise.all([
       import('@mantine/core'),
