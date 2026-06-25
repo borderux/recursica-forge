@@ -33,7 +33,7 @@ export default function Panel({
     className,
     style,
     mantine,
-    isOpen,
+    isOpen = true,
     ...props
 }: AdapterPanelProps) {
     const { mode } = useThemeMode()

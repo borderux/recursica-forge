@@ -270,22 +270,32 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
   }
 
   const handleClose = () => {
-    if (isDetached) {
-      onClose()
-      return
-    }
-
-    if (hasChanged) {
-      const latestValue = document.documentElement.style.getPropertyValue(conflict.globalCssVarName).trim()
-      const conflictWithLatest = { ...conflict, newValue: latestValue }
-      resolveGlobalRefConflict('update-global', conflictWithLatest, false)
-    } else {
-      resolveGlobalRefConflict('cancel', conflict, false)
-    }
-    
-    setRememberChoice(false)
-    setHasChanged(false)
+    // 1. Immediately close the modal in UI to start transition
     onClose()
+
+    // 2. Defer heavy recomputation so closing is smooth and instant
+    setTimeout(() => {
+      if (isDetached) return
+
+      if (hasChanged) {
+        const latestValue = document.documentElement.style.getPropertyValue(conflict.globalCssVarName).trim()
+        const conflictWithLatest = { ...conflict, newValue: latestValue }
+        resolveGlobalRefConflict('update-global', conflictWithLatest, false)
+      } else {
+        // Only resolve/cancel if the DOM value was actually modified by a toolbar preview
+        const root = document.documentElement
+        const baseVar = conflict.cssVarName.replace(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?/, '')
+        const nonThemedVar = `--recursica_ui-kit_${baseVar}`
+        const currentDomValue = root.style.getPropertyValue(nonThemedVar).trim()
+        
+        if (currentDomValue && currentDomValue !== conflict.previousValue) {
+          resolveGlobalRefConflict('cancel', conflict, false)
+        }
+      }
+      
+      setRememberChoice(false)
+      setHasChanged(false)
+    }, 50)
   }
 
   const bodyStyle: React.CSSProperties = {
