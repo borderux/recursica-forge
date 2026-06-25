@@ -24,6 +24,7 @@ import { iconNameToReactComponent } from '../../components/iconUtils'
 import { Slider } from '../../../components/adapters/Slider'
 import { Label } from '../../../components/adapters/Label'
 import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
+import { getVarsStore } from '../../../core/store/varsStore'
 
 function BorderSizeSliderInline({ targetCssVar, label }: { targetCssVar: string; label: string }) {
   const [value, setValue] = useState(() => {
@@ -107,6 +108,7 @@ export interface GlobalRefModalProps {
 export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProps) {
   const [rememberChoice, setRememberChoice] = useState(false)
   const [hasChanged, setHasChanged] = useState(false)
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false)
   const { mode } = useThemeMode()
   const { uikit } = useVars()
   const layerElements = `--recursica_brand_themes_${mode}_layers_layer-1_elements`
@@ -189,10 +191,28 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
     onClose()
   }
 
-  const handleReset = () => {
-    if (initialGlobalDtcgValue === null || !conflict.globalCssVarName) return
+  const getValueFromUikit = (uikitJson: any, pathStr: string) => {
+    if (!uikitJson || !pathStr) return null
+    const path = pathStr.split('.')
+    let node: any = uikitJson
+    for (const seg of path) {
+      if (node && typeof node === 'object') {
+        node = node[seg]
+      } else {
+        node = undefined
+        break
+      }
+    }
+    if (node && typeof node === 'object' && node.$value !== undefined) {
+      return node.$value
+    }
+    return node
+  }
+
+  const performReset = (rawDtcgValue: any) => {
+    if (!conflict.globalCssVarName) return
     
-    let restoreValue = initialGlobalDtcgValue
+    let restoreValue = rawDtcgValue
     if (typeof restoreValue === 'string' && restoreValue.startsWith('{') && restoreValue.endsWith('}')) {
       restoreValue = `var(--recursica_${restoreValue.slice(1, -1).replace(/\./g, '_')})`
     } else if (typeof restoreValue === 'object' && restoreValue !== null && 'value' in restoreValue) {
@@ -204,6 +224,42 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
     window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
       detail: { cssVars: [conflict.globalCssVarName] }
     }))
+  }
+
+  const handleResetToDefault = () => {
+    const store = getVarsStore()
+    const pristine = store.getPristineUikit()
+    const val = getValueFromUikit(pristine, conflict.globalRefPath || '')
+    if (val !== null && val !== undefined) {
+      performReset(val)
+    }
+    setShowResetConfirmation(false)
+  }
+
+  const handleResetToImported = () => {
+    const store = getVarsStore()
+    const imported = store.getImportedUikit()
+    const val = getValueFromUikit(imported, conflict.globalRefPath || '')
+    if (val !== null && val !== undefined) {
+      performReset(val)
+    }
+    setShowResetConfirmation(false)
+  }
+
+  const handleReset = () => {
+    const store = getVarsStore()
+    const hasImported = store.hasUserImportedFiles()
+    
+    if (hasImported) {
+      setShowResetConfirmation(true)
+    } else {
+      // Revert directly to pristine/default JSON value
+      const pristine = store.getPristineUikit()
+      const val = getValueFromUikit(pristine, conflict.globalRefPath || '')
+      if (val !== null && val !== undefined) {
+        performReset(val)
+      }
+    }
   }
 
   const handleReattach = () => {
@@ -349,52 +405,80 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
   }
 
   return (
-    <Panel
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="Global variable"
-      position="right"
-      overlay={true}
-      width="400px"
-      layer="layer-1"
-      footer={
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', width: '100%' }}>
-          <Button variant="outline" onClick={handleOverride}>
-            Detach and override
-          </Button>
-        </div>
-      }
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <p style={bodyStyle}>
-          This property value is referencing a global variable. Making changes will affect all components that use the same global variable <strong style={{ fontFamily: 'inherit', fontWeight: 600 }}>{conflict.globalRefLabel}</strong>.
-        </p>
-
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-          gap: '12px'
-        }}>
-          <div style={{ width: '100%' }}>
-            {renderInlineControl()}
+    <>
+      <Panel
+        isOpen={isOpen}
+        onClose={handleClose}
+        title="Global variable"
+        position="right"
+        overlay={true}
+        width="400px"
+        layer="layer-1"
+        footer={
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', width: '100%' }}>
+            <Button variant="outline" onClick={handleOverride}>
+              Detach and override
+            </Button>
           </div>
-          
-          <Button
-            variant="outline"
-            size="small"
-            layer="layer-1"
-            onClick={handleReset}
-            icon={(() => {
-              const UndoIcon = iconNameToReactComponent('arrow-uturn-left')
-              return UndoIcon ? <UndoIcon style={{ width: 14, height: 14 }} /> : undefined
-            })()}
-          >
-            Reset
-          </Button>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <p style={bodyStyle}>
+            This property value is referencing a global variable. Making changes will affect all components that use the same global variable <strong style={{ fontFamily: 'inherit', fontWeight: 600 }}>{conflict.globalRefLabel}</strong>.
+          </p>
+
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '12px'
+          }}>
+            <div style={{ width: '100%' }}>
+              {renderInlineControl()}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="small"
+              layer="layer-1"
+              onClick={handleReset}
+              icon={(() => {
+                const UndoIcon = iconNameToReactComponent('arrow-uturn-left')
+                return UndoIcon ? <UndoIcon style={{ width: 14, height: 14 }} /> : undefined
+              })()}
+            >
+              Reset
+            </Button>
+          </div>
         </div>
-      </div>
-    </Panel>
+      </Panel>
+
+      <Modal
+        isOpen={showResetConfirmation}
+        onClose={() => setShowResetConfirmation(false)}
+        title="Reset global variable"
+        layer="layer-2"
+        showFooter={false}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <p style={bodyStyle}>
+            Would you like to revert the global variable <strong style={{ fontFamily: 'inherit', fontWeight: 600 }}>{conflict.globalRefLabel}</strong> to the original default JSON value or the last imported JSON value?
+          </p>
+          
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+            <Button variant="outline" onClick={() => setShowResetConfirmation(false)}>
+              Cancel
+            </Button>
+            <Button variant="outline" onClick={handleResetToImported}>
+              Revert to Imported
+            </Button>
+            <Button variant="solid" onClick={handleResetToDefault}>
+              Revert to Default
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </>
   )
 }
 
