@@ -419,6 +419,25 @@ export default function ColorTokenPicker() {
         }
       }
 
+      // Also update layer text colors if it's alert, warning, or success
+      if (colorName === 'alert' || colorName === 'warning' || colorName === 'success') {
+        const layers = themes[modeLower]?.layers || {}
+        const tokenCssVar = buildTokenCssVar(family, level)
+        for (const layerKey of ['layer-0', 'layer-1', 'layer-2', 'layer-3']) {
+          if (layers[layerKey] && layers[layerKey].elements && layers[layerKey].elements.text) {
+            const textGroup = layers[layerKey].elements.text
+            if (textGroup[colorName]) {
+              textGroup[colorName].$value = tokenRef
+            }
+          }
+          // Also update CSS variable directly in the DOM to avoid stale preservation values
+          const themedVar = `--recursica_brand_themes_${modeLower}_layers_${layerKey}_elements_text-${colorName}`
+          const nonThemedVar = `--recursica_brand_${layerKey}_elements_text-${colorName}`
+          updateCssVar(themedVar, `var(${tokenCssVar})`, tokensJson)
+          updateCssVar(nonThemedVar, `var(${tokenCssVar})`, tokensJson)
+        }
+      }
+
       // For base color tones (not interactive), update all other base colors' on-tone values
       // This works similarly to how interactive color updates all base colors' interactive properties
       // We do this AFTER updating the tone in themeCopy so the calculations use the new tone
@@ -431,6 +450,7 @@ export default function ColorTokenPicker() {
       } else {
         // If interactive, we still need to save the theme changes
         getVarsStore().setThemeSilent(themeCopy)
+        setTheme?.(themeCopy)
       }
 
       // If black or white changed, we must also update all palette on-tones
