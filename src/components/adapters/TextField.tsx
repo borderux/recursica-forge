@@ -50,6 +50,8 @@ export type TextFieldProps = {
   disableTopBottomMargin?: boolean
   editIcon?: React.ReactNode | boolean
   editIconGap?: string | number
+  onEditIconClick?: (e: React.MouseEvent) => void
+  editIconTitle?: string
 } & LibrarySpecificProps
 
 export function TextField({
@@ -86,6 +88,8 @@ export function TextField({
   disableTopBottomMargin = false,
   editIcon,
   editIconGap,
+  onEditIconClick,
+  editIconTitle,
   mantine,
   material,
   carbon,
@@ -151,6 +155,8 @@ export function TextField({
       id={labelId}
       editIcon={editIcon}
       editIconGap={editIconGap}
+      onEditIconClick={onEditIconClick}
+      editIconTitle={editIconTitle}
       style={layout === 'side-by-side' ? { minHeight: `var(${minHeightVar})` } : undefined}
     >
       {label}
@@ -373,6 +379,8 @@ export function TextField({
           autoFocus={autoFocus}
           readOnly={readOnly}
           editIcon={editIcon}
+          editIconTitle={editIconTitle}
+          onEditIconClick={onEditIconClick}
           className={className}
           style={style}
           mantine={mantine}

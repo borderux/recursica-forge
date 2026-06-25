@@ -7,7 +7,7 @@
  */
 
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
-import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved, isVarInChain } from '../../../core/css/readCssVar'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
@@ -19,6 +19,10 @@ interface BrandBorderRadiusSliderProps {
   targetCssVars?: string[]
   label: string
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
+  disabled?: boolean
+  editIcon?: React.ReactNode
+  onEditIconClick?: (e: React.MouseEvent) => void
+  editIconTitle?: string
 }
 
 export default function BrandBorderRadiusSlider({
@@ -26,6 +30,10 @@ export default function BrandBorderRadiusSlider({
   targetCssVars = [],
   label,
   layer = 'layer-1',
+  disabled,
+  editIcon,
+  onEditIconClick,
+  editIconTitle,
 }: BrandBorderRadiusSliderProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
@@ -190,13 +198,15 @@ export default function BrandBorderRadiusSlider({
     }
     
     const handleCssVarUpdate = (event: CustomEvent) => {
-      // Re-read if this CSS var was updated
       const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-      if (event.detail?.cssVars?.some((cv: string) => cssVars.includes(cv))) {
-        // Small delay to ensure CSS var has been updated
-        setTimeout(() => {
-          readInitialValue()
-        }, 0)
+      const updatedVars = event.detail?.cssVars
+      if (Array.isArray(updatedVars)) {
+        const hasRelevantUpdate = cssVars.some(v => isVarInChain(v, updatedVars))
+        if (hasRelevantUpdate) {
+          setTimeout(() => {
+            readInitialValue()
+          }, 0)
+        }
       }
     }
     
@@ -254,7 +264,7 @@ export default function BrandBorderRadiusSlider({
         min={0}
         max={tokens.length > 0 ? tokens.length - 1 : 0}
         type="discrete"
-      step={1}
+        step={1}
         layer={layer}
         layout="stacked"
         showInput={false}
@@ -264,7 +274,20 @@ export default function BrandBorderRadiusSlider({
         minLabel={minLabel}
         maxLabel={maxLabel}
         showMinMaxLabels={false}
-        label={label ? <Label layer={layer} layout="stacked">{label}</Label> : undefined}
+        disabled={disabled}
+        label={
+          label ? (
+            <Label 
+              layer={layer} 
+              layout="stacked"
+              editIcon={editIcon}
+              onEditIconClick={onEditIconClick}
+              editIconTitle={editIconTitle}
+            >
+              {label}
+            </Label>
+          ) : undefined
+        }
       />
     </div>
   )

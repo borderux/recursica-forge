@@ -26,6 +26,7 @@ export default function Button({
   className,
   style,
   icon,
+  title,
   mantine,
   ...props
 }: AdapterButtonProps) {
@@ -226,6 +227,7 @@ export default function Button({
     onClick,
     type,
     className,
+    title,
     // Add custom class names for CSS targeting
     classNames: {
       leftSection: 'recursica-button-left-section',

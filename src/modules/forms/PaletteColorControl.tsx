@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from 'react'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
-import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved, isVarInChain } from '../../core/css/readCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { tokenColor, parseBrandCssVar, extractColorToken, extractColorTokenFromColorMix, unwrapVar } from '../../core/css/cssVarBuilder'
@@ -9,6 +9,7 @@ import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { TextField } from '../../components/adapters/TextField'
 import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../components/utils/cssVarNames'
+import { useGlobalRefControl } from '../../core/css/globalRefInterceptor'
 import './PaletteColorControl.css'
 
 type PaletteColorControlProps = {
@@ -30,6 +31,10 @@ type PaletteColorControlProps = {
   contrastColorCssVar?: string
   /** Optional callback when a color is selected, receives the selected CSS var name */
   onSelect?: (cssVar: string) => void
+  disabled?: boolean
+  editIcon?: React.ReactNode
+  onEditIconClick?: (e: React.MouseEvent) => void
+  editIconTitle?: string
 }
 
 /**
@@ -46,11 +51,21 @@ export default function PaletteColorControl({
   fontSize = 13,
   contrastColorCssVar,
   onSelect: onSelectProp,
+  disabled,
+  editIcon,
+  onEditIconClick,
+  editIconTitle,
 }: PaletteColorControlProps) {
-  const { palettes, theme: themeJson, tokens } = useVars()
+  const { palettes, theme: themeJson, tokens, uikit } = useVars()
   const { mode } = useThemeMode()
   const textFieldRef = useRef<HTMLDivElement>(null)
   const displayCssVar = currentValueCssVar || targetCssVar
+
+  const globalRef = useGlobalRefControl(targetCssVar, uikit)
+  const isAttached = globalRef.isAttached
+  const finalEditIcon = editIcon !== undefined ? editIcon : globalRef.editIcon
+  const finalOnEditIconClick = onEditIconClick !== undefined ? onEditIconClick : globalRef.handleGlobeClick
+  const finalEditIconTitle = editIconTitle !== undefined ? editIconTitle : globalRef.editIconTitle
 
   // Get available palette keys and levels for token-to-palette mapping
   const paletteKeys = useMemo(() => {
@@ -196,7 +211,7 @@ export default function PaletteColorControl({
         return
       }
 
-      const hasRelevantUpdate = relevantVars.some(v => updatedVars.includes(v))
+      const hasRelevantUpdate = relevantVars.some(v => isVarInChain(v, updatedVars))
       if (!hasRelevantUpdate) {
         return
       }
@@ -959,13 +974,16 @@ export default function PaletteColorControl({
           value={displayLabel}
           leadingIcon={swatchIcon}
           trailingIcon={trailingIcon}
-          state="default"
+          state={disabled || isAttached ? "disabled" : "default"}
           readOnly={true}
-          onClick={handleClick}
+          onClick={disabled || isAttached ? undefined : handleClick}
           layer="layer-0"
+          editIcon={finalEditIcon}
+          onEditIconClick={finalOnEditIconClick}
+          editIconTitle={finalEditIconTitle}
           style={{
             fontSize,
-            cursor: 'pointer',
+            cursor: disabled || isAttached ? 'not-allowed' : 'pointer',
           }}
           className="palette-color-control-textfield"
         />
