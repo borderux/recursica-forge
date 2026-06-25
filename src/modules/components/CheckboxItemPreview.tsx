@@ -92,6 +92,15 @@ export default function CheckboxItemPreview({
                 />
 
                 <CheckboxItem
+                    label="Shield of deflection"
+                    checked={false}
+                    indeterminate
+                    disabled
+                    onChange={() => { }}
+                    layer={selectedLayer as any}
+                />
+
+                <CheckboxItem
                     label="The quick onyx goblin jumps over the lazy dwarf, muttering about a treasure map he found tucked inside an old boot at the bottom of the river, while clutching a handful of stolen trinkets that sparkle like tiny stars in the moonlight"
                     checked={checkedWrap}
                     onChange={setCheckedWrap}

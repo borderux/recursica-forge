@@ -18,7 +18,15 @@
 }
 
 .recursica-mui-checkbox-root.Mui-disabled {
-    color: var(--checkbox-disabled-border) !important;
+    color: var(--checkbox-disabled-border-unchecked) !important;
+}
+
+.recursica-mui-checkbox-root.Mui-disabled.Mui-checked {
+    color: var(--checkbox-disabled-border-checked) !important;
+}
+
+.recursica-mui-checkbox-root.Mui-disabled.MuiCheckbox-indeterminate {
+    color: var(--checkbox-disabled-border-indeterminate) !important;
 }
 
 .recursica-mui-checkbox-root svg {

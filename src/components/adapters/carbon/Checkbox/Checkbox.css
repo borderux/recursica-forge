@@ -30,9 +30,8 @@
 
 /* For mixed state, Carbon uses a dash via ::after */
 .recursica-carbon-checkbox .cds--checkbox[aria-checked="mixed"]+.cds--checkbox-label::after {
-    border-color: var(--checkbox-icon-color) !important;
-    background-color: var(--checkbox-icon-color) !important;
-    /* Depending on impl */
+    border-color: var(--checkbox-icon-color-indeterminate) !important;
+    background-color: var(--checkbox-icon-color-indeterminate) !important;
 }
 
 /* Checked state color overrides */
@@ -41,12 +40,36 @@
     border-color: var(--checkbox-border-checked) !important;
 }
 
-/* Disabled state */
+/* Disabled state - unchecked */
 .recursica-carbon-checkbox .cds--checkbox:disabled+.cds--checkbox-label::before {
-    background-color: var(--checkbox-disabled-bg) !important;
-    border-color: var(--checkbox-disabled-border) !important;
+    background-color: var(--checkbox-disabled-bg-unchecked) !important;
+    border-color: var(--checkbox-disabled-border-unchecked) !important;
+}
+
+/* Disabled state - checked */
+.recursica-carbon-checkbox .cds--checkbox:disabled:checked+.cds--checkbox-label::before,
+.recursica-carbon-checkbox .cds--checkbox:disabled[data-checked]+.cds--checkbox-label::before {
+    background-color: var(--checkbox-disabled-bg-checked) !important;
+    border-color: var(--checkbox-disabled-border-checked) !important;
+}
+
+.recursica-carbon-checkbox .cds--checkbox:disabled:checked+.cds--checkbox-label::after,
+.recursica-carbon-checkbox .cds--checkbox:disabled[data-checked]+.cds--checkbox-label::after {
+    border-bottom-color: var(--checkbox-disabled-icon-checked) !important;
+    border-left-color: var(--checkbox-disabled-icon-checked) !important;
+}
+
+/* Disabled state - indeterminate */
+.recursica-carbon-checkbox .cds--checkbox:disabled[aria-checked="mixed"]+.cds--checkbox-label::before {
+    background-color: var(--checkbox-disabled-bg-indeterminate) !important;
+    border-color: var(--checkbox-disabled-border-indeterminate) !important;
+}
+
+.recursica-carbon-checkbox .cds--checkbox:disabled[aria-checked="mixed"]+.cds--checkbox-label::after {
+    border-color: var(--checkbox-disabled-icon-indeterminate) !important;
+    background-color: var(--checkbox-disabled-icon-indeterminate) !important;
 }
 
 .recursica-carbon-checkbox .cds--checkbox:disabled+.cds--checkbox-label {
-    color: var(--checkbox-disabled-border) !important;
+    color: var(--checkbox-disabled-border-unchecked) !important;
 }
