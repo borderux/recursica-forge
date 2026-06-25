@@ -22,6 +22,8 @@ import { getComponentLevelCssVar } from '../../../../components/utils/cssVarName
 import { iconNameToReactComponent } from '../../../components/iconUtils'
 import IconSelector from '../../../components/IconSelector'
 import { Slider } from '../../../../components/adapters/Slider'
+import { useGlobalRefControl } from '../../../../core/css/globalRefInterceptor'
+import { useVars } from '../../../vars/VarsContext'
 import './IconGroupToolbar.css'
 
 interface IconGroupToolbarProps {
@@ -324,6 +326,9 @@ export default function IconGroupToolbar({
   {
     maxWidthVar && maxWidthVisible && groupedPropsConfig?.['max-width'] && (() => {
       const MaxWidthSlider = () => {
+        const { uikit } = useVars()
+        const globalRef = useGlobalRefControl(maxWidthVar, uikit)
+
         const minValue = 100
         const maxValue = 500
         const [value, setValue] = useState(() => {
@@ -376,7 +381,18 @@ export default function IconGroupToolbar({
             minLabel={`${minValue}px`}
             maxLabel={`${maxValue}px`}
             showMinMaxLabels={false}
-            label={<Label layer="layer-1" layout="stacked">{maxWidthLabel}</Label>}
+            disabled={globalRef.isAttached}
+            label={
+              <Label 
+                layer="layer-1" 
+                layout="stacked"
+                editIcon={globalRef.editIcon}
+                onEditIconClick={globalRef.handleGlobeClick}
+                editIconTitle={globalRef.editIconTitle}
+              >
+                {maxWidthLabel}
+              </Label>
+            }
           />
         )
       }

@@ -8,11 +8,42 @@
 import React, { useState, useEffect } from 'react'
 import { InputLabel } from '@mui/material'
 import { Button } from '../../Button'
+import { Tooltip } from '../../Tooltip'
 import type { LabelProps as AdapterLabelProps } from '../../Label'
 import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssVar } from '../../../utils/cssVarNames'
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import './Label.css'
+
+function isButtonOrHasClick(node: React.ReactNode): boolean {
+  if (!React.isValidElement(node)) return false
+  
+  const props = node.props as any
+  if (!props) return false
+
+  if (props.onClick !== undefined) return true
+  
+  const type = node.type
+  if (
+    type === 'button' ||
+    (typeof type === 'function' &&
+      (type.name === 'Button' ||
+        type.name === 'MantineButton' ||
+        (type as any).displayName === 'Button' ||
+        (type as any).displayName === 'MantineButton'))
+  ) {
+    return true
+  }
+
+  if (props.children) {
+    if (Array.isArray(props.children)) {
+      return props.children.some((child: any) => isButtonOrHasClick(child))
+    }
+    return isButtonOrHasClick(props.children)
+  }
+
+  return false
+}
 
 export default function Label({
   children,
@@ -26,6 +57,8 @@ export default function Label({
   style,
   editIcon,
   editIconGap,
+  onEditIconClick,
+  editIconTitle,
   material,
   ...props
 }: AdapterLabelProps) {
@@ -295,7 +328,15 @@ export default function Label({
           </span>
           {editIcon && (
             <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
-              <Button variant="text" size="small" icon={editIcon} layer={layer} />
+              {isButtonOrHasClick(editIcon) ? (
+                editIcon
+              ) : editIconTitle ? (
+                <Tooltip label={editIconTitle} withinPortal zIndex={10000}>
+                  <Button variant="text" size="small" icon={editIcon} layer={layer} onClick={onEditIconClick} />
+                </Tooltip>
+              ) : (
+                <Button variant="text" size="small" icon={editIcon} layer={layer} onClick={onEditIconClick} />
+              )}
             </span>
           )}
         </span>

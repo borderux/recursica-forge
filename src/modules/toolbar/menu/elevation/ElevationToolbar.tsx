@@ -13,6 +13,7 @@ import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNam
 import { useThemeMode } from '../../../theme/ThemeModeContext'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
+import { useGlobalRefControl } from '../../../../core/css/globalRefInterceptor'
 import type { ComponentName } from '../../../../components/registry/types'
 import './ElevationToolbar.css'
 
@@ -31,7 +32,7 @@ export default function ElevationToolbar({
   selectedLayer,
   onClose,
 }: ElevationToolbarProps) {
-  const { theme: themeJson } = useVars()
+  const { theme: themeJson, uikit } = useVars()
   const { mode } = useThemeMode()
   
   // Build layer-specific elevation CSS variable
@@ -57,6 +58,8 @@ export default function ElevationToolbar({
     
     return cssVar
   }, [componentName, prop.path, prop.cssVar, selectedLayer, mode])
+
+  const globalRef = useGlobalRefControl(elevationVar, uikit)
 
   const elevationOptions = useMemo(() => {
     try {
@@ -217,7 +220,18 @@ export default function ElevationToolbar({
           minLabel={minLabel}
           maxLabel={maxLabel}
           showMinMaxLabels={false}
-          label={<Label layer={selectedLayer as any} layout="stacked">Elevation</Label>}
+          disabled={globalRef.isAttached}
+          label={
+            <Label 
+              layer={selectedLayer as any} 
+              layout="stacked"
+              editIcon={globalRef.editIcon}
+              onEditIconClick={globalRef.handleGlobeClick}
+              editIconTitle={globalRef.editIconTitle}
+            >
+              Elevation
+            </Label>
+          }
         />
       </div>
     </div>

@@ -21,6 +21,7 @@ import { SegmentedControl } from '../../../../components/adapters/SegmentedContr
 import { iconNameToReactComponent } from '../../../components/iconUtils'
 import { Dropdown } from '../../../../components/adapters/Dropdown'
 import { getVarsStore } from '../../../../core/store/varsStore'
+import { useGlobalRefControl } from '../../../../core/css/globalRefInterceptor'
 import './TextStyleToolbar.css'
 
 interface TextStyleToolbarProps {
@@ -40,7 +41,7 @@ export default function TextStyleToolbar({
   onClose,
   allowedProps,
 }: TextStyleToolbarProps) {
-  const { theme, tokens: tokensFromVars } = useVars()
+  const { theme, tokens: tokensFromVars, uikit } = useVars()
   const { mode } = useThemeMode()
 
   // State to track whether all properties are shown
@@ -62,8 +63,8 @@ export default function TextStyleToolbar({
   // size variants (like Button) now works automatically without code changes here.
   const hasSizeSpecificText = useMemo(() => {
     try {
-      const uikit = getVarsStore().getState().uikit as any
-      const components = uikit?.['ui-kit']?.components || uikit?.components || {}
+      const uikitStore = getVarsStore().getState().uikit as any
+      const components = uikitStore?.['ui-kit']?.components || uikitStore?.components || {}
       let key = componentName.toLowerCase().replace(/\s+/g, '-')
       if (key === 'hover-card-/-popover') key = 'hover-card-popover'
       const comp = components[key]
@@ -106,6 +107,16 @@ export default function TextStyleToolbar({
   const fontStyleVar = hasStateSpecificText
     ? buildComponentCssVarPath(componentName as any, 'variants', 'states', selectedState, 'properties', textElementName, 'font-style')
     : getComponentTextCssVar(componentName as any, textElementName, 'font-style', sizeVariant)
+
+  // Global Ref Control hooks
+  const fontFamilyGlobalRef = useGlobalRefControl(fontFamilyVar, uikit)
+  const fontSizeGlobalRef = useGlobalRefControl(fontSizeVar, uikit)
+  const letterSpacingGlobalRef = useGlobalRefControl(letterSpacingVar, uikit)
+  const lineHeightGlobalRef = useGlobalRefControl(lineHeightVar, uikit)
+  const fontWeightGlobalRef = useGlobalRefControl(fontWeightVar, uikit)
+  const textDecorationGlobalRef = useGlobalRefControl(textDecorationVar, uikit)
+  const textTransformGlobalRef = useGlobalRefControl(textTransformVar, uikit)
+  const fontStyleGlobalRef = useGlobalRefControl(fontStyleVar, uikit)
 
 
   // Get available font families from brand.fonts (primary / secondary / tertiary aliases)
@@ -1276,6 +1287,10 @@ export default function TextStyleToolbar({
             layer="layer-3"
             layout="stacked"
             disableTopBottomMargin={true}
+            disabled={fontFamilyGlobalRef.isAttached}
+            editIcon={fontFamilyGlobalRef.editIcon}
+            onEditIconClick={fontFamilyGlobalRef.handleGlobeClick}
+            editIconTitle={fontFamilyGlobalRef.editIconTitle}
           />
         </div>
       )}
@@ -1320,7 +1335,18 @@ export default function TextStyleToolbar({
             minLabel={fontSizes[0]?.label || '2Xs'}
             maxLabel={fontSizes[fontSizes.length - 1]?.label || '6Xl'}
             showMinMaxLabels={false}
-            label={<Label layer="layer-3" layout="stacked">Size</Label>}
+            disabled={fontSizeGlobalRef.isAttached}
+            label={
+              <Label 
+                layer="layer-3" 
+                layout="stacked"
+                editIcon={fontSizeGlobalRef.editIcon}
+                onEditIconClick={fontSizeGlobalRef.handleGlobeClick}
+                editIconTitle={fontSizeGlobalRef.editIconTitle}
+              >
+                Size
+              </Label>
+            }
           />
         </div>
       )}
@@ -1385,7 +1411,18 @@ export default function TextStyleToolbar({
                 minLabel={fontWeights[0]?.label || 'Thin'}
                 maxLabel={fontWeights[fontWeights.length - 1]?.label || 'Black'}
                 showMinMaxLabels={false}
-                label={<Label layer="layer-3" layout="stacked">Weight</Label>}
+                disabled={fontWeightGlobalRef.isAttached}
+                label={
+                  <Label 
+                    layer="layer-3" 
+                    layout="stacked"
+                    editIcon={fontWeightGlobalRef.editIcon}
+                    onEditIconClick={fontWeightGlobalRef.handleGlobeClick}
+                    editIconTitle={fontWeightGlobalRef.editIconTitle}
+                  >
+                    Weight
+                  </Label>
+                }
               />
             </div>
           )}
@@ -1430,7 +1467,18 @@ export default function TextStyleToolbar({
                 minLabel={letterSpacings[0]?.label || 'Tight'}
                 maxLabel={letterSpacings[letterSpacings.length - 1]?.label || 'Wide'}
                 showMinMaxLabels={false}
-                label={<Label layer="layer-3" layout="stacked">Letter spacing</Label>}
+                disabled={letterSpacingGlobalRef.isAttached}
+                label={
+                  <Label 
+                    layer="layer-3" 
+                    layout="stacked"
+                    editIcon={letterSpacingGlobalRef.editIcon}
+                    onEditIconClick={letterSpacingGlobalRef.handleGlobeClick}
+                    editIconTitle={letterSpacingGlobalRef.editIconTitle}
+                  >
+                    Letter spacing
+                  </Label>
+                }
               />
             </div>
           )}
@@ -1475,7 +1523,18 @@ export default function TextStyleToolbar({
                 minLabel={lineHeights[0]?.label || 'Tight'}
                 maxLabel={lineHeights[lineHeights.length - 1]?.label || 'Loose'}
                 showMinMaxLabels={false}
-                label={<Label layer="layer-3" layout="stacked">Line height</Label>}
+                disabled={lineHeightGlobalRef.isAttached}
+                label={
+                  <Label 
+                    layer="layer-3" 
+                    layout="stacked"
+                    editIcon={lineHeightGlobalRef.editIcon}
+                    onEditIconClick={lineHeightGlobalRef.handleGlobeClick}
+                    editIconTitle={lineHeightGlobalRef.editIconTitle}
+                  >
+                    Line height
+                  </Label>
+                }
               />
             </div>
           )}
@@ -1483,13 +1542,22 @@ export default function TextStyleToolbar({
           {/* Font Style (Italics) - Only show if there are multiple options */}
           {fontStyleOptions.length > 1 && isAllowed('font-style') && (
             <div className="text-style-control">
-              <Label layer="layer-3" layout="stacked">Style</Label>
+              <Label 
+                layer="layer-3" 
+                layout="stacked"
+                editIcon={fontStyleGlobalRef.editIcon}
+                onEditIconClick={fontStyleGlobalRef.handleGlobeClick}
+                editIconTitle={fontStyleGlobalRef.editIconTitle}
+              >
+                Style
+              </Label>
               <SegmentedControl
                 items={fontStyleOptions}
                 value={currentFontStyle}
                 onChange={handleFontStyleChange}
                 layer="layer-3"
                 showLabel={false}
+                disabled={fontStyleGlobalRef.isAttached}
               />
             </div>
           )}
@@ -1497,13 +1565,22 @@ export default function TextStyleToolbar({
           {/* Text Decoration - Moved below Style */}
           {isAllowed('text-decoration') && (
             <div className="text-style-control">
-              <Label layer="layer-3" layout="stacked">Decoration</Label>
+              <Label 
+                layer="layer-3" 
+                layout="stacked"
+                editIcon={textDecorationGlobalRef.editIcon}
+                onEditIconClick={textDecorationGlobalRef.handleGlobeClick}
+                editIconTitle={textDecorationGlobalRef.editIconTitle}
+              >
+                Decoration
+              </Label>
               <SegmentedControl
                 items={textDecorationOptions}
                 value={currentTextDecoration}
                 onChange={handleTextDecorationChange}
                 layer="layer-3"
                 showLabel={false}
+                disabled={textDecorationGlobalRef.isAttached}
               />
             </div>
           )}
@@ -1511,13 +1588,22 @@ export default function TextStyleToolbar({
           {/* Text Transform */}
           {isAllowed('text-transform') && (
             <div className="text-style-control">
-              <Label layer="layer-3" layout="stacked">Case</Label>
+              <Label 
+                layer="layer-3" 
+                layout="stacked"
+                editIcon={textTransformGlobalRef.editIcon}
+                onEditIconClick={textTransformGlobalRef.handleGlobeClick}
+                editIconTitle={textTransformGlobalRef.editIconTitle}
+              >
+                Case
+              </Label>
               <SegmentedControl
                 items={textTransformOptions}
                 value={currentTextTransform}
                 onChange={handleTextTransformChange}
                 layer="layer-3"
                 showLabel={false}
+                disabled={textTransformGlobalRef.isAttached}
               />
             </div>
           )}

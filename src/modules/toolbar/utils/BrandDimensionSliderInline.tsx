@@ -6,12 +6,13 @@
  */
 
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
-import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved, isVarInChain } from '../../../core/css/readCssVar'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
 import { Label } from '../../../components/adapters/Label'
+import { useGlobalRefControl } from '../../../core/css/globalRefInterceptor'
 
 // Helper to format label from key
 function formatDimensionLabel(key: string): string {
@@ -42,6 +43,10 @@ interface BrandDimensionSliderInlineProps {
   label: string
   dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size'
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
+  disabled?: boolean
+  editIcon?: React.ReactNode
+  onEditIconClick?: (e: React.MouseEvent) => void
+  editIconTitle?: string
 }
 
 export default function BrandDimensionSliderInline({
@@ -50,9 +55,19 @@ export default function BrandDimensionSliderInline({
   label,
   dimensionCategory,
   layer = 'layer-0',
+  disabled,
+  editIcon,
+  onEditIconClick,
+  editIconTitle,
 }: BrandDimensionSliderInlineProps) {
-  const { theme } = useVars()
+  const { theme, uikit } = useVars()
   const { mode } = useThemeMode()
+
+  const globalRef = useGlobalRefControl(targetCssVar, uikit)
+  const isAttached = globalRef.isAttached
+  const finalEditIcon = editIcon !== undefined ? editIcon : globalRef.editIcon
+  const finalOnEditIconClick = onEditIconClick !== undefined ? onEditIconClick : globalRef.handleGlobeClick
+  const finalEditIconTitle = editIconTitle !== undefined ? editIconTitle : globalRef.editIconTitle
 
   // Build tokens list from brand dimension tokens, sorted by pixel value
   const tokens = useMemo(() => {
@@ -187,10 +202,14 @@ export default function BrandDimensionSliderInline({
 
     const handleCssVarUpdate = (event: CustomEvent) => {
       const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-      if (event.detail?.cssVars?.some((cv: string) => cssVars.includes(cv))) {
-        setTimeout(() => {
-          readInitialValue()
-        }, 0)
+      const updatedVars = event.detail?.cssVars
+      if (Array.isArray(updatedVars)) {
+        const hasRelevantUpdate = cssVars.some(v => isVarInChain(v, updatedVars))
+        if (hasRelevantUpdate) {
+          setTimeout(() => {
+            readInitialValue()
+          }, 0)
+        }
       }
     }
 
@@ -296,7 +315,18 @@ export default function BrandDimensionSliderInline({
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
-      label={<Label layer={layer} layout="stacked">{label}</Label>}
+      disabled={disabled || isAttached}
+      label={
+        <Label 
+          layer={layer} 
+          layout="stacked" 
+          editIcon={finalEditIcon} 
+          onEditIconClick={finalOnEditIconClick}
+          editIconTitle={finalEditIconTitle}
+        >
+          {label}
+        </Label>
+      }
     />
   )
 }
