@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved, isVarInChain } from '../../../core/css/readCssVar'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { Slider } from '../../../components/adapters/Slider'
 import { Label } from '../../../components/adapters/Label'
@@ -26,20 +26,30 @@ export default function PixelValueSliderInline({
   })
 
   useEffect(() => {
-    const handleUpdate = () => {
-      const currentValue = readCssVar(targetCssVar)
-      const resolvedValue = readCssVarResolved(targetCssVar)
-      const valueStr = resolvedValue || currentValue || `${minPixelValue}px`
-      const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-      if (match) {
-        setValue(Math.max(minPixelValue, Math.min(maxPixelValue, parseFloat(match[1]))))
+    const handleUpdate = (event?: Event) => {
+      if (event && event.type === 'cssVarsUpdated') {
+        const updatedVars = (event as CustomEvent).detail?.cssVars
+        if (updatedVars && Array.isArray(updatedVars)) {
+          const hasRelevantUpdate = isVarInChain(targetCssVar, updatedVars)
+          if (!hasRelevantUpdate) return
+        }
       }
+
+      setTimeout(() => {
+        const currentValue = readCssVar(targetCssVar)
+        const resolvedValue = readCssVarResolved(targetCssVar)
+        const valueStr = resolvedValue || currentValue || `${minPixelValue}px`
+        const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+        if (match) {
+          setValue(Math.max(minPixelValue, Math.min(maxPixelValue, parseFloat(match[1]))))
+        }
+      }, 0)
     }
-    window.addEventListener('cssVarsUpdated', handleUpdate)
-    window.addEventListener('cssVarsReset', handleUpdate)
+    window.addEventListener('cssVarsUpdated', handleUpdate as EventListener)
+    window.addEventListener('cssVarsReset', handleUpdate as EventListener)
     return () => {
-      window.removeEventListener('cssVarsUpdated', handleUpdate)
-      window.removeEventListener('cssVarsReset', handleUpdate)
+      window.removeEventListener('cssVarsUpdated', handleUpdate as EventListener)
+      window.removeEventListener('cssVarsReset', handleUpdate as EventListener)
     }
   }, [targetCssVar, minPixelValue, maxPixelValue])
 

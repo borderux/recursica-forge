@@ -142,3 +142,37 @@ export function readRawCssVar(cssVarName: string, fallback?: string): string | u
     return fallback
   }
 }
+
+/**
+ * Checks if a CSS variable name has any of the updated CSS variables in its resolution chain.
+ * 
+ * @param cssVarName - The CSS variable to check
+ * @param updatedVars - Array of updated CSS variable names
+ * @param depth - Current recursion depth
+ * @param visited - Set of visited CSS variable names to prevent infinite loops
+ * @returns true if any of the updatedVars is in the chain of cssVarName
+ */
+export function isVarInChain(
+  cssVarName: string,
+  updatedVars: string[],
+  depth: number = 0,
+  visited: Set<string> = new Set()
+): boolean {
+  if (depth > 5) return false
+  if (visited.has(cssVarName)) return false
+  visited.add(cssVarName)
+
+  if (updatedVars.includes(cssVarName)) return true
+
+  const value = readCssVar(cssVarName)
+  if (!value) return false
+
+  const matches = value.matchAll(/var\(\s*(--[a-zA-Z0-9_-]+)\s*\)/g)
+  for (const match of matches) {
+    if (isVarInChain(match[1], updatedVars, depth + 1, visited)) {
+      return true
+    }
+  }
+  return false
+}
+

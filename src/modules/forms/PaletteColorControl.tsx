@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useMemo } from 'react'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
-import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved, isVarInChain } from '../../core/css/readCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { tokenColor, parseBrandCssVar, extractColorToken, extractColorTokenFromColorMix, unwrapVar } from '../../core/css/cssVarBuilder'
@@ -211,7 +211,7 @@ export default function PaletteColorControl({
         return
       }
 
-      const hasRelevantUpdate = relevantVars.some(v => updatedVars.includes(v))
+      const hasRelevantUpdate = relevantVars.some(v => isVarInChain(v, updatedVars))
       if (!hasRelevantUpdate) {
         return
       }

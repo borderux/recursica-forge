@@ -167,12 +167,12 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
             value: compKey,
             label: displayLabel
           }
-        })
+        }).sort((a, b) => a.label.localeCompare(b.label))
 
     return [
       {
         value: 'other-components-root',
-        label: 'Components using global var',
+        label: 'Components using global variable',
         children
       }
     ]
@@ -457,7 +457,7 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
       <Modal
         isOpen={isOpen}
         onClose={handleClose}
-        title="Override active"
+        title="Remove override?"
         layer="layer-1"
         showFooter={true}
         primaryActionLabel="Reattach to global variable"

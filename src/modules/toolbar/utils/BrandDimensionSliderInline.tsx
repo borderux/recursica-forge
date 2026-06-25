@@ -6,7 +6,7 @@
  */
 
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react'
-import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
+import { readCssVar, readCssVarResolved, isVarInChain } from '../../../core/css/readCssVar'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
@@ -202,10 +202,14 @@ export default function BrandDimensionSliderInline({
 
     const handleCssVarUpdate = (event: CustomEvent) => {
       const cssVars = targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-      if (event.detail?.cssVars?.some((cv: string) => cssVars.includes(cv))) {
-        setTimeout(() => {
-          readInitialValue()
-        }, 0)
+      const updatedVars = event.detail?.cssVars
+      if (Array.isArray(updatedVars)) {
+        const hasRelevantUpdate = cssVars.some(v => isVarInChain(v, updatedVars))
+        if (hasRelevantUpdate) {
+          setTimeout(() => {
+            readInitialValue()
+          }, 0)
+        }
       }
     }
 
