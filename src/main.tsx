@@ -9,8 +9,6 @@ import { ThemeModeProvider } from './modules/theme/ThemeModeContext'
 import { VarsProvider } from './modules/vars/VarsContext'
 import { UnifiedThemeProvider } from './components/providers/UnifiedThemeProvider'
 import { ComplianceProvider } from './core/compliance/ComplianceContext'
-import { GlobalRefModalProvider } from './modules/toolbar/modals/GlobalRefModalProvider'
-import { OnToneModalProvider } from './modules/toolbar/modals/OnToneModalProvider'
 import './styles/index.css'
 import './styles/theme.css.ts'
 import { bootstrapTheme } from './core/bootstrap'
@@ -136,8 +134,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <VarsProvider>
           <ComplianceProvider>
             <UnifiedThemeProvider>
-              <GlobalRefModalProvider />
-              <OnToneModalProvider />
               <RouterProvider router={router} future={{ v7_startTransition: true }} />
             </UnifiedThemeProvider>
           </ComplianceProvider>

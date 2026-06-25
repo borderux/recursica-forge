@@ -21,6 +21,7 @@
 
 import React from 'react'
 import { Tooltip } from '../../components/adapters/Tooltip'
+import { Button } from '../../components/adapters/Button'
 import { getVarsStore } from '../store/varsStore'
 import { updateUIKitValue } from './updateUIKitValue'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
@@ -44,6 +45,8 @@ export interface GlobalRefConflict {
   previousValue: string
   /** The original DTCG reference string, e.g. `{ui-kit.globals.form.field.colors.background}` */
   originalDtcgRef: string
+  /** Whether the property has been detached and overridden */
+  isDetached?: boolean
 }
 
 export type GlobalRefPreference = 'ask' | 'always-override' | 'always-global'
@@ -57,6 +60,7 @@ const DEBOUNCE_MS = 150
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 let pendingConflict: GlobalRefConflict | null = null
+let modalCallback: any = null
 
 /**
  * Flag to suppress interception during `applyGlobalUpdate`.
@@ -537,17 +541,54 @@ export function useGlobalRefControl(primaryVar: string, uikit: any) {
   const isAttached = status.isAttached
   const isDetached = status.isDetached
   
-  const GlobeIcon = (isAttached || isDetached) ? iconNameToReactComponent('globe') : null
+  const iconName = isAttached ? 'globe-simple' : isDetached ? 'arrow-clockwise' : null
+  const GlobeIcon = iconName ? iconNameToReactComponent(iconName) : null
   const editIconTitle = isAttached ? "Edit global variable" : "Reattach to global variable"
   
-  const rawIcon = GlobeIcon ? React.createElement(GlobeIcon, {
-    id: `globe-${primaryVar}`,
-    style: { 
-      width: '16px', 
-      height: '16px', 
-      color: isAttached ? 'var(--recursica_brand_themes_light_palettes_core-colors_primary_tone)' : undefined 
+  const handleGlobeClick = (e: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation()
+      e.preventDefault()
     }
-  }) : undefined
+    
+    const compName = status.globalRefLabel ? status.globalRefLabel.split('/')[0].trim() : 'Component'
+    
+    window.dispatchEvent(
+      new CustomEvent('globalRefConflict', {
+        detail: {
+          cssVarName: primaryVar,
+          componentName: compName,
+          globalRefPath: status.globalRefPath,
+          globalRefLabel: status.globalRefLabel,
+          globalCssVarName: status.globalCssVarName,
+          newValue: '',
+          previousValue: status.globalCssVarName ? `var(${status.globalCssVarName})` : '',
+          originalDtcgRef: status.originalGlobalRef,
+          isDetached,
+        }
+      })
+    )
+  }
+
+  const rawIcon = GlobeIcon ? (
+    isDetached ? (
+      React.createElement(Button, {
+        variant: 'text',
+        size: 'small',
+        icon: React.createElement(GlobeIcon, { style: { width: '13px', height: '13px' } }),
+        onClick: handleGlobeClick
+      }, 'Reattach')
+    ) : (
+      React.createElement(GlobeIcon, {
+        id: `globe-${primaryVar}`,
+        style: { 
+          width: '16px', 
+          height: '16px', 
+          color: 'var(--recursica_brand_themes_light_palettes_core-colors_primary_tone)'
+        }
+      })
+    )
+  ) : undefined
 
   const editIcon = rawIcon ? React.createElement(Tooltip, {
     label: editIconTitle,
@@ -560,30 +601,7 @@ export function useGlobalRefControl(primaryVar: string, uikit: any) {
   return {
     isAttached,
     isDetached,
-    handleGlobeClick: (e: React.MouseEvent) => {
-      if (e) {
-        e.stopPropagation()
-        e.preventDefault()
-      }
-      
-      const compName = status.globalRefLabel ? status.globalRefLabel.split('/')[0].trim() : 'Component'
-      
-      window.dispatchEvent(
-        new CustomEvent('globalRefConflict', {
-          detail: {
-            cssVarName: primaryVar,
-            componentName: compName,
-            globalRefPath: status.globalRefPath,
-            globalRefLabel: status.globalRefLabel,
-            globalCssVarName: status.globalCssVarName,
-            newValue: '',
-            previousValue: status.globalCssVarName ? `var(${status.globalCssVarName})` : '',
-            originalDtcgRef: status.originalGlobalRef,
-            isDetached,
-          }
-        })
-      )
-    },
+    handleGlobeClick,
     editIcon,
     editIconTitle: undefined
   }

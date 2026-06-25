@@ -7,10 +7,12 @@
  * the current component.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Panel } from '../../../components/adapters/Panel'
 import { Modal } from '../../../components/adapters/Modal'
 import { Button } from '../../../components/adapters/Button'
+import { Tree } from '../../../components/adapters/Tree'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import type { GlobalRefConflict } from '../../../core/css/globalRefInterceptor'
 import { resolveGlobalRefConflict } from '../../../core/css/globalRefInterceptor'
@@ -106,12 +108,75 @@ export interface GlobalRefModalProps {
 }
 
 export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProps) {
+  const navigate = useNavigate()
   const [rememberChoice, setRememberChoice] = useState(false)
   const [hasChanged, setHasChanged] = useState(false)
   const [showResetConfirmation, setShowResetConfirmation] = useState(false)
   const { mode } = useThemeMode()
   const { uikit } = useVars()
   const layerElements = `--recursica_brand_themes_${mode}_layers_layer-1_elements`
+
+  // Scan uikit for components using the same global variable reference
+  const otherComponents = useMemo(() => {
+    if (!uikit || !conflict || !conflict.originalDtcgRef) return []
+    const componentsObj = uikit?.['ui-kit']?.components || uikit?.components || {}
+    const matches: string[] = []
+
+    function hasValue(obj: any, val: string): boolean {
+      if (typeof obj === 'string') {
+        return obj === val
+      }
+      if (obj && typeof obj === 'object') {
+        for (const key of Object.keys(obj)) {
+          if (hasValue(obj[key], val)) return true
+        }
+      }
+      return false
+    }
+
+    for (const compKey of Object.keys(componentsObj)) {
+      if (hasValue(componentsObj[compKey], conflict.originalDtcgRef)) {
+        matches.push(compKey)
+      }
+    }
+
+    // Filter out the current component key
+    const currentSlug = conflict.componentName.toLowerCase().replace(/\s+/g, '-')
+    const currentCompKey = conflict.cssVarName.replace(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?/, '').split('_')[0].toLowerCase()
+
+    return matches.filter(c => {
+      const norm = c.toLowerCase()
+      return norm !== currentSlug && 
+             norm !== `${currentSlug}-group` && 
+             norm.replace(/-group$/, '') !== currentSlug &&
+             norm !== currentCompKey &&
+             norm !== `${currentCompKey}-group` &&
+             norm.replace(/-group$/, '') !== currentCompKey
+    })
+  }, [uikit, conflict])
+
+  const treeData = useMemo(() => {
+    const children = otherComponents.length === 0
+      ? [{ value: 'none', label: 'None' }]
+      : otherComponents.map(compKey => {
+          const displayLabel = compKey
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+          return {
+            value: compKey,
+            label: displayLabel
+          }
+        })
+
+    return [
+      {
+        value: 'other-components-root',
+        label: 'Components using global var',
+        children
+      }
+    ]
+  }, [otherComponents])
 
   // Store the initial value of the global variable from the UIKit JSON when the modal opens
   const [initialGlobalDtcgValue, setInitialGlobalDtcgValue] = useState<any>(null)
@@ -459,6 +524,22 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
             >
               Reset
             </Button>
+
+            {/* Tree Component for Other Components */}
+            <div style={{ marginTop: '16px', width: '100%' }}>
+              <Tree
+                data={treeData}
+                layer="layer-1"
+                selected={[]}
+                onSelect={(selectedKeys) => {
+                  const key = selectedKeys[0]
+                  if (key && key !== 'other-components-root' && key !== 'none') {
+                    navigate(`/components/${key}`)
+                  }
+                }}
+                style={{ width: '100%' }}
+              />
+            </div>
           </div>
         </div>
       </Panel>

@@ -5,7 +5,7 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense, useState, useEffect } from 'react'
+import React, { Suspense, useState, useEffect } from 'react'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useComponent } from '../hooks/useComponent'
 import { Button } from './Button'
@@ -14,6 +14,36 @@ import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssV
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
+
+function isButtonOrHasClick(node: React.ReactNode): boolean {
+  if (!React.isValidElement(node)) return false
+  
+  const props = node.props as any
+  if (!props) return false
+
+  if (props.onClick !== undefined) return true
+  
+  const type = node.type
+  if (
+    type === 'button' ||
+    (typeof type === 'function' &&
+      (type.name === 'Button' ||
+        type.name === 'MantineButton' ||
+        (type as any).displayName === 'Button' ||
+        (type as any).displayName === 'MantineButton'))
+  ) {
+    return true
+  }
+
+  if (props.children) {
+    if (Array.isArray(props.children)) {
+      return props.children.some((child: any) => isButtonOrHasClick(child))
+    }
+    return isButtonOrHasClick(props.children)
+  }
+
+  return false
+}
 
 export type LabelProps = {
   children?: React.ReactNode
@@ -278,7 +308,9 @@ export function Label({
             </span>
             {finalEditIcon && (
               <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
-                {editIconTitle ? (
+                {isButtonOrHasClick(finalEditIcon) ? (
+                  finalEditIcon
+                ) : editIconTitle ? (
                   <Tooltip label={editIconTitle} withinPortal zIndex={10000}>
                     <Button variant="text" size="small" icon={finalEditIcon} layer={layer} onClick={onEditIconClick} />
                   </Tooltip>

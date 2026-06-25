@@ -71,7 +71,7 @@ export default function PixelValueSliderInline({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-      <Label size="small" variant="secondary" htmlFor={targetCssVar}>{label}</Label>
+      <Label size="small" htmlFor={targetCssVar}>{label}</Label>
       <div style={{ padding: '0 8px' }}>
         <Slider
           value={value}
@@ -81,7 +81,6 @@ export default function PixelValueSliderInline({
           max={maxPixelValue}
           step={1}
           valueLabel={getValueLabel}
-          showLabel={false}
         />
       </div>
     </div>
