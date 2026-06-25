@@ -263,6 +263,13 @@ export function checkForGlobalRef(
 
   const store = getVarsStore()
 
+  // If the property is already detached (overridden), do not trigger a new conflict modal.
+  const currentUikit = store.getState()?.uikit
+  if (currentUikit) {
+    const status = getPropertyGlobalRefStatus(cssVarName, currentUikit)
+    if (status.isDetached) return
+  }
+
   // Use the pristine (unmodified) UIKit JSON for detection.
   // The in-memory UIKit may have already been mutated by updateUIKitValue
   // with the new value, which would overwrite the original reference.
@@ -390,7 +397,17 @@ export function resolveGlobalRefConflict(
     suppressInterception = true
     try {
       const root = document.documentElement
-      root.style.setProperty(conflict.cssVarName, conflict.previousValue)
+      
+      // Determine themed and non-themed variable names to clean up DOM overrides
+      const baseVar = conflict.cssVarName.replace(/^--recursica_ui-kit_(?:themes_(?:light|dark)_)?/, '')
+      const nonThemedVar = `--recursica_ui-kit_${baseVar}`
+      const lightVar = `--recursica_ui-kit_themes_light_${baseVar}`
+      const darkVar = `--recursica_ui-kit_themes_dark_${baseVar}`
+      
+      root.style.removeProperty(nonThemedVar)
+      root.style.removeProperty(lightVar)
+      root.style.removeProperty(darkVar)
+
       updateUIKitValue(conflict.cssVarName, conflict.originalDtcgRef)
       
       // Update UI state so toolbars and form inputs reset back to the reverted value
@@ -402,12 +419,33 @@ export function resolveGlobalRefConflict(
       // out of the generic cssVarsUpdated event stream.
       requestAnimationFrame(() => {
         window.dispatchEvent(new CustomEvent('cssVarsReset'))
+        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+          detail: { cssVars: [conflict.cssVarName] }
+        }))
       })
     } finally {
       suppressInterception = false
     }
+  } else if (decision === 'override') {
+    // If opened via the globe icon, the preview isn't applied yet, so we must explicitly apply the override.
+    if (conflict.newValue) {
+      suppressInterception = true
+      try {
+        const root = document.documentElement
+        root.style.setProperty(conflict.cssVarName, conflict.newValue)
+        updateUIKitValue(conflict.cssVarName, conflict.newValue)
+        
+        const store = getVarsStore()
+        store.recomputeAndApplyAll()
+        
+        requestAnimationFrame(() => {
+          window.dispatchEvent(new CustomEvent('cssVarsReset'))
+        })
+      } finally {
+        suppressInterception = false
+      }
+    }
   }
-  // 'override' — the preview is already applied; nothing to revert.
 }
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
@@ -500,7 +538,9 @@ export function useGlobalRefControl(primaryVar: string, uikit: any) {
   const isDetached = status.isDetached
   
   const GlobeIcon = (isAttached || isDetached) ? iconNameToReactComponent('globe') : null
-  const editIcon = GlobeIcon ? React.createElement(GlobeIcon, {
+  const editIconTitle = isAttached ? "Edit global variable" : "Reattach to global variable"
+  
+  const rawIcon = GlobeIcon ? React.createElement(GlobeIcon, {
     id: `globe-${primaryVar}`,
     style: { 
       width: '16px', 
@@ -508,6 +548,14 @@ export function useGlobalRefControl(primaryVar: string, uikit: any) {
       color: isAttached ? 'var(--recursica_brand_themes_light_palettes_core-colors_primary_tone)' : undefined 
     }
   }) : undefined
+
+  const editIcon = rawIcon ? React.createElement(Tooltip, {
+    label: editIconTitle,
+    withinPortal: true,
+    zIndex: 10000,
+    position: 'top',
+    alignment: 'middle'
+  }, rawIcon) : undefined
 
   return {
     isAttached,
@@ -537,6 +585,7 @@ export function useGlobalRefControl(primaryVar: string, uikit: any) {
       )
     },
     editIcon,
-    editIconTitle: isAttached ? "Edit global token" : "Reattach to global token"
+    editIconTitle: undefined
   }
 }
+

@@ -280,9 +280,7 @@ export function Label({
               <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
                 {editIconTitle ? (
                   <Tooltip label={editIconTitle} withinPortal zIndex={10000}>
-                    <div style={{ display: 'inline-flex' }}>
-                      <Button variant="text" size="small" icon={finalEditIcon} layer={layer} onClick={onEditIconClick} />
-                    </div>
+                    <Button variant="text" size="small" icon={finalEditIcon} layer={layer} onClick={onEditIconClick} />
                   </Tooltip>
                 ) : (
                   <Button variant="text" size="small" icon={finalEditIcon} layer={layer} onClick={onEditIconClick} title={editIconTitle} />

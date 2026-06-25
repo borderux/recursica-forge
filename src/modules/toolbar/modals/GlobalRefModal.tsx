@@ -21,6 +21,82 @@ import BrandDimensionSliderInline from '../utils/BrandDimensionSliderInline'
 import PixelValueSliderInline from '../utils/PixelValueSliderInline'
 import { useVars } from '../../vars/VarsContext'
 import { iconNameToReactComponent } from '../../components/iconUtils'
+import { Slider } from '../../../components/adapters/Slider'
+import { Label } from '../../../components/adapters/Label'
+import { readCssVar, readCssVarResolved } from '../../../core/css/readCssVar'
+
+function BorderSizeSliderInline({ targetCssVar, label }: { targetCssVar: string; label: string }) {
+  const [value, setValue] = useState(() => {
+    const currentValue = readCssVar(targetCssVar)
+    const resolvedValue = readCssVarResolved(targetCssVar)
+    const valueStr = resolvedValue || currentValue || '0px'
+    const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+    return match ? Math.max(0, Math.min(10, parseFloat(match[1]))) : 0
+  })
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      const currentValue = readCssVar(targetCssVar)
+      const resolvedValue = readCssVarResolved(targetCssVar)
+      const valueStr = resolvedValue || currentValue || '0px'
+      const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+      if (match) {
+        setValue(Math.max(0, Math.min(10, parseFloat(match[1]))))
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleUpdate)
+    window.addEventListener('cssVarsReset', handleUpdate)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleUpdate)
+      window.removeEventListener('cssVarsReset', handleUpdate)
+    }
+  }, [targetCssVar])
+
+  const handleChange = (val: number | [number, number]) => {
+    const numValue = typeof val === 'number' ? val : val[0]
+    const clampedValue = Math.max(0, Math.min(10, Math.round(numValue)))
+    setValue(clampedValue)
+    updateCssVar(targetCssVar, `${clampedValue}px`)
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars: [targetCssVar] }
+    }))
+  }
+
+  const handleChangeCommitted = (val: number | [number, number]) => {
+    const numValue = typeof val === 'number' ? val : val[0]
+    const clampedValue = Math.max(0, Math.min(10, Math.round(numValue)))
+    setValue(clampedValue)
+    updateCssVar(targetCssVar, `${clampedValue}px`)
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars: [targetCssVar] }
+    }))
+  }
+
+  return (
+    <Slider
+      value={value}
+      onChange={handleChange}
+      onChangeCommitted={handleChangeCommitted}
+      min={0}
+      max={10}
+      step={1}
+      layer="layer-1"
+      layout="stacked"
+      showInput={false}
+      showValueLabel={true}
+      valueLabel={(val) => `${Math.round(val)}px`}
+      minLabel="0px"
+      maxLabel="10px"
+      showMinMaxLabels={false}
+      label={
+        <Label layer="layer-1" layout="stacked">
+          {label}
+        </Label>
+      }
+    />
+  )
+}
+
 
 export interface GlobalRefModalProps {
   isOpen: boolean
@@ -125,6 +201,9 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
     
     updateCssVar(conflict.globalCssVarName, restoreValue)
     setHasChanged(false)
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+      detail: { cssVars: [conflict.globalCssVarName] }
+    }))
   }
 
   const handleReattach = () => {
@@ -168,11 +247,24 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
     if (!conflict.globalCssVarName) return null
     const lowerVar = conflict.globalCssVarName.toLowerCase()
     
+    const getSimpleLabel = () => {
+      if (lowerVar.includes('border-size') || lowerVar.includes('border-width')) return 'Size'
+      if (lowerVar.includes('radius')) return 'Radius'
+      if (lowerVar.includes('color')) return 'Color'
+      if (conflict.globalRefLabel) {
+        const parts = conflict.globalRefLabel.split(' / ')
+        return parts[parts.length - 1]
+      }
+      return 'Value'
+    }
+
+    const simpleLabel = getSimpleLabel()
+    
     if (lowerVar.includes('color')) {
       return (
         <PaletteColorControl
           targetCssVar={conflict.globalCssVarName}
-          label={conflict.globalRefLabel}
+          label={simpleLabel}
         />
       )
     }
@@ -181,7 +273,16 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
       return (
         <BrandBorderRadiusSlider
           targetCssVar={conflict.globalCssVarName}
-          label={conflict.globalRefLabel}
+          label={simpleLabel}
+        />
+      )
+    }
+
+    if (lowerVar.includes('border-size') || lowerVar.includes('border-width')) {
+      return (
+        <BorderSizeSliderInline
+          targetCssVar={conflict.globalCssVarName}
+          label={simpleLabel}
         />
       )
     }
@@ -191,11 +292,11 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
         (typeof initialGlobalDtcgValue === 'string' && initialGlobalDtcgValue.endsWith('px')) ||
         (typeof initialGlobalDtcgValue === 'object' && initialGlobalDtcgValue !== null && initialGlobalDtcgValue.unit === 'px')
 
-      if (isPixelValue || lowerVar.includes('border-size')) {
+      if (isPixelValue) {
         return (
           <PixelValueSliderInline
             targetCssVar={conflict.globalCssVarName}
-            label={conflict.globalRefLabel}
+            label={simpleLabel}
             minPixelValue={0}
             maxPixelValue={40}
           />
@@ -207,7 +308,7 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
       return (
         <BrandDimensionSliderInline
           targetCssVar={conflict.globalCssVarName}
-          label={conflict.globalRefLabel}
+          label={simpleLabel}
           dimensionCategory={dimensionCategory as any}
         />
       )
@@ -237,7 +338,7 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <p style={bodyStyle}>
             This property is currently overridden and detached from the global variable{' '}
-            <strong>{conflict.globalRefLabel}</strong>.
+            <strong style={{ fontFamily: 'inherit', fontWeight: 600 }}>{conflict.globalRefLabel}</strong>.
           </p>
           <p style={bodyStyle}>
             Would you like to reattach it so that it inherits changes from the global theme variable again?
@@ -266,7 +367,7 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <p style={bodyStyle}>
-          This property value is referencing a global variable. Making changes will affect all components that use this same global variable.
+          This property value is referencing a global variable. Making changes will affect all components that use the same global variable <strong style={{ fontFamily: 'inherit', fontWeight: 600 }}>{conflict.globalRefLabel}</strong>.
         </p>
 
         <div style={{

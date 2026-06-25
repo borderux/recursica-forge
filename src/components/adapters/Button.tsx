@@ -5,7 +5,7 @@
  * based on the current UI kit selection.
  */
 
-import { Suspense, useState, useEffect } from 'react'
+import React, { Suspense, useState, useEffect } from 'react'
 import { useComponent } from '../hooks/useComponent'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
 import { getElevationBoxShadow, parseElevationValue } from '../utils/brandCssVars'
@@ -29,23 +29,25 @@ export type ButtonProps = {
   title?: string
 } & LibrarySpecificProps
 
-export function Button({
-  children,
-  variant = 'solid',
-  size = 'default',
-  layer = 'layer-0',
-  elevation,
-  disabled = false,
-  onClick,
-  type = 'button',
-  className,
-  style,
-  icon,
-  title,
-  mantine,
-  material,
-  carbon,
-}: ButtonProps) {
+export const Button = React.forwardRef<any, ButtonProps>((props, ref) => {
+  const {
+    children,
+    variant = 'solid',
+    size = 'default',
+    layer = 'layer-0',
+    elevation,
+    disabled = false,
+    onClick,
+    type = 'button',
+    className,
+    style,
+    icon,
+    title,
+    mantine,
+    material,
+    carbon,
+    ...rest
+  } = props
   const Component = useComponent('Button')
   const { mode } = useThemeMode()
   
@@ -129,6 +131,7 @@ export function Button({
     
     return (
       <button
+        ref={ref}
         type={type}
         disabled={disabled}
         onClick={onClick}
@@ -141,6 +144,7 @@ export function Button({
           gap: icon ? `var(${iconGapVar})` : 0,
           ...style,
         }}
+        {...rest}
       >
         {icon && (
           <span style={{
@@ -161,6 +165,7 @@ export function Button({
   
   // Map unified props to library-specific props
   const libraryProps = mapButtonProps({
+    ...props,
     variant,
     size,
     layer,
@@ -178,10 +183,10 @@ export function Button({
   
   return (
     <Suspense fallback={<span />}>
-      <Component {...libraryProps}>{children}</Component>
+      <Component {...libraryProps} ref={ref}>{children}</Component>
     </Suspense>
   )
-}
+})
 
 function getButtonStyles(
   variant: 'solid' | 'outline' | 'text',
