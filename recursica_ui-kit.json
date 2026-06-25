@@ -172,6 +172,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": null
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.interactive.on-tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-1": {
@@ -192,6 +200,14 @@
                       "$value": "{brand.palettes.core-colors.interactive.on-tone}"
                     },
                     "border-color": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.interactive.on-tone}"
+                    },
+                    "border-color-hover": {
                       "$type": "color",
                       "$value": null
                     }
@@ -216,6 +232,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": null
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.interactive.on-tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-3": {
@@ -238,6 +262,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": null
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.palettes.core-colors.interactive.on-tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   }
                 },
@@ -255,6 +287,12 @@
                   }
                 },
                 "hover-elevation": {
+                  "$value": "{brand.elevations.elevation-0}",
+                  "$extensions": {
+                    "recursica.type": "elevation"
+                  }
+                },
+                "disabled-elevation": {
                   "$value": "{brand.elevations.elevation-0}",
                   "$extensions": {
                     "recursica.type": "elevation"
@@ -285,6 +323,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": null
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-1": {
@@ -305,6 +351,14 @@
                       "$value": "{brand.layers.layer-1.elements.interactive.tone}"
                     },
                     "border-color": {
+                      "$type": "color",
+                      "$value": null
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "border-color-hover": {
                       "$type": "color",
                       "$value": null
                     }
@@ -329,6 +383,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": null
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-3": {
@@ -351,6 +413,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-3.properties.border-color}"
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   }
                 },
@@ -368,6 +438,12 @@
                   }
                 },
                 "hover-elevation": {
+                  "$value": "{brand.elevations.elevation-0}",
+                  "$extensions": {
+                    "recursica.type": "elevation"
+                  }
+                },
+                "disabled-elevation": {
                   "$value": "{brand.elevations.elevation-0}",
                   "$extensions": {
                     "recursica.type": "elevation"
@@ -398,6 +474,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-1": {
@@ -420,6 +504,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-2": {
@@ -442,6 +534,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   },
                   "layer-3": {
@@ -464,6 +564,14 @@
                     "border-color": {
                       "$type": "color",
                       "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+                    },
+                    "icon-color-hover": {
+                      "$type": "color",
+                      "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+                    },
+                    "border-color-hover": {
+                      "$type": "color",
+                      "$value": null
                     }
                   }
                 },
@@ -481,6 +589,12 @@
                   }
                 },
                 "hover-elevation": {
+                  "$value": "{brand.elevations.elevation-0}",
+                  "$extensions": {
+                    "recursica.type": "elevation"
+                  }
+                },
+                "disabled-elevation": {
                   "$value": "{brand.elevations.elevation-0}",
                   "$extensions": {
                     "recursica.type": "elevation"

@@ -51,11 +51,13 @@ export function Button({
   
   // Get elevation from CSS vars if not provided as props
   // These are set by the toolbar and initialized from recursica_ui-kit.json
-  const elevationVar = getComponentLevelCssVar('Button', 'elevation')
+  const elevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'elevation')
+  const disabledElevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', variant, 'properties', 'disabled-elevation')
+  const activeElevationVar = disabled ? disabledElevationVar : elevationVar
   
   // Reactively read elevation from CSS variable
   const [elevationFromVar, setElevationFromVar] = useState<string | undefined>(() => {
-    const value = readCssVar(elevationVar)
+    const value = readCssVar(activeElevationVar)
     return value ? parseElevationValue(value) : undefined
   })
   
@@ -64,6 +66,10 @@ export function Button({
   
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
+    // Sync initial state when activeElevationVar changes
+    const initialValue = readCssVar(activeElevationVar)
+    setElevationFromVar(initialValue ? parseElevationValue(initialValue) : undefined)
+
     // Get text CSS variables for reactive updates
     const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
     const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
@@ -79,11 +85,11 @@ export function Button({
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       // Update if elevation or any text CSS var was updated
-      const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(elevationVar)
+      const shouldUpdateElevation = !detail?.cssVars || detail.cssVars.includes(activeElevationVar)
       const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
       
       if (shouldUpdateElevation) {
-        const value = readCssVar(elevationVar)
+        const value = readCssVar(activeElevationVar)
         setElevationFromVar(value ? parseElevationValue(value) : undefined)
       }
       
@@ -97,7 +103,7 @@ export function Button({
     
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
-      const elevationValue = readCssVar(elevationVar)
+      const elevationValue = readCssVar(activeElevationVar)
       setElevationFromVar(elevationValue ? parseElevationValue(elevationValue) : undefined)
       // Force re-render for text vars
       setTextVarsUpdate(prev => prev + 1)
@@ -111,7 +117,7 @@ export function Button({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [elevationVar])
+  }, [activeElevationVar])
   
   const componentElevation = elevation ?? elevationFromVar ?? undefined
   

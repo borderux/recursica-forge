@@ -75,6 +75,12 @@
   color: var(--button-icon-color, inherit) !important;
 }
 
+.mantine-Button-root:hover:not([data-disabled="true"]) svg,
+.mantine-Button-root:hover:not([data-disabled="true"]) .recursica-button-left-section,
+.mantine-Button-root:hover:not([data-disabled="true"]) .recursica-button-right-section {
+  color: var(--button-icon-color-hover, var(--button-text-hover, var(--button-color))) !important;
+}
+
 /* Small buttons (xs) use small-icon variant - use --button-icon-size first (reactive), fall back to static recursica var */
 .mantine-Button-root[data-size='xs'] svg,
 .mantine-Button-root[data-size='xs'] svg[width],
@@ -136,12 +142,11 @@
 /* Ensure button label can truncate text with ellipsis */
 /* CSS handles truncation - maxWidth accounts for icon width and gap */
 .mantine-Button-root .mantine-Button-label {
-  overflow-x: hidden !important;
-  overflow-y: visible !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
-  display: inline-flex !important;
-  align-items: center !important;
   text-align: left !important;
   /* Allow label to shrink below content width so ellipsis can trigger */
   flex: 1 1 0 !important;
@@ -149,6 +154,11 @@
   /* maxWidth is calculated: max-width minus icon size and gap */
   /* When icon size is 0px (text-only), this simplifies to just max-width */
   max-width: calc(var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max-label-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
+  height: auto !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  margin-top: -4px !important;
+  margin-bottom: -4px !important;
 }
 
 /* Trailing icons - use Mantine's section[data-position='right'] */
@@ -269,6 +279,10 @@
 .recursica-layer-3 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled) {
   /* Prevent background color change on hover - override Mantine's CSS-in-JS */
   background-color: var(--button-bg) !important;
+  /* Apply text hover color */
+  color: var(--button-text-hover, var(--button-color)) !important;
+  /* Apply hover border color */
+  border-color: var(--button-border-color-hover, var(--button-border-color)) !important;
   /* Apply hover-elevation box-shadow if set, otherwise remove shadow */
   box-shadow: var(--button-hover-box-shadow, none) !important;
   /* Prevent any gradient or filter effects */
