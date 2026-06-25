@@ -425,9 +425,9 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
         width="400px"
         layer="layer-1"
         footer={
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', width: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
             <Button variant="outline" onClick={handleOverride}>
-              Detach and override
+              Detach and override value
             </Button>
           </div>
         }

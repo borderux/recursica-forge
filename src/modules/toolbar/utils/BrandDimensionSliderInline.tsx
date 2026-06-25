@@ -12,6 +12,7 @@ import { useVars } from '../../vars/VarsContext'
 import { useThemeMode } from '../../theme/ThemeModeContext'
 import { Slider } from '../../../components/adapters/Slider'
 import { Label } from '../../../components/adapters/Label'
+import { useGlobalRefControl } from '../../../core/css/globalRefInterceptor'
 
 // Helper to format label from key
 function formatDimensionLabel(key: string): string {
@@ -45,6 +46,7 @@ interface BrandDimensionSliderInlineProps {
   disabled?: boolean
   editIcon?: React.ReactNode
   onEditIconClick?: (e: React.MouseEvent) => void
+  editIconTitle?: string
 }
 
 export default function BrandDimensionSliderInline({
@@ -56,9 +58,16 @@ export default function BrandDimensionSliderInline({
   disabled,
   editIcon,
   onEditIconClick,
+  editIconTitle,
 }: BrandDimensionSliderInlineProps) {
-  const { theme } = useVars()
+  const { theme, uikit } = useVars()
   const { mode } = useThemeMode()
+
+  const globalRef = useGlobalRefControl(targetCssVar, uikit)
+  const isAttached = globalRef.isAttached
+  const finalEditIcon = editIcon !== undefined ? editIcon : globalRef.editIcon
+  const finalOnEditIconClick = onEditIconClick !== undefined ? onEditIconClick : globalRef.handleGlobeClick
+  const finalEditIconTitle = editIconTitle !== undefined ? editIconTitle : globalRef.editIconTitle
 
   // Build tokens list from brand dimension tokens, sorted by pixel value
   const tokens = useMemo(() => {
@@ -302,13 +311,14 @@ export default function BrandDimensionSliderInline({
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
-      disabled={disabled}
+      disabled={disabled || isAttached}
       label={
         <Label 
           layer={layer} 
           layout="stacked" 
-          editIcon={editIcon} 
-          onEditIconClick={onEditIconClick}
+          editIcon={finalEditIcon} 
+          onEditIconClick={finalOnEditIconClick}
+          editIconTitle={finalEditIconTitle}
         >
           {label}
         </Label>

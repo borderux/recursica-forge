@@ -9,6 +9,7 @@ import { buildTokenIndex } from '../../core/resolvers/tokens'
 import { resolveCssVarToHex } from '../../core/compliance/layerColorStepping'
 import { TextField } from '../../components/adapters/TextField'
 import { buildComponentCssVarPath, getComponentLevelCssVar } from '../../components/utils/cssVarNames'
+import { useGlobalRefControl } from '../../core/css/globalRefInterceptor'
 import './PaletteColorControl.css'
 
 type PaletteColorControlProps = {
@@ -55,10 +56,16 @@ export default function PaletteColorControl({
   onEditIconClick,
   editIconTitle,
 }: PaletteColorControlProps) {
-  const { palettes, theme: themeJson, tokens } = useVars()
+  const { palettes, theme: themeJson, tokens, uikit } = useVars()
   const { mode } = useThemeMode()
   const textFieldRef = useRef<HTMLDivElement>(null)
   const displayCssVar = currentValueCssVar || targetCssVar
+
+  const globalRef = useGlobalRefControl(targetCssVar, uikit)
+  const isAttached = globalRef.isAttached
+  const finalEditIcon = editIcon !== undefined ? editIcon : globalRef.editIcon
+  const finalOnEditIconClick = onEditIconClick !== undefined ? onEditIconClick : globalRef.handleGlobeClick
+  const finalEditIconTitle = editIconTitle !== undefined ? editIconTitle : globalRef.editIconTitle
 
   // Get available palette keys and levels for token-to-palette mapping
   const paletteKeys = useMemo(() => {
@@ -967,16 +974,16 @@ export default function PaletteColorControl({
           value={displayLabel}
           leadingIcon={swatchIcon}
           trailingIcon={trailingIcon}
-          state={disabled ? "disabled" : "default"}
+          state={disabled || isAttached ? "disabled" : "default"}
           readOnly={true}
-          onClick={disabled ? undefined : handleClick}
+          onClick={disabled || isAttached ? undefined : handleClick}
           layer="layer-0"
-          editIcon={editIcon}
-          onEditIconClick={onEditIconClick}
-          editIconTitle={editIconTitle}
+          editIcon={finalEditIcon}
+          onEditIconClick={finalOnEditIconClick}
+          editIconTitle={finalEditIconTitle}
           style={{
             fontSize,
-            cursor: disabled ? 'not-allowed' : 'pointer',
+            cursor: disabled || isAttached ? 'not-allowed' : 'pointer',
           }}
           className="palette-color-control-textfield"
         />

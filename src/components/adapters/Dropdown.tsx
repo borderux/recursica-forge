@@ -52,6 +52,10 @@ export type DropdownProps = {
     style?: React.CSSProperties
     disableTopBottomMargin?: boolean
     zIndex?: number
+    disabled?: boolean
+    editIcon?: React.ReactNode
+    onEditIconClick?: (e: React.MouseEvent) => void
+    editIconTitle?: string
 } & LibrarySpecificProps
 
 export function Dropdown({
@@ -79,6 +83,10 @@ export function Dropdown({
     style,
     disableTopBottomMargin = false,
     zIndex,
+    disabled = false,
+    editIcon,
+    onEditIconClick,
+    editIconTitle,
     mantine,
     material,
     carbon,
@@ -103,7 +111,7 @@ export function Dropdown({
     }
 
     // Determine effective state
-    const effectiveState = state
+    const effectiveState = disabled ? 'disabled' : state
 
     // Get CSS variables (using TextField as template for now until Dropdown tokens are stable)
     // We use Dropdown as the component name for CSS vars
@@ -146,6 +154,9 @@ export function Dropdown({
             layer={layer}
             id={labelId}
             style={layout === 'side-by-side' ? { minHeight: `var(${minHeightVar})` } : undefined}
+            editIcon={editIcon}
+            onEditIconClick={onEditIconClick}
+            editIconTitle={editIconTitle}
         >
             {label}
         </Label>
@@ -200,8 +211,8 @@ export function Dropdown({
                                 border: `1px solid var(${borderVar})`,
                                 backgroundColor: `var(${backgroundVar})`,
                                 color: `var(${textVar})`,
-                                cursor: state === 'disabled' ? 'not-allowed' : 'pointer',
-                                opacity: state === 'disabled' ? 0.6 : 1,
+                                cursor: effectiveState === 'disabled' ? 'not-allowed' : 'pointer',
+                                opacity: effectiveState === 'disabled' ? 0.6 : 1,
                             }}
                         >
                             {effectiveLeadingIcon && (

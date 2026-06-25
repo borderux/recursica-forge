@@ -13,6 +13,8 @@ import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import { Slider } from '../../../../components/adapters/Slider'
 import { Label } from '../../../../components/adapters/Label'
+import { useGlobalRefControl } from '../../../../core/css/globalRefInterceptor'
+import { useVars } from '../../../vars/VarsContext'
 import type { ToolbarPropConfig } from '../../utils/loadToolbarConfig'
 import './WidthGroupToolbar.css'
 
@@ -161,66 +163,80 @@ export default function WidthGroupToolbar({
     if (!minWidthVar) return null
     const range = getWidthSliderRange('min-width', componentName)
 
-    return () => {
-      const [value, setValue] = useState(() => {
-        const currentValue = readCssVar(minWidthVar)
-        const resolvedValue = readCssVarResolved(minWidthVar)
-        const valueStr = resolvedValue || currentValue || '0px'
-        const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-        return match ? Math.max(range.min, Math.min(range.max, parseFloat(match[1]))) : range.min
-      })
+      return () => {
+        const { uikit } = useVars()
+        const globalRef = useGlobalRefControl(minWidthVar, uikit)
 
-      useEffect(() => {
-        const handleUpdate = () => {
+        const [value, setValue] = useState(() => {
           const currentValue = readCssVar(minWidthVar)
           const resolvedValue = readCssVarResolved(minWidthVar)
           const valueStr = resolvedValue || currentValue || '0px'
           const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-          if (match) {
-            setValue(Math.max(range.min, Math.min(range.max, parseFloat(match[1]))))
+          return match ? Math.max(range.min, Math.min(range.max, parseFloat(match[1]))) : range.min
+        })
+
+        useEffect(() => {
+          const handleUpdate = () => {
+            const currentValue = readCssVar(minWidthVar)
+            const resolvedValue = readCssVarResolved(minWidthVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            if (match) {
+              setValue(Math.max(range.min, Math.min(range.max, parseFloat(match[1]))))
+            }
           }
-        }
-        window.addEventListener('cssVarsUpdated', handleUpdate)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-      }, [minWidthVar, range])
+          window.addEventListener('cssVarsUpdated', handleUpdate)
+          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+        }, [minWidthVar, range])
 
-      const handleChange = useCallback((val: number | [number, number]) => {
-        const numValue = typeof val === 'number' ? val : val[0]
-        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
-        setValue(clampedValue)
-        document.documentElement.style.setProperty(minWidthVar, `${clampedValue}px`)
-      }, [minWidthVar, range])
+        const handleChange = useCallback((val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+          setValue(clampedValue)
+          document.documentElement.style.setProperty(minWidthVar, `${clampedValue}px`)
+        }, [minWidthVar, range])
 
-      const handleChangeCommitted = useCallback((val: number | [number, number]) => {
-        const numValue = typeof val === 'number' ? val : val[0]
-        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
-        setValue(clampedValue)
-        updateCssVar(minWidthVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [minWidthVar] }
-        }))
-      }, [minWidthVar, range])
+        const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+          setValue(clampedValue)
+          updateCssVar(minWidthVar, `${clampedValue}px`)
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: [minWidthVar] }
+          }))
+        }, [minWidthVar, range])
 
-      return (
-        <Slider
-          value={value}
-          onChange={handleChange}
-          onChangeCommitted={handleChangeCommitted}
-          min={range.min}
-          max={range.max}
-          step={1}
-          layer="layer-1"
-          layout="stacked"
-          showInput={false}
-          showValueLabel={true}
-          valueLabel={(val) => `${Math.round(val)}px`}
-          minLabel={`${range.min}px`}
-          maxLabel={`${range.max}px`}
-          showMinMaxLabels={false}
-          label={<Label layer="layer-1" layout="stacked">Min width</Label>}
-        />
-      )
-    }
+        return (
+          <Slider
+            value={value}
+            onChange={handleChange}
+            onChangeCommitted={handleChangeCommitted}
+            min={range.min}
+            max={range.max}
+            step={1}
+            layer="layer-1"
+            layout="stacked"
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${Math.round(val)}px`}
+            minLabel={`${range.min}px`}
+            maxLabel={`${range.max}px`}
+            showMinMaxLabels={false}
+            disabled={globalRef.isAttached}
+            label={
+              <Label 
+                layer="layer-1" 
+                layout="stacked"
+                editIcon={globalRef.editIcon}
+                onEditIconClick={globalRef.handleGlobeClick}
+                editIconTitle={globalRef.editIconTitle}
+              >
+                Min width
+              </Label>
+            }
+          />
+        )
+      }
   }, [minWidthVar, componentName, getWidthSliderRange])
 
   // Max Width Control
@@ -228,66 +244,80 @@ export default function WidthGroupToolbar({
     if (!maxWidthVar) return null
     const range = getWidthSliderRange('max-width', componentName)
 
-    return () => {
-      const [value, setValue] = useState(() => {
-        const currentValue = readCssVar(maxWidthVar)
-        const resolvedValue = readCssVarResolved(maxWidthVar)
-        const valueStr = resolvedValue || currentValue || '0px'
-        const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-        return match ? Math.max(range.min, Math.min(range.max, parseFloat(match[1]))) : range.min
-      })
+      return () => {
+        const { uikit } = useVars()
+        const globalRef = useGlobalRefControl(maxWidthVar, uikit)
 
-      useEffect(() => {
-        const handleUpdate = () => {
+        const [value, setValue] = useState(() => {
           const currentValue = readCssVar(maxWidthVar)
           const resolvedValue = readCssVarResolved(maxWidthVar)
           const valueStr = resolvedValue || currentValue || '0px'
           const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-          if (match) {
-            setValue(Math.max(range.min, Math.min(range.max, parseFloat(match[1]))))
+          return match ? Math.max(range.min, Math.min(range.max, parseFloat(match[1]))) : range.min
+        })
+
+        useEffect(() => {
+          const handleUpdate = () => {
+            const currentValue = readCssVar(maxWidthVar)
+            const resolvedValue = readCssVarResolved(maxWidthVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            if (match) {
+              setValue(Math.max(range.min, Math.min(range.max, parseFloat(match[1]))))
+            }
           }
-        }
-        window.addEventListener('cssVarsUpdated', handleUpdate)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-      }, [maxWidthVar, range])
+          window.addEventListener('cssVarsUpdated', handleUpdate)
+          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+        }, [maxWidthVar, range])
 
-      const handleChange = useCallback((val: number | [number, number]) => {
-        const numValue = typeof val === 'number' ? val : val[0]
-        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
-        setValue(clampedValue)
-        document.documentElement.style.setProperty(maxWidthVar, `${clampedValue}px`)
-      }, [maxWidthVar, range])
+        const handleChange = useCallback((val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+          setValue(clampedValue)
+          document.documentElement.style.setProperty(maxWidthVar, `${clampedValue}px`)
+        }, [maxWidthVar, range])
 
-      const handleChangeCommitted = useCallback((val: number | [number, number]) => {
-        const numValue = typeof val === 'number' ? val : val[0]
-        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
-        setValue(clampedValue)
-        updateCssVar(maxWidthVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [maxWidthVar] }
-        }))
-      }, [maxWidthVar, range])
+        const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+          setValue(clampedValue)
+          updateCssVar(maxWidthVar, `${clampedValue}px`)
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: [maxWidthVar] }
+          }))
+        }, [maxWidthVar, range])
 
-      return (
-        <Slider
-          value={value}
-          onChange={handleChange}
-          onChangeCommitted={handleChangeCommitted}
-          min={range.min}
-          max={range.max}
-          step={1}
-          layer="layer-1"
-          layout="stacked"
-          showInput={false}
-          showValueLabel={true}
-          valueLabel={(val) => `${Math.round(val)}px`}
-          minLabel={`${range.min}px`}
-          maxLabel={`${range.max}px`}
-          showMinMaxLabels={false}
-          label={<Label layer="layer-1" layout="stacked">Max width</Label>}
-        />
-      )
-    }
+        return (
+          <Slider
+            value={value}
+            onChange={handleChange}
+            onChangeCommitted={handleChangeCommitted}
+            min={range.min}
+            max={range.max}
+            step={1}
+            layer="layer-1"
+            layout="stacked"
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${Math.round(val)}px`}
+            minLabel={`${range.min}px`}
+            maxLabel={`${range.max}px`}
+            showMinMaxLabels={false}
+            disabled={globalRef.isAttached}
+            label={
+              <Label 
+                layer="layer-1" 
+                layout="stacked"
+                editIcon={globalRef.editIcon}
+                onEditIconClick={globalRef.handleGlobeClick}
+                editIconTitle={globalRef.editIconTitle}
+              >
+                Max width
+              </Label>
+            }
+          />
+        )
+      }
   }, [maxWidthVar, componentName, getWidthSliderRange])
 
   // Min Height Control
@@ -295,66 +325,80 @@ export default function WidthGroupToolbar({
     if (!includeHeight || !minHeightVar) return null
     const range = getWidthSliderRange('min-height', componentName)
 
-    return () => {
-      const [value, setValue] = useState(() => {
-        const currentValue = readCssVar(minHeightVar)
-        const resolvedValue = readCssVarResolved(minHeightVar)
-        const valueStr = resolvedValue || currentValue || '0px'
-        const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-        return match ? Math.max(range.min, Math.min(range.max, parseFloat(match[1]))) : range.min
-      })
+      return () => {
+        const { uikit } = useVars()
+        const globalRef = useGlobalRefControl(minHeightVar, uikit)
 
-      useEffect(() => {
-        const handleUpdate = () => {
+        const [value, setValue] = useState(() => {
           const currentValue = readCssVar(minHeightVar)
           const resolvedValue = readCssVarResolved(minHeightVar)
           const valueStr = resolvedValue || currentValue || '0px'
           const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-          if (match) {
-            setValue(Math.max(range.min, Math.min(range.max, parseFloat(match[1]))))
+          return match ? Math.max(range.min, Math.min(range.max, parseFloat(match[1]))) : range.min
+        })
+
+        useEffect(() => {
+          const handleUpdate = () => {
+            const currentValue = readCssVar(minHeightVar)
+            const resolvedValue = readCssVarResolved(minHeightVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            if (match) {
+              setValue(Math.max(range.min, Math.min(range.max, parseFloat(match[1]))))
+            }
           }
-        }
-        window.addEventListener('cssVarsUpdated', handleUpdate)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-      }, [minHeightVar, range])
+          window.addEventListener('cssVarsUpdated', handleUpdate)
+          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+        }, [minHeightVar, range])
 
-      const handleChange = useCallback((val: number | [number, number]) => {
-        const numValue = typeof val === 'number' ? val : val[0]
-        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
-        setValue(clampedValue)
-        document.documentElement.style.setProperty(minHeightVar, `${clampedValue}px`)
-      }, [minHeightVar, range])
+        const handleChange = useCallback((val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+          setValue(clampedValue)
+          document.documentElement.style.setProperty(minHeightVar, `${clampedValue}px`)
+        }, [minHeightVar, range])
 
-      const handleChangeCommitted = useCallback((val: number | [number, number]) => {
-        const numValue = typeof val === 'number' ? val : val[0]
-        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
-        setValue(clampedValue)
-        updateCssVar(minHeightVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [minHeightVar] }
-        }))
-      }, [minHeightVar, range])
+        const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+          setValue(clampedValue)
+          updateCssVar(minHeightVar, `${clampedValue}px`)
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: [minHeightVar] }
+          }))
+        }, [minHeightVar, range])
 
-      return (
-        <Slider
-          value={value}
-          onChange={handleChange}
-          onChangeCommitted={handleChangeCommitted}
-          min={range.min}
-          max={range.max}
-          step={1}
-          layer="layer-1"
-          layout="stacked"
-          showInput={false}
-          showValueLabel={true}
-          valueLabel={(val) => `${Math.round(val)}px`}
-          minLabel={`${range.min}px`}
-          maxLabel={`${range.max}px`}
-          showMinMaxLabels={false}
-          label={<Label layer="layer-1" layout="stacked">Min height</Label>}
-        />
-      )
-    }
+        return (
+          <Slider
+            value={value}
+            onChange={handleChange}
+            onChangeCommitted={handleChangeCommitted}
+            min={range.min}
+            max={range.max}
+            step={1}
+            layer="layer-1"
+            layout="stacked"
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${Math.round(val)}px`}
+            minLabel={`${range.min}px`}
+            maxLabel={`${range.max}px`}
+            showMinMaxLabels={false}
+            disabled={globalRef.isAttached}
+            label={
+              <Label 
+                layer="layer-1" 
+                layout="stacked"
+                editIcon={globalRef.editIcon}
+                onEditIconClick={globalRef.handleGlobeClick}
+                editIconTitle={globalRef.editIconTitle}
+              >
+                Min height
+              </Label>
+            }
+          />
+        )
+      }
   }, [minHeightVar, includeHeight, componentName, getWidthSliderRange])
 
   // Check visibility from toolbar config
@@ -370,66 +414,80 @@ export default function WidthGroupToolbar({
     const range = configProp?.range ? { min: configProp.range[0], max: configProp.range[1] } : getWidthSliderRange('max-height', componentName)
     const stepValue = configProp?.step || 10
 
-    return () => {
-      const [value, setValue] = useState(() => {
-        const currentValue = readCssVar(maxHeightVar)
-        const resolvedValue = readCssVarResolved(maxHeightVar)
-        const valueStr = resolvedValue || currentValue || '0px'
-        const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-        return match ? Math.max(range.min, Math.min(range.max, parseFloat(match[1]))) : range.min
-      })
+      return () => {
+        const { uikit } = useVars()
+        const globalRef = useGlobalRefControl(maxHeightVar, uikit)
 
-      useEffect(() => {
-        const handleUpdate = () => {
+        const [value, setValue] = useState(() => {
           const currentValue = readCssVar(maxHeightVar)
           const resolvedValue = readCssVarResolved(maxHeightVar)
           const valueStr = resolvedValue || currentValue || '0px'
           const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
-          if (match) {
-            setValue(Math.max(range.min, Math.min(range.max, parseFloat(match[1]))))
+          return match ? Math.max(range.min, Math.min(range.max, parseFloat(match[1]))) : range.min
+        })
+
+        useEffect(() => {
+          const handleUpdate = () => {
+            const currentValue = readCssVar(maxHeightVar)
+            const resolvedValue = readCssVarResolved(maxHeightVar)
+            const valueStr = resolvedValue || currentValue || '0px'
+            const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+            if (match) {
+              setValue(Math.max(range.min, Math.min(range.max, parseFloat(match[1]))))
+            }
           }
-        }
-        window.addEventListener('cssVarsUpdated', handleUpdate)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
-      }, [maxHeightVar, range])
+          window.addEventListener('cssVarsUpdated', handleUpdate)
+          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+        }, [maxHeightVar, range])
 
-      const handleChange = useCallback((val: number | [number, number]) => {
-        const numValue = typeof val === 'number' ? val : val[0]
-        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
-        setValue(clampedValue)
-        document.documentElement.style.setProperty(maxHeightVar, `${clampedValue}px`)
-      }, [maxHeightVar, range])
+        const handleChange = useCallback((val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+          setValue(clampedValue)
+          document.documentElement.style.setProperty(maxHeightVar, `${clampedValue}px`)
+        }, [maxHeightVar, range])
 
-      const handleChangeCommitted = useCallback((val: number | [number, number]) => {
-        const numValue = typeof val === 'number' ? val : val[0]
-        const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
-        setValue(clampedValue)
-        updateCssVar(maxHeightVar, `${clampedValue}px`)
-        window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-          detail: { cssVars: [maxHeightVar] }
-        }))
-      }, [maxHeightVar, range])
+        const handleChangeCommitted = useCallback((val: number | [number, number]) => {
+          const numValue = typeof val === 'number' ? val : val[0]
+          const clampedValue = Math.max(range.min, Math.min(range.max, Math.round(numValue)))
+          setValue(clampedValue)
+          updateCssVar(maxHeightVar, `${clampedValue}px`)
+          window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
+            detail: { cssVars: [maxHeightVar] }
+          }))
+        }, [maxHeightVar, range])
 
-      return (
-        <Slider
-          value={value}
-          onChange={handleChange}
-          onChangeCommitted={handleChangeCommitted}
-          min={range.min}
-          max={range.max}
-          step={stepValue}
-          layer="layer-1"
-          layout="stacked"
-          showInput={false}
-          showValueLabel={true}
-          valueLabel={(val) => `${Math.round(val)}px`}
-          minLabel={`${range.min}px`}
-          maxLabel={`${range.max}px`}
-          showMinMaxLabels={false}
-          label={<Label layer="layer-1" layout="stacked">Max height</Label>}
-        />
-      )
-    }
+        return (
+          <Slider
+            value={value}
+            onChange={handleChange}
+            onChangeCommitted={handleChangeCommitted}
+            min={range.min}
+            max={range.max}
+            step={stepValue}
+            layer="layer-1"
+            layout="stacked"
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${Math.round(val)}px`}
+            minLabel={`${range.min}px`}
+            maxLabel={`${range.max}px`}
+            showMinMaxLabels={false}
+            disabled={globalRef.isAttached}
+            label={
+              <Label 
+                layer="layer-1" 
+                layout="stacked"
+                editIcon={globalRef.editIcon}
+                onEditIconClick={globalRef.handleGlobeClick}
+                editIconTitle={globalRef.editIconTitle}
+              >
+                Max height
+              </Label>
+            }
+          />
+        )
+      }
   }, [maxHeightVar, includeMaxHeight, componentName, getWidthSliderRange, groupedPropsConfig])
 
   return (
