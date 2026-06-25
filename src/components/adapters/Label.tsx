@@ -9,6 +9,7 @@ import { Suspense, useState, useEffect } from 'react'
 import { readCssVar, readCssVarResolved } from '../../core/css/readCssVar'
 import { useComponent } from '../hooks/useComponent'
 import { Button } from './Button'
+import { Tooltip } from './Tooltip'
 import { getComponentLevelCssVar, buildComponentCssVarPath, getComponentTextCssVar } from '../utils/cssVarNames'
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { iconNameToReactComponent } from '../../modules/components/iconUtils'
@@ -28,6 +29,8 @@ export type LabelProps = {
   id?: string
   editIcon?: React.ReactNode | boolean
   editIconGap?: string | number
+  onEditIconClick?: (e: React.MouseEvent) => void
+  editIconTitle?: string
 } & LibrarySpecificProps
 
 export function Label({
@@ -43,6 +46,8 @@ export function Label({
   required = false,
   editIcon,
   editIconGap,
+  onEditIconClick,
+  editIconTitle,
   mantine,
   material,
   carbon,
@@ -273,7 +278,15 @@ export function Label({
             </span>
             {finalEditIcon && (
               <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
-                <Button variant="text" size="small" icon={finalEditIcon} layer={layer} />
+                {editIconTitle ? (
+                  <Tooltip label={editIconTitle} withinPortal zIndex={10000}>
+                    <div style={{ display: 'inline-flex' }}>
+                      <Button variant="text" size="small" icon={finalEditIcon} layer={layer} onClick={onEditIconClick} />
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <Button variant="text" size="small" icon={finalEditIcon} layer={layer} onClick={onEditIconClick} title={editIconTitle} />
+                )}
               </span>
             )}
           </span>
@@ -294,6 +307,8 @@ export function Label({
         className={className}
         editIcon={finalEditIcon}
         editIconGap={editIconGap}
+        onEditIconClick={onEditIconClick}
+        editIconTitle={editIconTitle}
         style={{
           ...layoutStyles,
           ...style,

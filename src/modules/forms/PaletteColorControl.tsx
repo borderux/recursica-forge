@@ -30,6 +30,10 @@ type PaletteColorControlProps = {
   contrastColorCssVar?: string
   /** Optional callback when a color is selected, receives the selected CSS var name */
   onSelect?: (cssVar: string) => void
+  disabled?: boolean
+  editIcon?: React.ReactNode
+  onEditIconClick?: (e: React.MouseEvent) => void
+  editIconTitle?: string
 }
 
 /**
@@ -46,6 +50,10 @@ export default function PaletteColorControl({
   fontSize = 13,
   contrastColorCssVar,
   onSelect: onSelectProp,
+  disabled,
+  editIcon,
+  onEditIconClick,
+  editIconTitle,
 }: PaletteColorControlProps) {
   const { palettes, theme: themeJson, tokens } = useVars()
   const { mode } = useThemeMode()
@@ -959,13 +967,16 @@ export default function PaletteColorControl({
           value={displayLabel}
           leadingIcon={swatchIcon}
           trailingIcon={trailingIcon}
-          state="default"
+          state={disabled ? "disabled" : "default"}
           readOnly={true}
-          onClick={handleClick}
+          onClick={disabled ? undefined : handleClick}
           layer="layer-0"
+          editIcon={editIcon}
+          onEditIconClick={onEditIconClick}
+          editIconTitle={editIconTitle}
           style={{
             fontSize,
-            cursor: 'pointer',
+            cursor: disabled ? 'not-allowed' : 'pointer',
           }}
           className="palette-color-control-textfield"
         />

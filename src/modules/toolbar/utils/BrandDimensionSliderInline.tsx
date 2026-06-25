@@ -42,6 +42,9 @@ interface BrandDimensionSliderInlineProps {
   label: string
   dimensionCategory: 'border-radii' | 'icons' | 'general' | 'text-size'
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
+  disabled?: boolean
+  editIcon?: React.ReactNode
+  onEditIconClick?: (e: React.MouseEvent) => void
 }
 
 export default function BrandDimensionSliderInline({
@@ -50,6 +53,9 @@ export default function BrandDimensionSliderInline({
   label,
   dimensionCategory,
   layer = 'layer-0',
+  disabled,
+  editIcon,
+  onEditIconClick,
 }: BrandDimensionSliderInlineProps) {
   const { theme } = useVars()
   const { mode } = useThemeMode()
@@ -296,7 +302,17 @@ export default function BrandDimensionSliderInline({
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
-      label={<Label layer={layer} layout="stacked">{label}</Label>}
+      disabled={disabled}
+      label={
+        <Label 
+          layer={layer} 
+          layout="stacked" 
+          editIcon={editIcon} 
+          onEditIconClick={onEditIconClick}
+        >
+          {label}
+        </Label>
+      }
     />
   )
 }

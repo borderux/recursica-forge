@@ -10,6 +10,7 @@ import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { updateCssVar } from '../../../../core/css/updateCssVar'
 import { useVars } from '../../../vars/VarsContext'
 import { useThemeMode } from '../../../theme/ThemeModeContext'
+import { useGlobalRefControl } from '../../../../core/css/globalRefInterceptor'
 import { ComponentProp, parseComponentStructure } from '../../utils/componentToolbarUtils'
 import { buildComponentCssVarPath } from '../../../../components/utils/cssVarNames'
 import { Slider } from '../../../../components/adapters/Slider'
@@ -250,6 +251,13 @@ export default function BorderGroupToolbar({
     if (!borderSizeVar) return null
 
     return () => {
+      const { uikit } = useVars()
+      const globalRef = useGlobalRefControl(borderSizeVar, uikit)
+      const isAttached = globalRef.isAttached
+      const finalEditIcon = globalRef.editIcon
+      const finalOnEditIconClick = globalRef.handleGlobeClick
+      const finalEditIconTitle = globalRef.editIconTitle
+
       const [value, setValue] = useState(() => {
         const currentValue = readCssVar(borderSizeVar)
         const resolvedValue = readCssVarResolved(borderSizeVar)
@@ -308,7 +316,18 @@ export default function BorderGroupToolbar({
           minLabel="0px"
           maxLabel="10px"
           showMinMaxLabels={false}
-          label={<Label layer="layer-1" layout="stacked">Size</Label>}
+          disabled={isAttached}
+          label={
+            <Label 
+              layer="layer-1" 
+              layout="stacked"
+              editIcon={finalEditIcon}
+              onEditIconClick={finalOnEditIconClick}
+              editIconTitle={finalEditIconTitle}
+            >
+              Size
+            </Label>
+          }
         />
       )
     }
@@ -319,11 +338,22 @@ export default function BorderGroupToolbar({
     if (!borderRadiusVar) return null
 
     return () => {
+      const { uikit } = useVars()
+      const globalRef = useGlobalRefControl(borderRadiusVar, uikit)
+      const isAttached = globalRef.isAttached
+      const finalEditIcon = globalRef.editIcon
+      const finalOnEditIconClick = globalRef.handleGlobeClick
+      const finalEditIconTitle = globalRef.editIconTitle
+
       return (
         <BrandBorderRadiusSlider
           targetCssVar={borderRadiusVar}
           label="Corner radius"
           layer="layer-1"
+          disabled={isAttached}
+          editIcon={finalEditIcon}
+          onEditIconClick={finalOnEditIconClick}
+          editIconTitle={finalEditIconTitle}
         />
       )
     }
@@ -334,12 +364,23 @@ export default function BorderGroupToolbar({
     if (!includeColor || !borderColorVar) return null
 
     return () => {
+      const { uikit } = useVars()
+      const globalRef = useGlobalRefControl(borderColorVar, uikit)
+      const isAttached = globalRef.isAttached
+      const finalEditIcon = globalRef.editIcon
+      const finalOnEditIconClick = globalRef.handleGlobeClick
+      const finalEditIconTitle = globalRef.editIconTitle
+
       return (
         <PaletteColorControl
           targetCssVar={borderColorVar}
           targetCssVars={borderColorCssVars.length > 1 ? borderColorCssVars : undefined}
           currentValueCssVar={borderColorVar}
           label="Color"
+          disabled={isAttached}
+          editIcon={finalEditIcon}
+          onEditIconClick={finalOnEditIconClick}
+          editIconTitle={finalEditIconTitle}
         />
       )
     }

@@ -47,7 +47,7 @@ export default function TextField({
   const { mode } = useThemeMode()
 
   // Extract props that shouldn't be passed to DOM elements
-  const { optional, labelAlign, labelSize, editIcon, editIconGap, ...domProps } = restProps
+  const { optional, labelAlign, labelSize, editIcon, editIconGap, editIconTitle, onEditIconClick, ...domProps } = restProps
 
   // Generate unique ID if not provided (needed for scoped styles)
   const uniqueId = id || `text-field-${Math.random().toString(36).substr(2, 9)}`
@@ -171,6 +171,10 @@ export default function TextField({
       align={labelAlign || 'left'}
       layer={layer}
       id={labelId}
+      editIcon={editIcon}
+      editIconGap={editIconGap}
+      editIconTitle={editIconTitle}
+      onEditIconClick={onEditIconClick}
       style={layout === 'side-by-side' ? { paddingTop: 0, minHeight: `var(${minHeightVar})` } : undefined}
     >
       {label}

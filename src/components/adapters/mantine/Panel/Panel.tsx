@@ -33,11 +33,29 @@ export default function Panel({
     className,
     style,
     mantine,
+    isOpen,
     ...props
 }: AdapterPanelProps) {
     const { mode } = useThemeMode()
     const [isClosing, setIsClosing] = useState(false)
+    const [shouldRender, setShouldRender] = useState(isOpen)
     const closingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    // Sync rendering and closing animation with isOpen prop
+    useEffect(() => {
+        if (isOpen) {
+            setShouldRender(true)
+            setIsClosing(false)
+            if (closingTimerRef.current) clearTimeout(closingTimerRef.current)
+        } else if (shouldRender) {
+            // isOpen became false, but we are still rendering: start exit animation
+            setIsClosing(true)
+            closingTimerRef.current = setTimeout(() => {
+                setShouldRender(false)
+                setIsClosing(false)
+            }, 200)
+        }
+    }, [isOpen, shouldRender])
 
     // Clean up timer on unmount
     useEffect(() => {
@@ -48,17 +66,8 @@ export default function Panel({
 
     const handleClose = useCallback(() => {
         if (!onClose) return
-        if (!overlay) {
-            onClose()
-            return
-        }
-        if (isClosing) return
-        setIsClosing(true)
-        closingTimerRef.current = setTimeout(() => {
-            setIsClosing(false)
-            onClose()
-        }, 200) // matches CSS exit animation duration
-    }, [onClose, overlay, isClosing])
+        onClose()
+    }, [onClose])
 
     // Build CSS variable names for colors
     const bgVar = getComponentLevelCssVar('Panel', `colors.${layer}.background`)
@@ -284,6 +293,10 @@ export default function Panel({
             )}
         </Paper>
     )
+
+    if (!shouldRender) {
+        return null
+    }
 
     if (overlay) {
         const closingClass = isClosing ? ' closing' : ''

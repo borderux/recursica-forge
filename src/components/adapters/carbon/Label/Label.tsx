@@ -25,6 +25,8 @@ export default function Label({
   style,
   editIcon,
   editIconGap,
+  onEditIconClick,
+  editIconTitle,
   carbon,
   ...props
 }: AdapterLabelProps) {
@@ -285,7 +287,7 @@ export default function Label({
           </span>
           {editIcon && (
             <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
-              <Button variant="text" size="small" icon={editIcon} layer={layer} />
+              <Button variant="text" size="small" icon={editIcon} layer={layer} onClick={onEditIconClick} title={editIconTitle} />
             </span>
           )}
         </span>
