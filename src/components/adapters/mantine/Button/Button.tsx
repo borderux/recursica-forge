@@ -55,6 +55,9 @@ export default function Button({
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   const iconColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color')
+  const buttonTextHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text-hover')
+  const buttonIconColorHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color-hover')
+  const buttonBorderColorHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color-hover')
 
   // Get the correct CSS variable reference for button color (used for text and border)
   const buttonColorRef = `var(${buttonColorVar})`
@@ -288,6 +291,7 @@ export default function Button({
         '--button-hover-box-shadow': getElevationBoxShadow(mode, resolvedHoverElevation) || 'none', // Hover elevation
         // Set button color without fallback to Mantine colors
         '--button-color': buttonColorRef,
+        '--button-text-hover': `var(${buttonTextHoverVar})`,
         // Set button border color CSS variable for CSS file override
         // For outline buttons, ALWAYS set --button-border-color (never fallback to text color)
         // Resolve the value to ensure it's always valid, but prefer var() reference for reactivity
@@ -311,6 +315,8 @@ export default function Button({
           : '0px',
         // Set icon color CSS variable for CSS file override
         '--button-icon-color': `var(${iconColorVar})`,
+        '--button-icon-color-hover': `var(${buttonIconColorHoverVar})`,
+        '--button-border-color-hover': `var(${buttonBorderColorHoverVar})`,
         // Set content max width CSS variable for CSS file override
         '--button-max-width': `var(${maxWidthVar})`,
         // Use actual CSS border instead of box-shadow

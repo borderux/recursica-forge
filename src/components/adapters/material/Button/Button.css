@@ -9,6 +9,12 @@
   color: var(--button-icon-color, inherit) !important;
 }
 
+.MuiButton-root:hover:not([disabled]) svg,
+.MuiButton-root:hover:not([disabled]) .MuiButton-startIcon,
+.MuiButton-root:hover:not([disabled]) .MuiButton-endIcon {
+  color: var(--button-icon-color-hover, var(--button-text-hover, var(--button-color))) !important;
+}
+
 /* Ensure right-side icons (spans containing SVGs) are visible */
 /* Target spans that contain SVGs but aren't Material's startIcon */
 .MuiButton-root>span:has(svg):not(.MuiButton-startIcon),
@@ -84,6 +90,23 @@
   max-width: calc(var(--button-max-width, var(--recursica_ui-kit_components_button_properties_max-label-width)) - var(--button-icon-size, 0px) - var(--button-icon-text-gap, 0px)) !important;
   /* Always have relative positioning for hover overlay */
   position: relative;
+  overflow: hidden !important;
+}
+
+.MuiButton-root .recursica-button-label {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  text-align: left !important;
+  height: auto !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  margin-top: -4px !important;
+  margin-bottom: -4px !important;
 }
 
 /* For text-only buttons (no icon), use full content max width and left-align */
@@ -115,6 +138,10 @@
 .MuiButton-text:hover:not([disabled]) {
   /* Prevent background color change on hover */
   background-color: var(--button-bg) !important;
+  /* Apply text hover color */
+  color: var(--button-text-hover, var(--button-color)) !important;
+  /* Apply hover border color */
+  border-color: var(--button-border-color-hover, var(--button-border-color)) !important;
   /* Remove all box-shadow and inner shadow effects */
   box-shadow: none !important;
   /* Prevent any gradient or filter effects */

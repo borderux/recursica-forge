@@ -48,6 +48,9 @@ export default function Button({
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   const iconColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color')
+  const buttonTextHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text-hover')
+  const buttonIconColorHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color-hover')
+  const buttonBorderColorHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color-hover')
 
   // Get hover color and opacity from the size variant (moved from component level)
   const hoverColorVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'hover-color')
@@ -199,6 +202,7 @@ export default function Button({
         }
       })(),
       color: `var(${buttonColorVar})`,
+      '--button-text-hover': `var(${buttonTextHoverVar})`,
       // Set button border color CSS variable for CSS file override
       // The CSS file will handle the actual border styling using this variable
       ...((variant === 'solid' || variant === 'outline') && buttonBorderColorVar ? {
@@ -234,6 +238,8 @@ export default function Button({
       // Set CSS custom properties for CSS file overrides
       // Set icon size even when icon is in endIcon prop (Material UI's endIcon)
       '--button-icon-color': `var(${iconColorVar})`,
+      '--button-icon-color-hover': `var(${buttonIconColorHoverVar})`,
+      '--button-border-color-hover': `var(${buttonBorderColorHoverVar})`,
       '--button-icon-size': icon || materialEndIcon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': (icon && children) || (materialEndIcon && children) ? `var(${iconGapVar})` : '0px',
       '--button-max-width': `var(${maxWidthVar})`,
@@ -266,6 +272,6 @@ export default function Button({
   }
 
   // Use native children prop - CSS will handle truncation
-  return <MaterialButton {...materialProps}>{isIconOnly ? icon : children}</MaterialButton>
+  return <MaterialButton {...materialProps}>{isIconOnly ? icon : <span className="recursica-button-label">{children}</span>}</MaterialButton>
 }
 

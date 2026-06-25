@@ -208,6 +208,7 @@ export default function ElevationToolbar({
           min={0}
           max={elevationOptions.length - 1}
           step={1}
+          type="discrete"
           layer={selectedLayer as any}
           layout="stacked"
           showInput={false}

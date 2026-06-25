@@ -122,6 +122,7 @@ export default function ElevationControl({
                 min={0}
                 max={tokens.length - 1}
                 step={1}
+                type="discrete"
                 layer="layer-1"
                 layout="stacked"
                 showInput={false}
@@ -171,6 +172,7 @@ export default function ElevationControl({
                   min={0}
                   max={tokens.length - 1}
                   step={1}
+                  type="discrete"
                   layer="layer-1"
                   layout="stacked"
                   showInput={false}
@@ -222,6 +224,7 @@ export default function ElevationControl({
               min={0}
               max={tokens.length - 1}
               step={1}
+              type="discrete"
               layer="layer-1"
               layout="stacked"
               showInput={false}

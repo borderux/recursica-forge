@@ -48,6 +48,9 @@ export default function Button({
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   const iconColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color')
+  const buttonTextHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text-hover')
+  const buttonIconColorHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color-hover')
+  const buttonBorderColorHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color-hover')
 
   // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
   const hoverColorVar = getComponentLevelCssVar('Button', 'hover-color')
@@ -65,7 +68,7 @@ export default function Button({
   const minWidthVar = buildComponentCssVarPath('Button', 'variants', 'sizes', sizePrefix, 'properties', 'min-width')
   const borderRadiusVar = buildComponentCssVarPath('Button', 'properties', 'border-radius')
   const maxWidthVar = buildComponentCssVarPath('Button', 'properties', 'max-label-width')
-
+  
   // Get all text properties from component text property group
   const fontFamilyVar = getComponentTextCssVar('Button', 'text', 'font-family')
   const fontSizeVar = getComponentTextCssVar('Button', 'text', 'font-size')
@@ -216,7 +219,10 @@ export default function Button({
       // Set CSS custom properties for CSS file overrides
       '--button-bg': `var(${buttonBgVar})`,
       '--button-color': `var(${buttonColorVar})`,
+      '--button-text-hover': `var(${buttonTextHoverVar})`,
       '--button-icon-color': `var(${iconColorVar})`,
+      '--button-icon-color-hover': `var(${buttonIconColorHoverVar})`,
+      '--button-border-color-hover': `var(${buttonBorderColorHoverVar})`,
       '--button-icon-size': icon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': icon || children ? `var(${iconGapVar})` : '0px',
       '--button-max-width': `var(${maxWidthVar})`,
@@ -249,7 +255,7 @@ export default function Button({
   // Use native children prop - CSS will handle icon placement and text truncation
   return (
     <CarbonButton {...carbonProps}>
-      {isIconOnly ? icon : children}
+      {isIconOnly ? icon : <span className="recursica-button-label">{children}</span>}
     </CarbonButton>
   )
 }

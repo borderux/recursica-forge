@@ -667,6 +667,7 @@ function ElevationSliderInline({
       min={0}
       max={tokens.length - 1}
       step={1}
+      type="discrete"
       layer={layer}
       layout="stacked"
       showInput={false}
