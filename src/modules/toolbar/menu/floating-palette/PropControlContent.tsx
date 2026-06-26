@@ -39,6 +39,7 @@ import { Dropdown } from '../../../../components/adapters/Dropdown'
 import type { ComponentLayer } from '../../../../components/registry/types'
 import uikitJson from '../../../../../recursica_ui-kit.json'
 import { parseBrandCssVar } from '../../../../core/css/cssVarBuilder'
+import { useGlobalRefControl } from '../../../../core/css/globalRefInterceptor'
 import './PropControl.css'
 
 // Helper to format dimension label from key
@@ -73,6 +74,9 @@ function SegmentedControlFromCssVar({
   label: string
   options: Array<string | { value: string; icon?: string }>
 }) {
+  const { uikit } = useVars()
+  const globalRef = useGlobalRefControl(primaryVar, uikit)
+
   const firstValue = typeof options[0] === 'string' ? options[0] : options[0]?.value ?? ''
   const currentValue = useRawCssVar(primaryVar, firstValue)
   const cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || firstValue
@@ -89,7 +93,7 @@ function SegmentedControlFromCssVar({
   })
   return (
     <div>
-      <Label layer="layer-3" layout="stacked">{label}</Label>
+      <Label layer="layer-3" layout="stacked" editIcon={globalRef.editIcon} onEditIconClick={globalRef.handleGlobeClick} editIconTitle={globalRef.editIconTitle}>{label}</Label>
       <SegmentedControl
         items={items}
         value={cleanValue}
@@ -117,6 +121,9 @@ function PixelValueSlider({
   minPixelValue: number
   maxPixelValue: number
 }) {
+  const { uikit } = useVars()
+  const globalRef = useGlobalRefControl(primaryVar, uikit)
+
   const [value, setValue] = useState(() => {
     const currentValue = readCssVar(primaryVar)
     const resolvedValue = readCssVarResolved(primaryVar)
@@ -190,7 +197,7 @@ function PixelValueSlider({
       minLabel={`${minPixelValue}px`}
       maxLabel={`${maxPixelValue}px`}
       showMinMaxLabels={false}
-      label={<Label layer="layer-1" layout="stacked">{label}</Label>}
+      label={<Label layer="layer-1" layout="stacked" editIcon={globalRef.editIcon} onEditIconClick={globalRef.handleGlobeClick} editIconTitle={globalRef.editIconTitle}>{label}</Label>}
     />
   )
 }
@@ -211,6 +218,9 @@ function DropdownFromCssVar({
   layer?: any
   defaultValue?: string
 }) {
+  const { uikit } = useVars()
+  const globalRef = useGlobalRefControl(primaryVar, uikit)
+
   const currentValue = useRawCssVar(primaryVar, defaultValue ?? '')
   const fallback = defaultValue ?? (typeof options[0] === 'string' ? options[0] : options[0]?.value ?? '')
   let cleanValue = (typeof currentValue === 'string' ? currentValue : String(currentValue)).trim().replace(/^["']|["']$/g, '') || fallback
@@ -250,6 +260,9 @@ function DropdownFromCssVar({
         layer={layer as any}
         layout="stacked"
         disableTopBottomMargin={true}
+        editIcon={globalRef.editIcon}
+        onEditIconClick={globalRef.handleGlobeClick}
+        editIconTitle={globalRef.editIconTitle}
       />
     </div>
   )
@@ -269,8 +282,9 @@ function TypographySliderInline({
   label: string
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 }) {
-  const { theme } = useVars()
+  const { theme, uikit } = useVars()
   const { mode } = useThemeMode()
+  const globalRef = useGlobalRefControl(targetCssVar, uikit)
 
   // Build tokens list from text-size brand dimension tokens, sorted by font-size
   const tokens = useMemo(() => {
@@ -518,7 +532,7 @@ function TypographySliderInline({
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
-      label={<Label layer={layer} layout="stacked">{label}</Label>}
+      label={<Label layer={layer} layout="stacked" editIcon={globalRef.editIcon} onEditIconClick={globalRef.handleGlobeClick} editIconTitle={globalRef.editIconTitle}>{label}</Label>}
     />
   )
 }
@@ -537,6 +551,8 @@ function ElevationSliderInline({
   mode: 'light' | 'dark'
   layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 }) {
+  const { uikit } = useVars()
+  const globalRef = useGlobalRefControl(primaryVar, uikit)
   // Get current elevation value from CSS var
   // IMPORTANT: Only read from the mode-specific CSS variable - never fall back to other modes
   const getCurrentElevationName = useCallback((): string => {
@@ -676,7 +692,7 @@ function ElevationSliderInline({
       minLabel={minLabel}
       maxLabel={maxLabel}
       showMinMaxLabels={false}
-      label={<Label layer={layer} layout="stacked">{label}</Label>}
+      label={<Label layer={layer} layout="stacked" editIcon={globalRef.editIcon} onEditIconClick={globalRef.handleGlobeClick} editIconTitle={globalRef.editIconTitle}>{label}</Label>}
     />
   )
 }

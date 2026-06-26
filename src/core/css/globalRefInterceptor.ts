@@ -432,12 +432,30 @@ export function resolveGlobalRefConflict(
     }
   } else if (decision === 'override') {
     // If opened via the globe icon, the preview isn't applied yet, so we must explicitly apply the override.
-    if (conflict.newValue) {
+    let overrideValue = conflict.newValue;
+    
+    // If no new value was provided (e.g. detached via globe icon), resolve the underlying global value
+    if (!overrideValue && conflict.originalDtcgRef) {
+      const path = conflict.originalDtcgRef.slice(1, -1).split('.');
+      const store = getVarsStore();
+      const uikit = store.getPristineUikit();
+      let node: any = uikit;
+      for (const p of path) {
+         if (node) node = node[p];
+      }
+      if (node && node.$value !== undefined) {
+         overrideValue = typeof node.$value === 'object' && node.$value.value !== undefined ? node.$value.value : node.$value;
+      }
+    }
+
+    if (overrideValue) {
       suppressInterception = true
       try {
         const root = document.documentElement
-        root.style.setProperty(conflict.cssVarName, conflict.newValue)
-        updateUIKitValue(conflict.cssVarName, conflict.newValue)
+        if (typeof overrideValue === 'string' && !overrideValue.startsWith('{')) {
+          root.style.setProperty(conflict.cssVarName, overrideValue)
+        }
+        updateUIKitValue(conflict.cssVarName, overrideValue)
         
         const store = getVarsStore()
         store.recomputeAndApplyAll()
