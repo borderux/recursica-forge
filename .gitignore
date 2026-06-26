@@ -38,3 +38,4 @@ scratch_*.ts
 scratch_*.js
 validate_*.ts
 validate_*.js
+scratch/

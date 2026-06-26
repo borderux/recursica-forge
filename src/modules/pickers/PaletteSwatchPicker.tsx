@@ -521,6 +521,15 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                     <div
                       key={s.key}
                       title={s.label}
+                      className="palette-swatch"
+                      tabIndex={0}
+                      role="button"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          e.currentTarget.click()
+                        }
+                      }}
                       onClick={() => {
                         const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                         const paletteVarRef = `var(${s.cssVar})`
@@ -621,6 +630,15 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                     <div
                       key={s.key}
                       title={s.label}
+                      className="palette-swatch"
+                      tabIndex={0}
+                      role="button"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          e.currentTarget.click()
+                        }
+                      }}
                       onClick={() => {
                         const cssVarsToUpdate = targetCssVars.length > 0 ? targetCssVars : [targetCssVar!]
                         const paletteVarRef = `var(${s.cssVar})`

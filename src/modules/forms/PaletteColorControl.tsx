@@ -977,6 +977,12 @@ export default function PaletteColorControl({
           state={disabled || isAttached ? "disabled" : "default"}
           readOnly={true}
           onClick={disabled || isAttached ? undefined : handleClick}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && !disabled && !isAttached) {
+              e.preventDefault()
+              handleClick(e as any)
+            }
+          }}
           layer="layer-0"
           editIcon={finalEditIcon}
           onEditIconClick={finalOnEditIconClick}
