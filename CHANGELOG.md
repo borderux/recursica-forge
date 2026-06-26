@@ -1,5 +1,23 @@
 # recursica-forge
 
+## 0.22.0
+
+### Minor Changes
+
+- c35689b: Expand global reference interceptor controls in component toolbars. Disables editing controls and displays a reattach button next to labels when properties are attached to global variables. Resolves reactive update race conditions for inline sliders (dimensions, border radii, border size, and color controls) by recursively evaluating variable reference chains and deferring computed style reads. Improves the GlobalRefModal with standard Tree navigation using SPA routing, clean UI alignment, and alphabetized component lists. Fixes a recursive nested-button DOM warning in labels.
+
+### Patch Changes
+
+- 8bbb6f5: Added keyboard accessibility improvements across various components:
+  - Fixed an issue where sliders lost focus on keyboard interaction by converting inline dimension slider components to a stable generic component in `PropControlContent`.
+  - Restored visible focus outlines for Accordion components (Mantine, Carbon, and Material) using `:focus-visible`.
+  - Added keyboard interaction support (`Enter`/`Space`) and focus styling for the color picker control and color swatches in `PaletteSwatchPicker` and `PaletteColorControl`.
+- 1abbcc5: - Fixed a bug causing the color picker overlay to permanently fail to open after detaching a property from a global reference.
+  - Reworked checkbox group properties by splitting the "selected" state into separate "enabled" and "disabled" groups in the UI Kit schema.
+  - Updated Mantine, Carbon, and Material checkbox adapters to correctly map split variables for checked, unchecked, and indeterminate disabled/enabled states.
+  - Expanded global reference controls in component toolbars, adding globe indicator icons and locking inputs when properties are attached to a global reference.
+  - Validated DTCG JSON export schemas for the newly restructured checkbox variants.
+
 ## 0.21.4
 
 ### Patch Changes
