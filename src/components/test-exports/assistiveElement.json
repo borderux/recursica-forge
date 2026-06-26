@@ -1,138 +1,5 @@
 {
   "ui-kit": {
-    "globals": {
-      "icon": {
-        "style": {
-          "$type": "string",
-          "$value": "outline"
-        }
-      },
-      "form": {
-        "properties": {
-          "label-field-gap-horizontal": {
-            "$type": "dimension",
-            "$value": "{brand.dimensions.gutters.horizontal}"
-          },
-          "label-field-gap-vertical": {
-            "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
-          },
-          "vertical-item-gap": {
-            "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
-          }
-        },
-        "field": {
-          "colors": {
-            "background": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.000.color.tone}"
-            },
-            "background-read-only": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.100.color.tone}"
-            },
-            "border": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.default.color.tone}"
-            },
-            "border-focus": {
-              "$type": "color",
-              "$value": "{brand.palettes.palette-1.default.color.tone}"
-            },
-            "border-selected": {
-              "$type": "color",
-              "$value": "{brand.palettes.palette-1.default.color.tone}"
-            },
-            "border-error": {
-              "$type": "color",
-              "$value": "{brand.palettes.core-colors.alert.tone}"
-            },
-            "icon": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.000.color.on-tone}"
-            },
-            "text-valued": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.000.color.on-tone}"
-            },
-            "placeholder-text-opacity": {
-              "$type": "number",
-              "$value": "{brand.text-emphasis.low}"
-            },
-            "disabled-background": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.100.color.tone}"
-            },
-            "disabled-text": {
-              "$type": "color",
-              "$value": "{brand.palettes.neutral.400.color.tone}"
-            }
-          },
-          "size": {
-            "border-radius": {
-              "$type": "dimension",
-              "$value": "{brand.dimensions.border-radii.default}"
-            },
-            "border-size-default": {
-              "$type": "dimension",
-              "$value": {
-                "value": 1,
-                "unit": "px"
-              }
-            },
-            "border-size-focus": {
-              "$type": "dimension",
-              "$value": {
-                "value": 2,
-                "unit": "px"
-              }
-            },
-            "icon-text-gap": {
-              "$type": "dimension",
-              "$value": "{brand.dimensions.general.default}"
-            },
-            "single-line-input-height": {
-              "$type": "dimension",
-              "$value": {
-                "value": 48,
-                "unit": "px"
-              }
-            },
-            "horizontal-padding": {
-              "$type": "dimension",
-              "$value": "{brand.dimensions.general.lg}"
-            },
-            "icon": {
-              "$type": "dimension",
-              "$value": "{brand.dimensions.icons.default}"
-            },
-            "max-width": {
-              "$type": "dimension",
-              "$value": {
-                "value": 464,
-                "unit": "px"
-              }
-            },
-            "min-width": {
-              "$type": "dimension",
-              "$value": {
-                "value": 140,
-                "unit": "px"
-              }
-            },
-            "vertical-padding": {
-              "$type": "dimension",
-              "$value": "{brand.dimensions.general.md}"
-            },
-            "vertical-gutter": {
-              "$type": "dimension",
-              "$value": "{brand.dimensions.general.default}"
-            }
-          }
-        }
-      }
-    },
     "components": {
       "assistive-element": {
         "variants": {
@@ -143,41 +10,41 @@
                   "layer-0": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.success.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.alert.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     }
                   },
                   "layer-1": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.100.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.100.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     }
                   },
                   "layer-2": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.400.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     }
                   },
                   "layer-3": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.interactive.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     }
                   }
                 }
@@ -189,41 +56,41 @@
                   "layer-0": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.400.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.300.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     }
                   },
                   "layer-1": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.600.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.core-colors.warning.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     }
                   },
                   "layer-2": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.700.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.300.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     }
                   },
                   "layer-3": {
                     "text-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-2.400.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.palette-1.200.color.tone}"
+                      "$value": "{brand.palettes.neutral.500.color.tone}"
                     }
                   }
                 }
@@ -239,19 +106,19 @@
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.xl}"
+              "$value": "{tokens.font.sizes.2xs}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.light}"
+              "$value": "{tokens.font.weights.semi-bold}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.tightest}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.shortest}"
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
@@ -259,11 +126,11 @@
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.uppercase}"
+              "$value": "{tokens.font.cases.titlecase}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "{tokens.font.styles.italic}"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "icon-size": {
@@ -272,16 +139,16 @@
           },
           "icon-text-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{brand.dimensions.general.none}"
           },
           "top-margin": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{brand.dimensions.general.xl}"
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 269,
+              "value": 989,
               "unit": "px"
             }
           }
