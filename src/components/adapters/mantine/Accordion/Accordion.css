@@ -173,3 +173,8 @@
 .recursica-accordion.mantine-accordion .mantine-Accordion-panel .layer-segmented-control-buttons {
   border: revert !important;
 }
+/* Accessibility: Restore focus ring */
+.recursica-accordion.mantine-accordion .mantine-Accordion-control:focus-visible {
+  outline: 2px solid var(--accordion-border, var(--accordion-item-border-color, #005fcc)) !important;
+  outline-offset: 2px !important;
+}

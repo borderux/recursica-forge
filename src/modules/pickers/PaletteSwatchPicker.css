@@ -1,0 +1,7 @@
+
+/* Accessibility: Focus ring for palette swatches */
+.palette-swatch:focus-visible {
+  outline: 2px solid var(--recursica_brand_themes_light_palettes_core_high-contrast, #005fcc);
+  outline-offset: 2px;
+  z-index: 10;
+}

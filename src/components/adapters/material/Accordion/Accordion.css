@@ -161,3 +161,8 @@
 .recursica-accordion.material-accordion .MuiAccordionDetails-root .layer-segmented-control-buttons {
   border: revert !important;
 }
+/* Accessibility: Restore focus ring */
+.recursica-accordion.material-accordion .MuiAccordionSummary-root:focus-visible {
+  outline: 2px solid var(--accordion-border, var(--accordion-item-border-color, #005fcc)) !important;
+  outline-offset: 2px !important;
+}
