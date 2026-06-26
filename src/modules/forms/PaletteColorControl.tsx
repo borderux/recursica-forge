@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react'
-import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
+
 import { readCssVar, readCssVarResolved, isVarInChain } from '../../core/css/readCssVar'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
@@ -988,13 +988,6 @@ export default function PaletteColorControl({
           className="palette-color-control-textfield"
         />
       </div>
-      <PaletteSwatchPicker
-        onSelect={(cssVar) => {
-          // Force re-read of CSS variable when a selection is made
-          setRefreshKey(prev => prev + 1)
-          onSelectProp?.(cssVar)
-        }}
-      />
     </>
   )
 }

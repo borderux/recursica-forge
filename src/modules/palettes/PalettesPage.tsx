@@ -4,7 +4,6 @@ import PaletteGrid from './PaletteGrid'
 import { getTokenLevelForMode, pickOnToneWithOpacity } from './PaletteColorSelector'
 import { useVars } from '../vars/VarsContext'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import { parseTokenReference, type TokenReferenceContext } from '../../core/utils/tokenReferenceParser'
 import { Button } from '../../components/adapters/Button'
 import { Toast } from '../../components/adapters/Toast'
@@ -1044,8 +1043,6 @@ export default function PalettesPage() {
             )
           })}
         </div>
-
-        <PaletteSwatchPicker />
       </div>
 
       {/* Scale-picker modal for adding a palette */}

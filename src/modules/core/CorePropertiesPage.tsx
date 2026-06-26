@@ -2,7 +2,6 @@ import '../theme/index.css'
 import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import OpacityPicker from '../pickers/OpacityPicker'
-import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
 import BaseColorsGrid from './BaseColorsGrid'
 import ElementsModalDemo from './ElementsModalDemo'
 
@@ -33,8 +32,6 @@ export default function CorePropertiesPage() {
         </div>
 
         <OpacityPicker />
-
-        <PaletteSwatchPicker />
       </div>
     </div>
   )

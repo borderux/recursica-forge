@@ -42,28 +42,71 @@
                         1000
                     ],
                     "step": 1
+                },
+                "disabled-opacity": {
+                    "label": "Disabled opacity",
+                    "visible": true
                 }
             }
         },
         "selected": {
             "icon": "palette",
-            "label": "Selected",
+            "label": "Selected enabled",
             "visible": true,
             "group": {
                 "background-checked": {
-                    "label": "Background",
+                    "label": "Checked background",
                     "visible": true
                 },
                 "border-checked": {
-                    "label": "Border",
-                    "visible": true
-                },
-                "icon-size": {
-                    "label": "Icon size",
+                    "label": "Checked border",
                     "visible": true
                 },
                 "icon-color": {
-                    "label": "Icon color",
+                    "label": "Checked icon",
+                    "visible": true
+                },
+                "background-indeterminate": {
+                    "label": "Indeterminate background",
+                    "visible": true
+                },
+                "border-indeterminate": {
+                    "label": "Indeterminate border",
+                    "visible": true
+                },
+                "icon-color-indeterminate": {
+                    "label": "Indeterminate icon",
+                    "visible": true
+                }
+            }
+        },
+        "selected-disabled": {
+            "icon": "prohibit",
+            "label": "Selected disabled",
+            "visible": true,
+            "group": {
+                "disabled-background-checked": {
+                    "label": "Checked background",
+                    "visible": true
+                },
+                "disabled-border-checked": {
+                    "label": "Checked border",
+                    "visible": true
+                },
+                "disabled-icon-checked": {
+                    "label": "Checked icon",
+                    "visible": true
+                },
+                "disabled-background-indeterminate": {
+                    "label": "Indeterminate background",
+                    "visible": true
+                },
+                "disabled-border-indeterminate": {
+                    "label": "Indeterminate border",
+                    "visible": true
+                },
+                "disabled-icon-indeterminate": {
+                    "label": "Indeterminate icon",
                     "visible": true
                 }
             }
@@ -80,47 +123,13 @@
                 "border-unchecked": {
                     "label": "Border",
                     "visible": true
-                }
-            }
-        },
-        "indeterminate": {
-            "icon": "minus",
-            "label": "Indeterminate",
-            "visible": true,
-            "group": {
-                "background-indeterminate": {
-                    "label": "Background",
+                },
+                "disabled-background-unchecked": {
+                    "label": "Disabled background",
                     "visible": true
                 },
-                "border-indeterminate": {
-                    "label": "Border",
-                    "visible": true
-                }
-            }
-        },
-        "disabled": {
-            "icon": "prohibit",
-            "label": "Disabled",
-            "visible": true,
-            "group": {
-                "disabled-background": {
-                    "label": "Background",
-                    "visible": true
-                },
-                "disabled-border": {
-                    "label": "Border",
-                    "visible": true
-                },
-                "disabled-icon": {
-                    "label": "Icon",
-                    "visible": true
-                },
-                "disabled-text": {
-                    "label": "Text",
-                    "visible": true
-                },
-                "disabled-opacity": {
-                    "label": "Opacity",
+                "disabled-border-unchecked": {
+                    "label": "Disabled border",
                     "visible": true
                 }
             }
@@ -148,6 +157,10 @@
                 },
                 "text": {
                     "label": "Color",
+                    "visible": true
+                },
+                "disabled-text": {
+                    "label": "Disabled text color",
                     "visible": true
                 }
             }

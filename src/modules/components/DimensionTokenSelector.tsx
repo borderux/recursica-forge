@@ -7,6 +7,7 @@ import { tokenFont, token, parseBrandCssVar } from '../../core/css/cssVarBuilder
 import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
 import { Slider } from '../../components/adapters/Slider'
 import { Label } from '../../components/adapters/Label'
+import { useGlobalRefControl } from '../../core/css/globalRefInterceptor'
 
 interface DimensionTokenSelectorProps {
   targetCssVar: string
@@ -15,6 +16,7 @@ interface DimensionTokenSelectorProps {
   propName: string // e.g., "border-radius", "font-size", "height"
   minPixelValue?: number // Optional minimum value for pixel slider
   maxPixelValue?: number // Optional maximum value for pixel slider
+  layer?: 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 }
 
 export default function DimensionTokenSelector({
@@ -24,9 +26,12 @@ export default function DimensionTokenSelector({
   propName,
   minPixelValue: minPixelValueProp,
   maxPixelValue: maxPixelValueProp,
+  layer = 'layer-1',
 }: DimensionTokenSelectorProps) {
-  const { theme, tokens: tokensFromVars } = useVars()
+  const { theme, tokens: tokensFromVars, uikit } = useVars()
   const { mode } = useThemeMode()
+  
+  const globalRef = useGlobalRefControl(targetCssVar, uikit)
 
   // Helper to extract dimension category from CSS var value
   const getDimensionCategory = useCallback((cssVarValue: string): string | null => {

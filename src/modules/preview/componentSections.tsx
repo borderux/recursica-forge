@@ -274,6 +274,21 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           layer={layer as any}
         />
         <CheckboxItem
+          label="Disabled checked item"
+          checked={true}
+          onChange={() => {}}
+          disabled
+          layer={layer as any}
+        />
+        <CheckboxItem
+          label="Disabled indeterminate item"
+          checked={false}
+          onChange={() => {}}
+          indeterminate
+          disabled
+          layer={layer as any}
+        />
+        <CheckboxItem
           label="A curious goblin crept through the moonlit forest, clutching a handful of stolen trinkets that sparkled like tiny stars, all the while muttering about the great treasure map he'd found tucked inside an old boot at the bottom of the river"
           checked={checked5}
           onChange={setChecked5}

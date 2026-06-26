@@ -30,9 +30,19 @@ export default function Checkbox({
   const borderUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-unchecked')
   const borderIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-indeterminate')
   const iconColorVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color')
-  const disabledBgVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background')
-  const disabledBorderVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border')
-  const disabledIconVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-icon')
+  const iconColorIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color-indeterminate')
+
+  const disabledBgCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background-checked')
+  const disabledBgUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background-unchecked')
+  const disabledBgIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background-indeterminate')
+
+  const disabledBorderCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border-checked')
+  const disabledBorderUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border-unchecked')
+  const disabledBorderIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-border-indeterminate')
+
+  const disabledIconCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-icon-checked')
+  const disabledIconIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-icon-indeterminate')
+
   const disabledOpacityVar = buildComponentCssVarPath('Checkbox', 'properties', 'disabled-opacity')
 
   // Size and spacing
@@ -50,9 +60,15 @@ export default function Checkbox({
     '--checkbox-border-unchecked': `var(${borderUncheckedVar})`,
     '--checkbox-border-indeterminate': `var(${borderIndeterminateVar})`,
     '--checkbox-icon-color': `var(${iconColorVar})`,
-    '--checkbox-disabled-bg': `var(${disabledBgVar})`,
-    '--checkbox-disabled-border': `var(${disabledBorderVar})`,
-    '--checkbox-disabled-icon': `var(${disabledIconVar})`,
+    '--checkbox-icon-color-indeterminate': `var(${iconColorIndeterminateVar})`,
+    '--checkbox-disabled-bg-checked': `var(${disabledBgCheckedVar})`,
+    '--checkbox-disabled-bg-unchecked': `var(${disabledBgUncheckedVar})`,
+    '--checkbox-disabled-bg-indeterminate': `var(${disabledBgIndeterminateVar})`,
+    '--checkbox-disabled-border-checked': `var(${disabledBorderCheckedVar})`,
+    '--checkbox-disabled-border-unchecked': `var(${disabledBorderUncheckedVar})`,
+    '--checkbox-disabled-border-indeterminate': `var(${disabledBorderIndeterminateVar})`,
+    '--checkbox-disabled-icon-checked': `var(${disabledIconCheckedVar})`,
+    '--checkbox-disabled-icon-indeterminate': `var(${disabledIconIndeterminateVar})`,
     '--checkbox-disabled-opacity': `var(${disabledOpacityVar})`,
     '--checkbox-size': `var(${sizeVar})`,
     '--checkbox-radius': `var(${borderRadiusVar})`,
