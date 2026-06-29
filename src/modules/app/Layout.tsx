@@ -11,6 +11,7 @@ import ColorTokenPicker from '../pickers/ColorTokenPicker'
 import { GlobalRefModalProvider } from '../toolbar/modals/GlobalRefModalProvider'
 import { OnToneModalProvider } from '../toolbar/modals/OnToneModalProvider'
 import PaletteSwatchPicker from '../pickers/PaletteSwatchPicker'
+import { useUndoRedoKeyboard } from '../../hooks/useUndoRedoKeyboard'
 
 // Create lazy components outside the component to avoid context timing issues
 const MantineShell = lazy(() => import('./shells/MantineShell'))
@@ -19,6 +20,7 @@ const CarbonShell = lazy(() => import('./shells/CarbonShell'))
 
 export function Layout() {
   const { kit, setKit } = useUiKit()
+  useUndoRedoKeyboard()
 
   const Shell = useMemo(() => {
     if (kit === 'mantine') return MantineShell

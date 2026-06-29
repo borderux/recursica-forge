@@ -692,7 +692,11 @@ export default function TextStyleToolbar({
     }
 
     window.addEventListener('cssVarsUpdated', handleUpdate)
-    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+    window.addEventListener('cssVarsReset', handleUpdate)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleUpdate)
+      window.removeEventListener('cssVarsReset', handleUpdate)
+    }
   }, [fontFamilyVar, fontFamilies])
 
 
@@ -724,6 +728,7 @@ export default function TextStyleToolbar({
     }
 
     window.addEventListener('cssVarsUpdated', handleUpdate)
+    window.addEventListener('cssVarsReset', handleUpdate)
 
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(() => {
@@ -736,6 +741,7 @@ export default function TextStyleToolbar({
 
     return () => {
       window.removeEventListener('cssVarsUpdated', handleUpdate)
+      window.removeEventListener('cssVarsReset', handleUpdate)
       observer.disconnect()
     }
   }, [textDecorationVar, textTransformVar, fontStyleVar])
@@ -1050,7 +1056,11 @@ export default function TextStyleToolbar({
     }
 
     window.addEventListener('cssVarsUpdated', handleUpdate)
-    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+    window.addEventListener('cssVarsReset', handleUpdate)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleUpdate)
+      window.removeEventListener('cssVarsReset', handleUpdate)
+    }
   }, [fontWeightVar, letterSpacingVar, lineHeightVar, fontSizeVar, fontSizes, letterSpacings, lineHeights])
 
   // Handlers

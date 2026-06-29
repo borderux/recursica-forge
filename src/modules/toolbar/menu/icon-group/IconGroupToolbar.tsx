@@ -348,7 +348,11 @@ export default function IconGroupToolbar({
             }
           }
           window.addEventListener('cssVarsUpdated', handleUpdate)
-          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          window.addEventListener('cssVarsReset', handleUpdate)
+          return () => {
+            window.removeEventListener('cssVarsUpdated', handleUpdate)
+            window.removeEventListener('cssVarsReset', handleUpdate)
+          }
         }, [])
 
         const handleChange = useCallback((val: number | [number, number]) => {

@@ -412,7 +412,7 @@ export default function ElevationStylePanel({
             targetCssVar={levelsArr.length > 0 ? getShadowColorCssVar(levelsArr[0]) : getShadowColorCssVar(1)}
             targetCssVars={levelsArr.length > 0 ? levelsArr.map(lvl => getShadowColorCssVar(lvl)) : [getShadowColorCssVar(1)]}
             currentValueCssVar={statePaletteSel
-              ? `--recursica_brand_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.paletteLevel}${statePaletteSel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'}`
+              ? `--recursica_brand_themes_${mode}_palettes_${statePaletteSel.paletteKey}_${statePaletteSel.paletteLevel}${statePaletteSel.paletteKey.startsWith('core') ? '_tone' : '_color_tone'}`
               : undefined}
             onSelect={onShadowColorSelect}
           />

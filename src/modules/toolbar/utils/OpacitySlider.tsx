@@ -123,6 +123,7 @@ export default function OpacitySlider({
     }
     
     window.addEventListener('cssVarsUpdated', handleUpdate)
+    window.addEventListener('cssVarsReset', handleUpdate)
     
     // Also watch for direct style changes using MutationObserver
     const observer = new MutationObserver(handleUpdate)
@@ -133,6 +134,7 @@ export default function OpacitySlider({
     
     return () => {
       window.removeEventListener('cssVarsUpdated', handleUpdate)
+      window.removeEventListener('cssVarsReset', handleUpdate)
       observer.disconnect()
     }
   }, [targetCssVar, opacityTokens])

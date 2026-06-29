@@ -287,7 +287,11 @@ export default function BorderGroupToolbar({
           }, 0)
         }
         window.addEventListener('cssVarsUpdated', handleUpdate as EventListener)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate as EventListener)
+        window.addEventListener('cssVarsReset', handleUpdate as EventListener)
+        return () => {
+          window.removeEventListener('cssVarsUpdated', handleUpdate as EventListener)
+          window.removeEventListener('cssVarsReset', handleUpdate as EventListener)
+        }
       }, [borderSizeVar])
 
       const handleChange = useCallback((val: number | [number, number]) => {

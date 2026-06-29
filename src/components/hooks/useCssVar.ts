@@ -38,11 +38,13 @@ export function useCssVar(varName: string, fallback?: string): string {
     const handleVarChange = () => updateValue()
     window.addEventListener('cssvarchange', handleVarChange)
     window.addEventListener('cssVarsUpdated', handleVarChange)
+    window.addEventListener('cssVarsReset', handleVarChange)
 
     return () => {
       observer.disconnect()
       window.removeEventListener('cssvarchange', handleVarChange)
       window.removeEventListener('cssVarsUpdated', handleVarChange)
+      window.removeEventListener('cssVarsReset', handleVarChange)
     }
   }, [varName, fallback])
 
@@ -137,11 +139,13 @@ export function useRawCssVar(varName: string, fallback?: string): string {
     const handleVarChange = () => updateValue()
     window.addEventListener('cssvarchange', handleVarChange)
     window.addEventListener('cssVarsUpdated', handleVarChange)
+    window.addEventListener('cssVarsReset', handleVarChange)
 
     return () => {
       observer.disconnect()
       window.removeEventListener('cssvarchange', handleVarChange)
       window.removeEventListener('cssVarsUpdated', handleVarChange)
+      window.removeEventListener('cssVarsReset', handleVarChange)
     }
   }, [varName, fallback])
 
