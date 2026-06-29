@@ -23,6 +23,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const [pos, setPos] = useState<{ top: number; left: number }>({ top: -9999, left: -9999 })
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const firstHexMatchRef = useRef<string | null>(null)
+  const [activeOnSelect, setActiveOnSelect] = useState<((cssVarName: string) => void) | null>(null)
 
 
   // Reset firstHexMatchRef when target changes so hex-based selection works correctly for each picker session
@@ -39,6 +40,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       setTargetOpacityCssVar(null)
       setShowOpacityDropdown(false)
       setShowNone(true)
+      setActiveOnSelect(null)
     }
     window.addEventListener('closeAllPickersAndPanels', handleCloseAll)
     return () => window.removeEventListener('closeAllPickersAndPanels', handleCloseAll)
@@ -265,7 +267,14 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   }
 
   useEffect(() => {
-    (window as any).openPalettePicker = (el: HTMLElement, cssVar: string, cssVarsArray?: string[], opacityCssVar?: string, allowNone?: boolean) => {
+    (window as any).openPalettePicker = (
+      el: HTMLElement,
+      cssVar: string,
+      cssVarsArray?: string[],
+      opacityCssVar?: string,
+      allowNone?: boolean,
+      onSelectCallback?: (cssVarName: string) => void
+    ) => {
       // Don't dispatch closeAllPickersAndPanels here - it closes panels too!
       // The picker will close itself if another picker opens since it listens to this event
       // window.dispatchEvent(new CustomEvent('closeAllPickersAndPanels'))
@@ -276,6 +285,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       setTargetOpacityCssVar(opacityCssVar || null)
       setShowOpacityDropdown(!!opacityCssVar)
       setShowNone(allowNone !== false)
+      setActiveOnSelect(() => onSelectCallback || null)
 
       if (opacityCssVar) {
         const tokenKey = extractTokenFromCssVar(opacityCssVar)
@@ -317,6 +327,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       isOpen={true}
       onClose={() => {
         setAnchor(null)
+        setActiveOnSelect(null)
       }}
       title={pickerTitle}
       size="auto"
@@ -415,7 +426,9 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                 }
 
                 setAnchor(null)
+                setActiveOnSelect(null)
                 onSelect?.('')
+                activeOnSelect?.('')
                 window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
               }}
               style={{
@@ -554,8 +567,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         }
 
                         onSelect?.(s.cssVar)
+                        activeOnSelect?.(s.cssVar)
                         setRefreshTrigger(prev => prev + 1)
                         setAnchor(null)
+                        setActiveOnSelect(null)
                         window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
                       }}
                       style={{
@@ -665,8 +680,10 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                         }
 
                         onSelect?.(s.cssVar)
+                        activeOnSelect?.(s.cssVar)
                         setRefreshTrigger(prev => prev + 1)
                         setAnchor(null)
+                        setActiveOnSelect(null)
                         window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: cssVarsToUpdate } }))
                       }}
                       style={{

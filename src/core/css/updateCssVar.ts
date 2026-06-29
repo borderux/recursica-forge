@@ -132,6 +132,7 @@ export function updateCssVar(
   // IMMEDIATELY apply the CSS variable to the DOM to ensure 60fps live previews
   root.style.setProperty(cssVarName, trimmedValue)
 
+
   // For mode-independent UIKit vars (dimensions, border-radius, padding, etc.), also
   // mirror the change to the opposite-mode themed var immediately.
   // Without this, the preservation loop in recomputeAndApplyAll reads the stale
@@ -141,9 +142,11 @@ export function updateCssVar(
   // and must not be cross-copied between light and dark.
   if (isUIKitVar && !cssVarName.includes('_properties_colors_')) {
     if (cssVarName.includes('_themes_light_')) {
-      root.style.setProperty(cssVarName.replace('_themes_light_', '_themes_dark_'), trimmedValue)
+      const darkVarName = cssVarName.replace('_themes_light_', '_themes_dark_')
+      root.style.setProperty(darkVarName, trimmedValue)
     } else if (cssVarName.includes('_themes_dark_')) {
-      root.style.setProperty(cssVarName.replace('_themes_dark_', '_themes_light_'), trimmedValue)
+      const lightVarName = cssVarName.replace('_themes_dark_', '_themes_light_')
+      root.style.setProperty(lightVarName, trimmedValue)
     }
   }
 

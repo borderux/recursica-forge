@@ -146,7 +146,11 @@ export default function ElevationToolbar({
       setCurrentElevationName(newElevationName)
     }
     window.addEventListener('cssVarsUpdated', handleUpdate)
-    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+    window.addEventListener('cssVarsReset', handleUpdate)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleUpdate)
+      window.removeEventListener('cssVarsReset', handleUpdate)
+    }
   }, [elevationVar, getCurrentElevationName])
 
   // Convert current elevation name to index for slider

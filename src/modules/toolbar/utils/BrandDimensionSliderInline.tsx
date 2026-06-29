@@ -62,6 +62,7 @@ export default function BrandDimensionSliderInline({
 }: BrandDimensionSliderInlineProps) {
   const { theme, uikit } = useVars()
   const { mode } = useThemeMode()
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const globalRef = useGlobalRefControl(targetCssVar, uikit)
   const isAttached = globalRef.isAttached
@@ -127,7 +128,7 @@ export default function BrandDimensionSliderInline({
       console.error(`Error loading ${dimensionCategory} tokens:`, error)
       return []
     }
-  }, [theme, mode, dimensionCategory])
+  }, [theme, mode, dimensionCategory, refreshKey])
 
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
   const justSetValueRef = useRef<string | null>(null)
@@ -152,38 +153,40 @@ export default function BrandDimensionSliderInline({
     if (currentValue.trim().startsWith('var(--recursica_')) {
       const matchingIndex = tokens.findIndex(t => {
         const dimensionName = t.name.replace(`--recursica_brand_dimensions_${dimensionCategory}_`, '')
-        return currentValue.includes(`${dimensionCategory}-${dimensionName}`) || currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
+        return currentValue.includes(`${dimensionCategory}_${dimensionName}`) || 
+               currentValue.includes(`${dimensionCategory}-${dimensionName}`) || 
+               currentValue.includes(`dimensions-${dimensionCategory}-${dimensionName}`)
       })
 
       if (matchingIndex >= 0) {
         setSelectedIndex(matchingIndex)
         return
       }
+    }
 
-      const resolved = readCssVarResolved(targetCssVar)
-      if (resolved) {
-        const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
-        if (match) {
-          const pxValue = parseFloat(match[1])
-          if (pxValue === 0 && (dimensionCategory === 'border-radii' || dimensionCategory === 'general')) {
-            const noneIndex = tokens.findIndex(t => t.key === 'none')
-            if (noneIndex >= 0) {
-              setSelectedIndex(noneIndex)
-              return
-            }
-          }
-
-          const matchingIndex = tokens
-            .map((t, idx) => ({ token: t, index: idx, diff: Math.abs((t.value ?? 0) - pxValue) }))
-            .reduce((closest, current) => {
-              if (!closest) return current
-              return current.diff < closest.diff ? current : closest
-            }, undefined as { token: typeof tokens[0]; index: number; diff: number } | undefined)
-
-          if (matchingIndex && matchingIndex.diff < 1) {
-            setSelectedIndex(matchingIndex.index)
+    const resolved = readCssVarResolved(targetCssVar)
+    if (resolved) {
+      const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
+      if (match) {
+        const pxValue = parseFloat(match[1])
+        if (pxValue === 0 && (dimensionCategory === 'border-radii' || dimensionCategory === 'general')) {
+          const noneIndex = tokens.findIndex(t => t.key === 'none')
+          if (noneIndex >= 0) {
+            setSelectedIndex(noneIndex)
             return
           }
+        }
+
+        const matchingIndex = tokens
+          .map((t, idx) => ({ token: t, index: idx, diff: Math.abs((t.value ?? 0) - pxValue) }))
+          .reduce((closest, current) => {
+            if (!closest) return current
+            return current.diff < closest.diff ? current : closest
+          }, undefined as { token: typeof tokens[0]; index: number; diff: number } | undefined)
+
+        if (matchingIndex && matchingIndex.diff < 1) {
+          setSelectedIndex(matchingIndex.index)
+          return
         }
       }
     }
@@ -197,6 +200,7 @@ export default function BrandDimensionSliderInline({
 
   useEffect(() => {
     const handleReset = () => {
+      setRefreshKey(prev => prev + 1)
       readInitialValue()
     }
 
@@ -207,6 +211,7 @@ export default function BrandDimensionSliderInline({
         const hasRelevantUpdate = cssVars.some(v => isVarInChain(v, updatedVars))
         if (hasRelevantUpdate) {
           setTimeout(() => {
+            setRefreshKey(prev => prev + 1)
             readInitialValue()
           }, 0)
         }
@@ -290,8 +295,11 @@ export default function BrandDimensionSliderInline({
     const index = Math.max(0, Math.min(Math.round(value), tokens.length - 1))
     const token = tokens[index]
     if (token) {
-      // Always return a non-empty string
+      const resolved = readCssVarResolved(token.name)
       const label = token.label || (token.key ? formatDimensionLabel(token.key) : '')
+      if (resolved) {
+        return `${label} (${resolved})`
+      }
       return label || String(index)
     }
     return String(index)

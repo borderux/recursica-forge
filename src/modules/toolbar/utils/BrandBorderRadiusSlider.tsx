@@ -37,6 +37,7 @@ export default function BrandBorderRadiusSlider({
 }: BrandBorderRadiusSliderProps) {
   const { theme, tokens: tokensFromVars } = useVars()
   const { mode } = useThemeMode()
+  const [refreshKey, setRefreshKey] = useState(0)
   
   // Build tokens list from border radius brand tokens
   const tokens = useMemo(() => {
@@ -108,7 +109,7 @@ export default function BrandBorderRadiusSlider({
       console.error('Error loading border radius tokens for BrandBorderRadiusSlider:', error)
       return []
     }
-  }, [theme, mode])
+  }, [theme, mode, refreshKey])
   
   // Track selected token index
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
@@ -137,47 +138,48 @@ export default function BrandBorderRadiusSlider({
       return
     }
     
-    // Check if it's a CSS var reference
     if (currentValue.trim().startsWith('var(--recursica_')) {
       // Try to find matching token by CSS var name
       const matchingIndex = tokens.findIndex(t => {
         // Extract radius name from CSS var (e.g., "--recursica_brand_dimensions_border-radii_sm" -> "sm")
         const radiusName = t.name.replace('--recursica_brand_dimensions_border-radii_', '')
-        return currentValue.includes(`border-radii-${radiusName}`) || currentValue.includes(`dimensions-border-radii-${radiusName}`)
+        return currentValue.includes(`border-radii_${radiusName}`) || 
+               currentValue.includes(`border-radii-${radiusName}`) || 
+               currentValue.includes(`dimensions-border-radii-${radiusName}`)
       })
       
       if (matchingIndex >= 0) {
         setSelectedIndex(matchingIndex)
         return
       }
-      
-      // Try to resolve and match by pixel value
-      const resolved = readCssVarResolved(targetCssVar)
-      if (resolved) {
-        const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
-        if (match) {
-          const pxValue = parseFloat(match[1])
-          // If resolved to 0px, check if it matches the "none" token (if category supports it)
-          if (pxValue === 0) {
-            const noneIndex = tokens.findIndex(t => t.name.includes('border-radii-none'))
-            if (noneIndex >= 0) {
-              setSelectedIndex(noneIndex)
-              return
-            }
-          }
-          
-          // Find token with closest matching value
-          const matchingIndex = tokens
-            .map((t, idx) => ({ token: t, index: idx, diff: Math.abs((t.value ?? 0) - pxValue) }))
-            .reduce((closest, current) => {
-              if (!closest) return current
-              return current.diff < closest.diff ? current : closest
-            }, undefined as { token: typeof tokens[0]; index: number; diff: number } | undefined)
-          
-          if (matchingIndex && matchingIndex.diff < 1) {
-            setSelectedIndex(matchingIndex.index)
+    }
+    
+    // Try to resolve and match by pixel value
+    const resolved = readCssVarResolved(targetCssVar)
+    if (resolved) {
+      const match = resolved.match(/^(-?\d+(?:\.\d+)?)px/i)
+      if (match) {
+        const pxValue = parseFloat(match[1])
+        // If resolved to 0px, check if it matches the "none" token (if category supports it)
+        if (pxValue === 0) {
+          const noneIndex = tokens.findIndex(t => t.name.includes('border-radii-none'))
+          if (noneIndex >= 0) {
+            setSelectedIndex(noneIndex)
             return
           }
+        }
+        
+        // Find token with closest matching value
+        const matchingIndex = tokens
+          .map((t, idx) => ({ token: t, index: idx, diff: Math.abs((t.value ?? 0) - pxValue) }))
+          .reduce((closest, current) => {
+            if (!closest) return current
+            return current.diff < closest.diff ? current : closest
+          }, undefined as { token: typeof tokens[0]; index: number; diff: number } | undefined)
+        
+        if (matchingIndex && matchingIndex.diff < 1) {
+          setSelectedIndex(matchingIndex.index)
+          return
         }
       }
     }
@@ -194,6 +196,7 @@ export default function BrandBorderRadiusSlider({
   // Listen for reset events and CSS var updates to re-read initial value
   useEffect(() => {
     const handleReset = () => {
+      setRefreshKey(prev => prev + 1)
       readInitialValue()
     }
     
@@ -204,6 +207,7 @@ export default function BrandBorderRadiusSlider({
         const hasRelevantUpdate = cssVars.some(v => isVarInChain(v, updatedVars))
         if (hasRelevantUpdate) {
           setTimeout(() => {
+            setRefreshKey(prev => prev + 1)
             readInitialValue()
           }, 0)
         }

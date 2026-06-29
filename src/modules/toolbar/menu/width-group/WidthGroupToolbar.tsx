@@ -186,7 +186,11 @@ export default function WidthGroupToolbar({
             }
           }
           window.addEventListener('cssVarsUpdated', handleUpdate)
-          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          window.addEventListener('cssVarsReset', handleUpdate)
+          return () => {
+            window.removeEventListener('cssVarsUpdated', handleUpdate)
+            window.removeEventListener('cssVarsReset', handleUpdate)
+          }
         }, [minWidthVar, range])
 
         const handleChange = useCallback((val: number | [number, number]) => {
@@ -267,7 +271,11 @@ export default function WidthGroupToolbar({
             }
           }
           window.addEventListener('cssVarsUpdated', handleUpdate)
-          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          window.addEventListener('cssVarsReset', handleUpdate)
+          return () => {
+            window.removeEventListener('cssVarsUpdated', handleUpdate)
+            window.removeEventListener('cssVarsReset', handleUpdate)
+          }
         }, [maxWidthVar, range])
 
         const handleChange = useCallback((val: number | [number, number]) => {
@@ -348,7 +356,11 @@ export default function WidthGroupToolbar({
             }
           }
           window.addEventListener('cssVarsUpdated', handleUpdate)
-          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          window.addEventListener('cssVarsReset', handleUpdate)
+          return () => {
+            window.removeEventListener('cssVarsUpdated', handleUpdate)
+            window.removeEventListener('cssVarsReset', handleUpdate)
+          }
         }, [minHeightVar, range])
 
         const handleChange = useCallback((val: number | [number, number]) => {
@@ -437,7 +449,11 @@ export default function WidthGroupToolbar({
             }
           }
           window.addEventListener('cssVarsUpdated', handleUpdate)
-          return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+          window.addEventListener('cssVarsReset', handleUpdate)
+          return () => {
+            window.removeEventListener('cssVarsUpdated', handleUpdate)
+            window.removeEventListener('cssVarsReset', handleUpdate)
+          }
         }, [maxHeightVar, range])
 
         const handleChange = useCallback((val: number | [number, number]) => {

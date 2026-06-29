@@ -137,13 +137,19 @@ function PixelValueSlider({
       const currentValue = readCssVar(primaryVar)
       const resolvedValue = readCssVarResolved(primaryVar)
       const valueStr = resolvedValue || currentValue || `${minPixelValue}px`
-      const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+      const match = valueStr.match(/^(-?\d+(?:\.\d+)?)(?:px)?$/i)
       if (match) {
         setValue(Math.max(minPixelValue, Math.min(maxPixelValue, parseFloat(match[1]))))
+      } else {
+        setValue(minPixelValue)
       }
     }
     window.addEventListener('cssVarsUpdated', handleUpdate)
-    return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+    window.addEventListener('cssVarsReset', handleUpdate)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleUpdate)
+      window.removeEventListener('cssVarsReset', handleUpdate)
+    }
   }, [primaryVar, minPixelValue, maxPixelValue])
 
   const updateCssVars = useCallback((clampedValue: number) => {
@@ -612,7 +618,11 @@ function ElevationSliderInline({
       }
     }
     window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
-    return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+    window.addEventListener('cssVarsReset', handleCssVarUpdate)
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+    }
   }, [primaryVar, getCurrentElevationName])
 
   // Convert elevation options to tokens array
@@ -1017,13 +1027,19 @@ export default function PropControlContent({
           const currentValue = readCssVar(primaryVar)
           const resolvedValue = readCssVarResolved(primaryVar)
           const valueStr = resolvedValue || currentValue || '0px'
-          const match = valueStr.match(/^(-?\d+(?:\.\d+)?)px$/i)
+          const match = valueStr.match(/^(-?\d+(?:\.\d+)?)(?:px)?$/i)
           if (match) {
             setValue(Math.max(minValue, Math.min(maxValue, parseFloat(match[1]))))
+          } else {
+            setValue(minValue)
           }
         }
         window.addEventListener('cssVarsUpdated', handleUpdate)
-        return () => window.removeEventListener('cssVarsUpdated', handleUpdate)
+        window.addEventListener('cssVarsReset', handleUpdate)
+        return () => {
+          window.removeEventListener('cssVarsUpdated', handleUpdate)
+          window.removeEventListener('cssVarsReset', handleUpdate)
+        }
       }, [primaryVar, minValue, maxValue])
 
       const handleChange = useCallback((val: number | [number, number]) => {

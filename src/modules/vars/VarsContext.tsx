@@ -36,6 +36,8 @@ type VarsContextValue = {
   structure: StructuralMetadata | null
   resetAll: (toOriginal?: boolean) => void
   recomputeAndApplyAll: () => void
+  undo: () => boolean
+  redo: () => boolean
 }
 
 const VarsContext = createContext<VarsContextValue | undefined>(undefined)
@@ -101,10 +103,12 @@ export function VarsProvider({ children }: { children: React.ReactNode }) {
       setElevation: (next) => store.setElevation(next),
       updateElevation: (mutator) => store.updateElevation(mutator),
       structure: store.structure,
-      resetAll: (toOriginal?: boolean) => store.resetAll(toOriginal),
+      resetAll: (toOriginal) => store.resetAll(toOriginal),
       recomputeAndApplyAll: () => store.recomputeAndApplyAll(),
+      undo: () => store.undo(),
+      redo: () => store.redo(),
     }
-  }, [state, store, resolvedTheme])
+  }, [state, resolvedTheme, store])
 
   return <VarsContext.Provider value={value}>{children}</VarsContext.Provider>
 }

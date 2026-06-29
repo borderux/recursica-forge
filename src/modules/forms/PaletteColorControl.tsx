@@ -114,7 +114,8 @@ export default function PaletteColorControl({
 
   const buildPaletteCssVar = (paletteKey: string, level: string): string => {
     const modeLower = mode.toLowerCase()
-    return `--recursica_brand_themes_${modeLower}_palettes_${paletteKey}_${level}_color_tone`
+    const suffix = paletteKey.startsWith('core') ? '_tone' : '_color_tone'
+    return `--recursica_brand_themes_${modeLower}_palettes_${paletteKey}_${level}${suffix}`
   }
 
   // Helper to find palette swatch that matches a token hex
@@ -819,7 +820,7 @@ export default function PaletteColorControl({
     try {
       // If multiple CSS vars are provided, pass them all to the picker
       const cssVarsToUpdate = targetCssVars && targetCssVars.length > 0 ? targetCssVars : [targetCssVar]
-        ; (window as any).openPalettePicker(el, targetCssVar, cssVarsToUpdate)
+        ; (window as any).openPalettePicker(el, targetCssVar, cssVarsToUpdate, undefined, undefined, onSelectProp)
     } catch (err) {
       console.error('Failed to open palette picker:', err)
     }

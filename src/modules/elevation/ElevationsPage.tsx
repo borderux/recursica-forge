@@ -328,18 +328,22 @@ export default function ElevationsPage() {
         const colorRefStr: string | undefined = typeof colorRefRaw === 'string' ? colorRefRaw : undefined
         const parsedColorRef = colorRefStr ? parseTokenReference(colorRefStr, { currentMode: mode }) : null
         let restoredPaletteSel: { paletteKey: string; level: string } | null = null
-        if (parsedColorRef?.type === 'brand' && parsedColorRef.path[0] === 'palettes' && parsedColorRef.path.length >= 3) {
-          const paletteKey = parsedColorRef.path[1]
-          const rawLevel = parsedColorRef.path[2]
-          // Resolve 'primary' via palette's primary-level field
-          let level = rawLevel
-          if (level === 'primary' || level === 'default') {
-            const brand: any = (theme as any)?.brand || (theme as any)
-            const themes2 = brand?.themes || brand
-            const primaryLevel = themes2?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
-            level = typeof primaryLevel === 'string' ? primaryLevel : '500'
+        if (parsedColorRef?.type === 'brand') {
+          const pathParts = parsedColorRef.path
+          const palettesIdx = pathParts.indexOf('palettes')
+          if (palettesIdx !== -1 && pathParts.length > palettesIdx + 2) {
+            const paletteKey = pathParts[palettesIdx + 1]
+            const rawLevel = pathParts[palettesIdx + 2]
+            // Resolve 'primary' via palette's primary-level field
+            let level = rawLevel
+            if (level === 'primary' || level === 'default') {
+              const brand: any = (theme as any)?.brand || (theme as any)
+              const themes2 = brand?.themes || brand
+              const primaryLevel = themes2?.light?.palettes?.[paletteKey]?.['primary-level']?.$value
+              level = typeof primaryLevel === 'string' ? primaryLevel : '500'
+            }
+            restoredPaletteSel = { paletteKey, level }
           }
-          restoredPaletteSel = { paletteKey, level }
         }
         if (restoredPaletteSel) {
           next.paletteSelections = {

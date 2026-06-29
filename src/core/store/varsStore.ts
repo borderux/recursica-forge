@@ -21,6 +21,7 @@ import { getComplianceService } from '../compliance/ComplianceService'
 import { clearStoredFonts, saveStoredFonts, getDefaultFonts, deriveFontsFromJson, populateWindowFontUrlMap } from './fontStore'
 import { buildStructuralMetadata, type StructuralMetadata } from './structuralMetadata'
 import { clearGlobalRefPreference } from '../css/globalRefInterceptor'
+import { compare, applyPatch, type Operation } from 'fast-json-patch'
 
 import tokensImport from '../../../recursica_tokens.json'
 import themeImport from '../../../recursica_brand.json'
@@ -272,6 +273,14 @@ class VarsStore {
   private paletteVarsChangedTimeout: ReturnType<typeof setTimeout> | null = null
   private hasRunInitialReset: boolean = false
   private complianceScanTimeout: ReturnType<typeof setTimeout> | null = null
+  
+  // Undo/Redo state
+  private undoStack: Operation[][] = []
+  private redoStack: Operation[][] = []
+  private lastCommittedState: string = ''
+  private commitTimeout: ReturnType<typeof setTimeout> | null = null
+  private readonly UNDO_LIMIT = 50
+  
   /** Read-only structural metadata (what keys/palettes/layers exist) */
   public structure: StructuralMetadata | null = null
   /** The allVars map produced by the most recent recomputeAndApplyAll (for snapshotting) */
@@ -449,6 +458,9 @@ class VarsStore {
 
     // Compliance is read-only — it only flags issues, never modifies CSS vars or JSON.
     // A debounced compliance scan runs automatically after recomputeAndApplyAll() and writeCssVarsDirect().
+
+    // Initialize undo state baseline
+    this.lastCommittedState = JSON.stringify(this.getCommitableState())
   }
 
   // initAAWatcher is no longer needed — aaWatcher is created in constructor
@@ -480,7 +492,129 @@ class VarsStore {
       this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
     }
 
+    this.scheduleCommit()
     this.emit()
+  }
+
+  private getCommitableState() {
+    const { version, ...rest } = this.state
+    return rest
+  }
+
+  private scheduleCommit() {
+    if (this.commitTimeout) clearTimeout(this.commitTimeout)
+    this.commitTimeout = setTimeout(() => {
+      this.commitState()
+    }, 500)
+  }
+
+  private commitState() {
+    const currentState = this.getCommitableState()
+    const currentStr = JSON.stringify(currentState)
+    
+    if (currentStr === this.lastCommittedState) return // No changes
+
+    const lastState = JSON.parse(this.lastCommittedState)
+    // To undo, we go from currentState backwards to lastState
+    const inversePatch = compare(currentState, lastState)
+    
+    if (inversePatch.length > 0) {
+      this.undoStack.push(inversePatch)
+      if (this.undoStack.length > this.UNDO_LIMIT) {
+        this.undoStack.shift()
+      }
+      this.redoStack = [] // Clear redo stack on new change
+      this.lastCommittedState = currentStr
+    }
+  }
+
+  public canUndo(): boolean { return this.undoStack.length > 0 }
+  public canRedo(): boolean { return this.redoStack.length > 0 }
+
+  public undo(): boolean {
+    if (!this.canUndo()) return false
+    
+    if (this.commitTimeout) {
+      clearTimeout(this.commitTimeout)
+      this.commitState()
+    }
+    
+    const inversePatch = this.undoStack.pop()!
+    const currentState = this.getCommitableState()
+    
+    // Compute forward patch for redo BEFORE applying inverse
+    const forwardPatch = compare(currentState, JSON.parse(this.lastCommittedState))
+    
+    const nextState = cloneJSON(currentState)
+    applyPatch(nextState, inversePatch)
+    
+    // Calculate accurate forward patch to go from nextState to currentState
+    const exactForwardPatch = compare(nextState, currentState)
+    this.redoStack.push(exactForwardPatch)
+    
+    this.applyHistoryState(nextState)
+    return true
+  }
+
+  public redo(): boolean {
+    if (!this.canRedo()) return false
+    
+    if (this.commitTimeout) {
+      clearTimeout(this.commitTimeout)
+      this.commitState()
+    }
+    
+    const forwardPatch = this.redoStack.pop()!
+    const currentState = this.getCommitableState()
+    
+    const nextState = cloneJSON(currentState)
+    applyPatch(nextState, forwardPatch)
+    
+    const newInversePatch = compare(nextState, currentState)
+    this.undoStack.push(newInversePatch)
+    
+    this.applyHistoryState(nextState)
+    return true
+  }
+
+  private applyHistoryState(historyState: any) {
+    this.state = {
+      ...this.state,
+      ...historyState
+    }
+    
+    this.lastCommittedState = JSON.stringify(this.getCommitableState())
+    
+    // Explicitly write to LS using normal writeState logic, but avoiding scheduleCommit
+    if (this.lsAvailable) {
+      try {
+        localStorage.setItem(STORAGE_KEYS.editedTokens, JSON.stringify(this.state.tokens))
+        localStorage.setItem(STORAGE_KEYS.editedBrand, JSON.stringify(this.state.theme))
+        localStorage.setItem(STORAGE_KEYS.editedUikit, JSON.stringify(this.state.uikit))
+        // Note: palettes and elevation are not persisted to LS natively in VarsStore (they're restored from other paths or derived), but tracking them in undo stack works perfectly in-memory.
+      } catch { }
+    }
+    
+    if (this.aaWatcher) {
+      this.aaWatcher.updateTokensAndTheme(this.state.tokens, this.state.theme)
+    }
+    
+    // Re-derive font list from the reverted state to sync localStorage (recursica_fonts)
+    const derivedFonts = deriveFontsFromJson(this.state.tokens, this.state.theme)
+    saveStoredFonts(derivedFonts)
+    populateWindowFontUrlMap(derivedFonts)
+
+    this.recomputeAndApplyAll()
+    this.emit()
+    
+    // Force all components that read CSS variables from the DOM directly to re-sync
+    // Defer the dispatch so the browser has a tick to update getComputedStyle
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('cssVarsReset'))
+        window.dispatchEvent(new CustomEvent('tokenOverridesChanged', { detail: { all: {}, reset: true } }))
+      }, 50)
+    }
   }
 
   /**
@@ -1654,8 +1788,8 @@ class VarsStore {
         const parsed = parseTokenReference(s, context)
         if (parsed && parsed.type === 'brand') {
           const pathStr = parsed.path.join('.')
-          // Target format: palettes.neutral.500.color.tone
-          const paletteFlexMatch = /^palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)(?:\.color)?\.(tone|on-tone)$/i.exec(pathStr)
+          // Target format: palettes.neutral.500.color.tone or themes.light.palettes.neutral.500.color.tone
+          const paletteFlexMatch = /^(?:themes\.[a-z0-9-]+\.)?palettes?\.([a-z0-9-]+)\.([a-z0-9-]+)(?:\.color)?\.(tone|on-tone)$/i.exec(pathStr)
           
           if (paletteFlexMatch) {
             const paletteKey = paletteFlexMatch[1]
@@ -2515,64 +2649,9 @@ class VarsStore {
         }
 
         if (typeof document !== 'undefined') {
-          const preservedVars: Record<string, string> = {}
-
-          const isModeIndependent = (cssVar: string): boolean => {
-            return !cssVar.includes('_properties_colors_')
-          }
-
-          const getOppositeModeVar = (cssVar: string): string => {
-            if (cssVar.includes('_themes_light_')) {
-              return cssVar.replace('_themes_light_', '_themes_dark_')
-            } else if (cssVar.includes('_themes_dark_')) {
-              return cssVar.replace('_themes_dark_', '_themes_light_')
-            }
-            return cssVar
-          }
-
-          for (const [cssVar, generatedValue] of Object.entries(uikitVars)) {
-            if (!isModeIndependent(cssVar)) {
-              continue
-            }
-
-            // Only preserve themed vars — non-themed vars are aliases regenerated
-            // from the current JSON state and must NOT be read from the DOM, because
-            // their inline values are stale from the previous recompute cycle and
-            // will incorrectly overwrite the freshly-computed JSON-derived values.
-            if (!cssVar.includes('_themes_light_') && !cssVar.includes('_themes_dark_')) {
-              continue
-            }
-
-            const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
-            const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
-
-            if (inlineValue && inlineValue !== generatedValue?.trim()) {
-              preservedVars[cssVar] = inlineValue
-              const oppositeModeVar = getOppositeModeVar(cssVar)
-              preservedVars[oppositeModeVar] = inlineValue
-            }
-          }
-          Object.assign(uikitVars, preservedVars)
         }
 
-        if (typeof document !== 'undefined') {
-          for (const [cssVar, generatedValue] of Object.entries(uikitVars)) {
-            const generatedValueTrimmed = generatedValue ? generatedValue.trim() : ''
-            const inlineValueRaw = document.documentElement.style.getPropertyValue(cssVar)
-            const inlineValue = inlineValueRaw ? inlineValueRaw.trim() : ''
 
-            if (inlineValue && inlineValue.startsWith('{') && inlineValue.includes('brand.themes')) {
-              if (generatedValueTrimmed.startsWith('{') || !generatedValueTrimmed.startsWith('var(')) {
-                delete uikitVars[cssVar]
-                continue
-              }
-            }
-
-            if (generatedValueTrimmed !== inlineValue) {
-              changedUikitVars.add(cssVar)
-            }
-          }
-        }
 
         Object.assign(allVars, uikitVars)
       } catch { }
@@ -2690,7 +2769,7 @@ class VarsStore {
             if (typeof ref === 'string') {
               const num = Number(ref)
               return Number.isFinite(num) ? num : 0
-            }
+}
             return 0
           }
 
@@ -2698,9 +2777,9 @@ class VarsStore {
             const key = `elevation-${level}`
             const ctrlForLevel = this.state.elevation.controls[mode]?.[key]
             const opNorm = ctrlForLevel?.opacity ?? 0.84
-            const alphaRef = opNorm.toFixed(4)
+            const alphaRef = `${(opNorm * 100).toFixed(2)}%`
             const colorMixWithOpacityVar = (colorVarRef: string, alphaVarRef: string): string =>
-              `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
+              `color-mix(in srgb, ${colorVarRef} ${alphaVarRef}, transparent)`
 
             const sel = this.state.elevation.paletteSelections[mode]?.[key]
             if (sel) {
@@ -2765,9 +2844,9 @@ class VarsStore {
 
             const ctrl = this.state.elevation.controls[mode]?.[k]
             const opacityNorm = ctrl?.opacity ?? 0.84
-            const alphaVarRef = opacityNorm.toFixed(4)
+            const alphaVarRef = `${(opacityNorm * 100).toFixed(2)}%`
             const colorMixWithOpacityVar = (colorVarRef: string, alphaVarRef: string): string =>
-              `color-mix(in srgb, ${colorVarRef} calc(${alphaVarRef} * 100%), transparent)`
+              `color-mix(in srgb, ${colorVarRef} ${alphaVarRef}, transparent)`
 
             const statePaletteSel = this.state.elevation.paletteSelections[mode]?.[k]
             if (statePaletteSel) {
@@ -2807,7 +2886,21 @@ class VarsStore {
 
       applyCssVars(allVars, this.state.tokens)
       
+      const removedVars: string[] = []
+      if (typeof document !== 'undefined') {
+        const style = document.documentElement.style
+        for (let i = 0; i < style.length; i++) {
+          const prop = style[i]
+          if (prop && prop.startsWith('--recursica_') && !(prop in allVars)) {
+            removedVars.push(prop)
+          }
+        }
+        removedVars.forEach(k => document.documentElement.style.removeProperty(k))
+      }
+      
       actuallyChangedVars = Object.keys(allVars).filter(k => this.lastComputedVars[k] !== allVars[k])
+      actuallyChangedVars.push(...removedVars)
+      
       this.lastComputedVars = { ...allVars }
 
       if (typeof document !== 'undefined') {
@@ -2822,20 +2915,13 @@ class VarsStore {
       // Explicitly dispatch cssVarsUpdated event to ensure components are notified
       // Use requestAnimationFrame to ensure DOM updates are complete
       // Only dispatch vars that actually changed (not preserved) to prevent unnecessary re-renders
-      // CRITICAL: Filter out UIKit vars - they're silent and don't need component re-renders
-      const mergedChangedVars = new Set([...changedUikitVars, ...actuallyChangedVars])
-      const nonUIKitChangedVars = Array.from(mergedChangedVars).filter(v =>
-        !v.startsWith('--recursica_ui-kit_components_') &&
-        !v.startsWith('--recursica_ui-kit_globals_')
-      )
-      if (nonUIKitChangedVars.length > 0) {
+      const mergedChangedVars = Array.from(new Set([...changedUikitVars, ...actuallyChangedVars]))
+      
+      if (mergedChangedVars.length > 0) {
         requestAnimationFrame(() => {
           try {
-            // Only include non-UIKit CSS variables that actually changed
-            // UIKit vars are silent and don't need component re-renders
-            const changedVarsArray = nonUIKitChangedVars
             window.dispatchEvent(new CustomEvent('cssVarsUpdated', {
-              detail: { cssVars: changedVarsArray }
+              detail: { cssVars: mergedChangedVars }
             }))
           } catch (e) {
             // Ignore errors if window is not available (SSR)
