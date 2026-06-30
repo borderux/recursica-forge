@@ -3,7 +3,7 @@ import { Textarea } from '../../components/adapters/Textarea'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
-import { h2Style } from './typographyStyles'
+import { h2Style, h3Style } from './typographyStyles'
 
 
 interface TextareaPreviewProps {
@@ -20,7 +20,7 @@ export default function TextareaPreview({
     const { mode } = useThemeMode()
 
     // Extract variants from selectedVariants
-    const state = selectedVariants.states || 'default'
+    const state = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
 
     // Get form vertical gutter CSS variable
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
@@ -30,9 +30,7 @@ export default function TextareaPreview({
     const HeartIcon = iconNameToReactComponent('warning')
 
     // Show both layouts
-    const layoutsToShow: string[] = selectedVariants.layouts
-        ? [selectedVariants.layouts]
-        : ['stacked', 'side-by-side']
+    const layoutsToShow = [selectedVariants.layout || selectedVariants.layouts || 'stacked']
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
@@ -42,13 +40,12 @@ export default function TextareaPreview({
             flexDirection: 'column',
             gap: verticalGutter,
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'flex-start'
         }}>
+            
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
+                    
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {/* Default state - show two examples: one with value, one with placeholder only */}
                         {state === 'default' && (

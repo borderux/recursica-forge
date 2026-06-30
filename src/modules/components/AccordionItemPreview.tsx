@@ -9,6 +9,7 @@ interface AccordionItemPreviewProps {
 }
 
 export default function AccordionItemPreview({
+  selectedVariants,
   selectedLayer,
 }: AccordionItemPreviewProps) {
   const [updateKey, setUpdateKey] = useState(0)
@@ -51,13 +52,17 @@ export default function AccordionItemPreview({
 
   const CircleIcon = iconNameToReactComponent('circle')
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div style={{
       display: 'flex',
-      justifyContent: 'center',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
       width: '100%',
-      padding: '16px',
+      padding: 0,
     }}>
+      
       <div style={{ width: '100%', maxWidth: 520 }}>
         <Accordion
           key={`accordion-item-${updateKey}`}

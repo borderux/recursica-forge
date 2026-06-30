@@ -3,7 +3,7 @@ import { CheckboxGroup } from '../../components/adapters/CheckboxGroup'
 import { CheckboxItem } from '../../components/adapters/CheckboxItem'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { h2Style } from './typographyStyles'
+import { h2Style, h3Style } from './typographyStyles'
 
 
 interface CheckboxGroupPreviewProps {
@@ -23,27 +23,28 @@ export default function CheckboxGroupPreview({
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
     // Show both layouts
-    const layoutsToShow: string[] = selectedVariants.layouts
-    ? [selectedVariants.layouts]
-    : ['stacked', 'side-by-side']
+    const layoutsToShow = [selectedVariants.layout || selectedVariants.layouts || 'stacked']
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
-    return (
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
             gap: verticalGutter,
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'flex-start'
         }}>
+      
+
             {layoutsToShow.map((layoutVariant) => (
                 <CheckboxGroupSection
                     key={layoutVariant}
                     layout={layoutVariant}
                     selectedLayer={selectedLayer}
                     formVerticalGutterVar={formVerticalGutterVar}
-                    h2Style={h2Style}
+                    h2Style={h3Style}
                 />
             ))}
         </div>
@@ -69,9 +70,9 @@ function CheckboxGroupSection({
 
     return (
         <div style={{ width: '100%', maxWidth: '480px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            <h2 style={h2Style}>
+            <h3 style={h3Style}>
                 {layout === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-            </h2>
+            </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                 <CheckboxGroup
                     label="Forge Equipment"

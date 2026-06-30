@@ -666,3 +666,28 @@
     border-left-color: var(--recursica_tabs_active_border-color, currentColor) !important;
     border-left-width: var(--recursica_tabs_active_border-size, 2px) !important;
 }
+
+/* Focus and Disabled State Styles */
+.recursica-tabs [role="tab"][data-active]:focus-visible,
+.recursica-tabs [role="tab"][data-active].Mui-focusVisible {
+    background-color: var(--recursica_tabs_active_background-focus, var(--recursica_tabs_active_background)) !important;
+    color: var(--recursica_tabs_active_text-color-focus, var(--recursica_tabs_active_text-color)) !important;
+    border-color: var(--recursica_tabs_active_border-color-focus, var(--recursica_tabs_active_border-color)) !important;
+}
+
+.recursica-tabs [role="tab"]:not([data-active]):focus-visible,
+.recursica-tabs [role="tab"]:not([data-active]).Mui-focusVisible {
+    background-color: var(--recursica_tabs_inactive_background-focus, var(--recursica_tabs_inactive_background)) !important;
+    color: var(--recursica_tabs_inactive_text-color-focus, var(--recursica_tabs_inactive_text-color)) !important;
+    border-color: var(--recursica_tabs_inactive_border-color-focus, var(--recursica_tabs_inactive_border-color)) !important;
+}
+
+.recursica-tabs [role="tab"][disabled],
+.recursica-tabs [role="tab"].Mui-disabled,
+.recursica-tabs [role="tab"]:disabled {
+    background-color: var(--recursica_tabs_inactive_background-disabled, var(--recursica_tabs_inactive_background)) !important;
+    color: var(--recursica_tabs_inactive_text-color-disabled, var(--recursica_tabs_inactive_text-color)) !important;
+    border-color: var(--recursica_tabs_inactive_border-color-disabled, var(--recursica_tabs_inactive_border-color)) !important;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}

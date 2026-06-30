@@ -1,56 +1,25 @@
 {
-    "variants": {
-        "size": {
-            "icon": "arrows-out",
-            "label": "Size"
-        }
+  "variants": {},
+  "props": {
+    "indicator-color": {
+      "label": "Indicator color",
+      "visible": true,
+      "icon": "paint-bucket"
     },
-    "props": {
-        "color": {
-            "icon": "paint-bucket",
-            "label": "Color",
-            "visible": true,
-            "group": {
-                "indicator-color": {
-                    "icon": "circle-notch",
-                    "label": "Indicator color",
-                    "visible": true
-                }
-            }
-        },
-        "size": {
-            "icon": "arrows-out",
-            "label": "Size",
-            "visible": true,
-            "group": {
-                "size": {
-                    "icon": "arrows-up-down",
-                    "label": "Size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        8,
-                        100
-                    ],
-                    "step": 1
-                },
-                "border-radius": {
-                    "icon": "corners-out",
-                    "label": "Border radius",
-                    "visible": true
-                },
-                "thickness": {
-                    "icon": "pencil-line",
-                    "label": "Thickness",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        1,
-                        30
-                    ],
-                    "step": 1
-                }
-            }
-        }
+    "size": {
+      "label": "Size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "thickness": {
+      "label": "Thickness",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "border-radius": {
+      "label": "Border radius",
+      "visible": true,
+      "icon": "square"
     }
+  }
 }

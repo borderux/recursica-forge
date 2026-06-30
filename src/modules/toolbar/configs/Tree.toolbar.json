@@ -1,214 +1,94 @@
 {
   "variants": {},
   "props": {
-    "spacing": {
-      "icon": "arrows-pointing-out",
+    "indent": {
+      "label": "Indent",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "spacing-base": {
       "label": "Spacing",
+      "icon": "split-horizontal",
       "visible": true,
       "group": {
-        "indent": {
-          "label": "Indent",
-          "visible": true,
-          "floatingPaletteLabel": "Indent"
-        },
         "item-gap": {
           "label": "Item gap",
-          "visible": true,
-          "floatingPaletteLabel": "Item Gap"
+          "visible": true
+        },
+        "button-node-gap": {
+          "label": "Button node gap",
+          "visible": true
         },
         "vertical-padding": {
           "label": "Vertical padding",
-          "visible": true,
-          "floatingPaletteLabel": "Vertical Padding"
+          "visible": true
         },
         "horizontal-padding": {
           "label": "Horizontal padding",
-          "visible": true,
-          "floatingPaletteLabel": "Horizontal Padding"
-        },
-        "button-node-gap": {
-          "label": "Button-node gap",
-          "visible": true,
-          "floatingPaletteLabel": "Button-node Gap"
+          "visible": true
         }
       }
     },
-    "dimensions": {
-      "icon": "arrows-left-right",
-      "label": "Dimensions",
+    "max-width": {
+      "label": "Max width",
+      "visible": true,
+      "icon": "arrows-left-right"
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
       "visible": true,
       "group": {
-        "max-width": {
-          "label": "Max width",
-          "visible": true,
-          "floatingPaletteLabel": "Maximum Width",
-          "range": [
-            100,
-            2000
-          ]
-        },
         "border-size": {
-          "label": "Border size",
-          "visible": true,
-          "floatingPaletteLabel": "Border Size",
-          "range": [
-            0,
-            10
-          ]
+          "label": "Size",
+          "visible": true
         },
         "border-radius": {
-          "label": "Border radius",
-          "visible": true,
-          "floatingPaletteLabel": "Border Radius"
+          "label": "Radius",
+          "visible": true
         }
       }
     },
-    "selected-colors": {
-      "icon": "paint-bucket",
-      "label": "Selected colors",
+    "selected-background": {
+      "label": "Selected background",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "text-variant": {
+      "label": "Text",
+      "icon": "text-aa",
       "visible": true,
       "group": {
-        "selected-background": {
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background"
-        },
         "selected-text": {
-          "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Text"
+          "label": "Selected ",
+          "visible": true
         },
-        "selected-border-color": {
-          "label": "Border",
-          "visible": true,
-          "floatingPaletteLabel": "Border"
-        }
-      }
-    },
-    "unselected-colors": {
-      "icon": "paint-bucket",
-      "label": "Unselected colors",
-      "visible": true,
-      "group": {
         "unselected-text": {
-          "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Text"
+          "label": "Unselected ",
+          "visible": true
         }
       }
     },
-    "hover-colors": {
-      "icon": "paint-bucket",
-      "label": "Hover colors",
+    "selected-border-color": {
+      "label": "Selected border color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "hover-variant": {
+      "label": "Hover",
+      "icon": "cursor",
       "visible": true,
       "group": {
         "hover-background": {
           "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background"
+          "visible": true
         },
         "hover-text": {
           "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Text"
+          "visible": true
         },
         "hover-border-color": {
-          "label": "Border",
-          "visible": true,
-          "floatingPaletteLabel": "Border"
-        }
-      }
-    },
-    "selected-text": {
-      "icon": "text-aa",
-      "label": "Selected Text",
-      "visible": true,
-      "group": {
-        "font-family": {
-          "icon": "text-aa",
-          "label": "Font family",
-          "visible": true
-        },
-        "font-size": {
-          "icon": "text-aa",
-          "label": "Font size",
-          "visible": true
-        },
-        "font-weight": {
-          "icon": "text-aa",
-          "label": "Font weight",
-          "visible": true
-        },
-        "letter-spacing": {
-          "icon": "text-aa",
-          "label": "Letter spacing",
-          "visible": true
-        },
-        "line-height": {
-          "icon": "text-aa",
-          "label": "Line height",
-          "visible": true
-        },
-        "text-decoration": {
-          "icon": "text-aa",
-          "label": "Text decoration",
-          "visible": true
-        },
-        "text-transform": {
-          "icon": "text-aa",
-          "label": "Text transform",
-          "visible": true
-        },
-        "font-style": {
-          "icon": "text-aa",
-          "label": "Font style",
-          "visible": true
-        }
-      }
-    },
-    "unselected-text": {
-      "icon": "text-aa",
-      "label": "Unselected Text",
-      "visible": true,
-      "group": {
-        "font-family": {
-          "icon": "text-aa",
-          "label": "Font family",
-          "visible": true
-        },
-        "font-size": {
-          "icon": "text-aa",
-          "label": "Font size",
-          "visible": true
-        },
-        "font-weight": {
-          "icon": "text-aa",
-          "label": "Font weight",
-          "visible": true
-        },
-        "letter-spacing": {
-          "icon": "text-aa",
-          "label": "Letter spacing",
-          "visible": true
-        },
-        "line-height": {
-          "icon": "text-aa",
-          "label": "Line height",
-          "visible": true
-        },
-        "text-decoration": {
-          "icon": "text-aa",
-          "label": "Text decoration",
-          "visible": true
-        },
-        "text-transform": {
-          "icon": "text-aa",
-          "label": "Text transform",
-          "visible": true
-        },
-        "font-style": {
-          "icon": "text-aa",
-          "label": "Font style",
+          "label": "Border color",
           "visible": true
         }
       }

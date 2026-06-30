@@ -32,6 +32,24 @@ export default function Checkbox({
   const iconColorVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color')
   const iconColorIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color-indeterminate')
 
+  const bgCheckedHoverVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-checked-hover')
+  const bgUncheckedHoverVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-unchecked-hover')
+  const bgIndeterminateHoverVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-indeterminate-hover')
+  const borderCheckedHoverVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-checked-hover')
+  const borderUncheckedHoverVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-unchecked-hover')
+  const borderIndeterminateHoverVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-indeterminate-hover')
+  const iconColorHoverVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color-hover')
+  const iconColorIndeterminateHoverVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color-indeterminate-hover')
+
+  const bgCheckedFocusVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-checked-focus')
+  const bgUncheckedFocusVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-unchecked-focus')
+  const bgIndeterminateFocusVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'background-indeterminate-focus')
+  const borderCheckedFocusVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-checked-focus')
+  const borderUncheckedFocusVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-unchecked-focus')
+  const borderIndeterminateFocusVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'border-indeterminate-focus')
+  const iconColorFocusVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color-focus')
+  const iconColorIndeterminateFocusVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'icon-color-indeterminate-focus')
+
   const disabledBgCheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background-checked')
   const disabledBgUncheckedVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background-unchecked')
   const disabledBgIndeterminateVar = buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, 'disabled-background-indeterminate')
@@ -61,6 +79,22 @@ export default function Checkbox({
     '--checkbox-border-indeterminate': `var(${borderIndeterminateVar})`,
     '--checkbox-icon-color': `var(${iconColorVar})`,
     '--checkbox-icon-color-indeterminate': `var(${iconColorIndeterminateVar})`,
+    '--checkbox-bg-checked-hover': `var(${bgCheckedHoverVar})`,
+    '--checkbox-bg-unchecked-hover': `var(${bgUncheckedHoverVar})`,
+    '--checkbox-bg-indeterminate-hover': `var(${bgIndeterminateHoverVar})`,
+    '--checkbox-border-checked-hover': `var(${borderCheckedHoverVar})`,
+    '--checkbox-border-unchecked-hover': `var(${borderUncheckedHoverVar})`,
+    '--checkbox-border-indeterminate-hover': `var(${borderIndeterminateHoverVar})`,
+    '--checkbox-icon-color-hover': `var(${iconColorHoverVar})`,
+    '--checkbox-icon-color-indeterminate-hover': `var(${iconColorIndeterminateHoverVar})`,
+    '--checkbox-bg-checked-focus': `var(${bgCheckedFocusVar})`,
+    '--checkbox-bg-unchecked-focus': `var(${bgUncheckedFocusVar})`,
+    '--checkbox-bg-indeterminate-focus': `var(${bgIndeterminateFocusVar})`,
+    '--checkbox-border-checked-focus': `var(${borderCheckedFocusVar})`,
+    '--checkbox-border-unchecked-focus': `var(${borderUncheckedFocusVar})`,
+    '--checkbox-border-indeterminate-focus': `var(${borderIndeterminateFocusVar})`,
+    '--checkbox-icon-color-focus': `var(${iconColorFocusVar})`,
+    '--checkbox-icon-color-indeterminate-focus': `var(${iconColorIndeterminateFocusVar})`,
     '--checkbox-disabled-bg-checked': `var(${disabledBgCheckedVar})`,
     '--checkbox-disabled-bg-unchecked': `var(${disabledBgUncheckedVar})`,
     '--checkbox-disabled-bg-indeterminate': `var(${disabledBgIndeterminateVar})`,

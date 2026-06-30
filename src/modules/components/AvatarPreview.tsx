@@ -35,13 +35,15 @@ export default function AvatarPreview({
   // If variant is "image", the Avatar component will automatically use the placeholder image
   const fallback = colorVariant?.startsWith('icon') || colorVariant === 'image' ? undefined : 'ZG'
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div style={{
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 24,
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
+      padding: 0,
     }}>
+      
       <Avatar
         colorVariant={colorVariant as any}
         sizeVariant={sizeVariant as 'small' | 'default' | 'large'}

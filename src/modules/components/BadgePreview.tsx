@@ -20,15 +20,17 @@ export default function BadgePreview({
     return variant.charAt(0).toUpperCase() + variant.slice(1)
   }
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div style={{
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      alignItems: 'flex-start',
+      justifyContent: 'flex-start',
       gap: 'var(--recursica_brand_dimensions_general_md)',
       flexWrap: 'wrap',
-      padding: 24,
+      padding: 0,
     }}>
+      
       <Badge
         variant={styleVariant}
         layer={selectedLayer as any}

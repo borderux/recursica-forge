@@ -44,13 +44,15 @@ export default function MenuItemPreview({
   const HammerIcon = iconNameToReactComponent('hammer')
   const SnowflakeIcon = iconNameToReactComponent('snowflake')
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div style={{
       display: 'flex',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       width: '100%',
-      padding: '16px',
+      padding: 0,
     }}>
+      
       <Menu
         key={`menu-${updateKey}`}
         layer={selectedLayer as any}

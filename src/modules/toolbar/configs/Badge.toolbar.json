@@ -1,76 +1,55 @@
 {
-  "variants": {
-    "style": {
-      "icon": "diamonds-four",
-      "label": "Style"
-    }
-  },
+  "variants": {},
   "props": {
     "background": {
-      "icon": "paint-bucket",
-      "label": "Colors",
+      "label": "Background",
       "visible": true,
-      "group": {
-        "background": {
-          "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
-        },
-        "text-color": {
-          "icon": "text-aa",
-          "label": "Text color",
-          "visible": true
-        }
-      }
+      "icon": "paint-bucket"
     },
     "text": {
-      "icon": "text-aa",
-      "label": "Text style",
-      "visible": true
+      "label": "Text",
+      "visible": true,
+      "icon": "text-aa"
     },
-    "padding": {
-      "icon": "square-logo",
-      "label": "Padding",
+    "border-color": {
+      "label": "Border color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
       "visible": true,
       "group": {
         "padding-horizontal": {
-          "icon": "arrows-left-right",
-          "label": "Horizontal padding",
+          "label": "Padding horizontal",
           "visible": true
         },
         "padding-vertical": {
-          "icon": "arrows-up-down",
-          "label": "Vertical padding",
+          "label": "Padding vertical",
           "visible": true
         }
       }
     },
-    "border": {
-      "icon": "square",
+    "border-base": {
       "label": "Border",
+      "icon": "square",
       "visible": true,
       "group": {
         "border-size": {
-          "icon": "arrows-left-right",
           "label": "Size",
           "visible": true
         },
         "border-radius": {
-          "icon": "corners-out",
-          "label": "Corner radius",
-          "visible": true
-        },
-        "border-color": {
-          "icon": "paint-bucket",
-          "label": "Color",
+          "label": "Radius",
           "visible": true
         }
       }
     },
     "elevation": {
-      "icon": "copy-simple",
       "label": "Elevation",
-      "visible": true
+      "visible": true,
+      "icon": "copy-simple"
     }
   }
 }

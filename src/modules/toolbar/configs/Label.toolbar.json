@@ -1,94 +1,82 @@
 {
-  "variants": {
-    "layout": {
-      "icon": "layout",
-      "label": "Layout"
-    },
-    "size": {
-      "icon": "resize",
-      "label": "Size"
-    }
-  },
+  "variants": {},
   "props": {
-    "text": {
-      "icon": "text-aa",
-      "label": "Text color",
+    "min-height": {
+      "label": "Min height",
       "visible": true,
-      "group": {
-        "text": {
-          "label": "Color",
-          "visible": true
-        },
-        "optional-text-opacity": {
-          "icon": "eye",
-          "label": "Optional text opacity",
-          "visible": true
-        }
-      }
+      "icon": "square-2-stack"
     },
-    "label-text": {
-      "icon": "text-aa",
-      "label": "Label text style",
-      "visible": true
-    },
-    "asterisk": {
-      "icon": "asterisk",
-      "label": "Required",
+    "gutter": {
+      "label": "Gutter",
       "visible": true,
-      "group": {
-        "asterisk": {
-          "label": "Indicator color",
-          "visible": true
-        },
-        "required-indicator-gap": {
-          "label": "Indicator gap",
-          "visible": true
-        }
-      }
+      "icon": "square-2-stack"
     },
-    "optional-text": {
-      "icon": "text-aa",
-      "label": "Optional text style",
-      "visible": true
-    },
-    "spacing": {
-      "icon": "square-logo",
+    "spacing-base": {
       "label": "Spacing",
+      "icon": "split-horizontal",
       "visible": true,
       "group": {
         "bottom-padding": {
           "label": "Bottom padding",
           "visible": true
         },
-        "min-height": {
-          "label": "Min height",
-          "visible": true
-        },
-        "gutter": {
-          "label": "Gutter",
-          "visible": true
-        },
         "vertical-padding": {
-          "icon": "arrows-up-down",
           "label": "Vertical padding",
           "visible": true
         },
-        "label-optional-text-gap": {
-          "icon": "arrows-up-down",
-          "label": "Optional text gap",
-          "visible": true
-        },
-        "edit-icon-gap": {
-          "icon": "split-horizontal",
-          "label": "Edit icon gap",
+        "required-indicator-gap": {
+          "label": "Required indicator gap",
           "visible": true
         }
       }
     },
-    "label-width": {
-      "icon": "arrows-left-right",
-      "label": "Label width",
-      "visible": true
+    "width": {
+      "label": "Width",
+      "visible": true,
+      "icon": "arrows-left-right"
+    },
+    "text-variant": {
+      "label": "Text",
+      "icon": "text-aa",
+      "visible": true,
+      "group": {
+        "text": {
+          "label": "Text",
+          "visible": true
+        },
+        "asterisk": {
+          "label": "Asterisk",
+          "visible": true
+        }
+      }
+    },
+    "text-base": {
+      "label": "Text",
+      "icon": "text-aa",
+      "visible": true,
+      "group": {
+        "label-text": {
+          "label": "Label ",
+          "visible": true
+        },
+        "optional-text": {
+          "label": "Optional ",
+          "visible": true
+        },
+        "label-optional-text-gap": {
+          "label": "Label optional gap",
+          "visible": true
+        },
+        "optional-text-opacity": {
+          "label": "Optional opacity",
+          "visible": true
+        }
+      }
+    },
+    "edit-icon-gap": {
+      "label": "Edit icon gap",
+      "visible": true,
+      "icon": "star"
     }
   }
 }

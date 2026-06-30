@@ -412,6 +412,9 @@ export function getVariantOptionLabel(
   variantPropName: string,
   optionValue: string
 ): string | null {
+  if (optionValue === 'icon-label') {
+    return 'Icon + Label'
+  }
   const config = getVariantConfig(componentName, variantPropName)
   return config?.optionLabels?.[optionValue] ?? null
 }

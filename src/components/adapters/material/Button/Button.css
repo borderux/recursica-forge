@@ -179,3 +179,27 @@
   transition: none !important;
   animation: none !important;
 }
+
+/* Focus state: apply focus border/shadow/text color */
+.MuiButton-root:focus-visible:not([disabled]),
+.MuiButton-root.Mui-focusVisible:not([disabled]),
+.MuiButton-contained:focus-visible:not([disabled]),
+.MuiButton-contained.Mui-focusVisible:not([disabled]),
+.MuiButton-outlined:focus-visible:not([disabled]),
+.MuiButton-outlined.Mui-focusVisible:not([disabled]),
+.MuiButton-text:focus-visible:not([disabled]),
+.MuiButton-text.Mui-focusVisible:not([disabled]) {
+  background-color: var(--button-bg) !important;
+  color: var(--button-text-focus, var(--button-text-hover, var(--button-color))) !important;
+  border-color: var(--button-border-color-focus, var(--button-border-color-hover, var(--button-border-color))) !important;
+  box-shadow: var(--button-focus-box-shadow, none) !important;
+}
+
+.MuiButton-root:focus-visible:not([disabled]) svg,
+.MuiButton-root.Mui-focusVisible:not([disabled]) svg,
+.MuiButton-root:focus-visible:not([disabled]) .MuiButton-startIcon,
+.MuiButton-root.Mui-focusVisible:not([disabled]) .MuiButton-startIcon,
+.MuiButton-root:focus-visible:not([disabled]) .MuiButton-endIcon,
+.MuiButton-root.Mui-focusVisible:not([disabled]) .MuiButton-endIcon {
+  color: var(--button-icon-color-focus, var(--button-icon-color-hover, var(--button-icon-color))) !important;
+}

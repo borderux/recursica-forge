@@ -1,123 +1,85 @@
 {
   "variants": {},
   "props": {
-    "background": {
-      "icon": "paint-bucket",
-      "label": "Background",
+    "max-height": {
+      "label": "Max height",
       "visible": true,
-      "floatingPaletteLabel": "Background Color"
+      "icon": "square-2-stack"
     },
-    "border": {
-      "icon": "square",
-      "label": "Border",
+    "divider-height": {
+      "label": "Divider height",
       "visible": true,
-      "floatingPaletteLabel": "Border",
+      "icon": "square-2-stack"
+    },
+    "divider-opacity": {
+      "label": "Divider opacity",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "divider-color": {
+      "label": "Divider color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
       "group": {
-        "border-color": {
-          "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true,
-          "floatingPaletteLabel": "Border Color"
-        },
         "border-size": {
-          "icon": "arrows-left-right",
-          "label": "Border size",
-          "visible": true,
-          "floatingPaletteLabel": "Border Size"
+          "label": "Size",
+          "visible": true
         },
         "border-radius": {
-          "icon": "corners-out",
-          "label": "Corner radius",
-          "visible": true,
-          "floatingPaletteLabel": "Corner Radius"
+          "label": "Radius",
+          "visible": true
         }
       }
     },
-    "size": {
-      "icon": "arrows-out",
-      "label": "Size",
+    "width-base": {
+      "label": "Width",
+      "icon": "arrows-left-right",
       "visible": true,
-      "floatingPaletteLabel": "Size",
       "group": {
         "min-width": {
-          "icon": "arrows-in-line-horizontal",
-          "label": "Min width",
-          "visible": true,
-          "floatingPaletteLabel": "Minimum Width"
+          "label": "Min ",
+          "visible": true
         },
         "max-width": {
-          "icon": "arrows-out-line-horizontal",
-          "label": "Max width",
-          "visible": true,
-          "floatingPaletteLabel": "Maximum Width"
-        },
-        "max-height": {
-          "icon": "arrows-out-line-vertical",
-          "label": "Max height",
-          "visible": true,
-          "floatingPaletteLabel": "Maximum Height",
-          "propertyType": "slider",
-          "range": [
-            200,
-            1000
-          ],
-          "step": 10
+          "label": "Max ",
+          "visible": true
         }
       }
     },
-    "padding": {
-      "icon": "square-logo",
-      "label": "Padding",
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
       "visible": true,
-      "floatingPaletteLabel": "Padding",
       "group": {
         "padding": {
-          "icon": "square-logo",
           "label": "Padding",
-          "visible": true,
-          "floatingPaletteLabel": "Padding"
+          "visible": true
         },
         "item-gap": {
-          "icon": "split-horizontal",
           "label": "Item gap",
-          "visible": true,
-          "floatingPaletteLabel": "Item Gap"
-        }
-      }
-    },
-    "divider": {
-      "icon": "minus",
-      "label": "Divider",
-      "visible": true,
-      "floatingPaletteLabel": "Divider",
-      "group": {
-        "divider-color": {
-          "icon": "paint-bucket",
-          "label": "Divider color",
-          "visible": true,
-          "floatingPaletteLabel": "Divider Color"
-        },
-        "divider-height": {
-          "icon": "minus",
-          "label": "Size",
-          "visible": true,
-          "propertyType": "slider",
-          "range": [0, 20],
-          "step": 1
-        },
-        "divider-opacity": {
-          "icon": "eye",
-          "label": "Divider opacity",
-          "visible": true,
-          "floatingPaletteLabel": "Divider Opacity"
+          "visible": true
         }
       }
     },
     "elevation": {
-      "icon": "copy-simple",
       "label": "Elevation",
       "visible": true,
-      "floatingPaletteLabel": "Elevation"
+      "icon": "copy-simple"
+    },
+    "background": {
+      "label": "Background",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "border-color": {
+      "label": "Border color",
+      "visible": true,
+      "icon": "paint-bucket"
     }
   }
 }

@@ -1,268 +1,127 @@
 {
-    "props": {
-        "connector": {
-            "icon": "minus",
-            "label": "Connector",
-            "visible": true,
-            "group": {
-                "active-connector-color": {
-                    "icon": "paint-bucket",
-                    "label": "Active color",
-                    "visible": true
-                },
-                "inactive-connector-color": {
-                    "icon": "paint-bucket",
-                    "label": "Inactive color",
-                    "visible": true
-                },
-                "active-connector-size": {
-                    "icon": "arrows-left-right",
-                    "label": "Active size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        1,
-                        10
-                    ],
-                    "step": 1
-                },
-                "inactive-connector-size": {
-                    "icon": "arrows-left-right",
-                    "label": "Inactive size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        1,
-                        10
-                    ],
-                    "step": 1
-                }
-            }
+  "variants": {},
+  "props": {
+    "active-connector-color": {
+      "label": "Active connector color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "inactive-connector-color": {
+      "label": "Inactive connector color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "active-title-color": {
+      "label": "Active title color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "inactive-title-color": {
+      "label": "Inactive title color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "active-description-color": {
+      "label": "Active description color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "inactive-description-color": {
+      "label": "Inactive description color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "active-timestamp-color": {
+      "label": "Active timestamp color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "inactive-timestamp-color": {
+      "label": "Inactive timestamp color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "active-connector-size": {
+      "label": "Active connector size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "inactive-connector-size": {
+      "label": "Inactive connector size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-family": {
+      "label": "Font family",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-size": {
+      "label": "Font size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-weight": {
+      "label": "Font weight",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "letter-spacing": {
+      "label": "Letter spacing",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "line-height": {
+      "label": "Line height",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-style": {
+      "label": "Font style",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
+      "visible": true,
+      "group": {
+        "title-description-gap": {
+          "label": "Title description gap",
+          "visible": true
         },
-        "title": {
-            "icon": "text-aa",
-            "label": "Title",
-            "visible": true,
-            "group": {
-                "active-title-color": {
-                    "icon": "paint-bucket",
-                    "label": "Active color",
-                    "visible": true
-                },
-                "inactive-title-color": {
-                    "icon": "paint-bucket",
-                    "label": "Inactive color",
-                    "visible": true
-                }
-            }
+        "description-timestamp-gap": {
+          "label": "Description timestamp gap",
+          "visible": true
         },
-        "description": {
-            "icon": "text-aa",
-            "label": "Description",
-            "visible": true,
-            "group": {
-                "active-description-color": {
-                    "icon": "paint-bucket",
-                    "label": "Active color",
-                    "visible": true
-                },
-                "inactive-description-color": {
-                    "icon": "paint-bucket",
-                    "label": "Inactive color",
-                    "visible": true
-                }
-            }
+        "bullet-content-gap": {
+          "label": "Bullet content gap",
+          "visible": true
+        }
+      }
+    },
+    "text-base": {
+      "label": "Text",
+      "icon": "text-aa",
+      "visible": true,
+      "group": {
+        "max-text-width": {
+          "label": "Max width",
+          "visible": true
         },
-        "timestamp": {
-            "icon": "text-aa",
-            "label": "Timestamp",
-            "visible": true,
-            "group": {
-                "active-timestamp-color": {
-                    "icon": "paint-bucket",
-                    "label": "Active color",
-                    "visible": true
-                },
-                "inactive-timestamp-color": {
-                    "icon": "paint-bucket",
-                    "label": "Inactive color",
-                    "visible": true
-                }
-            }
+        "text-decoration": {
+          "label": "Decoration",
+          "visible": true
         },
-        "title-text": {
-            "icon": "text-aa",
-            "label": "Title text style",
-            "visible": true,
-            "group": {
-                "font-family": {
-                    "icon": "text-aa",
-                    "label": "Font family",
-                    "visible": true
-                },
-                "font-size": {
-                    "icon": "text-aa",
-                    "label": "Font size",
-                    "visible": true
-                },
-                "font-weight": {
-                    "icon": "text-aa",
-                    "label": "Font weight",
-                    "visible": true
-                },
-                "letter-spacing": {
-                    "icon": "text-aa",
-                    "label": "Letter spacing",
-                    "visible": true
-                },
-                "line-height": {
-                    "icon": "text-aa",
-                    "label": "Line height",
-                    "visible": true
-                },
-                "text-decoration": {
-                    "icon": "text-aa",
-                    "label": "Text decoration",
-                    "visible": true
-                },
-                "text-transform": {
-                    "icon": "text-aa",
-                    "label": "Text transform",
-                    "visible": true
-                },
-                "font-style": {
-                    "icon": "text-aa",
-                    "label": "Font style",
-                    "visible": true
-                }
-            }
+        "text-transform": {
+          "label": "Transform",
+          "visible": true
         },
         "description-text": {
-            "icon": "text-aa",
-            "label": "Description text style",
-            "visible": true,
-            "group": {
-                "font-family": {
-                    "icon": "text-aa",
-                    "label": "Font family",
-                    "visible": true
-                },
-                "font-size": {
-                    "icon": "text-aa",
-                    "label": "Font size",
-                    "visible": true
-                },
-                "font-weight": {
-                    "icon": "text-aa",
-                    "label": "Font weight",
-                    "visible": true
-                },
-                "letter-spacing": {
-                    "icon": "text-aa",
-                    "label": "Letter spacing",
-                    "visible": true
-                },
-                "line-height": {
-                    "icon": "text-aa",
-                    "label": "Line height",
-                    "visible": true
-                },
-                "text-decoration": {
-                    "icon": "text-aa",
-                    "label": "Text decoration",
-                    "visible": true
-                },
-                "text-transform": {
-                    "icon": "text-aa",
-                    "label": "Text transform",
-                    "visible": true
-                },
-                "font-style": {
-                    "icon": "text-aa",
-                    "label": "Font style",
-                    "visible": true
-                }
-            }
-        },
-        "timestamp-text": {
-            "icon": "text-aa",
-            "label": "Timestamp text style",
-            "visible": true,
-            "group": {
-                "font-family": {
-                    "icon": "text-aa",
-                    "label": "Font family",
-                    "visible": true
-                },
-                "font-size": {
-                    "icon": "text-aa",
-                    "label": "Font size",
-                    "visible": true
-                },
-                "font-weight": {
-                    "icon": "text-aa",
-                    "label": "Font weight",
-                    "visible": true
-                },
-                "letter-spacing": {
-                    "icon": "text-aa",
-                    "label": "Letter spacing",
-                    "visible": true
-                },
-                "line-height": {
-                    "icon": "text-aa",
-                    "label": "Line height",
-                    "visible": true
-                },
-                "text-decoration": {
-                    "icon": "text-aa",
-                    "label": "Text decoration",
-                    "visible": true
-                },
-                "text-transform": {
-                    "icon": "text-aa",
-                    "label": "Text transform",
-                    "visible": true
-                },
-                "font-style": {
-                    "icon": "text-aa",
-                    "label": "Font style",
-                    "visible": true
-                }
-            }
-        },
-        "spacing": {
-            "icon": "split-horizontal",
-            "label": "Spacing",
-            "visible": true,
-            "group": {
-                "bullet-content-gap": {
-                    "icon": "split-horizontal",
-                    "label": "Bullet content gap",
-                    "visible": true
-                },
-                "max-text-width": {
-                    "icon": "arrows-left-right",
-                    "label": "Max text width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        100,
-                        600
-                    ],
-                    "step": 10
-                },
-                "title-description-gap": {
-                    "icon": "split-horizontal",
-                    "label": "Title description gap",
-                    "visible": true
-                },
-                "description-timestamp-gap": {
-                    "icon": "split-horizontal",
-                    "label": "Description timestamp gap",
-                    "visible": true
-                }
-            }
+          "label": "Description ",
+          "visible": true
         }
+      }
     }
+  }
 }

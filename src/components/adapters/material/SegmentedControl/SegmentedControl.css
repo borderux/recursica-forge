@@ -183,3 +183,49 @@
   min-width: fit-content !important; /* Ensure button expands to fit content */
   max-width: none !important;
 }
+
+/* Hover, Focus, Disabled states */
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root:not(.Mui-selected):hover:not(.Mui-disabled) {
+  background: var(--segmented-control-unselected-bg-hover, var(--segmented-control-unselected-bg, transparent)) !important;
+  color: var(--segmented-control-unselected-text-hover, var(--segmented-control-unselected-text)) !important;
+  border-color: var(--segmented-control-unselected-border-color-hover, var(--segmented-control-unselected-border-color, transparent)) !important;
+}
+
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root.Mui-selected:hover:not(.Mui-disabled) {
+  background: var(--segmented-control-selected-bg-hover, var(--segmented-control-selected-bg)) !important;
+  color: var(--segmented-control-selected-text-hover, var(--segmented-control-selected-text)) !important;
+  border-color: var(--segmented-control-selected-border-color-hover, var(--segmented-control-selected-border-color)) !important;
+}
+
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root:not(.Mui-selected):focus-visible {
+  outline: 2px solid var(--segmented-control-unselected-border-color-focus, currentColor) !important;
+  outline-offset: -2px !important;
+  background: var(--segmented-control-unselected-bg-focus, var(--segmented-control-unselected-bg, transparent)) !important;
+  color: var(--segmented-control-unselected-text-focus, var(--segmented-control-unselected-text)) !important;
+  border-color: var(--segmented-control-unselected-border-color-focus, var(--segmented-control-unselected-border-color, transparent)) !important;
+}
+
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root.Mui-selected:focus-visible {
+  outline: 2px solid var(--segmented-control-selected-border-color-focus, currentColor) !important;
+  outline-offset: -2px !important;
+  background: var(--segmented-control-selected-bg-focus, var(--segmented-control-selected-bg)) !important;
+  color: var(--segmented-control-selected-text-focus, var(--segmented-control-selected-text)) !important;
+  border-color: var(--segmented-control-selected-border-color-focus, var(--segmented-control-selected-border-color)) !important;
+}
+
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root.Mui-disabled {
+  cursor: not-allowed !important;
+}
+
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root:not(.Mui-selected).Mui-disabled {
+  background: var(--segmented-control-unselected-bg-disabled, var(--segmented-control-unselected-bg, transparent)) !important;
+  color: var(--segmented-control-unselected-text-disabled, var(--segmented-control-unselected-text)) !important;
+  border-color: var(--segmented-control-unselected-border-color-disabled, var(--segmented-control-unselected-border-color, transparent)) !important;
+}
+
+.recursica-segmented-control.material-segmented-control .MuiToggleButton-root.Mui-selected.Mui-disabled {
+  background: var(--segmented-control-selected-bg-disabled, var(--segmented-control-selected-bg)) !important;
+  color: var(--segmented-control-selected-text-disabled, var(--segmented-control-selected-text)) !important;
+  border-color: var(--segmented-control-selected-border-color-disabled, var(--segmented-control-selected-border-color)) !important;
+}
+

@@ -43,6 +43,7 @@ import { getLayerElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer } from '../../components/registry/types'
 import { genericLayerProperty, genericLayerText } from '../../core/css/cssVarBuilder'
+import { h4Style } from '../components/typographyStyles'
 
 type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 
@@ -87,7 +88,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
         <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Stacked</h2>
+          <h4 style={{ ...h4Style, color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Stacked</h4>
           <SwitchGroup
             label="Goblin Preferences"
             layout="stacked"
@@ -99,7 +100,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
         </div>
 
         <div>
-          <h2 style={{ margin: 0, fontFamily: 'var(--recursica_brand_typography_h2-font-family)', fontSize: 'var(--recursica_brand_typography_h2-font-size)', fontWeight: 'var(--recursica_brand_typography_h2-font-weight)', letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)', lineHeight: 'var(--recursica_brand_typography_h2-line-height)', color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Side-by-side</h2>
+          <h4 style={{ ...h4Style, color: `var(${genericLayerText(layer.replace('layer-', ''), 'color')})` }}>Side-by-side</h4>
           <SwitchGroup
             label="Loot Settings"
             layout="side-by-side"

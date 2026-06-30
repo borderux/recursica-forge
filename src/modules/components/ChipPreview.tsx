@@ -34,8 +34,10 @@ export default function ChipPreview({
   const ShieldIcon = iconNameToReactComponent('shield')
   const LightningIcon = iconNameToReactComponent('lightning')
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      
       {/* Default chip */}
       <Chip
         variant={styleVariant}

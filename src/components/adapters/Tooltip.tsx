@@ -13,6 +13,8 @@ import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { readCssVar } from '../../core/css/readCssVar'
 import type { ComponentLayer, LibrarySpecificProps } from '../registry/types'
 
+import { useUiKit } from '../../modules/uikit/UiKitContext'
+
 export type TooltipProps = {
   children?: React.ReactNode
   label?: string
@@ -36,7 +38,7 @@ export function Tooltip({
   elevation,
   opened,
   zIndex,
-  withinPortal,
+  withinPortal = true,
   className,
   style,
   mantine,
@@ -45,6 +47,8 @@ export function Tooltip({
 }: TooltipProps) {
   const Component = useComponent('Tooltip')
   const { mode } = useThemeMode()
+  const { kit } = useUiKit()
+  const [hovered, setHovered] = useState(false)
 
   // Get elevation from CSS vars if not provided as props
   // Elevation is resolved per layer and mode
@@ -125,25 +129,34 @@ export function Tooltip({
   }, [elevationVar, mode])
 
   const componentElevation = elevation ?? elevationFromVar ?? 'elevation-4'
+  const isVisible = opened !== undefined ? opened : hovered
 
-  if (!Component) {
+  if (!Component || kit === 'carbon' || kit === 'material') {
     return (
-      <div className={className} style={{ display: 'inline-block', position: 'relative', ...style }}>
-        {label && opened && (
+      <div 
+        className={className} 
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{ display: style?.display || 'inline-flex', position: 'relative', ...style }}
+      >
+        {label && isVisible && (
           <div style={{
             position: 'absolute',
             bottom: '100%',
             left: '50%',
             transform: 'translateX(-50%)',
-            padding: '4px 8px',
-            backgroundColor: '#333',
-            color: '#fff',
+            padding: '6px 10px',
+            backgroundColor: 'var(--recursica_brand_palettes_core_colors_high_contrast_tone, #333)',
+            color: 'var(--recursica_brand_palettes_core_colors_high_contrast_contrast, #fff)',
             borderRadius: 4,
-            fontSize: 12,
+            fontSize: 11,
+            fontFamily: 'var(--recursica_brand_fonts_primary, sans-serif)',
+            fontWeight: 500,
             whiteSpace: 'nowrap',
             marginBottom: 8,
             zIndex: zIndex ?? 300,
-            boxShadow: getElevationBoxShadow(mode, componentElevation)
+            boxShadow: getElevationBoxShadow(mode, componentElevation),
+            pointerEvents: 'none',
           }}>
             {label}
           </div>

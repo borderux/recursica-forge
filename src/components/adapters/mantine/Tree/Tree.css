@@ -121,3 +121,11 @@
   align-items: center !important;
   justify-content: center !important;
 }
+
+/* Accessibility: Focus visible styling on tree nodes */
+.recursica-tree-node:focus-visible {
+  outline: 2px solid var(--tree-selected-border-color, var(--recursica_brand_palettes_core_interactive_tone, #005fcc)) !important;
+  outline-offset: -2px !important;
+  border-radius: var(--tree-border-radius, 4px) !important;
+}
+

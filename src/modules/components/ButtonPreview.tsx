@@ -79,8 +79,8 @@ export default function ButtonPreview({
         display: 'inline-flex',
         width: `var(${iconSizeVar})`,
         height: `var(${iconSizeVar})`,
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
         flexShrink: 0,
         marginLeft: `var(${iconGapVar})`,
       }}>
@@ -88,8 +88,8 @@ export default function ButtonPreview({
         display: 'flex',
         width: '100%',
         height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: 'flex-start',
+        justifyContent: 'flex-start',
       }}>
         {trailingIconElement}
       </span>
@@ -98,128 +98,44 @@ export default function ButtonPreview({
 
   const contentVariant = selectedVariants.content || 'icon-label'
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div className="button-preview">
+      
       <div className="button-preview-row">
         {contentVariant === 'icon-only' ? (
-          <>
-            {/* Icon-only button */}
-            <Button
-              variant={styleVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              elevation={componentElevation}
-              icon={leadingIcon}
-              style={iconOnlyPaddingStyle}
-            />
-
-            {/* Disabled icon-only button */}
-            <Button
-              variant={styleVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              elevation={componentElevation}
-              icon={leadingIcon}
-              disabled
-              style={iconOnlyPaddingStyle}
-            />
-          </>
+          <Button
+            variant={styleVariant as any}
+            size={sizeVariant as any}
+            layer={actualLayer}
+            elevation={componentElevation}
+            icon={leadingIcon}
+            disabled={activeState === 'disabled'}
+            style={iconOnlyPaddingStyle}
+          />
         ) : contentVariant === 'label' ? (
-          <>
-            {/* Label-only button */}
-            <Button
-              variant={styleVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              elevation={componentElevation}
-              style={labelPaddingStyle}
-            >
-              Enter Forge
-            </Button>
-
-            {/* Label-only button */}
-            <Button
-              variant={styleVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              elevation={componentElevation}
-              style={labelPaddingStyle}
-            >
-              Draw Sword
-            </Button>
-
-            {/* Disabled label-only button */}
-            <Button
-              variant={styleVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              elevation={componentElevation}
-              disabled
-              style={labelPaddingStyle}
-            >
-              Sealed Gate
-            </Button>
-          </>
+          <Button
+            variant={styleVariant as any}
+            size={sizeVariant as any}
+            layer={actualLayer}
+            elevation={componentElevation}
+            disabled={activeState === 'disabled'}
+            style={labelPaddingStyle}
+          >
+            Enter Forge
+          </Button>
         ) : (
-          <>
-            {/* Icon + label button (leading icon) */}
-            <Button
-              variant={styleVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              elevation={componentElevation}
-              icon={leadingIcon}
-              style={iconLabelPaddingStyle}
-            >
-              Enter Forge
-            </Button>
-
-            {/* Icon + label button (leading icon) */}
-            <Button
-              variant={styleVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              elevation={componentElevation}
-              icon={leadingIcon}
-              style={iconLabelPaddingStyle}
-            >
-              Draw Sword
-            </Button>
-
-            {/* Icon + label button (trailing icon) */}
-            <Button
-              variant={styleVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              elevation={componentElevation}
-              material={{
-                endIcon: trailingIconElement
-              }}
-              mantine={{
-                rightSection: trailingIconElement
-              }}
-              style={{
-                ...iconLabelPaddingStyle,
-                '--button-icon-text-gap': `var(${iconGapVar})`,
-                '--button-icon-size': `var(${iconSizeVar})`,
-              } as React.CSSProperties}
-            >
-              Forge Hammer
-              {rightIconElement}
-            </Button>
-
-            {/* Disabled icon + label button */}
-            <Button
-              variant={styleVariant as any}
-              size={sizeVariant as any}
-              layer={actualLayer}
-              elevation={componentElevation}
-              disabled
-              style={iconLabelPaddingStyle}
-            >
-              Sealed Gate
-            </Button>
-          </>
+          <Button
+            variant={styleVariant as any}
+            size={sizeVariant as any}
+            layer={actualLayer}
+            elevation={componentElevation}
+            icon={leadingIcon}
+            disabled={activeState === 'disabled'}
+            style={iconLabelPaddingStyle}
+          >
+            Enter Forge
+          </Button>
         )}
       </div>
     </div>

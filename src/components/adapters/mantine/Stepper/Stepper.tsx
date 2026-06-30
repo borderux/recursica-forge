@@ -33,18 +33,24 @@ export default function Stepper({
     const completedLabelColorVar = colorVar('completed-label-color')
     const completedDescColorVar = colorVar('completed-description-color')
     const completedIndicatorBorderColorVar = colorVar('completed-indicator-border-color')
+    const completedIndicatorBgHoverVar = colorVar('completed-indicator-background-hover')
+    const completedIndicatorBgFocusVar = colorVar('completed-indicator-background-focus')
 
     const currentIndicatorBgVar = colorVar('current-indicator-background')
     const currentIndicatorTextVar = colorVar('current-indicator-text')
     const currentLabelColorVar = colorVar('current-label-color')
     const currentDescColorVar = colorVar('current-description-color')
     const currentIndicatorBorderColorVar = colorVar('current-indicator-border-color')
+    const currentIndicatorBgHoverVar = colorVar('current-indicator-background-hover')
+    const currentIndicatorBgFocusVar = colorVar('current-indicator-background-focus')
 
     const upcomingIndicatorBgVar = colorVar('upcoming-indicator-background')
     const upcomingIndicatorTextVar = colorVar('upcoming-indicator-text')
     const upcomingLabelColorVar = colorVar('upcoming-label-color')
     const upcomingDescColorVar = colorVar('upcoming-description-color')
     const upcomingIndicatorBorderColorVar = colorVar('upcoming-indicator-border-color')
+    const upcomingIndicatorBgHoverVar = colorVar('upcoming-indicator-background-hover')
+    const upcomingIndicatorBgFocusVar = colorVar('upcoming-indicator-background-focus')
 
     const completedConnectorColorVar = colorVar('completed-connector-color')
     const upcomingConnectorColorVar = colorVar('upcoming-connector-color')
@@ -111,18 +117,24 @@ export default function Stepper({
     const cssVars: { [key: string]: string } = {
         // Completed state
         '--stepper-completed-indicator-bg': `var(${completedIndicatorBgVar})`,
+        '--stepper-completed-indicator-bg-hover': `var(${completedIndicatorBgHoverVar})`,
+        '--stepper-completed-indicator-bg-focus': `var(${completedIndicatorBgFocusVar})`,
         '--stepper-completed-indicator-text': `var(${completedIndicatorTextVar})`,
         '--stepper-completed-label-color': `var(${completedLabelColorVar})`,
         '--stepper-completed-desc-color': `var(${completedDescColorVar})`,
         '--stepper-completed-indicator-border-color': `var(${completedIndicatorBorderColorVar})`,
         // Current state
         '--stepper-current-indicator-bg': `var(${currentIndicatorBgVar})`,
+        '--stepper-current-indicator-bg-hover': `var(${currentIndicatorBgHoverVar})`,
+        '--stepper-current-indicator-bg-focus': `var(${currentIndicatorBgFocusVar})`,
         '--stepper-current-indicator-text': `var(${currentIndicatorTextVar})`,
         '--stepper-current-label-color': `var(${currentLabelColorVar})`,
         '--stepper-current-desc-color': `var(${currentDescColorVar})`,
         '--stepper-current-indicator-border-color': `var(${currentIndicatorBorderColorVar})`,
         // Upcoming state
         '--stepper-upcoming-indicator-bg': `var(${upcomingIndicatorBgVar})`,
+        '--stepper-upcoming-indicator-bg-hover': `var(${upcomingIndicatorBgHoverVar})`,
+        '--stepper-upcoming-indicator-bg-focus': `var(${upcomingIndicatorBgFocusVar})`,
         '--stepper-upcoming-indicator-text': `var(${upcomingIndicatorTextVar})`,
         '--stepper-upcoming-label-color': `var(${upcomingLabelColorVar})`,
         '--stepper-upcoming-desc-color': `var(${upcomingDescColorVar})`,

@@ -1,48 +1,30 @@
 {
-    "props": {
-        "colors": {
-            "icon": "paint-bucket",
-            "label": "Colors",
-            "visible": true,
-            "group": {
-                "dots-color": {
-                    "icon": "circle-dashed",
-                    "label": "Dots color",
-                    "visible": true
-                }
-            }
-        },
-        "navigation-controls": {
-            "icon": "arrows-left-right",
-            "label": "Navigation controls",
-            "visible": true,
-            "group": {
-                "navigation-controls-content": {
-                    "icon": "text-columns",
-                    "label": "Content",
-                    "visible": true,
-                    "control": "dropdown",
-                    "options": [
-                        {
-                            "label": "Icon only",
-                            "value": "icon-only"
-                        },
-                        {
-                            "label": "Label only",
-                            "value": "label"
-                        },
-                        {
-                            "label": "Icon + label",
-                            "value": "icon-label"
-                        }
-                    ]
-                }
-            }
-        },
-        "item-gap": {
-            "icon": "split-horizontal",
-            "label": "Item gap",
-            "visible": true
-        }
+  "variants": {},
+  "props": {
+    "dots-color": {
+      "label": "Dots color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "active-pages": {
+      "label": "Active pages",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "inactive-pages": {
+      "label": "Inactive pages",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "navigation-controls": {
+      "label": "Navigation controls",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "item-gap": {
+      "label": "Item gap",
+      "visible": true,
+      "icon": "split-horizontal"
     }
+  }
 }

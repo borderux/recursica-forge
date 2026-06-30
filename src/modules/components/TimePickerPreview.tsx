@@ -3,7 +3,7 @@ import { TimePicker } from '../../components/adapters/TimePicker'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
-import { h2Style } from './typographyStyles'
+import { h2Style, h3Style } from './typographyStyles'
 
 
 interface TimePickerPreviewProps {
@@ -28,22 +28,19 @@ export default function TimePickerPreview({
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
     // Show both layouts
-    const layoutsToShow: string[] = selectedVariants.layouts
-    ? [selectedVariants.layouts]
-    : ['stacked', 'side-by-side']
+    const layoutsToShow = [selectedVariants.layout || selectedVariants.layouts || 'stacked']
 
     return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
             gap: verticalGutter,
-            alignItems: 'center',
+            alignItems: 'flex-start',
         }}>
+            
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ maxWidth: '700px', width: '100%', alignSelf: 'center', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
+                    
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {/* Default state */}
                         {state === 'default' && (

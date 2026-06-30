@@ -176,7 +176,7 @@ export default function CardPreview({
                 background: `var(${headerBgVar})`,
                 borderBottom: dividerStyle,
                 display: 'flex',
-                alignItems: 'center',
+                alignItems: 'flex-start',
                 justifyContent: 'space-between',
             }}>
                 <HeadingTag style={headerStyle}>The Crystalline Abyss</HeadingTag>
@@ -241,7 +241,7 @@ export default function CardPreview({
                 flexDirection: 'column',
                 gap: `var(${sectionGapVar})`,
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: `var(${sectionGapVar})`, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: `var(${sectionGapVar})`, minWidth: 0 }}>
                     <HeadingTag style={headerStyle}>
                         Elixir of Deepwell Sight
                     </HeadingTag>
@@ -287,15 +287,17 @@ export default function CardPreview({
 
     // ─── Layout: article card on top, two smaller cards below ────────────────
 
-    return (
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             gap: 'var(--recursica_brand_dimensions_general_xl)',
             width: '100%',
-            padding: 'var(--recursica_brand_dimensions_general_xl)',
+            padding: 0,
         }}>
+      
             {articleCard}
             {simpleCard}
             {textCard}

@@ -26,6 +26,7 @@ export default function AssistiveElementPreview({
   // Don't set size prop - let the container control icon size via CSS variable
   const iconElement = Icon ? <Icon /> : (variant === 'help' ? <span>ℹ</span> : <span>⚠</span>)
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div style={{
       display: 'flex',
@@ -34,6 +35,7 @@ export default function AssistiveElementPreview({
       width: '300px',
       alignItems: 'flex-start'
     }}>
+      
       <AssistiveElement
         variant={variant}
         text={`${variant === 'help' ? 'Use moonstone lacquer for enchanting' : 'Rune inscription failed'}`}

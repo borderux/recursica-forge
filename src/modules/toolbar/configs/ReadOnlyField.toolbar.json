@@ -1,39 +1,20 @@
 {
-    "variants": {
-        "layouts": {
-            "icon": "layout",
-            "label": "Layout"
-        }
+  "variants": {},
+  "props": {
+    "min-height": {
+      "label": "Min height",
+      "visible": true,
+      "icon": "square-2-stack"
     },
-    "props": {
-        "text": {
-            "icon": "text-aa",
-            "label": "Text style",
-            "visible": true
-        },
-        "colors": {
-            "icon": "paint-bucket",
-            "label": "Colors",
-            "visible": true,
-            "floatingPaletteLabel": "Colors",
-            "group": {
-                "text": {
-                    "icon": "text-aa",
-                    "label": "Text color",
-                    "visible": true,
-                    "floatingPaletteLabel": "Text Color"
-                }
-            }
-        },
-        "top-bottom-margin": {
-            "icon": "arrows-up-down",
-            "label": "Top and bottom margin",
-            "visible": true
-        },
-        "min-height": {
-            "icon": "arrows-in-line-vertical",
-            "label": "Min height",
-            "visible": true
-        }
+    "top-bottom-margin": {
+      "label": "Top bottom margin",
+      "visible": true,
+      "icon": "split-horizontal"
+    },
+    "text": {
+      "label": "Text",
+      "visible": true,
+      "icon": "text-aa"
     }
+  }
 }

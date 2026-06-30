@@ -1,312 +1,109 @@
 {
-    "variants": {
-        "header": {
-            "icon": "layout",
-            "label": "Header"
-        },
-        "footer": {
-            "icon": "layout",
-            "label": "Footer"
-        },
-        "scrollable": {
-            "icon": "article",
-            "label": "Scrollable"
-        },
-        "padding": {
-            "icon": "square-logo",
-            "label": "Padding"
-        },
-        "size": {
-            "icon": "resize",
-            "label": "Size"
-        }
+  "variants": {},
+  "props": {
+    "scroll-divider": {
+      "label": "Scroll divider",
+      "visible": true,
+      "icon": "square-2-stack"
     },
-    "props": {
-        "colors": {
-            "icon": "paint-bucket",
-            "label": "Colors",
-            "visible": true,
-            "group": {
-                "background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true
-                },
-                "title": {
-                    "icon": "text-aa",
-                    "label": "Title color",
-                    "visible": true
-                },
-                "content": {
-                    "icon": "text-aa",
-                    "label": "Content color",
-                    "visible": true
-                }
-            }
-        },
-        "widths": {
-            "icon": "arrows-in-line-horizontal",
-            "label": "Sizes",
-            "visible": true,
-            "group": {
-                "min-width": {
-                    "icon": "arrows-in-line-horizontal",
-                    "label": "Min width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        200,
-                        1000
-                    ],
-                    "step": 8
-                },
-                "max-width": {
-                    "icon": "arrows-out-line-horizontal",
-                    "label": "Max width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        200,
-                        2000
-                    ],
-                    "step": 8
-                },
-                "min-height": {
-                    "icon": "arrows-in-line-vertical",
-                    "label": "Min height",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        60,
-                        500
-                    ],
-                    "step": 8
-                },
-                "max-height": {
-                    "icon": "arrows-out-line-vertical",
-                    "label": "Max height",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        200,
-                        1000
-                    ],
-                    "step": 8
-                }
-            }
-        },
-        "border": {
-            "icon": "frame-corners",
-            "label": "Border",
-            "visible": true,
-            "group": {
-                "border-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Border color",
-                    "visible": true
-                },
-                "border-size": {
-                    "icon": "rows",
-                    "label": "Border size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        8
-                    ],
-                    "step": 1
-                },
-                "border-radius": {
-                    "icon": "corners-out",
-                    "label": "Corner radius",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        48
-                    ],
-                    "step": 4
-                }
-            }
-        },
-        "divider": {
-            "icon": "minus",
-            "label": "Scrolling divider",
-            "visible": true,
-            "group": {
-                "scroll-divider": {
-                    "icon": "paint-brush-broad",
-                    "label": "Color",
-                    "visible": true
-                },
-                "scroll-divider-thickness": {
-                    "icon": "rows",
-                    "label": "Height",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        8
-                    ],
-                    "step": 1
-                }
-            }
-        },
-        "type-styles": {
-            "icon": "text-aa",
-            "label": "Type styles",
-            "visible": true,
-            "group": {
-                "header-style": {
-                    "icon": "text-h-two",
-                    "label": "Header style",
-                    "visible": true,
-                    "options": [
-                        {
-                            "label": "Heading 1",
-                            "value": "{brand.typography.h1}"
-                        },
-                        {
-                            "label": "Heading 2",
-                            "value": "{brand.typography.h2}"
-                        },
-                        {
-                            "label": "Heading 3",
-                            "value": "{brand.typography.h3}"
-                        },
-                        {
-                            "label": "Heading 4",
-                            "value": "{brand.typography.h4}"
-                        },
-                        {
-                            "label": "Heading 5",
-                            "value": "{brand.typography.h5}"
-                        },
-                        {
-                            "label": "Heading 6",
-                            "value": "{brand.typography.h6}"
-                        },
-                        {
-                            "label": "Subtitle",
-                            "value": "{brand.typography.subtitle}"
-                        },
-                        {
-                            "label": "Subtitle (small)",
-                            "value": "{brand.typography.subtitle-small}"
-                        },
-                        {
-                            "label": "Body",
-                            "value": "{brand.typography.body}"
-                        },
-                        {
-                            "label": "Body (small)",
-                            "value": "{brand.typography.body-small}"
-                        },
-                        {
-                            "label": "Caption",
-                            "value": "{brand.typography.caption}"
-                        },
-                        {
-                            "label": "Overline",
-                            "value": "{brand.typography.overline}"
-                        }
-                    ]
-                },
-                "content-style": {
-                    "icon": "text-align-left",
-                    "label": "Content style",
-                    "visible": true,
-                    "options": [
-                        {
-                            "label": "Heading 1",
-                            "value": "{brand.typography.h1}"
-                        },
-                        {
-                            "label": "Heading 2",
-                            "value": "{brand.typography.h2}"
-                        },
-                        {
-                            "label": "Heading 3",
-                            "value": "{brand.typography.h3}"
-                        },
-                        {
-                            "label": "Heading 4",
-                            "value": "{brand.typography.h4}"
-                        },
-                        {
-                            "label": "Heading 5",
-                            "value": "{brand.typography.h5}"
-                        },
-                        {
-                            "label": "Heading 6",
-                            "value": "{brand.typography.h6}"
-                        },
-                        {
-                            "label": "Subtitle",
-                            "value": "{brand.typography.subtitle}"
-                        },
-                        {
-                            "label": "Subtitle (small)",
-                            "value": "{brand.typography.subtitle-small}"
-                        },
-                        {
-                            "label": "Body",
-                            "value": "{brand.typography.body}"
-                        },
-                        {
-                            "label": "Body (small)",
-                            "value": "{brand.typography.body-small}"
-                        },
-                        {
-                            "label": "Caption",
-                            "value": "{brand.typography.caption}"
-                        },
-                        {
-                            "label": "Overline",
-                            "value": "{brand.typography.overline}"
-                        }
-                    ]
-                }
-            }
-        },
-        "padding": {
-            "icon": "square-logo",
-            "label": "Padding",
-            "visible": true,
-            "group": {
-                "horizontal-padding": {
-                    "icon": "arrows-left-right",
-                    "label": "Horizontal",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        80
-                    ],
-                    "step": 4
-                },
-                "vertical-padding": {
-                    "icon": "arrows-up-down",
-                    "label": "Vertical",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        80
-                    ],
-                    "step": 4
-                }
-            }
-        },
+    "title": {
+      "label": "Title",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "content": {
+      "label": "Content",
+      "visible": true,
+      "icon": "layout"
+    },
+    "scroll-divider-thickness": {
+      "label": "Scroll divider thickness",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "min-height": {
+      "label": "Min height",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "max-height": {
+      "label": "Max height",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "background": {
+      "label": "Background",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "border-color": {
+      "label": "Border color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
+      "visible": true,
+      "group": {
         "button-gap": {
-            "icon": "split-horizontal",
-            "label": "Button gap",
-            "visible": true
+          "label": "Button gap",
+          "visible": true
         },
-        "elevation": {
-            "icon": "copy-simple",
-            "label": "Elevation",
-            "visible": true
+        "horizontal-padding": {
+          "label": "Horizontal padding",
+          "visible": true
+        },
+        "vertical-padding": {
+          "label": "Vertical padding",
+          "visible": true
         }
+      }
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "border-radius": {
+          "label": "Radius",
+          "visible": true
+        },
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        }
+      }
+    },
+    "width-base": {
+      "label": "Width",
+      "icon": "arrows-left-right",
+      "visible": true,
+      "group": {
+        "min-width": {
+          "label": "Min ",
+          "visible": true
+        },
+        "max-width": {
+          "label": "Max ",
+          "visible": true
+        }
+      }
+    },
+    "elevation": {
+      "label": "Elevation",
+      "visible": true,
+      "icon": "copy-simple"
+    },
+    "header-style": {
+      "label": "Header style",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "content-style": {
+      "label": "Content style",
+      "visible": true,
+      "icon": "square-2-stack"
     }
+  }
 }

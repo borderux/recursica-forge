@@ -1,175 +1,155 @@
 {
-  "variants": {
-    "style": {
-      "icon": "diamonds-four",
-      "label": "Style"
-    },
-    "size": {
-      "icon": "resize",
-      "label": "Size"
-    },
-    "content": {
-      "icon": "text-columns",
-      "label": "Content",
-      "options": [
-        "icon-label",
-        "label",
-        "icon-only"
-      ],
-      "optionLabels": {
-        "icon-label": "Icon + Label",
-        "label": "Label",
-        "icon-only": "Icon Only"
-      }
-    }
-  },
+  "variants": {},
   "props": {
-    "default-state": {
-      "icon": "circle",
-      "label": "Default state",
+    "height": {
+      "label": "Height",
       "visible": true,
-      "group": {
-        "background": {
-          "icon": "paint-bucket",
-          "label": "Background color",
-          "visible": true
-        },
-        "text": {
-          "icon": "text-aa",
-          "label": "Text color",
-          "visible": true
-        },
-        "icon-color": {
-          "icon": "paint-bucket",
-          "label": "Icon color",
-          "visible": true
-        },
-        "border-color": {
-          "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true
-        },
-        "elevation": {
-          "icon": "copy-simple",
-          "label": "Elevation",
-          "visible": true
-        }
-      }
+      "icon": "square-2-stack"
     },
-    "hover": {
-      "icon": "cursor-click",
-      "label": "Hover state",
+    "background": {
+      "label": "Background",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "text": {
+      "label": "Text",
+      "visible": true,
+      "icon": "text-aa"
+    },
+    "text-base": {
+      "label": "Text",
+      "icon": "text-aa",
       "visible": true,
       "group": {
         "text-hover": {
-          "icon": "text-aa",
-          "label": "Text",
+          "label": "Hover",
+          "visible": true
+        },
+        "text-focus": {
+          "label": "Focus",
+          "visible": true
+        }
+      }
+    },
+    "icon-variant": {
+      "label": "Icon",
+      "icon": "star",
+      "visible": true,
+      "group": {
+        "icon-color": {
+          "label": "Color",
           "visible": true
         },
         "icon-color-hover": {
-          "icon": "paint-bucket",
+          "label": "Color hover",
+          "visible": true
+        },
+        "icon-color-focus": {
+          "label": "Color focus",
+          "visible": true
+        },
+        "icon": {
           "label": "Icon",
           "visible": true
-        },
-        "border-color-hover": {
-          "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true
-        },
-        "hover-color": {
-          "label": "Overlay color",
-          "visible": true
-        },
-        "hover-opacity": {
-          "label": "Overlay opacity",
-          "visible": true
-        },
-        "hover-elevation": {
-          "icon": "copy-simple",
-          "label": "Elevation",
-          "visible": true
         }
       }
     },
-    "disabled": {
-      "icon": "prohibit",
-      "label": "Disabled state",
+    "border-color": {
+      "label": "Border color",
       "visible": true,
-      "group": {
-        "disabled-opacity": {
-          "label": "Opacity",
-          "visible": true
-        },
-        "disabled-elevation": {
-          "icon": "copy-simple",
-          "label": "Elevation",
-          "visible": true
-        }
-      }
+      "icon": "paint-bucket"
     },
-    "text": {
-      "icon": "text-aa",
-      "label": "Text style",
-      "visible": true
-    },
-    "border": {
-      "icon": "square",
+    "border-base": {
       "label": "Border",
+      "icon": "square",
       "visible": true,
       "group": {
+        "border-color-hover": {
+          "label": "Color hover",
+          "visible": true
+        },
+        "border-color-focus": {
+          "label": "Color focus",
+          "visible": true
+        },
         "border-size": {
-          "icon": "arrows-left-right",
           "label": "Size",
           "visible": true
         },
         "border-radius": {
-          "icon": "corners-out",
-          "label": "Corner radius",
+          "label": "Radius",
           "visible": true
         }
       }
     },
-    "dimensions": {
-      "icon": "split-horizontal",
-      "label": "Dimensions",
+    "elevation": {
+      "label": "Elevation",
+      "visible": true,
+      "icon": "copy-simple"
+    },
+    "hover-base": {
+      "label": "Hover",
+      "icon": "cursor",
       "visible": true,
       "group": {
-        "height": {
-          "icon": "arrows-up-down",
-          "label": "Height",
+        "hover-elevation": {
+          "label": "Elevation",
           "visible": true
         },
+        "hover-color": {
+          "label": "Color",
+          "visible": true
+        },
+        "hover-opacity": {
+          "label": "Opacity",
+          "visible": true
+        }
+      }
+    },
+    "disabled-base": {
+      "label": "Disabled",
+      "icon": "cursor",
+      "visible": true,
+      "group": {
+        "disabled-elevation": {
+          "label": "Elevation",
+          "visible": true
+        },
+        "disabled-opacity": {
+          "label": "Opacity",
+          "visible": true
+        }
+      }
+    },
+    "focus-elevation": {
+      "label": "Focus elevation",
+      "visible": true,
+      "icon": "copy-simple"
+    },
+    "width-base": {
+      "label": "Width",
+      "icon": "arrows-left-right",
+      "visible": true,
+      "group": {
         "min-width": {
-          "icon": "arrows-in-line-horizontal",
-          "label": "Min width",
+          "label": "Min ",
           "visible": true
         },
         "max-label-width": {
-          "icon": "arrows-out-line-horizontal",
-          "label": "Max label width",
-          "visible": true
-        },
-        "horizontal-padding": {
-          "label": "Horizontal padding",
+          "label": "Max label ",
           "visible": true
         }
       }
     },
-    "icon": {
-      "icon": "diamond",
-      "label": "Icon layout",
+    "horizontal-padding": {
+      "label": "Horizontal padding",
       "visible": true,
-      "group": {
-        "icon": {
-          "icon": "resize",
-          "label": "Size",
-          "visible": true
-        },
-        "icon-text-gap": {
-          "label": "Gap between icon and text",
-          "visible": true
-        }
-      }
+      "icon": "split-horizontal"
+    },
+    "icon-text-gap": {
+      "label": "Icon text gap",
+      "visible": true,
+      "icon": "text-aa"
     }
   }
 }

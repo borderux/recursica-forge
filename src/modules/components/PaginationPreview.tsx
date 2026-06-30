@@ -7,7 +7,7 @@
  */
 
 import { Pagination } from '../../components/adapters/Pagination'
-import { h2Style } from './typographyStyles'
+import { h4Style } from './typographyStyles'
 
 
 
@@ -22,12 +22,14 @@ export default function PaginationPreview({
     selectedVariants,
     selectedLayer,
     componentElevation,
-}: PaginationPreviewProps) {
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', alignItems: 'center', width: '100%' }}>
+    }: PaginationPreviewProps) {
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', alignItems: 'flex-start', width: '100%' }}>
+      
             {/* Small number of pages — no truncation */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', alignItems: 'center' }}>
-                <h2 style={h2Style}>Simple</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', alignItems: 'flex-start' }}>
+                <h4 style={h4Style}>Simple</h4>
                 <Pagination
                     total={5}
                     defaultValue={2}
@@ -39,8 +41,8 @@ export default function PaginationPreview({
             </div>
 
             {/* Larger number of pages — shows truncation with ellipsis */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', alignItems: 'center' }}>
-                <h2 style={h2Style}>Many pages</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical)', alignItems: 'flex-start' }}>
+                <h4 style={h4Style}>Many pages</h4>
                 <Pagination
                     total={20}
                     defaultValue={10}

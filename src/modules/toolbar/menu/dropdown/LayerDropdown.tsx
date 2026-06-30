@@ -34,9 +34,19 @@ export default function LayerDropdown({ selected, onSelect, open: controlledOpen
       }
     }
 
+    const handleFocusOutside = (event: FocusEvent) => {
+      if (ref.current && event.relatedTarget && !ref.current.contains(event.relatedTarget as Node)) {
+        setOpen(false)
+      }
+    }
+
     if (open) {
       document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      ref.current?.addEventListener('focusout', handleFocusOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+        ref.current?.removeEventListener('focusout', handleFocusOutside)
+      }
     }
   }, [open, setOpen])
   

@@ -206,9 +206,15 @@ export default function Tooltip({
             {...props}
         >
             <Box
-                component="span"
+                component="div"
                 className={className}
-                style={{ display: 'inline-block' }}
+                style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                }}
             >
                 {children}
             </Box>

@@ -213,7 +213,7 @@ function findThemeReferences(
  * directly on a variant *value* node, it signals a missing `variants` wrapper.
  */
 const UIKIT_VARIANT_CATEGORY_KEYS = new Set([
-  'styles', 'sizes', 'layouts', 'orientation', 'fill-width', 'types', 'states', 'content',
+  'styles', 'sizes', 'layouts', 'orientation', 'width', 'types', 'states', 'content',
 ])
 
 /**

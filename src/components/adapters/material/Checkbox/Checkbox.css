@@ -45,3 +45,38 @@
 .recursica-mui-checkbox-label .MuiTypography-root {
     /* Padding left moved to CheckboxItem implementation via var(--checkbox-item-gap) */
 }
+
+/* Hover state styling */
+.recursica-mui-checkbox-root.MuiCheckbox-root:hover:not(.Mui-disabled) {
+    color: var(--checkbox-border-unchecked-hover, var(--checkbox-border-unchecked)) !important;
+}
+
+.recursica-mui-checkbox-root.MuiCheckbox-root.Mui-checked:hover:not(.Mui-disabled) {
+    color: var(--checkbox-border-checked-hover, var(--checkbox-border-checked)) !important;
+}
+
+.recursica-mui-checkbox-root.MuiCheckbox-root.MuiCheckbox-indeterminate:hover:not(.Mui-disabled) {
+    color: var(--checkbox-border-indeterminate-hover, var(--checkbox-border-indeterminate)) !important;
+}
+
+/* Focus state styling */
+.recursica-mui-checkbox-root.MuiCheckbox-root:focus-visible:not(.Mui-disabled),
+.recursica-mui-checkbox-root.MuiCheckbox-root.Mui-focusVisible:not(.Mui-disabled) {
+    color: var(--checkbox-border-unchecked-focus, var(--checkbox-border-unchecked-hover, var(--checkbox-border-unchecked))) !important;
+    outline: 2px solid var(--checkbox-border-unchecked-focus, var(--checkbox-border-unchecked-hover, var(--checkbox-border-unchecked))) !important;
+    outline-offset: 2px;
+}
+
+.recursica-mui-checkbox-root.MuiCheckbox-root.Mui-checked:focus-visible:not(.Mui-disabled),
+.recursica-mui-checkbox-root.MuiCheckbox-root.Mui-checked.Mui-focusVisible:not(.Mui-disabled) {
+    color: var(--checkbox-border-checked-focus, var(--checkbox-border-checked-hover, var(--checkbox-border-checked))) !important;
+    outline: 2px solid var(--checkbox-border-checked-focus, var(--checkbox-border-checked-hover, var(--checkbox-border-checked))) !important;
+    outline-offset: 2px;
+}
+
+.recursica-mui-checkbox-root.MuiCheckbox-root.MuiCheckbox-indeterminate:focus-visible:not(.Mui-disabled),
+.recursica-mui-checkbox-root.MuiCheckbox-root.MuiCheckbox-indeterminate.Mui-focusVisible:not(.Mui-disabled) {
+    color: var(--checkbox-border-indeterminate-focus, var(--checkbox-border-indeterminate-hover, var(--checkbox-border-indeterminate))) !important;
+    outline: 2px solid var(--checkbox-border-indeterminate-focus, var(--checkbox-border-indeterminate-hover, var(--checkbox-border-indeterminate))) !important;
+    outline-offset: 2px;
+}

@@ -1,227 +1,216 @@
 {
-    "variants": {
-        "size": {
-            "icon": "resize",
-            "label": "Size",
-            "visible": true,
-            "options": [
-                "large",
-                "small"
-            ]
-        },
-        "orientation": {
-            "icon": "arrows-out-cardinal",
-            "label": "Orientation",
-            "visible": true,
-            "options": [
-                "horizontal",
-                "vertical"
-            ]
-        }
+  "variants": {},
+  "props": {
+    "indicator-size": {
+      "label": "Indicator size",
+      "visible": true,
+      "icon": "square-2-stack"
     },
-    "props": {
-        "step-indicator": {
-            "icon": "circle",
-            "label": "Step indicator",
-            "visible": true,
-            "group": {
-                "indicator-size": {
-                    "icon": "resize",
-                    "label": "Indicator size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [10, 100],
-                    "step": 1
-                },
-                "indicator-border-radius": {
-                    "icon": "corners-out",
-                    "label": "Border radius",
-                    "visible": true
-                },
-                "indicator-border-size": {
-                    "icon": "rows",
-                    "label": "Border size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [0, 20],
-                    "step": 1
-                },
-                "completed-icon-size": {
-                    "icon": "resize",
-                    "label": "Icon size",
-                    "visible": true
-                }
-            }
-        },
-        "completed": {
-            "icon": "check-circle",
-            "label": "Completed colors",
-            "visible": true,
-            "group": {
-                "completed-indicator-background": {
-                    "icon": "paint-bucket",
-                    "label": "Background color",
-                    "visible": true
-                },
-                "completed-indicator-text": {
-                    "icon": "text-aa",
-                    "label": "Icon / number color",
-                    "visible": true
-                },
-                "completed-label-color": {
-                    "icon": "text-aa",
-                    "label": "Label color",
-                    "visible": true
-                },
-                "completed-description-color": {
-                    "icon": "text-aa",
-                    "label": "Description color",
-                    "visible": true
-                },
-                "completed-indicator-border-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Border color",
-                    "visible": true
-                },
-                "completed-connector-color": {
-                    "icon": "paint-bucket",
-                    "label": "Connector color",
-                    "visible": true
-                },
-                "completed-connector-size": {
-                    "icon": "arrows-left-right",
-                    "label": "Connector size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [0, 20],
-                    "step": 1
-                }
-            }
-        },
-        "current": {
-            "icon": "cursor-click",
-            "label": "Current colors",
-            "visible": true,
-            "group": {
-                "current-indicator-background": {
-                    "icon": "paint-bucket",
-                    "label": "Background color",
-                    "visible": true
-                },
-                "current-indicator-text": {
-                    "icon": "text-aa",
-                    "label": "Icon / number color",
-                    "visible": true
-                },
-                "current-label-color": {
-                    "icon": "text-aa",
-                    "label": "Label color",
-                    "visible": true
-                },
-                "current-description-color": {
-                    "icon": "text-aa",
-                    "label": "Description color",
-                    "visible": true
-                },
-                "current-indicator-border-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Border color",
-                    "visible": true
-                }
-            }
-        },
-        "upcoming": {
-            "icon": "clock",
-            "label": "Upcoming colors",
-            "visible": true,
-            "group": {
-                "upcoming-indicator-background": {
-                    "icon": "paint-bucket",
-                    "label": "Background color",
-                    "visible": true
-                },
-                "upcoming-indicator-text": {
-                    "icon": "text-aa",
-                    "label": "Icon / number color",
-                    "visible": true
-                },
-                "upcoming-label-color": {
-                    "icon": "text-aa",
-                    "label": "Label color",
-                    "visible": true
-                },
-                "upcoming-description-color": {
-                    "icon": "text-aa",
-                    "label": "Description color",
-                    "visible": true
-                },
-                "upcoming-indicator-border-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Border color",
-                    "visible": true
-                },
-                "upcoming-connector-color": {
-                    "icon": "paint-bucket",
-                    "label": "Connector color",
-                    "visible": true
-                },
-                "upcoming-connector-size": {
-                    "icon": "arrows-left-right",
-                    "label": "Connector size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [0, 20],
-                    "step": 1
-                }
-            }
-        },
+    "text-base": {
+      "label": "Text",
+      "icon": "text-aa",
+      "visible": true,
+      "group": {
         "step-number-text": {
-            "icon": "text-aa",
-            "label": "Step number text style",
-            "visible": true
+          "label": "Step number ",
+          "visible": true
+        },
+        "max-text-width": {
+          "label": "Max width",
+          "visible": true
         },
         "label-text": {
-            "icon": "text-aa",
-            "label": "Label text style",
-            "visible": true
+          "label": "Label ",
+          "visible": true
         },
         "description-text": {
-            "icon": "text-aa",
-            "label": "Description text style",
-            "visible": true
-        },
-        "spacing": {
-            "icon": "split-horizontal",
-            "label": "Spacing",
-            "visible": true,
-            "group": {
-                "step-gap": {
-                    "icon": "arrows-out-cardinal",
-                    "label": "Step gap",
-                    "visible": true
-                },
-                "indicator-label-gap": {
-                    "icon": "arrows-out-cardinal",
-                    "label": "Indicator-label gap",
-                    "visible": true
-                },
-                "label-description-gap": {
-                    "icon": "arrows-out-cardinal",
-                    "label": "Label-description gap",
-                    "visible": true
-                },
-                "max-text-width": {
-                    "icon": "arrows-out-line-horizontal",
-                    "label": "Max text width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        40,
-                        1000
-                    ],
-                    "step": 10
-                }
-            }
+          "label": "Description ",
+          "visible": true
         }
+      }
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "indicator-border-size": {
+          "label": "Indicator size",
+          "visible": true
+        },
+        "indicator-border-radius": {
+          "label": "Indicator radius",
+          "visible": true
+        }
+      }
+    },
+    "completed-icon-size": {
+      "label": "Completed icon size",
+      "visible": true,
+      "icon": "star"
+    },
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
+      "visible": true,
+      "group": {
+        "step-gap": {
+          "label": "Step gap",
+          "visible": true
+        },
+        "indicator-label-gap": {
+          "label": "Indicator label gap",
+          "visible": true
+        },
+        "label-description-gap": {
+          "label": "Label description gap",
+          "visible": true
+        }
+      }
+    },
+    "background-variant": {
+      "label": "Background",
+      "icon": "paint-bucket",
+      "visible": true,
+      "group": {
+        "completed-indicator-background": {
+          "label": "Completed indicator ",
+          "visible": true
+        },
+        "current-indicator-background": {
+          "label": "Current indicator ",
+          "visible": true
+        },
+        "upcoming-indicator-background": {
+          "label": "Upcoming indicator ",
+          "visible": true
+        },
+        "completed-indicator-background-hover": {
+          "label": "Completed indicator hover",
+          "visible": true
+        },
+        "completed-indicator-background-focus": {
+          "label": "Completed indicator focus",
+          "visible": true
+        },
+        "current-indicator-background-hover": {
+          "label": "Current indicator hover",
+          "visible": true
+        },
+        "current-indicator-background-focus": {
+          "label": "Current indicator focus",
+          "visible": true
+        },
+        "upcoming-indicator-background-hover": {
+          "label": "Upcoming indicator hover",
+          "visible": true
+        },
+        "upcoming-indicator-background-focus": {
+          "label": "Upcoming indicator focus",
+          "visible": true
+        }
+      }
+    },
+    "text-variant": {
+      "label": "Text",
+      "icon": "text-aa",
+      "visible": true,
+      "group": {
+        "completed-indicator-text": {
+          "label": "Completed indicator ",
+          "visible": true
+        },
+        "current-indicator-text": {
+          "label": "Current indicator ",
+          "visible": true
+        },
+        "upcoming-indicator-text": {
+          "label": "Upcoming indicator ",
+          "visible": true
+        }
+      }
+    },
+    "completed-variant": {
+      "label": "Completed",
+      "icon": "square-2-stack",
+      "visible": true,
+      "group": {
+        "completed-label-color": {
+          "label": "Label color",
+          "visible": true
+        },
+        "completed-description-color": {
+          "label": "Description color",
+          "visible": true
+        },
+        "completed-connector-color": {
+          "label": "Connector color",
+          "visible": true
+        }
+      }
+    },
+    "border-variant": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "completed-indicator-border-color": {
+          "label": "Completed indicator color",
+          "visible": true
+        },
+        "current-indicator-border-color": {
+          "label": "Current indicator color",
+          "visible": true
+        },
+        "upcoming-indicator-border-color": {
+          "label": "Upcoming indicator color",
+          "visible": true
+        }
+      }
+    },
+    "current-variant": {
+      "label": "Current",
+      "icon": "square-2-stack",
+      "visible": true,
+      "group": {
+        "current-label-color": {
+          "label": "Label color",
+          "visible": true
+        },
+        "current-description-color": {
+          "label": "Description color",
+          "visible": true
+        }
+      }
+    },
+    "upcoming-variant": {
+      "label": "Upcoming",
+      "icon": "square-2-stack",
+      "visible": true,
+      "group": {
+        "upcoming-label-color": {
+          "label": "Label color",
+          "visible": true
+        },
+        "upcoming-description-color": {
+          "label": "Description color",
+          "visible": true
+        },
+        "upcoming-connector-color": {
+          "label": "Connector color",
+          "visible": true
+        }
+      }
+    },
+    "completed-connector-size": {
+      "label": "Completed connector size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "upcoming-connector-size": {
+      "label": "Upcoming connector size",
+      "visible": true,
+      "icon": "square-2-stack"
     }
+  }
 }

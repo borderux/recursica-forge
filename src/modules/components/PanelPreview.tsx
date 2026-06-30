@@ -163,15 +163,17 @@ export default function PanelPreview({
         </div>
     )
 
-    return (
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
             height: 'calc(100% + var(--recursica_brand_dimensions_general_md) * 2)',
             alignSelf: 'stretch',
         } as any}>
+      
             {/* Static Preview — Right panel filling full height */}
             <div
                 key={`${updateKey}-static`}
@@ -198,7 +200,7 @@ export default function PanelPreview({
                     <div style={{
                         padding: `var(${hfVPaddingVar}) var(${hfHPaddingVar})`,
                         display: 'flex',
-                        alignItems: 'center',
+                        alignItems: 'flex-start',
                         justifyContent: 'space-between',
                         gap: `var(${headerCloseGapVar})`,
                         borderBottom: `var(${dividerSizeVar}) solid var(${dividerColorVar})`,

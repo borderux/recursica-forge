@@ -10,8 +10,9 @@ import { VarsProvider } from './modules/vars/VarsContext'
 import { UnifiedThemeProvider } from './components/providers/UnifiedThemeProvider'
 import { ComplianceProvider } from './core/compliance/ComplianceContext'
 import './styles/index.css'
-import './styles/theme.css.ts'
 import { bootstrapTheme } from './core/bootstrap'
+import { initKeyboardFocusHelper } from './utils/keyboardFocusHelper'
+
 
 // Lazy load pages to split code chunks
 const PalettesPage = React.lazy(() => import('./modules/palettes/PalettesPage'))
@@ -65,6 +66,9 @@ if (typeof window !== 'undefined') {
     window.location.reload()
   })
 }
+
+// Initialize focus helper
+initKeyboardFocusHelper()
 
 // Initialize theme before React mounts
 bootstrapTheme()

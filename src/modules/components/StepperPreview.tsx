@@ -57,7 +57,8 @@ export default function StepperPreview({
         return () => window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
     }, [])
 
-    return (
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
         <div
             style={{
                 display: 'flex',
@@ -65,9 +66,10 @@ export default function StepperPreview({
                 gap: '24px',
                 width: '100%',
                 alignItems: orientation === 'vertical' ? 'flex-start' : 'center',
-                padding: '16px',
+                padding: 0,
             }}
         >
+      
             <Stepper
                 key={`stepper-${updateKey}`}
                 active={active}
@@ -79,7 +81,7 @@ export default function StepperPreview({
             />
 
             {/* Controls */}
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-start' }}>
                 <Button
                     variant="outline"
                     size="default"

@@ -4,7 +4,7 @@ import { Label } from '../../components/adapters/Label'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
 import { SpeakerLow, SpeakerHigh } from '@phosphor-icons/react'
-import { h2Style } from './typographyStyles'
+import { h2Style, h3Style } from './typographyStyles'
 
 
 interface SliderPreviewProps {
@@ -90,171 +90,176 @@ export default function SliderPreview({
 
   const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
+  const layout = selectedVariants.layout || selectedVariants.layouts || 'stacked'
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGutter, width: '100%', maxWidth: 600 }}>
+      
       {/* Stacked Layout Sliders */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})` }}>
-        <h2 style={h2Style}>Stacked</h2>
-        {/* With label, value (read-only), min and max */}
-        <Slider
-          errorText="The crystal walls shattered!"
-          value={value1}
-          onChange={(val) => setValue1(typeof val === 'number' ? val : val[0])}
-          min={0}
-          max={100}
-          layout="stacked"
-          layer={actualLayer}
-          label={label1}
-          showInput={false}
-          showValueLabel={true}
-          valueLabel={(val) => `${val}`}
-          state={selectedState}
-        />
+      {layout !== 'side-by-side' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})` }}>
+          {/* With label, value (read-only), min and max */}
+          <Slider
+            errorText="The crystal walls shattered!"
+            value={value1}
+            onChange={(val) => setValue1(typeof val === 'number' ? val : val[0])}
+            min={0}
+            max={100}
+            layout="stacked"
+            layer={actualLayer}
+            label={label1}
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${val}`}
+            state={selectedState}
+          />
 
-        {/* No label, read-only input, with min and max */}
-        <Slider
-          errorText="The goblin king's spell failed."
-          value={value2}
-          onChange={(val) => setValue2(typeof val === 'number' ? val : val[0])}
-          min={0}
-          max={100}
-          layout="stacked"
-          layer={actualLayer}
-          showInput={true}
-          showValueLabel={false}
-          readOnly={true}
-          state={selectedState}
-        />
+          {/* No label, read-only input, with min and max */}
+          <Slider
+            errorText="The goblin king's spell failed."
+            value={value2}
+            onChange={(val) => setValue2(typeof val === 'number' ? val : val[0])}
+            min={0}
+            max={100}
+            layout="stacked"
+            layer={actualLayer}
+            showInput={true}
+            showValueLabel={false}
+            readOnly={true}
+            state={selectedState}
+          />
 
-        {/* Labels Below */}
-        <Slider
-          errorText="Stolen trinkets lost in the river."
-          value={value3}
-          onChange={(val) => setValue3(typeof val === 'number' ? val : val[0])}
-          min={0}
-          max={100}
-          layout="labels-below"
-          layer={actualLayer}
-          label={label3}
-          showInput={true}
-          showValueLabel={false}
-          state={selectedState}
-        />
+          {/* Labels Below */}
+          <Slider
+            errorText="Stolen trinkets lost in the river."
+            value={value3}
+            onChange={(val) => setValue3(typeof val === 'number' ? val : val[0])}
+            min={0}
+            max={100}
+            layout="labels-below"
+            layer={actualLayer}
+            label={label3}
+            showInput={true}
+            showValueLabel={false}
+            state={selectedState}
+          />
 
-        {/* Range Slider */}
-        <Slider
-          errorText="Maneuver executed with poor zeal."
-          value={rangeValue1}
-          onChange={(val) => setRangeValue1(val as [number, number])}
-          min={0}
-          max={100}
-          layout="stacked"
-          layer={actualLayer}
-          label={label4}
-          showInput={true}
-          showValueLabel={false}
-          state={selectedState}
-        />
+          {/* Range Slider */}
+          <Slider
+            errorText="Maneuver executed with poor zeal."
+            value={rangeValue1}
+            onChange={(val) => setRangeValue1(val as [number, number])}
+            min={0}
+            max={100}
+            layout="stacked"
+            layer={actualLayer}
+            label={label4}
+            showInput={true}
+            showValueLabel={false}
+            state={selectedState}
+          />
 
-        {/* With icons */}
-        <Slider
-          errorText="Too loud for a sneaky goblin."
-          value={value4}
-          onChange={(val) => setValue4(typeof val === 'number' ? val : val[0])}
-          min={0}
-          max={10}
-          step={1}
-          type="discrete"
-          layout="stacked"
-          layer={actualLayer}
-          label={<Label layer={actualLayer} layout="stacked">Echo</Label>}
-          showInput={true}
-          showMinMaxLabels={false}
-          minIcon={<SpeakerLow weight="bold" />}
-          maxIcon={<SpeakerHigh weight="bold" />}
-          state={selectedState}
-        />
-      </div>
+          {/* With icons */}
+          <Slider
+            errorText="Too loud for a sneaky goblin."
+            value={value4}
+            onChange={(val) => setValue4(typeof val === 'number' ? val : val[0])}
+            min={0}
+            max={10}
+            step={1}
+            type="discrete"
+            layout="stacked"
+            layer={actualLayer}
+            label={<Label layer={actualLayer} layout="stacked">Echo</Label>}
+            showInput={true}
+            showMinMaxLabels={false}
+            minIcon={<SpeakerLow weight="bold" />}
+            maxIcon={<SpeakerHigh weight="bold" />}
+            state={selectedState}
+          />
+        </div>
+      )}
 
       {/* Side-by-side Layout Sliders */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})` }}>
-        <h2 style={h2Style}>Side-by-side</h2>
-        {/* With label, value (read-only), min and max */}
-        <Slider
-          errorText="The fabled Lantern of Ereth broke."
-          value={value5}
-          onChange={(val) => setValue5(typeof val === 'number' ? val : val[0])}
-          min={0}
-          max={100}
-          layout="side-by-side"
-          layer={actualLayer}
-          label={label5}
-          showInput={false}
-          showValueLabel={true}
-          valueLabel={(val) => `${val}`}
-          state={selectedState}
-        />
+      {layout === 'side-by-side' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})` }}>
+          {/* With label, value (read-only), min and max */}
+          <Slider
+            errorText="The fabled Lantern of Ereth broke."
+            value={value5}
+            onChange={(val) => setValue5(typeof val === 'number' ? val : val[0])}
+            min={0}
+            max={100}
+            layout="side-by-side"
+            layer={actualLayer}
+            label={label5}
+            showInput={false}
+            showValueLabel={true}
+            valueLabel={(val) => `${val}`}
+            state={selectedState}
+          />
 
-        {/* Labels Below Side-by-side */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: `var(--recursica_ui-kit_components_label_variants_layouts_side-by-side_properties_gutter, 8px)`, 
-          width: '100%' 
-        }}>
-          <div style={{ flexShrink: 0 }}>
-            {label6}
+          {/* Labels Below Side-by-side */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'flex-start', 
+            gap: `var(--recursica_ui-kit_components_label_variants_layouts_side-by-side_properties_gutter, 8px)`, 
+            width: '100%' 
+          }}>
+            <div style={{ flexShrink: 0 }}>
+              {label6}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Slider
+                errorText="The anvil cracked under pressure."
+                value={value3}
+                onChange={(val) => setValue3(typeof val === 'number' ? val : val[0])}
+                min={0}
+                max={100}
+                layout="labels-below"
+                layer={actualLayer}
+                showInput={true}
+                showValueLabel={false}
+                state={selectedState}
+              />
+            </div>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <Slider
-              errorText="The anvil cracked under pressure."
-              value={value3}
-              onChange={(val) => setValue3(typeof val === 'number' ? val : val[0])}
-              min={0}
-              max={100}
-              layout="labels-below"
-              layer={actualLayer}
-              showInput={true}
-              showValueLabel={false}
-              state={selectedState}
-            />
-          </div>
+
+          {/* With icons */}
+          <Slider
+            errorText="The dwarf awoke startled."
+            value={value6}
+            onChange={(val) => setValue6(typeof val === 'number' ? val : val[0])}
+            min={0}
+            max={10}
+            step={1}
+            type="discrete"
+            layout="side-by-side"
+            layer={actualLayer}
+            label={label7}
+            showInput={true}
+            showMinMaxLabels={false}
+            minIcon={<SpeakerLow weight="bold" />}
+            maxIcon={<SpeakerHigh weight="bold" />}
+            state={selectedState}
+          />
+
+          {/* Range Slider */}
+          <Slider
+            errorText="Obsidian gauntlets shattered."
+            value={rangeValue2}
+            onChange={(val) => setRangeValue2(val as [number, number])}
+            min={0}
+            max={100}
+            layout="side-by-side"
+            layer={actualLayer}
+            label={label8}
+            showInput={true}
+            showValueLabel={false}
+            state={selectedState}
+          />
         </div>
-
-        {/* With icons */}
-        <Slider
-          errorText="The dwarf awoke startled."
-          value={value6}
-          onChange={(val) => setValue6(typeof val === 'number' ? val : val[0])}
-          min={0}
-          max={10}
-          step={1}
-          type="discrete"
-          layout="side-by-side"
-          layer={actualLayer}
-          label={label7}
-          showInput={true}
-          showMinMaxLabels={false}
-          minIcon={<SpeakerLow weight="bold" />}
-          maxIcon={<SpeakerHigh weight="bold" />}
-          state={selectedState}
-        />
-
-        {/* Range Slider */}
-        <Slider
-          errorText="Obsidian gauntlets shattered."
-          value={rangeValue2}
-          onChange={(val) => setRangeValue2(val as [number, number])}
-          min={0}
-          max={100}
-          layout="side-by-side"
-          layer={actualLayer}
-          label={label8}
-          showInput={true}
-          showValueLabel={false}
-          state={selectedState}
-        />
-      </div>
+      )}
     </div>
   )
 }

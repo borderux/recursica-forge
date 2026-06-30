@@ -178,6 +178,46 @@
               "disabled-icon": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.400.color.tone}"
+              },
+              "border-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "border-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "border-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "border-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "background-unselected-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-unselected-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-selected-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-selected-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "icon-color-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "icon-color-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
               }
             },
             "layer-1": {
@@ -212,6 +252,46 @@
               "disabled-icon": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.400.color.tone}"
+              },
+              "border-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "border-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "border-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "border-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "background-unselected-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-unselected-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-selected-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-selected-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "icon-color-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "icon-color-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
               }
             },
             "layer-2": {
@@ -246,6 +326,46 @@
               "disabled-icon": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.400.color.tone}"
+              },
+              "border-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "border-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "border-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "border-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "background-unselected-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-unselected-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-selected-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-selected-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "icon-color-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "icon-color-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
               }
             },
             "layer-3": {
@@ -280,6 +400,46 @@
               "disabled-icon": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.400.color.tone}"
+              },
+              "border-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "border-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "border-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "border-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "background-unselected-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-unselected-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-selected-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-selected-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "icon-color-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "icon-color-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
               }
             }
           },

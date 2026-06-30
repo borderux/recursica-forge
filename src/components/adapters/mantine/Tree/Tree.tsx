@@ -139,6 +139,7 @@ export default function Tree({
           return (
             <div
               {...elementProps}
+              tabIndex={0}
               style={{
                 ...otherStyles,
                 '--tree-node-level': level
@@ -151,6 +152,18 @@ export default function Tree({
                   onSelect([node.value])
                 }
               }}
+              onKeyDown={(e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  if (!expanded) {
+                    elementProps.onClick?.(e as any)
+                  }
+                  if (onSelect) {
+                    onSelect([node.value])
+                  }
+                }
+              }}
               className={`recursica-tree-node ${isSelected ? 'selected' : ''}`}
             >
               <div 
@@ -161,6 +174,7 @@ export default function Tree({
                   <Button
                     variant="text"
                     size="small"
+                    tabIndex={-1}
                     icon={expanded ? (
                       ChevronDownIcon ? <ChevronDownIcon /> : '▼'
                     ) : (

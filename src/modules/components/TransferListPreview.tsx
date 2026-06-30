@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { TransferList } from '../../components/adapters/TransferList'
 import type { TransferListData } from '../../components/adapters/TransferList'
 import { useThemeMode } from '../theme/ThemeModeContext'
-import { h2Style } from './typographyStyles'
+import { h2Style, h3Style } from './typographyStyles'
 
 
 interface TransferListPreviewProps {
@@ -38,12 +38,10 @@ export default function TransferListPreview({
     const { mode } = useThemeMode()
 
     // Extract state variant — allows custom states
-    const state = selectedVariants.states || 'default'
+    const state = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
 
     // Show the selected layout; fall back to showing both built-in layouts when none selected
-    const layoutsToShow: string[] = selectedVariants.layouts
-        ? [selectedVariants.layouts]
-        : ['stacked', 'side-by-side']
+    const layoutsToShow = [selectedVariants.layout || selectedVariants.layouts || 'stacked']
 
     return (
         <div style={{
@@ -51,19 +49,18 @@ export default function TransferListPreview({
             flexDirection: 'column',
             gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
             width: '100%',
-            alignItems: 'center',
+            alignItems: 'flex-start',
         }}>
+            
             {layoutsToShow.map((layoutVariant) => (
-                <div key={layoutVariant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
+                <div key={layoutVariant} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
+                    
                     <TransferList
                         label="Forge Inventory"
                         sourceLabel="Available"
                         targetLabel="Selected for crafting"
                         defaultData={DEFAULT_DATA}
-                        state={state}
+                        state={state === null ? undefined : state}
                         layer={selectedLayer as any}
                         layout={layoutVariant}
                         searchable

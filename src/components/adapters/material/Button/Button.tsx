@@ -11,7 +11,7 @@ import { buildComponentCssVarPath, getComponentTextCssVar } from '../../../utils
 import { useThemeMode } from '../../../../modules/theme/ThemeModeContext'
 import { readCssVar, readCssVarResolved } from '../../../../core/css/readCssVar'
 import { useCssVar } from '../../../hooks/useCssVar'
-import { getElevationBoxShadow } from '../../../utils/brandCssVars'
+import { getElevationBoxShadow, parseElevationValue } from '../../../utils/brandCssVars'
 import './Button.css'
 
 export default function Button({
@@ -51,6 +51,10 @@ export default function Button({
   const buttonTextHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text-hover')
   const buttonIconColorHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color-hover')
   const buttonBorderColorHoverVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color-hover')
+  const buttonTextFocusVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text-focus')
+  const buttonIconColorFocusVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'icon-color-focus')
+  const buttonBorderColorFocusVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color-focus')
+  const buttonFocusElevationVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'focus-elevation')
 
   // Get hover color and opacity from the size variant (moved from component level)
   const hoverColorVar = buildComponentCssVarPath('Button', 'variants', 'sizes', size, 'properties', 'hover-color')
@@ -144,6 +148,12 @@ export default function Button({
   // State to force re-renders when text CSS variables change
   const [, setTextVarsUpdate] = useState(0)
 
+  // Reactively read focus elevation
+  const [focusElevationFromVar, setFocusElevationFromVar] = useState<string | undefined>(() => {
+    const value = readCssVar(buttonFocusElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+
   // Listen for CSS variable updates from the toolbar
   useEffect(() => {
     const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
@@ -151,10 +161,15 @@ export default function Button({
     const handleCssVarUpdate = (e: Event) => {
       const detail = (e as CustomEvent).detail
       const shouldUpdateText = !detail?.cssVars || detail.cssVars.some((cssVar: string) => textCssVars.includes(cssVar))
+      const shouldUpdateFocusElevation = !detail?.cssVars || detail.cssVars.includes(buttonFocusElevationVar)
 
       if (shouldUpdateText) {
         // Force re-render by updating state
         setTextVarsUpdate(prev => prev + 1)
+      }
+      if (shouldUpdateFocusElevation) {
+        const value = readCssVar(buttonFocusElevationVar)
+        setFocusElevationFromVar(value ? parseElevationValue(value) : undefined)
       }
     }
 
@@ -164,6 +179,8 @@ export default function Button({
     const observer = new MutationObserver(() => {
       // Force re-render for text vars
       setTextVarsUpdate(prev => prev + 1)
+      const value = readCssVar(buttonFocusElevationVar)
+      setFocusElevationFromVar(value ? parseElevationValue(value) : undefined)
     })
     observer.observe(document.documentElement, {
       attributes: true,
@@ -174,7 +191,7 @@ export default function Button({
       window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
       observer.disconnect()
     }
-  }, [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar])
+  }, [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar, buttonFocusElevationVar])
 
   // Merge library-specific props
   // Extract endIcon from material prop before spreading to avoid conflicts
@@ -203,13 +220,16 @@ export default function Button({
       })(),
       color: `var(${buttonColorVar})`,
       '--button-text-hover': `var(${buttonTextHoverVar})`,
+      '--button-text-focus': `var(${buttonTextFocusVar})`,
       // Set button border color CSS variable for CSS file override
       // The CSS file will handle the actual border styling using this variable
       ...((variant === 'solid' || variant === 'outline') && buttonBorderColorVar ? {
         '--button-border-color': `var(${buttonBorderColorVar})`,
+        '--button-border-color-focus': `var(${buttonBorderColorFocusVar})`,
       } : {}),
       '--button-hover-opacity': `var(${hoverOpacityVar}, 0.08)`, // Hover overlay opacity
       '--button-hover-color': `var(${hoverColorVar}, #000000)`, // Hover color
+      '--button-focus-box-shadow': getElevationBoxShadow(mode, focusElevationFromVar) || 'none',
       // Apply CSS variable-driven border for all variants
       ...(buttonBorderColorVar ? {
         borderColor: readCssVarResolved(buttonBorderColorVar) || `var(${buttonBorderColorVar})`,
@@ -239,6 +259,7 @@ export default function Button({
       // Set icon size even when icon is in endIcon prop (Material UI's endIcon)
       '--button-icon-color': `var(${iconColorVar})`,
       '--button-icon-color-hover': `var(${buttonIconColorHoverVar})`,
+      '--button-icon-color-focus': `var(${buttonIconColorFocusVar})`,
       '--button-border-color-hover': `var(${buttonBorderColorHoverVar})`,
       '--button-icon-size': icon || materialEndIcon ? `var(${iconSizeVar})` : '0px',
       '--button-icon-text-gap': (icon && children) || (materialEndIcon && children) ? `var(${iconGapVar})` : '0px',

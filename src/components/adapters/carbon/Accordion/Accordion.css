@@ -108,6 +108,22 @@
   pointer-events: none;
 }
 
+.recursica-accordion.carbon-accordion .cds--accordion__heading:focus-visible,
+.recursica-accordion.carbon-accordion .cds--accordion__button:focus-visible {
+  position: relative;
+}
+
+.recursica-accordion.carbon-accordion .cds--accordion__heading:focus-visible::before,
+.recursica-accordion.carbon-accordion .cds--accordion__button:focus-visible::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--accordion-item-focus-color, var(--accordion-item-hover-color, #000000));
+  opacity: var(--accordion-item-focus-opacity, var(--accordion-item-hover-opacity, 0.12));
+  border-radius: var(--accordion-item-border-radius, 4px);
+  pointer-events: none;
+}
+
 .recursica-accordion.carbon-accordion .cds--accordion__title {
   color: var(--accordion-item-header-text) !important;
   font-weight: var(--accordion-item-header-font-weight) !important;

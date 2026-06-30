@@ -1,7 +1,7 @@
 import { TextField } from '../../components/adapters/TextField'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
-import { h2Style } from './typographyStyles'
+import { h4Style } from './typographyStyles'
 
 
 interface LabelPreviewProps {
@@ -28,11 +28,20 @@ export default function LabelPreview({
   const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
   // Show stacked layout with TextField components (which include labels)
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGutter }}>
+    <div style={{
+      display: 'flex',
+      gap: '48px',
+      width: '100%',
+      justifyContent: 'space-between',
+      padding: 0,
+      alignItems: 'flex-start',
+    }}>
+      
       {/* Left-aligned section */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGapValue }}>
-        <h2 style={h2Style}>Left aligned</h2>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: verticalGapValue }}>
+        <h4 style={h4Style}>Left aligned</h4>
         <TextField
           label="Label with Large Gap"
           placeholder="Input field"
@@ -68,13 +77,13 @@ export default function LabelPreview({
           layout={layoutVariant}
           labelSize={sizeVariant}
           layer={selectedLayer as any}
-          disableTopBottomMargin
+          disableTopMargin
         />
       </div>
 
       {/* Right-aligned section */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: verticalGapValue }}>
-        <h2 style={h2Style}>Right aligned</h2>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: verticalGapValue }}>
+        <h4 style={{ ...h4Style, textAlign: 'right' }}>Right aligned</h4>
         <TextField
           label="Label"
           placeholder="Input field"

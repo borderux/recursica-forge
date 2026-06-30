@@ -1,231 +1,82 @@
 {
-    "variants": {
-        "types": {
-            "icon": "circle",
-            "label": "Bullet type",
-            "visible": true,
-            "options": [
-                "default",
-                "icon",
-                "icon-alternative",
-                "avatar"
-            ]
-        }
+  "variants": {},
+  "props": {
+    "bullet-size": {
+      "label": "Bullet size",
+      "visible": true,
+      "icon": "square-2-stack"
     },
-    "props": {
-        "active-colors": {
-            "icon": "paint-bucket",
-            "label": "Active",
-            "visible": true,
-            "floatingPaletteLabel": "Active Colors",
-            "group": {
-                "active-background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true,
-                    "floatingPaletteLabel": "Active Background"
-                },
-                "active-border-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Border",
-                    "visible": true,
-                    "floatingPaletteLabel": "Active Border Color",
-                    "showForVariants": [
-                        "default",
-                        "icon",
-                        "icon-alternative",
-                        "avatar"
-                    ]
-                }
-            }
+    "avatar-size": {
+      "label": "Avatar size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "active-avatar-opacity": {
+      "label": "Active avatar opacity",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "inactive-avatar-opacity": {
+      "label": "Inactive avatar opacity",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "background-base": {
+      "label": "Background",
+      "icon": "paint-bucket",
+      "visible": true,
+      "group": {
+        "active-background": {
+          "label": "Active ",
+          "visible": true
         },
-        "inactive-colors": {
-            "icon": "paint-bucket",
-            "label": "Inactive",
-            "visible": true,
-            "floatingPaletteLabel": "Inactive Colors",
-            "group": {
-                "inactive-background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true,
-                    "floatingPaletteLabel": "Inactive Background"
-                },
-                "inactive-border-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Border",
-                    "visible": true,
-                    "floatingPaletteLabel": "Inactive Border Color",
-                    "showForVariants": [
-                        "default",
-                        "icon",
-                        "icon-alternative",
-                        "avatar"
-                    ]
-                }
-            }
-        },
-        "icon-group": {
-            "icon": "star",
-            "label": "Icon",
-            "visible": true,
-            "showForVariants": [
-                "icon"
-            ],
-            "group": {
-                "active-icon-color": {
-                    "icon": "paint-bucket",
-                    "label": "Active color",
-                    "visible": true,
-                    "showForVariants": [
-                        "icon"
-                    ]
-                },
-                "inactive-icon-color": {
-                    "icon": "paint-bucket",
-                    "label": "Inactive color",
-                    "visible": true,
-                    "showForVariants": [
-                        "icon"
-                    ]
-                },
-                "icon-size": {
-                    "icon": "resize",
-                    "label": "Size",
-                    "visible": true,
-                    "showForVariants": [
-                        "icon"
-                    ]
-                }
-            }
-        },
-        "icon-alt-group": {
-            "icon": "star",
-            "label": "Icon",
-            "visible": true,
-            "showForVariants": [
-                "icon-alternative"
-            ],
-            "group": {
-                "active-icon-color": {
-                    "icon": "paint-bucket",
-                    "label": "Active color",
-                    "visible": true,
-                    "showForVariants": [
-                        "icon-alternative"
-                    ]
-                },
-                "inactive-icon-color": {
-                    "icon": "paint-bucket",
-                    "label": "Inactive color",
-                    "visible": true,
-                    "showForVariants": [
-                        "icon-alternative"
-                    ]
-                },
-                "icon-size": {
-                    "icon": "resize",
-                    "label": "Size",
-                    "visible": true,
-                    "showForVariants": [
-                        "icon-alternative"
-                    ]
-                }
-            }
-        },
-        "border": {
-            "icon": "paint-brush-broad",
-            "label": "Border",
-            "visible": true,
-            "group": {
-                "border-size": {
-                    "icon": "arrows-left-right",
-                    "label": "Size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        10
-                    ],
-                    "step": 1,
-                    "showForVariants": [
-                        "default",
-                        "icon",
-                        "icon-alternative",
-                        "avatar"
-                    ]
-                },
-                "border-radius": {
-                    "icon": "corners-out",
-                    "label": "Radius",
-                    "visible": true,
-                    "showForVariants": [
-                        "default",
-                        "icon",
-                        "icon-alternative"
-                    ]
-                }
-            }
-        },
-        "dimensions": {
-            "icon": "resize",
-            "label": "Dimensions",
-            "visible": true,
-            "showForVariants": [
-                "default",
-                "icon",
-                "icon-alternative"
-            ],
-            "group": {
-                "bullet-size": {
-                    "icon": "resize",
-                    "label": "Bullet",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        10,
-                        100
-                    ],
-                    "step": 1,
-                    "showForVariants": [
-                        "default",
-                        "icon",
-                        "icon-alternative"
-                    ]
-                }
-            }
-        },
-        "avatar": {
-            "icon": "user-circle",
-            "label": "Avatar",
-            "visible": true,
-            "showForVariants": [
-                "avatar"
-            ],
-            "group": {
-                "avatar-size": {
-                    "icon": "resize",
-                    "label": "Size",
-                    "visible": true,
-                    "propertyType": "select",
-                    "control": "dropdown",
-                    "options": [
-                        "small",
-                        "default",
-                        "large"
-                    ]
-                },
-                "active-avatar-opacity": {
-                    "icon": "eye",
-                    "label": "Active opacity",
-                    "visible": true
-                },
-                "inactive-avatar-opacity": {
-                    "icon": "eye",
-                    "label": "Inactive opacity",
-                    "visible": true
-                }
-            }
+        "inactive-background": {
+          "label": "Inactive ",
+          "visible": true
         }
+      }
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "active-border-color": {
+          "label": "Active color",
+          "visible": true
+        },
+        "inactive-border-color": {
+          "label": "Inactive color",
+          "visible": true
+        },
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Radius",
+          "visible": true
+        }
+      }
+    },
+    "icon-base": {
+      "label": "Icon",
+      "icon": "star",
+      "visible": true,
+      "group": {
+        "active-icon-color": {
+          "label": "Active color",
+          "visible": true
+        },
+        "inactive-icon-color": {
+          "label": "Inactive color",
+          "visible": true
+        },
+        "icon-size": {
+          "label": "Size",
+          "visible": true
+        }
+      }
     }
+  }
 }

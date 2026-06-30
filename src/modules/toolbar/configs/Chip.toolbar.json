@@ -1,123 +1,148 @@
 {
-  "variants": {
-    "style": {
-      "icon": "diamonds-four",
-      "label": "Style"
-    }
-  },
+  "variants": {},
   "props": {
     "background": {
-      "icon": "paint-bucket",
       "label": "Background",
-      "visible": true
+      "visible": true,
+      "icon": "paint-bucket"
     },
     "text": {
-      "icon": "text-aa",
-      "label": "Text style",
-      "visible": true
+      "label": "Text",
+      "visible": true,
+      "icon": "text-aa"
     },
-    "text-color": {
-      "icon": "text-aa",
-      "label": "Text color",
-      "visible": true
+    "border-color": {
+      "label": "Border color",
+      "visible": true,
+      "icon": "paint-bucket"
     },
-    "border": {
-      "icon": "square",
-      "label": "Border",
+    "icon-base": {
+      "label": "Icon",
+      "icon": "star",
       "visible": true,
       "group": {
-        "border-size": {
-          "icon": "arrows-left-right",
+        "leading-icon-color": {
+          "label": "Leading color",
+          "visible": true
+        },
+        "selected-icon-color": {
+          "label": "Selected color",
+          "visible": true
+        },
+        "close-icon-color": {
+          "label": "Close color",
+          "visible": true
+        },
+        "icon-text-gap": {
+          "label": "Text gap",
+          "visible": true
+        },
+        "icon-size": {
           "label": "Size",
           "visible": true
         },
-        "border-radius": {
-          "icon": "corners-out",
-          "label": "Corner radius",
-          "visible": true
-        },
-        "border-color": {
-          "icon": "paint-bucket",
-          "label": "Color",
+        "close-icon-size": {
+          "label": "Close size",
           "visible": true
         }
       }
     },
-    "padding": {
-      "icon": "square-logo",
-      "label": "Padding",
+    "background-base": {
+      "label": "Background",
+      "icon": "paint-bucket",
       "visible": true,
       "group": {
-        "horizontal-padding": {
-          "icon": "arrows-left-right",
-          "label": "Horizontal padding",
+        "background-hover": {
+          "label": "Hover",
           "visible": true
         },
-        "vertical-padding": {
-          "icon": "arrows-up-down",
-          "label": "Vertical padding",
+        "background-focus": {
+          "label": "Focus",
+          "visible": true
+        }
+      }
+    },
+    "text-base": {
+      "label": "Text",
+      "icon": "text-aa",
+      "visible": true,
+      "group": {
+        "text-hover": {
+          "label": "Hover",
+          "visible": true
+        },
+        "text-focus": {
+          "label": "Focus",
+          "visible": true
+        },
+        "text-size": {
+          "label": "Size",
+          "visible": true
+        }
+      }
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "border-color-hover": {
+          "label": "Color hover",
+          "visible": true
+        },
+        "border-color-focus": {
+          "label": "Color focus",
+          "visible": true
+        },
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Radius",
           "visible": true
         }
       }
     },
     "icon": {
-      "icon": "diamond",
       "label": "Icon",
       "visible": true,
+      "icon": "star"
+    },
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
+      "visible": true,
       "group": {
-        "icon-size": {
-          "icon": "diamond",
-          "label": "Leading icon size",
+        "horizontal-padding": {
+          "label": "Horizontal padding",
           "visible": true
         },
-        "close-icon-size": {
-          "icon": "x",
-          "label": "Remove icon size",
-          "visible": true
-        },
-        "icon-text-gap": {
-          "icon": "split-horizontal",
-          "label": "Icon/text gap",
-          "visible": true
-        },
-        "leading-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Leading icon color",
-          "visible": true
-        },
-        "selected-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Selected icon color",
-          "visible": true
-        },
-        "close-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Remove icon color",
+        "vertical-padding": {
+          "label": "Vertical padding",
           "visible": true
         }
       }
     },
-    "width": {
-      "icon": "arrows-left-right",
+    "width-base": {
       "label": "Width",
+      "icon": "arrows-left-right",
       "visible": true,
       "group": {
-        "min-width": {
-          "icon": "arrows-in-line-horizontal",
-          "label": "Min width",
+        "max-width": {
+          "label": "Max ",
           "visible": true
         },
-        "max-width": {
-          "icon": "arrows-out-line-horizontal",
-          "label": "Max width",
+        "min-width": {
+          "label": "Min ",
           "visible": true
         }
       }
     },
     "elevation": {
-      "icon": "copy-simple",
       "label": "Elevation",
-      "visible": true
+      "visible": true,
+      "icon": "copy-simple"
     }
   }
 }

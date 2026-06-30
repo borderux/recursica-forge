@@ -1,135 +1,90 @@
 {
   "variants": {},
   "props": {
-    "layout": {
-      "icon": "arrows-in-line-horizontal",
-      "label": "Layout",
+    "row-divider-size": {
+      "label": "Row divider size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "column-divider-size": {
+      "label": "Column divider size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "striped-color": {
+      "label": "Striped color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "highlight-on-hover-color": {
+      "label": "Highlight on hover color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "selected-color": {
+      "label": "Selected color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "row-divider-color": {
+      "label": "Row divider color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "column-divider-color": {
+      "label": "Column divider color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "striped-opacity": {
+      "label": "Striped opacity",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "highlight-on-hover-opacity": {
+      "label": "Highlight on hover opacity",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "selected-opacity": {
+      "label": "Selected opacity",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
       "visible": true,
       "group": {
         "padding": {
-          "icon": "arrows-left-right",
           "label": "Padding",
           "visible": true
         },
         "row-padding": {
-          "icon": "arrows-left-right",
           "label": "Row padding",
           "visible": true
         }
       }
     },
-    "border": {
-      "icon": "frame-corners",
+    "border-base": {
       "label": "Border",
+      "icon": "square",
       "visible": true,
       "group": {
-        "border-color": {
-          "icon": "paint-brush-broad",
-          "label": "Border color",
-          "visible": true,
-          "floatingPaletteLabel": "Border Color"
-        },
         "border-size": {
-          "icon": "rows",
-          "label": "Border size",
-          "visible": true,
-          "propertyType": "slider",
-          "range": [
-            0,
-            8
-          ],
-          "step": 1
+          "label": "Size",
+          "visible": true
         },
         "border-radius": {
-          "icon": "corners-out",
-          "label": "Corner radius",
-          "visible": true,
-          "propertyType": "slider",
-          "range": [
-            0,
-            48
-          ],
-          "step": 4
+          "label": "Radius",
+          "visible": true
         }
       }
     },
-    "dividers": {
-      "icon": "minus",
-      "label": "Dividers",
+    "border-color": {
+      "label": "Border color",
       "visible": true,
-      "group": {
-        "row-divider-size": {
-          "icon": "rows",
-          "label": "Row divider size",
-          "visible": true,
-          "propertyType": "slider",
-          "range": [
-            0,
-            8
-          ],
-          "step": 1
-        },
-        "row-divider-color": {
-          "icon": "paint-brush-broad",
-          "label": "Row divider color",
-          "visible": true,
-          "floatingPaletteLabel": "Row Divider Color"
-        },
-        "column-divider-size": {
-          "icon": "rows",
-          "label": "Column divider size",
-          "visible": true,
-          "propertyType": "slider",
-          "range": [
-            0,
-            8
-          ],
-          "step": 1
-        },
-        "column-divider-color": {
-          "icon": "paint-brush-broad",
-          "label": "Column divider color",
-          "visible": true,
-          "floatingPaletteLabel": "Column Divider Color"
-        }
-      }
-    },
-    "row-colors": {
-      "icon": "paint-bucket",
-      "label": "Row colors",
-      "visible": true,
-      "group": {
-        "striped-color": {
-          "label": "Striped color",
-          "visible": true,
-          "floatingPaletteLabel": "Striped Color"
-        },
-        "highlight-on-hover-color": {
-          "label": "Hover color",
-          "visible": true,
-          "floatingPaletteLabel": "Hover Color"
-        },
-        "selected-color": {
-          "label": "Selected color",
-          "visible": true,
-          "floatingPaletteLabel": "Selected Color"
-        },
-        "striped-opacity": {
-          "label": "Striped opacity",
-          "visible": true,
-          "floatingPaletteLabel": "Striped Opacity"
-        },
-        "highlight-on-hover-opacity": {
-          "label": "Hover opacity",
-          "visible": true,
-          "floatingPaletteLabel": "Hover Opacity"
-        },
-        "selected-opacity": {
-          "label": "Selected opacity",
-          "visible": true,
-          "floatingPaletteLabel": "Selected Opacity"
-        }
-      }
+      "icon": "paint-bucket"
     }
   }
 }

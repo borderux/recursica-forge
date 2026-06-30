@@ -27,6 +27,7 @@ export type ButtonProps = {
   style?: React.CSSProperties
   icon?: React.ReactNode
   title?: string
+  tabIndex?: number
 } & LibrarySpecificProps
 
 export const Button = React.forwardRef<any, ButtonProps>((props, ref) => {

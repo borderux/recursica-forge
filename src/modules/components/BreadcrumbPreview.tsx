@@ -26,8 +26,10 @@ export default function BreadcrumbPreview({
   // Limit to 5 items
   const items = sampleItems.slice(0, 5)
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
-    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+      
       {/* Chevron separator with home icon */}
       <Breadcrumb
         items={items}

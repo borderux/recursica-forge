@@ -7,7 +7,7 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { useRawCssVar } from '../../components/hooks/useCssVar'
 import { buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import { layerText } from '../../core/css/cssVarBuilder'
-import { h2Style } from './typographyStyles'
+import { h4Style } from './typographyStyles'
 
 
 interface TabsPreviewProps {
@@ -132,13 +132,15 @@ export default function TabsPreview({
     const headerMargin = { marginBottom: headerToPreviewGap }
     const previewMargin = { marginBottom: previewToHeaderGap }
 
-    return (
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: vertGutter, width: '600px' }}>
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
+        <div style={{ padding: 0, display: 'flex', flexDirection: 'column', gap: vertGutter, width: '600px' }}>
+      
             {isHorizontal ? (
                 <>
                     {/* Section: Tabs on top */}
                     <div>
-                        <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Top</h2>
+                        <h4 style={{ ...h4Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Top</h4>
 
                         <div style={previewMargin}>
                             <TabSet value={value1} onChange={setValue1} {...tabSetProps} />
@@ -163,19 +165,19 @@ export default function TabsPreview({
                             <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
                                 <Tabs.List>
                                     <Tabs.Tab value="gallery">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Forge</span>
                                             <Badge variant="primary-color">42</Badge>
                                         </div>
                                     </Tabs.Tab>
                                     <Tabs.Tab value="messages">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Mines</span>
                                             <Badge variant="primary-color">7</Badge>
                                         </div>
                                     </Tabs.Tab>
                                     <Tabs.Tab value="settings">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Armory</span>
                                             <Badge variant="primary-color">104</Badge>
                                         </div>
@@ -190,7 +192,7 @@ export default function TabsPreview({
 
                     {/* Section: Tabs on bottom */}
                     <div>
-                        <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Bottom</h2>
+                        <h4 style={{ ...h4Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Bottom</h4>
 
                         <div style={previewMargin}>
                             <TabSet value={value4} onChange={setValue4} {...tabSetProps} mantineOverrides={{ inverted: true }} />
@@ -218,19 +220,19 @@ export default function TabsPreview({
                                 <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
                                 <Tabs.List>
                                     <Tabs.Tab value="gallery">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Forge</span>
                                             <Badge variant="primary-color">42</Badge>
                                         </div>
                                     </Tabs.Tab>
                                     <Tabs.Tab value="messages">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Mines</span>
                                             <Badge variant="primary-color">7</Badge>
                                         </div>
                                     </Tabs.Tab>
                                     <Tabs.Tab value="settings">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Armory</span>
                                             <Badge variant="primary-color">104</Badge>
                                         </div>
@@ -244,7 +246,7 @@ export default function TabsPreview({
                 <>
                     {/* Section: Tabs on left */}
                     <div>
-                        <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Left</h2>
+                        <h4 style={{ ...h4Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Left</h4>
 
                         <div style={previewMargin}>
                             <TabSet value={value1} onChange={setValue1} {...tabSetProps} />
@@ -269,19 +271,19 @@ export default function TabsPreview({
                             <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
                                 <Tabs.List>
                                     <Tabs.Tab value="gallery">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Forge</span>
                                             <Badge variant="primary-color">42</Badge>
                                         </div>
                                     </Tabs.Tab>
                                     <Tabs.Tab value="messages">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Mines</span>
                                             <Badge variant="primary-color">7</Badge>
                                         </div>
                                     </Tabs.Tab>
                                     <Tabs.Tab value="settings">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Armory</span>
                                             <Badge variant="primary-color">104</Badge>
                                         </div>
@@ -296,7 +298,7 @@ export default function TabsPreview({
 
                     {/* Section: Tabs on right */}
                     <div>
-                        <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Right</h2>
+                        <h4 style={{ ...h4Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Right</h4>
 
                         <div style={previewMargin}>
                             <TabSet value={value4} onChange={setValue4} {...tabSetProps} mantineOverrides={{ placement: 'right' }} />
@@ -321,19 +323,19 @@ export default function TabsPreview({
                             <Tabs value={value6 ?? undefined} onChange={(v) => setValue6(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
                                 <Tabs.List>
                                     <Tabs.Tab value="gallery">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Forge</span>
                                             <Badge variant="primary-color">42</Badge>
                                         </div>
                                     </Tabs.Tab>
                                     <Tabs.Tab value="messages">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Mines</span>
                                             <Badge variant="primary-color">7</Badge>
                                         </div>
                                     </Tabs.Tab>
                                     <Tabs.Tab value="settings">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                                             <span>Armory</span>
                                             <Badge variant="primary-color">104</Badge>
                                         </div>

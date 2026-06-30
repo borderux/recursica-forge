@@ -28,6 +28,16 @@ export default function RadioButton({
     const borderSelectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-selected')
     const borderUnselectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-unselected')
     const iconColorVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'icon-color')
+    const bgSelectedHoverVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-selected-hover')
+    const bgUnselectedHoverVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-unselected-hover')
+    const borderSelectedHoverVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-selected-hover')
+    const borderUnselectedHoverVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-unselected-hover')
+    const iconColorHoverVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'icon-color-hover')
+    const bgSelectedFocusVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-selected-focus')
+    const bgUnselectedFocusVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'background-unselected-focus')
+    const borderSelectedFocusVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-selected-focus')
+    const borderUnselectedFocusVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-unselected-focus')
+    const iconColorFocusVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'icon-color-focus')
     const disabledBgVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-background')
     const disabledBorderVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-border')
     const disabledIconVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-icon')
@@ -46,6 +56,16 @@ export default function RadioButton({
         '--radio-border-selected': `var(${borderSelectedVar})`,
         '--radio-border-unselected': `var(${borderUnselectedVar})`,
         '--radio-icon-color': `var(${iconColorVar})`,
+        '--radio-bg-selected-hover': `var(${bgSelectedHoverVar})`,
+        '--radio-bg-unselected-hover': `var(${bgUnselectedHoverVar})`,
+        '--radio-border-selected-hover': `var(${borderSelectedHoverVar})`,
+        '--radio-border-unselected-hover': `var(${borderUnselectedHoverVar})`,
+        '--radio-icon-color-hover': `var(${iconColorHoverVar})`,
+        '--radio-bg-selected-focus': `var(${bgSelectedFocusVar})`,
+        '--radio-bg-unselected-focus': `var(${bgUnselectedFocusVar})`,
+        '--radio-border-selected-focus': `var(${borderSelectedFocusVar})`,
+        '--radio-border-unselected-focus': `var(${borderUnselectedFocusVar})`,
+        '--radio-icon-color-focus': `var(${iconColorFocusVar})`,
         '--radio-disabled-bg': `var(${disabledBgVar})`,
         '--radio-disabled-border': `var(${disabledBorderVar})`,
         '--radio-disabled-icon': `var(${disabledIconVar})`,

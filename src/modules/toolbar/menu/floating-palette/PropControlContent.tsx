@@ -1164,8 +1164,30 @@ export default function PropControlContent({
     }
 
     // 3. Handle GENERIC groups defined in the toolbar JSON (e.g., "Widths" or "Padding" groups)
-    const groupedConfigs = getGroupedProps(componentName, prop.name)
+    let groupedConfigs = getGroupedProps(componentName, prop.name)
     if (groupedConfigs) {
+      const activeState = selectedVariants.states || selectedVariants.state || selectedVariants.__activeState || 'default'
+      const currentActiveState = activeState.toLowerCase()
+
+      groupedConfigs = Object.fromEntries(
+        Object.entries(groupedConfigs).filter(([groupedPropName]) => {
+          const groupedPropKey = groupedPropName.toLowerCase()
+          const isHoverProp = groupedPropKey.includes('hover')
+          const isFocusProp = groupedPropKey.includes('focus')
+          const isDisabledProp = groupedPropKey.includes('disabled')
+          const isErrorProp = groupedPropKey.includes('error')
+
+          if (currentActiveState === 'default' || currentActiveState === 'base') {
+            if (isHoverProp || isFocusProp || isDisabledProp || isErrorProp) return false
+          } else {
+            if (currentActiveState !== 'hover' && isHoverProp) return false
+            if (currentActiveState !== 'focus' && isFocusProp) return false
+            if (currentActiveState !== 'disabled' && isDisabledProp) return false
+            if (currentActiveState !== 'error' && isErrorProp) return false
+          }
+          return true
+        })
+      )
       const structure = parseComponentStructure(componentName)
       const parentPropConfig = getPropConfig(componentName, prop.name)
       const componentRefLabel = parentPropConfig?.componentRef
@@ -1862,18 +1884,28 @@ export default function PropControlContent({
 
       // Use Slider component for Button width and height properties (must be before isSizeProp check)
       if ((isButton && (propNameLower === 'min-width' || propNameLower === 'max-width' || propNameLower === 'max-label-width' || propNameLower === 'height')) ||
-        (isSegmentedControlItem && propNameLower === 'height')) {
-                  let minValue = 0
+        (isSegmentedControlItem && (propNameLower === 'height' || propNameLower === 'min-width' || propNameLower === 'max-width'))) {
+          let minValue = 0
           let maxValue = 500
           if (propNameLower === 'min-width') {
-            minValue = 20
-            maxValue = 150
+            if (isSegmentedControlItem) {
+              minValue = 20
+              maxValue = 100
+            } else {
+              minValue = 20
+              maxValue = 150
+            }
           } else if (propNameLower === 'max-label-width') {
             minValue = 40
             maxValue = 200
           } else if (propNameLower === 'max-width') {
-            minValue = 0
-            maxValue = 1000
+            if (isSegmentedControlItem) {
+              minValue = 80
+              maxValue = 300
+            } else {
+              minValue = 0
+              maxValue = 1000
+            }
           } else if (propNameLower === 'height') {
             if (isButton) {
               minValue = 20
@@ -2409,7 +2441,33 @@ export default function PropControlContent({
 
   // Check for reusable toolbar modules
   // Note: propNameLower is already declared above, reuse it
-  const groupedPropsConfig = getGroupedProps(componentName, prop.name)
+  const groupedPropsConfigRaw = getGroupedProps(componentName, prop.name)
+  let groupedPropsConfig = groupedPropsConfigRaw || undefined
+
+  if (groupedPropsConfig) {
+    const activeState = selectedVariants.states || selectedVariants.state || selectedVariants.__activeState || 'default'
+    const currentActiveState = activeState.toLowerCase()
+
+    groupedPropsConfig = Object.fromEntries(
+      Object.entries(groupedPropsConfig).filter(([groupedPropName]) => {
+        const groupedPropKey = groupedPropName.toLowerCase()
+        const isHoverProp = groupedPropKey.includes('hover')
+        const isFocusProp = groupedPropKey.includes('focus')
+        const isDisabledProp = groupedPropKey.includes('disabled')
+        const isErrorProp = groupedPropKey.includes('error')
+
+        if (currentActiveState === 'default' || currentActiveState === 'base') {
+          if (isHoverProp || isFocusProp || isDisabledProp || isErrorProp) return false
+        } else {
+          if (currentActiveState !== 'hover' && isHoverProp) return false
+          if (currentActiveState !== 'focus' && isFocusProp) return false
+          if (currentActiveState !== 'disabled' && isDisabledProp) return false
+          if (currentActiveState !== 'error' && isErrorProp) return false
+        }
+        return true
+      })
+    )
+  }
 
   // Border Group Module
   // Skip the BorderGroupToolbar shortcut when the config uses active/inactive border colors

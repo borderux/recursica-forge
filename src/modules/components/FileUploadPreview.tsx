@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { FileUpload, FileUploadItem } from '../../components/adapters/FileUpload'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
-import { h2Style } from './typographyStyles'
+import { h2Style, h3Style } from './typographyStyles'
 
 
 interface FileUploadPreviewProps {
@@ -21,9 +21,7 @@ export default function FileUploadPreview({
     const state = (selectedVariants.states || 'default') 
 
     // Show both layouts
-    const layoutsToShow: string[] = selectedVariants.layouts
-    ? [selectedVariants.layouts]
-    : ['stacked', 'side-by-side']
+    const layoutsToShow = [selectedVariants.layout || selectedVariants.layouts || 'stacked']
 
     const [files, setFiles] = useState<FileUploadItem[]>([
         { id: '1', name: 'document.pdf', size: 1024, type: 'application/pdf', status: 'success' },
@@ -56,13 +54,12 @@ export default function FileUploadPreview({
             flexDirection: 'column',
             gap: verticalGutter,
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'flex-start'
         }}>
+            
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ width: '100%', maxWidth: '500px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
+                    
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {state === 'default' && (
                             <>

@@ -167,6 +167,38 @@
               "icon-unselected": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
               }
             },
             "layer-1": {
@@ -191,6 +223,38 @@
                 "$value": "{brand.palettes.neutral.500.color.tone}"
               },
               "icon-unselected": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-selected-focus": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.500.color.tone}"
               }
@@ -219,6 +283,38 @@
               "icon-unselected": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
               }
             },
             "layer-3": {
@@ -243,6 +339,38 @@
                 "$value": "{brand.palettes.neutral.500.color.tone}"
               },
               "icon-unselected": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "thumb-selected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-unselected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-unselected-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-selected-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "track-selected-focus": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.500.color.tone}"
               }

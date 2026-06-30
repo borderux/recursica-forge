@@ -1,14 +1,20 @@
 {
+  "variants": {},
   "props": {
-    "padding": {
-      "icon": "square-logo",
-      "label": "Padding",
-      "visible": true
-    },
-    "item-gap": {
-      "icon": "arrows-left-right",
-      "label": "Item gap",
-      "visible": true
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
+      "visible": true,
+      "group": {
+        "padding": {
+          "label": "Padding",
+          "visible": true
+        },
+        "item-gap": {
+          "label": "Item gap",
+          "visible": true
+        }
+      }
     }
   }
 }

@@ -1,194 +1,203 @@
 {
-  "variants": {
-    "states": {
-      "icon": "cursor",
-      "label": "State"
-    }
-  },
+  "variants": {},
   "props": {
-    "track": {
-      "icon": "faders-horizontal",
+    "step-indicator-color": {
+      "label": "Step indicator color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "step-indicator-color-active": {
+      "label": "Step indicator color active",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "min-max-label": {
+      "label": "Min max label",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "read-only-value": {
+      "label": "Read only value",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-family": {
+      "label": "Font family",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-size": {
+      "label": "Font size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-weight": {
+      "label": "Font weight",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "letter-spacing": {
+      "label": "Letter spacing",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "line-height": {
+      "label": "Line height",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-style": {
+      "label": "Font style",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "input-height": {
+      "label": "Input height",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
+      "visible": true,
+      "group": {
+        "top-bottom-margin": {
+          "label": "Top bottom margin",
+          "visible": true
+        },
+        "input-gap": {
+          "label": "Input gap",
+          "visible": true
+        },
+        "input-padding-vertical": {
+          "label": "Input padding vertical",
+          "visible": true
+        },
+        "input-padding-left": {
+          "label": "Input padding left",
+          "visible": true
+        },
+        "input-padding-right": {
+          "label": "Input padding right",
+          "visible": true
+        }
+      }
+    },
+    "track-base": {
       "label": "Track",
+      "icon": "paint-bucket",
       "visible": true,
       "group": {
         "track": {
-          "icon": "paint-bucket",
           "label": "Track",
           "visible": true
         },
         "track-active": {
-          "icon": "paint-bucket",
-          "label": "Active track",
+          "label": "Active",
           "visible": true
         },
         "track-height": {
-          "icon": "arrows-up-down",
-          "label": "Track height",
-          "visible": true
-        },
-        "track-border-radius": {
-          "icon": "corners-out",
-          "label": "Track corner radius",
+          "label": "Height",
           "visible": true
         }
       }
     },
-    "thumb": {
-      "icon": "circle",
+    "thumb-base": {
       "label": "Thumb",
+      "icon": "paint-bucket",
       "visible": true,
       "group": {
         "thumb": {
-          "icon": "paint-bucket",
           "label": "Thumb",
           "visible": true
         },
         "thumb-size": {
-          "icon": "circle",
-          "label": "Thumb size",
-          "visible": true
-        },
-        "thumb-border-radius": {
-          "icon": "corners-out",
-          "label": "Thumb corner radius",
-          "visible": true
-        },
-        "thumb-elevation": {
-          "icon": "copy-simple",
-          "label": "Thumb elevation",
+          "label": "Size",
           "visible": true
         }
       }
     },
-    "gaps": {
-      "icon": "split-horizontal",
-      "label": "Gaps",
+    "icon-color": {
+      "label": "Icon color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "input-background": {
+      "label": "Input background",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "text-base": {
+      "label": "Text",
+      "icon": "text-aa",
       "visible": true,
       "group": {
-        "input-gap": {
-          "icon": "split-horizontal",
-          "label": "Input gap",
-          "visible": true
-        }
-      }
-    },
-    "top-bottom-margin": {
-      "icon": "arrows-up-down",
-      "label": "Top and bottom margin",
-      "visible": true
-    },
-    "icon": {
-      "icon": "star",
-      "label": "Icon",
-      "visible": true,
-      "group": {
-        "icon-color": {
-          "icon": "paint-bucket",
-          "label": "Icon color",
-          "visible": true
-        },
-        "icon-size": {
-          "icon": "corners-out",
-          "label": "Icon size",
-          "visible": true
-        }
-      }
-    },
-    "input": {
-      "icon": "text-input",
-      "label": "Input field",
-      "visible": true,
-      "group": {
-        "input-background": {
-          "icon": "paint-bucket",
-          "label": "Background color",
-          "visible": true
-        },
-        "input-border-color": {
-          "icon": "square",
-          "label": "Border color",
-          "visible": true
-        },
         "input-text": {
-          "icon": "text-aa",
-          "label": "Text color",
+          "label": "Input ",
+          "visible": true
+        },
+        "text-decoration": {
+          "label": "Decoration",
+          "visible": true
+        },
+        "text-transform": {
+          "label": "Transform",
+          "visible": true
+        }
+      }
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "input-border-color": {
+          "label": "Input color",
           "visible": true
         },
         "input-border-size": {
-          "icon": "corners-out",
-          "label": "Border size",
+          "label": "Input size",
+          "visible": true
+        },
+        "track-border-radius": {
+          "label": "Track radius",
+          "visible": true
+        },
+        "thumb-border-radius": {
+          "label": "Thumb radius",
           "visible": true
         },
         "input-border-radius": {
-          "icon": "corners-out",
-          "label": "Corner radius",
+          "label": "Input radius",
           "visible": true
         },
-        "input-width": {
-          "icon": "arrows-left-right",
-          "label": "Width",
-          "visible": true
-        },
-        "input-height": {
-          "icon": "arrows-up-down",
-          "label": "Height",
-          "visible": true
-        },
-        "input-padding-vertical": {
-          "icon": "arrows-out-line-vertical",
-          "label": "Vertical padding",
-          "visible": true
-        },
-        "input-padding-left": {
-          "icon": "arrow-left",
-          "label": "Left padding",
-          "visible": true
-        },
-        "input-padding-right": {
-          "icon": "arrow-right",
-          "label": "Right padding",
+        "step-indicator-border-radius": {
+          "label": "Step indicator radius",
           "visible": true
         }
       }
     },
-    "input-text": {
-      "icon": "text-aa",
-      "label": "Input text style",
-      "visible": true
+    "icon-size": {
+      "label": "Icon size",
+      "visible": true,
+      "icon": "star"
     },
-    "min-max-label": {
-      "icon": "text-aa",
-      "label": "Min/max label style",
-      "visible": true
+    "thumb-elevation": {
+      "label": "Thumb elevation",
+      "visible": true,
+      "icon": "paint-bucket"
     },
-    "read-only-value": {
-      "icon": "text-aa",
-      "label": "Read-only value style",
-      "visible": true
-    },
-    "step-indicator": {
-      "icon": "dots-three",
-      "label": "Step indicator",
+    "width-base": {
+      "label": "Width",
+      "icon": "arrows-left-right",
       "visible": true,
       "group": {
-        "step-indicator-color": {
-          "icon": "paint-bucket",
-          "label": "Color",
-          "visible": true
-        },
-        "step-indicator-color-active": {
-          "icon": "paint-bucket",
-          "label": "Active color",
+        "input-width": {
+          "label": "Input ",
           "visible": true
         },
         "step-indicator-width": {
-          "icon": "arrows-left-right",
-          "label": "Width",
-          "visible": true
-        },
-        "step-indicator-border-radius": {
-          "icon": "corners-out",
-          "label": "Corner radius",
+          "label": "Step indicator ",
           "visible": true
         }
       }

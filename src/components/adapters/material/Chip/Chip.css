@@ -88,3 +88,27 @@
   width: 100% !important;
   height: 100% !important;
 }
+
+/* Hover state styling */
+.MuiChip-root:hover:not(.Mui-disabled) {
+  background-color: var(--chip-bg-hover, var(--chip-bg)) !important;
+  color: var(--chip-color-hover, var(--chip-color)) !important;
+  border-color: var(--chip-border-hover, var(--chip-border)) !important;
+}
+
+.MuiChip-root:hover:not(.Mui-disabled) .MuiChip-icon {
+  color: var(--chip-color-hover, var(--chip-color)) !important;
+}
+
+/* Focus state styling */
+.MuiChip-root:focus-visible:not(.Mui-disabled),
+.MuiChip-root.Mui-focusVisible:not(.Mui-disabled) {
+  background-color: var(--chip-bg-focus, var(--chip-bg)) !important;
+  color: var(--chip-color-focus, var(--chip-color)) !important;
+  border-color: var(--chip-border-focus, var(--chip-border)) !important;
+}
+
+.MuiChip-root:focus-visible:not(.Mui-disabled) .MuiChip-icon,
+.MuiChip-root.Mui-focusVisible:not(.Mui-disabled) .MuiChip-icon {
+  color: var(--chip-color-focus, var(--chip-color)) !important;
+}

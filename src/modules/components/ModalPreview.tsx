@@ -7,7 +7,7 @@ import { buildComponentCssVarPath, getComponentLevelCssVar, getComponentTextCssV
 import { useThemeMode } from '../../modules/theme/ThemeModeContext'
 import { getElevationBoxShadow } from '../../components/utils/brandCssVars'
 import { readCssVar, readRawCssVar } from '../../core/css/readCssVar'
-import { h2Style, pStyle } from './typographyStyles'
+import { h2Style, h4Style, pStyle } from './typographyStyles'
 
 interface ModalPreviewProps {
     selectedVariants: Record<string, string>
@@ -149,11 +149,13 @@ export default function ModalPreview({
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
-    return (
-        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: verticalGutter, width: '100%' }}>
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
+        <div style={{ padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: verticalGutter, width: '100%' }}>
+      
             {/* Primary Static Preview */}
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-                <h2 style={h2Style}>Static</h2>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'flex-start' }}>
+                <h4 style={h4Style}>Static</h4>
                 <div key={`${updateKey}-primary`} style={staticModalStyles}>
                     {/* Header */}
                     {showHeader && (
@@ -161,7 +163,7 @@ export default function ModalPreview({
                             padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
                             background: `var(${bgVar})`,
                             display: 'flex',
-                            alignItems: 'center',
+                            alignItems: 'flex-start',
                             justifyContent: 'space-between',
                             borderBottom: scrollable ? `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})` : 'none',
                         }}>
@@ -228,15 +230,15 @@ export default function ModalPreview({
             </div>
 
             {/* Scrolling Static Preview */}
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-                <h2 style={h2Style}>Scrolling</h2>
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'flex-start' }}>
+                <h4 style={h4Style}>Scrolling</h4>
                 <div key={`${updateKey}-scrolling`} style={staticModalStyles}>
                     {/* Header with mandatory divider for scrolling example */}
                     <div style={{
                         padding: `var(${verticalPaddingVar}) var(${horizontalPaddingVar})`,
                         background: `var(${bgVar})`,
                         display: 'flex',
-                        alignItems: 'center',
+                        alignItems: 'flex-start',
                         justifyContent: 'space-between',
                         borderBottom: `var(${scrollDividerThicknessVar}) solid var(${dividerColorVar})`,
                     }}>
@@ -300,7 +302,7 @@ export default function ModalPreview({
             </div>
 
             {/* Active Modal Trigger */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '15px' }}>
                 <Button
                     variant="solid"
                     onClick={() => setIsOpen(true)}

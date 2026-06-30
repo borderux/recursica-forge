@@ -16,7 +16,7 @@ export default function LinkPreview({
     const ArrowUpRightIcon = iconNameToReactComponent('arrow-top-right-on-square')
 
     return (
-        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
             <Link href="#" layer={selectedLayer as any} forceState={state}>Visit the Forge</Link>
             <Link href="#" layer={selectedLayer as any} forceState={state} startIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Goblin Archives</Link>
             <Link href="#" layer={selectedLayer as any} forceState={state} endIcon={ArrowUpRightIcon ? <ArrowUpRightIcon /> : undefined}>Rune Codex</Link>

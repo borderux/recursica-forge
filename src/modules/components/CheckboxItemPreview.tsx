@@ -8,7 +8,8 @@ interface CheckboxItemPreviewProps {
 }
 
 export default function CheckboxItemPreview({
-    selectedLayer,
+    selectedVariants,
+  selectedLayer,
 }: CheckboxItemPreviewProps) {
     const [updateKey, setUpdateKey] = useState(0)
 
@@ -41,69 +42,25 @@ export default function CheckboxItemPreview({
         }
     }, [])
 
-    return (
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
             gap: '24px',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             alignItems: 'flex-start',
-            padding: '16px',
+            padding: 0,
             width: '100%',
             maxWidth: '400px',
         }} data-update-key={updateKey}>
+      
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%' }}>
                 <CheckboxItem
                     label="Sharpen the blade"
                     checked={checked1}
                     onChange={setChecked1}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Polish the runes"
-                    checked={checked2}
-                    onChange={setChecked2}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Inspect the quenching oil"
-                    checked={indeterminate}
-                    indeterminate
-                    onChange={setIndeterminate}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Forbidden enchantment"
-                    checked={false}
-                    disabled
-                    onChange={() => { }}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Ancient ward applied"
-                    checked={true}
-                    disabled
-                    onChange={() => { }}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="Shield of deflection"
-                    checked={false}
-                    indeterminate
-                    disabled
-                    onChange={() => { }}
-                    layer={selectedLayer as any}
-                />
-
-                <CheckboxItem
-                    label="The quick onyx goblin jumps over the lazy dwarf, muttering about a treasure map he found tucked inside an old boot at the bottom of the river, while clutching a handful of stolen trinkets that sparkle like tiny stars in the moonlight"
-                    checked={checkedWrap}
-                    onChange={setCheckedWrap}
+                    disabled={activeState === 'disabled'}
                     layer={selectedLayer as any}
                 />
             </div>

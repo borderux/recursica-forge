@@ -1,0 +1,191 @@
+{
+  "variants": {},
+  "props": {
+    "size": {
+      "label": "Size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "background-variant": {
+      "label": "Background",
+      "icon": "paint-bucket",
+      "visible": true,
+      "group": {
+        "background-unchecked": {
+          "label": "Unchecked",
+          "visible": true
+        },
+        "background-checked": {
+          "label": "Checked",
+          "visible": true
+        },
+        "background-indeterminate": {
+          "label": "Indeterminate",
+          "visible": true
+        },
+        "background-unchecked-hover": {
+          "label": "Unchecked hover",
+          "visible": true
+        },
+        "background-unchecked-focus": {
+          "label": "Unchecked focus",
+          "visible": true
+        },
+        "background-checked-hover": {
+          "label": "Checked hover",
+          "visible": true
+        },
+        "background-checked-focus": {
+          "label": "Checked focus",
+          "visible": true
+        },
+        "background-indeterminate-hover": {
+          "label": "Indeterminate hover",
+          "visible": true
+        },
+        "background-indeterminate-focus": {
+          "label": "Indeterminate focus",
+          "visible": true
+        }
+      }
+    },
+    "border-variant": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "border-unchecked": {
+          "label": "Unchecked",
+          "visible": true
+        },
+        "border-checked": {
+          "label": "Checked",
+          "visible": true
+        },
+        "border-indeterminate": {
+          "label": "Indeterminate",
+          "visible": true
+        },
+        "border-unchecked-hover": {
+          "label": "Unchecked hover",
+          "visible": true
+        },
+        "border-unchecked-focus": {
+          "label": "Unchecked focus",
+          "visible": true
+        },
+        "border-checked-hover": {
+          "label": "Checked hover",
+          "visible": true
+        },
+        "border-checked-focus": {
+          "label": "Checked focus",
+          "visible": true
+        },
+        "border-indeterminate-hover": {
+          "label": "Indeterminate hover",
+          "visible": true
+        },
+        "border-indeterminate-focus": {
+          "label": "Indeterminate focus",
+          "visible": true
+        }
+      }
+    },
+    "icon-variant": {
+      "label": "Icon",
+      "icon": "star",
+      "visible": true,
+      "group": {
+        "icon-color": {
+          "label": "Color",
+          "visible": true
+        },
+        "icon-color-indeterminate": {
+          "label": "Color indeterminate",
+          "visible": true
+        },
+        "icon-color-hover": {
+          "label": "Color hover",
+          "visible": true
+        },
+        "icon-color-focus": {
+          "label": "Color focus",
+          "visible": true
+        },
+        "icon-color-indeterminate-hover": {
+          "label": "Color indeterminate hover",
+          "visible": true
+        },
+        "icon-color-indeterminate-focus": {
+          "label": "Color indeterminate focus",
+          "visible": true
+        }
+      }
+    },
+    "disabled-variant": {
+      "label": "Disabled",
+      "icon": "cursor",
+      "visible": true,
+      "group": {
+        "disabled-background-checked": {
+          "label": "Background checked",
+          "visible": true
+        },
+        "disabled-background-unchecked": {
+          "label": "Background unchecked",
+          "visible": true
+        },
+        "disabled-background-indeterminate": {
+          "label": "Background indeterminate",
+          "visible": true
+        },
+        "disabled-border-checked": {
+          "label": "Border checked",
+          "visible": true
+        },
+        "disabled-border-unchecked": {
+          "label": "Border unchecked",
+          "visible": true
+        },
+        "disabled-border-indeterminate": {
+          "label": "Border indeterminate",
+          "visible": true
+        },
+        "disabled-icon-checked": {
+          "label": "Icon checked",
+          "visible": true
+        },
+        "disabled-icon-indeterminate": {
+          "label": "Icon indeterminate",
+          "visible": true
+        }
+      }
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "border-radius": {
+          "label": "Radius",
+          "visible": true
+        },
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        }
+      }
+    },
+    "icon-size": {
+      "label": "Icon size",
+      "visible": true,
+      "icon": "star"
+    },
+    "disabled-opacity": {
+      "label": "Disabled opacity",
+      "visible": true,
+      "icon": "square-2-stack"
+    }
+  }
+}

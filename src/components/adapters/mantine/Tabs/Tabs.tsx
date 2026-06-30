@@ -38,6 +38,10 @@ export default function Tabs({
   const activeTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'text-color')
   const activeIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'icon-color')
   const activeBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'border-size')
+  const activeBackgroundFocusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'background-focus')
+  const activeBorderColorFocusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'border-color-focus')
+  const activeTextColorFocusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'text-color-focus')
+  const activeIconColorFocusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'icon-color-focus')
 
   // Read computed active background color to check if it's transparent
   const activeBgColor = useCssVar(activeBackgroundVar || '')
@@ -52,6 +56,15 @@ export default function Tabs({
   const inactiveTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'text-color')
   const inactiveIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'icon-color')
   const inactiveBorderSizeVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'border-size')
+  const inactiveBackgroundFocusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'background-focus')
+  const inactiveBorderColorFocusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'border-color-focus')
+  const inactiveTextColorFocusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'text-color-focus')
+  const inactiveIconColorFocusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'icon-color-focus')
+
+  const inactiveBackgroundDisabledVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'background-disabled')
+  const inactiveBorderColorDisabledVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'border-color-disabled')
+  const inactiveTextColorDisabledVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'text-color-disabled')
+  const inactiveIconColorDisabledVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'icon-color-disabled')
 
   // Get variant-specific properties
   const borderRadiusVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'border-radius')
@@ -114,17 +127,30 @@ export default function Tabs({
       // Set all CSS variables for the Tabs component
       // Active state
       '--recursica_tabs_active_background': activeBackgroundVar ? `var(${activeBackgroundVar}, var(--recursica_tabs_surface_color, white))` : undefined,
+      '--recursica_tabs_active_background-focus': activeBackgroundFocusVar ? `var(${activeBackgroundFocusVar})` : undefined,
       '--recursica_tabs_active_border_track_color': activeBorderTrackColor,
       '--recursica_tabs_active_border-color': activeBorderColorVar ? `var(${activeBorderColorVar})` : undefined,
+      '--recursica_tabs_active_border-color-focus': activeBorderColorFocusVar ? `var(${activeBorderColorFocusVar})` : undefined,
       '--recursica_tabs_active_text-color': activeTextColorVar ? `var(${activeTextColorVar})` : undefined,
+      '--recursica_tabs_active_text-color-focus': activeTextColorFocusVar ? `var(${activeTextColorFocusVar})` : undefined,
       '--recursica_tabs_active_icon_color': activeIconColorVar ? `var(${activeIconColorVar})` : undefined,
+      '--recursica_tabs_active_icon_color-focus': activeIconColorFocusVar ? `var(${activeIconColorFocusVar})` : undefined,
       '--recursica_tabs_active_border-size': activeBorderSizeVar ? `var(${activeBorderSizeVar})` : undefined,
       // Inactive state
       '--recursica_tabs_inactive_background': inactiveBackgroundVar ? `var(${inactiveBackgroundVar})` : undefined,
+      '--recursica_tabs_inactive_background-focus': inactiveBackgroundFocusVar ? `var(${inactiveBackgroundFocusVar})` : undefined,
       '--recursica_tabs_inactive_border-color': inactiveBorderColorVar ? `var(${inactiveBorderColorVar})` : undefined,
+      '--recursica_tabs_inactive_border-color-focus': inactiveBorderColorFocusVar ? `var(${inactiveBorderColorFocusVar})` : undefined,
       '--recursica_tabs_inactive_text-color': inactiveTextColorVar ? `var(${inactiveTextColorVar})` : undefined,
+      '--recursica_tabs_inactive_text-color-focus': inactiveTextColorFocusVar ? `var(${inactiveTextColorFocusVar})` : undefined,
       '--recursica_tabs_inactive_icon_color': inactiveIconColorVar ? `var(${inactiveIconColorVar})` : undefined,
+      '--recursica_tabs_inactive_icon_color-focus': inactiveIconColorFocusVar ? `var(${inactiveIconColorFocusVar})` : undefined,
       '--recursica_tabs_inactive_border-size': inactiveBorderSizeVar ? `var(${inactiveBorderSizeVar})` : undefined,
+      // Disabled state
+      '--recursica_tabs_inactive_background-disabled': inactiveBackgroundDisabledVar ? `var(${inactiveBackgroundDisabledVar})` : undefined,
+      '--recursica_tabs_inactive_border-color-disabled': inactiveBorderColorDisabledVar ? `var(${inactiveBorderColorDisabledVar})` : undefined,
+      '--recursica_tabs_inactive_text-color-disabled': inactiveTextColorDisabledVar ? `var(${inactiveTextColorDisabledVar})` : undefined,
+      '--recursica_tabs_inactive_icon_color-disabled': inactiveIconColorDisabledVar ? `var(${inactiveIconColorDisabledVar})` : undefined,
       // Variant-specific
       '--recursica_tabs_border-radius': borderRadiusVar ? `var(${borderRadiusVar})` : undefined,
       // Active text typography

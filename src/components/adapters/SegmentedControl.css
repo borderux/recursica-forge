@@ -36,3 +36,47 @@
 .recursica-segmented-control-fallback[data-orientation="vertical"] button:has(+ button[data-selected])::after {
   display: none !important;
 }
+
+/* Hover, Focus, Disabled states */
+.recursica-segmented-control-fallback button:hover:not(:disabled) {
+  background: var(--unselected-bg-hover, var(--unselected-bg)) !important;
+  color: var(--unselected-text-hover, var(--unselected-text-color)) !important;
+  border-color: var(--unselected-border-color-hover, var(--unselected-border-color)) !important;
+}
+
+.recursica-segmented-control-fallback button[data-selected="true"]:hover:not(:disabled) {
+  background: var(--selected-bg-hover, var(--selected-bg)) !important;
+  color: var(--selected-text-hover, var(--selected-text-color)) !important;
+  border-color: var(--selected-border-color-hover, var(--selected-border-color)) !important;
+}
+
+.recursica-segmented-control-fallback button:focus-visible {
+  outline: 2px solid var(--unselected-border-color-focus, currentColor) !important;
+  outline-offset: -2px !important;
+  background: var(--unselected-bg-focus, var(--unselected-bg)) !important;
+  color: var(--unselected-text-focus, var(--unselected-text-color)) !important;
+  border-color: var(--unselected-border-color-focus, var(--unselected-border-color)) !important;
+}
+
+.recursica-segmented-control-fallback button[data-selected="true"]:focus-visible {
+  outline: 2px solid var(--selected-border-color-focus, currentColor) !important;
+  outline-offset: -2px !important;
+  background: var(--selected-bg-focus, var(--selected-bg)) !important;
+  color: var(--selected-text-focus, var(--selected-text-color)) !important;
+  border-color: var(--selected-border-color-focus, var(--selected-border-color)) !important;
+}
+
+.recursica-segmented-control-fallback button:disabled {
+  background: var(--unselected-bg-disabled, var(--unselected-bg)) !important;
+  color: var(--unselected-text-disabled, var(--unselected-text-color)) !important;
+  border-color: var(--unselected-border-color-disabled, var(--unselected-border-color)) !important;
+  cursor: not-allowed !important;
+}
+
+.recursica-segmented-control-fallback button[data-selected="true"]:disabled {
+  background: var(--selected-bg-disabled, var(--selected-bg)) !important;
+  color: var(--selected-text-disabled, var(--selected-text-color)) !important;
+  border-color: var(--selected-border-color-disabled, var(--selected-border-color)) !important;
+  cursor: not-allowed !important;
+}
+

@@ -33,3 +33,41 @@
 }.MuiSwitch-track {
   overflow: visible !important;
 }
+
+/* Hover state styling */
+.MuiSwitch-root:hover:not(.Mui-disabled) .MuiSwitch-thumb {
+  background-color: var(--switch-thumb-unselected-hover, var(--switch-thumb-unselected)) !important;
+}
+
+.MuiSwitch-root:hover:not(.Mui-disabled) .MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb {
+  background-color: var(--switch-thumb-selected-hover, var(--switch-thumb-selected)) !important;
+}
+
+.MuiSwitch-root:hover:not(.Mui-disabled) .MuiSwitch-track {
+  background-color: var(--switch-track-unselected-hover, var(--switch-track-unselected)) !important;
+}
+
+.MuiSwitch-root:hover:not(.Mui-disabled) .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: var(--switch-track-selected-hover, var(--switch-track-selected)) !important;
+}
+
+/* Focus state styling */
+.MuiSwitch-root.Mui-focusVisible .MuiSwitch-thumb,
+.MuiSwitch-root:focus-within .MuiSwitch-thumb {
+  background-color: var(--switch-thumb-unselected-focus, var(--switch-thumb-unselected-hover, var(--switch-thumb-unselected))) !important;
+}
+
+.MuiSwitch-root.Mui-focusVisible .MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb,
+.MuiSwitch-root:focus-within .MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb {
+  background-color: var(--switch-thumb-selected-focus, var(--switch-thumb-selected-hover, var(--switch-thumb-selected))) !important;
+}
+
+.MuiSwitch-root.Mui-focusVisible .MuiSwitch-track,
+.MuiSwitch-root:focus-within .MuiSwitch-track {
+  background-color: var(--switch-track-unselected-focus, var(--switch-track-unselected-hover, var(--switch-track-unselected))) !important;
+}
+
+.MuiSwitch-root.Mui-focusVisible .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track,
+.MuiSwitch-root:focus-within .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background-color: var(--switch-track-selected-focus, var(--switch-track-selected-hover, var(--switch-track-selected))) !important;
+}

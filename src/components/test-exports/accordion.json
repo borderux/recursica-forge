@@ -394,6 +394,14 @@
           "hover-opacity": {
             "$type": "number",
             "$value": "{tokens.opacities.ghost}"
+          },
+          "focus-color": {
+            "$type": "color",
+            "$value": "{brand.palettes.palette-1.300.color.tone}"
+          },
+          "focus-opacity": {
+            "$type": "number",
+            "$value": "{tokens.opacities.ghost}"
           }
         }
       }

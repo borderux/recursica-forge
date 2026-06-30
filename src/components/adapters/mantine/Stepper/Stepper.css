@@ -299,3 +299,32 @@
     color: inherit !important;
     fill: currentColor !important;
 }
+
+/* ---- Hover states ---- */
+.recursica-stepper .mantine-Stepper-step[data-completed]:hover .mantine-Stepper-stepIcon {
+    background-color: var(--stepper-completed-indicator-bg-hover, var(--stepper-completed-indicator-bg)) !important;
+}
+
+.recursica-stepper .mantine-Stepper-step[data-progress]:hover .mantine-Stepper-stepIcon {
+    background-color: var(--stepper-current-indicator-bg-hover, var(--stepper-current-indicator-bg)) !important;
+}
+
+.recursica-stepper .mantine-Stepper-step:not([data-completed]):not([data-progress]):hover .mantine-Stepper-stepIcon {
+    background-color: var(--stepper-upcoming-indicator-bg-hover, var(--stepper-upcoming-indicator-bg)) !important;
+}
+
+/* ---- Focus states ---- */
+.recursica-stepper .mantine-Stepper-step[data-completed] .mantine-Stepper-stepIcon:focus-visible,
+.recursica-stepper .mantine-Stepper-step[data-completed]:focus-visible .mantine-Stepper-stepIcon {
+    background-color: var(--stepper-completed-indicator-bg-focus, var(--stepper-completed-indicator-bg-hover, var(--stepper-completed-indicator-bg))) !important;
+}
+
+.recursica-stepper .mantine-Stepper-step[data-progress] .mantine-Stepper-stepIcon:focus-visible,
+.recursica-stepper .mantine-Stepper-step[data-progress]:focus-visible .mantine-Stepper-stepIcon {
+    background-color: var(--stepper-current-indicator-bg-focus, var(--stepper-current-indicator-bg-hover, var(--stepper-current-indicator-bg))) !important;
+}
+
+.recursica-stepper .mantine-Stepper-step:not([data-completed]):not([data-progress]) .mantine-Stepper-stepIcon:focus-visible,
+.recursica-stepper .mantine-Stepper-step:not([data-completed]):not([data-progress]):focus-visible .mantine-Stepper-stepIcon {
+    background-color: var(--stepper-upcoming-indicator-bg-focus, var(--stepper-upcoming-indicator-bg-hover, var(--stepper-upcoming-indicator-bg))) !important;
+}

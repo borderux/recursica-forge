@@ -41,6 +41,14 @@ export default function Switch({
   const thumbUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-unselected')
   const trackSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-selected')
   const trackUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-unselected')
+  const thumbSelectedHoverVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-selected-hover')
+  const thumbUnselectedHoverVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-unselected-hover')
+  const trackSelectedHoverVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-selected-hover')
+  const trackUnselectedHoverVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-unselected-hover')
+  const thumbSelectedFocusVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-selected-focus')
+  const thumbUnselectedFocusVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'thumb-unselected-focus')
+  const trackSelectedFocusVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-selected-focus')
+  const trackUnselectedFocusVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'track-unselected-focus')
   const iconSelectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'icon-selected')
   const iconUnselectedVar = buildComponentCssVarPath('Switch', 'properties', 'colors', layer, 'icon-unselected')
   const trackBorderRadiusVar = getComponentLevelCssVar('Switch', 'track-border-radius')
@@ -184,6 +192,18 @@ export default function Switch({
           ...(trackElevationBoxShadow ? { boxShadow: trackElevationBoxShadow } : {}),
         },
         '--recursica-switch-thumb-icon-size': `var(${thumbIconSizeVar})`,
+        '--switch-thumb-unselected': thumbUnselectedColor,
+        '--switch-thumb-selected': thumbSelectedColor,
+        '--switch-track-unselected': trackUnselectedColor,
+        '--switch-track-selected': trackSelectedColor,
+        '--switch-thumb-unselected-hover': `var(${thumbUnselectedHoverVar})`,
+        '--switch-thumb-selected-hover': `var(${thumbSelectedHoverVar})`,
+        '--switch-track-unselected-hover': `var(${trackUnselectedHoverVar})`,
+        '--switch-track-selected-hover': `var(${trackSelectedHoverVar})`,
+        '--switch-thumb-unselected-focus': `var(${thumbUnselectedFocusVar})`,
+        '--switch-thumb-selected-focus': `var(${thumbSelectedFocusVar})`,
+        '--switch-track-unselected-focus': `var(${trackUnselectedFocusVar})`,
+        '--switch-track-selected-focus': `var(${trackSelectedFocusVar})`,
         ...style,
       }}
       {...(() => {

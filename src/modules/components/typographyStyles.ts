@@ -12,5 +12,6 @@ export const getTypographyStyle = (typeStyle: string): React.CSSProperties => ({
 export const h1Style = getTypographyStyle('h1');
 export const h2Style = getTypographyStyle('h2');
 export const h3Style = getTypographyStyle('h3');
+export const h4Style = getTypographyStyle('h4');
 export const pStyle = getTypographyStyle('body');
 export const pSmallStyle = getTypographyStyle('body-small');

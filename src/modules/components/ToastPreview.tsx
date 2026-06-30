@@ -32,6 +32,7 @@ export default function ToastPreview({
   const XIcon = iconNameToReactComponent('x-mark')
 
   // Show only the selected variant (primary variant)
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div style={{
       display: 'flex',
@@ -39,9 +40,10 @@ export default function ToastPreview({
       gap: 12,
       width: '100%',
       maxWidth: 600,
-      alignItems: 'center',
-      padding: 24,
+      alignItems: 'flex-start',
+      padding: 0,
     }}>
+      
       <Toast
         variant={styleVariant}
         layer={actualLayer}

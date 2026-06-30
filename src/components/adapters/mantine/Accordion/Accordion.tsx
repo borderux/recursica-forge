@@ -135,9 +135,18 @@ export default function Accordion({
   const itemBorderColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'item-border-color')
   const contentBorderColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-border-color')
 
-  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
+  // Get hover and focus properties from component-level UIKit tokens
   const hoverColorVar = getComponentLevelCssVar('AccordionItem', 'hover-color')
   const hoverOpacityVar = getComponentLevelCssVar('AccordionItem', 'hover-opacity')
+  const hoverBorderSizeVar = getComponentLevelCssVar('AccordionItem', 'hover-border-size')
+  const hoverBorderColorVar = getComponentLevelCssVar('AccordionItem', 'hover-border-color')
+  const hoverElevationVar = getComponentLevelCssVar('AccordionItem', 'hover-elevation')
+
+  const focusColorVar = getComponentLevelCssVar('AccordionItem', 'focus-color')
+  const focusOpacityVar = getComponentLevelCssVar('AccordionItem', 'focus-opacity')
+  const focusBorderSizeVar = getComponentLevelCssVar('AccordionItem', 'focus-border-size')
+  const focusBorderColorVar = getComponentLevelCssVar('AccordionItem', 'focus-border-color')
+  const focusElevationVar = getComponentLevelCssVar('AccordionItem', 'focus-elevation')
 
   const headerPaddingHVar = getComponentLevelCssVar('AccordionItem', 'header-horizontal-padding')
   const contentPaddingHVar = getComponentLevelCssVar('AccordionItem', 'content-horizontal-padding')
@@ -237,6 +246,66 @@ export default function Accordion({
   const contentElevationBoxShadow = contentElevationFromVar && contentElevationFromVar !== 'elevation-0'
     ? getElevationBoxShadow(mode, contentElevationFromVar)
     : undefined
+
+  // Hover elevation
+  const [hoverElevationFromVar, setHoverElevationFromVar] = useState<string | undefined>(() => {
+    if (!hoverElevationVar) return undefined
+    const value = readCssVar(hoverElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+
+  // Focus elevation
+  const [focusElevationFromVar, setFocusElevationFromVar] = useState<string | undefined>(() => {
+    if (!focusElevationVar) return undefined
+    const value = readCssVar(focusElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+
+  useEffect(() => {
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars) return
+      
+      if (hoverElevationVar && detail.cssVars.includes(hoverElevationVar)) {
+        const value = readCssVar(hoverElevationVar)
+        setHoverElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+      if (focusElevationVar && detail.cssVars.includes(focusElevationVar)) {
+        const value = readCssVar(focusElevationVar)
+        setFocusElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    }
+
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    window.addEventListener('cssVarsReset', handleCssVarUpdate)
+
+    const observer = new MutationObserver(() => {
+      if (hoverElevationVar) {
+        const value = readCssVar(hoverElevationVar)
+        setHoverElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+      if (focusElevationVar) {
+        const value = readCssVar(focusElevationVar)
+        setFocusElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] })
+
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [hoverElevationVar, focusElevationVar])
+
+  const hoverElevationBoxShadow = hoverElevationFromVar && hoverElevationFromVar !== 'elevation-0'
+    ? getElevationBoxShadow(mode, hoverElevationFromVar)
+    : undefined
+
+  const focusElevationBoxShadow = focusElevationFromVar && focusElevationFromVar !== 'elevation-0'
+    ? getElevationBoxShadow(mode, focusElevationFromVar)
+    : undefined
+
 
   // Get header text properties
   const headerFontFamilyVar = getComponentTextCssVar('AccordionItem', 'header-text', 'font-family')
@@ -402,6 +471,14 @@ export default function Accordion({
         ['--accordion-item-header-text' as string]: `var(${headerTextVar})`,
         ['--accordion-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`,
         ['--accordion-item-hover-color' as string]: `var(${hoverColorVar}, #000000)`,
+        ['--accordion-item-hover-border-size' as string]: `var(${hoverBorderSizeVar})`,
+        ['--accordion-item-hover-border-color' as string]: `var(${hoverBorderColorVar})`,
+        ['--accordion-item-hover-box-shadow' as string]: hoverElevationBoxShadow || 'none',
+        ['--accordion-item-focus-opacity' as string]: `var(${focusOpacityVar}, 0.12)`,
+        ['--accordion-item-focus-color' as string]: `var(${focusColorVar}, #000000)`,
+        ['--accordion-item-focus-border-size' as string]: `var(${focusBorderSizeVar})`,
+        ['--accordion-item-focus-border-color' as string]: `var(${focusBorderColorVar})`,
+        ['--accordion-item-focus-box-shadow' as string]: focusElevationBoxShadow || 'none',
         ['--accordion-item-icon-color' as string]: `var(${iconColorVar})`,
         ['--accordion-item-divider-color' as string]: `var(${dividerColorVar})`,
         ['--accordion-item-content-bg' as string]: `var(${contentBgVar})`,

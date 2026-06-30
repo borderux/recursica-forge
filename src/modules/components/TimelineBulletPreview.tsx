@@ -231,16 +231,18 @@ export default function TimelineBulletPreview({
     const cssVars = buildCssVars(selectedLayer, bulletType)
     const bullets = useBullets(bulletType)
 
-    return (
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
         <div
             key={updateKey}
             style={{
                 display: 'flex',
                 justifyContent: 'flex-start',
-                padding: '16px',
+                padding: 0,
                 alignItems: 'flex-start',
             }}
         >
+      
             <Timeline
                 active={0}
                 align="left"

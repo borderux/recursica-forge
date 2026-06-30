@@ -99,6 +99,12 @@ export default function Chip({
   // Use explicit path building instead of parsing variant names from strings
   const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
+  const chipBgHoverVar = buildVariantColorCssVar('Chip', variant, 'background-hover', layer)
+  const chipTextHoverVar = buildVariantColorCssVar('Chip', variant, 'text-hover', layer)
+  const chipBorderHoverVar = buildVariantColorCssVar('Chip', variant, 'border-color-hover', layer)
+  const chipBgFocusVar = buildVariantColorCssVar('Chip', variant, 'background-focus', layer)
+  const chipTextFocusVar = buildVariantColorCssVar('Chip', variant, 'text-focus', layer)
+  const chipBorderFocusVar = buildVariantColorCssVar('Chip', variant, 'border-color-focus', layer)
 
   const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
   const chipIconColorVar = chipColorVar
@@ -266,6 +272,12 @@ export default function Chip({
     style: {
       // Set CSS custom properties for CSS file
       '--chip-bg': `var(${chipBgVar})`,
+      '--chip-bg-hover': `var(${chipBgHoverVar})`,
+      '--chip-color-hover': `var(${chipTextHoverVar})`,
+      '--chip-border-hover': `var(${chipBorderHoverVar})`,
+      '--chip-bg-focus': `var(${chipBgFocusVar})`,
+      '--chip-color-focus': `var(${chipTextFocusVar})`,
+      '--chip-border-focus': `var(${chipBorderFocusVar})`,
       // Use UIKit CSS variable directly for reactive updates - CSS will reference this
       '--chip-color': chipColorVar ? `var(${chipColorVar})` : undefined,
       '--chip-icon-color': chipIconColorVar ? `var(${chipIconColorVar})` : undefined,

@@ -3,7 +3,7 @@ import { NumberInput } from '../../components/adapters/NumberInput'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
-import { h2Style, pStyle } from './typographyStyles'
+import { h2Style, h3Style, pStyle } from './typographyStyles'
 
 interface NumberInputPreviewProps {
     selectedVariants: Record<string, string> // e.g., { states: "default", layouts: "stacked" }
@@ -30,9 +30,7 @@ export default function NumberInputPreview({
     const WarningIcon = iconNameToReactComponent('warning')
 
     // Show both layouts if no specific layout is selected, otherwise show selected layout
-    const layoutsToShow: string[] = selectedVariants.layouts
-        ? [layout]
-        : ['stacked', 'side-by-side']
+    const layoutsToShow = [selectedVariants.layout || selectedVariants.layouts || 'stacked']
 
     return (
         <div style={{
@@ -40,13 +38,11 @@ export default function NumberInputPreview({
             flexDirection: 'column',
             gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'flex-start'
         }}>
+            
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={{ ...h2Style, margin: 0, marginBottom: 16, textTransform: 'capitalize' }}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {/* Default state - show two examples: one with value, one with placeholder only */}
                         {state === 'default' && (

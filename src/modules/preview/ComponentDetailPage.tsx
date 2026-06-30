@@ -8,6 +8,8 @@ const ButtonPreview = lazy(() => import('../components/ButtonPreview'))
 const AccordionPreview = lazy(() => import('../components/AccordionPreview'))
 const AccordionItemPreview = lazy(() => import('../components/AccordionItemPreview'))
 const CheckboxItemPreview = lazy(() => import('../components/CheckboxItemPreview'))
+const RadioButtonItemPreview = lazy(() => import('../components/RadioButtonItemPreview'))
+const RadioButtonGroupPreview = lazy(() => import('../components/RadioButtonGroupPreview'))
 const CheckboxGroupPreview = lazy(() => import('../components/CheckboxGroupPreview'))
 const AvatarPreview = lazy(() => import('../components/AvatarPreview'))
 const ToastPreview = lazy(() => import('../components/ToastPreview'))
@@ -50,9 +52,12 @@ import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from './PreviewPage'
 import ComponentDebugTable from './ComponentDebugTable'
 import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
+import { getVariantOptionLabel } from '../toolbar/utils/loadToolbarConfig'
+import { toSentenceCase } from '../toolbar/utils/componentToolbarUtils'
 import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import type { ComponentName } from '../../components/registry/types'
 import { layerProperty, layerText } from '../../core/css/cssVarBuilder'
+import { useForcePseudoState } from './useForcePseudoState'
 
 export default function ComponentDetailPage() {
   const { componentName: componentSlug } = useParams<{ componentName: string }>()
@@ -129,6 +134,52 @@ export default function ComponentDetailPage() {
   }, [componentName, location.pathname, location.search, getInitialVariants, componentStructure])
 
   // Get layer label for display
+  
+  const hasStateControl = useMemo(() => {
+    if (!componentStructure) return false
+    if (componentStructure.variants.some(v => v.propName.toLowerCase() === 'states' || v.propName.toLowerCase() === 'state')) return true
+    
+    let hasExtraState = false
+    componentStructure.props.forEach(p => {
+      if (p.category !== 'colors' && !p.name.includes('color')) return
+      const pName = p.name.toLowerCase()
+      if (pName.includes('hover') || pName.includes('focus') || pName.includes('disabled')) {
+        hasExtraState = true
+      }
+    })
+    return hasExtraState
+  }, [componentStructure])
+
+  const previewVariants = useMemo(() => {
+    return { ...selectedVariants, __hasStateControl: hasStateControl ? 'true' : 'false' }
+  }, [selectedVariants, hasStateControl])
+
+  const activeStateToForce = selectedVariants.states || selectedVariants.state || selectedVariants.__activeState || null;
+  useForcePseudoState(activeStateToForce)
+
+  // Find all active variants (excluding states and state)
+  const activeVariantValues = useMemo(() => {
+    if (!componentStructure || !componentName) return '';
+    return componentStructure.variants
+      .filter(v => v.propName.toLowerCase() !== 'states' && v.propName.toLowerCase() !== 'state')
+      .map(v => {
+        const val = selectedVariants[v.propName] || v.variants[0];
+        if (!val) return '';
+        return getVariantOptionLabel(componentName, v.propName, val) ?? toSentenceCase(val);
+      })
+      .filter(Boolean)
+      .join(' · ');
+  }, [componentStructure, selectedVariants, componentName]);
+
+  const activeStateText = useMemo(() => {
+    return selectedVariants.states || selectedVariants.state || (hasStateControl ? 'default' : null);
+  }, [selectedVariants, hasStateControl]);
+
+  const formattedStateText = useMemo(() => {
+    if (!activeStateText) return '';
+    return activeStateText.charAt(0).toUpperCase() + activeStateText.slice(1);
+  }, [activeStateText]);
+
   const layerLabel = useMemo(() => {
     return selectedLayer.replace('layer-', 'Layer ').replace(/\b\w/g, l => l.toUpperCase())
   }, [selectedLayer])
@@ -294,12 +345,12 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          padding: component.name.toLowerCase().includes('table') ? 0 : 'var(--recursica_brand_dimensions_general_xl)',
+          padding: 'var(--recursica_brand_dimensions_general_lg)',
           position: 'sticky',
           top: 0,
           alignSelf: component.name.toLowerCase().includes('table') ? 'stretch' : 'flex-start',
           height: component.name.toLowerCase().includes('table') ? '100%' : undefined,
-          overflow: 'hidden',
+          overflow: 'visible',
           borderTopLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
           borderBottomLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         }}>
@@ -323,146 +374,202 @@ export default function ComponentDetailPage() {
             position: 'relative',
             minHeight: debugMode ? '400px' : 0,
           }}>
+            {/* Header info for active variants and states */}
+            {(!component.name.toLowerCase().includes('table')) && (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                justifyContent: 'flex-start',
+                width: '100%',
+                paddingTop: 'var(--recursica_brand_dimensions_general_md)',
+                paddingBottom: 0,
+                marginBottom: 'var(--recursica_brand_dimensions_general_xl)',
+                textAlign: 'left',
+                flexShrink: 0,
+              }}>
+                {activeVariantValues && (
+                  <h2 style={{
+                    fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
+                    fontSize: 'var(--recursica_brand_typography_h2-font-size)',
+                    fontWeight: 'var(--recursica_brand_typography_h2-font-weight)',
+                    letterSpacing: 'var(--recursica_brand_typography_h2-font-letter-spacing)',
+                    lineHeight: 'var(--recursica_brand_typography_h2-line-height)',
+                    color: `var(${layerText(mode, layerNum, 'color')})`,
+                    margin: 0,
+                  }}>
+                    {activeVariantValues}
+                  </h2>
+                )}
+                <h3 style={{
+                  fontFamily: 'var(--recursica_brand_typography_h3-font-family)',
+                  fontSize: 'var(--recursica_brand_typography_h3-font-size)',
+                  fontWeight: 'var(--recursica_brand_typography_h3-font-weight)',
+                  letterSpacing: 'var(--recursica_brand_typography_h3-font-letter-spacing)',
+                  lineHeight: 'var(--recursica_brand_typography_h3-line-height)',
+                  color: `var(${layerText(mode, layerNum, 'color')})`,
+                  margin: '8px 0 0 0',
+                }}>
+                  {layerLabel}{formattedStateText ? ` · ${formattedStateText}` : ''}
+                </h3>
+              </div>
+            )}
+
             {/* Component Preview */}
-            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', width: '100%', minWidth: 0 }}>
+            <div 
+              className={activeStateToForce && activeStateToForce !== 'default' && activeStateToForce !== 'disabled' ? `recursica-force-${activeStateToForce}` : undefined} 
+              style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', minWidth: 0 }}
+            >
               <Suspense fallback={<div />}>
                 {component.name === 'Button' ? (
                   <ButtonPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Accordion' ? (
                   <AccordionPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Accordion item' ? (
                   <AccordionItemPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Checkbox group item' ? (
                   <CheckboxItemPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Radio button group item' ? (
+                  <RadioButtonItemPreview
+                    selectedVariants={previewVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Radio button group' ? (
+                  <RadioButtonGroupPreview
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Checkbox group' ? (
                   <CheckboxGroupPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Avatar' ? (
                   <AvatarPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Toast' ? (
                   <ToastPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     selectedAltLayer={null}
                   />
                 ) : component.name === 'Badge' ? (
                   <BadgePreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Chip' ? (
                   <ChipPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     selectedAltLayer={null}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Label' ? (
                   <LabelPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Link' ? (
                   <LinkPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Assistive element' ? (
                   <AssistiveElementPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Text field' ? (
                   <TextFieldPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Date picker' ? (
                   <DatePickerPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Textarea' ? (
                   <TextareaPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Number input' ? (
                   <NumberInputPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Dropdown' ? (
                   <DropdownPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Autocomplete' ? (
                   <AutocompletePreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Menu' ? (
                   <MenuPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Menu item' ? (
                   <MenuItemPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Breadcrumb' ? (
                   <BreadcrumbPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Slider' ? (
                   <SliderPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Segmented control' ? (
                   <div style={{ width: '100%', minWidth: 0, alignSelf: 'stretch', flex: '1 1 0%' }}>
                     <SegmentedControlPreview
-                      selectedVariants={selectedVariants}
+                      selectedVariants={previewVariants}
                       selectedLayer={selectedLayer}
                       componentElevation={componentElevation}
                     />
@@ -470,109 +577,109 @@ export default function ComponentDetailPage() {
                 ) : component.name === 'Segmented control item' ? (
                   <div style={{ width: '100%', minWidth: 0, alignSelf: 'stretch', flex: '1 1 0%' }}>
                     <SegmentedControlItemPreview
-                      selectedVariants={selectedVariants}
+                      selectedVariants={previewVariants}
                       selectedLayer={selectedLayer}
                       componentElevation={componentElevation}
                     />
                   </div>
                 ) : component.name === 'Tabs' ? (
                   <TabsPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Modal' ? (
                   <ModalPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Read only field' ? (
                   <ReadOnlyFieldPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'File input' ? (
                   <FileInputPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'File upload' ? (
                   <FileUploadPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Panel' ? (
                   <PanelPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Hover card / Popover' ? (
                   <HoverCardPopoverPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Card' ? (
                   <CardPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                   />
                 ) : component.name === 'Pagination' ? (
                   <PaginationPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Time picker' ? (
                   <TimePickerPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Loader' ? (
                   <LoaderPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Stepper' ? (
                   <StepperPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Timeline' ? (
                   <TimelinePreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Timeline bullet' ? (
                   <TimelineBulletPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Transfer list' ? (
                   <TransferListPreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Table' ? (
                   <TablePreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Table cell' ? (
                   <TablePreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                     singleRowMode={true}
@@ -580,7 +687,7 @@ export default function ComponentDetailPage() {
                   />
                 ) : component.name === 'Table header' ? (
                   <TablePreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                     singleRowMode={true}
@@ -588,7 +695,7 @@ export default function ComponentDetailPage() {
                   />
                 ) : component.name === 'Table footer' ? (
                   <TablePreview
-                    selectedVariants={selectedVariants}
+                    selectedVariants={previewVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                     singleRowMode={true}
@@ -621,15 +728,15 @@ export default function ComponentDetailPage() {
 
         {/* Toolbar Panel - Right Side */}
         <div style={{
-          width: '320px',
+          width: '360px',
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',
-          borderLeft: `1px solid var(${layerProperty(mode, 1, 'border-color')})`,
           minHeight: debugMode ? undefined : 0,
           height: debugMode ? undefined : '100%',
           borderTopRightRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
           borderBottomRightRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
+          borderLeft: `1px solid var(${layerProperty(mode, 1, 'border-color')})`,
           overflow: 'hidden',
         }}>
           <ComponentToolbar
@@ -652,7 +759,7 @@ export default function ComponentDetailPage() {
           <ComponentDebugTable
             componentName={component.name}
             openPropControl={openPropControl.size > 0 ? Array.from(openPropControl)[0] : null}
-            selectedVariants={selectedVariants}
+            selectedVariants={previewVariants}
             selectedLayer={selectedLayer}
           />
         </div>

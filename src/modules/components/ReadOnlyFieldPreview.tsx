@@ -2,7 +2,7 @@ import { ReadOnlyField } from '../../components/adapters/ReadOnlyField'
 import { iconNameToReactComponent } from './iconUtils'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
-import { h2Style } from './typographyStyles'
+import { h2Style, h3Style } from './typographyStyles'
 
 
 interface ReadOnlyFieldPreviewProps {
@@ -28,25 +28,24 @@ export default function ReadOnlyFieldPreview({
     const EditIcon = iconNameToReactComponent('pencil')
 
     // Show both layouts if no specific layout is selected, otherwise show selected layout
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts
-        ? [layout]
-        : ['stacked', 'side-by-side']
+    const layoutsToShow = [selectedVariants.layout || selectedVariants.layouts || 'stacked']
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
-    return (
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
             gap: verticalGutter,
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'flex-start'
         }}>
+      
+
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
+                    
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {/* Basic read-only field with value */}
                         <ReadOnlyField

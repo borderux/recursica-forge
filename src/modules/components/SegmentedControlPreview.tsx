@@ -20,9 +20,9 @@ export default function SegmentedControlPreview({
 
   // Extract variants from selectedVariants
   const orientationVariant = (selectedVariants.orientation || 'horizontal') as 'horizontal' | 'vertical'
-  const fillWidthVariant = (selectedVariants['fill-width'] || 'false') as 'true' | 'false'
+  const widthVariant = (selectedVariants['width'] || 'hug') as 'hug' | 'fill'
 
-  const fillWidth = fillWidthVariant === 'true'
+  const fillWidth = widthVariant === 'fill'
 
   // State for selected values (one for each SegmentedControl)
   const [selectedValue1, setSelectedValue1] = useState<string>('option1')
@@ -115,10 +115,12 @@ export default function SegmentedControlPreview({
     },
   ], [Icon1, Icon2, Icon3, Icon4])
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%', minWidth: 0, maxWidth: '100%' }}>
+      
       {/* Original: Icons and Labels */}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
         <SegmentedControl
           items={itemsWithIconsAndLabels}
           value={selectedValue1}
@@ -131,7 +133,7 @@ export default function SegmentedControlPreview({
       </div>
 
       {/* Labels Only */}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
         <SegmentedControl
           items={itemsWithLabelsOnly}
           value={selectedValue2}
@@ -144,7 +146,7 @@ export default function SegmentedControlPreview({
       </div>
 
       {/* Icons Only (with tooltips) */}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
         <SegmentedControl
           items={itemsWithIconsOnly}
           value={selectedValue3}

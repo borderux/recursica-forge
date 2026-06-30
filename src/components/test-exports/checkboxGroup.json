@@ -210,6 +210,70 @@
               "disabled-icon-indeterminate": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.400.color.tone}"
+              },
+              "border-unchecked-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-unchecked-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-checked-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-checked-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "background-unchecked-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-unchecked-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-checked-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-checked-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "icon-color-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "icon-color-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "icon-color-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
+              },
+              "icon-color-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.interactive.tone}"
               }
             },
             "layer-1": {
@@ -276,6 +340,70 @@
               "disabled-icon-indeterminate": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.400.color.tone}"
+              },
+              "border-unchecked-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-unchecked-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-checked-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-checked-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "background-unchecked-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-unchecked-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-checked-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-checked-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "icon-color-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "icon-color-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "icon-color-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "icon-color-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
               }
             },
             "layer-2": {
@@ -342,6 +470,70 @@
               "disabled-icon-indeterminate": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.400.color.tone}"
+              },
+              "border-unchecked-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-unchecked-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-checked-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-checked-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "background-unchecked-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-unchecked-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-checked-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-checked-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "icon-color-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "icon-color-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "icon-color-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "icon-color-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
               }
             },
             "layer-3": {
@@ -408,6 +600,70 @@
               "disabled-icon-indeterminate": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.400.color.tone}"
+              },
+              "border-unchecked-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-unchecked-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-checked-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-checked-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "border-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "background-unchecked-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-unchecked-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-checked-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-checked-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "background-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.background}"
+              },
+              "icon-color-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "icon-color-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.interactive.tone}"
+              },
+              "icon-color-indeterminate-hover": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "icon-color-indeterminate-focus": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
               }
             }
           },

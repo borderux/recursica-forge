@@ -1,283 +1,125 @@
 {
-    "props": {
-        "content": {
-            "icon": "paint-bucket",
-            "label": "Content",
-            "visible": true,
-            "group": {
-                "background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true
-                },
-                "content": {
-                    "icon": "text-aa",
-                    "label": "Content color",
-                    "visible": true
-                },
-                "padding": {
-                    "icon": "arrows-out",
-                    "label": "Padding",
-                    "visible": true
-                },
-                "section-gap": {
-                    "icon": "split-vertical",
-                    "label": "Section gap",
-                    "visible": true
-                },
-                "vertical-gutter": {
-                    "icon": "split-vertical",
-                    "label": "Vertical gutter",
-                    "visible": true
-                }
-            }
+  "variants": {},
+  "props": {
+    "divider-color": {
+      "label": "Divider color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "title": {
+      "label": "Title",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "content": {
+      "label": "Content",
+      "visible": true,
+      "icon": "layout"
+    },
+    "vertical-gutter": {
+      "label": "Vertical gutter",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "divider-size": {
+      "label": "Divider size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "background": {
+      "label": "Background",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "header-background": {
+      "label": "Header background",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "footer-background": {
+      "label": "Footer background",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "border-color": {
+      "label": "Border color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "border-size": {
+          "label": "Size",
+          "visible": true
         },
-        "type-styles": {
-            "icon": "text-aa",
-            "label": "Type styles",
-            "visible": true,
-            "group": {
-                "header-style": {
-                    "icon": "text-h-two",
-                    "label": "Header style",
-                    "visible": true,
-                    "options": [
-                        {
-                            "label": "Heading 1",
-                            "value": "{brand.typography.h1}"
-                        },
-                        {
-                            "label": "Heading 2",
-                            "value": "{brand.typography.h2}"
-                        },
-                        {
-                            "label": "Heading 3",
-                            "value": "{brand.typography.h3}"
-                        },
-                        {
-                            "label": "Heading 4",
-                            "value": "{brand.typography.h4}"
-                        },
-                        {
-                            "label": "Heading 5",
-                            "value": "{brand.typography.h5}"
-                        },
-                        {
-                            "label": "Heading 6",
-                            "value": "{brand.typography.h6}"
-                        },
-                        {
-                            "label": "Subtitle",
-                            "value": "{brand.typography.subtitle}"
-                        },
-                        {
-                            "label": "Subtitle (small)",
-                            "value": "{brand.typography.subtitle-small}"
-                        },
-                        {
-                            "label": "Body",
-                            "value": "{brand.typography.body}"
-                        },
-                        {
-                            "label": "Body (small)",
-                            "value": "{brand.typography.body-small}"
-                        },
-                        {
-                            "label": "Caption",
-                            "value": "{brand.typography.caption}"
-                        },
-                        {
-                            "label": "Overline",
-                            "value": "{brand.typography.overline}"
-                        }
-                    ]
-                },
-                "content-style": {
-                    "icon": "text-align-left",
-                    "label": "Content style",
-                    "visible": true,
-                    "options": [
-                        {
-                            "label": "Heading 1",
-                            "value": "{brand.typography.h1}"
-                        },
-                        {
-                            "label": "Heading 2",
-                            "value": "{brand.typography.h2}"
-                        },
-                        {
-                            "label": "Heading 3",
-                            "value": "{brand.typography.h3}"
-                        },
-                        {
-                            "label": "Heading 4",
-                            "value": "{brand.typography.h4}"
-                        },
-                        {
-                            "label": "Heading 5",
-                            "value": "{brand.typography.h5}"
-                        },
-                        {
-                            "label": "Heading 6",
-                            "value": "{brand.typography.h6}"
-                        },
-                        {
-                            "label": "Subtitle",
-                            "value": "{brand.typography.subtitle}"
-                        },
-                        {
-                            "label": "Subtitle (small)",
-                            "value": "{brand.typography.subtitle-small}"
-                        },
-                        {
-                            "label": "Body",
-                            "value": "{brand.typography.body}"
-                        },
-                        {
-                            "label": "Body (small)",
-                            "value": "{brand.typography.body-small}"
-                        },
-                        {
-                            "label": "Caption",
-                            "value": "{brand.typography.caption}"
-                        },
-                        {
-                            "label": "Overline",
-                            "value": "{brand.typography.overline}"
-                        }
-                    ]
-                }
-            }
-        },
-        "header": {
-            "icon": "rows",
-            "label": "Header",
-            "visible": true,
-            "group": {
-                "header-background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true
-                },
-                "title": {
-                    "icon": "text-aa",
-                    "label": "Title color",
-                    "visible": true
-                },
-                "header-padding": {
-                    "icon": "arrows-out",
-                    "label": "Header padding",
-                    "visible": true
-                }
-            }
-        },
-        "footer": {
-            "icon": "rows",
-            "label": "Footer",
-            "visible": true,
-            "group": {
-                "footer-background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true
-                },
-                "footer-padding": {
-                    "icon": "arrows-out",
-                    "label": "Footer padding",
-                    "visible": true
-                }
-            }
-        },
-        "border": {
-            "icon": "frame-corners",
-            "label": "Border",
-            "visible": true,
-            "group": {
-                "border-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Border color",
-                    "visible": true
-                },
-                "border-size": {
-                    "icon": "rows",
-                    "label": "Size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        8
-                    ],
-                    "step": 1
-                },
-                "border-radius": {
-                    "icon": "corners-out",
-                    "label": "Corner radius",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        48
-                    ],
-                    "step": 4
-                }
-            }
-        },
-        "dividers": {
-            "icon": "minus",
-            "label": "Dividers",
-            "visible": true,
-            "group": {
-                "divider-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Divider color",
-                    "visible": true
-                },
-                "divider-size": {
-                    "icon": "rows",
-                    "label": "Divider size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        8
-                    ],
-                    "step": 1
-                }
-            }
-        },
-        "widths": {
-            "icon": "arrows-in-line-horizontal",
-            "label": "Sizes",
-            "visible": true,
-            "group": {
-                "min-width": {
-                    "icon": "arrows-in-line-horizontal",
-                    "label": "Min width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        100,
-                        800
-                    ],
-                    "step": 8
-                },
-                "max-width": {
-                    "icon": "arrows-out-line-horizontal",
-                    "label": "Max width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        200,
-                        2000
-                    ],
-                    "step": 8
-                }
-            }
-        },
-        "elevation": {
-            "icon": "copy-simple",
-            "label": "Elevation",
-            "visible": true
+        "border-radius": {
+          "label": "Radius",
+          "visible": true
         }
+      }
+    },
+    "elevation": {
+      "label": "Elevation",
+      "visible": true,
+      "icon": "copy-simple"
+    },
+    "header-base": {
+      "label": "Header",
+      "icon": "layout",
+      "visible": true,
+      "group": {
+        "header-style": {
+          "label": "Style",
+          "visible": true
+        },
+        "header-padding": {
+          "label": "Padding",
+          "visible": true
+        }
+      }
+    },
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
+      "visible": true,
+      "group": {
+        "padding": {
+          "label": "Padding",
+          "visible": true
+        },
+        "section-gap": {
+          "label": "Section gap",
+          "visible": true
+        }
+      }
+    },
+    "footer-padding": {
+      "label": "Footer padding",
+      "visible": true,
+      "icon": "split-horizontal"
+    },
+    "width-base": {
+      "label": "Width",
+      "icon": "arrows-left-right",
+      "visible": true,
+      "group": {
+        "min-width": {
+          "label": "Min ",
+          "visible": true
+        },
+        "max-width": {
+          "label": "Max ",
+          "visible": true
+        }
+      }
+    },
+    "content-style": {
+      "label": "Content style",
+      "visible": true,
+      "icon": "square-2-stack"
     }
+  }
 }

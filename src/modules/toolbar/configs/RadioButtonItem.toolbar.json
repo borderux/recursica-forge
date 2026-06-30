@@ -1,145 +1,174 @@
 {
-    "props": {
-        "radio-button": {
-            "icon": "circle",
-            "label": "Radio button",
-            "visible": true,
-            "group": {
-                "size": {
-                    "label": "Radio button size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        4,
-                        100
-                    ],
-                    "step": 1
-                },
-                "border-radius": {
-                    "label": "Corner radius",
-                    "visible": true
-                },
-                "border-size": {
-                    "label": "Border size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        20
-                    ],
-                    "step": 1
-                },
-                "label-gap": {
-                    "label": "Value radio button gap",
-                    "visible": true
-                },
-                "max-width": {
-                    "label": "Value max width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        200,
-                        1000
-                    ],
-                    "step": 1
-                }
-            }
+  "variants": {},
+  "props": {
+    "default": {
+      "label": "Default",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "hover": {
+      "label": "Hover",
+      "visible": true,
+      "icon": "cursor"
+    },
+    "focus": {
+      "label": "Focus",
+      "visible": true,
+      "icon": "cursor"
+    },
+    "disabled": {
+      "label": "Disabled",
+      "visible": true,
+      "icon": "cursor"
+    },
+    "size": {
+      "label": "Size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "label-gap": {
+      "label": "Label gap",
+      "visible": true,
+      "icon": "split-horizontal"
+    },
+    "max-width": {
+      "label": "Max width",
+      "visible": true,
+      "icon": "arrows-left-right"
+    },
+    "text": {
+      "label": "Text",
+      "visible": true,
+      "icon": "text-aa"
+    },
+    "disabled-variant": {
+      "label": "Disabled",
+      "icon": "cursor",
+      "visible": true,
+      "group": {
+        "disabled-text": {
+          "label": "Text",
+          "visible": true
         },
-        "selected": {
-            "icon": "palette",
-            "label": "Selected",
-            "visible": true,
-            "group": {
-                "background-selected": {
-                    "label": "Background",
-                    "visible": true
-                },
-                "border-selected": {
-                    "label": "Border",
-                    "visible": true
-                },
-                "icon-size": {
-                    "label": "Icon size",
-                    "visible": true
-                },
-                "icon-color": {
-                    "label": "Icon color",
-                    "visible": true
-                }
-            }
+        "disabled-background": {
+          "label": "Background",
+          "visible": true
         },
-        "unselected": {
-            "icon": "circle-dashed",
-            "label": "Unselected",
-            "visible": true,
-            "group": {
-                "background-unselected": {
-                    "label": "Background",
-                    "visible": true
-                },
-                "border-unselected": {
-                    "label": "Border",
-                    "visible": true
-                }
-            }
+        "disabled-border": {
+          "label": "Border",
+          "visible": true
         },
-        "disabled": {
-            "icon": "prohibit",
-            "label": "Disabled",
-            "visible": true,
-            "group": {
-                "disabled-background": {
-                    "label": "Background",
-                    "visible": true
-                },
-                "disabled-border": {
-                    "label": "Border",
-                    "visible": true
-                },
-                "disabled-icon": {
-                    "label": "Icon",
-                    "visible": true
-                },
-                "disabled-text": {
-                    "label": "Text",
-                    "visible": true
-                },
-                "disabled-opacity": {
-                    "label": "Opacity",
-                    "visible": true
-                }
-            }
-        },
-        "text": {
-            "icon": "text-aa",
-            "label": "Text style",
-            "visible": true,
-            "group": {
-                "font-family": {
-                    "label": "Font",
-                    "visible": true
-                },
-                "font-weight": {
-                    "label": "Weight",
-                    "visible": true
-                },
-                "font-size": {
-                    "label": "Size",
-                    "visible": true
-                },
-                "line-height": {
-                    "label": "Line height",
-                    "visible": true
-                },
-                "letter-spacing": {
-                    "label": "Letter spacing",
-                    "visible": true
-                },
-                "text": {
-                    "label": "Color",
-                    "visible": true
-                }
-            }
+        "disabled-icon": {
+          "label": "Icon",
+          "visible": true
         }
+      }
+    },
+    "disabled-opacity": {
+      "label": "Disabled opacity",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "background-variant": {
+      "label": "Background",
+      "icon": "paint-bucket",
+      "visible": true,
+      "group": {
+        "background-unselected": {
+          "label": "Unselected",
+          "visible": true
+        },
+        "background-selected": {
+          "label": "Selected",
+          "visible": true
+        },
+        "background-unselected-hover": {
+          "label": "Unselected hover",
+          "visible": true
+        },
+        "background-unselected-focus": {
+          "label": "Unselected focus",
+          "visible": true
+        },
+        "background-selected-hover": {
+          "label": "Selected hover",
+          "visible": true
+        },
+        "background-selected-focus": {
+          "label": "Selected focus",
+          "visible": true
+        }
+      }
+    },
+    "border-variant": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "border-unselected": {
+          "label": "Unselected",
+          "visible": true
+        },
+        "border-selected": {
+          "label": "Selected",
+          "visible": true
+        },
+        "border-unselected-hover": {
+          "label": "Unselected hover",
+          "visible": true
+        },
+        "border-unselected-focus": {
+          "label": "Unselected focus",
+          "visible": true
+        },
+        "border-selected-hover": {
+          "label": "Selected hover",
+          "visible": true
+        },
+        "border-selected-focus": {
+          "label": "Selected focus",
+          "visible": true
+        }
+      }
+    },
+    "icon-variant": {
+      "label": "Icon",
+      "icon": "star",
+      "visible": true,
+      "group": {
+        "icon-color": {
+          "label": "Color",
+          "visible": true
+        },
+        "icon-color-hover": {
+          "label": "Color hover",
+          "visible": true
+        },
+        "icon-color-focus": {
+          "label": "Color focus",
+          "visible": true
+        }
+      }
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "border-radius": {
+          "label": "Radius",
+          "visible": true
+        },
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        }
+      }
+    },
+    "icon-size": {
+      "label": "Icon size",
+      "visible": true,
+      "icon": "star"
     }
+  }
 }

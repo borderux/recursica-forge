@@ -1,91 +1,80 @@
 {
   "variants": {},
   "props": {
-    "container": {
-      "icon": "paint-bucket",
-      "label": "Container",
+    "divider-size": {
+      "label": "Divider size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
       "visible": true,
       "group": {
-        "background": {
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background Color"
+        "border-size": {
+          "label": "Size",
+          "visible": true
+        },
+        "border-radius": {
+          "label": "Radius",
+          "visible": true
+        }
+      }
+    },
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
+      "visible": true,
+      "group": {
+        "item-gap": {
+          "label": "Item gap",
+          "visible": true
         },
         "padding": {
           "label": "Padding",
-          "visible": true,
-          "floatingPaletteLabel": "Padding"
-        }
-      }
-    },
-    "border": {
-      "icon": "square",
-      "label": "Border",
-      "visible": true,
-      "floatingPaletteLabel": "Border",
-      "group": {
-        "border-color": {
-          "label": "Border color",
-          "visible": true,
-          "floatingPaletteLabel": "Border Color"
-        },
-        "border-size": {
-          "label": "Border size",
-          "visible": true,
-          "floatingPaletteLabel": "Border Size"
-        },
-        "border-radius": {
-          "label": "Border radius",
-          "visible": true,
-          "floatingPaletteLabel": "Border Radius"
-        }
-      }
-    },
-    "item-gap": {
-      "icon": "split-horizontal",
-      "label": "Item gap",
-      "visible": true,
-      "floatingPaletteLabel": "Item Gap",
-      "group": {
-        "item-gap": {
-          "label": "Gap size",
-          "visible": true,
-          "floatingPaletteLabel": "Item Gap"
-        },
-        "divider": {
-          "label": "Divider color",
           "visible": true
-        },
-        "divider-size": {
-          "label": "Divider size",
-          "visible": true,
-          "floatingPaletteLabel": "Divider Size"
         }
       }
     },
-    "width": {
-      "icon": "arrows-left-right",
+    "width-base": {
       "label": "Width",
+      "icon": "arrows-left-right",
       "visible": true,
-      "floatingPaletteLabel": "Width",
       "group": {
         "min-width": {
-          "label": "Min width",
-          "visible": true,
-          "floatingPaletteLabel": "Minimum Width"
+          "label": "Min ",
+          "visible": true
         },
         "max-width": {
-          "label": "Max width",
-          "visible": true,
-          "floatingPaletteLabel": "Maximum Width"
+          "label": "Max ",
+          "visible": true
         }
       }
     },
     "elevation": {
-      "icon": "copy-simple",
       "label": "Elevation",
       "visible": true,
-      "floatingPaletteLabel": "Elevation"
+      "icon": "copy-simple"
+    },
+    "background": {
+      "label": "Background",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "border-variant": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "border-color": {
+          "label": "Color",
+          "visible": true
+        },
+        "divider": {
+          "label": "Divider",
+          "visible": true
+        }
+      }
     }
   }
 }

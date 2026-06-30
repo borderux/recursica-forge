@@ -1,97 +1,64 @@
 {
-  "variants": {
-    "orientation": {
-      "icon": "arrows-out",
-      "label": "Orientation"
-    },
-    "fill-width": {
-      "icon": "arrows-out-line-horizontal",
-      "label": "Fill container width"
-    }
-  },
+  "variants": {},
   "props": {
+    "divider-color": {
+      "label": "Divider color",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "divider-size": {
+      "label": "Divider size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
     "background": {
-      "icon": "paint-bucket",
       "label": "Background",
-      "visible": true
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "border-color": {
+      "label": "Border color",
+      "visible": true,
+      "icon": "paint-bucket"
     },
     "elevation": {
-      "icon": "copy-simple",
       "label": "Elevation",
-      "visible": true
+      "visible": true,
+      "icon": "copy-simple"
     },
-    "border": {
-      "icon": "square",
+    "border-base": {
       "label": "Border",
+      "icon": "square",
       "visible": true,
       "group": {
         "border-size": {
-          "icon": "arrows-left-right",
-          "label": "Border size",
-          "visible": true
-        },
-        "border-color": {
-          "icon": "paint-bucket",
-          "label": "Border color",
+          "label": "Size",
           "visible": true
         },
         "border-radius": {
-          "icon": "corners-out",
-          "label": "Border radius",
+          "label": "Radius",
           "visible": true
         }
       }
     },
-    "padding": {
-      "icon": "arrows-out",
-      "label": "Padding",
+    "spacing-base": {
+      "label": "Spacing",
+      "icon": "split-horizontal",
       "visible": true,
       "group": {
         "padding-horizontal": {
-          "icon": "arrows-left-right",
-          "label": "Horizontal padding",
+          "label": "Padding horizontal",
           "visible": true
         },
         "padding-vertical": {
-          "icon": "arrows-up-down",
-          "label": "Vertical",
+          "label": "Padding vertical",
           "visible": true
-        }
-      }
-    },
-
-    "direction": {
-      "icon": "arrows-out",
-      "label": "Direction",
-      "visible": true
-    },
-    "fill-width": {
-      "icon": "arrows-out-line-horizontal",
-      "label": "Fill container width",
-      "visible": true
-    },
-    "divider": {
-      "icon": "split-horizontal",
-      "label": "Divider",
-      "visible": true,
-      "group": {
+        },
         "item-gap": {
-          "icon": "split-horizontal",
           "label": "Item gap",
-          "visible": true
-        },
-        "divider-color": {
-          "icon": "paint-bucket",
-          "label": "Divider color",
-          "visible": true
-        },
-        "divider-size": {
-          "icon": "arrows-left-right",
-          "label": "Divider size",
           "visible": true
         }
       }
     }
   }
 }
-

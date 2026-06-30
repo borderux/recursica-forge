@@ -1,78 +1,60 @@
 {
   "variants": {},
   "props": {
-    "spacing": {
-      "icon": "arrows-pointing-out",
+    "currency-style": {
+      "label": "Currency style",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "cell-color-enabled": {
+      "label": "Cell color enabled",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "cell-color-disabled": {
+      "label": "Cell color disabled",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "spacing-base": {
       "label": "Spacing",
+      "icon": "split-horizontal",
       "visible": true,
       "group": {
         "padding-horizontal": {
           "label": "Padding horizontal",
-          "visible": true,
-          "floatingPaletteLabel": "Horizontal Padding"
+          "visible": true
         },
         "padding-vertical": {
           "label": "Padding vertical",
-          "visible": true,
-          "floatingPaletteLabel": "Vertical Padding"
+          "visible": true
         }
       }
     },
-    "layout": {
-      "icon": "arrows-pointing-out",
-      "label": "Layout",
+    "max-width": {
+      "label": "Max width",
       "visible": true,
-      "group": {
-        "max-width": {
-          "label": "Max width",
-          "visible": true,
-          "floatingPaletteLabel": "Max Width"
-        }
-      }
-    },
-    "enabled-colors": {
-      "icon": "paint-bucket",
-      "label": "Enabled",
-      "visible": true,
-      "group": {
-        "cell-color-enabled": {
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background"
-        },
-        "text-color-enabled": {
-          "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Text"
-        }
-      }
-    },
-    "disabled-colors": {
-      "icon": "paint-bucket",
-      "label": "Disabled",
-      "visible": true,
-      "group": {
-        "cell-color-disabled": {
-          "label": "Background",
-          "visible": true,
-          "floatingPaletteLabel": "Background"
-        },
-        "text-color-disabled": {
-          "label": "Text",
-          "visible": true,
-          "floatingPaletteLabel": "Text"
-        }
-      }
+      "icon": "arrows-left-right"
     },
     "text-style": {
-      "icon": "text-aa",
-      "label": "Text Style",
-      "visible": true
+      "label": "Text style",
+      "visible": true,
+      "icon": "text-aa"
     },
-    "currency-style": {
+    "text-variant": {
+      "label": "Text",
       "icon": "text-aa",
-      "label": "Currency Style",
-      "visible": true
+      "visible": true,
+      "group": {
+        "text-color-enabled": {
+          "label": "Color enabled",
+          "visible": true
+        },
+        "text-color-disabled": {
+          "label": "Color disabled",
+          "visible": true
+        }
+      }
     }
   }
 }

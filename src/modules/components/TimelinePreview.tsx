@@ -18,7 +18,7 @@ import { Avatar } from '../../components/adapters/Avatar'
 import { buildComponentCssVarPath, getComponentTextCssVar } from '../../components/utils/cssVarNames'
 import { iconNameToReactComponent } from './iconUtils'
 import '../../components/adapters/mantine/Timeline/Timeline.css'
-import { h2Style } from './typographyStyles'
+import { h4Style } from './typographyStyles'
 
 
 interface TimelinePreviewProps {
@@ -318,7 +318,8 @@ export default function TimelinePreview({
     const cssVars = buildCssVars(selectedLayer)
     const { leftBullets, rightBullets } = useBullets()
 
-    return (
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
         <div
             key={updateKey}
             style={{
@@ -326,13 +327,14 @@ export default function TimelinePreview({
                 gap: '48px',
                 width: '100%',
                 justifyContent: 'space-between',
-                padding: '16px',
+                padding: 0,
                 alignItems: 'flex-start',
             }}
         >
+      
             {/* Left-aligned timeline */}
             <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={h2Style}>Left aligned</h2>
+                <h4 style={h4Style}>Left aligned</h4>
                 <Timeline
                     active={3}
                     align="left"
@@ -349,7 +351,7 @@ export default function TimelinePreview({
 
             {/* Right-aligned timeline */}
             <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={{ ...h2Style, textAlign: 'right' }}>Right aligned</h2>
+                <h4 style={{ ...h4Style, textAlign: 'right' }}>Right aligned</h4>
                 <Timeline
                     active={3}
                     align="right"

@@ -80,7 +80,6 @@ export default function ComponentToolbar({
   const { tokens, theme, uikit } = useVars()
   const { debugMode, setDebugMode } = useDebugMode()
   const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
-
   // Custom variant modal state
   const [createVariantModalOpen, setCreateVariantModalOpen] = useState(false)
   const [deleteVariantModalOpen, setDeleteVariantModalOpen] = useState(false)
@@ -131,7 +130,7 @@ export default function ComponentToolbar({
     const filtered = liveStructure.variants.filter(variant => variant.variants.length >= 1)
 
     // Only show variants that are explicitly listed in the toolbar config
-    if (toolbarConfig?.variants) {
+    if (toolbarConfig?.variants && Object.keys(toolbarConfig.variants).length > 0) {
       const configOrder = Object.keys(toolbarConfig.variants)
       const configVariants = filtered.filter(variant => {
         const isInConfig = configOrder.includes(variant.propName.toLowerCase())
@@ -172,6 +171,9 @@ export default function ComponentToolbar({
 
   // Detect whether this component has zero variant axes
   const hasNoVariantAxes = visibleVariants.length === 0
+
+  // Find state variant if it exists in visibleVariants
+  const stateVariant = visibleVariants.find(v => v.propName === 'states' || v.propName === 'state')
 
   // Handlers
   const handleOpenCreateVariant = (axisName: string, existingNames: string[]) => {
@@ -1197,56 +1199,214 @@ export default function ComponentToolbar({
     )
   }
 
-  return (
-    <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Layers Segmented Control */}
-      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
-            {LayerIcon && <LayerIcon style={{
-              width: '16px',
-              height: '16px',
-              color: `var(${layerText(mode, 0, 'color')})`,
-              opacity: `var(${layerText(mode, 0, 'low-emphasis')})`
-            }} />}
-            <span style={{
-              fontFamily: `var(${accordionHeaderFontFamilyVar})`,
-              fontSize: `var(${accordionHeaderFontSizeVar})`,
-              fontWeight: `var(${accordionHeaderFontWeightVar})`,
-              color: `var(${layerText(mode, 0, 'color')})`
-            }}>Layer</span>
-          </div>
-          <SegmentedControl
-            items={layerItems}
-            value={selectedLayer}
-            onChange={(value) => {
-              onLayerChange(value)
-            }}
-            orientation="horizontal"
-            fullWidth={false}
-            layer="layer-0"
-            componentNameForCssVars="SegmentedControl"
-            style={{
-              '--segmented-control-font-family': `var(${accordionHeaderFontFamilyVar})`,
-              '--segmented-control-font-size': `var(${accordionHeaderFontSizeVar})`,
-              '--segmented-control-font-weight': `var(${accordionHeaderFontWeightVar})`,
-            } as React.CSSProperties}
-          />
-        </div>
-      </div>
+  // Group the filtered properties into categories by object
+  const propGroups = useMemo(() => {
+    const groups: Record<string, typeof allProps> = {
+      'Icon': [],
+      'Text': [],
+      'Background': [],
+      'Border': [],
+      'Spacing': [],
+      'Dimensions': [],
+      'Elevation': [],
+      'Opacity': [],
+      'Other': []
+    }
 
-      {/* Variants Dropdowns */}
-      {visibleVariants.length > 0 && (
-        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
-          {visibleVariants.map((variant, index) => {
+    const activeState = (stateVariant ? (selectedVariants[stateVariant.propName] || stateVariant.variants[0]) : selectedVariants.states) || 'default'
+    const currentActiveState = activeState.toLowerCase()
+
+    // Helper to normalize prop names to check for overrides (e.g. icon-color-hover -> icon-color)
+    const normalizePropName = (name: string) => {
+      return name.toLowerCase()
+        .replace(/\b(hover|focus|disabled|error|base)\b/gi, '')
+        .replace(/^-+|-+$/g, '')
+        .replace(/-{2,}/g, '-')
+    }
+
+    const filteredProps = allProps.filter(prop => {
+      const propNameLower = prop.name.toLowerCase()
+      const propConfig = toolbarConfig?.props?.[propNameLower]
+      if (!propConfig) {
+        return false
+      }
+      const isVisible = getPropVisible(componentName, prop.name)
+      if (!isVisible) return false
+
+      // Filter by showForVariants if specified at top level
+      if ((propConfig as any).showForVariants && (propConfig as any).showForVariants.length > 0) {
+        const anyVariantMatch = (propConfig as any).showForVariants.some((v: string) =>
+          Object.values(selectedVariants).includes(v)
+        )
+        if (!anyVariantMatch) {
+          return false
+        }
+      }
+
+      // Identify if the property itself belongs to a specific state
+      const isHoverProp = propNameLower.includes('hover')
+      const isFocusProp = propNameLower.includes('focus')
+      const isDisabledProp = propNameLower.includes('disabled')
+      const isErrorProp = propNameLower.includes('error')
+      const isStateSpecific = isHoverProp || isFocusProp || isDisabledProp || isErrorProp
+
+      if (isStateSpecific) {
+        if (currentActiveState === 'hover') {
+          if (!isHoverProp) return false
+        } else if (currentActiveState === 'focus') {
+          if (!isFocusProp) return false
+        } else if (currentActiveState === 'disabled') {
+          if (!isDisabledProp) return false
+        } else if (currentActiveState === 'error') {
+          if (!isErrorProp) return false
+        } else {
+          // default/base state - hide all state-specific properties
+          return false
+        }
+      } else {
+        // If it's a base property, hide it if a state-specific override exists for the active state
+        if (currentActiveState !== 'default' && currentActiveState !== 'base') {
+          const normName = normalizePropName(prop.name)
+          const hasOverride = allProps.some(p => {
+            const pNameLower = p.name.toLowerCase()
+            const isMatchForActiveState = 
+              (currentActiveState === 'hover' && pNameLower.includes('hover')) ||
+              (currentActiveState === 'focus' && pNameLower.includes('focus')) ||
+              (currentActiveState === 'disabled' && pNameLower.includes('disabled')) ||
+              (currentActiveState === 'error' && pNameLower.includes('error'))
+            
+            if (!isMatchForActiveState) return false
+            return normalizePropName(p.name) === normName
+          })
+          
+          if (hasOverride) {
+            return false
+          }
+        }
+      }
+
+      return true
+    }).filter(prop => getPropIconComponent(prop) != null)
+    
+    filteredProps.forEach(prop => {
+      const name = prop.name.toLowerCase()
+      const type = prop.type
+      
+      if (name.includes('icon')) {
+        groups['Icon'].push(prop)
+      } else if (name.includes('text') || name.includes('font') || name.includes('line-height') || type === 'text-group') {
+        groups['Text'].push(prop)
+      } else if (name.includes('background')) {
+        groups['Background'].push(prop)
+      } else if (name.includes('border') || name.includes('radius')) {
+        groups['Border'].push(prop)
+      } else if (name.includes('padding') || name.includes('margin') || name.includes('gap') || name.includes('spacing')) {
+        groups['Spacing'].push(prop)
+      } else if (name.includes('width') || name.includes('height') || name.includes('size')) {
+        groups['Dimensions'].push(prop)
+      } else if (name.includes('elevation') || name.includes('shadow')) {
+        groups['Elevation'].push(prop)
+      } else if (name.includes('opacity')) {
+        groups['Opacity'].push(prop)
+      } else {
+        groups['Other'].push(prop)
+      }
+    })
+
+    return Object.entries(groups)
+      .filter(([_, items]) => items.length > 0)
+      .map(([title, items]) => ({ title, items: items.sort((a, b) => (getPropLabel(componentName, a.name) || toSentenceCase(a.name)).localeCompare((getPropLabel(componentName, b.name) || toSentenceCase(b.name)))) }))
+  }, [allProps, toolbarConfig, componentName, selectedVariants, getPropVisible, visibleVariants])
+
+  const renderFlatPropsList = (list: typeof allProps) => {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_md)' }}>
+        {list.map(prop => {
+          return (
+            <div key={prop.name} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
+              <PropControlContent
+                key={`${prop.name}-${selectedLayer}`}
+                prop={prop}
+                componentName={componentName}
+                selectedVariants={{
+                  ...selectedVariants,
+                  __activeState: stateVariant ? (selectedVariants[stateVariant.propName] || stateVariant.variants[0]) : (selectedVariants.states || 'default')
+                }}
+                selectedLayer={selectedLayer}
+              />
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Filter out state variant for separate display
+  const availableStates = useMemo(() => {
+    if (stateVariant) {
+      return stateVariant.variants
+    }
+    const states = ['default']
+    const propNames = allProps.map(p => p.name.toLowerCase())
+    if (propNames.some(name => name.includes('hover'))) states.push('hover')
+    if (propNames.some(name => name.includes('focus'))) states.push('focus')
+    if (propNames.some(name => name.includes('disabled'))) states.push('disabled')
+    if (propNames.some(name => name.includes('error'))) states.push('error')
+    return states
+  }, [stateVariant, allProps])
+  const stateItems = availableStates.map(s => {
+    let iconName = 'circle'
+    if (s.toLowerCase() === 'default' || s.toLowerCase() === 'base') iconName = 'cursor'
+    if (s.toLowerCase() === 'hover') iconName = 'hand-pointing'
+    if (s.toLowerCase() === 'focus') iconName = 'record'
+    if (s.toLowerCase() === 'disabled') iconName = 'prohibit'
+    if (s.toLowerCase() === 'error') iconName = 'warning-circle'
+    
+    const IconComp = iconNameToReactComponent(iconName)
+    
+    return { 
+      value: s, 
+      label: toSentenceCase(s),
+      icon: IconComp ? <IconComp /> : undefined,
+      tooltip: toSentenceCase(s)
+    }
+  })
+  const handleStateChange = (value: string) => {
+    if (stateVariant) {
+      onVariantChange(stateVariant.propName, value)
+    } else {
+      onVariantChange('states', value)
+    }
+  }
+
+  return (
+    <div className="component-toolbar-panel" style={{ 
+      backgroundColor: `var(${layerProperty(mode, 1, 'background')})`, 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column'
+    }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: 'var(--recursica_brand_dimensions_general_md)',
+        flex: 1,
+        overflowY: 'auto'
+      }}>
+      
+      {/* Configuration (Variants) */}
+      {visibleVariants.filter(v => v !== stateVariant).length > 0 && (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          gap: 'var(--recursica_brand_dimensions_general_md)',
+          padding: 'var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_md) 0 var(--recursica_brand_dimensions_general_md)'
+        }}>
+          {visibleVariants.filter(v => v !== stateVariant).map((variant, index) => {
             const isBoolean = isBooleanVariant(variant.variants)
             return (
               <div
                 key={variant.propName}
-                style={{
-                  marginBottom: index < visibleVariants.length - 1 ? 'var(--recursica_brand_dimensions_general_sm)' : 0,
-                  paddingBottom: index < visibleVariants.length - 1 ? 'var(--recursica_brand_dimensions_general_sm)' : 0,
-                }}
               >
                 {isBoolean ? (
                   <VariantSwitch
@@ -1280,53 +1440,112 @@ export default function ComponentToolbar({
         </div>
       )}
 
+      {/* Global Context (Layer & State) */}
+      <div style={{ 
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--recursica_brand_dimensions_general_md)',
+        padding: 'var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_md) 0 var(--recursica_brand_dimensions_general_md)',
+        flexShrink: 0
+      }}>
+          {/* Layers Segmented Control */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
+              {LayerIcon && <LayerIcon style={{
+                width: '16px',
+                height: '16px',
+                color: `var(${layerText(mode, 2, 'color')})`,
+                opacity: `var(${layerText(mode, 2, 'low-emphasis')})`
+              }} />}
+              <span style={{
+                fontFamily: `var(${accordionHeaderFontFamilyVar})`,
+                fontSize: `var(${accordionHeaderFontSizeVar})`,
+                fontWeight: `var(${accordionHeaderFontWeightVar})`,
+                color: `var(${layerText(mode, 2, 'color')})`
+              }}>Layer</span>
+            </div>
+            <SegmentedControl
+              items={layerItems}
+              value={selectedLayer}
+              onChange={(value) => {
+                onLayerChange(value)
+              }}
+              orientation="horizontal"
+              fullWidth={false}
+              layer="layer-2"
+              componentNameForCssVars="SegmentedControl"
+              style={{
+                '--segmented-control-font-family': `var(${accordionHeaderFontFamilyVar})`,
+                '--segmented-control-font-size': `var(${accordionHeaderFontSizeVar})`,
+                '--segmented-control-font-weight': `var(${accordionHeaderFontWeightVar})`,
+              } as React.CSSProperties}
+            />
+          </div>
 
+          {/* State Segmented Control */}
+          {availableStates.length > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
+                {(() => {
+                  const IconComp = iconNameToReactComponent('cursor-click')
+                  return IconComp ? <IconComp style={{
+                    width: '16px',
+                    height: '16px',
+                    color: `var(${layerText(mode, 2, 'color')})`,
+                    opacity: `var(${layerText(mode, 2, 'low-emphasis')})`
+                  }} /> : null
+                })()}
+                <span style={{
+                  fontFamily: `var(${accordionHeaderFontFamilyVar})`,
+                  fontSize: `var(${accordionHeaderFontSizeVar})`,
+                  fontWeight: `var(${accordionHeaderFontWeightVar})`,
+                  color: `var(${layerText(mode, 2, 'color')})`
+                }}>State</span>
+              </div>
+              <SegmentedControl
+                items={stateItems}
+                value={stateVariant ? (selectedVariants[stateVariant.propName] || stateVariant.variants[0]) : (selectedVariants.states || 'default')}
+                onChange={handleStateChange}
+                orientation="horizontal"
+                fullWidth={false}
+                content="icon-only"
+                layer="layer-2"
+                componentNameForCssVars="SegmentedControl"
+                style={{
+                  '--segmented-control-font-family': `var(${accordionHeaderFontFamilyVar})`,
+                  '--segmented-control-font-size': `var(${accordionHeaderFontSizeVar})`,
+                  '--segmented-control-font-weight': `var(${accordionHeaderFontWeightVar})`,
+                } as React.CSSProperties}
+              />
+            </div>
+          )}
+      </div>
 
       {/* Dynamic Props Section - Accordion Style */}
-      <Accordion
-        items={allProps.filter(prop => {
-          const propNameLower = prop.name.toLowerCase()
-          const propConfig = toolbarConfig?.props?.[propNameLower]
-          if (!propConfig) {
-            return false
-          }
-          const isVisible = getPropVisible(componentName, prop.name)
-          if (!isVisible) return false
-
-          // Filter by showForVariants if specified at top level
-          if ((propConfig as any).showForVariants && (propConfig as any).showForVariants.length > 0) {
-            const anyVariantMatch = (propConfig as any).showForVariants.some((v: string) =>
-              Object.values(selectedVariants).includes(v)
-            )
-            if (!anyVariantMatch) {
-              return false
-            }
-          }
-
-          return true
-        }).map(prop => {
-          const Icon = getPropIconComponent(prop)
-          const propKey = prop.name
-          const isOpen = openPropControl.has(propKey)
+      <div style={{ borderTop: `1px solid var(${layerProperty(mode, 1, 'border-color')})`, margin: 0, padding: 0 }}>
+        <Accordion
+        items={propGroups.map(({ title, items }) => {
+          const id = title.toLowerCase()
+          const isOpen = openPropControl.has(id)
+          let iconName = 'square'
+          if (title === 'Icon') iconName = 'star'
+          if (title === 'Text') iconName = 'text-aa'
+          if (title === 'Background') iconName = 'paint-bucket'
+          if (title === 'Border') iconName = 'square'
+          if (title === 'Spacing') iconName = 'arrows-out-line-horizontal'
+          if (title === 'Dimensions') iconName = 'frame-corners'
+          if (title === 'Elevation') iconName = 'copy-simple'
+          if (title === 'Opacity') iconName = 'eye'
+          
+          const IconComp = iconNameToReactComponent(iconName)
 
           return {
-            id: propKey,
-            title: getPropLabel(componentName, prop.name) || toSentenceCase(prop.name),
-            icon: Icon || undefined,
-            content: (
-              <PropControlContent
-                key={`${propKey}-${selectedLayer}`}
-                prop={prop}
-                componentName={componentName}
-                selectedVariants={selectedVariants}
-                selectedLayer={selectedLayer}
-              />
-            ),
+            id,
+            title,
+            icon: IconComp || undefined,
+            content: renderFlatPropsList(items),
             open: isOpen,
           }
-        }).filter(item => item.icon != null).sort((a, b) => {
-          // Sort alphabetically by title
-          return a.title.localeCompare(b.title)
         })}
         allowMultiple={true}
         onToggle={(id, open) => {
@@ -1340,8 +1559,10 @@ export default function ComponentToolbar({
             })
           }
         }}
-        layer="layer-0"
+        layer="layer-1"
       />
+      </div>
+      </div>
 
 
       {/* Reset + Delete Variant Buttons */}

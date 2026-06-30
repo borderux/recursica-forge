@@ -137,16 +137,18 @@ export default function HoverCardPopoverPreview({
         boxSizing: 'border-box',
     }
 
-    return (
+    const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
+  return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
             gap: 'var(--recursica_brand_dimensions_general_xl)',
             width: '100%',
-            alignItems: 'center',
+            alignItems: 'flex-start',
         }}>
+      
             {/* Static preview — Without beak */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', alignItems: 'flex-start' }}>
                 <h2 style={{
                     margin: 0,
                     fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
@@ -167,7 +169,7 @@ export default function HoverCardPopoverPreview({
             </div>
 
             {/* Static preview — With beak */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', alignItems: 'flex-start' }}>
                 <h2 style={{
                     margin: 0,
                     fontFamily: 'var(--recursica_brand_typography_h2-font-family)',
@@ -194,8 +196,8 @@ export default function HoverCardPopoverPreview({
             <div style={{
                 display: 'flex',
                 gap: 'var(--recursica_brand_dimensions_general_lg)',
-                alignItems: 'center',
-                justifyContent: 'center',
+                alignItems: 'flex-start',
+                justifyContent: 'flex-start',
                 paddingTop: 'var(--recursica_brand_dimensions_general_lg)',
             }}>
                 <HoverCard

@@ -1,0 +1,142 @@
+{
+  "variants": {},
+  "props": {
+    "thumb-variant": {
+      "label": "Thumb",
+      "icon": "paint-bucket",
+      "visible": true,
+      "group": {
+        "thumb-selected": {
+          "label": "Selected",
+          "visible": true
+        },
+        "thumb-unselected": {
+          "label": "Unselected",
+          "visible": true
+        },
+        "thumb-unselected-hover": {
+          "label": "Unselected hover",
+          "visible": true
+        },
+        "thumb-unselected-focus": {
+          "label": "Unselected focus",
+          "visible": true
+        },
+        "thumb-selected-hover": {
+          "label": "Selected hover",
+          "visible": true
+        },
+        "thumb-selected-focus": {
+          "label": "Selected focus",
+          "visible": true
+        }
+      }
+    },
+    "track-variant": {
+      "label": "Track",
+      "icon": "paint-bucket",
+      "visible": true,
+      "group": {
+        "track-selected": {
+          "label": "Selected",
+          "visible": true
+        },
+        "track-unselected": {
+          "label": "Unselected",
+          "visible": true
+        },
+        "track-unselected-hover": {
+          "label": "Unselected hover",
+          "visible": true
+        },
+        "track-unselected-focus": {
+          "label": "Unselected focus",
+          "visible": true
+        },
+        "track-selected-hover": {
+          "label": "Selected hover",
+          "visible": true
+        },
+        "track-selected-focus": {
+          "label": "Selected focus",
+          "visible": true
+        }
+      }
+    },
+    "icon-variant": {
+      "label": "Icon",
+      "icon": "star",
+      "visible": true,
+      "group": {
+        "icon-selected": {
+          "label": "Selected",
+          "visible": true
+        },
+        "icon-unselected": {
+          "label": "Unselected",
+          "visible": true
+        }
+      }
+    },
+    "thumb-height": {
+      "label": "Thumb height",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "width-base": {
+      "label": "Width",
+      "icon": "arrows-left-right",
+      "visible": true,
+      "group": {
+        "thumb-width": {
+          "label": "Thumb ",
+          "visible": true
+        },
+        "track-width": {
+          "label": "Track ",
+          "visible": true
+        }
+      }
+    },
+    "track-inner-padding": {
+      "label": "Track inner padding",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "border-base": {
+      "label": "Border",
+      "icon": "square",
+      "visible": true,
+      "group": {
+        "thumb-border-radius": {
+          "label": "Thumb radius",
+          "visible": true
+        },
+        "track-border-radius": {
+          "label": "Track radius",
+          "visible": true
+        }
+      }
+    },
+    "thumb-icon-size": {
+      "label": "Thumb icon size",
+      "visible": true,
+      "icon": "paint-bucket"
+    },
+    "elevation-base": {
+      "label": "Elevation",
+      "icon": "copy-simple",
+      "visible": true,
+      "group": {
+        "thumb-elevation": {
+          "label": "Thumb ",
+          "visible": true
+        },
+        "track-elevation": {
+          "label": "Track ",
+          "visible": true
+        }
+      }
+    }
+  }
+}

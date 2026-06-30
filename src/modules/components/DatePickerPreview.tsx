@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { DatePicker } from '../../components/adapters/DatePicker'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { getGlobalCssVar } from '../../components/utils/cssVarNames'
-import { h2Style } from './typographyStyles'
+import { h2Style, h3Style } from './typographyStyles'
 
 
 interface DatePickerPreviewProps {
@@ -27,9 +27,7 @@ export default function DatePickerPreview({
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
     // Show both layouts
-    const layoutsToShow: string[] = selectedVariants.layouts
-    ? [selectedVariants.layouts]
-    : ['stacked', 'side-by-side']
+    const layoutsToShow = [selectedVariants.layout || selectedVariants.layouts || 'stacked']
 
     // Example date for populated fields
     const exampleDate = new Date(2025, 0, 25) // Jan 25, 2025
@@ -40,13 +38,12 @@ export default function DatePickerPreview({
             flexDirection: 'column',
             gap: verticalGutter,
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'flex-start'
         }}>
+            
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
+                    
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {/* Default state - show one with value, one with placeholder */}
                         {state === 'default' && (

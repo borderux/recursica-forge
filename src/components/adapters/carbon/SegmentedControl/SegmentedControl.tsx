@@ -26,6 +26,7 @@ export default function SegmentedControl({
   elevation,
   disabled = false,
   showLabel = true,
+  content,
   componentNameForCssVars = 'SegmentedControl',
   className,
   style,
@@ -259,9 +260,15 @@ export default function SegmentedControl({
     >
       {items.map((item, index) => {
         const isSelected = currentValue === item.value
-        const hasIcon = !!item.icon
-        const hasLabel = !!item.label && showLabel
-        const shouldShowTooltip = !showLabel && (item.tooltip || (typeof item.label === 'string' ? item.label : undefined))
+
+        const resolvedContent = content ?? (showLabel ? 'icon-label' : 'icon-only')
+        const isIconOnly = resolvedContent === 'icon-only' || resolvedContent === 'icon only'
+        const isLabel = resolvedContent === 'label'
+        const isIconLabel = resolvedContent === 'icon-label' || resolvedContent === 'icon + label'
+
+        const hasIcon = !!item.icon && (isIconLabel || isIconOnly)
+        const hasLabel = !!item.label && (isIconLabel || isLabel)
+        const shouldShowTooltip = (isIconOnly || !showLabel) && (item.tooltip || (typeof item.label === 'string' ? item.label : undefined))
         
         // Don't add divider if this item is selected or the next item is selected
         const isLastItem = index === items.length - 1
@@ -280,6 +287,16 @@ export default function SegmentedControl({
           borderStyle.borderBottom = selectedBorder
         }
         
+        const layoutStyle: React.CSSProperties = {
+          flex: fullWidth && !isVertical ? 1 : 'none',
+          width: fullWidth && isVertical ? '100%' : 'auto',
+          height: heightValue ? `var(${heightVar})` : 'auto',
+          marginLeft: index > 0 && !isVertical ? `var(${itemGapVar})` : (index === 0 && !isVertical ? '0' : undefined),
+          marginRight: !isLastItem && !isVertical ? `var(${itemGapVar})` : (isLastItem && !isVertical ? '0' : undefined),
+          marginTop: index > 0 && isVertical ? `var(${itemGapVar})` : (index === 0 && isVertical ? '0' : undefined),
+          marginBottom: !isLastItem && isVertical ? `var(${itemGapVar})` : (isLastItem && isVertical ? '0' : undefined),
+        }
+
         const button = (
           <button
             key={item.value}
@@ -288,29 +305,25 @@ export default function SegmentedControl({
             onClick={() => !disabled && !item.disabled && onChange?.(item.value)}
             className={`carbon-segmented-control-button ${isSelected ? 'selected' : ''}`}
             style={{
-              // Base padding - will be overridden below if item-gap applies
-              height: heightValue ? `var(${heightVar})` : 'auto',
+              height: shouldShowTooltip ? '100%' : layoutStyle.height,
+              width: shouldShowTooltip ? '100%' : layoutStyle.width,
+              flex: shouldShowTooltip ? undefined : layoutStyle.flex,
+              marginLeft: shouldShowTooltip ? undefined : layoutStyle.marginLeft,
+              marginRight: shouldShowTooltip ? undefined : layoutStyle.marginRight,
+              marginTop: shouldShowTooltip ? undefined : layoutStyle.marginTop,
+              marginBottom: shouldShowTooltip ? undefined : layoutStyle.marginBottom,
               paddingLeft: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
               paddingRight: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
               background: isSelected ? `var(${selectedBgVar})` : 'transparent',
               color: isSelected ? `var(${selectedTextVar})` : `var(${textVar})`,
               borderRadius: `var(${itemBorderRadiusVar})`,
               cursor: disabled || item.disabled ? 'not-allowed' : 'pointer',
-              flex: fullWidth && !isVertical ? 1 : 'none',
-              width: fullWidth && isVertical ? '100%' : 'auto',
               minWidth: fullWidth ? undefined : 'fit-content', // Ensure button expands to fit content when auto-width
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: hasIcon && hasLabel ? (iconGapVar && iconGapValueForStyles ? `var(${iconGapVar})` : (iconGapVar && !iconGapValueForStyles ? '0px' : '8px')) : undefined,
               transition: 'background-color 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s',
-              // Always add margin for item-gap between items - divider has full gap on both sides
-              // Item-gap only affects margin, not padding - padding remains uniform for all items
-              // Explicitly ensure first item has no left/top margin and last item has no right/bottom margin
-              marginLeft: index > 0 && !isVertical ? `var(${itemGapVar})` : (index === 0 && !isVertical ? '0' : undefined),
-              marginRight: !isLastItem && !isVertical ? `var(${itemGapVar})` : (isLastItem && !isVertical ? '0' : undefined),
-              marginTop: index > 0 && isVertical ? `var(${itemGapVar})` : (index === 0 && isVertical ? '0' : undefined),
-              marginBottom: !isLastItem && isVertical ? `var(${itemGapVar})` : (isLastItem && isVertical ? '0' : undefined),
               ...(isSelected && selectedElevationBoxShadow ? { boxShadow: selectedElevationBoxShadow } : {}),
               position: 'relative' as const, // For absolute divider positioning
               ...borderStyle, // Selected borders
@@ -364,6 +377,12 @@ export default function SegmentedControl({
               label={item.tooltip || (typeof item.label === 'string' ? item.label : '')}
               position="top"
               layer={layer}
+              style={{
+                ...layoutStyle,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
               {button}
             </Tooltip>

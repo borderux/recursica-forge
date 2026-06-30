@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from './iconUtils'
+import { clsx } from 'clsx'
 
 interface SegmentedControlItemPreviewProps {
   selectedVariants: Record<string, string>
@@ -105,12 +106,29 @@ export default function SegmentedControlItemPreview({
     },
   ]
 
+  const selectedVariantNames = Object.keys(selectedVariants)
+
+  const dataAttributes = selectedVariantNames
+    .filter(v => !v.startsWith('__'))
+    .reduce((acc, v) => {
+      acc[`data-variant-${v}`] = selectedVariants[v]
+      return acc
+    }, {} as Record<string, string>)
+
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}>
-      {/* Icons and Labels - showing selected item styling */}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+    <div 
+      className={clsx(
+        'recursica-component-segmented-control-item',
+        selectedVariantNames.map(v => `recursica-variant-${v}-${selectedVariants[v]}`)
+      )}
+      {...dataAttributes}
+      style={{ display: 'flex', flexDirection: 'column', gap: 24, width: '100%' }}
+    >
+      
+      <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
         <SegmentedControl
-          key={`icons-labels-${updateKey}`}
+          key={`preview-${updateKey}`}
           items={itemsWithIconsAndLabels}
           value={selectedValue1}
           onChange={setSelectedValue1}
@@ -118,37 +136,7 @@ export default function SegmentedControlItemPreview({
           fullWidth={false}
           layer={selectedLayer as any}
           elevation={componentElevation}
-          componentNameForCssVars="SegmentedControlItem"
-        />
-      </div>
-
-      {/* Labels Only - showing selected item styling */}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-        <SegmentedControl
-          key={`labels-only-${updateKey}`}
-          items={itemsWithLabelsOnly}
-          value={selectedValue2}
-          onChange={setSelectedValue2}
-          orientation="horizontal"
-          fullWidth={false}
-          layer={selectedLayer as any}
-          elevation={componentElevation}
-          componentNameForCssVars="SegmentedControlItem"
-        />
-      </div>
-
-      {/* Icons Only - showing selected item styling */}
-      <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-        <SegmentedControl
-          key={`icons-only-${updateKey}`}
-          items={itemsWithIconsOnly}
-          value={selectedValue3}
-          onChange={setSelectedValue3}
-          orientation="horizontal"
-          fullWidth={false}
-          layer={selectedLayer as any}
-          elevation={componentElevation}
-          showLabel={false}
+          content={(selectedVariants.content as any) || 'icon-label'}
           componentNameForCssVars="SegmentedControlItem"
         />
       </div>

@@ -80,6 +80,7 @@ const INITIAL_DATA: GoblinRow[] = [
 type SortField = 'mission' | 'category' | 'status' | 'priority' | 'loot' | 'dueDate'
 
 export default function TablePreview({
+  selectedVariants,
   selectedLayer,
   singleRowMode = false,
   hideSearch = false,
@@ -246,6 +247,7 @@ export default function TablePreview({
   const allSelected = processedData.length > 0 && selectedRowIds.size === processedData.length
   const someSelected = selectedRowIds.size > 0 && selectedRowIds.size < processedData.length
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div style={{
       display: 'flex',
@@ -255,6 +257,7 @@ export default function TablePreview({
       alignSelf: 'stretch',
       gap: 16,
     }}>
+      
 
 
       {/* Table Wrapper (Full Height or Auto depending on singleRowMode) */}
@@ -392,7 +395,7 @@ export default function TablePreview({
                         }
                         style={{
                           display: 'inline-flex',
-                          alignItems: 'center',
+                          alignItems: 'flex-start',
                         }}
                         layer={selectedLayer as any}
                       >
@@ -404,7 +407,7 @@ export default function TablePreview({
                       disabled={singleRowMode}
                       layer={selectedLayer as any}
                     >
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 4 }}>
                         {row.priority === 'Critical' && '⚡ '}
                         {row.priority === 'High' && '🔥 '}
                         {row.priority}
@@ -425,7 +428,7 @@ export default function TablePreview({
                     </TableCell>
                     {/* Responsible Party Avatar */}
                     <TableCell layer={selectedLayer as any}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 8 }}>
                         <Avatar
                           fallback={row.assignee.initials}
                           colorVariant="image"

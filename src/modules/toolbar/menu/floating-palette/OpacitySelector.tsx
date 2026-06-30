@@ -17,8 +17,7 @@ export default function OpacitySelector({ targetCssVar, label }: OpacitySelector
   const { tokens: tokensJson } = useVars()
   const { mode } = useThemeMode()
   const [isOpen, setIsOpen] = useState(false)
-  const anchorRef = useRef<HTMLDivElement>(null)
-  const [pos, setPos] = useState({ top: 0, left: 0 })
+  const anchorRef = useRef<HTMLButtonElement>(null)
 
   // Get available opacity tokens
   const opacityTokens = useMemo(() => {
@@ -59,18 +58,7 @@ export default function OpacitySelector({ targetCssVar, label }: OpacitySelector
     return null
   }, [rawValue, currentValue, opacityTokens])
 
-  // Update position when opening
-  useEffect(() => {
-    if (isOpen && anchorRef.current) {
-      const rect = anchorRef.current.getBoundingClientRect()
-      setPos({
-        top: rect.bottom + 8,
-        left: Math.min(rect.left, window.innerWidth - 260)
-      })
-    }
-  }, [isOpen])
-
-  // Close on outside click
+  // Close on outside click and focusout
   useEffect(() => {
     if (!isOpen) return
     
@@ -82,9 +70,20 @@ export default function OpacitySelector({ targetCssVar, label }: OpacitySelector
         }
       }
     }
+
+    const handleFocusOutside = (e: FocusEvent) => {
+      const container = anchorRef.current?.parentElement
+      if (container && e.relatedTarget && !container.contains(e.relatedTarget as Node)) {
+        setIsOpen(false)
+      }
+    }
     
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    anchorRef.current?.parentElement?.addEventListener('focusout', handleFocusOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      anchorRef.current?.parentElement?.removeEventListener('focusout', handleFocusOutside)
+    }
   }, [isOpen])
 
   const handleSelect = (tokenName: string) => {
@@ -104,40 +103,45 @@ export default function OpacitySelector({ targetCssVar, label }: OpacitySelector
   const displayLabel = currentTokenObj ? currentTokenObj.label : displayValue
 
   return (
-    <>
-      <div className="prop-control-content">
-        <label className="prop-control-label">{label}</label>
-        <div
-          ref={anchorRef}
-          onClick={() => setIsOpen(!isOpen)}
-          style={{
-            cursor: 'pointer',
-            padding: '4px 8px',
-            borderRadius: '4px',
-            backgroundColor: 'var(--recursica_brand_layers_layer-0_properties_surface, #f5f5f5)',
-            border: '1px solid var(--recursica_brand_layers_layer-0_properties_border-color, #e0e0e0)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            minHeight: '32px',
-          }}
-        >
-          <span>{displayLabel}</span>
-          <span style={{ fontSize: '12px', opacity: 0.7 }}>▼</span>
-        </div>
-      </div>
+    <div className="prop-control-content" style={{ position: 'relative' }}>
+      <label className="prop-control-label">{label}</label>
+      <button
+        type="button"
+        ref={anchorRef}
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          cursor: 'pointer',
+          padding: '4px 8px',
+          borderRadius: '4px',
+          backgroundColor: 'var(--recursica_brand_layers_layer-0_properties_surface, #f5f5f5)',
+          border: '1px solid var(--recursica_brand_layers_layer-0_properties_border-color, #e0e0e0)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          minHeight: '32px',
+          width: '100%',
+          fontFamily: 'inherit',
+          fontSize: 'inherit',
+          color: 'inherit',
+          textAlign: 'left'
+        }}
+      >
+        <span>{displayLabel}</span>
+        <span style={{ fontSize: '12px', opacity: 0.7 }}>▼</span>
+      </button>
       
-      {isOpen && createPortal(
+      {isOpen && (
         <div
           className="opacity-selector-dropdown"
           style={{
-            position: 'fixed',
-            top: `${pos.top}px`,
-            left: `${pos.left}px`,
-            width: '260px',
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            width: '100%',
             maxHeight: '300px',
             overflowY: 'auto',
             zIndex: 10000,
+            marginTop: '4px',
           }}
         >
           <Menu layer="layer-3">
@@ -157,10 +161,10 @@ export default function OpacitySelector({ targetCssVar, label }: OpacitySelector
               )
             })}
           </Menu>
-        </div>,
-        document.body
+        </div>
       )}
-    </>
+    </div>
   )
 }
+
 

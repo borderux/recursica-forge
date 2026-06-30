@@ -30,3 +30,27 @@
 }
 
 /* Apply gap between radio and label - handled via RadioButtonItem var(--radio-item-gap) */
+
+/* Hover state */
+.recursica-mui-radio-root.MuiRadio-root:hover:not(.Mui-disabled) {
+    color: var(--radio-border-unselected-hover, var(--radio-border-unselected)) !important;
+}
+
+.recursica-mui-radio-root.MuiRadio-root.Mui-checked:hover:not(.Mui-disabled) {
+    color: var(--radio-border-selected-hover, var(--radio-border-selected)) !important;
+}
+
+/* Focus state */
+.recursica-mui-radio-root.MuiRadio-root:focus-visible:not(.Mui-disabled),
+.recursica-mui-radio-root.MuiRadio-root.Mui-focusVisible:not(.Mui-disabled) {
+    color: var(--radio-border-unselected-focus, var(--radio-border-unselected-hover, var(--radio-border-unselected))) !important;
+    outline: 2px solid var(--radio-border-unselected-focus, var(--radio-border-unselected-hover, var(--radio-border-unselected))) !important;
+    outline-offset: 2px;
+}
+
+.recursica-mui-radio-root.MuiRadio-root.Mui-checked:focus-visible:not(.Mui-disabled),
+.recursica-mui-radio-root.MuiRadio-root.Mui-checked.Mui-focusVisible:not(.Mui-disabled) {
+    color: var(--radio-border-selected-focus, var(--radio-border-selected-hover, var(--radio-border-selected))) !important;
+    outline: 2px solid var(--radio-border-selected-focus, var(--radio-border-selected-hover, var(--radio-border-selected))) !important;
+    outline-offset: 2px;
+}

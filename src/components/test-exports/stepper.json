@@ -253,6 +253,30 @@
               "upcoming-connector-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "completed-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "completed-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "current-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "current-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "upcoming-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "upcoming-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
               }
             },
             "layer-1": {
@@ -321,6 +345,30 @@
                 "$value": "{brand.palettes.neutral.500.color.tone}"
               },
               "upcoming-connector-color": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "completed-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "completed-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "current-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "current-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "upcoming-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "upcoming-indicator-background-focus": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.500.color.tone}"
               }
@@ -393,6 +441,30 @@
               "upcoming-connector-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "completed-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "completed-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "current-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "current-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "upcoming-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "upcoming-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
               }
             },
             "layer-3": {
@@ -461,6 +533,30 @@
                 "$value": "{brand.palettes.neutral.500.color.tone}"
               },
               "upcoming-connector-color": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "completed-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "completed-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "current-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "current-indicator-background-focus": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "upcoming-indicator-background-hover": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              },
+              "upcoming-indicator-background-focus": {
                 "$type": "color",
                 "$value": "{brand.palettes.neutral.500.color.tone}"
               }

@@ -8,10 +8,6 @@
  */
 
 import { Loader } from '../../components/adapters/Loader'
-import { h2Style } from './typographyStyles'
-
-
-
 
 interface LoaderPreviewProps {
     selectedVariants: Record<string, string>
@@ -24,34 +20,17 @@ export default function LoaderPreview({
     selectedLayer,
     componentElevation,
 }: LoaderPreviewProps) {
-    const sizes = [
-        { key: 'small', label: 'Small' },
-        { key: 'default', label: 'Default' },
-        { key: 'large', label: 'Large' },
-    ] as const
+    const sizeVariant = (selectedVariants.size || 'default') as 'small' | 'default' | 'large'
 
     return (
         <div style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             width: '100%',
+            padding: 0,
         }}>
-            {sizes.map(({ key, label }) => (
-                <div
-                    key={key}
-                    style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 'var(--recursica_brand_dimensions_gutters_vertical)',
-                        alignItems: 'center',
-                    }}
-                >
-                    <h2 style={h2Style}>{label}</h2>
-                    <Loader size={key} />
-                </div>
-            ))}
+            <Loader size={sizeVariant} />
         </div>
     )
 }

@@ -9,6 +9,7 @@ interface AccordionPreviewProps {
 }
 
 export default function AccordionPreview({
+  selectedVariants,
   selectedLayer,
 }: AccordionPreviewProps) {
   const [openItems, setOpenItems] = useState<Set<string>>(() => new Set([]))
@@ -51,8 +52,10 @@ export default function AccordionPreview({
     }
   })
 
+  const activeState = (selectedVariants.states || selectedVariants.__hasStateControl === 'true') ? (selectedVariants.states || selectedVariants.__activeState || 'default') : null
   return (
     <div style={{ width: '100%', maxWidth: 520 }}>
+      
       <Accordion
         items={items}
         layer={selectedLayer as any}

@@ -35,6 +35,7 @@ export type SegmentedControlProps = {
   elevation?: string // e.g., "elevation-0", "elevation-1", etc.
   disabled?: boolean
   showLabel?: boolean // Whether to show labels (default: true)
+  content?: 'icon-label' | 'icon-only' | 'label' | 'icon only' | 'icon + label'
   componentNameForCssVars?: ComponentName // Component name to use for CSS variables (default: 'SegmentedControl')
   className?: string
   style?: React.CSSProperties
@@ -51,6 +52,7 @@ export function SegmentedControl({
   elevation,
   disabled = false,
   showLabel = true,
+  content,
   componentNameForCssVars = 'SegmentedControl' as ComponentName,
   className,
   style,
@@ -72,26 +74,45 @@ export function SegmentedControl({
     const containerElevationVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'container', 'elevation')
     
     // Get CSS variables - padding (applied to all items)
-    const paddingHorizontalVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'padding-horizontal')
-    const heightVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'height')
+    const paddingHorizontalVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'padding-horizontal')
+    const heightVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'height')
     
     // Get CSS variables - selected properties
-    const selectedBgVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'background')
-    const selectedBorderColorVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'border-color')
-    const selectedBorderSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'border-size')
-    const selectedElevationVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'elevation')
+    const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background')
+    const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color')
+    const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-size')
+    const selectedElevationVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'elevation')
+    
+    // Get CSS variables - selected state variables
+    const selectedBgHoverVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background-hover')
+    const selectedBgFocusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background-focus')
+    const selectedBgDisabledVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background-disabled')
+    const selectedBorderColorHoverVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color-hover')
+    const selectedBorderColorFocusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color-focus')
+    const selectedBorderColorDisabledVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color-disabled')
+    const selectedTextHoverVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'text-color-hover')
+    const selectedTextFocusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'text-color-focus')
+    const selectedTextDisabledVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'text-color-disabled')
     
     // Get CSS variables - item properties (applied to both regular and selected items)
-    const itemBorderRadiusVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'border-radius')
+    const itemBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'border-radius')
+    
+    // Get CSS variables - unselected properties
+    const unselectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'background')
+    const unselectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'border-color')
+    const unselectedBgHoverVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'background-hover')
+    const unselectedBgFocusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'background-focus')
+    const unselectedBgDisabledVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'background-disabled')
+    const unselectedBorderColorHoverVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'border-color-hover')
+    const unselectedBorderColorFocusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'border-color-focus')
+    const unselectedBorderColorDisabledVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'border-color-disabled')
+    const unselectedTextHoverVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'text-color-hover')
+    const unselectedTextFocusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'text-color-focus')
+    const unselectedTextDisabledVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'text-color-disabled')
     
     // Get CSS variables - text colors
-    // For SegmentedControlItem, text color is under properties.container.colors.layer-X.text-color
-    // For SegmentedControl, text color is under properties.container.colors.layer-X.text-color
-    // Selected text color is always under properties.selected.colors.layer-X.text-color
-    const textVar = componentNameForCssVars === 'SegmentedControlItem'
-      ? buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'text-color')
-      : buildComponentCssVarPath(componentNameForCssVars, 'properties', 'container', 'colors', layer, 'text-color')
-    const selectedTextVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'text-color')
+    const textVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'text-color')
+    const selectedTextVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'text-color')
     
     // Get text style properties
     const fontFamilyVar = getComponentTextCssVar(componentNameForCssVars, 'text', 'font-family')
@@ -107,6 +128,11 @@ export function SegmentedControl({
     const itemGapVar = getComponentLevelCssVar(componentNameForCssVars, 'item-gap')
     const iconSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'icon-size')
     const iconGapVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'icon-text-gap')
+    
+    // Resolve content variant for CSS vars
+    const resolvedContentForVars = content === 'icon-only' || content === 'icon only' ? 'icon-only' : 
+                                   content === 'label' ? 'label' : 'icon-label'
+    const minWidthVar = buildComponentCssVarPath('SegmentedControlItem', 'variants', 'content', resolvedContentForVars, 'properties', 'min-width')
     
     const paddingHorizontalValue = readCssVar(paddingHorizontalVar)
     const heightValue = readCssVar(heightVar)
@@ -180,10 +206,15 @@ export function SegmentedControl({
         }}
       >
         {items.map((item, index) => {
+          const resolvedContent = content ?? (showLabel ? 'icon-label' : 'icon-only')
           const isSelected = currentValue === item.value
-          const hasIcon = !!item.icon
-          const hasLabel = !!item.label && showLabel
-          const shouldShowTooltip = !showLabel && (item.tooltip || (typeof item.label === 'string' ? item.label : undefined))
+          const isIconOnly = resolvedContent === 'icon-only' || resolvedContent === 'icon only'
+          const isLabel = resolvedContent === 'label'
+          const isIconLabel = resolvedContent === 'icon-label' || resolvedContent === 'icon + label'
+          const hasIcon = !!item.icon && (isIconLabel || isIconOnly)
+          const hasLabel = !!item.label && (isIconLabel || isLabel)
+
+          const shouldShowTooltip = (isIconOnly || !showLabel) && (item.tooltip || (typeof item.label === 'string' ? item.label : undefined))
           
           // Add divider between items (not after the last one, and not adjacent to selected item)
           // item-gap adds space on each side of the divider, whether or not divider is visible
@@ -263,23 +294,45 @@ export function SegmentedControl({
                 height: heightValue ? `var(${heightVar})` : 'auto',
                 paddingLeft: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
                 paddingRight: paddingHorizontalValue ? `var(${paddingHorizontalVar})` : '0px',
-                background: isSelected ? `var(${selectedBgVar})` : 'transparent',
+                background: isSelected ? `var(${selectedBgVar})` : `var(${unselectedBgVar})`,
                 color: isSelected ? `var(${selectedTextVar})` : `var(${textVar})`,
                 borderRadius: `var(${itemBorderRadiusVar})`,
                 cursor: disabled || item.disabled ? 'not-allowed' : 'pointer',
                 flex: fullWidth && !isVertical ? 1 : 'none',
                 width: fullWidth && isVertical ? '100%' : 'auto',
-                minWidth: fullWidth ? undefined : 'fit-content', // Ensure button expands to fit content when auto-width
+                minWidth: fullWidth ? undefined : (minWidthVar ? `var(${minWidthVar}, fit-content)` : 'fit-content'),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: hasIcon && hasLabel ? (iconGapVar && iconGapValue ? `var(${iconGapVar})` : (iconGapVar && !iconGapValue ? '0px' : undefined)) : undefined,
                 transition: 'background-color 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s',
                 position: 'relative' as const, // For absolute divider positioning and label overlay
+                
+                // State overrides via CSS custom properties referenced in CSS file
+                '--selected-bg-hover': selectedBgHoverVar ? `var(${selectedBgHoverVar})` : undefined,
+                '--selected-bg-focus': selectedBgFocusVar ? `var(${selectedBgFocusVar})` : undefined,
+                '--selected-bg-disabled': selectedBgDisabledVar ? `var(${selectedBgDisabledVar})` : undefined,
+                '--selected-border-color-hover': selectedBorderColorHoverVar ? `var(${selectedBorderColorHoverVar})` : undefined,
+                '--selected-border-color-focus': selectedBorderColorFocusVar ? `var(${selectedBorderColorFocusVar})` : undefined,
+                '--selected-border-color-disabled': selectedBorderColorDisabledVar ? `var(${selectedBorderColorDisabledVar})` : undefined,
+                '--selected-text-hover': selectedTextHoverVar ? `var(${selectedTextHoverVar})` : undefined,
+                '--selected-text-focus': selectedTextFocusVar ? `var(${selectedTextFocusVar})` : undefined,
+                '--selected-text-disabled': selectedTextDisabledVar ? `var(${selectedTextDisabledVar})` : undefined,
+
+                '--unselected-bg-hover': unselectedBgHoverVar ? `var(${unselectedBgHoverVar})` : undefined,
+                '--unselected-bg-focus': unselectedBgFocusVar ? `var(${unselectedBgFocusVar})` : undefined,
+                '--unselected-bg-disabled': unselectedBgDisabledVar ? `var(${unselectedBgDisabledVar})` : undefined,
+                '--unselected-border-color-hover': unselectedBorderColorHoverVar ? `var(${unselectedBorderColorHoverVar})` : undefined,
+                '--unselected-border-color-focus': unselectedBorderColorFocusVar ? `var(${unselectedBorderColorFocusVar})` : undefined,
+                '--unselected-border-color-disabled': unselectedBorderColorDisabledVar ? `var(${unselectedBorderColorDisabledVar})` : undefined,
+                '--unselected-text-hover': unselectedTextHoverVar ? `var(${unselectedTextHoverVar})` : undefined,
+                '--unselected-text-focus': unselectedTextFocusVar ? `var(${unselectedTextFocusVar})` : undefined,
+                '--unselected-text-disabled': unselectedTextDisabledVar ? `var(${unselectedTextDisabledVar})` : undefined,
+
                 ...(isSelected && selectedElevationBoxShadow ? { boxShadow: selectedElevationBoxShadow } : {}),
                 ...spacingStyle, // Item-gap spacing (dividers handled via CSS pseudo-elements)
                 ...borderStyle, // Selected borders
-              }}
+              } as React.CSSProperties}
             >
               {hasIcon && (
                 <span 
@@ -358,6 +411,7 @@ export function SegmentedControl({
         elevation={elevation}
         disabled={disabled}
         showLabel={showLabel}
+        content={content}
         componentNameForCssVars={componentNameForCssVars}
         className={className}
         style={style}

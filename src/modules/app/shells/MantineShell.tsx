@@ -643,6 +643,7 @@ export default function MantineShell({
                   onChange={(value) => setMode(value as "light" | "dark")}
                   orientation='horizontal'
                   fullWidth={false}
+                  content="icon-only"
                   layer='layer-0'
                   componentNameForCssVars='SegmentedControl'
                 />
