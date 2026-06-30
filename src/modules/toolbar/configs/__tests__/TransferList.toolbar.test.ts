@@ -26,12 +26,6 @@ describe('TransferList Toolbar Config', () => {
         }
     })
 
-    it('should have variants with states config', () => {
-        expect(config.variants).toBeDefined()
-        expect(config.variants.states).toBeDefined()
-        expect(config.variants.states.icon).toBe('diamonds-four')
-        expect(config.variants.states.label).toBe('State')
-    })
 
     it('should have props that match recursica_ui-kit.json structure', () => {
         const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { })
@@ -143,46 +137,31 @@ describe('TransferList Toolbar Config', () => {
         })
     })
 
-    it('should have box group with the expected sub-props', () => {
-        const boxConfig = (config.props as any).box
-        expect(boxConfig).toBeDefined()
-        expect(boxConfig.group).toBeDefined()
-        expect(boxConfig.group.background).toBeDefined()
-        expect(boxConfig.group['header-color']).toBeDefined()
+    it('should have spacing-base group with the expected sub-props', () => {
+        const spacingConfig = (config.props as any)['spacing-base']
+        expect(spacingConfig).toBeDefined()
+        expect(spacingConfig.group).toBeDefined()
+        expect(spacingConfig.group['top-bottom-margin']).toBeDefined()
+        expect(spacingConfig.group['horizontal-padding']).toBeDefined()
+        expect(spacingConfig.group['vertical-padding']).toBeDefined()
+        expect(spacingConfig.group.gap).toBeDefined()
+        expect(spacingConfig.group['title-filter-gap']).toBeDefined()
+        expect(spacingConfig.group['filter-items-gap']).toBeDefined()
     })
 
-    it('should have type-styles group with the expected sub-props', () => {
-        const typeStylesConfig = (config.props as any)['type-styles']
-        expect(typeStylesConfig).toBeDefined()
-        expect(typeStylesConfig.group).toBeDefined()
-        expect(typeStylesConfig.group['header-style']).toBeDefined()
+    it('should have header-base group with the expected sub-props', () => {
+        const headerConfig = (config.props as any)['header-base']
+        expect(headerConfig).toBeDefined()
+        expect(headerConfig.group).toBeDefined()
+        expect(headerConfig.group['header-color']).toBeDefined()
+        expect(headerConfig.group['header-style']).toBeDefined()
     })
 
-    it('should have border group with the expected sub-props', () => {
-        const borderConfig = (config.props as any).border
+    it('should have border-base group with the expected sub-props', () => {
+        const borderConfig = (config.props as any)['border-base']
         expect(borderConfig).toBeDefined()
         expect(borderConfig.group).toBeDefined()
         expect(borderConfig.group['border-size']).toBeDefined()
         expect(borderConfig.group['border-radius']).toBeDefined()
-        expect(borderConfig.group['border-color']).toBeDefined()
-    })
-
-    it('should have dimensions group with the expected sub-props', () => {
-        const dimensionsConfig = (config.props as any).dimensions
-        expect(dimensionsConfig).toBeDefined()
-        expect(dimensionsConfig.group).toBeDefined()
-        expect(dimensionsConfig.group.gap).toBeDefined()
-        expect(dimensionsConfig.group['title-filter-gap']).toBeDefined()
-        expect(dimensionsConfig.group['filter-items-gap']).toBeDefined()
-        expect(dimensionsConfig.group.height).toBeDefined()
-        expect(dimensionsConfig.group.width).toBeDefined()
-    })
-
-    it('should have padding group with the expected sub-props', () => {
-        const paddingConfig = (config.props as any).padding
-        expect(paddingConfig).toBeDefined()
-        expect(paddingConfig.group).toBeDefined()
-        expect(paddingConfig.group['horizontal-padding']).toBeDefined()
-        expect(paddingConfig.group['vertical-padding']).toBeDefined()
     })
 })

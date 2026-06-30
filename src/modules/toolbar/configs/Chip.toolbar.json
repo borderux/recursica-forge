@@ -143,6 +143,46 @@
       "label": "Elevation",
       "visible": true,
       "icon": "copy-simple"
+    },
+    "font-family": {
+      "label": "Font family",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-size": {
+      "label": "Font size",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-style": {
+      "label": "Font style",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "font-weight": {
+      "label": "Font weight",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "letter-spacing": {
+      "label": "Letter spacing",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "line-height": {
+      "label": "Line height",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "text-decoration": {
+      "label": "Text decoration",
+      "visible": true,
+      "icon": "square-2-stack"
+    },
+    "text-transform": {
+      "label": "Text transform",
+      "visible": true,
+      "icon": "square-2-stack"
     }
   }
 }

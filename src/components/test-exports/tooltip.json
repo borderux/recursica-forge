@@ -4,7 +4,7 @@
       "tooltip": {
         "properties": {
           "elevation": {
-            "$value": "{brand.palettes.neutral.500.color.tone}",
+            "$value": "{brand.elevations.elevation-3}",
             "$extensions": {
               "recursica.type": "elevation"
             }
@@ -12,54 +12,54 @@
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "value": 2,
+              "value": 3,
               "unit": "px"
             }
           },
           "vertical-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "horizontal-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.2xl}"
+            "$value": "{brand.dimensions.border-radii.default}"
           },
           "min-width": {
             "$type": "dimension",
             "$value": {
-              "value": 454,
+              "value": 42,
               "unit": "px"
             }
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 292,
+              "value": 302,
               "unit": "px"
             }
           },
           "beak-size": {
             "$type": "dimension",
             "$value": {
-              "value": 24,
+              "value": 18,
               "unit": "px"
             }
           },
           "beak-inset": {
             "$type": "dimension",
             "$value": {
-              "value": 47,
+              "value": 10,
               "unit": "px"
             }
           },
           "min-height": {
             "$type": "dimension",
             "$value": {
-              "value": 85,
+              "value": 50,
               "unit": "px"
             }
           },
@@ -67,80 +67,80 @@
             "layer-0": {
               "background": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.2000.color.tone}"
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.2000.color.tone}"
               }
             },
             "layer-1": {
               "background": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.2000.color.tone}"
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.2000.color.tone}"
               }
             },
             "layer-2": {
               "background": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.2000.color.tone}"
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.2000.color.tone}"
               }
             },
             "layer-3": {
               "background": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.2000.color.tone}"
               },
               "text": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.2000.color.tone}"
               }
             }
           },
           "text": {
             "font-family": {
               "$type": "string",
-              "$value": "{brand.fonts.secondary}"
+              "$value": "{brand.fonts.tertiary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.lg}"
+              "$value": "{tokens.font.sizes.xs}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.black}"
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.tight}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.short}"
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
@@ -148,7 +148,7 @@
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.uppercase}"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
               "$type": "string",

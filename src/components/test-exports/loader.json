@@ -5,7 +5,7 @@
         "properties": {
           "indicator-color": {
             "$type": "color",
-            "$value": "{brand.palettes.neutral.500.color.tone}"
+            "$value": "{brand.palettes.core-colors.interactive.tone}"
           }
         },
         "variants": {
@@ -15,21 +15,21 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 55,
+                    "value": 26,
                     "unit": "px"
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 3,
+                    "value": 10001,
                     "unit": "px"
                   }
                 },
                 "thickness": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 29,
+                    "value": 5,
                     "unit": "px"
                   }
                 }
@@ -40,21 +40,21 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 45,
+                    "value": 38,
                     "unit": "px"
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 2,
+                    "value": 10001,
                     "unit": "px"
                   }
                 },
                 "thickness": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 4,
+                    "value": 6,
                     "unit": "px"
                   }
                 }
@@ -65,21 +65,21 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 11,
+                    "value": 50,
                     "unit": "px"
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 23,
+                    "value": 10001,
                     "unit": "px"
                   }
                 },
                 "thickness": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 13,
+                    "value": 7,
                     "unit": "px"
                   }
                 }

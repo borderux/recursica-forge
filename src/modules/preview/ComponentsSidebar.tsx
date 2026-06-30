@@ -283,10 +283,10 @@ export function ComponentsSidebar({
         borderRightColor: `var(${genericLayerProperty(0, 'border-color')})`,
         display: 'flex',
         flexDirection: 'column',
-        paddingLeft: 'var(--recursica_brand_dimensions_general_xl)',
-        paddingRight: 'var(--recursica_brand_dimensions_general_xl)',
-        paddingTop: 'var(--recursica_brand_dimensions_general_xl)',
-        paddingBottom: 'var(--recursica_brand_dimensions_general_xl)',
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
         flexShrink: 0,
       }}
     >
@@ -296,7 +296,7 @@ export function ComponentsSidebar({
         flex: 1,
         minHeight: 0,
         overflow: 'auto',
-        marginTop: '60px',
+        marginTop: '80px',
         marginBottom: '60px',
       }}>
         <Tree

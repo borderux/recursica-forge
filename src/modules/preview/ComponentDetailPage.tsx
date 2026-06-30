@@ -355,25 +355,28 @@ export default function ComponentDetailPage() {
           borderBottomLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         }}>
           {/* Preview Section */}
-          <div style={{
-            flex: debugMode ? undefined : 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'stretch',
-            justifyContent: 'space-between',
-            gap: 'var(--recursica_brand_dimensions_general_md)',
-            background: `var(${layerProperty(mode, layerNum, 'surface')})`,
-            padding: component.name.toLowerCase().includes('table') ? 0 : `var(${layerProperty(mode, layerNum, 'padding')})`,
-            border: layerNum !== '0'
-              ? `var(${layerProperty(mode, layerNum, 'border-size')}, 1px) solid var(${layerProperty(mode, layerNum, 'border-color')})`
-              : 'none',
-            borderRadius: layerNum !== '0'
-              ? `var(${layerProperty(mode, layerNum, 'border-radius')})`
-              : undefined,
-            boxShadow: elevationBoxShadow,
-            position: 'relative',
-            minHeight: debugMode ? '400px' : 0,
-          }}>
+          <div 
+            className={`recursica-layer-${layerNum}`}
+            data-recursica-layer={layerNum}
+            style={{
+              flex: debugMode ? undefined : 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              justifyContent: 'space-between',
+              gap: 'var(--recursica_brand_dimensions_general_md)',
+              background: `var(${layerProperty(mode, layerNum, 'surface')})`,
+              padding: component.name.toLowerCase().includes('table') ? 0 : `var(${layerProperty(mode, layerNum, 'padding')})`,
+              border: layerNum !== '0'
+                ? `var(${layerProperty(mode, layerNum, 'border-size')}, 1px) solid var(${layerProperty(mode, layerNum, 'border-color')})`
+                : 'none',
+              borderRadius: layerNum !== '0'
+                ? `var(${layerProperty(mode, layerNum, 'border-radius')})`
+                : undefined,
+              boxShadow: elevationBoxShadow,
+              position: 'relative',
+              minHeight: debugMode ? '400px' : 0,
+            }}>
             {/* Header info for active variants and states */}
             {(!component.name.toLowerCase().includes('table')) && (
               <div style={{
@@ -417,7 +420,7 @@ export default function ComponentDetailPage() {
 
             {/* Component Preview */}
             <div 
-              className={activeStateToForce && activeStateToForce !== 'default' && activeStateToForce !== 'disabled' ? `recursica-force-${activeStateToForce}` : undefined} 
+              className={activeStateToForce && activeStateToForce.toLowerCase() !== 'default' && activeStateToForce.toLowerCase() !== 'disabled' ? `recursica-force-${activeStateToForce.toLowerCase()}` : undefined} 
               style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', minWidth: 0 }}
             >
               <Suspense fallback={<div />}>

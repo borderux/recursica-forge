@@ -8,12 +8,12 @@
               "properties": {
                 "bottom-padding": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.md}"
+                  "$value": "{brand.dimensions.general.default}"
                 },
                 "min-height": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 186,
+                    "value": 22,
                     "unit": "px"
                   }
                 }
@@ -25,7 +25,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 627,
+                          "value": 226,
                           "unit": "px"
                         }
                       }
@@ -36,7 +36,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 463,
+                          "value": 82,
                           "unit": "px"
                         }
                       }
@@ -50,17 +50,17 @@
                 "min-height": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 290,
+                    "value": 50,
                     "unit": "px"
                   }
                 },
                 "gutter": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.lg}"
+                  "$value": "{ui-kit.globals.form.properties.label-field-gap-horizontal}"
                 },
                 "vertical-padding": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.xl}"
+                  "$value": "{ui-kit.globals.form.properties.vertical-item-gap}"
                 }
               },
               "variants": {
@@ -70,7 +70,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 318,
+                          "value": 226,
                           "unit": "px"
                         }
                       }
@@ -81,7 +81,7 @@
                       "width": {
                         "$type": "dimension",
                         "$value": {
-                          "value": 323,
+                          "value": 82,
                           "unit": "px"
                         }
                       }
@@ -97,68 +97,68 @@
             "layer-0": {
               "text": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-0.elements.text.color}"
               },
               "asterisk": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-0.elements.text.alert}"
               }
             },
             "layer-1": {
               "text": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-1.elements.text.color}"
               },
               "asterisk": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-1.elements.text.alert}"
               }
             },
             "layer-2": {
               "text": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-2.elements.text.color}"
               },
               "asterisk": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-2.elements.text.alert}"
               }
             },
             "layer-3": {
               "text": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-3.elements.text.color}"
               },
               "asterisk": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-3.elements.text.alert}"
               }
             }
           },
           "label-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{brand.fonts.primary}"
+              "$value": "{brand.fonts.tertiary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.md}"
+              "$value": "{tokens.font.sizes.sm}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.light}"
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.wider}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.taller}"
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.underline}"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
@@ -166,7 +166,7 @@
             },
             "font-style": {
               "$type": "string",
-              "$value": "{tokens.font.styles.italic}"
+              "$value": "{tokens.font.styles.normal}"
             }
           },
           "optional-text": {
@@ -176,40 +176,40 @@
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.4xl}"
+              "$value": "{tokens.font.sizes.xs}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.medium}"
+              "$value": "{tokens.font.weights.regular}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.tightest}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.shortest}"
+              "$value": "{tokens.font.line-heights.default}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.underline}"
+              "$value": "{tokens.font.decorations.none}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.lowercase}"
+              "$value": "{tokens.font.cases.original}"
             },
             "font-style": {
-              "$type": "color",
+              "$type": "string",
               "$value": "{tokens.font.styles.normal}"
             }
           },
           "required-indicator-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.none}"
+            "$value": "{brand.dimensions.general.default}"
           },
           "label-optional-text-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.xl}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "edit-icon-gap": {
             "$type": "dimension",
@@ -217,7 +217,7 @@
           },
           "optional-text-opacity": {
             "$type": "number",
-            "$value": "{tokens.opacities.veiled}"
+            "$value": "{brand.text-emphasis.low}"
           }
         }
       }
