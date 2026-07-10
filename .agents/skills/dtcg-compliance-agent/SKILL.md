@@ -24,3 +24,10 @@ You are a specialized agent responsible for auditing and validating token struct
 
 4. **Types Validation:**
    - Ensure the `$type` property matches one of the stable DTCG token types (e.g., `color`, `dimension`, `duration`, `fontFamily`, `fontWeight`, `number`).
+
+5. **Color Suffix Enforced Requirement:**
+   - Under any layer-color properties (`layer-0`, `layer-1`, etc.), all foreground and border color keys MUST explicitly include the `-color` suffix.
+   - For example, you must always declare `text-color`, `icon-color`, and `border-color`.
+   - Simple suffix-less names like `text`, `icon`, or `border` are strictly prohibited for these color properties to ensure unambiguous structure across the design tokens.
+
+
