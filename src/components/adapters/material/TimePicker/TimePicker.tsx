@@ -74,7 +74,7 @@ export default function TimePicker({
     }, [state])
 
     const effectiveState = state
-    const backgroundVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
     const textVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
     const iconColorVar = buildComponentCssVarPath('TimePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
@@ -176,10 +176,10 @@ export default function TimePicker({
     const ddBorderSizeDefault = buildComponentCssVarPath('Dropdown', 'variants', 'states', 'default', 'properties', 'border-size')
     const ddBorderSizeFocus = buildComponentCssVarPath('Dropdown', 'variants', 'states', 'focus', 'properties', 'border-size')
     const ddStateColorOverrides = ['default', 'focus', 'error', 'disabled'].map(s => {
-        const ddBg = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'colors', layer, 'background')
+        const ddBg = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'colors', layer, 'background-color')
         const ddBorder = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'colors', layer, 'border-color')
         const ddText = buildComponentCssVarPath('Dropdown', 'variants', 'states', s, 'properties', 'colors', layer, 'text')
-        const tpBg = buildComponentCssVarPath('TimePicker', 'variants', 'states', s, 'properties', 'colors', layer, 'background')
+        const tpBg = buildComponentCssVarPath('TimePicker', 'variants', 'states', s, 'properties', 'colors', layer, 'background-color')
         const tpBorder = buildComponentCssVarPath('TimePicker', 'variants', 'states', s, 'properties', 'colors', layer, 'border-color')
         const tpText = buildComponentCssVarPath('TimePicker', 'variants', 'states', s, 'properties', 'colors', layer, 'text')
         return `${ddBg}: var(${tpBg}) !important; ${ddBorder}: var(${tpBorder}) !important; ${ddText}: var(${tpText}) !important;`

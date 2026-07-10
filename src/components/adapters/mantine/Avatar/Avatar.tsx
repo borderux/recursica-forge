@@ -37,8 +37,8 @@ export default function Avatar({
   // Build color CSS variable paths directly matching the JSON hierarchy:
   // avatar.variants.styles.{style}.variants.types.{type}.properties.colors.{layer}.{property}
   const bgVar = paddingStyleType === 'image'
-    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'colors', layer, 'background')
-    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', 'types', styleType, 'properties', 'colors', layer, 'background')
+    ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'colors', layer, 'background-color')
+    : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', 'types', styleType, 'properties', 'colors', layer, 'background-color')
   const borderVar = paddingStyleType === 'image'
     ? buildComponentCssVarPath('Avatar', 'variants', 'styles', 'image', 'properties', 'colors', layer, 'border-color')
     : buildComponentCssVarPath('Avatar', 'variants', 'styles', paddingStyleType, 'variants', 'types', styleType, 'properties', 'colors', layer, 'border-color')

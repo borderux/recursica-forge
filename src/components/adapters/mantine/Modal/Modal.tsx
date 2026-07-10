@@ -100,7 +100,7 @@ export default function Modal({
     }
 
     // Build CSS variable names
-    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'background')
+    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'background-color')
     const titleColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'title')
     const contentColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'content')
     const borderColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'border-color')
@@ -108,7 +108,7 @@ export default function Modal({
 
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')
-    const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-thickness')
+    const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-size')
     const horizontalPaddingVar = getComponentLevelCssVar('Modal', 'horizontal-padding')
     const verticalPaddingVar = getComponentLevelCssVar('Modal', 'vertical-padding')
     const buttonGapVar = getComponentLevelCssVar('Modal', 'button-gap')

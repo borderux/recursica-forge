@@ -120,7 +120,7 @@ describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, 
 
       // Get the CSS variable name that the toolbar would use
       // SegmentedControl uses container.colors.layer-X.background
-      const bgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', 'layer-0', 'background')
+      const bgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', 'layer-0', 'background-color')
       
       // Simulate toolbar update: change the CSS variable
       updateCssVar(bgVar, '#ff0000')
@@ -152,7 +152,7 @@ describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, 
       const element = await waitForSegmentedControl(container!)
       expect(element).toBeInTheDocument()
 
-      const selectedBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', 'layer-0', 'background')
+      const selectedBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'selected', 'colors', 'layer-0', 'background-color')
       
       updateCssVar(selectedBgVar, '#00ff00')
       window.dispatchEvent(new CustomEvent('cssVarsUpdated', {

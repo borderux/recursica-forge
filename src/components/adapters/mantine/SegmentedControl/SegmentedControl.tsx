@@ -39,7 +39,7 @@ export default function SegmentedControl({
   const isVertical = orientation === 'vertical'
 
   // Get CSS variables - container properties (always from SegmentedControl)
-  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'background')
+  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'background-color')
   const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'colors', layer, 'border-color')
   const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'border-size')
   const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'border-radius')
@@ -52,14 +52,14 @@ export default function SegmentedControl({
   const heightVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'height')
 
   // Get CSS variables - selected properties - always use SegmentedControlItem for item selected properties
-  const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background')
+  const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background-color')
   const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color')
   const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-size')
   const selectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-radius')
   const selectedElevationVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'elevation')
 
   // Get CSS variables - unselected properties
-  const unselectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'background')
+  const unselectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'background-color')
   const unselectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'colors', layer, 'border-color')
   const unselectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'border-size')
   const unselectedBorderRadiusVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'unselected', 'border-radius')
@@ -400,7 +400,7 @@ export default function SegmentedControl({
       tooltipEl.textContent = tooltipText
 
       // Get tooltip CSS variables using the proper utility function
-      const tooltipBg = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'background')
+      const tooltipBg = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'background-color')
       const tooltipTextColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'text')
       const tooltipBorderColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'border-color')
       const tooltipBorderSize = buildComponentCssVarPath('Tooltip', 'properties', 'border-size')
@@ -606,7 +606,7 @@ export default function SegmentedControl({
             ; (indicator as HTMLElement).style.setProperty('display', 'none', 'important')
               ; (indicator as HTMLElement).style.setProperty('visibility', 'hidden', 'important')
               ; (indicator as HTMLElement).style.setProperty('opacity', '0', 'important')
-              ; (indicator as HTMLElement).style.setProperty('background', 'transparent', 'important')
+              ; (indicator as HTMLElement).style.setProperty('background-color', 'transparent', 'important')
               ; (indicator as HTMLElement).style.setProperty('background-color', 'transparent', 'important')
               ; (indicator as HTMLElement).style.setProperty('border-color', 'transparent', 'important')
           }

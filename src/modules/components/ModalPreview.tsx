@@ -52,7 +52,7 @@ export default function ModalPreview({
     }, [])
 
     // Get CSS variable names for the static preview
-    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'background')
+    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'background-color')
     const titleColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'title')
     const borderColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'border-color')
     const dividerColorVar = buildComponentCssVarPath('Modal', 'properties', 'colors', selectedLayer, 'scroll-divider')
@@ -60,7 +60,7 @@ export default function ModalPreview({
 
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const borderSizeVar = getComponentLevelCssVar('Modal', 'border-size')
-    const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-thickness')
+    const scrollDividerThicknessVar = getComponentLevelCssVar('Modal', 'scroll-divider-size')
     const horizontalPaddingVar = getComponentLevelCssVar('Modal', 'horizontal-padding')
     const verticalPaddingVar = getComponentLevelCssVar('Modal', 'vertical-padding')
     const buttonGapVar = getComponentLevelCssVar('Modal', 'button-gap')

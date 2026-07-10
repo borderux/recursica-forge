@@ -28,7 +28,7 @@ export default function RadioButton({
     const borderSelectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-selected')
     const borderUnselectedVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'border-unselected')
     const iconColorVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'icon-color')
-    const disabledBgVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-background')
+    const disabledBgVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-background-color')
     const disabledBorderVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-border')
     const disabledIconVar = buildComponentCssVarPath('RadioButton', 'properties', 'colors', layer, 'disabled-icon')
     const disabledOpacityVar = buildComponentCssVarPath('RadioButton', 'properties', 'disabled-opacity')

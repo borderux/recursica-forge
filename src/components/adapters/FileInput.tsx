@@ -89,7 +89,7 @@ export function FileInput({
     const effectiveState = state
 
     // Get CSS variables for colors based on state variant
-    const backgroundVar = buildComponentCssVarPath('FileInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('FileInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('FileInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
     const textVar = buildComponentCssVarPath('FileInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
     const leadingIconVar = buildComponentCssVarPath('FileInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')

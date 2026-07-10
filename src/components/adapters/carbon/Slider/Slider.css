@@ -6,9 +6,9 @@
 
 .recursica-carbon-slider-wrapper {
   /* CSS variables are set via inline styles in component - use those */
-  --cds-slider-track-background: var(--recursica_ui-kit_components_slider_track_color) !important;
-  --cds-slider-fill-background: var(--recursica_ui-kit_components_slider_track_active_color) !important;
-  --cds-slider-thumb-background: var(--recursica_ui-kit_components_slider_thumb_color) !important;
+  --cds-slider-track-background: var(--recursica_ui-kit_components_slider_track_color-color) !important;
+  --cds-slider-fill-background: var(--recursica_ui-kit_components_slider_track_active_color-color) !important;
+  --cds-slider-thumb-background: var(--recursica_ui-kit_components_slider_thumb_color-color) !important;
 }
 
 .recursica-carbon-slider-wrapper .cds--slider__track {

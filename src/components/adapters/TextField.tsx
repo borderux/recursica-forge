@@ -107,7 +107,7 @@ export function TextField({
   const effectiveState = state
 
   // Get CSS variables for colors based on state variant
-  const backgroundVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
+  const backgroundVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
   const borderVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
   const textVar = buildComponentCssVarPath('TextField', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
   // Placeholder uses the same color as text (value color)

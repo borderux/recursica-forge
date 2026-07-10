@@ -76,7 +76,7 @@ export function Chip({
     const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
 
     // Get color CSS variables for reactive updates
-    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
     const chipTextForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
@@ -268,7 +268,7 @@ function getChipStyles(
   // Get color CSS variables
   // Use recursica_ui-kit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
-  const bgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
+  const bgVar = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
   const borderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
   const textVar = buildVariantColorCssVar('Chip', variant, 'text', layer)

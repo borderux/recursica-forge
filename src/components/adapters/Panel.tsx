@@ -147,7 +147,7 @@ function getPanelFallbackStyles(
     mode: 'light' | 'dark' = 'light',
     additionalStyle?: React.CSSProperties
 ): React.CSSProperties {
-    const bgVar = buildComponentCssVarPath('Panel', 'properties', 'colors', layer, 'background')
+    const bgVar = buildComponentCssVarPath('Panel', 'properties', 'colors', layer, 'background-color')
     const borderColorVar = buildComponentCssVarPath('Panel', 'properties', 'colors', layer, 'border-color')
     const hfHPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-horizontal-padding')
     const hfVPaddingVar = getComponentLevelCssVar('Panel', 'header-footer-vertical-padding')

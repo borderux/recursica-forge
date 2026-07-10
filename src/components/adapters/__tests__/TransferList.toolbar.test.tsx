@@ -251,7 +251,7 @@ describe.skip('TransferList Toolbar Props Integration', () => {
 
     describe('Color Props Updates', () => {
         const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
-        const colorProps = ['background', 'text', 'item-text', 'item-hover', 'border-color'] as const
+        const colorProps = ['background-color', 'text', 'item-text', 'item-hover', 'border-color'] as const
 
         layers.forEach(layer => {
             colorProps.forEach(colorProp => {

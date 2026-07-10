@@ -80,7 +80,7 @@ export default function Autocomplete({
     const isOpenedState = opened ? 'focus' : effectiveState
 
     // Get CSS variables for colors
-    const backgroundVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'border-color')
     const textVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'text')
     const leadingIconVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'leading-icon')

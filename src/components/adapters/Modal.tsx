@@ -247,7 +247,7 @@ function getModalFallbackStyles(
     elevation?: string,
     mode: 'light' | 'dark' = 'light'
 ): React.CSSProperties {
-    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'background')
+    const bgVar = buildComponentCssVarPath('Modal', 'properties', 'colors', layer, 'background-color')
     const borderRadiusVar = getComponentLevelCssVar('Modal', 'border-radius')
     const minWidthVar = getComponentLevelCssVar('Modal', 'min-width')
     const maxWidthVar = getComponentLevelCssVar('Modal', 'max-width')

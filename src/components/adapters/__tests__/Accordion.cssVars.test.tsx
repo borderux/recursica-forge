@@ -43,7 +43,7 @@ describe('Accordion CSS Variables', () => {
 
     const root = await waitForAccordion(container)
 
-    const containerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-0', 'background')
+    const containerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', 'layer-0', 'background-color')
     const containerPaddingVar = getComponentLevelCssVar('Accordion', 'padding')
     const itemGapVar = getComponentLevelCssVar('Accordion', 'item-gap')
 

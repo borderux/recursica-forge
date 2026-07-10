@@ -321,7 +321,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'eye': Eye,
   'eye-slash': EyeSlash,
   'bug': Bug,
-  'asterisk': Asterisk,
+  'asterisk-color': Asterisk,
   'options': DotsThree,
   'ellipsis-horizontal': DotsThree,
   'resize': Resize,

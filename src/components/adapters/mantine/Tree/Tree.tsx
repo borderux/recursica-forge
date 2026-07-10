@@ -52,7 +52,7 @@ export default function Tree({
   const selectedKey = selected.join(',')
   const horizontalPaddingVar = getComponentLevelCssVar('Tree', 'horizontal-padding')
   
-  const selectedBgVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'selected-background')
+  const selectedBgVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'selected-background-color')
   const selectedTextVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'selected-text')
   const selectedBorderColorVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'selected-border-color')
   const unselectedTextVar = buildComponentCssVarPath('Tree', 'properties', 'colors', layer, 'unselected-text')

@@ -33,7 +33,7 @@ export default function Tabs({
   const variantStyle = variant || 'default'
 
   // Get active state colors
-  const activeBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'background')
+  const activeBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'background-color')
   const activeBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'border-color')
   const activeTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'text-color')
   const activeIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'active', 'colors', layer, 'icon-color')
@@ -47,7 +47,7 @@ export default function Tabs({
     : `var(--recursica_tabs_active_background)`
 
   // Get inactive state colors
-  const inactiveBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'background')
+  const inactiveBackgroundVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'background-color')
   const inactiveBorderColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'border-color')
   const inactiveTextColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'text-color')
   const inactiveIconColorVar = buildComponentCssVarPath('Tabs', 'variants', 'styles', variantStyle, 'properties', 'inactive', 'colors', layer, 'icon-color')

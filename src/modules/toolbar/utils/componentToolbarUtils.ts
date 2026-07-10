@@ -416,7 +416,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         }
 
         // Determine category - in new structure, "colors" can be:
-        // 1. Inside variants.properties: ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background']
+        // 1. Inside variants.properties: ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background-color']
         // 2. Inside component properties: ['properties', 'colors', 'layer-0', 'thumb-selected'] (Switch)
         // 3. Size properties: ['variants', 'sizes', 'default', 'properties', 'height'] or ['properties', 'border-radius']
         let category = prefix[0] || 'root'

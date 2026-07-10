@@ -65,7 +65,7 @@ export function SegmentedControl({
     const { mode } = useThemeMode()
     
     // Get CSS variables - container properties
-    const containerBgVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'container', 'colors', layer, 'background')
+    const containerBgVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'container', 'colors', layer, 'background-color')
     const containerBorderColorVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'container', 'colors', layer, 'border-color')
     const containerBorderSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'container', 'border-size')
     const containerBorderRadiusVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'container', 'border-radius')
@@ -76,7 +76,7 @@ export function SegmentedControl({
     const heightVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'item', 'height')
     
     // Get CSS variables - selected properties
-    const selectedBgVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'background')
+    const selectedBgVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'background-color')
     const selectedBorderColorVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'colors', layer, 'border-color')
     const selectedBorderSizeVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'border-size')
     const selectedElevationVar = buildComponentCssVarPath(componentNameForCssVars, 'properties', 'selected', 'elevation')

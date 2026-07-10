@@ -44,7 +44,7 @@ export default function RadioButtonItem({
         '--radio-bg-unselected': getRadioColorVar('background-unselected'),
         '--radio-border-unselected': getRadioColorVar('border-unselected'),
         '--radio-icon-color': getRadioColorVar('icon-color'),
-        '--radio-disabled-bg': getRadioColorVar('disabled-background'),
+        '--radio-disabled-bg': getRadioColorVar('disabled-background-color'),
         '--radio-disabled-border': getRadioColorVar('disabled-border'),
         '--radio-disabled-icon': getRadioColorVar('disabled-icon'),
         '--radio-disabled-opacity': getRadioPropVar('disabled-opacity'),

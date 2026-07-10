@@ -931,7 +931,7 @@ export default function PropControlContent({
     const structure = parseComponentStructure(componentName)
 
     if (propName === 'text' || propName === 'text-hover') {
-      const bgPropName = propName === 'text-hover' ? 'background-hover' : 'background'
+      const bgPropName = propName === 'text-hover' ? 'background-hover' : 'background-color'
       const bgProp = structure.props.find(p =>
         p.name.toLowerCase() === bgPropName &&
         p.category === 'colors' &&
@@ -944,7 +944,7 @@ export default function PropControlContent({
       }
     }
 
-    if (propName === 'background' || propName === 'background-hover') {
+    if (propName === 'background-color' || propName === 'background-hover') {
       const textPropName = propName === 'background-hover' ? 'text-hover' : 'text'
       const textProp = structure.props.find(p =>
         p.name.toLowerCase() === textPropName &&
@@ -2334,7 +2334,7 @@ export default function PropControlContent({
   }
 
   const baseLabel = (componentName.toLowerCase() === 'toast' &&
-    (prop.name.toLowerCase() === 'background' || prop.name.toLowerCase() === 'text'))
+    (prop.name.toLowerCase() === 'background-color' || prop.name.toLowerCase() === 'text'))
     ? 'Color'
     : (componentName.toLowerCase() === 'toast' && prop.name.toLowerCase() === 'icon')
       ? 'Size'
@@ -2549,8 +2549,8 @@ export default function PropControlContent({
   }
 
   // Background Module
-  if (propNameLower === 'background' && prop.category === 'colors') {
-    const hasSelectedBackground = groupedPropsConfig && ('selected-background' in groupedPropsConfig)
+  if (propNameLower === 'background-color' && prop.category === 'colors') {
+    const hasSelectedBackground = groupedPropsConfig && ('selected-background-color' in groupedPropsConfig)
     const hasTextColor = groupedPropsConfig && ('text-color' in groupedPropsConfig)
 
     return (
@@ -2641,7 +2641,7 @@ export default function PropControlContent({
           let groupedProp = prop.borderProps!.get(groupedPropKey)
 
           // CRITICAL FIX for Menu item: When we have nested groups like "selected-item" and "unselected-item",
-          // both containing "background" and "text" properties, we need to match by BOTH the prop name
+          // both containing "background-color" and "text" properties, we need to match by BOTH the prop name
           // AND the parent group name to avoid collisions
           const parentGroupName = prop.name.toLowerCase() // e.g., "selected-item" or "unselected-item"
           const needsParentGroupMatch = (parentGroupName === 'selected-item' || parentGroupName === 'unselected-item') &&

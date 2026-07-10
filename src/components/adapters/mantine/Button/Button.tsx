@@ -47,7 +47,7 @@ export default function Button({
   const cssVarVariant = variant
 
   // Use recursica_ui-kit.json button colors for standard layers
-  const buttonBgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background')
+  const buttonBgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background-color')
   const buttonColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text')
 
   // Get hover color and opacity from the size variant (moved from component level)

@@ -82,7 +82,7 @@ style: {
 **In CSS:**
 ```css
 .cds--btn {
-  background-color: var(--button-bg, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background, var(--cds-button-primary))) !important;
+  background-color: var(--button-bg, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background-color, var(--cds-button-primary))) !important;
   color: var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-text, var(--cds-button-text-primary))) !important;
 }
 
@@ -111,7 +111,7 @@ All component-level variables are used in CSS with Recursica CSS variables and C
 ```css
 /* Example: Background and text color with proper fallback chain */
 .cds--btn {
-  background-color: var(--button-bg, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background, var(--cds-button-primary))) !important;
+  background-color: var(--button-bg, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-background-color, var(--cds-button-primary))) !important;
   color: var(--button-color, var(--recursica-ui-kit-components-button-color-layer-0-variant-solid-text, var(--cds-button-text-primary))) !important;
 }
 

@@ -36,7 +36,7 @@ export default function Loader({
     const trackColorVar = buildComponentCssVarPath('Loader', 'properties', 'track-color')
     const sizeVarName = buildComponentCssVarPath('Loader', 'variants', 'sizes', size, 'properties', 'size')
     const borderRadiusVarName = buildComponentCssVarPath('Loader', 'variants', 'sizes', size, 'properties', 'border-radius')
-    const strokeVarName = buildComponentCssVarPath('Loader', 'variants', 'sizes', size, 'properties', 'thickness')
+    const strokeVarName = buildComponentCssVarPath('Loader', 'variants', 'sizes', size, 'properties', 'thickness-size')
 
     const [updateKey, setUpdateKey] = useState(0)
 

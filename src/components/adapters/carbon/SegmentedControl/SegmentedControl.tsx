@@ -35,7 +35,7 @@ export default function SegmentedControl({
   const { mode } = useThemeMode()
   
   // Get CSS variables - container properties (always from SegmentedControl)
-  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'background')
+  const containerBgVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'background-color')
   const containerBorderColorVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'colors', layer, 'border-color')
   const containerBorderSizeVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-size')
   const containerBorderRadiusVar = buildComponentCssVarPath('SegmentedControl', 'properties', 'container', 'border-radius')
@@ -48,7 +48,7 @@ export default function SegmentedControl({
   const heightVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'item', 'height')
   
   // Get CSS variables - selected properties - always use SegmentedControlItem for item selected properties
-  const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background')
+  const selectedBgVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'background-color')
   const selectedBorderColorVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'colors', layer, 'border-color')
   const selectedBorderSizeVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'border-size')
   const selectedElevationVar = buildComponentCssVarPath('SegmentedControlItem', 'properties', 'selected', 'elevation')
@@ -98,7 +98,7 @@ export default function SegmentedControl({
       const detail = (e as CustomEvent)?.detail
       const updatedVars = detail?.cssVars || []
       const dividerVarUpdated = updatedVars.length === 0 || updatedVars.some((v: string) => 
-        v === dividerSizeVar || v === dividerColorVar || v.includes('divider')
+        v === dividerSizeVar || v === dividerColorVar || v.includes('divider-color')
       )
       if (dividerVarUpdated) {
         forceUpdate(prev => prev + 1)

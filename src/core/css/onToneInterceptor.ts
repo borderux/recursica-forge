@@ -41,7 +41,7 @@ export interface OnToneConflict {
   changedCssVarName: string
   /** Human-readable component + property, e.g. "Button / Background" */
   changedLabel: string
-  /** Raw property key, e.g. 'background', 'text-hover' */
+  /** Raw property key, e.g. 'background-color', 'text-hover' */
   changedPropKey: string
   /** The new tone ref, e.g. '{brand.palettes.neutral.500.color.tone}' */
   newToneRef: string
@@ -146,7 +146,7 @@ export function formatSiblingList(siblings: OnToneSibling[]): string {
  * e.g. '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_background'
  *   → { prefix: '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_',
  *       layerKey: 'layer-0',
- *       propKey: 'background' }
+ *       propKey: 'background-color' }
  */
 function parseLayerColorVar(cssVar: string): { prefix: string; layerKey: string; propKey: string } | null {
   // Match the layer-N_propKey suffix

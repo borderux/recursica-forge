@@ -53,7 +53,7 @@ export default function Chip({
 
     // Get color CSS variables for reactive updates
     const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
-    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background', layer)
+    const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
     const chipIconColorVarForListener = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
 
@@ -97,7 +97,7 @@ export default function Chip({
 
   // Use recursica_ui-kit.json chip colors for standard layers
   // Use explicit path building instead of parsing variant names from strings
-  const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background', layer)
+  const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
   const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)

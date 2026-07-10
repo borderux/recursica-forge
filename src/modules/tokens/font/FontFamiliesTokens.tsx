@@ -821,7 +821,7 @@ export default function FontFamiliesTokens() {
   const interactiveColor = `--recursica_brand_${mode}-palettes-core-interactive`
   const buttonTextBg = getComponentCssVar('Button', 'colors', 'text-background', 'layer-0')
   const buttonTextText = getComponentCssVar('Button', 'colors', 'text-text', 'layer-0')
-  const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background', 'layer-0')
+  const buttonSolidBg = getComponentCssVar('Button', 'colors', 'solid-background-color', 'layer-0')
   const buttonSolidText = getComponentCssVar('Button', 'colors', 'solid-text', 'layer-0')
   const buttonBorderRadius = getComponentCssVar('Button', 'size', 'border-radius', undefined)
   const buttonHeight = getComponentCssVar('Button', 'size', 'default-height', undefined)

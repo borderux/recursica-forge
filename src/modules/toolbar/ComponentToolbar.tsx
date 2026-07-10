@@ -1005,7 +1005,7 @@ export default function ComponentToolbar({
         }
       }
 
-      // NOTE: We do NOT filter by layer here. Props like "background" exist on all layers
+      // NOTE: We do NOT filter by layer here. Props like "background-color" exist on all layers
       // and should always be available in allProps. Layer-specific resolution happens
       // inside individual toolbars (e.g., BackgroundToolbar) which receive selectedLayer.
 

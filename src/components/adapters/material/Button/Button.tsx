@@ -43,7 +43,7 @@ export default function Button({
   const cssVarVariant = variant
 
   // Use recursica_ui-kit.json button colors for standard layers
-  const buttonBgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background')
+  const buttonBgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background-color')
   const buttonColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text')
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const buttonBorderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')

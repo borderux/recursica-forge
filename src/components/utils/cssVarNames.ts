@@ -64,7 +64,7 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
  * This is the generic, component-agnostic way to generate CSS var names.
  * 
  * @example
- * buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background')
+ * buildComponentCssVarPath('Button', 'variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background-color')
  * => '--recursica_ui-kit_themes_light_components_button_variants_styles_solid_properties_colors_layer-0_background'
  * 
  * @example
@@ -72,7 +72,7 @@ export function toCssVarName(path: string, mode?: 'light' | 'dark'): string {
  * => '--recursica_ui-kit_themes_dark_components_chip_properties_horizontal-padding'
  * 
  * @param component - Component name (e.g., 'Button', 'Chip')
- * @param pathSegments - Path segments from recursica_ui-kit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background'])
+ * @param pathSegments - Path segments from recursica_ui-kit.json structure (e.g., ['variants', 'styles', 'solid', 'properties', 'colors', 'layer-0', 'background-color'])
  * @param mode - Optional theme mode ('light' | 'dark'). If not provided, reads from document.documentElement.getAttribute('data-theme-mode')
  * @returns CSS variable name
  */
@@ -147,7 +147,7 @@ export function buildComponentCssVarPath(
  * getComponentCssVar('Chip', 'colors', 'unselected-background', 'layer-0')
  * 
  * // Use:
- * buildComponentCssVarPath('Chip', 'variants', 'styles', 'unselected', 'properties', 'colors', 'layer-0', 'background')
+ * buildComponentCssVarPath('Chip', 'variants', 'styles', 'unselected', 'properties', 'colors', 'layer-0', 'background-color')
  */
 export function getComponentCssVar(
   component: ComponentName,
@@ -222,7 +222,7 @@ export function getComponentCssVar(
     return buildComponentCssVarPath(component, ...pathSegments)
   }
 
-  // Check for nested variants (e.g., "text-solid-background" for Avatar)
+  // Check for nested variants (e.g., "text-solid-background-color-color" for Avatar)
   const nestedVariantMatch = property.match(/^(text|icon)-(solid|outline|ghost)-(.+)$/)
   if (nestedVariantMatch) {
     const [, primaryVariant, secondaryVariant, propName] = nestedVariantMatch
@@ -339,7 +339,7 @@ export function getComponentLevelCssVar(
  * Helper function to build CSS var path for variant color properties
  * 
  * @example
- * buildVariantColorCssVar('Chip', 'unselected', 'background', 'layer-0')
+ * buildVariantColorCssVar('Chip', 'unselected', 'background-color', 'layer-0')
  * => '--recursica_ui-kit_themes_light_components_chip_variants_styles_unselected_properties_colors_layer-0_background'
  */
 export function buildVariantColorCssVar(

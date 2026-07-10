@@ -34,7 +34,7 @@ export default function Accordion({
   const { mode } = useThemeMode()
 
   // Container properties (Accordion)
-  const containerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background')
+  const containerBgVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'background-color')
   const containerBorderVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'border-color')
   const containerBorderSizeVar = getComponentLevelCssVar('Accordion', 'border-size')
   const containerBorderRadiusVar = getComponentLevelCssVar('Accordion', 'border-radius')
@@ -43,7 +43,7 @@ export default function Accordion({
   const containerMaxWidthVar = getComponentLevelCssVar('Accordion', 'max-width')
   const itemGapVar = getComponentLevelCssVar('Accordion', 'item-gap')
   const dividerSizeVar = getComponentLevelCssVar('Accordion', 'divider-size')
-  const dividerColorVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'divider')
+  const dividerColorVar = buildComponentCssVarPath('Accordion', 'properties', 'colors', layer, 'divider-color')
 
   // Elevation - reactive pattern for toolbar control
   const elevationVar = getComponentLevelCssVar('Accordion', 'elevation')
@@ -132,7 +132,7 @@ export default function Accordion({
   const headerBgExpandedVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'background-expanded')
   const headerTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'text')
   const iconColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'icon')
-  const contentBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-background')
+  const contentBgVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-background-color')
   const contentTextVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-text')
   const itemBorderColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'item-border-color')
   const contentBorderColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'content-border-color')

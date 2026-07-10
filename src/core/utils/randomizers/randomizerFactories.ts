@@ -280,7 +280,7 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
        if (propPath.includes('border-radius') || propPath.includes('radius')) {
            return `{brand.dimensions.border-radii.${shiftValue('default', CONSTANTS.borderRadii)}}`;
        }
-       if (propPath.includes('color') || propPath.includes('background') || propPath.includes('icon') || propPath.includes('surface') || propPath.includes('text')) {
+       if (propPath.includes('color') || propPath.includes('background-color') || propPath.includes('icon') || propPath.includes('surface') || propPath.includes('text')) {
            const palettes = CONSTANTS.paletteNames.filter(p => !['core-colors', 'system'].includes(p));
            const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
            const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];
@@ -304,13 +304,13 @@ export function randomizeTokenReference(tokenRef: string, originPath?: string): 
        }
 
        // Handle dimensions/sizes
-       if (part1 === 'size' || fullPropPath.includes('gap') || fullPropPath.includes('padding') || fullPropPath.includes('margin') || fullPropPath.includes('spacing') || fullPropPath.includes('width') || fullPropPath.includes('height') || fullPropPath.includes('size') || fullPropPath.includes('thickness')) {
+       if (part1 === 'size' || fullPropPath.includes('gap') || fullPropPath.includes('padding') || fullPropPath.includes('margin') || fullPropPath.includes('spacing') || fullPropPath.includes('width') || fullPropPath.includes('height') || fullPropPath.includes('size') || fullPropPath.includes('thickness-size')) {
            const randomGeneral = CONSTANTS.dimensionGeneral[Math.floor(Math.random() * CONSTANTS.dimensionGeneral.length)];
            return `{brand.dimensions.general.${randomGeneral}}`;
        }
 
        // Handle colors
-       if (part1 === 'colors' || fullPropPath.includes('color') || fullPropPath.includes('background') || (fullPropPath.includes('icon') && !fullPropPath.includes('size')) || fullPropPath.includes('surface') || fullPropPath.includes('text')) {
+       if (part1 === 'colors' || fullPropPath.includes('color') || fullPropPath.includes('background-color') || (fullPropPath.includes('icon') && !fullPropPath.includes('size')) || fullPropPath.includes('surface') || fullPropPath.includes('text')) {
            const palettes = CONSTANTS.paletteNames.filter(p => !['core-colors', 'system'].includes(p));
            const randomPalette = palettes[Math.floor(Math.random() * palettes.length)] || 'neutral';
            const randomLevel = CONSTANTS.paletteLevels[Math.floor(Math.random() * CONSTANTS.paletteLevels.length)];

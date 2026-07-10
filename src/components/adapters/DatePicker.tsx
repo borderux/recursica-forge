@@ -91,7 +91,7 @@ export function DatePicker({
     const effectiveState = state
 
     // Get CSS variables for colors based on state variant (uses 'date-picker' component in UIKit)
-    const backgroundVar = buildComponentCssVarPath('DatePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background')
+    const backgroundVar = buildComponentCssVarPath('DatePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('DatePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
     const textVar = buildComponentCssVarPath('DatePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
     const leadingIconVar = buildComponentCssVarPath('DatePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
