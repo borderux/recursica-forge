@@ -176,7 +176,7 @@ export function auditRecursicaCssVars(): BrokenReference[] {
   }
 
   // Check all DOM elements for CSS variable usage (both definitions and references)
-  const allElements = document.querySelectorAll('*')
+  const allElements = document.querySelectorAll('[style*="--recursica_"], [style*="var("]')
   for (const el of allElements) {
     const elDesc = getElementDesc(el)
     const elComputed = getComputedStyle(el)
@@ -855,7 +855,7 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
   }
 
   const issues: DeepAuditIssue[] = []
-  const allElements = document.querySelectorAll('*')
+  const allElements = document.querySelectorAll('[style*="--recursica_"], [style*="var("]')
   const root = document.documentElement
   const allDefinedVars = new Set<string>()
   const varValues = new Map<string, string>()
@@ -936,80 +936,18 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
 
   // Helper to check if CSS variable is defined (including scoped variables)
   const isCssVarDefined = (varName: string, element?: HTMLElement): boolean => {
-    // Layer-scoped variables and inline-styled component variables
-    // must resolve on the specific element, not just globally.
-    // This check MUST come before allDefinedVars to avoid false positives
-    // and to catch variables defined via inline style props (like Switch component wrapper vars).
-    if (element) {
-      const computedOnElement = getComputedStyle(element).getPropertyValue(varName)
-      if (computedOnElement !== '') return true
-      
-      // If it's a layer-scoped variable and it's not on this element, it's undefined for this context
-      if (varName.match(/^--recursica_brand_layer_(\d+)_/)) {
-        return false
-      }
-    }
-
     // First check if we already collected this variable in the first pass
     if (allDefinedVars.has(varName)) return true
     
-    // Check root first
-    const rootValue = getComputedStyle(root).getPropertyValue(varName)
-    if (rootValue !== '') return true
-
-    // Check if it's a scoped variable (theme/layer scoped)
-    // Note: Scoped variables like --recursica_brand_themes_light_palettes_... are NOT on :root
-    // They're defined in scoped stylesheets that only apply with theme classes
-    if (varName.includes('-themes-') && varName.startsWith('--recursica_brand_')) {
-      // Try to get theme from variable name
-      const themeMatch = varName.match(/--recursica_brand_themes_([a-z]+)-/)
-      if (themeMatch) {
-        const theme = themeMatch[1]
-        
-        // Check scoped stylesheets if available via window global
-        try {
-          const win = window as any
-          if (win.__recursicaGetInlineStylesheetManager) {
-            const manager = win.__recursicaGetInlineStylesheetManager('brand')
-            if (manager && typeof manager.getScopedRules === 'function') {
-              const scopedRules = manager.getScopedRules()
-              const themeKey = `${theme}:*`
-              const themeVars = scopedRules.get(themeKey) || {}
-              if (themeVars[varName]) return true
-            }
-          }
-        } catch (e) {
-          // Ignore errors - fall back to DOM check
-        }
-
-        // Check on a temporary element with theme class
-        // This is the most reliable way to check scoped variables
-        const testEl = document.createElement('div')
-        testEl.className = `recursica-theme-${theme}`
-        testEl.setAttribute('data-recursica-theme', theme)
-        testEl.style.display = 'none'
-        testEl.style.visibility = 'hidden'
-        testEl.style.position = 'absolute'
-        document.body.appendChild(testEl)
-        try {
-          const computed = getComputedStyle(testEl).getPropertyValue(varName)
-          document.body.removeChild(testEl)
-          if (computed !== '') return true
-        } catch (e) {
-          document.body.removeChild(testEl)
-        }
-      }
-    }
-
-    // Check all elements
-    for (const el of allElements) {
-      const computed = getComputedStyle(el).getPropertyValue(varName)
-      if (computed !== '') return true
-      const inline = (el as HTMLElement).style
-      if (inline && inline.getPropertyValue(varName) !== '') return true
-    }
-
     return false
+  }
+
+  // Helper to read CSS variable value (checks all elements and scoped variables)
+  const readCssVarValue = (varName: string): string | null => {
+    // First check if we already collected the value in the first pass
+    if (varValues.has(varName)) return varValues.get(varName)!.trim()
+
+    return null
   }
 
   // Helper to extract all CSS variable references from a value
@@ -1053,55 +991,6 @@ export function deepAuditCssVars(): DeepAuditIssue[] {
     }
 
     return { resolved: true, chain: Array.from(visited) }
-  }
-
-  // Helper to read CSS variable value (checks all elements and scoped variables)
-  const readCssVarValue = (varName: string): string | null => {
-    try {
-      // Check root inline first
-      const rootInline = root.style.getPropertyValue(varName)
-      if (rootInline !== '') return rootInline.trim()
-
-      // Check root computed
-      const rootComputed = getComputedStyle(root).getPropertyValue(varName)
-      if (rootComputed !== '') return rootComputed.trim()
-
-      // Check if it's a scoped variable
-      if (varName.includes('-themes-') && varName.startsWith('--recursica_brand_')) {
-        const themeMatch = varName.match(/--recursica_brand_themes_([a-z]+)-/)
-        if (themeMatch) {
-          const theme = themeMatch[1]
-          const testEl = document.createElement('div')
-          testEl.className = `recursica-theme-${theme}`
-          testEl.setAttribute('data-recursica-theme', theme)
-          testEl.style.display = 'none'
-          testEl.style.visibility = 'hidden'
-          testEl.style.position = 'absolute'
-          document.body.appendChild(testEl)
-          try {
-            const computed = getComputedStyle(testEl).getPropertyValue(varName)
-            document.body.removeChild(testEl)
-            if (computed !== '') return computed.trim()
-          } catch (e) {
-            document.body.removeChild(testEl)
-          }
-        }
-      }
-
-      // Check all elements
-      for (const el of allElements) {
-        const computed = getComputedStyle(el).getPropertyValue(varName)
-        if (computed !== '') return computed.trim()
-        const inline = (el as HTMLElement).style
-        if (inline) {
-          const inlineValue = inline.getPropertyValue(varName)
-          if (inlineValue !== '') return inlineValue.trim()
-        }
-      }
-    } catch (e) {
-      // Ignore errors
-    }
-    return null
   }
 
   // Helper to detect malformed variable names

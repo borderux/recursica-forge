@@ -414,10 +414,10 @@ export default function WidthGroupToolbar({
   }, [minHeightVar, includeHeight, componentName, getWidthSliderRange])
 
   // Check visibility from toolbar config
-  const minWidthVisible = groupedPropsConfig?.['min-width']?.visible !== false
-  const maxWidthVisible = groupedPropsConfig?.['max-width']?.visible !== false
-  const minHeightVisible = groupedPropsConfig?.['min-height']?.visible !== false
-  const maxHeightVisible = groupedPropsConfig?.['max-height']?.visible !== false
+  const minWidthVisible = true
+  const maxWidthVisible = true
+  const minHeightVisible = true
+  const maxHeightVisible = true
 
   // Max Height Control
   const MaxHeightControl = useMemo(() => {

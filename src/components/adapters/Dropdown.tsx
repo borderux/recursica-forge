@@ -111,13 +111,13 @@ export function Dropdown({
     }
 
     // Determine effective state
-    const effectiveState = disabled ? 'disabled' : state
+    const effectiveState = disabled ? 'disabled' : (errorText ? 'error' : state)
 
     // Get CSS variables (using TextField as template for now until Dropdown tokens are stable)
     // We use Dropdown as the component name for CSS vars
     const backgroundVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
+    const textVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text-color')
     const leadingIconVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
     const trailingIconVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'trailing-icon')
 

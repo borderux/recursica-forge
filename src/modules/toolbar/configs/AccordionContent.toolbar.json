@@ -1,0 +1,52 @@
+{
+  "variants": {},
+  "properties": {
+    "content": {
+      "icon": "paint-bucket",
+      "label": "Content",
+      "group": {
+        "properties.colors.text-color": {
+          "label": "Text color"
+        },
+        "properties.colors.background-color": {
+          "label": "Background color"
+        },
+        "properties.horizontal-padding": {
+          "label": "Horizontal padding"
+        },
+        "properties.top-padding": {
+          "label": "Top padding"
+        },
+        "properties.bottom-padding": {
+          "label": "Bottom padding"
+        },
+        "properties.border-size": {
+          "label": "Border size"
+        },
+        "properties.colors.border-color": {
+          "label": "Border color"
+        },
+        "properties.border-radius": {
+          "label": "Border radius"
+        },
+        "properties.margin": {
+          "label": "Margin",
+          "floatingPaletteLabel": "Content Margin"
+        }
+      }
+    },
+    "text": {
+      "icon": "text-aa",
+      "label": "Content text style"
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "group": {
+        "properties.elevation": {
+          "label": "Content"
+        }
+      }
+    }
+  }
+}

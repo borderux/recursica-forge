@@ -1,0 +1,55 @@
+{
+  "variants": {
+    "appearance": {
+      "icon": "eye",
+      "label": "Appearance",
+      "optionLabels": {
+        "open": "Open",
+        "closed": "Closed"
+      }
+    }
+  },
+  "properties": {
+    "header": {
+      "icon": "text-aa",
+      "label": "Header",
+      "group": {
+        "properties.colors.text-color": {
+          "label": "Text color"
+        },
+        "properties.colors.icon-color": {
+          "label": "Icon color"
+        },
+        "properties.colors.background-color": {
+          "label": "Background color",
+          "floatingPaletteLabel": "Background Color"
+        },
+        "properties.icon-gap": {
+          "label": "Icon gap"
+        },
+        "properties.header-horizontal-padding": {
+          "label": "Horizontal padding"
+        },
+        "properties.header-vertical-padding": {
+          "label": "Vertical padding"
+        }
+      }
+    },
+    "header-text": {
+      "icon": "text-aa",
+      "label": "Header text style"
+    },
+    "icon-size": {
+      "icon": "arrows-up-down",
+      "label": "Icon sizes",
+      "group": {
+        "properties.icon-left-size": {
+          "label": "Left icon"
+        },
+        "properties.icon-right-size": {
+          "label": "Right icon"
+        }
+      }
+    }
+  }
+}

@@ -5,47 +5,43 @@
       "label": "Variant"
     }
   },
-  "props": {
+  "properties": {
     "text": {
       "icon": "text-aa",
-      "label": "Text style",
-      "visible": true
+      "label": "Text style"
     },
     "color": {
       "icon": "paint-bucket",
       "label": "Color",
-      "visible": true,
       "group": {
-        "text-color": {
-          "label": "Text color",
-          "visible": true
+        "properties.colors.text-color": {
+          "label": "Text color"
         },
-        "icon-color": {
-          "label": "Icon color",
-          "visible": true
+        "properties.colors.icon-color": {
+          "label": "Icon color"
         }
       }
     },
     "icon": {
       "icon": "resize",
       "label": "Size",
-      "visible": true,
       "group": {
-        "icon-size": {
-          "label": "Icon size",
-          "visible": true
+        "properties.icon-size": {
+          "label": "Icon size"
         },
-        "icon-text-gap": {
-          "label": "Icon-text gap",
-          "visible": true
+        "properties.icon-text-gap": {
+          "label": "Icon-text gap"
         },
-        "max-width": {
+        "properties.max-width": {
           "label": "Max width",
-          "visible": true
+          "range": [
+            100,
+            500
+          ],
+          "step": 1
         },
-        "top-margin": {
-          "label": "Top margin",
-          "visible": true
+        "properties.top-margin": {
+          "label": "Top margin"
         }
       }
     }

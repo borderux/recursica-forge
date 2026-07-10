@@ -15,6 +15,7 @@ export type AccordionItem = {
   content: React.ReactNode
   icon?: React.ComponentType<{ className?: string; size?: number; style?: React.CSSProperties }> | null
   open?: boolean
+  defaultOpen?: boolean
   divider?: boolean
   disabled?: boolean
 }
@@ -61,7 +62,9 @@ export function Accordion({
     [items]
   )
 
-  const [internalOpenItems, setInternalOpenItems] = useState<string[]>(controlledOpenItems)
+  const [internalOpenItems, setInternalOpenItems] = useState<string[]>(() =>
+    items.filter(item => item.defaultOpen || item.open).map(item => item.id)
+  )
 
   useEffect(() => {
     if (!isControlled) {

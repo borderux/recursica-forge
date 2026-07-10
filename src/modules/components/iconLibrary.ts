@@ -450,6 +450,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'text-input': TextT,
   'cursor': Cursor,
   'dots-three': DotsThree,
+  'opacity': Sparkle,
+  'asterisk': Asterisk,
 }
 
 /**

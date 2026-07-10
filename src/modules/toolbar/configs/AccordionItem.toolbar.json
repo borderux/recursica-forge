@@ -1,158 +1,32 @@
 {
   "variants": {},
-  "props": {
-    "header": {
-      "icon": "text-aa",
-      "label": "Header",
-      "visible": true,
-      "group": {
-        "text": {
-          "label": "Text color",
-          "visible": true
-        },
-        "icon": {
-          "label": "Icon",
-          "visible": true
-        },
-        "icon-gap": {
-          "label": "Icon gap",
-          "visible": true
-        },
-        "header-horizontal-padding": {
-          "label": "Horizontal padding",
-          "visible": true
-        },
-        "header-vertical-padding": {
-          "label": "Vertical padding",
-          "visible": true
-        }
-      }
-    },
+  "properties": {
     "item": {
       "icon": "paint-bucket",
-      "label": "Item",
-      "visible": true,
+      "label": "Container",
       "group": {
-        "background-collapsed": {
-          "label": "Collapsed",
-          "visible": true,
-          "floatingPaletteLabel": "Background Color (Collapsed)"
-        },
-        "background-expanded": {
-          "label": "Expanded",
-          "visible": true,
-          "floatingPaletteLabel": "Background Color (Expanded)"
-        },
-        "item-border-size": {
+        "properties.border-size": {
           "label": "Border size",
-          "visible": true
+          "range": [
+            0,
+            10
+          ],
+          "step": 1
         },
-        "item-border-color": {
-          "label": "Border color",
-          "visible": true
+        "properties.colors.border-color": {
+          "label": "Border color"
         },
-        "border-radius": {
-          "label": "Border radius",
-          "visible": true
-        }
-      }
-    },
-    "header-text": {
-      "icon": "text-aa",
-      "label": "Header text style",
-      "visible": true
-    },
-    "content": {
-      "icon": "paint-bucket",
-      "label": "Content",
-      "visible": true,
-      "group": {
-        "content-text": {
-          "label": "Text color",
-          "visible": true
-        },
-        "content-background": {
-          "label": "Background",
-          "visible": true
-        },
-        "content-horizontal-padding": {
-          "label": "Horizontal padding",
-          "visible": true
-        },
-        "content-top-padding": {
-          "label": "Top padding",
-          "visible": true
-        },
-        "content-bottom-padding": {
-          "label": "Bottom padding",
-          "visible": true
-        },
-        "content-border-size": {
-          "label": "Border size",
-          "visible": true
-        },
-        "content-border-color": {
-          "label": "Border color",
-          "visible": true
-        },
-        "content-border-radius": {
-          "label": "Border radius",
-          "visible": true
-        },
-        "content-margin": {
-          "label": "Margin",
-          "visible": true,
-          "floatingPaletteLabel": "Content Margin"
-        }
-      }
-    },
-    "content-text": {
-      "icon": "text-aa",
-      "label": "Content text style",
-      "visible": true
-    },
-    "icon-size": {
-      "icon": "arrows-up-down",
-      "label": "Icon sizes",
-      "visible": true,
-      "group": {
-        "icon-left-size": {
-          "label": "Left icon",
-          "visible": true
-        },
-        "icon-right-size": {
-          "label": "Right icon",
-          "visible": true
+        "properties.border-radius": {
+          "label": "Border radius"
         }
       }
     },
     "elevation": {
       "icon": "copy-simple",
       "label": "Elevation",
-      "visible": true,
       "group": {
-        "elevation-item": {
-          "label": "Item",
-          "visible": true
-        },
-        "elevation-content": {
-          "label": "Content",
-          "visible": true
-        }
-      }
-    },
-    "hover-color": {
-      "icon": "cursor",
-      "label": "Hover",
-      "visible": true,
-      "group": {
-        "hover-color": {
-          "label": "Color",
-          "visible": true
-        },
-        "hover-opacity": {
-          "label": "Opacity",
-          "visible": true
+        "properties.elevation": {
+          "label": "Item"
         }
       }
     }

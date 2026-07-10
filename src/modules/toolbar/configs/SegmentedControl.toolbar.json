@@ -9,89 +9,82 @@
       "label": "Fill container width"
     }
   },
-  "props": {
+  "properties": {
     "background": {
       "icon": "paint-bucket",
-      "label": "Background",
-      "visible": true
+      "label": "Background"
     },
     "elevation": {
       "icon": "copy-simple",
-      "label": "Elevation",
-      "visible": true
+      "label": "Elevation"
     },
     "border": {
       "icon": "square",
       "label": "Border",
-      "visible": true,
       "group": {
-        "border-size": {
+        "properties.border-size": {
           "icon": "arrows-left-right",
           "label": "Border size",
-          "visible": true
+          "range": [
+            0,
+            10
+          ],
+          "step": 1
         },
-        "border-color": {
+        "properties.colors.border-color": {
           "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true
+          "label": "Border color"
         },
-        "border-radius": {
+        "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Border radius",
-          "visible": true
+          "label": "Border radius"
         }
       }
     },
     "padding": {
       "icon": "arrows-out",
       "label": "Padding",
-      "visible": true,
       "group": {
-        "padding-horizontal": {
+        "properties.padding-horizontal": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding",
-          "visible": true
+          "label": "Horizontal padding"
         },
-        "padding-vertical": {
+        "properties.padding-vertical": {
           "icon": "arrows-up-down",
-          "label": "Vertical",
-          "visible": true
+          "label": "Vertical"
         }
       }
     },
-
     "direction": {
       "icon": "arrows-out",
-      "label": "Direction",
-      "visible": true
+      "label": "Direction"
     },
     "fill-width": {
       "icon": "arrows-out-line-horizontal",
-      "label": "Fill container width",
-      "visible": true
+      "label": "Fill container width"
     },
     "divider": {
       "icon": "split-horizontal",
       "label": "Divider",
-      "visible": true,
       "group": {
-        "item-gap": {
+        "properties.item-gap": {
           "icon": "split-horizontal",
-          "label": "Item gap",
-          "visible": true
+          "label": "Item gap"
         },
-        "divider-color": {
+        "properties.divider-color": {
           "icon": "paint-bucket",
-          "label": "Divider color",
-          "visible": true
+          "label": "Divider color"
         },
-        "divider-size": {
+        "properties.divider-size": {
           "icon": "arrows-left-right",
           "label": "Divider size",
-          "visible": true
+          "range": [
+            0,
+            10
+          ],
+          "step": 1
         }
       }
     }
   }
 }
-

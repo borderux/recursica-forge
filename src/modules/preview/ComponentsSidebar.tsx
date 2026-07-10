@@ -79,6 +79,8 @@ export function ComponentsSidebar({
     return [
       { name: 'Accordion', url: `${base}/accordion` },
       { name: 'Accordion item', url: `${base}/accordion-item` },
+      { name: 'Accordion header', url: `${base}/accordion-header` },
+      { name: 'Accordion content', url: `${base}/accordion-content` },
       { name: 'Assistive element', url: `${base}/assistive-element` },
       { name: 'Avatar', url: `${base}/avatar` },
       { name: 'Badge', url: `${base}/badge` },
@@ -148,7 +150,7 @@ export function ComponentsSidebar({
 
     // First pass: separate parents and child items
     allComponents.forEach(comp => {
-      const isItem = comp.name.endsWith(' item') || comp.name.endsWith(' bullet') || comp.name.endsWith(' cell') || comp.name.endsWith(' header') || comp.name.endsWith(' footer')
+      const isItem = comp.name.endsWith(' item') || comp.name.endsWith(' bullet') || comp.name.endsWith(' cell') || comp.name.endsWith(' header') || comp.name.endsWith(' footer') || comp.name.endsWith(' content')
       // Derive parent name by stripping the suffix
       let parentName = comp.name
       if (comp.name.endsWith(' item')) {
@@ -161,6 +163,8 @@ export function ComponentsSidebar({
         parentName = comp.name.replace(/ header$/, '')
       } else if (comp.name.endsWith(' footer')) {
         parentName = comp.name.replace(/ footer$/, '')
+      } else if (comp.name.endsWith(' content')) {
+        parentName = comp.name.replace(/ content$/, '')
       }
 
       if (isItem) {

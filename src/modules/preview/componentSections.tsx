@@ -486,6 +486,56 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       },
     },
     {
+      name: 'Accordion header',
+      url: `${base}/accordion-header`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+
+        return (
+          <div style={{ width: '100%', maxWidth: 520 }}>
+            <Accordion
+              items={[
+                {
+                  id: 'item-1',
+                  title: 'Accordion header',
+                  content: 'This demonstrates AccordionHeader properties. Changing AccordionHeader properties in the toolbar will update the style of this header.',
+                  open: true,
+                  divider: false
+                },
+              ]}
+              layer={layer as any}
+              allowMultiple={false}
+            />
+          </div>
+        )
+      },
+    },
+    {
+      name: 'Accordion content',
+      url: `${base}/accordion-content`,
+      render: (selectedLayers: Set<LayerOption>) => {
+        const layer = Array.from(selectedLayers)[0] || 'layer-0'
+
+        return (
+          <div style={{ width: '100%', maxWidth: 520 }}>
+            <Accordion
+              items={[
+                {
+                  id: 'item-1',
+                  title: 'Accordion content',
+                  content: 'This demonstrates AccordionContent properties. Changing AccordionContent properties in the toolbar will update the style of this content container.',
+                  open: true,
+                  divider: false
+                },
+              ]}
+              layer={layer as any}
+              allowMultiple={false}
+            />
+          </div>
+        )
+      },
+    },
+    {
       name: 'Assistive element',
       url: `${base}/assistive-element`,
       render: (selectedLayers: Set<LayerOption>) => {

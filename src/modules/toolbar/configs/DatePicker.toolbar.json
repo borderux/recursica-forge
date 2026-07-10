@@ -1,131 +1,112 @@
 {
-    "variants": {
-        "states": {
-            "icon": "diamonds-four",
-            "label": "State"
-        }
-    },
-    "props": {
-        "colors": {
-            "icon": "paint-bucket",
-            "label": "Colors",
-            "visible": true,
-            "floatingPaletteLabel": "Colors",
-            "group": {
-                "background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true,
-                    "floatingPaletteLabel": "Background Color"
-                },
-                "text": {
-                    "icon": "text-aa",
-                    "label": "Value color",
-                    "visible": true,
-                    "floatingPaletteLabel": "Value Color"
-                },
-                "leading-icon": {
-                    "icon": "diamond",
-                    "label": "Leading icon",
-                    "visible": true,
-                    "floatingPaletteLabel": "Leading Icon Color"
-                },
-                "placeholder-opacity": {
-                    "icon": "eye",
-                    "label": "Placeholder opacity",
-                    "visible": true,
-                    "floatingPaletteLabel": "Placeholder Opacity"
-                }
-            }
-        },
-        "border": {
-            "icon": "square",
-            "label": "Border",
-            "visible": true,
-            "group": {
-                "border-size": {
-                    "icon": "arrows-left-right",
-                    "label": "Size",
-                    "visible": true
-                },
-                "border-radius": {
-                    "icon": "corners-out",
-                    "label": "Corner radius",
-                    "visible": true
-                },
-                "border-color": {
-                    "icon": "paint-bucket",
-                    "label": "Color",
-                    "visible": true
-                }
-            }
-        },
-        "text": {
-            "icon": "text-aa",
-            "label": "Text style",
-            "visible": true
-        },
-        "padding": {
-            "icon": "square-logo",
-            "label": "Padding",
-            "visible": true,
-            "floatingPaletteLabel": "Padding",
-            "group": {
-                "horizontal-padding": {
-                    "icon": "arrows-left-right",
-                    "label": "Horizontal padding",
-                    "visible": true,
-                    "floatingPaletteLabel": "Horizontal Padding"
-                },
-                "vertical-padding": {
-                    "icon": "arrows-up-down",
-                    "label": "Vertical padding",
-                    "visible": true,
-                    "floatingPaletteLabel": "Vertical Padding"
-                },
-                "min-height": {
-                    "icon": "arrows-up-down",
-                    "label": "Min height",
-                    "visible": true
-                }
-            }
-        },
-        "top-bottom-margin": {
-            "icon": "arrows-up-down",
-            "label": "Top and bottom margin",
-            "visible": true
-        },
-        "width": {
-            "icon": "arrows-left-right",
-            "label": "Width",
-            "visible": true,
-            "floatingPaletteLabel": "Width",
-            "propertyType": "slider",
-            "range": [
-                100,
-                800
-            ],
-            "step": 1
-        },
-        "icon": {
-            "icon": "diamond",
-            "label": "Icon",
-            "visible": true,
-            "floatingPaletteLabel": "Icon",
-            "group": {
-                "icon-size": {
-                    "icon": "diamond",
-                    "label": "Icon size",
-                    "visible": true,
-                    "floatingPaletteLabel": "Icon Size"
-                },
-                "icon-text-gap": {
-                    "icon": "split-horizontal",
-                    "label": "Icon-text gap",
-                    "visible": true,
-                    "floatingPaletteLabel": "Icon-Text Gap"
-                }
-            }
-        }
+  "variants": {
+    "states": {
+      "icon": "diamonds-four",
+      "label": "State"
     }
+  },
+  "properties": {
+    "colors": {
+      "icon": "paint-bucket",
+      "label": "Colors",
+      "floatingPaletteLabel": "Colors",
+      "group": {
+        "properties.colors.background-color": {
+          "icon": "paint-bucket",
+          "label": "Background",
+          "floatingPaletteLabel": "Background Color"
+        },
+        "properties.colors.text-color": {
+          "icon": "text-aa",
+          "label": "Value color",
+          "floatingPaletteLabel": "Value Color"
+        },
+        "properties.leading-icon": {
+          "icon": "diamond",
+          "label": "Leading icon",
+          "floatingPaletteLabel": "Leading Icon Color"
+        },
+        "properties.placeholder-opacity": {
+          "icon": "eye",
+          "label": "Placeholder opacity",
+          "floatingPaletteLabel": "Placeholder Opacity"
+        }
+      }
+    },
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "group": {
+        "properties.border-size": {
+          "icon": "arrows-left-right",
+          "label": "Size"
+        },
+        "properties.border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius"
+        },
+        "properties.colors.border-color": {
+          "icon": "paint-bucket",
+          "label": "Color"
+        }
+      }
+    },
+    "text": {
+      "icon": "text-aa",
+      "label": "Text style"
+    },
+    "padding": {
+      "icon": "square-logo",
+      "label": "Padding",
+      "floatingPaletteLabel": "Padding",
+      "group": {
+        "properties.horizontal-padding": {
+          "icon": "arrows-left-right",
+          "label": "Horizontal padding",
+          "floatingPaletteLabel": "Horizontal Padding"
+        },
+        "properties.vertical-padding": {
+          "icon": "arrows-up-down",
+          "label": "Vertical padding",
+          "floatingPaletteLabel": "Vertical Padding"
+        },
+        "properties.min-height": {
+          "icon": "arrows-up-down",
+          "label": "Min height"
+        }
+      }
+    },
+    "top-bottom-margin": {
+      "icon": "arrows-up-down",
+      "label": "Top and bottom margin"
+    },
+    "width": {
+      "icon": "arrows-left-right",
+      "label": "Width",
+      "floatingPaletteLabel": "Width",
+      "propertyType": "slider",
+      "range": [
+        100,
+        800
+      ],
+      "step": 1
+    },
+    "icon": {
+      "icon": "diamond",
+      "label": "Icon",
+      "floatingPaletteLabel": "Icon",
+      "group": {
+        "properties.icon-size": {
+          "icon": "diamond",
+          "label": "Icon size",
+          "floatingPaletteLabel": "Icon Size"
+        },
+        "properties.icon-text-gap": {
+          "icon": "split-horizontal",
+          "label": "Icon-text gap",
+          "floatingPaletteLabel": "Icon-Text Gap"
+        }
+      }
+    }
+  }
 }

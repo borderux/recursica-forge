@@ -1,114 +1,98 @@
 {
   "variants": {},
-  "props": {
+  "properties": {
     "selected-text": {
       "icon": "text-aa",
-      "label": "Selected text style",
-      "visible": true
+      "label": "Selected text style"
     },
     "unselected-text": {
       "icon": "text-aa",
-      "label": "Unselected text style",
-      "visible": true
+      "label": "Unselected text style"
     },
     "selected": {
       "icon": "check-square",
       "label": "Selected",
-      "visible": true,
       "group": {
-        "background": {
+        "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
+          "label": "Background"
         },
-        "text-color": {
+        "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Text color",
-          "visible": true
+          "label": "Text color"
         },
-        "elevation": {
+        "properties.elevation": {
           "icon": "copy-simple",
-          "label": "Elevation",
-          "visible": true
+          "label": "Elevation"
         },
-        "border-size": {
+        "properties.border-size": {
           "icon": "arrows-left-right",
-          "label": "Border size",
-          "visible": true
+          "label": "Border size"
         },
-        "border-color": {
+        "properties.colors.border-color": {
           "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true
+          "label": "Border color"
         },
-        "border-radius": {
+        "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Border radius",
-          "visible": true
+          "label": "Border radius"
         }
       }
     },
     "unselected": {
       "icon": "square",
       "label": "Unselected",
-      "visible": true,
       "group": {
-        "background": {
+        "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
+          "label": "Background"
         },
-        "text-color": {
+        "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Text color",
-          "visible": true
+          "label": "Text color"
         },
-        "elevation": {
+        "properties.elevation": {
           "icon": "copy-simple",
-          "label": "Elevation",
-          "visible": true
+          "label": "Elevation"
         },
-        "border-size": {
+        "properties.border-size": {
           "icon": "arrows-left-right",
-          "label": "Border size",
-          "visible": true
+          "label": "Border size"
         },
-        "border-color": {
+        "properties.colors.border-color": {
           "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true
+          "label": "Border color"
         },
-        "border-radius": {
+        "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Border radius",
-          "visible": true
+          "label": "Border radius"
         }
       }
     },
     "item": {
       "icon": "squares-four",
       "label": "Item",
-      "visible": true,
       "group": {
-        "padding-horizontal": {
+        "properties.padding-horizontal": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding",
-          "visible": true
+          "label": "Horizontal padding"
         },
-        "height": {
+        "properties.height": {
           "icon": "arrows-up-down",
           "label": "Height",
-          "visible": true
+          "range": [
+            0,
+            100
+          ],
+          "step": 1
         },
-        "icon-size": {
+        "properties.icon-size": {
           "icon": "squares-four",
-          "label": "Icon size",
-          "visible": true
+          "label": "Icon size"
         },
-        "icon-text-gap": {
+        "properties.icon-text-gap": {
           "icon": "arrows-left-right",
-          "label": "Icon text gap",
-          "visible": true
+          "label": "Icon text gap"
         }
       }
     }

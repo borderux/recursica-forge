@@ -717,7 +717,11 @@ export function getDimensionPropertyType(
 
     // Navigate to the property using the path
     let current: any = component
-    for (let i = 0; i < propPath.length; i++) {
+    let startIndex = 0
+    if (propPath[0] === 'components') {
+      startIndex = 2
+    }
+    for (let i = startIndex; i < propPath.length; i++) {
       const pathPart = propPath[i]
       if (current == null || typeof current !== 'object') {
         return null
@@ -803,7 +807,11 @@ export function getDimensionCategoryFromValue(
 
     // Navigate to the property using the path
     let current: any = component
-    for (let i = 0; i < propPath.length; i++) {
+    let startIndex = 0
+    if (propPath[0] === 'components') {
+      startIndex = 2
+    }
+    for (let i = startIndex; i < propPath.length; i++) {
       const pathPart = propPath[i]
       if (current == null || typeof current !== 'object') {
         return null

@@ -1,39 +1,34 @@
 {
-    "variants": {
-        "layouts": {
-            "icon": "layout",
-            "label": "Layout"
-        }
-    },
-    "props": {
-        "text": {
-            "icon": "text-aa",
-            "label": "Text style",
-            "visible": true
-        },
-        "colors": {
-            "icon": "paint-bucket",
-            "label": "Colors",
-            "visible": true,
-            "floatingPaletteLabel": "Colors",
-            "group": {
-                "text": {
-                    "icon": "text-aa",
-                    "label": "Text color",
-                    "visible": true,
-                    "floatingPaletteLabel": "Text Color"
-                }
-            }
-        },
-        "top-bottom-margin": {
-            "icon": "arrows-up-down",
-            "label": "Top and bottom margin",
-            "visible": true
-        },
-        "min-height": {
-            "icon": "arrows-in-line-vertical",
-            "label": "Min height",
-            "visible": true
-        }
+  "variants": {
+    "layouts": {
+      "icon": "layout",
+      "label": "Layout"
     }
+  },
+  "properties": {
+    "text": {
+      "icon": "text-aa",
+      "label": "Text style"
+    },
+    "colors": {
+      "icon": "paint-bucket",
+      "label": "Colors",
+      "floatingPaletteLabel": "Colors",
+      "group": {
+        "properties.colors.text-color": {
+          "icon": "text-aa",
+          "label": "Text color",
+          "floatingPaletteLabel": "Text Color"
+        }
+      }
+    },
+    "top-bottom-margin": {
+      "icon": "arrows-up-down",
+      "label": "Top and bottom margin"
+    },
+    "min-height": {
+      "icon": "arrows-in-line-vertical",
+      "label": "Min height"
+    }
+  }
 }

@@ -165,9 +165,9 @@ export default function BackgroundToolbar({
   const textColorVar = textColorProp?.cssVar || ''
 
   // Check visibility from toolbar config
-  const backgroundVisible = groupedPropsConfig?.['background-color']?.visible !== false
-  const selectedBackgroundVisible = groupedPropsConfig?.['selected-background-color']?.visible !== false
-  const textColorVisible = groupedPropsConfig?.['text-color']?.visible !== false
+  const backgroundVisible = true
+  const selectedBackgroundVisible = true
+  const textColorVisible = true
 
   return (
     <div className="background-toolbar">

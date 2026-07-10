@@ -9,86 +9,80 @@
       "label": "Size"
     }
   },
-  "props": {
+  "properties": {
     "text": {
       "icon": "text-aa",
       "label": "Text color",
-      "visible": true,
       "group": {
-        "text": {
-          "label": "Color",
-          "visible": true
+        "properties.colors.text-color": {
+          "label": "Color"
         },
-        "optional-text-opacity": {
+        "properties.optional-text-opacity": {
           "icon": "eye",
-          "label": "Optional text opacity",
-          "visible": true
+          "label": "Optional text opacity"
         }
       }
     },
     "label-text": {
       "icon": "text-aa",
-      "label": "Label text style",
-      "visible": true
+      "label": "Label text style"
     },
     "asterisk": {
       "icon": "asterisk",
       "label": "Required",
-      "visible": true,
       "group": {
-        "asterisk": {
-          "label": "Indicator color",
-          "visible": true
+        "properties.asterisk": {
+          "label": "Indicator color"
         },
-        "required-indicator-gap": {
-          "label": "Indicator gap",
-          "visible": true
+        "properties.required-indicator-gap": {
+          "label": "Indicator gap"
         }
       }
     },
     "optional-text": {
       "icon": "text-aa",
-      "label": "Optional text style",
-      "visible": true
+      "label": "Optional text style"
     },
     "spacing": {
       "icon": "square-logo",
       "label": "Spacing",
-      "visible": true,
       "group": {
-        "bottom-padding": {
-          "label": "Bottom padding",
-          "visible": true
+        "properties.bottom-padding": {
+          "label": "Bottom padding"
         },
-        "min-height": {
+        "properties.min-height": {
           "label": "Min height",
-          "visible": true
+          "range": [
+            0,
+            200
+          ],
+          "step": 1
         },
-        "gutter": {
-          "label": "Gutter",
-          "visible": true
+        "properties.gutter": {
+          "label": "Gutter"
         },
-        "vertical-padding": {
+        "properties.vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding",
-          "visible": true
+          "label": "Vertical padding"
         },
-        "label-optional-text-gap": {
+        "properties.label-optional-text-gap": {
           "icon": "arrows-up-down",
-          "label": "Optional text gap",
-          "visible": true
+          "label": "Optional text gap"
         },
-        "edit-icon-gap": {
+        "properties.edit-icon-gap": {
           "icon": "split-horizontal",
-          "label": "Edit icon gap",
-          "visible": true
+          "label": "Edit icon gap"
         }
       }
     },
     "label-width": {
       "icon": "arrows-left-right",
       "label": "Label width",
-      "visible": true
+      "range": [
+        0,
+        500
+      ],
+      "step": 1
     }
   }
 }

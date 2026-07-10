@@ -1,32 +1,30 @@
 {
   "variants": {},
-  "props": {
+  "properties": {
     "spacing": {
       "icon": "arrows-pointing-out",
       "label": "Spacing",
-      "visible": true,
       "group": {
-        "padding-horizontal": {
+        "properties.padding-horizontal": {
           "label": "Padding horizontal",
-          "visible": true,
           "floatingPaletteLabel": "Horizontal Padding"
         },
-        "padding-vertical": {
+        "properties.padding-vertical": {
           "label": "Padding vertical",
-          "visible": true,
           "floatingPaletteLabel": "Vertical Padding"
         },
-        "vertical-margin": {
+        "properties.vertical-margin": {
           "label": "Vertical margin",
-          "visible": true,
           "floatingPaletteLabel": "Vertical Margin"
         },
-        "label-sort-gap": {
+        "properties.label-sort-gap": {
           "icon": "arrows-left-right",
           "label": "Label sort gap",
-          "visible": true,
           "propertyType": "slider",
-          "range": [0, 32],
+          "range": [
+            0,
+            32
+          ],
           "step": 2
         }
       }
@@ -34,14 +32,15 @@
     "sizes": {
       "icon": "frame-corners",
       "label": "Sizes",
-      "visible": true,
       "group": {
-        "icon-size": {
+        "properties.icon-size": {
           "icon": "arrows-pointing-out",
           "label": "Sort icon size",
-          "visible": true,
           "propertyType": "slider",
-          "range": [8, 32],
+          "range": [
+            8,
+            32
+          ],
           "step": 2
         }
       }
@@ -49,34 +48,35 @@
     "dividers": {
       "icon": "minus",
       "label": "Dividers",
-      "visible": true,
       "group": {
-        "horizontal-divider-size": {
+        "properties.horizontal-divider-size": {
           "icon": "rows",
           "label": "Horizontal divider size",
-          "visible": true,
           "propertyType": "slider",
-          "range": [0, 8],
+          "range": [
+            0,
+            8
+          ],
           "step": 1
         },
-        "horizontal-divider-color": {
+        "properties.horizontal-divider-color": {
           "icon": "paint-brush-broad",
           "label": "Horizontal divider color",
-          "visible": true,
           "floatingPaletteLabel": "Horizontal Divider Color"
         },
-        "vertical-divider-size": {
+        "properties.vertical-divider-size": {
           "icon": "columns",
           "label": "Vertical divider size",
-          "visible": true,
           "propertyType": "slider",
-          "range": [0, 8],
+          "range": [
+            0,
+            8
+          ],
           "step": 1
         },
-        "vertical-divider-color": {
+        "properties.vertical-divider-color": {
           "icon": "paint-brush-broad",
           "label": "Vertical divider color",
-          "visible": true,
           "floatingPaletteLabel": "Vertical Divider Color"
         }
       }
@@ -84,16 +84,13 @@
     "sorted-colors": {
       "icon": "paint-bucket",
       "label": "Sorted Colors",
-      "visible": true,
       "group": {
-        "sorted-cell-color": {
+        "properties.sorted-cell-color": {
           "label": "Sorted Background",
-          "visible": true,
           "floatingPaletteLabel": "Sorted Background"
         },
-        "sorted-text-color": {
+        "properties.sorted-text-color": {
           "label": "Sorted Text",
-          "visible": true,
           "floatingPaletteLabel": "Sorted Text"
         }
       }
@@ -101,16 +98,13 @@
     "unsorted-colors": {
       "icon": "paint-bucket",
       "label": "Unsorted Colors",
-      "visible": true,
       "group": {
-        "unsorted-cell-color": {
+        "properties.unsorted-cell-color": {
           "label": "Unsorted Background",
-          "visible": true,
           "floatingPaletteLabel": "Unsorted Background"
         },
-        "unsorted-text-color": {
+        "properties.unsorted-text-color": {
           "label": "Unsorted Text",
-          "visible": true,
           "floatingPaletteLabel": "Unsorted Text"
         }
       }
@@ -118,29 +112,24 @@
     "disabled-colors": {
       "icon": "paint-bucket",
       "label": "Disabled Colors",
-      "visible": true,
       "group": {
-        "cell-color-disabled": {
+        "properties.cell-color-disabled": {
           "label": "Disabled Background",
-          "visible": true,
           "floatingPaletteLabel": "Disabled Background"
         },
-        "text-color-disabled": {
+        "properties.text-color-disabled": {
           "label": "Disabled Text",
-          "visible": true,
           "floatingPaletteLabel": "Disabled Text"
         }
       }
     },
     "sorted-text-style": {
       "icon": "text-aa",
-      "label": "Sorted Text Style",
-      "visible": true
+      "label": "Sorted Text Style"
     },
     "unsorted-text-style": {
       "icon": "text-aa",
-      "label": "Unsorted Text Style",
-      "visible": true
+      "label": "Unsorted Text Style"
     }
   }
 }

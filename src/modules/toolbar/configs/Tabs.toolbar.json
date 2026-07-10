@@ -3,7 +3,6 @@
     "style": {
       "icon": "diamonds-four",
       "label": "Style",
-      "visible": true,
       "options": [
         "default",
         "pills",
@@ -13,45 +12,41 @@
     "orientation": {
       "icon": "arrows-out-cardinal",
       "label": "Orientation",
-      "visible": true,
       "options": [
         "horizontal",
         "vertical"
       ]
     }
   },
-  "props": {
+  "properties": {
     "active": {
       "icon": "check-square",
       "label": "Active tab",
-      "visible": true,
       "group": {
-        "icon-color": {
+        "properties.colors.icon-color": {
           "icon": "diamond",
-          "label": "Icon color",
-          "visible": true
+          "label": "Icon color"
         },
-        "text-color": {
+        "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Text color",
-          "visible": true
+          "label": "Text color"
         },
-        "background": {
+        "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
+          "label": "Background"
         },
-        "border-color": {
+        "properties.colors.border-color": {
           "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true
+          "label": "Border color"
         },
-        "border-size": {
+        "properties.border-size": {
           "icon": "arrows-left-right",
           "label": "Border size",
-          "visible": true,
           "propertyType": "slider",
-          "range": [0, 10],
+          "range": [
+            0,
+            10
+          ],
           "step": 1
         }
       }
@@ -59,34 +54,31 @@
     "inactive": {
       "icon": "squares-four",
       "label": "Inactive tab",
-      "visible": true,
       "group": {
-        "icon-color": {
+        "properties.colors.icon-color": {
           "icon": "diamond",
-          "label": "Icon color",
-          "visible": true
+          "label": "Icon color"
         },
-        "text-color": {
+        "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Text color",
-          "visible": true
+          "label": "Text color"
         },
-        "background": {
+        "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "visible": true
+          "label": "Background"
         },
-        "border-color": {
+        "properties.colors.border-color": {
           "icon": "paint-bucket",
-          "label": "Border color",
-          "visible": true
+          "label": "Border color"
         },
-        "border-size": {
+        "properties.border-size": {
           "icon": "arrows-left-right",
           "label": "Border size",
-          "visible": true,
           "propertyType": "slider",
-          "range": [0, 10],
+          "range": [
+            0,
+            10
+          ],
           "step": 1
         }
       }
@@ -94,158 +86,128 @@
     "active-text": {
       "icon": "check-square",
       "label": "Active tab text style",
-      "visible": true,
       "group": {
-        "font-family": {
+        "properties.font-family": {
           "icon": "text-aa",
-          "label": "Font family",
-          "visible": true
+          "label": "Font family"
         },
-        "font-size": {
+        "properties.font-size": {
           "icon": "text-aa",
-          "label": "Font size",
-          "visible": true
+          "label": "Font size"
         },
-        "font-weight": {
+        "properties.font-weight": {
           "icon": "text-aa",
-          "label": "Font weight",
-          "visible": true
+          "label": "Font weight"
         },
-        "letter-spacing": {
+        "properties.letter-spacing": {
           "icon": "text-aa",
-          "label": "Letter spacing",
-          "visible": true
+          "label": "Letter spacing"
         },
-        "line-height": {
+        "properties.line-height": {
           "icon": "text-aa",
-          "label": "Line height",
-          "visible": true
+          "label": "Line height"
         },
-        "text-decoration": {
+        "properties.text-decoration": {
           "icon": "text-aa",
-          "label": "Text decoration",
-          "visible": true
+          "label": "Text decoration"
         },
-        "text-transform": {
+        "properties.text-transform": {
           "icon": "text-aa",
-          "label": "Text transform",
-          "visible": true
+          "label": "Text transform"
         },
-        "font-style": {
+        "properties.font-style": {
           "icon": "text-aa",
-          "label": "Font style",
-          "visible": true
+          "label": "Font style"
         }
       }
     },
     "inactive-text": {
       "icon": "squares-four",
       "label": "Inactive tab text style",
-      "visible": true,
       "group": {
-        "font-family": {
+        "properties.font-family": {
           "icon": "text-aa",
-          "label": "Font family",
-          "visible": true
+          "label": "Font family"
         },
-        "font-size": {
+        "properties.font-size": {
           "icon": "text-aa",
-          "label": "Font size",
-          "visible": true
+          "label": "Font size"
         },
-        "font-weight": {
+        "properties.font-weight": {
           "icon": "text-aa",
-          "label": "Font weight",
-          "visible": true
+          "label": "Font weight"
         },
-        "letter-spacing": {
+        "properties.letter-spacing": {
           "icon": "text-aa",
-          "label": "Letter spacing",
-          "visible": true
+          "label": "Letter spacing"
         },
-        "line-height": {
+        "properties.line-height": {
           "icon": "text-aa",
-          "label": "Line height",
-          "visible": true
+          "label": "Line height"
         },
-        "text-decoration": {
+        "properties.text-decoration": {
           "icon": "text-aa",
-          "label": "Text decoration",
-          "visible": true
+          "label": "Text decoration"
         },
-        "text-transform": {
+        "properties.text-transform": {
           "icon": "text-aa",
-          "label": "Text transform",
-          "visible": true
+          "label": "Text transform"
         },
-        "font-style": {
+        "properties.font-style": {
           "icon": "text-aa",
-          "label": "Font style",
-          "visible": true
+          "label": "Font style"
         }
       }
     },
     "spacing": {
       "icon": "split-horizontal",
       "label": "Spacing",
-      "visible": true,
       "group": {
-        "space-between-tabs": {
+        "properties.space-between-tabs": {
           "icon": "arrows-out-cardinal",
-          "label": "Space between tabs",
-          "visible": true
+          "label": "Space between tabs"
         },
-        "tabs-content-gap": {
+        "properties.tabs-content-gap": {
           "icon": "arrows-out-cardinal",
-          "label": "Gap between tabs and content",
-          "visible": true
+          "label": "Gap between tabs and content"
         }
       }
     },
     "tabs": {
       "icon": "squares-four",
       "label": "Tab size and style",
-      "visible": true,
       "group": {
-        "min-width": {
+        "properties.min-width": {
           "icon": "arrows-left-right",
-          "label": "Min width",
-          "visible": true
+          "label": "Min width"
         },
-        "max-width": {
+        "properties.max-width": {
           "icon": "arrows-left-right",
-          "label": "Max width",
-          "visible": true
+          "label": "Max width"
         },
-        "border-radius": {
+        "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Border radius",
-          "visible": true
+          "label": "Border radius"
         },
-        "icon-size": {
+        "properties.icon-size": {
           "icon": "diamond",
-          "label": "Icon size",
-          "visible": true
+          "label": "Icon size"
         },
-        "element-gap": {
+        "properties.element-gap": {
           "icon": "split-horizontal",
-          "label": "Element gap",
-          "visible": true
+          "label": "Element gap"
         },
-        "horizontal-padding": {
+        "properties.horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding",
-          "visible": true
+          "label": "Horizontal padding"
         },
-        "vertical-padding": {
+        "properties.vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding",
-          "visible": true
+          "label": "Vertical padding"
         },
-        "tab-content-alignment": {
+        "properties.tab-content-alignment": {
           "icon": "text-align-left",
           "label": "Content alignment",
-          "visible": true,
           "control": "segmented",
           "options": [
             {
@@ -267,15 +229,12 @@
     "hover": {
       "icon": "cursor-click",
       "label": "Hover",
-      "visible": true,
       "group": {
-        "hover-color": {
-          "label": "Color",
-          "visible": true
+        "properties.colors.hover-color": {
+          "label": "Color"
         },
-        "hover-opacity": {
-          "label": "Opacity",
-          "visible": true
+        "properties.colors.hover-opacity": {
+          "label": "Opacity"
         }
       }
     }

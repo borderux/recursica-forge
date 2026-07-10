@@ -56,18 +56,17 @@ describe('AccordionItem Toolbar Config', () => {
     }
 
     const configProps = new Set<string>()
-    if (config.props) {
-      Object.keys(config.props).forEach(prop => {
-        configProps.add(prop)
-        const propConfig = (config.props as any)[prop]
-        if (propConfig.group) {
-          Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
-        }
-      })
-    }
+    const properties = (config as any).properties || (config as any).props || {}
+    Object.keys(properties).forEach(prop => {
+      configProps.add(prop)
+      const propConfig = properties[prop]
+      if (propConfig.group) {
+        Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
+      }
+    })
 
     configProps.forEach(prop => {
-      if (!uikitProps.has(prop) && !prop.includes('-')) {
+      if (!uikitProps.has(prop) && !prop.includes('-') && !prop.includes('.')) {
         console.warn(`Config prop ${prop} not found in recursica_ui-kit.json - may be a grouped prop`)
       }
     })
@@ -100,15 +99,14 @@ describe('AccordionItem Toolbar Config', () => {
     }
 
     const configProps = new Set<string>()
-    if (config.props) {
-      Object.keys(config.props).forEach(prop => {
-        configProps.add(prop)
-        const propConfig = (config.props as any)[prop]
-        if (propConfig.group) {
-          Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
-        }
-      })
-    }
+    const properties = (config as any).properties || (config as any).props || {}
+    Object.keys(properties).forEach(prop => {
+      configProps.add(prop)
+      const propConfig = properties[prop]
+      if (propConfig.group) {
+        Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
+      }
+    })
     // Props that are structurally present in ui-kit JSON but handled by
     // differently-named toolbar group entries (e.g. item-border-radius maps
     // to border-radius inside the "item" group)
@@ -116,7 +114,9 @@ describe('AccordionItem Toolbar Config', () => {
 
     requiredProps.forEach(prop => {
       if (handledElsewhere.has(prop)) return
-      expect(configProps.has(prop), `Required prop ${prop} missing from AccordionItem toolbar config`).toBe(true)
+      const hasProp = configProps.has(prop) || 
+                      Array.from(configProps).some(p => p === `properties.${prop}` || p.endsWith(`.${prop}`))
+      expect(hasProp, `Required prop ${prop} missing from AccordionItem toolbar config`).toBe(true)
     })
   })
 })

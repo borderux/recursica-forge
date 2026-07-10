@@ -40,8 +40,8 @@ export function runCssVarAudit(silent: boolean = false): AuditSummary {
     }
   }
 
-  // Get all CSS variables from all elements
-  const allElements = document.querySelectorAll('*')
+  // Get all CSS variables from elements with relevant styles
+  const allElements = document.querySelectorAll('[style*="--recursica_"]')
   for (const el of allElements) {
     const elComputed = getComputedStyle(el)
     const elInline = (el as HTMLElement).style

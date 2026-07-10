@@ -94,7 +94,7 @@ export function NumberInput({
     const errorId = errorText ? `${inputId}-error` : undefined
 
     // Determine effective state
-    const effectiveState = state
+    const effectiveState = state === 'disabled' ? 'disabled' : (errorText ? 'error' : state)
 
     // Get CSS variables for colors based on state variant
     const backgroundVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')

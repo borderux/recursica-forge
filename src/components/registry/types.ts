@@ -31,6 +31,8 @@ export type ComponentName =
   | 'Avatar'
   | 'Accordion'
   | 'AccordionItem'
+  | 'AccordionHeader'
+  | 'AccordionContent'
   | 'Dropdown'
   | 'Breadcrumb'
   | 'DatePicker'

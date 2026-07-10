@@ -447,11 +447,11 @@ export default function BorderGroupToolbar({
   }, [borderStyleVar, borderStyleCssVars, groupedPropsConfig, stylePropName])
 
   // Check visibility from toolbar config
-  const borderSizeVisible = groupedPropsConfig?.['border-size']?.visible !== false
-  const borderRadiusVisible = groupedPropsConfig?.['border-radius']?.visible !== false
-  const borderStyleVisible = groupedPropsConfig?.['border-style']?.visible !== false
-  const borderColorVisible = groupedPropsConfig?.['border-color']?.visible !== false ||
-    groupedPropsConfig?.['border']?.visible !== false
+  const borderSizeVisible = true
+  const borderRadiusVisible = true
+  const borderStyleVisible = true
+  const borderColorVisible = true ||
+    true
 
   return (
     <div className="border-group-toolbar">

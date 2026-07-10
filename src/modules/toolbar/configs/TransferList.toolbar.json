@@ -1,203 +1,182 @@
 {
-    "variants": {
-        "states": {
-            "icon": "diamonds-four",
-            "label": "State"
-        },
-        "layouts": {
-            "icon": "layout",
-            "label": "Layout"
-        }
+  "variants": {
+    "states": {
+      "icon": "diamonds-four",
+      "label": "State"
     },
-    "props": {
-        "box": {
-            "icon": "square-logo",
-            "label": "Box",
-            "visible": true,
-            "floatingPaletteLabel": "Box",
-            "group": {
-                "background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true,
-                    "floatingPaletteLabel": "Pane Background"
-                },
-                "header-color": {
-                    "icon": "text-aa",
-                    "label": "Header color",
-                    "visible": true,
-                    "floatingPaletteLabel": "Header Color"
-                }
-            }
-        },
-        "type-styles": {
-            "icon": "text-aa",
-            "label": "Type styles",
-            "visible": true,
-            "group": {
-                "header-style": {
-                    "icon": "text-h-two",
-                    "label": "Header style",
-                    "visible": true,
-                    "options": [
-                        {
-                            "label": "Heading 1",
-                            "value": "{brand.typography.h1}"
-                        },
-                        {
-                            "label": "Heading 2",
-                            "value": "{brand.typography.h2}"
-                        },
-                        {
-                            "label": "Heading 3",
-                            "value": "{brand.typography.h3}"
-                        },
-                        {
-                            "label": "Heading 4",
-                            "value": "{brand.typography.h4}"
-                        },
-                        {
-                            "label": "Heading 5",
-                            "value": "{brand.typography.h5}"
-                        },
-                        {
-                            "label": "Heading 6",
-                            "value": "{brand.typography.h6}"
-                        },
-                        {
-                            "label": "Subtitle",
-                            "value": "{brand.typography.subtitle}"
-                        },
-                        {
-                            "label": "Subtitle (small)",
-                            "value": "{brand.typography.subtitle-small}"
-                        },
-                        {
-                            "label": "Body",
-                            "value": "{brand.typography.body}"
-                        },
-                        {
-                            "label": "Body (small)",
-                            "value": "{brand.typography.body-small}"
-                        },
-                        {
-                            "label": "Caption",
-                            "value": "{brand.typography.caption}"
-                        },
-                        {
-                            "label": "Overline",
-                            "value": "{brand.typography.overline}"
-                        }
-                    ]
-                }
-            }
-        },
-        "border": {
-            "icon": "square",
-            "label": "Border",
-            "visible": true,
-            "group": {
-                "border-size": {
-                    "icon": "arrows-left-right",
-                    "label": "Size",
-                    "visible": true
-                },
-                "border-radius": {
-                    "icon": "corners-out",
-                    "label": "Corner radius",
-                    "visible": true
-                },
-                "border-color": {
-                    "icon": "paint-bucket",
-                    "label": "Color",
-                    "visible": true
-                }
-            }
-        },
-        "padding": {
-            "icon": "square-logo",
-            "label": "Padding",
-            "visible": true,
-            "floatingPaletteLabel": "Padding",
-            "group": {
-                "horizontal-padding": {
-                    "icon": "arrows-left-right",
-                    "label": "Horizontal padding",
-                    "visible": true,
-                    "floatingPaletteLabel": "Horizontal Padding"
-                },
-                "vertical-padding": {
-                    "icon": "arrows-up-down",
-                    "label": "Vertical padding",
-                    "visible": true,
-                    "floatingPaletteLabel": "Vertical Padding"
-                }
-            }
-        },
-        "top-bottom-margin": {
-            "icon": "arrows-up-down",
-            "label": "Top and bottom margin",
-            "visible": true,
-            "group": {
-                "stacked-top-bottom-margin": {
-                    "label": "Stacked",
-                    "visible": true
-                },
-                "sbs-top-bottom-margin": {
-                    "label": "Side-by-side",
-                    "visible": true
-                }
-            }
-        },
-        "dimensions": {
-            "icon": "resize",
-            "label": "Dimensions",
-            "visible": true,
-            "floatingPaletteLabel": "Dimensions",
-            "group": {
-                "gap": {
-                    "icon": "split-horizontal",
-                    "label": "Box gap",
-                    "visible": true,
-                    "floatingPaletteLabel": "Gap Between Lists"
-                },
-                "title-filter-gap": {
-                    "icon": "arrows-up-down",
-                    "label": "Title-filter gap",
-                    "visible": true,
-                    "floatingPaletteLabel": "Title to Filter Gap"
-                },
-                "filter-items-gap": {
-                    "icon": "arrows-up-down",
-                    "label": "Filter-items gap",
-                    "visible": true,
-                    "floatingPaletteLabel": "Filter to Items Gap"
-                },
-                "height": {
-                    "icon": "arrows-up-down",
-                    "label": "Height",
-                    "visible": true,
-                    "floatingPaletteLabel": "Pane Height",
-                    "propertyType": "slider",
-                    "range": [
-                        200,
-                        500
-                    ],
-                    "step": 1
-                },
-                "width": {
-                    "icon": "arrows-left-right",
-                    "label": "Width",
-                    "visible": true,
-                    "floatingPaletteLabel": "Pane Width",
-                    "propertyType": "slider",
-                    "range": [
-                        200,
-                        500
-                    ],
-                    "step": 1
-                }
-            }
-        }
+    "layouts": {
+      "icon": "layout",
+      "label": "Layout"
     }
+  },
+  "properties": {
+    "box": {
+      "icon": "square-logo",
+      "label": "Box",
+      "floatingPaletteLabel": "Box",
+      "group": {
+        "properties.colors.background-color": {
+          "icon": "paint-bucket",
+          "label": "Background",
+          "floatingPaletteLabel": "Pane Background"
+        },
+        "properties.header-color": {
+          "icon": "text-aa",
+          "label": "Header color",
+          "floatingPaletteLabel": "Header Color"
+        }
+      }
+    },
+    "type-styles": {
+      "icon": "text-aa",
+      "label": "Type styles",
+      "group": {
+        "properties.header-style": {
+          "icon": "text-h-two",
+          "label": "Header style",
+          "options": [
+            {
+              "label": "Heading 1",
+              "value": "{brand.typography.h1}"
+            },
+            {
+              "label": "Heading 2",
+              "value": "{brand.typography.h2}"
+            },
+            {
+              "label": "Heading 3",
+              "value": "{brand.typography.h3}"
+            },
+            {
+              "label": "Heading 4",
+              "value": "{brand.typography.h4}"
+            },
+            {
+              "label": "Heading 5",
+              "value": "{brand.typography.h5}"
+            },
+            {
+              "label": "Heading 6",
+              "value": "{brand.typography.h6}"
+            },
+            {
+              "label": "Subtitle",
+              "value": "{brand.typography.subtitle}"
+            },
+            {
+              "label": "Subtitle (small)",
+              "value": "{brand.typography.subtitle-small}"
+            },
+            {
+              "label": "Body",
+              "value": "{brand.typography.body}"
+            },
+            {
+              "label": "Body (small)",
+              "value": "{brand.typography.body-small}"
+            },
+            {
+              "label": "Caption",
+              "value": "{brand.typography.caption}"
+            },
+            {
+              "label": "Overline",
+              "value": "{brand.typography.overline}"
+            }
+          ]
+        }
+      }
+    },
+    "border": {
+      "icon": "square",
+      "label": "Border",
+      "group": {
+        "properties.border-size": {
+          "icon": "arrows-left-right",
+          "label": "Size"
+        },
+        "properties.border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius"
+        },
+        "properties.colors.border-color": {
+          "icon": "paint-bucket",
+          "label": "Color"
+        }
+      }
+    },
+    "padding": {
+      "icon": "square-logo",
+      "label": "Padding",
+      "floatingPaletteLabel": "Padding",
+      "group": {
+        "properties.horizontal-padding": {
+          "icon": "arrows-left-right",
+          "label": "Horizontal padding",
+          "floatingPaletteLabel": "Horizontal Padding"
+        },
+        "properties.vertical-padding": {
+          "icon": "arrows-up-down",
+          "label": "Vertical padding",
+          "floatingPaletteLabel": "Vertical Padding"
+        }
+      }
+    },
+    "top-bottom-margin": {
+      "icon": "arrows-up-down",
+      "label": "Top and bottom margin",
+      "group": {
+        "properties.stacked-top-bottom-margin": {
+          "label": "Stacked"
+        },
+        "properties.sbs-top-bottom-margin": {
+          "label": "Side-by-side"
+        }
+      }
+    },
+    "dimensions": {
+      "icon": "resize",
+      "label": "Dimensions",
+      "floatingPaletteLabel": "Dimensions",
+      "group": {
+        "properties.gap": {
+          "icon": "split-horizontal",
+          "label": "Box gap",
+          "floatingPaletteLabel": "Gap Between Lists"
+        },
+        "properties.title-filter-gap": {
+          "icon": "arrows-up-down",
+          "label": "Title-filter gap",
+          "floatingPaletteLabel": "Title to Filter Gap"
+        },
+        "properties.filter-items-gap": {
+          "icon": "arrows-up-down",
+          "label": "Filter-items gap",
+          "floatingPaletteLabel": "Filter to Items Gap"
+        },
+        "properties.height": {
+          "icon": "arrows-up-down",
+          "label": "Height",
+          "floatingPaletteLabel": "Pane Height",
+          "propertyType": "slider",
+          "range": [
+            200,
+            500
+          ],
+          "step": 1
+        },
+        "properties.width": {
+          "icon": "arrows-left-right",
+          "label": "Width",
+          "floatingPaletteLabel": "Pane Width",
+          "propertyType": "slider",
+          "range": [
+            200,
+            500
+          ],
+          "step": 1
+        }
+      }
+    }
+  }
 }

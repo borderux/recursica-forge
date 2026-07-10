@@ -1,48 +1,44 @@
 {
-    "props": {
-        "colors": {
-            "icon": "paint-bucket",
-            "label": "Colors",
-            "visible": true,
-            "group": {
-                "dots-color": {
-                    "icon": "circle-dashed",
-                    "label": "Dots color",
-                    "visible": true
-                }
-            }
-        },
-        "navigation-controls": {
-            "icon": "arrows-left-right",
-            "label": "Navigation controls",
-            "visible": true,
-            "group": {
-                "navigation-controls-content": {
-                    "icon": "text-columns",
-                    "label": "Content",
-                    "visible": true,
-                    "control": "dropdown",
-                    "options": [
-                        {
-                            "label": "Icon only",
-                            "value": "icon-only"
-                        },
-                        {
-                            "label": "Label only",
-                            "value": "label"
-                        },
-                        {
-                            "label": "Icon + label",
-                            "value": "icon-label"
-                        }
-                    ]
-                }
-            }
-        },
-        "item-gap": {
-            "icon": "split-horizontal",
-            "label": "Item gap",
-            "visible": true
+  "variants": {},
+  "properties": {
+    "colors": {
+      "icon": "paint-bucket",
+      "label": "Colors",
+      "group": {
+        "properties.dots-color": {
+          "icon": "circle-dashed",
+          "label": "Dots color"
         }
+      }
+    },
+    "navigation-controls": {
+      "icon": "arrows-left-right",
+      "label": "Navigation controls",
+      "group": {
+        "properties.navigation-controls-content": {
+          "icon": "text-columns",
+          "label": "Content",
+          "control": "dropdown",
+          "options": [
+            {
+              "label": "Icon only",
+              "value": "icon-only"
+            },
+            {
+              "label": "Label only",
+              "value": "label"
+            },
+            {
+              "label": "Icon + label",
+              "value": "icon-label"
+            }
+          ]
+        }
+      }
+    },
+    "item-gap": {
+      "icon": "split-horizontal",
+      "label": "Item gap"
     }
+  }
 }

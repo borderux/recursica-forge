@@ -1,14 +1,13 @@
 {
-  "props": {
+  "variants": {},
+  "properties": {
     "padding": {
       "icon": "square-logo",
-      "label": "Padding",
-      "visible": true
+      "label": "Padding"
     },
     "item-gap": {
       "icon": "arrows-left-right",
-      "label": "Item gap",
-      "visible": true
+      "label": "Item gap"
     }
   }
 }

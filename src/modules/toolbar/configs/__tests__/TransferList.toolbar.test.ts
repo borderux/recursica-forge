@@ -9,8 +9,9 @@ describe('TransferList Toolbar Config', () => {
     })
 
     it('should have required fields for all props', () => {
-        if (config.props) {
-            Object.entries(config.props).forEach(([propName, propConfig]: [string, any]) => {
+        const properties = (config as any).properties || (config as any).props
+        if (properties) {
+            Object.entries(properties).forEach(([propName, propConfig]: [string, any]) => {
                 expect(propConfig.icon, `Prop ${propName} missing icon`).toBeDefined()
                 expect(propConfig.label, `Prop ${propName} missing label`).toBeDefined()
                 expect(typeof propConfig.icon).toBe('string')
@@ -81,10 +82,11 @@ describe('TransferList Toolbar Config', () => {
         }
 
         const configProps = new Set<string>()
-        if (config.props) {
-            Object.keys(config.props).forEach(prop => {
+        const properties = (config as any).properties || (config as any).props
+        if (properties) {
+            Object.keys(properties).forEach(prop => {
                 configProps.add(prop)
-                const propConfig = (config.props as any)[prop]
+                const propConfig = (properties as any)[prop]
                 if (propConfig.group) {
                     Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
                 }
@@ -92,7 +94,7 @@ describe('TransferList Toolbar Config', () => {
         }
 
         configProps.forEach(prop => {
-            if (!uikitProps.has(prop) && !prop.includes('-')) {
+            if (!uikitProps.has(prop) && !prop.includes('-') && !prop.includes('.')) {
                 console.warn(`Config prop ${prop} not found in recursica_ui-kit.json - may be a grouped prop`)
             }
         })
@@ -128,10 +130,11 @@ describe('TransferList Toolbar Config', () => {
         }
 
         const configProps = new Set<string>()
-        if (config.props) {
-            Object.keys(config.props).forEach(prop => {
+        const properties = (config as any).properties || (config as any).props
+        if (properties) {
+            Object.keys(properties).forEach(prop => {
                 configProps.add(prop)
-                const propConfig = (config.props as any)[prop]
+                const propConfig = (properties as any)[prop]
                 if (propConfig.group) {
                     Object.keys(propConfig.group).forEach(groupProp => configProps.add(groupProp))
                 }
@@ -139,50 +142,65 @@ describe('TransferList Toolbar Config', () => {
         }
 
         requiredProps.forEach(prop => {
-            expect(configProps.has(prop), `Required prop ${prop} missing from TransferList toolbar config`).toBe(true)
+            const hasProp = configProps.has(prop) || 
+                            Array.from(configProps).some(p => p === `properties.${prop}` || p.endsWith(`.${prop}`))
+            expect(hasProp, `Required prop ${prop} missing from TransferList toolbar config`).toBe(true)
         })
     })
 
+    const getGroupProp = (group: any, key: string) => {
+        if (!group) return undefined
+        const exact = group[key]
+        if (exact !== undefined) return exact
+        const matchedKey = Object.keys(group).find(k => k === key || k.endsWith(`.${key}`) || k.endsWith(`-${key}`) || (key === 'background' && k.endsWith('.background-color')))
+        return matchedKey ? group[matchedKey] : undefined
+    }
+
     it('should have box group with the expected sub-props', () => {
-        const boxConfig = (config.props as any).box
+        const properties = (config as any).properties || (config as any).props || {}
+        const boxConfig = (properties as any).box
         expect(boxConfig).toBeDefined()
         expect(boxConfig.group).toBeDefined()
-        expect(boxConfig.group.background).toBeDefined()
-        expect(boxConfig.group['header-color']).toBeDefined()
+        expect(getGroupProp(boxConfig.group, 'background')).toBeDefined()
+        expect(getGroupProp(boxConfig.group, 'header-color')).toBeDefined()
     })
 
     it('should have type-styles group with the expected sub-props', () => {
-        const typeStylesConfig = (config.props as any)['type-styles']
+        const properties = (config as any).properties || (config as any).props || {}
+        const typeStylesConfig = (properties as any)['type-styles']
         expect(typeStylesConfig).toBeDefined()
         expect(typeStylesConfig.group).toBeDefined()
-        expect(typeStylesConfig.group['header-style']).toBeDefined()
+        expect(getGroupProp(typeStylesConfig.group, 'header-style')).toBeDefined()
     })
 
     it('should have border group with the expected sub-props', () => {
-        const borderConfig = (config.props as any).border
+        const properties = (config as any).properties || (config as any).props || {}
+        const borderConfig = (properties as any).border
         expect(borderConfig).toBeDefined()
         expect(borderConfig.group).toBeDefined()
-        expect(borderConfig.group['border-size']).toBeDefined()
-        expect(borderConfig.group['border-radius']).toBeDefined()
-        expect(borderConfig.group['border-color']).toBeDefined()
+        expect(getGroupProp(borderConfig.group, 'border-size')).toBeDefined()
+        expect(getGroupProp(borderConfig.group, 'border-radius')).toBeDefined()
+        expect(getGroupProp(borderConfig.group, 'border-color')).toBeDefined()
     })
 
     it('should have dimensions group with the expected sub-props', () => {
-        const dimensionsConfig = (config.props as any).dimensions
+        const properties = (config as any).properties || (config as any).props || {}
+        const dimensionsConfig = (properties as any).dimensions
         expect(dimensionsConfig).toBeDefined()
         expect(dimensionsConfig.group).toBeDefined()
-        expect(dimensionsConfig.group.gap).toBeDefined()
-        expect(dimensionsConfig.group['title-filter-gap']).toBeDefined()
-        expect(dimensionsConfig.group['filter-items-gap']).toBeDefined()
-        expect(dimensionsConfig.group.height).toBeDefined()
-        expect(dimensionsConfig.group.width).toBeDefined()
+        expect(getGroupProp(dimensionsConfig.group, 'gap')).toBeDefined()
+        expect(getGroupProp(dimensionsConfig.group, 'title-filter-gap')).toBeDefined()
+        expect(getGroupProp(dimensionsConfig.group, 'filter-items-gap')).toBeDefined()
+        expect(getGroupProp(dimensionsConfig.group, 'height')).toBeDefined()
+        expect(getGroupProp(dimensionsConfig.group, 'width')).toBeDefined()
     })
 
     it('should have padding group with the expected sub-props', () => {
-        const paddingConfig = (config.props as any).padding
+        const properties = (config as any).properties || (config as any).props || {}
+        const paddingConfig = (properties as any).padding
         expect(paddingConfig).toBeDefined()
         expect(paddingConfig.group).toBeDefined()
-        expect(paddingConfig.group['horizontal-padding']).toBeDefined()
-        expect(paddingConfig.group['vertical-padding']).toBeDefined()
+        expect(getGroupProp(paddingConfig.group, 'horizontal-padding')).toBeDefined()
+        expect(getGroupProp(paddingConfig.group, 'vertical-padding')).toBeDefined()
     })
 })

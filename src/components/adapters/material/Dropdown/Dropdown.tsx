@@ -71,7 +71,7 @@ export default function Dropdown({
     // Get CSS variables for colors
     const backgroundVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'text')
+    const textVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'text-color')
     const leadingIconVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'leading-icon')
     const trailingIconVar = buildComponentCssVarPath('Dropdown', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'trailing-icon')
 

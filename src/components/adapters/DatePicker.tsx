@@ -88,7 +88,7 @@ export function DatePicker({
     const errorId = errorText ? `${inputId}-error` : undefined
 
     // Determine effective state
-    const effectiveState = state
+    const effectiveState = state === 'disabled' ? 'disabled' : (errorText ? 'error' : state)
 
     // Get CSS variables for colors based on state variant (uses 'date-picker' component in UIKit)
     const backgroundVar = buildComponentCssVarPath('DatePicker', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')

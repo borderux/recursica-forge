@@ -1,283 +1,257 @@
 {
-    "props": {
-        "content": {
-            "icon": "paint-bucket",
-            "label": "Content",
-            "visible": true,
-            "group": {
-                "background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true
-                },
-                "content-horizontal-padding": {
-                    "icon": "arrows-left-right",
-                    "label": "Horizontal padding",
-                    "visible": true
-                },
-                "content-vertical-padding": {
-                    "icon": "arrows-up-down",
-                    "label": "Vertical padding",
-                    "visible": true
-                }
-            }
+  "variants": {},
+  "properties": {
+    "content": {
+      "icon": "paint-bucket",
+      "label": "Content",
+      "group": {
+        "properties.colors.background-color": {
+          "icon": "paint-bucket",
+          "label": "Background"
         },
-        "type-styles": {
-            "icon": "text-aa",
-            "label": "Type styles",
-            "visible": true,
-            "group": {
-                "header-style": {
-                    "icon": "text-h-two",
-                    "label": "Header style",
-                    "visible": true,
-                    "options": [
-                        {
-                            "label": "Heading 1",
-                            "value": "{brand.typography.h1}"
-                        },
-                        {
-                            "label": "Heading 2",
-                            "value": "{brand.typography.h2}"
-                        },
-                        {
-                            "label": "Heading 3",
-                            "value": "{brand.typography.h3}"
-                        },
-                        {
-                            "label": "Heading 4",
-                            "value": "{brand.typography.h4}"
-                        },
-                        {
-                            "label": "Heading 5",
-                            "value": "{brand.typography.h5}"
-                        },
-                        {
-                            "label": "Heading 6",
-                            "value": "{brand.typography.h6}"
-                        },
-                        {
-                            "label": "Subtitle",
-                            "value": "{brand.typography.subtitle}"
-                        },
-                        {
-                            "label": "Subtitle (small)",
-                            "value": "{brand.typography.subtitle-small}"
-                        },
-                        {
-                            "label": "Body",
-                            "value": "{brand.typography.body}"
-                        },
-                        {
-                            "label": "Body (small)",
-                            "value": "{brand.typography.body-small}"
-                        },
-                        {
-                            "label": "Caption",
-                            "value": "{brand.typography.caption}"
-                        },
-                        {
-                            "label": "Overline",
-                            "value": "{brand.typography.overline}"
-                        }
-                    ]
-                },
-                "content-style": {
-                    "icon": "text-align-left",
-                    "label": "Content style",
-                    "visible": true,
-                    "options": [
-                        {
-                            "label": "Heading 1",
-                            "value": "{brand.typography.h1}"
-                        },
-                        {
-                            "label": "Heading 2",
-                            "value": "{brand.typography.h2}"
-                        },
-                        {
-                            "label": "Heading 3",
-                            "value": "{brand.typography.h3}"
-                        },
-                        {
-                            "label": "Heading 4",
-                            "value": "{brand.typography.h4}"
-                        },
-                        {
-                            "label": "Heading 5",
-                            "value": "{brand.typography.h5}"
-                        },
-                        {
-                            "label": "Heading 6",
-                            "value": "{brand.typography.h6}"
-                        },
-                        {
-                            "label": "Subtitle",
-                            "value": "{brand.typography.subtitle}"
-                        },
-                        {
-                            "label": "Subtitle (small)",
-                            "value": "{brand.typography.subtitle-small}"
-                        },
-                        {
-                            "label": "Body",
-                            "value": "{brand.typography.body}"
-                        },
-                        {
-                            "label": "Body (small)",
-                            "value": "{brand.typography.body-small}"
-                        },
-                        {
-                            "label": "Caption",
-                            "value": "{brand.typography.caption}"
-                        },
-                        {
-                            "label": "Overline",
-                            "value": "{brand.typography.overline}"
-                        }
-                    ]
-                }
-            }
+        "properties.content-horizontal-padding": {
+          "icon": "arrows-left-right",
+          "label": "Horizontal padding"
         },
-        "text-colors": {
-            "icon": "palette",
-            "label": "Text colors",
-            "visible": true,
-            "group": {
-                "title": {
-                    "icon": "text-aa",
-                    "label": "Header color",
-                    "visible": true
-                },
-                "content": {
-                    "icon": "text-align-left",
-                    "label": "Content color",
-                    "visible": true
-                }
-            }
-        },
-        "header-footer": {
-            "icon": "rows",
-            "label": "Header and footer",
-            "visible": true,
-            "group": {
-                "header-footer-background": {
-                    "icon": "paint-bucket",
-                    "label": "Background",
-                    "visible": true
-                },
-                "header-footer-horizontal-padding": {
-                    "icon": "arrows-left-right",
-                    "label": "Horizontal padding",
-                    "visible": true
-                },
-                "header-footer-vertical-padding": {
-                    "icon": "arrows-up-down",
-                    "label": "Vertical padding",
-                    "visible": true
-                },
-                "header-close-gap": {
-                    "icon": "split-horizontal",
-                    "label": "Header close gap",
-                    "visible": true
-                },
-                "footer-button-gap": {
-                    "icon": "split-horizontal",
-                    "label": "Footer button gap",
-                    "visible": true
-                }
-            }
-        },
-        "border": {
-            "icon": "frame-corners",
-            "label": "Border",
-            "visible": true,
-            "group": {
-                "border-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Border color",
-                    "visible": true
-                },
-                "border-size": {
-                    "icon": "rows",
-                    "label": "Size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        8
-                    ],
-                    "step": 1
-                },
-                "border-radius": {
-                    "icon": "corners-out",
-                    "label": "Corner radius",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        48
-                    ],
-                    "step": 4
-                }
-            }
-        },
-        "dividers": {
-            "icon": "minus",
-            "label": "Dividers",
-            "visible": true,
-            "group": {
-                "divider-color": {
-                    "icon": "paint-brush-broad",
-                    "label": "Divider color",
-                    "visible": true
-                },
-                "divider-size": {
-                    "icon": "rows",
-                    "label": "Divider size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        0,
-                        8
-                    ],
-                    "step": 1
-                }
-            }
-        },
-        "width": {
-            "icon": "arrows-in-line-horizontal",
-            "label": "Sizes",
-            "visible": true,
-            "group": {
-                "min-width": {
-                    "icon": "arrows-in-line-horizontal",
-                    "label": "Min width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        100,
-                        800
-                    ],
-                    "step": 8
-                },
-                "max-width": {
-                    "icon": "arrows-out-line-horizontal",
-                    "label": "Max width",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        200,
-                        2000
-                    ],
-                    "step": 8
-                }
-            }
-        },
-        "elevation": {
-            "icon": "copy-simple",
-            "label": "Elevation",
-            "visible": true
+        "properties.content-vertical-padding": {
+          "icon": "arrows-up-down",
+          "label": "Vertical padding"
         }
+      }
+    },
+    "type-styles": {
+      "icon": "text-aa",
+      "label": "Type styles",
+      "group": {
+        "properties.header-style": {
+          "icon": "text-h-two",
+          "label": "Header style",
+          "options": [
+            {
+              "label": "Heading 1",
+              "value": "{brand.typography.h1}"
+            },
+            {
+              "label": "Heading 2",
+              "value": "{brand.typography.h2}"
+            },
+            {
+              "label": "Heading 3",
+              "value": "{brand.typography.h3}"
+            },
+            {
+              "label": "Heading 4",
+              "value": "{brand.typography.h4}"
+            },
+            {
+              "label": "Heading 5",
+              "value": "{brand.typography.h5}"
+            },
+            {
+              "label": "Heading 6",
+              "value": "{brand.typography.h6}"
+            },
+            {
+              "label": "Subtitle",
+              "value": "{brand.typography.subtitle}"
+            },
+            {
+              "label": "Subtitle (small)",
+              "value": "{brand.typography.subtitle-small}"
+            },
+            {
+              "label": "Body",
+              "value": "{brand.typography.body}"
+            },
+            {
+              "label": "Body (small)",
+              "value": "{brand.typography.body-small}"
+            },
+            {
+              "label": "Caption",
+              "value": "{brand.typography.caption}"
+            },
+            {
+              "label": "Overline",
+              "value": "{brand.typography.overline}"
+            }
+          ]
+        },
+        "properties.content-style": {
+          "icon": "text-align-left",
+          "label": "Content style",
+          "options": [
+            {
+              "label": "Heading 1",
+              "value": "{brand.typography.h1}"
+            },
+            {
+              "label": "Heading 2",
+              "value": "{brand.typography.h2}"
+            },
+            {
+              "label": "Heading 3",
+              "value": "{brand.typography.h3}"
+            },
+            {
+              "label": "Heading 4",
+              "value": "{brand.typography.h4}"
+            },
+            {
+              "label": "Heading 5",
+              "value": "{brand.typography.h5}"
+            },
+            {
+              "label": "Heading 6",
+              "value": "{brand.typography.h6}"
+            },
+            {
+              "label": "Subtitle",
+              "value": "{brand.typography.subtitle}"
+            },
+            {
+              "label": "Subtitle (small)",
+              "value": "{brand.typography.subtitle-small}"
+            },
+            {
+              "label": "Body",
+              "value": "{brand.typography.body}"
+            },
+            {
+              "label": "Body (small)",
+              "value": "{brand.typography.body-small}"
+            },
+            {
+              "label": "Caption",
+              "value": "{brand.typography.caption}"
+            },
+            {
+              "label": "Overline",
+              "value": "{brand.typography.overline}"
+            }
+          ]
+        }
+      }
+    },
+    "text-colors": {
+      "icon": "palette",
+      "label": "Text colors",
+      "group": {
+        "properties.title": {
+          "icon": "text-aa",
+          "label": "Header color"
+        },
+        "properties.content": {
+          "icon": "text-align-left",
+          "label": "Content color"
+        }
+      }
+    },
+    "header-footer": {
+      "icon": "rows",
+      "label": "Header and footer",
+      "group": {
+        "properties.header-footer-background": {
+          "icon": "paint-bucket",
+          "label": "Background"
+        },
+        "properties.header-footer-horizontal-padding": {
+          "icon": "arrows-left-right",
+          "label": "Horizontal padding"
+        },
+        "properties.header-footer-vertical-padding": {
+          "icon": "arrows-up-down",
+          "label": "Vertical padding"
+        },
+        "properties.header-close-gap": {
+          "icon": "split-horizontal",
+          "label": "Header close gap"
+        },
+        "properties.footer-button-gap": {
+          "icon": "split-horizontal",
+          "label": "Footer button gap"
+        }
+      }
+    },
+    "border": {
+      "icon": "frame-corners",
+      "label": "Border",
+      "group": {
+        "properties.colors.border-color": {
+          "icon": "paint-brush-broad",
+          "label": "Border color"
+        },
+        "properties.border-size": {
+          "icon": "rows",
+          "label": "Size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            8
+          ],
+          "step": 1
+        },
+        "properties.border-radius": {
+          "icon": "corners-out",
+          "label": "Corner radius",
+          "propertyType": "slider",
+          "range": [
+            0,
+            48
+          ],
+          "step": 4
+        }
+      }
+    },
+    "dividers": {
+      "icon": "minus",
+      "label": "Dividers",
+      "group": {
+        "properties.divider-color": {
+          "icon": "paint-brush-broad",
+          "label": "Divider color"
+        },
+        "properties.divider-size": {
+          "icon": "rows",
+          "label": "Divider size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            8
+          ],
+          "step": 1
+        }
+      }
+    },
+    "width": {
+      "icon": "arrows-in-line-horizontal",
+      "label": "Sizes",
+      "group": {
+        "properties.min-width": {
+          "icon": "arrows-in-line-horizontal",
+          "label": "Min width",
+          "propertyType": "slider",
+          "range": [
+            100,
+            800
+          ],
+          "step": 8
+        },
+        "properties.max-width": {
+          "icon": "arrows-out-line-horizontal",
+          "label": "Max width",
+          "propertyType": "slider",
+          "range": [
+            200,
+            2000
+          ],
+          "step": 8
+        }
+      }
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation"
     }
+  }
 }

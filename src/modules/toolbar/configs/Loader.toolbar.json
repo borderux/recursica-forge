@@ -1,56 +1,50 @@
 {
-    "variants": {
-        "size": {
-            "icon": "arrows-out",
-            "label": "Size"
-        }
-    },
-    "props": {
-        "color": {
-            "icon": "paint-bucket",
-            "label": "Color",
-            "visible": true,
-            "group": {
-                "indicator-color": {
-                    "icon": "circle-notch",
-                    "label": "Indicator color",
-                    "visible": true
-                }
-            }
-        },
-        "size": {
-            "icon": "arrows-out",
-            "label": "Size",
-            "visible": true,
-            "group": {
-                "size": {
-                    "icon": "arrows-up-down",
-                    "label": "Size",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        8,
-                        100
-                    ],
-                    "step": 1
-                },
-                "border-radius": {
-                    "icon": "corners-out",
-                    "label": "Border radius",
-                    "visible": true
-                },
-                "thickness": {
-                    "icon": "pencil-line",
-                    "label": "Thickness",
-                    "visible": true,
-                    "propertyType": "slider",
-                    "range": [
-                        1,
-                        30
-                    ],
-                    "step": 1
-                }
-            }
-        }
+  "variants": {
+    "size": {
+      "icon": "arrows-out",
+      "label": "Size"
     }
+  },
+  "properties": {
+    "color": {
+      "icon": "paint-bucket",
+      "label": "Color",
+      "group": {
+        "properties.indicator-color": {
+          "icon": "circle-notch",
+          "label": "Indicator color"
+        }
+      }
+    },
+    "size": {
+      "icon": "arrows-out",
+      "label": "Size",
+      "group": {
+        "properties.size": {
+          "icon": "arrows-up-down",
+          "label": "Size",
+          "propertyType": "slider",
+          "range": [
+            8,
+            100
+          ],
+          "step": 1
+        },
+        "properties.border-radius": {
+          "icon": "corners-out",
+          "label": "Border radius"
+        },
+        "properties.thickness": {
+          "icon": "pencil-line",
+          "label": "Thickness",
+          "propertyType": "slider",
+          "range": [
+            1,
+            30
+          ],
+          "step": 1
+        }
+      }
+    }
+  }
 }

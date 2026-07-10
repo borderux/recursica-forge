@@ -13,6 +13,8 @@ import LabelConfig from '../configs/Label.toolbar.json'
 import BreadcrumbConfig from '../configs/Breadcrumb.toolbar.json'
 import AccordionConfig from '../configs/Accordion.toolbar.json'
 import AccordionItemConfig from '../configs/AccordionItem.toolbar.json'
+import AccordionHeaderConfig from '../configs/AccordionHeader.toolbar.json'
+import AccordionContentConfig from '../configs/AccordionContent.toolbar.json'
 import MenuItemConfig from '../configs/MenuItem.toolbar.json'
 import MenuConfig from '../configs/Menu.toolbar.json'
 import SliderConfig from '../configs/Slider.toolbar.json'
@@ -56,11 +58,11 @@ import { buildComponentExtensionGroups } from './componentExtensionToolbar'
 export interface ToolbarPropConfig {
   icon: string
   label: string
-  visible?: boolean
   group?: Record<string, ToolbarPropConfig> // Props that are grouped under this icon
   propertyType?: 'slider' | 'select' | 'color' | 'text' // Custom property type override
   range?: [number, number] // For slider
   step?: number // For slider
+  sliderType?: 'continuous' | 'discrete' // Optional slider mode (e.g. discrete for Avatar border-size)
   allowedProps?: string[] // For restricting which properties are visible in a group like text-style
   control?: 'dropdown' | 'segmented' // Control type for options-based props
   options?: Array<string | { label: string; value: string; icon?: string }> // Options for dropdown/segmented controls
@@ -78,6 +80,7 @@ export interface ToolbarVariantConfig {
 export interface ToolbarConfig {
   variants?: Record<string, ToolbarVariantConfig>
   props: Record<string, ToolbarPropConfig>
+  properties: Record<string, ToolbarPropConfig>
 }
 
 /**
@@ -90,17 +93,19 @@ export interface ToolbarConfig {
  */
 function mergeExtensionGroups(config: ToolbarConfig, componentKey: string): ToolbarConfig {
   const extensionGroups = buildComponentExtensionGroups(componentKey)
-  if (extensionGroups.length === 0) return config
+  const baseProps = config.properties || config.props || {}
+  
+  if (extensionGroups.length === 0) {
+    return { ...config, props: baseProps, properties: baseProps }
+  }
 
-  const mergedProps = { ...config.props }
+  const mergedProps = { ...baseProps }
 
   for (const extGroup of extensionGroups) {
     const { propName, groupConfig } = extGroup
     const existing = mergedProps[propName]
 
     if (existing) {
-      // Merge factory children into the existing entry's group.
-      // Existing hand-authored children take precedence (don't overwrite them).
       const existingGroup = existing.group ?? {}
       const factoryGroup = groupConfig.group ?? {}
       const mergedGroup: Record<string, ToolbarPropConfig> = { ...factoryGroup, ...existingGroup }
@@ -110,7 +115,7 @@ function mergeExtensionGroups(config: ToolbarConfig, componentKey: string): Tool
     }
   }
 
-  return { ...config, props: mergedProps }
+  return { ...config, props: mergedProps, properties: mergedProps }
 }
 
 /**
@@ -150,6 +155,12 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
     case 'accordion-item':
     case 'accordion item':
       staticConfig = AccordionItemConfig as unknown as ToolbarConfig; break
+    case 'accordion-header':
+    case 'accordion header':
+      staticConfig = AccordionHeaderConfig as unknown as ToolbarConfig; break
+    case 'accordion-content':
+    case 'accordion content':
+      staticConfig = AccordionContentConfig as unknown as ToolbarConfig; break
     case 'menu-item':
     case 'menu item':
       staticConfig = MenuItemConfig as unknown as ToolbarConfig; break
@@ -268,10 +279,22 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
     if (extensionGroups.length === 0) return null
     const syntheticProps: Record<string, ToolbarPropConfig> = {}
     for (const g of extensionGroups) syntheticProps[g.propName] = g.groupConfig
-    return { props: syntheticProps }
+    return { props: syntheticProps, properties: syntheticProps }
   }
 
   return mergeExtensionGroups(staticConfig, componentKey)
+}
+
+function findInGroup(group: Record<string, ToolbarPropConfig> | undefined, propKey: string): ToolbarPropConfig | null {
+  if (!group) return null
+  if (group[propKey]) return group[propKey]
+  const match = Object.entries(group).find(([key]) => {
+    const keyLower = key.toLowerCase()
+    return keyLower === propKey ||
+           keyLower.endsWith('.' + propKey) ||
+           keyLower === 'properties.' + propKey
+  })
+  return match ? match[1] : null
 }
 
 /**
@@ -293,8 +316,9 @@ export function getPropConfig(
 
   // Then check inside groups
   for (const parentPropConfig of Object.values(config.props)) {
-    if (parentPropConfig.group && parentPropConfig.group[propKey]) {
-      return parentPropConfig.group[propKey]
+    const groupMatch = findInGroup(parentPropConfig.group, propKey)
+    if (groupMatch) {
+      return groupMatch
     }
   }
 
@@ -317,13 +341,6 @@ export function getPropLabel(componentName: string, propName: string): string | 
   return config?.label || null
 }
 
-/**
- * Gets the visible property for a prop (defaults to true if not specified)
- */
-export function getPropVisible(componentName: string, propName: string): boolean {
-  const config = getPropConfig(componentName, propName)
-  return config?.visible !== false // Default to true if not specified
-}
 
 /**
  * Checks if a prop is grouped under another prop
@@ -339,7 +356,7 @@ export function getGroupedPropParent(
 
   // Check if any prop has this prop in its group
   for (const [key, propConfig] of Object.entries(config.props)) {
-    if (propConfig.group && propConfig.group[propKey]) {
+    if (propConfig.group && findInGroup(propConfig.group, propKey)) {
       return key
     }
   }
@@ -359,7 +376,7 @@ export function getGroupedPropConfig(
   if (!config || !config.group) return null
 
   const groupedPropKey = groupedPropName.toLowerCase()
-  return config.group[groupedPropKey] || null
+  return findInGroup(config.group, groupedPropKey)
 }
 
 /**

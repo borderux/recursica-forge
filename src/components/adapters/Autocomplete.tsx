@@ -102,7 +102,7 @@ export function Autocomplete({
     }
 
     // Determine effective state
-    const effectiveState = state
+    const effectiveState = state === 'disabled' ? 'disabled' : (errorText ? 'error' : state)
 
     // Get CSS variables
     const backgroundVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')

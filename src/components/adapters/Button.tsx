@@ -202,7 +202,7 @@ function getButtonStyles(
   
   // Use recursica_ui-kit.json button colors for standard layers
   const bgVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'background-color')
-  const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text')
+  const textVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'text-color')
   // Build border color CSS var path directly to ensure it matches recursica_ui-kit.json structure
   const borderColorVar = buildComponentCssVarPath('Button', 'variants', 'styles', cssVarVariant, 'properties', 'colors', layer, 'border-color')
   

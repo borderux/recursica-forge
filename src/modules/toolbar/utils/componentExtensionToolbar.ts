@@ -165,7 +165,6 @@ export function buildComponentExtensionGroups(
       children[childKey] = {
         icon: iconForDimension(dimKey),
         label: dimKey.charAt(0).toUpperCase() + dimKey.slice(1),
-        visible: true,
         control: 'dropdown',
         options,
         // Stash defaultValue so PropControlContent can initialise the dropdown.
@@ -181,7 +180,6 @@ export function buildComponentExtensionGroups(
         .split('-')
         .map(w => w.charAt(0).toUpperCase() + w.slice(1))
         .join(' '),
-      visible: true,
       group: children,
       componentRef: targetCompName,
     }
