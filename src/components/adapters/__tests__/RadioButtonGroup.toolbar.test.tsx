@@ -12,7 +12,7 @@ import { RadioButtonGroup } from '../RadioButtonGroup'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { buildComponentCssVarPath } from '../../utils/cssVarNames'
 
-describe.skip('RadioButtonGroup Toolbar Props Integration', () => {
+describe('RadioButtonGroup Toolbar Props Integration', () => {
     beforeEach(() => {
         document.documentElement.style.cssText = ''
     })

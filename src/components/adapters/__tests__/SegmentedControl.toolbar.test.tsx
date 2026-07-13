@@ -21,7 +21,10 @@ import { SegmentedControl } from '../SegmentedControl'
 import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar, buildComponentCssVarPath } from '../../utils/cssVarNames'
 
-describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, () => {
+// TODO(browser-tests): re-enable once repaired. Runs in browser (no OOM) but has stale
+  // assertions from the toolbar rewrite (old CSS-var names, var() refs a real browser resolves,
+  // or changed DOM). Fix against the current toolbar/component DOM, then drop .skip.
+  describe.skip('SegmentedControl Toolbar Props Integration', { timeout: 60000 }, () => {
   // Note: We don't preload components here to avoid hanging issues
   // Components will load lazily via Suspense, which is tested behavior
 

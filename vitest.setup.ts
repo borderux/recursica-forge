@@ -3,9 +3,15 @@ import { vi } from 'vitest'
 import { configure, cleanup as rtlCleanup } from '@testing-library/react'
 
 // Configure testing library
-configure({ 
+configure({
   testIdAttribute: 'data-testid',
   asyncUtilTimeout: 30000, // Match testTimeout for waitFor and other async utils
+  // Do NOT embed the full DOM in query-failure errors. Mantine/MUI/Carbon inject enormous
+  // markup + styles, so the default DOM dump can be multi-MB; when vitest serializes that
+  // error across the worker IPC channel the main process OOMs (JSON.parse blows the heap)
+  // and you get a cryptic "heap out of memory" instead of the real assertion message.
+  // Returning a message-only Error keeps failures readable and cheap to serialize.
+  getElementError: (message: string | null) => new Error(message ?? 'Unable to find element'),
 })
 
 // Suppress act() warnings from component internal useEffect hooks
@@ -18,22 +24,22 @@ console.error = (...args: any[]) => {
   if (typeof firstArg === 'string' && firstArg.includes('not wrapped in act(...)')) {
     // Check if any argument mentions Button component (stack traces can be in any arg)
     const allArgs = args.map(arg => String(arg)).join(' ')
-    if (allArgs.includes('Button') || 
-        allArgs.includes('at Button') ||
-        allArgs.includes('Button.tsx') ||
-        allArgs.includes('Button/Button.tsx') ||
-        allArgs.includes('adapters/Button') ||
-        allArgs.includes('adapters/mantine/Button') ||
-        allArgs.includes('adapters/material/Button') ||
-        allArgs.includes('adapters/carbon/Button') ||
-        allArgs.includes('Accordion') ||
-        allArgs.includes('at Accordion') ||
-        allArgs.includes('Accordion.tsx') ||
-        allArgs.includes('Accordion/Accordion.tsx') ||
-        allArgs.includes('adapters/Accordion') ||
-        allArgs.includes('adapters/mantine/Accordion') ||
-        allArgs.includes('adapters/material/Accordion') ||
-        allArgs.includes('adapters/carbon/Accordion')) {
+    if (allArgs.includes('Button') ||
+      allArgs.includes('at Button') ||
+      allArgs.includes('Button.tsx') ||
+      allArgs.includes('Button/Button.tsx') ||
+      allArgs.includes('adapters/Button') ||
+      allArgs.includes('adapters/mantine/Button') ||
+      allArgs.includes('adapters/material/Button') ||
+      allArgs.includes('adapters/carbon/Button') ||
+      allArgs.includes('Accordion') ||
+      allArgs.includes('at Accordion') ||
+      allArgs.includes('Accordion.tsx') ||
+      allArgs.includes('Accordion/Accordion.tsx') ||
+      allArgs.includes('adapters/Accordion') ||
+      allArgs.includes('adapters/mantine/Accordion') ||
+      allArgs.includes('adapters/material/Accordion') ||
+      allArgs.includes('adapters/carbon/Accordion')) {
       // Suppress Button and Accordion component act() warnings - these are from internal useEffect hooks
       // that update state after mount (e.g., CSS variable listeners, elevation updates)
       // These are expected behavior and don't indicate test problems
@@ -88,13 +94,13 @@ import { afterEach, afterAll } from 'vitest'
 afterEach(async () => {
   // Cleanup React Testing Library (unmounts all components)
   rtlCleanup()
-  
+
   // Clear all timers
   vi.clearAllTimers()
-  
+
   // Clear document styles to reset CSS variables
   document.documentElement.style.cssText = ''
-  
+
   // Wait a tick to allow any pending async operations to complete
   await new Promise(resolve => setTimeout(resolve, 0))
 })
@@ -103,13 +109,13 @@ afterEach(async () => {
 afterAll(async () => {
   // Clear all timers one final time
   vi.clearAllTimers()
-  
+
   // Clear document
   document.documentElement.style.cssText = ''
-  
+
   // Wait for any pending operations
   await new Promise(resolve => setTimeout(resolve, 100))
-  
+
   // Force exit if we're in a test environment (prevents hanging)
   if (process.env.NODE_ENV === 'test') {
     // Give a small delay then force exit

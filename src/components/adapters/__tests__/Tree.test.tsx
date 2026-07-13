@@ -9,7 +9,10 @@ import '../../../components/registry/mantine'
 import { itDom } from '../../../test-utils/conditionalTests'
 import { getComponentTextCssVar, getComponentLevelCssVar } from '../../utils/cssVarNames'
 
-describe.skip('Tree Component (Adapter)', () => {
+// TODO(browser-tests): re-enable once repaired. Runs in browser (no OOM) but has stale
+  // assertions from the toolbar rewrite (old CSS-var names, var() refs a real browser resolves,
+  // or changed DOM). Fix against the current toolbar/component DOM, then drop .skip.
+  describe.skip('Tree Component (Adapter)', () => {
   beforeAll(async () => {
     await Promise.all([
       import('@mantine/core'),
@@ -44,7 +47,7 @@ describe.skip('Tree Component (Adapter)', () => {
     }, { timeout: 90000 })
   }
 
-  itDom('renders tree nodes', async () => {
+  it('renders tree nodes', async () => {
     const data = [
       {
         value: 'root',
@@ -59,7 +62,7 @@ describe.skip('Tree Component (Adapter)', () => {
     expect(screen.getByText('Root Node')).toBeInTheDocument()
   }, 120000)
 
-  itDom('applies custom typography and layout CSS variables correctly', async () => {
+  it('applies custom typography and layout CSS variables correctly', async () => {
     const data = [
       {
         value: 'root',

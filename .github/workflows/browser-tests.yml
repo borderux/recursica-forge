@@ -1,0 +1,46 @@
+# Browser Component Tests (component RENDER tests, real browser)
+#
+# These are the *.test.tsx adapter render tests, which mount the real MUI/Mantine/Carbon
+# components. They can't run in the node/unit pipeline (headless DOM OOMs — see vite.config.ts
+# test.exclude), so they run here in a real Playwright browser via `npm run test:browser`.
+#
+# Deliberately MANUAL (workflow_dispatch) and separate from PR Checks so it NEVER blocks
+# shipping. Once the suite is green, switch the trigger to `pull_request` (and optionally make it
+# a required check) to gate on it.
+name: Browser Component Tests
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-tests:
+    name: Browser Component Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NODE_OPTIONS: --max-old-space-size=6144
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Playwright browser (Chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser component tests
+        run: npm run test:browser
+        env:
+          VITE_RECURSICA_API_URL: ${{ vars.VITE_RECURSICA_API_URL || '' }}
+          VITE_RECURSICA_UI_URL: ${{ vars.VITE_RECURSICA_UI_URL || '' }}
+          VITE_PLUGIN_PHRASE: ${{ secrets.PLUGIN_PHRASE || '' }}

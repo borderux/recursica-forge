@@ -16,7 +16,10 @@ import { updateCssVar } from '../../../core/css/updateCssVar'
 import { getComponentLevelCssVar } from '../../utils/cssVarNames'
 import { readCssVar } from '../../../core/css/readCssVar'
 
-describe.skip('Breadcrumb Toolbar Props Integration', () => {
+// TODO(browser-tests): re-enable once repaired. Runs in browser (no OOM) but has stale
+  // assertions from the toolbar rewrite (old CSS-var names, var() refs a real browser resolves,
+  // or changed DOM). Fix against the current toolbar/component DOM, then drop .skip.
+  describe.skip('Breadcrumb Toolbar Props Integration', () => {
   beforeEach(() => {
     // Clear all CSS variables before each test
     document.documentElement.style.cssText = ''
@@ -59,7 +62,7 @@ describe.skip('Breadcrumb Toolbar Props Integration', () => {
     { label: 'Current Page' },
   ]
 
-  describe.skip('Color Props Updates', () => {
+  describe('Color Props Updates', () => {
     const layers = ['layer-0', 'layer-1', 'layer-2', 'layer-3'] as const
     const variants = ['interactive', 'read-only'] as const
 

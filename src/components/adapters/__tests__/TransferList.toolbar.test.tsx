@@ -33,7 +33,10 @@ const sampleData: TransferListData = [
  * These tests verify the TransferList component renders correctly
  * with various props and states.
  */
-describe.skip('TransferList Component Rendering', () => {
+// TODO(browser-tests): re-enable once repaired. Runs in browser (no OOM) but has stale
+  // assertions from the toolbar rewrite (old CSS-var names, var() refs a real browser resolves,
+  // or changed DOM). Fix against the current toolbar/component DOM, then drop .skip.
+  describe.skip('TransferList Component Rendering', () => {
     beforeEach(() => {
         document.documentElement.style.cssText = ''
     })

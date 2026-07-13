@@ -6,7 +6,10 @@ import { ThemeModeProvider } from '../../../modules/theme/ThemeModeContext'
 import { Button } from '../Button'
 import { readCssVar } from '../../../core/css/readCssVar'
 
-describe.skip('Button CSS Variables', () => {
+// TODO(browser-tests): re-enable once repaired. Runs in browser (no OOM) but has stale
+  // assertions from the toolbar rewrite (old CSS-var names, var() refs a real browser resolves,
+  // or changed DOM). Fix against the current toolbar/component DOM, then drop .skip.
+  describe.skip('Button CSS Variables', () => {
   beforeEach(async () => {
     document.documentElement.style.cssText = ''
     await new Promise(resolve => setTimeout(resolve, 200))
@@ -43,7 +46,7 @@ describe.skip('Button CSS Variables', () => {
     }, { timeout: 30000 })
   }
 
-  describe.skip('CSS Variable Definitions', () => {
+  describe('CSS Variable Definitions', () => {
     it('uses Recursica CSS variables for button colors', async () => {
       let container: HTMLElement
       await act(async () => {

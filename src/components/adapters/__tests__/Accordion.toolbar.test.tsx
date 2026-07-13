@@ -38,7 +38,7 @@ describe('Accordion Toolbar Props Integration', () => {
     }, { timeout: 30000 })
   }
 
-  describe.skip('Accordion Container Color Props Updates - All Layers', () => {
+  describe('Accordion Container Color Props Updates - All Layers', () => {
     const layers: ComponentLayer[] = ['layer-0', 'layer-1', 'layer-2', 'layer-3']
     const colorProperties = [
       { name: 'background-color', cssVar: '--accordion-bg' },
@@ -78,7 +78,7 @@ describe('Accordion Toolbar Props Integration', () => {
     })
   })
 
-  describe.skip('Accordion Container Component-Level Props Updates', () => {
+  describe('Accordion Container Component-Level Props Updates', () => {
     it('updates border-size when toolbar changes border-size', async () => {
       const { container } = renderWithProviders(
         <Accordion
@@ -224,7 +224,7 @@ describe('Accordion Toolbar Props Integration', () => {
     })
   })
 
-  describe.skip('Layer Switching', () => {
+  describe('Layer Switching', () => {
     it('updates Accordion container colors when layer prop changes', async () => {
       const { container, rerender } = renderWithProviders(
         <Accordion

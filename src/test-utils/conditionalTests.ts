@@ -11,6 +11,8 @@
  * Check if we're running in CI mode
  */
 export const isCI = () => {
+    // `process` doesn't exist in vitest browser mode (real browser). Treat that as "not CI".
+    if (typeof process === 'undefined') return false
     return process.env.CI === 'true' || process.env.CI_MODE === 'true'
 }
 
