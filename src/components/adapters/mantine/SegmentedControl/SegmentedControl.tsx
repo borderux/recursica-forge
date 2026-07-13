@@ -401,7 +401,7 @@ export default function SegmentedControl({
 
       // Get tooltip CSS variables using the proper utility function
       const tooltipBg = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'background-color')
-      const tooltipTextColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'text')
+      const tooltipTextColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'text-color')
       const tooltipBorderColor = buildComponentCssVarPath('Tooltip', 'properties', 'colors', 'layer-0', 'border-color')
       const tooltipBorderSize = buildComponentCssVarPath('Tooltip', 'properties', 'border-size')
       const tooltipBorderRadius = buildComponentCssVarPath('Tooltip', 'properties', 'border-radius')

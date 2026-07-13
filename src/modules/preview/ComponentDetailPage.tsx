@@ -299,7 +299,7 @@ export default function ComponentDetailPage() {
           top: 0,
           alignSelf: component.name.toLowerCase().includes('table') ? 'stretch' : 'flex-start',
           height: component.name.toLowerCase().includes('table') ? '100%' : undefined,
-          overflow: 'hidden',
+          overflow: 'visible',
           borderTopLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
           borderBottomLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         }}>
@@ -621,7 +621,7 @@ export default function ComponentDetailPage() {
 
         {/* Toolbar Panel - Right Side */}
         <div style={{
-          width: '320px',
+          width: '380px',
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',

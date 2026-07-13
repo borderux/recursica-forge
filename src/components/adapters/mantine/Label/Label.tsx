@@ -65,7 +65,7 @@ export default function Label({
 
   // Get CSS variables for colors
   // Text color is at component level, not variant-specific
-  const textColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text')
+  const textColorVar = buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'text-color')
   const asteriskColorVar = variant === 'required'
     ? buildComponentCssVarPath('Label', 'properties', 'colors', layer, 'asterisk-color')
     : undefined

@@ -57,7 +57,7 @@ export default function FileInput({
     // Get CSS variables for colors based on state variant
     const backgroundVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'text')
+    const textVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'text-color')
     const leadingIconVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'leading-icon')
     const trailingIconVar = buildComponentCssVarPath('FileInput', 'variants', 'states', state, 'properties', 'colors', layer, 'trailing-icon')
 

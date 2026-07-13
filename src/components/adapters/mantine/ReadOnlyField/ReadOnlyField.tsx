@@ -23,7 +23,7 @@ export default function ReadOnlyField({
     style,
 }: ReadOnlyFieldProps & { labelId?: string }) {
     // Get CSS variables for colors
-    const textColorVar = buildComponentCssVarPath('ReadOnlyField', 'properties', 'colors', layer, 'text')
+    const textColorVar = buildComponentCssVarPath('ReadOnlyField', 'properties', 'colors', layer, 'text-color')
 
     // Get CSS variables for text properties
     const fontFamilyVar = getComponentTextCssVar('ReadOnlyField', 'text', 'font-family')

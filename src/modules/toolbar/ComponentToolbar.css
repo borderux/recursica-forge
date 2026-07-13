@@ -155,3 +155,16 @@ html[data-theme-mode="dark"] .toolbar-section-label {
   color: var(--recursica_brand_themes_dark_layers_layer-2_elements_text-color);
   opacity: var(--recursica_brand_themes_dark_layers_layer-2_elements_text-high-emphasis);
 }
+
+/* The interaction-state tab list spans the full section width, but the tabs themselves hug
+   their content and sit centered as a group. Scoped + !important because Mantine's
+   .mantine-Tabs-tab sets its own flex/min-width that would otherwise stretch the tabs. */
+.component-toolbar-panel .state-tabs-list {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+.component-toolbar-panel .state-tabs-list [role="tab"] {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+}

@@ -34,7 +34,7 @@ export default function Toast({
   
   // Use recursica_ui-kit.json toast colors for standard layers
   const toastBgVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'background-color')
-  const toastTextVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'text')
+  const toastTextVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'text-color')
   // Button color from recursica_ui-kit.json
   const toastButtonVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'button')
   

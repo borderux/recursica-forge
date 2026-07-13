@@ -52,7 +52,7 @@ export default function Textarea({
     // Get CSS variables for colors based on state variant
     const backgroundVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
+    const textVar = buildComponentCssVarPath('Textarea', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text-color')
 
     // Get CSS variables for focus state border (when focused)
     const focusBorderVar = buildComponentCssVarPath('Textarea', 'variants', 'states', 'focus', 'properties', 'colors', layer, 'border-color')

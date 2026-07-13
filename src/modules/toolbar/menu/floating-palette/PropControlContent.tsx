@@ -780,15 +780,8 @@ export default function PropControlContent({
 
     const structure = parseComponentStructure(componentName)
 
-    // Special handling for Chip/Badge text-color: toolbar config uses "text-color" but recursica_ui-kit.json uses "text"
-    const isTextColorMapping = (componentName.toLowerCase() === 'chip' || componentName.toLowerCase() === 'badge') &&
-      propToCheck.name.toLowerCase() === 'text-color' &&
-      propToCheck.category === 'colors'
-      
     let targetPropName = propToCheck.name
-    if (isTextColorMapping) {
-      targetPropName = 'text'
-    } else if (componentName.toLowerCase() === 'avatar' && propToCheck.name.toLowerCase() === 'text-color' && selectedVariants.style === 'icon') {
+    if (componentName.toLowerCase() === 'avatar' && propToCheck.name.toLowerCase() === 'text-color' && selectedVariants.style === 'icon') {
       // For Avatar in icon mode, if the UI still exposes "text-color", forcibly map it to "icon-color" to prevent logic breaking
       targetPropName = 'icon-color'
     }
@@ -951,7 +944,7 @@ export default function PropControlContent({
     const propName = propToRender.name.toLowerCase()
     const structure = parseComponentStructure(componentName)
 
-    if (propName === 'text' || propName === 'text-hover') {
+    if (propName === 'text-color' || propName === 'text-hover') {
       const bgPropName = propName === 'text-hover' ? 'background-hover' : 'background-color'
       const bgProp = structure.props.find(p =>
         p.name.toLowerCase() === bgPropName &&
@@ -966,7 +959,7 @@ export default function PropControlContent({
     }
 
     if (propName === 'background-color' || propName === 'background-hover') {
-      const textPropName = propName === 'background-hover' ? 'text-hover' : 'text'
+      const textPropName = propName === 'background-hover' ? 'text-hover' : 'text-color'
       const textProp = structure.props.find(p =>
         p.name.toLowerCase() === textPropName &&
         p.category === 'colors' &&

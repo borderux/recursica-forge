@@ -53,7 +53,7 @@ export default function Chip({
     const textCssVars = [fontFamilyVar, fontSizeVar, fontWeightVar, letterSpacingVar, lineHeightVar, textDecorationVar, textTransformVar, fontStyleVar]
 
     // Get color CSS variables for reactive updates
-    const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text', layer)
+    const chipColorVarForListener = buildVariantColorCssVar('Chip', variant, 'text-color', layer)
     const chipBgForListener = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
     const chipBorderForListener = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
     const chipIconColorVarForListener = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
@@ -101,7 +101,7 @@ export default function Chip({
   const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
   const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
 
-  const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text', layer)
+  const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text-color', layer)
   const chipIconColorVar = chipColorVar
 
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)

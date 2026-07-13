@@ -11,6 +11,8 @@ import VariantDropdown from './menu/dropdown/VariantDropdown'
 import VariantSwitch from './menu/dropdown/VariantSwitch'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
 import type { SegmentedControlItem } from '../../components/adapters/SegmentedControl'
+import { Tabs } from '../../components/adapters/Tabs'
+import { Tooltip } from '../../components/adapters/Tooltip'
 import { Accordion } from '../../components/adapters/Accordion'
 import PropControlContent from './menu/floating-palette/PropControlContent'
 import { iconNameToReactComponent } from '../components/iconUtils'
@@ -378,7 +380,7 @@ export default function ComponentToolbar({
               {stateChildren.map(child => renderChild(child, activeStateTab, `${activeStateTab}-${selectedLayer}`))}
             </div>
           ),
-          defaultOpen: true, // Auto-expand state properties for quick editing
+          defaultOpen: false, // Collapsed by default
         }
       })
       .filter(Boolean) as any[]
@@ -386,8 +388,8 @@ export default function ComponentToolbar({
   }, [toolbarConfig, selectedLayer, selectedVariants, componentName, activeStateTab, hasStates, liveStructure.props])
 
   // State Tabs Segmented Control definition
-  const stateTabItems = useMemo<SegmentedControlItem[]>(() => {
-    const items: SegmentedControlItem[] = [{ value: 'base', label: 'Base' }]
+  const stateTabItems = useMemo<Array<{ value: string; label: string; icon: string }>>(() => {
+    const items: Array<{ value: string; label: string; icon: string }> = [{ value: 'base', label: 'Base', icon: 'cursor' }]
 
     // Find what states are defined in the component schema
     let availableStates: string[] = []
@@ -405,15 +407,16 @@ export default function ComponentToolbar({
     }
 
     const orderedStates = [
-      { key: 'hover', label: 'Hover' },
-      { key: 'focus', label: 'Focus' },
-      { key: 'error', label: 'Error' },
-      { key: 'disabled', label: 'Disabled' }
+      { key: 'hover', label: 'Hover', icon: 'hand-pointing' },
+      { key: 'focus', label: 'Focus', icon: 'radio-button' },
+      { key: 'active', label: 'Active', icon: 'cursor' },
+      { key: 'error', label: 'Error', icon: 'warning' },
+      { key: 'disabled', label: 'Disabled', icon: 'prohibit' }
     ]
 
-    orderedStates.forEach(({ key, label }) => {
+    orderedStates.forEach(({ key, label, icon }) => {
       if (availableStates.includes(key)) {
-        items.push({ value: key, label })
+        items.push({ value: key, label, icon })
       }
     })
 
@@ -522,29 +525,42 @@ export default function ComponentToolbar({
 
         {/* 2. States Segmented Tabs Section (Bottom) */}
         {hasStates && (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
             <div style={{
-              padding: 'var(--recursica_brand_dimensions_general_md)',
               borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})`,
               background: `var(${layerProperty(mode, 0, 'background-color')})`,
             }}>
-              <div style={{
-                fontSize: 'var(--recursica_brand_typography_body-small-font-size)',
-                fontWeight: 'var(--recursica_brand_typography_body-small-font-weight)',
-                color: `var(${layerText(mode, 0, 'color')})`,
-                opacity: 0.6,
-                marginBottom: 'var(--recursica_brand_dimensions_general_xs)'
-              }}>
-                Interaction States
-              </div>
-              <SegmentedControl
-                items={stateTabItems}
+              <Tabs
                 value={activeStateTab}
-                onChange={setActiveStateTab}
+                onChange={(v) => { if (v) setActiveStateTab(v) }}
                 orientation="horizontal"
-                fullWidth={true}
                 layer="layer-1"
-              />
+              >
+                <Tabs.List className="state-tabs-list">
+                  {stateTabItems.map((item) => {
+                    const Icon = iconNameToReactComponent(item.icon)
+                    const isSelected = activeStateTab === item.value
+                    const iconEl = Icon ? <Icon size={16} /> : null
+                    // Icon-only, with a hover tooltip naming the state — except the selected
+                    // tab, which shows icon + label (no tooltip, since the label is visible).
+                    // Tooltip wraps the ICON (inside leftSection) so the Tab stays a direct
+                    // child of Tabs.List (Mantine relies on that).
+                    return (
+                      <Tabs.Tab
+                        key={item.value}
+                        value={item.value}
+                        leftSection={
+                          isSelected
+                            ? iconEl
+                            : <Tooltip label={item.label} position="top">{iconEl}</Tooltip>
+                        }
+                      >
+                        {isSelected ? item.label : null}
+                      </Tabs.Tab>
+                    )
+                  })}
+                </Tabs.List>
+              </Tabs>
             </div>
 
             {/* State Properties Accordion */}

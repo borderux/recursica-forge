@@ -57,7 +57,7 @@ export default function NumberInput({
     // Get CSS variables for colors based on state variant
     const backgroundVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'background-color')
     const borderVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'border-color')
-    const textVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text')
+    const textVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'text-color')
     // Placeholder uses the same color as text (value color)
     const leadingIconVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'leading-icon')
     const trailingIconVar = buildComponentCssVarPath('NumberInput', 'variants', 'states', effectiveState, 'properties', 'colors', layer, 'trailing-icon')
