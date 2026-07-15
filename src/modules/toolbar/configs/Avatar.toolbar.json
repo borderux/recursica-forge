@@ -106,8 +106,7 @@
     },
     "elevation": {
       "icon": "copy-simple",
-      "label": "Elevation",
-      "floatingPaletteLabel": "Elevation"
+      "label": "Elevation"
     }
   }
 }

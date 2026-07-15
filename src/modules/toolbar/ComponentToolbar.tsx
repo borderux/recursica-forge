@@ -280,12 +280,16 @@ export default function ComponentToolbar({
     const leaf = (normalized.split('.').pop() || rawKey).toLowerCase()
     const keyImpliesColor = normalized.includes('.colors') || leaf.endsWith('-color')
     const isStateTab = !!activeState && activeState !== 'base'
+    // A typography key (e.g. "text", "title-text") resolves ONLY to a text-STYLE group — never a
+    // colour. Without this, the "-color" candidate below would let "text" match a "text-color" leaf
+    // in each interaction state, falsely marking the typography control as state-varying.
+    const isTextGroupKey = !isGroupChild && !keyImpliesColor && TEXT_GROUP_NAMES.has(leaf)
 
     // Config keys sometimes drop/add the "-color" suffix (e.g. "text-color" → "text",
     // "input-background" → "input-background-color"), so try both leaf spellings.
     const nameCandidates = new Set<string>([leaf])
     if (leaf.endsWith('-color')) nameCandidates.add(leaf.replace(/-color$/, ''))
-    else nameCandidates.add(`${leaf}-color`)
+    else if (!isTextGroupKey) nameCandidates.add(`${leaf}-color`)
 
     const matches = liveStructure.props.filter(p => {
       if (!nameCandidates.has(p.name.toLowerCase())) return false
@@ -310,7 +314,9 @@ export default function ComponentToolbar({
       || matches.find(p => p.type !== 'text-group' && p.category !== 'colors')
 
     if (keyImpliesColor) return colorMatch || matches[0]
-    if (!isGroupChild && TEXT_GROUP_NAMES.has(leaf)) return textMatch || otherMatch || colorMatch || matches[0]
+    // Typography key: resolve only to a text-group (null if none in this state/selection) so it never
+    // collapses onto a colour leaf and never appears as a spurious state-varying control.
+    if (isTextGroupKey) return textMatch || null
     // Group children that aren't dimensions are almost always colors (e.g. Slider track/thumb);
     // if only a dimension exists (e.g. track-height), colorMatch is null and we fall to it.
     if (isGroupChild) return colorMatch || otherMatch || matches[0]

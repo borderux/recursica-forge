@@ -2,30 +2,72 @@
   "variants": {
     "appearance": {
       "icon": "eye",
-      "label": "Appearance",
+      "label": "State",
       "optionLabels": {
-        "open": "Open",
-        "closed": "Closed"
+        "open": "Expanded",
+        "closed": "Collapsed"
       }
     }
   },
   "properties": {
-    "header": {
-      "icon": "text-aa",
-      "label": "Header",
+    "colors": {
+      "icon": "paint-bucket",
+      "label": "Colors",
       "group": {
+        "properties.colors.background-color": {
+          "label": "Background"
+        },
         "properties.colors.text-color": {
-          "label": "Text color"
+          "label": "Text"
         },
         "properties.colors.icon-color": {
-          "label": "Icon color"
+          "label": "Icon"
         },
-        "properties.colors.background-color": {
-          "label": "Background color",
-          "floatingPaletteLabel": "Background Color"
+        "properties.colors.border-color": {
+          "label": "Border"
         },
+        "properties.opacity": {
+          "label": "Disabled opacity"
+        }
+      }
+    },
+    "border": {
+      "icon": "rectangle",
+      "label": "Border",
+      "group": {
+        "properties.border-radius": {
+          "label": "Border radius"
+        },
+        "properties.border-size": {
+          "label": "Border size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
+        }
+      }
+    },
+    "text": {
+      "icon": "text-aa",
+      "label": "Text"
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "group": {
+        "properties.elevation": {
+          "label": "Content"
+        }
+      }
+    },
+    "spacing": {
+      "icon": "arrows-out",
+      "label": "Spacing",
+      "group": {
         "properties.icon-gap": {
-          "label": "Icon gap"
+          "label": "Icon-text gap"
         },
         "properties.horizontal-padding": {
           "label": "Horizontal padding"
@@ -35,12 +77,8 @@
         }
       }
     },
-    "text": {
-      "icon": "text-aa",
-      "label": "Header text style"
-    },
     "icon-size": {
-      "icon": "arrows-up-down",
+      "icon": "star",
       "label": "Icon sizes",
       "group": {
         "properties.icon-left-size": {
@@ -48,24 +86,6 @@
         },
         "properties.icon-right-size": {
           "label": "Right icon"
-        }
-      }
-    },
-    "opacity": {
-      "icon": "eye",
-      "label": "Disabled opacity",
-      "group": {
-        "properties.opacity": {
-          "label": "Opacity"
-        }
-      }
-    },
-    "hover-text-color": {
-      "icon": "text-aa",
-      "label": "Hover text color",
-      "group": {
-        "properties.color": {
-          "label": "Text"
         }
       }
     }

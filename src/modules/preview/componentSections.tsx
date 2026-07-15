@@ -490,6 +490,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/accordion-header`,
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const CircleIcon = iconNameToReactComponent('circle')
 
         return (
           <div style={{ width: '100%', maxWidth: 520 }}>
@@ -497,10 +498,19 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
               items={[
                 {
                   id: 'item-1',
-                  title: 'Accordion header',
-                  content: 'This demonstrates AccordionHeader properties. Changing AccordionHeader properties in the toolbar will update the style of this header.',
-                  open: true,
-                  divider: false
+                  title: 'The Forge Entrance',
+                  content: 'The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. Sparks fly from the ancient anvil as Zog lands, his obsidian gauntlets ringing against the forge floor.',
+                  defaultOpen: true,
+                  divider: true,
+                  icon: CircleIcon,
+                },
+                {
+                  id: 'item-2',
+                  title: 'The quick onyx goblin jumps over the lazy dwarf, muttering about a treasure map he found tucked inside an old boot at the bottom of the crystalline abyss',
+                  content: '"Down, then," Zog muttered, tightening the straps of his obsidian gauntlets. He had not come this far to turn back now.',
+                  defaultOpen: false,
+                  divider: false,
+                  icon: undefined,
                 },
               ]}
               layer={layer as any}
@@ -515,6 +525,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/accordion-content`,
       render: (selectedLayers: Set<LayerOption>) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
+        const CircleIcon = iconNameToReactComponent('circle')
 
         return (
           <div style={{ width: '100%', maxWidth: 520 }}>
@@ -522,10 +533,19 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
               items={[
                 {
                   id: 'item-1',
-                  title: 'Accordion content',
-                  content: 'This demonstrates AccordionContent properties. Changing AccordionContent properties in the toolbar will update the style of this content container.',
-                  open: true,
-                  divider: false
+                  title: 'The Forge Entrance',
+                  content: 'The quick onyx goblin jumps over the lazy dwarf, executing a superb and swift maneuver with extraordinary zeal. Sparks fly from the ancient anvil as Zog lands, his obsidian gauntlets ringing against the forge floor. The air is thick with the scent of molten iron and goblin grease.',
+                  defaultOpen: true,
+                  divider: true,
+                  icon: CircleIcon,
+                },
+                {
+                  id: 'item-2',
+                  title: 'The Thornroot Maze',
+                  content: '"Down, then," Zog muttered, tightening the straps of his obsidian gauntlets. He had not come this far—past the sleeping wyrm, through the Thornroot Maze, and over the lazy dwarf—to turn back now. The lantern\'s glow pulsed like a heartbeat, casting shifting patterns on the crystal walls.',
+                  defaultOpen: true,
+                  divider: false,
+                  icon: undefined,
                 },
               ]}
               layer={layer as any}

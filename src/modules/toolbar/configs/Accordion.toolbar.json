@@ -6,27 +6,22 @@
       "label": "Container",
       "group": {
         "properties.colors.background-color": {
-          "label": "Background",
-          "floatingPaletteLabel": "Background Color"
+          "label": "Background"
         },
         "properties.padding": {
-          "label": "Padding",
-          "floatingPaletteLabel": "Padding"
+          "label": "Padding"
         }
       }
     },
     "border": {
       "icon": "square",
       "label": "Border",
-      "floatingPaletteLabel": "Border",
       "group": {
         "properties.colors.border-color": {
-          "label": "Border color",
-          "floatingPaletteLabel": "Border Color"
+          "label": "Border color"
         },
         "properties.border-size": {
           "label": "Border size",
-          "floatingPaletteLabel": "Border Size",
           "range": [
             0,
             20
@@ -35,26 +30,22 @@
           "propertyType": "slider"
         },
         "properties.border-radius": {
-          "label": "Border radius",
-          "floatingPaletteLabel": "Border Radius"
+          "label": "Border radius"
         }
       }
     },
-    "item-gap": {
-      "icon": "split-horizontal",
-      "label": "Item gap",
-      "floatingPaletteLabel": "Item Gap",
+    "divider": {
+      "icon": "minus",
+      "label": "Divider",
       "group": {
         "properties.item-gap": {
-          "label": "Gap size",
-          "floatingPaletteLabel": "Item Gap"
+          "label": "Gap between items"
         },
         "properties.divider-color": {
-          "label": "Divider color"
+          "label": "Color"
         },
         "properties.divider-size": {
-          "label": "Divider size",
-          "floatingPaletteLabel": "Divider Size",
+          "label": "Size",
           "range": [
             0,
             10
@@ -66,11 +57,9 @@
     "width": {
       "icon": "arrows-left-right",
       "label": "Width",
-      "floatingPaletteLabel": "Width",
       "group": {
         "properties.min-width": {
           "label": "Min width",
-          "floatingPaletteLabel": "Minimum Width",
           "range": [
             20,
             200
@@ -79,7 +68,6 @@
         },
         "properties.max-width": {
           "label": "Max width",
-          "floatingPaletteLabel": "Maximum Width",
           "range": [
             100,
             500
@@ -90,8 +78,7 @@
     },
     "elevation": {
       "icon": "copy-simple",
-      "label": "Elevation",
-      "floatingPaletteLabel": "Elevation"
+      "label": "Elevation"
     }
   }
 }

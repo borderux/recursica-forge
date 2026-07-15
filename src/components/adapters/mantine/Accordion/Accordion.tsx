@@ -126,18 +126,28 @@ export default function Accordion({
     : undefined
 
   // Item properties (AccordionItem, AccordionHeader, AccordionContent split)
-  const headerBgCollapsedVar = buildComponentCssVarPath('AccordionHeader', 'variants', 'appearance', 'closed', 'properties', 'colors', layer, 'background-color')
-  const headerBgExpandedVar = buildComponentCssVarPath('AccordionHeader', 'variants', 'appearance', 'open', 'properties', 'colors', layer, 'background-color')
-  const headerTextVar = buildComponentCssVarPath('AccordionHeader', 'variants', 'appearance', 'closed', 'properties', 'colors', layer, 'text-color')
-  const iconColorVar = buildComponentCssVarPath('AccordionHeader', 'variants', 'appearance', 'closed', 'properties', 'colors', layer, 'icon-color')
+  // Header colours — base + interaction states, per appearance (closed→collapsed, open→expanded).
+  // Only background differs by appearance; text/icon vary by state. CSS consumes these per state.
+  const headerColor = (app: string, state: string, prop: string) => state === 'base'
+    ? buildComponentCssVarPath('AccordionHeader', 'variants', 'appearance', app, 'properties', 'colors', layer, prop)
+    : buildComponentCssVarPath('AccordionHeader', 'variants', 'appearance', app, 'variants', 'states', state, 'properties', 'colors', layer, prop)
+  const headerStateColorVars: Record<string, string> = {}
+  for (const state of ['base', 'hover', 'focus', 'disabled']) {
+    for (const [key, app] of [['collapsed', 'closed'], ['expanded', 'open']] as const) {
+      headerStateColorVars[`--acc-src-text-${state}-${key}`] = `var(${headerColor(app, state, 'text-color')})`
+      headerStateColorVars[`--acc-src-icon-${state}-${key}`] = `var(${headerColor(app, state, 'icon-color')})`
+      headerStateColorVars[`--acc-src-bg-${state}-${key}`] = `var(${headerColor(app, state, 'background-color')}, transparent)`
+      headerStateColorVars[`--acc-src-border-${state}-${key}`] = `var(${headerColor(app, state, 'border-color')}, transparent)`
+    }
+  }
+  const headerDisabledOpacityVar = buildComponentCssVarPath('AccordionHeader', 'variants', 'appearance', 'open', 'variants', 'states', 'disabled', 'properties', 'opacity')
+  const headerBorderSizeVar = getComponentLevelCssVar('AccordionHeader', 'border-size')
+  const headerBorderRadiusVar = getComponentLevelCssVar('AccordionHeader', 'border-radius')
+
   const contentBgVar = buildComponentCssVarPath('AccordionContent', 'properties', 'colors', layer, 'background-color')
   const contentTextVar = buildComponentCssVarPath('AccordionContent', 'properties', 'colors', layer, 'text-color')
   const itemBorderColorVar = buildComponentCssVarPath('AccordionItem', 'properties', 'colors', layer, 'border-color')
   const contentBorderColorVar = buildComponentCssVarPath('AccordionContent', 'properties', 'colors', layer, 'border-color')
-
-  // Get hover color and opacity from component-level UIKit tokens (not the global overlay)
-  const hoverColorVar = getComponentLevelCssVar('AccordionHeader', 'hover-color')
-  const hoverOpacityVar = getComponentLevelCssVar('AccordionHeader', 'hover-opacity')
 
   const headerPaddingHVar = getComponentLevelCssVar('AccordionHeader', 'horizontal-padding')
   const contentPaddingHVar = getComponentLevelCssVar('AccordionContent', 'horizontal-padding')
@@ -146,6 +156,8 @@ export default function Accordion({
   const iconRightSizeVar = getComponentLevelCssVar('AccordionHeader', 'icon-right-size')
   const iconGapVar = getComponentLevelCssVar('AccordionHeader', 'icon-gap')
   const borderRadiusVar = getComponentLevelCssVar('AccordionItem', 'border-radius')
+  const itemMarginVar = getComponentLevelCssVar('AccordionItem', 'margin')
+  const itemPaddingVar = getComponentLevelCssVar('AccordionItem', 'padding')
   const contentTopPaddingVar = getComponentLevelCssVar('AccordionContent', 'top-padding')
   const contentBottomPaddingVar = getComponentLevelCssVar('AccordionContent', 'bottom-padding')
   const itemBorderSizeVar = getComponentLevelCssVar('AccordionItem', 'border-size')
@@ -236,6 +248,41 @@ export default function Accordion({
 
   const contentElevationBoxShadow = contentElevationFromVar && contentElevationFromVar !== 'elevation-0'
     ? getElevationBoxShadow(mode, contentElevationFromVar)
+    : undefined
+
+  // Header elevation - reactive pattern for toolbar control
+  const headerElevationVar = getComponentLevelCssVar('AccordionHeader', 'elevation')
+  const [headerElevationFromVar, setHeaderElevationFromVar] = useState<string | undefined>(() => {
+    if (!headerElevationVar) return undefined
+    const value = readCssVar(headerElevationVar)
+    return value ? parseElevationValue(value) : undefined
+  })
+
+  useEffect(() => {
+    if (!headerElevationVar) return
+    const handleCssVarUpdate = (e: Event) => {
+      const detail = (e as CustomEvent).detail
+      if (!detail?.cssVars || detail.cssVars.includes(headerElevationVar)) {
+        const value = readCssVar(headerElevationVar)
+        setHeaderElevationFromVar(value ? parseElevationValue(value) : undefined)
+      }
+    }
+    window.addEventListener('cssVarsUpdated', handleCssVarUpdate)
+    window.addEventListener('cssVarsReset', handleCssVarUpdate)
+    const observer = new MutationObserver(() => {
+      const value = readCssVar(headerElevationVar)
+      setHeaderElevationFromVar(value ? parseElevationValue(value) : undefined)
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] })
+    return () => {
+      window.removeEventListener('cssVarsUpdated', handleCssVarUpdate)
+      window.removeEventListener('cssVarsReset', handleCssVarUpdate)
+      observer.disconnect()
+    }
+  }, [headerElevationVar])
+
+  const headerElevationBoxShadow = headerElevationFromVar && headerElevationFromVar !== 'elevation-0'
+    ? getElevationBoxShadow(mode, headerElevationFromVar)
     : undefined
 
   // Get header text properties
@@ -397,12 +444,11 @@ export default function Accordion({
         ['--accordion-item-gap' as string]: `var(${itemGapVar})`,
         boxShadow: elevationBoxShadow,
         // Item properties
-        ['--accordion-item-header-bg-collapsed' as string]: `var(${headerBgCollapsedVar})`,
-        ['--accordion-item-header-bg-expanded' as string]: `var(${headerBgExpandedVar})`,
-        ['--accordion-item-header-text' as string]: `var(${headerTextVar})`,
-        ['--accordion-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`,
-        ['--accordion-item-hover-color' as string]: `var(${hoverColorVar}, #000000)`,
-        ['--accordion-item-icon-color' as string]: `var(${iconColorVar})`,
+        ...headerStateColorVars,
+        ['--accordion-item-header-disabled-opacity' as string]: `var(${headerDisabledOpacityVar}, 1)`,
+        ['--accordion-header-border-size' as string]: `var(${headerBorderSizeVar})`,
+        ['--accordion-header-border-radius' as string]: `var(${headerBorderRadiusVar})`,
+        ['--accordion-header-box-shadow' as string]: headerElevationBoxShadow || 'none',
         ['--accordion-item-divider-color' as string]: `var(${dividerColorVar})`,
         ['--accordion-item-content-bg' as string]: `var(${contentBgVar})`,
         ['--accordion-item-content-text' as string]: `var(${contentTextVar})`,
@@ -414,6 +460,8 @@ export default function Accordion({
         ['--accordion-item-icon-right-size' as string]: `var(${iconRightSizeVar})`,
         ['--accordion-item-icon-gap' as string]: `var(${iconGapVar})`,
         ['--accordion-item-border-radius' as string]: `var(${borderRadiusVar})`,
+        ['--accordion-item-margin' as string]: `var(${itemMarginVar})`,
+        ['--accordion-item-padding' as string]: `var(${itemPaddingVar})`,
         ['--accordion-item-content-top-padding' as string]: `var(${contentTopPaddingVar})`,
         ['--accordion-item-content-bottom-padding' as string]: `var(${contentBottomPaddingVar})`,
         ['--accordion-item-border-size' as string]: `var(${itemBorderSizeVar})`,
@@ -453,7 +501,7 @@ export default function Accordion({
         const ItemIcon = item.icon
         const titleWithIcon = ItemIcon ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--accordion-item-icon-gap, 8px)' }}>
-            <div style={{ flexShrink: 0, color: `var(--accordion-item-icon-color)`, width: 'var(--accordion-item-icon-left-size, 16px)', height: 'var(--accordion-item-icon-left-size, 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ flexShrink: 0, color: `var(--accordion-header-icon)`, width: 'var(--accordion-item-icon-left-size, 16px)', height: 'var(--accordion-item-icon-left-size, 16px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ItemIcon style={{ width: '100%', height: '100%', display: 'block' }} />
             </div>
             <span>{item.title}</span>

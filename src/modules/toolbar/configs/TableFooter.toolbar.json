@@ -6,16 +6,13 @@
       "label": "Spacing",
       "group": {
         "properties.padding-horizontal": {
-          "label": "Padding horizontal",
-          "floatingPaletteLabel": "Horizontal Padding"
+          "label": "Padding horizontal"
         },
         "properties.padding-vertical": {
-          "label": "Padding vertical",
-          "floatingPaletteLabel": "Vertical Padding"
+          "label": "Padding vertical"
         },
         "properties.vertical-margin": {
-          "label": "Vertical margin",
-          "floatingPaletteLabel": "Vertical Margin"
+          "label": "Vertical margin"
         }
       }
     },
@@ -35,8 +32,7 @@
         },
         "properties.horizontal-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Horizontal divider color",
-          "floatingPaletteLabel": "Horizontal Divider Color"
+          "label": "Horizontal divider color"
         },
         "properties.vertical-divider-size": {
           "icon": "columns",
@@ -50,8 +46,7 @@
         },
         "properties.vertical-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Vertical divider color",
-          "floatingPaletteLabel": "Vertical Divider Color"
+          "label": "Vertical divider color"
         }
       }
     },

@@ -1,9 +1,9 @@
 {
   "variants": {},
   "properties": {
-    "content": {
+    "color": {
       "icon": "paint-bucket",
-      "label": "Content",
+      "label": "Colors",
       "group": {
         "properties.colors.text-color": {
           "label": "Text color"
@@ -11,6 +11,15 @@
         "properties.colors.background-color": {
           "label": "Background color"
         },
+        "properties.colors.border-color": {
+          "label": "Border color"
+        }
+      }
+    },
+    "spacing": {
+      "icon": "arrows-out",
+      "label": "Spacing",
+      "group": {
         "properties.horizontal-padding": {
           "label": "Horizontal padding"
         },
@@ -20,6 +29,18 @@
         "properties.bottom-padding": {
           "label": "Bottom padding"
         },
+        "properties.margin": {
+          "label": "Margin"
+        }
+      }
+    },
+    "border": {
+      "icon": "rectangle",
+      "label": "Border",
+      "group": {
+        "properties.border-radius": {
+          "label": "Border radius"
+        },
         "properties.border-size": {
           "label": "Border size",
           "propertyType": "slider",
@@ -28,22 +49,12 @@
             20
           ],
           "step": 1
-        },
-        "properties.colors.border-color": {
-          "label": "Border color"
-        },
-        "properties.border-radius": {
-          "label": "Border radius"
-        },
-        "properties.margin": {
-          "label": "Margin",
-          "floatingPaletteLabel": "Content Margin"
         }
       }
     },
     "text": {
       "icon": "text-aa",
-      "label": "Content text style"
+      "label": "Text"
     },
     "elevation": {
       "icon": "copy-simple",

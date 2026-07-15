@@ -13,17 +13,14 @@
     "box": {
       "icon": "square-logo",
       "label": "Box",
-      "floatingPaletteLabel": "Box",
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "floatingPaletteLabel": "Pane Background"
+          "label": "Background"
         },
         "properties.header-color": {
           "icon": "text-aa",
-          "label": "Header color",
-          "floatingPaletteLabel": "Header Color"
+          "label": "Header color"
         }
       }
     },
@@ -114,17 +111,14 @@
     "padding": {
       "icon": "square-logo",
       "label": "Padding",
-      "floatingPaletteLabel": "Padding",
       "group": {
         "properties.horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding",
-          "floatingPaletteLabel": "Horizontal Padding"
+          "label": "Horizontal padding"
         },
         "properties.vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding",
-          "floatingPaletteLabel": "Vertical Padding"
+          "label": "Vertical padding"
         }
       }
     },
@@ -140,27 +134,22 @@
     "dimensions": {
       "icon": "resize",
       "label": "Dimensions",
-      "floatingPaletteLabel": "Dimensions",
       "group": {
         "properties.gap": {
           "icon": "split-horizontal",
-          "label": "Box gap",
-          "floatingPaletteLabel": "Gap Between Lists"
+          "label": "Box gap"
         },
         "properties.title-filter-gap": {
           "icon": "arrows-up-down",
-          "label": "Title-filter gap",
-          "floatingPaletteLabel": "Title to Filter Gap"
+          "label": "Title-filter gap"
         },
         "properties.filter-items-gap": {
           "icon": "arrows-up-down",
-          "label": "Filter-items gap",
-          "floatingPaletteLabel": "Filter to Items Gap"
+          "label": "Filter-items gap"
         },
         "properties.height": {
           "icon": "arrows-up-down",
           "label": "Height",
-          "floatingPaletteLabel": "Pane Height",
           "propertyType": "slider",
           "range": [
             200,
@@ -171,7 +160,6 @@
         "properties.width": {
           "icon": "arrows-left-right",
           "label": "Width",
-          "floatingPaletteLabel": "Pane Width",
           "propertyType": "slider",
           "range": [
             200,

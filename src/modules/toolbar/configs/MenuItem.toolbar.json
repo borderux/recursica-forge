@@ -7,33 +7,27 @@
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "floatingPaletteLabel": "Background Color"
+          "label": "Background"
         },
         "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Text",
-          "floatingPaletteLabel": "Text Color"
+          "label": "Text"
         },
         "properties.supporting-text-color": {
           "icon": "text-aa",
-          "label": "Supporting text",
-          "floatingPaletteLabel": "Supporting Text Color"
+          "label": "Supporting text"
         },
         "properties.leading-icon-color": {
           "icon": "image-square",
-          "label": "Leading icon",
-          "floatingPaletteLabel": "Leading Icon Color"
+          "label": "Leading icon"
         },
         "properties.trailing-icon-color": {
           "icon": "image-square",
-          "label": "Trailing icon",
-          "floatingPaletteLabel": "Trailing Icon Color"
+          "label": "Trailing icon"
         },
         "properties.colors.hover-color": {
           "icon": "cursor-click",
-          "label": "Hover color",
-          "floatingPaletteLabel": "Hover Color"
+          "label": "Hover color"
         },
         "properties.colors.hover-opacity": {
           "icon": "cursor-click",
@@ -47,33 +41,27 @@
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "floatingPaletteLabel": "Selected Background Color"
+          "label": "Background"
         },
         "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Text",
-          "floatingPaletteLabel": "Selected Text Color"
+          "label": "Text"
         },
         "properties.supporting-text-color": {
           "icon": "text-aa",
-          "label": "Supporting text",
-          "floatingPaletteLabel": "Selected Supporting Text Color"
+          "label": "Supporting text"
         },
         "properties.leading-icon-color": {
           "icon": "image-square",
-          "label": "Leading icon",
-          "floatingPaletteLabel": "Selected Leading Icon Color"
+          "label": "Leading icon"
         },
         "properties.trailing-icon-color": {
           "icon": "image-square",
-          "label": "Trailing icon",
-          "floatingPaletteLabel": "Selected Trailing Icon Color"
+          "label": "Trailing icon"
         },
         "properties.colors.hover-color": {
           "icon": "cursor-click",
-          "label": "Hover color",
-          "floatingPaletteLabel": "Hover Color"
+          "label": "Hover color"
         },
         "properties.colors.hover-opacity": {
           "icon": "cursor-click",
@@ -95,52 +83,43 @@
       "group": {
         "properties.icon-leading-size": {
           "icon": "image-square",
-          "label": "Leading icon size",
-          "floatingPaletteLabel": "Leading Icon Size"
+          "label": "Leading icon size"
         },
         "properties.icon-trailing-size": {
           "icon": "image-square",
-          "label": "Trailing icon size",
-          "floatingPaletteLabel": "Trailing Icon Size"
+          "label": "Trailing icon size"
         }
       }
     },
     "border-radius": {
       "icon": "corners-out",
-      "label": "Corner radius",
-      "floatingPaletteLabel": "Corner Radius"
+      "label": "Corner radius"
     },
     "padding": {
       "icon": "square-logo",
       "label": "Padding and gaps",
-      "floatingPaletteLabel": "Padding",
       "group": {
         "properties.vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding",
-          "floatingPaletteLabel": "Vertical Padding"
+          "label": "Vertical padding"
         },
         "properties.horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding",
-          "floatingPaletteLabel": "Horizontal Padding"
+          "label": "Horizontal padding"
         },
         "properties.icon-text-gap": {
           "icon": "split-horizontal",
-          "label": "Icon gap",
-          "floatingPaletteLabel": "Icon Gap"
+          "label": "Icon gap"
         },
         "properties.text-gap": {
           "icon": "rows",
-          "label": "Text gap",
-          "floatingPaletteLabel": "Text Gap"
+          "label": "Text gap"
         }
       }
     },
     "disabled-opacity": {
       "icon": "eye",
-      "label": "Disabled opacity",
-      "floatingPaletteLabel": "Disabled Opacity"
+      "label": "Disabled opacity"
     },
     "opacity": {
       "icon": "eye",

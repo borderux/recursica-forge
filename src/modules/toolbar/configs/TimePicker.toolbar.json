@@ -13,27 +13,22 @@
     "colors": {
       "icon": "paint-bucket",
       "label": "Colors",
-      "floatingPaletteLabel": "Colors",
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "floatingPaletteLabel": "Background Color"
+          "label": "Background"
         },
         "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Value color",
-          "floatingPaletteLabel": "Value Color"
+          "label": "Value color"
         },
         "properties.colors.icon-color": {
           "icon": "diamond",
-          "label": "Icon",
-          "floatingPaletteLabel": "Icon Color"
+          "label": "Icon"
         },
         "properties.placeholder-opacity": {
           "icon": "eye",
-          "label": "Placeholder opacity",
-          "floatingPaletteLabel": "Placeholder Opacity"
+          "label": "Placeholder opacity"
         }
       }
     },
@@ -68,17 +63,14 @@
     "padding": {
       "icon": "square-logo",
       "label": "Padding",
-      "floatingPaletteLabel": "Padding",
       "group": {
         "properties.horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding",
-          "floatingPaletteLabel": "Horizontal Padding"
+          "label": "Horizontal padding"
         },
         "properties.vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding",
-          "floatingPaletteLabel": "Vertical Padding"
+          "label": "Vertical padding"
         }
       }
     },
@@ -88,23 +80,19 @@
     },
     "width": {
       "icon": "arrows-left-right",
-      "label": "Width",
-      "floatingPaletteLabel": "Width"
+      "label": "Width"
     },
     "icon": {
       "icon": "diamond",
       "label": "Icon",
-      "floatingPaletteLabel": "Icon",
       "group": {
         "properties.icon-size": {
           "icon": "diamond",
-          "label": "Icon size",
-          "floatingPaletteLabel": "Icon Size"
+          "label": "Icon size"
         },
         "properties.icon-text-gap": {
           "icon": "split-horizontal",
-          "label": "Icon-text gap",
-          "floatingPaletteLabel": "Icon-Text Gap"
+          "label": "Icon-text gap"
         }
       }
     },

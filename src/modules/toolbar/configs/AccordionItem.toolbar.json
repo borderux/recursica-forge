@@ -1,12 +1,12 @@
 {
   "variants": {},
   "properties": {
-    "item": {
-      "icon": "paint-bucket",
-      "label": "Container",
+    "border": {
+      "icon": "rectangle",
+      "label": "Border",
       "group": {
         "properties.border-size": {
-          "label": "Border size",
+          "label": "Size",
           "range": [
             0,
             20
@@ -15,10 +15,22 @@
           "propertyType": "slider"
         },
         "properties.colors.border-color": {
-          "label": "Border color"
+          "label": "Color"
         },
         "properties.border-radius": {
-          "label": "Border radius"
+          "label": "Corner radius"
+        }
+      }
+    },
+    "spacing": {
+      "icon": "arrows-out",
+      "label": "Spacing",
+      "group": {
+        "properties.padding": {
+          "label": "Padding"
+        },
+        "properties.margin": {
+          "label": "Margin"
         }
       }
     },

@@ -21,8 +21,7 @@
       "group": {
         "properties.colors.border-color": {
           "icon": "paint-brush-broad",
-          "label": "Border color",
-          "floatingPaletteLabel": "Border Color"
+          "label": "Border color"
         },
         "properties.border-size": {
           "icon": "rows",
@@ -62,8 +61,7 @@
         },
         "properties.row-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Row divider color",
-          "floatingPaletteLabel": "Row Divider Color"
+          "label": "Row divider color"
         },
         "properties.column-divider-size": {
           "icon": "rows",
@@ -77,8 +75,7 @@
         },
         "properties.column-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Column divider color",
-          "floatingPaletteLabel": "Column Divider Color"
+          "label": "Column divider color"
         }
       }
     },

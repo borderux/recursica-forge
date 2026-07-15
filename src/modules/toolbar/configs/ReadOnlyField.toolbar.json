@@ -13,12 +13,10 @@
     "colors": {
       "icon": "paint-bucket",
       "label": "Colors",
-      "floatingPaletteLabel": "Colors",
       "group": {
         "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Text color",
-          "floatingPaletteLabel": "Text Color"
+          "label": "Text color"
         }
       }
     },

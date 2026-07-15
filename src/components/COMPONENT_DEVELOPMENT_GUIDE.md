@@ -1432,10 +1432,7 @@ Each component needs a toolbar configuration file that defines:
    - Examples: `"Background"`, `"Horizontal padding"`, `"Icon size"`, `"Corner radius"`, `"Text color"`
    - ❌ Avoid: `"Horizontal Padding"`, `"Icon Size"`, `"Corner Radius"`, `"Text Color"`
 
-3. **`floatingPaletteLabel`** (required): The title shown in the floating palette when editing
-   - Should be descriptive (e.g., `"Background Color"`, `"Border Settings"`)
-
-4. **`groupedProps`** (optional): Array of prop names that are grouped under this icon
+3. **`groupedProps`** (optional): Array of prop names that are grouped under this icon
    - Used for props like "border" that combine multiple properties
    - Example: `"border"` prop with `groupedProps: ["border-size", "border-radius", "border-color"]`
 
@@ -1487,13 +1484,11 @@ The prop names in the config file should match the keys in `recursica_ui-kit.jso
   "props": {
     "horizontal-padding": {
       "icon": "arrows-left-right",
-      "label": "Horizontal padding",
-      "floatingPaletteLabel": "Horizontal Padding"
+      "label": "Horizontal padding"
     },
     "border-radius": {
       "icon": "corners-out",
-      "label": "Corner radius",
-      "floatingPaletteLabel": "Border Radius"
+      "label": "Corner radius"
     }
   }
 }
@@ -1506,24 +1501,20 @@ The prop names in the config file should match the keys in `recursica_ui-kit.jso
   "props": {
     "background-color": {
       "icon": "paint-bucket",
-      "label": "Background",
-      "floatingPaletteLabel": "Background Color"
+      "label": "Background"
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text",
-      "floatingPaletteLabel": "Text Color"
+      "label": "Text"
     },
     "border": {
       "icon": "frame-corners",
       "label": "Border",
-      "floatingPaletteLabel": "Border Settings",
       "groupedProps": ["border-size", "border-radius", "border-color"]
     },
     "horizontal-padding": {
       "icon": "arrows-left-right",
-      "label": "Horizontal Padding",
-      "floatingPaletteLabel": "Horizontal Padding"
+      "label": "Horizontal padding"
     }
   }
 }

@@ -13,32 +13,26 @@
     "colors": {
       "icon": "paint-bucket",
       "label": "Colors",
-      "floatingPaletteLabel": "Colors",
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "floatingPaletteLabel": "Background Color"
+          "label": "Background"
         },
         "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Value color",
-          "floatingPaletteLabel": "Value Color"
+          "label": "Value color"
         },
         "properties.leading-icon": {
           "icon": "diamond",
-          "label": "Leading icon",
-          "floatingPaletteLabel": "Leading Icon Color"
+          "label": "Leading icon"
         },
         "properties.trailing-icon": {
           "icon": "diamond",
-          "label": "Trailing icon",
-          "floatingPaletteLabel": "Trailing Icon Color"
+          "label": "Trailing icon"
         },
         "properties.placeholder-opacity": {
           "icon": "eye",
-          "label": "Placeholder opacity",
-          "floatingPaletteLabel": "Placeholder Opacity"
+          "label": "Placeholder opacity"
         }
       }
     },
@@ -73,12 +67,10 @@
     "padding": {
       "icon": "square-logo",
       "label": "Padding",
-      "floatingPaletteLabel": "Padding",
       "group": {
         "properties.horizontal-padding": {
           "icon": "arrows-left-right",
           "label": "Horizontal padding",
-          "floatingPaletteLabel": "Horizontal Padding",
           "range": [
             0,
             32
@@ -88,7 +80,6 @@
         "properties.vertical-padding": {
           "icon": "arrows-up-down",
           "label": "Vertical padding",
-          "floatingPaletteLabel": "Vertical Padding",
           "range": [
             0,
             32
@@ -109,12 +100,10 @@
     "width": {
       "icon": "arrows-left-right",
       "label": "Width",
-      "floatingPaletteLabel": "Width",
       "group": {
         "properties.min-width": {
           "icon": "arrows-in-line-horizontal",
           "label": "Min width",
-          "floatingPaletteLabel": "Minimum Width",
           "range": [
             0,
             500
@@ -124,7 +113,6 @@
         "properties.max-width": {
           "icon": "arrows-out-line-horizontal",
           "label": "Max width",
-          "floatingPaletteLabel": "Maximum Width",
           "range": [
             100,
             1000
@@ -134,7 +122,6 @@
         "properties.min-height": {
           "icon": "arrows-in-line-vertical",
           "label": "Min height",
-          "floatingPaletteLabel": "Minimum Height",
           "range": [
             20,
             80
@@ -146,12 +133,10 @@
     "icon": {
       "icon": "diamond",
       "label": "Icon",
-      "floatingPaletteLabel": "Icon",
       "group": {
         "properties.icon-size": {
           "icon": "diamond",
           "label": "Icon size",
-          "floatingPaletteLabel": "Icon Size",
           "range": [
             8,
             32
@@ -161,7 +146,6 @@
         "properties.icon-text-gap": {
           "icon": "split-horizontal",
           "label": "Icon-text gap",
-          "floatingPaletteLabel": "Icon-Text Gap",
           "range": [
             0,
             24

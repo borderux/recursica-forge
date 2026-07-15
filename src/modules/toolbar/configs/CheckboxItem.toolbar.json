@@ -82,6 +82,9 @@
       "group": {
         "properties.colors.text-color": {
           "label": "Color"
+        },
+        "properties.colors.disabled-text": {
+          "label": "Disabled text"
         }
       }
     }

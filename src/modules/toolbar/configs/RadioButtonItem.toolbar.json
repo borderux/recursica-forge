@@ -60,6 +60,9 @@
         },
         "properties.colors.icon-color": {
           "label": "Icon"
+        },
+        "properties.opacity": {
+          "label": "Disabled opacity"
         }
       }
     },
@@ -73,6 +76,9 @@
       "group": {
         "properties.colors.text-color": {
           "label": "Color"
+        },
+        "properties.colors.disabled-text": {
+          "label": "Disabled text"
         }
       }
     }

@@ -3,23 +3,19 @@
   "properties": {
     "background": {
       "icon": "paint-bucket",
-      "label": "Background",
-      "floatingPaletteLabel": "Background Color"
+      "label": "Background"
     },
     "border": {
       "icon": "square",
       "label": "Border",
-      "floatingPaletteLabel": "Border",
       "group": {
         "properties.colors.border-color": {
           "icon": "paint-bucket",
-          "label": "Border color",
-          "floatingPaletteLabel": "Border Color"
+          "label": "Border color"
         },
         "properties.border-size": {
           "icon": "arrows-left-right",
           "label": "Border size",
-          "floatingPaletteLabel": "Border Size",
           "range": [
             0,
             20
@@ -29,20 +25,17 @@
         },
         "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Corner radius",
-          "floatingPaletteLabel": "Corner Radius"
+          "label": "Corner radius"
         }
       }
     },
     "size": {
       "icon": "arrows-out",
       "label": "Size",
-      "floatingPaletteLabel": "Size",
       "group": {
         "properties.min-width": {
           "icon": "arrows-in-line-horizontal",
           "label": "Min width",
-          "floatingPaletteLabel": "Minimum Width",
           "range": [
             50,
             500
@@ -52,7 +45,6 @@
         "properties.max-width": {
           "icon": "arrows-out-line-horizontal",
           "label": "Max width",
-          "floatingPaletteLabel": "Maximum Width",
           "range": [
             200,
             1000
@@ -62,7 +54,6 @@
         "properties.max-height": {
           "icon": "arrows-out-line-vertical",
           "label": "Max height",
-          "floatingPaletteLabel": "Maximum Height",
           "propertyType": "slider",
           "range": [
             200,
@@ -75,29 +66,24 @@
     "padding": {
       "icon": "square-logo",
       "label": "Padding",
-      "floatingPaletteLabel": "Padding",
       "group": {
         "properties.padding": {
           "icon": "square-logo",
-          "label": "Padding",
-          "floatingPaletteLabel": "Padding"
+          "label": "Padding"
         },
         "properties.item-gap": {
           "icon": "split-horizontal",
-          "label": "Item gap",
-          "floatingPaletteLabel": "Item Gap"
+          "label": "Item gap"
         }
       }
     },
     "divider": {
       "icon": "minus",
       "label": "Divider",
-      "floatingPaletteLabel": "Divider",
       "group": {
         "properties.divider-color": {
           "icon": "paint-bucket",
-          "label": "Divider color",
-          "floatingPaletteLabel": "Divider Color"
+          "label": "Divider color"
         },
         "properties.divider-height": {
           "icon": "minus",
@@ -111,15 +97,13 @@
         },
         "properties.divider-opacity": {
           "icon": "eye",
-          "label": "Divider opacity",
-          "floatingPaletteLabel": "Divider Opacity"
+          "label": "Divider opacity"
         }
       }
     },
     "elevation": {
       "icon": "copy-simple",
-      "label": "Elevation",
-      "floatingPaletteLabel": "Elevation"
+      "label": "Elevation"
     }
   }
 }

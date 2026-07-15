@@ -6,12 +6,10 @@
       "label": "Spacing",
       "group": {
         "properties.padding-horizontal": {
-          "label": "Padding horizontal",
-          "floatingPaletteLabel": "Horizontal Padding"
+          "label": "Padding horizontal"
         },
         "properties.padding-vertical": {
-          "label": "Padding vertical",
-          "floatingPaletteLabel": "Vertical Padding"
+          "label": "Padding vertical"
         }
       }
     },
@@ -21,7 +19,6 @@
       "group": {
         "properties.max-width": {
           "label": "Max width",
-          "floatingPaletteLabel": "Max Width",
           "range": [
             40,
             1000

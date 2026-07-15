@@ -6,16 +6,13 @@
       "label": "Spacing",
       "group": {
         "properties.padding-horizontal": {
-          "label": "Padding horizontal",
-          "floatingPaletteLabel": "Horizontal Padding"
+          "label": "Padding horizontal"
         },
         "properties.padding-vertical": {
-          "label": "Padding vertical",
-          "floatingPaletteLabel": "Vertical Padding"
+          "label": "Padding vertical"
         },
         "properties.vertical-margin": {
-          "label": "Vertical margin",
-          "floatingPaletteLabel": "Vertical Margin"
+          "label": "Vertical margin"
         },
         "properties.label-sort-gap": {
           "icon": "arrows-left-right",
@@ -61,8 +58,7 @@
         },
         "properties.horizontal-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Horizontal divider color",
-          "floatingPaletteLabel": "Horizontal Divider Color"
+          "label": "Horizontal divider color"
         },
         "properties.vertical-divider-size": {
           "icon": "columns",
@@ -76,8 +72,7 @@
         },
         "properties.vertical-divider-color": {
           "icon": "paint-brush-broad",
-          "label": "Vertical divider color",
-          "floatingPaletteLabel": "Vertical Divider Color"
+          "label": "Vertical divider color"
         }
       }
     },
@@ -101,12 +96,10 @@
       "label": "Sorted Colors",
       "group": {
         "properties.colors.sorted-cell-color": {
-          "label": "Sorted Background",
-          "floatingPaletteLabel": "Sorted Background"
+          "label": "Sorted Background"
         },
         "properties.colors.sorted-text-color": {
-          "label": "Sorted Text",
-          "floatingPaletteLabel": "Sorted Text"
+          "label": "Sorted Text"
         }
       }
     },
@@ -115,12 +108,10 @@
       "label": "Unsorted Colors",
       "group": {
         "properties.colors.unsorted-cell-color": {
-          "label": "Unsorted Background",
-          "floatingPaletteLabel": "Unsorted Background"
+          "label": "Unsorted Background"
         },
         "properties.colors.unsorted-text-color": {
-          "label": "Unsorted Text",
-          "floatingPaletteLabel": "Unsorted Text"
+          "label": "Unsorted Text"
         }
       }
     },

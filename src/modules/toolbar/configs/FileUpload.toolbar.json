@@ -13,22 +13,18 @@
     "colors": {
       "icon": "paint-bucket",
       "label": "Colors",
-      "floatingPaletteLabel": "Colors",
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "floatingPaletteLabel": "Background Color"
+          "label": "Background"
         },
         "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Instruction text color",
-          "floatingPaletteLabel": "Instruction Text Color"
+          "label": "Instruction text color"
         },
         "properties.upload-icon": {
           "icon": "arrow-up-tray",
-          "label": "Upload icon color",
-          "floatingPaletteLabel": "Upload Icon Color"
+          "label": "Upload icon color"
         }
       }
     },
@@ -84,8 +80,7 @@
         },
         "properties.colors.border-color": {
           "icon": "paint-bucket",
-          "label": "Border color",
-          "floatingPaletteLabel": "Border Color"
+          "label": "Border color"
         },
         "properties.border-size": {
           "icon": "arrows-left-right",

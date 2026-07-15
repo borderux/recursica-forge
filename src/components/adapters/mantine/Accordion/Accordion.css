@@ -5,7 +5,8 @@
   background: var(--accordion-bg) !important;
   border: var(--accordion-border-size, 1px) solid var(--accordion-border) !important;
   border-radius: var(--accordion-border-radius) !important;
-  overflow: hidden !important;
+  /* visible so AccordionContent elevation shadows aren't clipped by the container */
+  overflow: visible !important;
   display: flex !important;
   flex-direction: column !important;
   gap: var(--accordion-item-gap) !important;
@@ -30,15 +31,16 @@
 
 /* Item styles */
 .recursica-accordion.mantine-accordion .mantine-Accordion-item {
-  padding: 0 !important;
-  background: var(--accordion-item-header-bg-collapsed) !important;
+  padding: var(--accordion-item-padding, 0) !important;
+  margin: var(--accordion-item-margin, 0) !important;
+  background: var(--acc-src-bg-base-collapsed) !important;
   border-radius: var(--accordion-item-border-radius) !important;
   border: var(--accordion-item-border-size, 0) solid var(--accordion-item-border-color, transparent) !important;
 }
 
 /* Apply expanded background when accordion item is open */
 .recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] {
-  background: var(--accordion-item-header-bg-expanded) !important;
+  background: var(--acc-src-bg-base-expanded) !important;
 }
 
 /* Divider between items - rendered as a line centered in the gap between items */
@@ -61,8 +63,12 @@
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-control {
   padding: var(--accordion-item-header-padding-vertical) var(--accordion-item-header-padding-horizontal) !important;
+  /* base (collapsed) header colours; --accordion-header-icon cascades to chevron + leading icon;
+     --acc-header-border feeds the header's own border colour per state */
   background: transparent !important;
-  color: var(--accordion-item-header-text) !important;
+  color: var(--acc-src-text-base-collapsed) !important;
+  --accordion-header-icon: var(--acc-src-icon-base-collapsed);
+  --acc-header-border: var(--acc-src-border-base-collapsed);
   font-family: var(--accordion-item-header-font-family) !important;
   font-size: var(--accordion-item-header-font-size) !important;
   font-weight: var(--accordion-item-header-font-weight) !important;
@@ -73,10 +79,10 @@
   text-transform: var(--accordion-item-header-text-transform) !important;
   gap: var(--accordion-item-icon-gap) !important;
   min-width: 0 !important;
-  border: none !important;
+  border: var(--accordion-header-border-size, 0) solid var(--acc-header-border, transparent) !important;
   outline: none !important;
-  box-shadow: none !important;
-  border-radius: var(--accordion-item-border-radius) !important;
+  box-shadow: var(--accordion-header-box-shadow, none) !important;
+  border-radius: var(--accordion-header-border-radius, 0) !important;
 }
 
 /* Ensure font-weight applies to all nested elements within the control */
@@ -84,24 +90,61 @@
   font-weight: inherit !important;
 }
 
-.recursica-accordion.mantine-accordion .mantine-Accordion-control:hover {
-  /* Hover state: apply overlay with hover opacity on top of base background */
-  position: relative;
+/* Expanded (open) base colours */
+.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] .mantine-Accordion-control {
+  color: var(--acc-src-text-base-expanded) !important;
+  --accordion-header-icon: var(--acc-src-icon-base-expanded);
+  --acc-header-border: var(--acc-src-border-base-expanded);
 }
 
-.recursica-accordion.mantine-accordion .mantine-Accordion-control:hover::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-color: var(--accordion-item-hover-color, #000000);
-  opacity: var(--accordion-item-hover-opacity, 0.08);
-  border-radius: var(--accordion-item-border-radius, 4px);
-  pointer-events: none;
+/* Hover state (per appearance) */
+.recursica-accordion.mantine-accordion .mantine-Accordion-control:hover {
+  color: var(--acc-src-text-hover-collapsed) !important;
+  background: var(--acc-src-bg-hover-collapsed) !important;
+  --accordion-header-icon: var(--acc-src-icon-hover-collapsed);
+  --acc-header-border: var(--acc-src-border-hover-collapsed);
+}
+.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] .mantine-Accordion-control:hover {
+  color: var(--acc-src-text-hover-expanded) !important;
+  background: var(--acc-src-bg-hover-expanded) !important;
+  --accordion-header-icon: var(--acc-src-icon-hover-expanded);
+  --acc-header-border: var(--acc-src-border-hover-expanded);
+}
+
+/* Focus state (per appearance) */
+.recursica-accordion.mantine-accordion .mantine-Accordion-control:focus-visible {
+  color: var(--acc-src-text-focus-collapsed) !important;
+  background: var(--acc-src-bg-focus-collapsed) !important;
+  --accordion-header-icon: var(--acc-src-icon-focus-collapsed);
+  --acc-header-border: var(--acc-src-border-focus-collapsed);
+}
+.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] .mantine-Accordion-control:focus-visible {
+  color: var(--acc-src-text-focus-expanded) !important;
+  background: var(--acc-src-bg-focus-expanded) !important;
+  --accordion-header-icon: var(--acc-src-icon-focus-expanded);
+  --acc-header-border: var(--acc-src-border-focus-expanded);
+}
+
+/* Disabled state (per appearance) */
+.recursica-accordion.mantine-accordion .mantine-Accordion-control:disabled,
+.recursica-accordion.mantine-accordion .mantine-Accordion-control[data-disabled] {
+  color: var(--acc-src-text-disabled-collapsed) !important;
+  background: var(--acc-src-bg-disabled-collapsed) !important;
+  --accordion-header-icon: var(--acc-src-icon-disabled-collapsed);
+  --acc-header-border: var(--acc-src-border-disabled-collapsed);
+  opacity: var(--accordion-item-header-disabled-opacity, 1) !important;
+}
+.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] .mantine-Accordion-control:disabled,
+.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] .mantine-Accordion-control[data-disabled] {
+  color: var(--acc-src-text-disabled-expanded) !important;
+  background: var(--acc-src-bg-disabled-expanded) !important;
+  --accordion-header-icon: var(--acc-src-icon-disabled-expanded);
+  --acc-header-border: var(--acc-src-border-disabled-expanded);
 }
 
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-label {
-  color: var(--accordion-item-header-text) !important;
+  color: inherit !important;
   overflow-x: hidden !important;
   overflow-y: visible !important;
   text-overflow: ellipsis !important;
@@ -111,7 +154,7 @@
 }
 
 .recursica-accordion.mantine-accordion .mantine-Accordion-chevron {
-  color: var(--accordion-item-icon-color) !important;
+  color: var(--accordion-header-icon) !important;
   width: var(--accordion-item-icon-right-size) !important;
   height: var(--accordion-item-icon-right-size) !important;
   display: inline-flex !important;

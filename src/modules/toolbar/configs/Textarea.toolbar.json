@@ -13,22 +13,18 @@
     "colors": {
       "icon": "paint-bucket",
       "label": "Colors",
-      "floatingPaletteLabel": "Colors",
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
-          "label": "Background",
-          "floatingPaletteLabel": "Background Color"
+          "label": "Background"
         },
         "properties.colors.text-color": {
           "icon": "text-aa",
-          "label": "Value color",
-          "floatingPaletteLabel": "Value Color"
+          "label": "Value color"
         },
         "properties.placeholder-opacity": {
           "icon": "eye",
-          "label": "Placeholder opacity",
-          "floatingPaletteLabel": "Placeholder Opacity"
+          "label": "Placeholder opacity"
         }
       }
     },
@@ -63,17 +59,14 @@
     "padding": {
       "icon": "square-logo",
       "label": "Padding",
-      "floatingPaletteLabel": "Padding",
       "group": {
         "properties.horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding",
-          "floatingPaletteLabel": "Horizontal Padding"
+          "label": "Horizontal padding"
         },
         "properties.vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding",
-          "floatingPaletteLabel": "Vertical Padding"
+          "label": "Vertical padding"
         }
       }
     },
@@ -84,12 +77,10 @@
     "size": {
       "icon": "arrows-left-right",
       "label": "Size",
-      "floatingPaletteLabel": "Size",
       "group": {
         "properties.rows": {
           "icon": "rows",
           "label": "Rows",
-          "floatingPaletteLabel": "Rows",
           "propertyType": "slider",
           "range": [
             2,
@@ -99,13 +90,11 @@
         },
         "properties.min-width": {
           "icon": "arrows-in-line-horizontal",
-          "label": "Min width",
-          "floatingPaletteLabel": "Minimum Width"
+          "label": "Min width"
         },
         "properties.max-width": {
           "icon": "arrows-out-line-horizontal",
           "label": "Max width",
-          "floatingPaletteLabel": "Maximum Width",
           "propertyType": "slider",
           "range": [
             400,

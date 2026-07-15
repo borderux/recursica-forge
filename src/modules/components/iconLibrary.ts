@@ -112,8 +112,10 @@ import {
   Prohibit,
   Queue,
   RadioButton,
+  Rectangle,
   Resize,
   Rows,
+  Ruler,
   Scales,
   Shield,
   Shuffle,
@@ -460,6 +462,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'opacity': Sparkle,
   'asterisk': Asterisk,
   'toggle-right': ToggleRight,
+  'ruler': Ruler,
+  'rectangle': Rectangle,
 }
 
 /**
