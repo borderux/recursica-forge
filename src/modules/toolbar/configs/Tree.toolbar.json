@@ -1,29 +1,29 @@
 {
-  "variants": {},
+  "variants": {
+    "selection-states": {
+      "icon": "check-square",
+      "label": "Selection"
+    }
+  },
   "properties": {
     "spacing": {
-      "icon": "arrows-pointing-out",
+      "icon": "arrows-out",
       "label": "Spacing",
       "group": {
         "properties.indent": {
-          "label": "Indent",
-          "floatingPaletteLabel": "Indent"
+          "label": "Indent"
         },
         "properties.item-gap": {
-          "label": "Item gap",
-          "floatingPaletteLabel": "Item Gap"
-        },
-        "properties.vertical-padding": {
-          "label": "Vertical padding",
-          "floatingPaletteLabel": "Vertical Padding"
-        },
-        "properties.horizontal-padding": {
-          "label": "Horizontal padding",
-          "floatingPaletteLabel": "Horizontal Padding"
+          "label": "Item gap"
         },
         "properties.button-node-gap": {
-          "label": "Button-node gap",
-          "floatingPaletteLabel": "Button-node Gap"
+          "label": "Button/node gap"
+        },
+        "properties.vertical-padding": {
+          "label": "Vertical padding"
+        },
+        "properties.horizontal-padding": {
+          "label": "Horizontal padding"
         }
       }
     },
@@ -32,150 +32,40 @@
       "label": "Dimensions",
       "group": {
         "properties.max-width": {
-          "label": "Max width",
-          "floatingPaletteLabel": "Maximum Width",
-          "range": [
-            100,
-            2000
-          ],
-          "step": 1
+          "label": "Max width"
         },
         "properties.border-size": {
           "label": "Border size",
-          "floatingPaletteLabel": "Border Size",
           "range": [
             0,
-            10
+            20
           ],
-          "step": 1
+          "step": 1,
+          "propertyType": "slider"
         },
         "properties.border-radius": {
-          "label": "Border radius",
-          "floatingPaletteLabel": "Border Radius"
+          "label": "Border radius"
         }
       }
     },
-    "selected-colors": {
-      "icon": "paint-bucket",
-      "label": "Selected colors",
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
       "group": {
-        "properties.selected-background": {
-          "label": "Background",
-          "floatingPaletteLabel": "Background"
+        "properties.colors.background-color": {
+          "label": "Background"
         },
-        "properties.selected-text": {
-          "label": "Text",
-          "floatingPaletteLabel": "Text"
+        "properties.colors.border-color": {
+          "label": "Border"
         },
-        "properties.selected-border-color": {
-          "label": "Border",
-          "floatingPaletteLabel": "Border"
+        "properties.colors.text-color": {
+          "label": "Text"
         }
       }
     },
-    "unselected-colors": {
-      "icon": "paint-bucket",
-      "label": "Unselected colors",
-      "group": {
-        "properties.unselected-text": {
-          "label": "Text",
-          "floatingPaletteLabel": "Text"
-        }
-      }
-    },
-    "hover-colors": {
-      "icon": "paint-bucket",
-      "label": "Hover colors",
-      "group": {
-        "properties.hover-background": {
-          "label": "Background",
-          "floatingPaletteLabel": "Background"
-        },
-        "properties.hover-text": {
-          "label": "Text",
-          "floatingPaletteLabel": "Text"
-        },
-        "properties.hover-border-color": {
-          "label": "Border",
-          "floatingPaletteLabel": "Border"
-        }
-      }
-    },
-    "selected-text": {
+    "text": {
       "icon": "text-aa",
-      "label": "Selected Text",
-      "group": {
-        "properties.font-family": {
-          "icon": "text-aa",
-          "label": "Font family"
-        },
-        "properties.font-size": {
-          "icon": "text-aa",
-          "label": "Font size"
-        },
-        "properties.font-weight": {
-          "icon": "text-aa",
-          "label": "Font weight"
-        },
-        "properties.letter-spacing": {
-          "icon": "text-aa",
-          "label": "Letter spacing"
-        },
-        "properties.line-height": {
-          "icon": "text-aa",
-          "label": "Line height"
-        },
-        "properties.text-decoration": {
-          "icon": "text-aa",
-          "label": "Text decoration"
-        },
-        "properties.text-transform": {
-          "icon": "text-aa",
-          "label": "Text transform"
-        },
-        "properties.font-style": {
-          "icon": "text-aa",
-          "label": "Font style"
-        }
-      }
-    },
-    "unselected-text": {
-      "icon": "text-aa",
-      "label": "Unselected Text",
-      "group": {
-        "properties.font-family": {
-          "icon": "text-aa",
-          "label": "Font family"
-        },
-        "properties.font-size": {
-          "icon": "text-aa",
-          "label": "Font size"
-        },
-        "properties.font-weight": {
-          "icon": "text-aa",
-          "label": "Font weight"
-        },
-        "properties.letter-spacing": {
-          "icon": "text-aa",
-          "label": "Letter spacing"
-        },
-        "properties.line-height": {
-          "icon": "text-aa",
-          "label": "Line height"
-        },
-        "properties.text-decoration": {
-          "icon": "text-aa",
-          "label": "Text decoration"
-        },
-        "properties.text-transform": {
-          "icon": "text-aa",
-          "label": "Text transform"
-        },
-        "properties.font-style": {
-          "icon": "text-aa",
-          "label": "Font style"
-        }
-      }
+      "label": "Text style"
     }
   }
 }

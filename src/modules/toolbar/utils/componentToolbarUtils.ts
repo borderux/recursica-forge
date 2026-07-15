@@ -41,6 +41,7 @@ export interface ComponentStructure {
  * e.g., toolbar uses "style" but UIKit paths use "styles"
  */
 export const VARIANT_PROP_TO_CATEGORY: Record<string, string> = {
+  'selection-states': 'selection-states',
   'style': 'styles',
   'size': 'sizes',
   'layout': 'layouts',
@@ -134,7 +135,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
 
       // Check if this key is a category container (styles, sizes, layouts, orientation, fill-width, types, states) when traversing nested variants
       // This handles cases like variants.layouts.stacked.variants.sizes where we traverse directly into the nested variants object
-      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width' || key === 'types' || key === 'states' || key === 'content') &&
+      const isCategoryContainer = (key === 'styles' || key === 'sizes' || key === 'layouts' || key === 'orientation' || key === 'fill-width' || key === 'types' || key === 'states' || key === 'content' || key === 'selection-states') &&
         typeof value === 'object' &&
         value !== null &&
         !('$value' in value) &&
@@ -190,7 +191,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                     : categoryKey === 'states' ? 'states'
                       : categoryKey === 'content' ? 'content'
                         : categoryKey
-        const allCategoryKeys = ['styles', 'sizes', 'layouts', 'orientation', 'fill-width', 'types', 'states', 'content']
+        const allCategoryKeys = ['styles', 'sizes', 'layouts', 'orientation', 'fill-width', 'types', 'states', 'content', 'selection-states']
         Object.keys(categoryObj).filter(k => !k.startsWith('$')).forEach(variantKey => {
           const variantObj = (categoryObj as any)[variantKey]
           if (!variantObj || typeof variantObj !== 'object') return
@@ -218,7 +219,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // Check if this variants object contains category containers (styles, sizes, layouts, types, states)
         // NEW STRUCTURE: variants.styles.solid or variants.sizes.default or variants.layouts.stacked-left or variants.types.help or variants.states.default
         // Also handles nested: variants.layouts.side-by-side.variants.sizes.default
-        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states' || k === 'orientation' || k === 'fill-width' || k === 'content'))
+        const categoryKeys = Object.keys(value).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'types' || k === 'states' || k === 'orientation' || k === 'fill-width' || k === 'content' || k === 'selection-states'))
 
         if (categoryKeys.length > 0) {
           // NEW STRUCTURE: variants.styles, variants.sizes, and variants.layouts are category containers
@@ -294,7 +295,7 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
                     const nestedVariantsObj = variantObj.variants
 
                     // Check if nested variants contain category containers (styles, sizes, layouts, orientation, fill-width, types, states, content)
-                    const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'orientation' || k === 'fill-width' || k === 'types' || k === 'states' || k === 'content'))
+                    const nestedCategoryKeys = Object.keys(nestedVariantsObj).filter(k => !k.startsWith('$') && (k === 'styles' || k === 'sizes' || k === 'layouts' || k === 'orientation' || k === 'fill-width' || k === 'types' || k === 'states' || k === 'content' || k === 'selection-states'))
 
                     if (nestedCategoryKeys.length > 0) {
                       // Nested variants with category containers: variants.layouts.side-by-side.variants.sizes
@@ -469,14 +470,18 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
               : 'light'
             const cssVar = toCssVarName(fullPath.join('.'), mode)
 
+            // Variant-specific iff "variants" appears in the path (same rule as regular props);
+            // a text group under variants.sizes.<size> is size-specific, etc.
+            const textIsVariantSpecific = currentPath.includes('variants')
+
             props.push({
               name: key,
               category: 'size', // Text properties are component-level, use 'size' category
               type: 'text-group', // Special type to identify text property groups
               cssVar, // This will be the base CSS var path, individual properties will have their own vars
               path: currentPath,
-              isVariantSpecific: false,
-              variantProp: undefined,
+              isVariantSpecific: textIsVariantSpecific,
+              variantProp: textIsVariantSpecific ? variantProp : undefined,
             })
           }
         }
@@ -575,6 +580,23 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         if (!exists) {
           props.push({ ...baseProp, sourceComponent: 'switch' })
         }
+      }
+    }
+  }
+
+  // `-item` components inherit the base component's variant AXES too (e.g. checkbox's `selection-states`),
+  // so the selection dropdown + its nested interaction states surface on the item toolbar.
+  const ITEM_BASE: Record<string, string> = {
+    'checkbox-item': 'checkbox',
+    'radio-button-item': 'radio-button',
+    'switch-item': 'switch',
+  }
+  const baseKey = ITEM_BASE[componentKey]
+  if (baseKey && components[baseKey]) {
+    const baseStructure = parseComponentStructure(baseKey)
+    for (const bv of baseStructure.variants) {
+      if (bv.propName !== 'states' && !variants.some(v => v.propName === bv.propName)) {
+        variants.push(bv)
       }
     }
   }
@@ -728,7 +750,7 @@ export function getDimensionPropertyType(
       }
 
       // Handle variant paths - if we encounter a variant category, use selected variant
-      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content') {
+      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content' || pathPart === 'selection-states') {
         const variantKey = pathPart === 'styles' ? 'style' :
           pathPart === 'sizes' ? 'size' :
             pathPart === 'layouts' ? 'layout' :
@@ -817,7 +839,7 @@ export function getDimensionCategoryFromValue(
         return null
       }
 
-      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content') {
+      if (pathPart === 'styles' || pathPart === 'sizes' || pathPart === 'layouts' || pathPart === 'states' || pathPart === 'types' || pathPart === 'orientation' || pathPart === 'content' || pathPart === 'selection-states') {
         const variantKey = pathPart === 'styles' ? 'style' :
           pathPart === 'sizes' ? 'size' :
             pathPart === 'layouts' ? 'layout' :

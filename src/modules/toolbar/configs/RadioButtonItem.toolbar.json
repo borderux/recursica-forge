@@ -1,5 +1,10 @@
 {
-  "variants": {},
+  "variants": {
+    "selection-states": {
+      "icon": "circle",
+      "label": "Selection"
+    }
+  },
   "properties": {
     "radio-button": {
       "icon": "circle",
@@ -26,6 +31,9 @@
           ],
           "step": 1
         },
+        "properties.icon-size": {
+          "label": "Icon size"
+        },
         "properties.label-gap": {
           "label": "Value radio button gap"
         },
@@ -40,76 +48,29 @@
         }
       }
     },
-    "selected": {
+    "colors": {
       "icon": "palette",
-      "label": "Selected",
+      "label": "Colors",
       "group": {
-        "properties.background-selected": {
+        "properties.colors.background-color": {
           "label": "Background"
         },
-        "properties.border-selected": {
+        "properties.colors.border-color": {
           "label": "Border"
-        },
-        "properties.icon-size": {
-          "label": "Icon size"
         },
         "properties.colors.icon-color": {
-          "label": "Icon color"
-        }
-      }
-    },
-    "unselected": {
-      "icon": "circle-dashed",
-      "label": "Unselected",
-      "group": {
-        "properties.background-unselected": {
-          "label": "Background"
-        },
-        "properties.border-unselected": {
-          "label": "Border"
-        }
-      }
-    },
-    "disabled": {
-      "icon": "prohibit",
-      "label": "Disabled",
-      "group": {
-        "properties.disabled-background": {
-          "label": "Background"
-        },
-        "properties.disabled-border": {
-          "label": "Border"
-        },
-        "properties.disabled-icon": {
           "label": "Icon"
-        },
-        "properties.disabled-text": {
-          "label": "Text"
-        },
-        "properties.opacity": {
-          "label": "Opacity"
         }
       }
     },
     "text": {
       "icon": "text-aa",
-      "label": "Text style",
+      "label": "Text style"
+    },
+    "text-color": {
+      "icon": "palette",
+      "label": "Text color",
       "group": {
-        "properties.font-family": {
-          "label": "Font"
-        },
-        "properties.font-weight": {
-          "label": "Weight"
-        },
-        "properties.font-size": {
-          "label": "Size"
-        },
-        "properties.line-height": {
-          "label": "Line height"
-        },
-        "properties.letter-spacing": {
-          "label": "Letter spacing"
-        },
         "properties.colors.text-color": {
           "label": "Color"
         }

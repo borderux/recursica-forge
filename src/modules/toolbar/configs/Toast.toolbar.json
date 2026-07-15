@@ -47,7 +47,13 @@
       "label": "Border",
       "group": {
         "properties.border-size": {
-          "label": "Size"
+          "label": "Size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         },
         "properties.colors.border-color": {
           "label": "Color"

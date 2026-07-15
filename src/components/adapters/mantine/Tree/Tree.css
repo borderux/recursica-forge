@@ -36,14 +36,25 @@
   text-transform: var(--tree-unselected-text-transform, none);
   font-style: var(--tree-unselected-font-style, normal);
   color: var(--tree-unselected-text, var(--recursica_brand_layers_layer-0_text_color));
-  border: var(--tree-border-size, 0px) solid transparent;
+  background-color: var(--tree-unselected-bg, transparent);
+  border: var(--tree-border-size, 0px) solid var(--tree-unselected-border-color, transparent);
 }
 
-.recursica-tree-label:hover {
-  background-color: var(--tree-hover-bg);
-  color: var(--tree-hover-text, var(--tree-unselected-text));
+/* Hover (real :hover or forced via the toolbar Hover tab) — per selection */
+.recursica-tree-node:not(.selected) .recursica-tree-label:hover,
+.recursica-tree.force-hover .recursica-tree-node:not(.selected) .recursica-tree-label {
+  background-color: var(--tree-unselected-hover-bg);
+  color: var(--tree-unselected-hover-text, var(--tree-unselected-text));
   opacity: var(--recursica_brand_layers_layer-0_text_high-emphasis);
-  border: var(--tree-border-size, 0px) solid var(--tree-hover-border-color, transparent);
+  border: var(--tree-border-size, 0px) solid var(--tree-unselected-hover-border-color, transparent);
+}
+
+.recursica-tree-node.selected .recursica-tree-label:hover,
+.recursica-tree.force-hover .recursica-tree-node.selected .recursica-tree-label {
+  background-color: var(--tree-selected-hover-bg);
+  color: var(--tree-selected-hover-text, var(--tree-selected-text));
+  opacity: var(--recursica_brand_layers_layer-0_text_high-emphasis);
+  border: var(--tree-border-size, 0px) solid var(--tree-selected-hover-border-color, transparent);
 }
 
 .recursica-tree-node.selected .recursica-tree-label {

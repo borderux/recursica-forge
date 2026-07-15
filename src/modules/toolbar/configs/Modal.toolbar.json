@@ -100,7 +100,7 @@
           "propertyType": "slider",
           "range": [
             0,
-            8
+            20
           ],
           "step": 1
         },
@@ -124,7 +124,7 @@
           "icon": "paint-brush-broad",
           "label": "Color"
         },
-        "properties.scroll-divider-thickness": {
+        "properties.scroll-divider-size": {
           "icon": "rows",
           "label": "Height",
           "propertyType": "slider",

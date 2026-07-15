@@ -26,7 +26,13 @@
           "label": "Border color"
         },
         "properties.border-size": {
-          "label": "Border thickness"
+          "label": "Border thickness",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         },
         "properties.border-radius": {
           "label": "Border radius"

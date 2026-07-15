@@ -1,35 +1,32 @@
 import { useState, useEffect } from 'react'
-import { CheckboxItem } from '../../components/adapters/CheckboxItem'
+import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
 
-interface CheckboxItemPreviewProps {
+interface RadioButtonItemPreviewProps {
     selectedVariants: Record<string, string>
     selectedLayer: string
     activeState?: string
     componentElevation?: string
 }
 
-// The preview mirrors the toolbar's current selection instead of showing every state at once:
-// the "Checked state" selector (selectedVariants.checked) drives checked/indeterminate, and the
-// active interaction-state tab drives disabled. Interaction states the underlying component can't
-// render on demand (hover/focus) simply fall back to the base visual.
-export default function CheckboxItemPreview({
+// Mirrors the toolbar's current selection instead of showing every state at once: the "Selection"
+// selector (selectedVariants.selected) drives selected/unselected, and the active interaction-state
+// tab drives disabled. Interaction states the component can't render on demand (hover/focus) fall
+// back to the base visual.
+export default function RadioButtonItemPreview({
     selectedVariants,
     selectedLayer,
     activeState = 'base',
-}: CheckboxItemPreviewProps) {
+}: RadioButtonItemPreviewProps) {
     const [updateKey, setUpdateKey] = useState(0)
 
-    const checkedState = selectedVariants['selection-states'] || 'checked'
-    const isIndeterminate = checkedState === 'indeterminate'
+    const selectionState = selectedVariants['selection-states'] || 'selected'
     const isDisabled = activeState === 'disabled'
 
-    // Local checked mirror so the box stays interactive, re-synced whenever the selector changes.
-    const [checked, setChecked] = useState(checkedState === 'checked')
+    const [selected, setSelected] = useState(selectionState === 'selected')
     useEffect(() => {
-        setChecked(checkedState === 'checked')
-    }, [checkedState])
+        setSelected(selectionState === 'selected')
+    }, [selectionState])
 
-    // Listen for CSS variable updates to force re-render
     useEffect(() => {
         const handleCssVarUpdate = () => {
             setUpdateKey(prev => prev + 1)
@@ -62,12 +59,11 @@ export default function CheckboxItemPreview({
             width: '100%',
             maxWidth: '400px',
         }} data-update-key={updateKey}>
-            <CheckboxItem
+            <RadioButtonItem
                 label="A curious goblin crept through the moonlit forest, muttering about a treasure map"
-                checked={isIndeterminate ? false : checked}
-                indeterminate={isIndeterminate}
+                selected={selected}
                 disabled={isDisabled}
-                onChange={setChecked}
+                onChange={setSelected}
                 layer={selectedLayer as any}
             />
         </div>

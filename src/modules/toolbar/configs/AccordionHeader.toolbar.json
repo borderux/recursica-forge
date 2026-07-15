@@ -27,15 +27,15 @@
         "properties.icon-gap": {
           "label": "Icon gap"
         },
-        "properties.header-horizontal-padding": {
+        "properties.horizontal-padding": {
           "label": "Horizontal padding"
         },
-        "properties.header-vertical-padding": {
+        "properties.vertical-padding": {
           "label": "Vertical padding"
         }
       }
     },
-    "header-text": {
+    "text": {
       "icon": "text-aa",
       "label": "Header text style"
     },
@@ -48,6 +48,24 @@
         },
         "properties.icon-right-size": {
           "label": "Right icon"
+        }
+      }
+    },
+    "opacity": {
+      "icon": "eye",
+      "label": "Disabled opacity",
+      "group": {
+        "properties.opacity": {
+          "label": "Opacity"
+        }
+      }
+    },
+    "hover-text-color": {
+      "icon": "text-aa",
+      "label": "Hover text color",
+      "group": {
+        "properties.color": {
+          "label": "Text"
         }
       }
     }

@@ -3,6 +3,10 @@
     "states": {
       "icon": "diamonds-four",
       "label": "State"
+    },
+    "layout": {
+      "icon": "layout",
+      "label": "Layout"
     }
   },
   "properties": {
@@ -47,9 +51,10 @@
           "label": "Size",
           "range": [
             0,
-            10
+            20
           ],
-          "step": 1
+          "step": 1,
+          "propertyType": "slider"
         },
         "properties.border-radius": {
           "icon": "corners-out",
@@ -162,6 +167,15 @@
             24
           ],
           "step": 1
+        }
+      }
+    },
+    "opacity": {
+      "icon": "eye",
+      "label": "Disabled opacity",
+      "group": {
+        "properties.opacity": {
+          "label": "Opacity"
         }
       }
     }

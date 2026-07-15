@@ -6,7 +6,8 @@
  */
 
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { parseComponentStructure, toSentenceCase, ComponentProp } from './utils/componentToolbarUtils'
+import type { ReactNode, CSSProperties } from 'react'
+import { parseComponentStructure, toSentenceCase, ComponentProp, VARIANT_PROP_TO_CATEGORY, pathMatchesVariant } from './utils/componentToolbarUtils'
 import VariantDropdown from './menu/dropdown/VariantDropdown'
 import VariantSwitch from './menu/dropdown/VariantSwitch'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
@@ -41,6 +42,7 @@ import { Modal } from '../../components/adapters/Modal'
 import { RadioButtonGroup } from '../../components/adapters/RadioButtonGroup'
 import { RadioButtonItem } from '../../components/adapters/RadioButtonItem'
 import { normalizeToolbarKey } from './utils/toolbarPathResolver'
+import { getTypographyStyle } from '../components/typographyStyles'
 import uikitJson from '../../../recursica_ui-kit.json'
 
 export interface ComponentToolbarProps {
@@ -49,6 +51,8 @@ export interface ComponentToolbarProps {
   selectedLayer: string // e.g., "layer-0"
   onVariantChange: (prop: string, variant: string) => void
   onLayerChange: (layer: string) => void
+  /** Notified whenever the active interaction-state tab changes, so the preview can mirror it. */
+  onActiveStateChange?: (state: string) => void
 }
 
 export default function ComponentToolbar({
@@ -57,6 +61,7 @@ export default function ComponentToolbar({
   selectedLayer,
   onVariantChange,
   onLayerChange,
+  onActiveStateChange,
 }: ComponentToolbarProps) {
   const { mode } = useThemeMode()
   const { theme, uikit } = useVars()
@@ -101,7 +106,7 @@ export default function ComponentToolbar({
     return loadToolbarConfig(componentName)
   }, [componentName])
 
-  // Filter variants to show (excluding interaction states)
+  // Filter variants to show (excluding the interaction-states axis, which is handled by the tabs)
   const visibleVariants = useMemo(() => {
     const filtered = liveStructure.variants.filter(
       variant => variant.variants.length >= 1 && variant.propName !== 'states'
@@ -121,23 +126,32 @@ export default function ComponentToolbar({
     return filtered
   }, [liveStructure.variants, toolbarConfig, componentName])
 
-  // Check if current variant combination supports interaction states
-  const hasStates = useMemo(() => {
-    if (!compJson) return false
-    const activeStyle = selectedVariants.style
-    if (activeStyle && compJson.variants?.styles?.[activeStyle]?.variants?.states) {
-      return true
+  // The interaction-state set in effect for the current selection: nested states under the active
+  // value of ANY variant axis (e.g. styles.<style>.variants.states OR selections.<sel>.variants.states),
+  // else the component's top-level variants.states.
+  const activeStatesObj = useMemo(() => {
+    if (!compJson) return null
+    for (const v of liveStructure.variants) {
+      if (v.propName === 'states') continue
+      const cat = VARIANT_PROP_TO_CATEGORY[v.propName] || v.propName
+      const activeVal = selectedVariants[v.propName] || v.variants[0]
+      const nested = compJson.variants?.[cat]?.[activeVal]?.variants?.states
+      if (nested) return nested
     }
-    if (compJson.variants?.states) {
-      return true
-    }
-    return false
-  }, [compJson, selectedVariants.style])
+    return compJson.variants?.states ?? null
+  }, [compJson, selectedVariants, liveStructure.variants])
+
+  const hasStates = !!activeStatesObj
 
   // Reset tab to base if component or state support changes
   useEffect(() => {
     setActiveStateTab('base')
   }, [componentName, hasStates])
+
+  // Mirror the active interaction-state tab up to the parent so the live preview can reflect it.
+  useEffect(() => {
+    onActiveStateChange?.(activeStateTab)
+  }, [activeStateTab, onActiveStateChange])
 
   // List custom variants for this component
   const customVariants = useMemo(() => {
@@ -237,6 +251,21 @@ export default function ComponentToolbar({
     'step-number-text', 'input-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style',
   ]), [])
 
+  // A prop matches the current selection when, for every REAL variant axis whose category appears
+  // in the prop's path (styles/sizes/layouts/orientation/…), the selected value for that axis is the
+  // one present in the path. Synthetic selector keys (checked/selection/validation) aren't path
+  // categories (VARIANT_PROP_TO_CATEGORY has no entry) so they're ignored; `states` is handled by
+  // the active interaction-state tab, not here.
+  const pathMatchesSelection = (path: string[]): boolean => {
+    for (const [axis, value] of Object.entries(selectedVariants)) {
+      if (axis === 'states' || !value) continue
+      const cat = VARIANT_PROP_TO_CATEGORY[axis]
+      if (!cat) continue
+      if (path.includes(cat) && !pathMatchesVariant(path, axis, value)) return false
+    }
+    return true
+  }
+
   // Resolve a toolbar-config key (e.g. "properties.track", "properties.colors.icon-color",
   // "min-max-label") to the REAL parsed component prop, so the control gets the correct
   // type + CSS variable. Fabricating a dummy prop (the previous approach) produced dead
@@ -268,7 +297,7 @@ export default function ComponentToolbar({
       }
       const layerSeg = p.path.find(s => /^layer-\d+$/.test(s))
       if (layerSeg && layerSeg !== selectedLayer) return false
-      if (selectedVariants.style && p.path.includes('styles') && !p.path.includes(selectedVariants.style)) return false
+      if (!pathMatchesSelection(p.path)) return false
       return true
     })
     if (matches.length === 0) return null
@@ -288,6 +317,16 @@ export default function ComponentToolbar({
     return otherMatch || textMatch || colorMatch || matches[0]
   }
 
+  // Every variant value currently in effect. Used to honour `showForVariants`.
+  const selectionValues = useMemo(
+    () => new Set<string>(Object.values(selectedVariants).filter(Boolean)),
+    [selectedVariants]
+  )
+
+  // A config entry with `showForVariants` is only shown when one of those variant values is active.
+  const passesShowFor = (cfg: any): boolean =>
+    !cfg?.showForVariants || cfg.showForVariants.some((v: string) => selectionValues.has(v))
+
   // Expand a config entry into its child controls. Entries WITH a `group` yield one child
   // per group key; entries WITHOUT a group (previously dropped entirely) yield themselves.
   const getEntryChildren = (
@@ -301,12 +340,18 @@ export default function ComponentToolbar({
     return [{ key: groupKey, isGroupChild: false }]
   }
 
-  // A child is state-varying (rendered under the Interaction States tabs) when the component
-  // supports states and the child resolves to a color prop.
+  // A child belongs under the Interaction-State tabs when it's actually overridden by one of the
+  // active states (any prop type — e.g. Tree's hover text style), or it's a color (colors default
+  // to the state section). Root/variant props with no state override stay above the tabs.
   const isStateVarying = (child: { key: string; isGroupChild: boolean }): boolean => {
     if (!hasStates) return false
     const base = resolveConfigProp(child.key, child.isGroupChild, 'base')
-    return base?.category === 'colors' || base?.type === 'color'
+    // Colors always route to the state tabs. A prop that only exists inside a state
+    // (e.g. disabled-only `opacity`, base === null) is state-varying too.
+    if (base && (base.category === 'colors' || base.type === 'color')) return true
+    return activeStatesObj
+      ? Object.keys(activeStatesObj).some(st => !!resolveConfigProp(child.key, child.isGroupChild, st))
+      : false
   }
 
   const renderChild = (
@@ -328,46 +373,66 @@ export default function ComponentToolbar({
     )
   }
 
-  // Get static accordion groups (props that don't vary by interaction state)
-  const staticAccordionItems = useMemo(() => {
-    if (!toolbarConfig?.props) return []
+  // Static accordion groups (props that don't vary by interaction state), split into:
+  //   - base: properties with no variant ancestor (rendered above the variant dropdowns)
+  //   - variant: properties that live under a variant axis (rendered below the variant dropdowns)
+  const staticAccordions = useMemo(() => {
+    const base: any[] = []
+    const variant: any[] = []
+    if (!toolbarConfig?.props) return { base, variant }
 
-    return Object.entries(toolbarConfig.props)
-      .map(([groupKey, groupConfig]) => {
-        const staticChildren = getEntryChildren(groupKey, groupConfig)
-          .filter(child => !isStateVarying(child))
-          .filter(child => resolveConfigProp(child.key, child.isGroupChild, 'base'))
+    for (const [groupKey, groupConfig] of Object.entries(toolbarConfig.props)) {
+      if (!passesShowFor(groupConfig)) continue
 
-        if (staticChildren.length === 0) return null
+      const staticChildren = getEntryChildren(groupKey, groupConfig)
+        .filter(child => passesShowFor(child.isGroupChild ? groupConfig.group?.[child.key] : groupConfig))
+        .filter(child => !isStateVarying(child))
+        .map(child => ({ child, resolved: resolveConfigProp(child.key, child.isGroupChild, 'base') }))
+        .filter((x): x is { child: { key: string; isGroupChild: boolean }; resolved: ComponentProp } => !!x.resolved)
 
-        const Icon = groupConfig.icon ? iconNameToReactComponent(groupConfig.icon) : null
+      if (staticChildren.length === 0) continue
 
-        return {
-          id: groupKey,
-          title: groupConfig.label || toSentenceCase(groupKey),
-          icon: Icon || undefined,
-          content: (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {staticChildren.map(child => renderChild(child, 'base', selectedLayer))}
-            </div>
-          ),
-        }
-      })
-      .filter(Boolean) as any[]
+      const Icon = groupConfig.icon ? iconNameToReactComponent(groupConfig.icon) : null
+
+      const item = {
+        id: groupKey,
+        title: groupConfig.label || toSentenceCase(groupKey),
+        icon: Icon || undefined,
+        content: (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {staticChildren.map(x => renderChild(x.child, 'base', selectedLayer))}
+          </div>
+        ),
+      }
+
+      // A group is "base" only when none of its props are variant-specific (no variant ancestor).
+      const isBaseGroup = staticChildren.every(x => !x.resolved.isVariantSpecific)
+      ;(isBaseGroup ? base : variant).push(item)
+    }
+    return { base, variant }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolbarConfig, selectedLayer, selectedVariants, componentName, hasStates, liveStructure.props])
 
-  // Get state-varying (color) accordion groups for the active interaction state tab
+  // State-driven accordion groups: props overridden by the active interaction-state tab.
   const stateAccordionItems = useMemo(() => {
-    if (!toolbarConfig?.props || !hasStates) return []
+    if (!toolbarConfig?.props) return []
 
     return Object.entries(toolbarConfig.props)
+      .filter(([, groupConfig]) => passesShowFor(groupConfig))
       .map(([groupKey, groupConfig]) => {
-        const stateChildren = getEntryChildren(groupKey, groupConfig)
-          .filter(child => isStateVarying(child))
-          .filter(child => resolveConfigProp(child.key, child.isGroupChild, activeStateTab))
+        let controls: ReactNode[]
 
-        if (stateChildren.length === 0) return null
+        if (hasStates) {
+          const stateChildren = getEntryChildren(groupKey, groupConfig)
+            .filter(child => passesShowFor(child.isGroupChild ? groupConfig.group?.[child.key] : groupConfig))
+            .filter(child => isStateVarying(child))
+            .filter(child => resolveConfigProp(child.key, child.isGroupChild, activeStateTab))
+          controls = stateChildren.map(child => renderChild(child, activeStateTab, `${activeStateTab}-${selectedLayer}`))
+        } else {
+          controls = []
+        }
+
+        if (controls.length === 0) return null
 
         const Icon = groupConfig.icon ? iconNameToReactComponent(groupConfig.icon) : null
 
@@ -377,7 +442,7 @@ export default function ComponentToolbar({
           icon: Icon || undefined,
           content: (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {stateChildren.map(child => renderChild(child, activeStateTab, `${activeStateTab}-${selectedLayer}`))}
+              {controls}
             </div>
           ),
           defaultOpen: false, // Collapsed by default
@@ -391,15 +456,8 @@ export default function ComponentToolbar({
   const stateTabItems = useMemo<Array<{ value: string; label: string; icon: string }>>(() => {
     const items: Array<{ value: string; label: string; icon: string }> = [{ value: 'base', label: 'Base', icon: 'cursor' }]
 
-    // Find what states are defined in the component schema
-    let availableStates: string[] = []
-    if (compJson) {
-      const activeStyle = selectedVariants.style
-      const statesObj = (activeStyle && compJson.variants?.styles?.[activeStyle]?.variants?.states) || compJson.variants?.states
-      if (statesObj) {
-        availableStates = Object.keys(statesObj).map(s => s.toLowerCase())
-      }
-    }
+    // States for the current selection (nested under whichever variant axis is active).
+    let availableStates: string[] = activeStatesObj ? Object.keys(activeStatesObj).map(s => s.toLowerCase()) : []
 
     // If no statesObj is found, default to standard interaction states
     if (availableStates.length === 0) {
@@ -421,7 +479,7 @@ export default function ComponentToolbar({
     })
 
     return items
-  }, [compJson, selectedVariants.style])
+  }, [activeStatesObj])
 
 
   // Detect whether this is a boolean-like variant selector
@@ -440,10 +498,18 @@ export default function ComponentToolbar({
     return booleanPairs.some(([a, b]) => normalized.includes(a) && normalized.includes(b))
   }
 
+  // Section heading (e.g. "Properties", "Variants") shown between toolbar regions.
+  const sectionHeadingStyle: CSSProperties = {
+    ...getTypographyStyle('h4'),
+    padding: 'var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_md) var(--recursica_brand_dimensions_general_sm)',
+    color: `var(${layerText(mode, 0, 'color')})`,
+  }
+  const showVariantHeading = visibleVariants.length > 0 || hasStates
+
   return (
     <div className="component-toolbar-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Layers Segmented Control */}
-      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
+      <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_general_sm)' }}>
             {LayerIcon && <LayerIcon style={{
@@ -471,11 +537,30 @@ export default function ComponentToolbar({
         </div>
       </div>
 
+      {/* Scrollable body: base props (no variant ancestor) → variant dropdowns → synthetic
+          selectors → variant-specific static props → interaction-state tabs → state colors. */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+
+      {/* Base (non-variant) properties — above the variant dropdowns.
+          No container border: the Accordion component draws its own item dividers. */}
+      {staticAccordions.base.length > 0 && (
+        <>
+          <h4 style={sectionHeadingStyle}>Properties</h4>
+          <Accordion items={staticAccordions.base} allowMultiple={true} layer="layer-0" />
+        </>
+      )}
+
+      {showVariantHeading && (
+        <h4 style={sectionHeadingStyle}>Variants</h4>
+      )}
+
       {/* Variants Dropdowns */}
       {visibleVariants.length > 0 && (
-        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
+        <div style={{ padding: 'var(--recursica_brand_dimensions_general_md)', marginTop: 0 }}>
           {visibleVariants.map((variant, index) => {
-            const isBoolean = isBooleanVariant(variant.variants)
+            // The selection axis always renders as a dropdown, even when its two values
+            // (e.g. active/inactive) would otherwise match the boolean-toggle heuristic.
+            const isBoolean = variant.propName !== 'selection-states' && isBooleanVariant(variant.variants)
             return (
               <div
                 key={variant.propName}
@@ -510,24 +595,20 @@ export default function ComponentToolbar({
         </div>
       )}
 
-      {/* Accordion / Tab Scrollable Body */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {/* 1. Static/Base Properties Accordion (Top) */}
-        {staticAccordionItems.length > 0 && (
-          <div style={{ borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})` }}>
-            <Accordion
-              items={staticAccordionItems}
-              allowMultiple={true}
-              layer="layer-0"
-            />
-          </div>
+        {/* Variant-specific static properties — below the variant dropdowns.
+            No container border: the Accordion component draws its own item dividers. */}
+        {staticAccordions.variant.length > 0 && (
+          <Accordion
+            items={staticAccordions.variant}
+            allowMultiple={true}
+            layer="layer-0"
+          />
         )}
 
-        {/* 2. States Segmented Tabs Section (Bottom) */}
+        {/* Interaction-state tabs section */}
         {hasStates && (
           <div style={{ display: 'flex', flexDirection: 'column', marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)' }}>
             <div style={{
-              borderBottom: `1px solid var(${layerProperty(mode, 0, 'border-color')})`,
               background: `var(${layerProperty(mode, 0, 'background-color')})`,
             }}>
               <Tabs
@@ -572,6 +653,16 @@ export default function ComponentToolbar({
               />
             )}
           </div>
+        )}
+
+        {/* Selector-driven role groups for components WITHOUT interaction states (e.g. Timeline
+            bullet's active/inactive): rendered here since there's no tabs section to host them. */}
+        {!hasStates && stateAccordionItems.length > 0 && (
+          <Accordion
+            items={stateAccordionItems}
+            allowMultiple={true}
+            layer="layer-0"
+          />
         )}
       </div>
 

@@ -4,9 +4,10 @@ import { useThemeMode } from '../theme/ThemeModeContext'
 import { iconNameToReactComponent } from './iconUtils'
 
 interface ChipPreviewProps {
-  selectedVariants: Record<string, string> // e.g., { color: "unselected", size: "default" }
+  selectedVariants: Record<string, string> // e.g., { style: "unselected", size: "default" }
   selectedLayer: string // e.g., "layer-0"
   selectedAltLayer: string | null // e.g., "high-contrast" or null
+  activeState?: string // active interaction-state tab (base/hover/focus/disabled)
   componentElevation?: string // e.g., "elevation-0", "elevation-1", etc.
 }
 
@@ -14,12 +15,19 @@ export default function ChipPreview({
   selectedVariants,
   selectedLayer,
   selectedAltLayer,
+  activeState = 'base',
   componentElevation,
 }: ChipPreviewProps) {
   const { mode } = useThemeMode()
 
-  // Use 'style' instead of 'color' to match the new toolbar structure
-  const styleVariant = (selectedVariants.style || 'unselected') as 'unselected' | 'selected' | 'error' | 'error-selected'
+  // Selection comes from the `selection-states` axis; the Error interaction-state tab promotes the
+  // chip to its error/error-selected colour set. Disabled tab dims via the disabled prop.
+  const sel = (selectedVariants['selection-states'] || 'unselected') as 'selected' | 'unselected'
+  const isError = activeState === 'error'
+  const styleVariant = (isError
+    ? (sel === 'selected' ? 'error-selected' : 'error')
+    : sel) as 'unselected' | 'selected' | 'error' | 'error-selected'
+  const isDisabled = activeState === 'disabled'
 
   // Determine the actual layer to use
   const actualLayer = useMemo(() => {
@@ -41,6 +49,7 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
+        disabled={isDisabled}
       >
         Obsidian
       </Chip>
@@ -50,6 +59,7 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
+        disabled={isDisabled}
         deletable
         onDelete={() => { }}
       >
@@ -61,6 +71,7 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
+        disabled={isDisabled}
         icon={ShieldIcon ? <ShieldIcon /> : undefined}
       >
         Dragon Scale
@@ -71,6 +82,7 @@ export default function ChipPreview({
         variant={styleVariant}
         layer={actualLayer}
         elevation={componentElevation}
+        disabled={isDisabled}
         icon={LightningIcon ? <LightningIcon /> : undefined}
         deletable
         onDelete={() => { }}

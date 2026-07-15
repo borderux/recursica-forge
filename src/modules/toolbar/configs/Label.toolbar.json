@@ -75,7 +75,7 @@
         }
       }
     },
-    "label-width": {
+    "properties.width": {
       "icon": "arrows-left-right",
       "label": "Label width",
       "range": [

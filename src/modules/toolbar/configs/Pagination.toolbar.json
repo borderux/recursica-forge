@@ -11,31 +11,6 @@
         }
       }
     },
-    "navigation-controls": {
-      "icon": "arrows-left-right",
-      "label": "Navigation controls",
-      "group": {
-        "properties.navigation-controls-content": {
-          "icon": "text-columns",
-          "label": "Content",
-          "control": "dropdown",
-          "options": [
-            {
-              "label": "Icon only",
-              "value": "icon-only"
-            },
-            {
-              "label": "Label only",
-              "value": "label"
-            },
-            {
-              "label": "Icon + label",
-              "value": "icon-label"
-            }
-          ]
-        }
-      }
-    },
     "item-gap": {
       "icon": "split-horizontal",
       "label": "Item gap"

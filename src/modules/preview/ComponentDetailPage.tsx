@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, lazy, Suspense } from 'react'
+import { useMemo, useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useParams, useLocation } from 'react-router-dom'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useVars } from '../vars/VarsContext'
@@ -9,6 +9,7 @@ const AccordionPreview = lazy(() => import('../components/AccordionPreview'))
 const AccordionItemPreview = lazy(() => import('../components/AccordionItemPreview'))
 const CheckboxItemPreview = lazy(() => import('../components/CheckboxItemPreview'))
 const CheckboxGroupPreview = lazy(() => import('../components/CheckboxGroupPreview'))
+const RadioButtonItemPreview = lazy(() => import('../components/RadioButtonItemPreview'))
 const AvatarPreview = lazy(() => import('../components/AvatarPreview'))
 const ToastPreview = lazy(() => import('../components/ToastPreview'))
 const BadgePreview = lazy(() => import('../components/BadgePreview'))
@@ -46,6 +47,7 @@ const TransferListPreview = lazy(() => import('../components/TransferListPreview
 const TablePreview = lazy(() => import('../components/TablePreview'))
 import { slugToComponentName } from './componentUrlUtils'
 import { iconNameToReactComponent } from '../components/iconUtils'
+import { getTypographyStyle } from '../components/typographyStyles'
 import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from './PreviewPage'
 import ComponentDebugTable from './ComponentDebugTable'
@@ -87,6 +89,10 @@ export default function ComponentDetailPage() {
     const initial: Record<string, string> = {}
     if (componentStructure) {
       componentStructure.variants.forEach(variant => {
+        // The interaction-state axis is driven by the toolbar's state tabs (which default to
+        // "base"), not seeded here — seeding it would surface a stale state (e.g. error) in
+        // previews that read selectedVariants.states while the Base tab is active.
+        if (variant.propName === 'states') return
         if (variant.variants.length > 0) {
           initial[variant.propName] = variant.variants[0]
         }
@@ -95,9 +101,18 @@ export default function ComponentDetailPage() {
     return initial
   }, [componentStructure])
 
+  // Bridges the toolbar's active interaction-state tab to `selectedVariants.states`, which is what
+  // the state-aware previews (date picker, text field, …) read. "base" maps to "default" (no state
+  // override). Stable identity so the toolbar's notify effect doesn't refire every render.
+  const handleActiveStateChange = useCallback((state: string) => {
+    setActiveState(state)
+    setSelectedVariants(prev => ({ ...prev, states: state === 'base' ? 'default' : state }))
+  }, [])
+
   // Toolbar state - alternative layers removed
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>(getInitialVariants)
   const [selectedLayer, setSelectedLayer] = useState<string>('layer-0')
+  const [activeState, setActiveState] = useState<string>('base')
   const [componentElevation, setComponentElevation] = useState<string | undefined>(undefined)
   const [openPropControl, setOpenPropControl] = useState<Set<string>>(new Set())
 
@@ -170,6 +185,27 @@ export default function ComponentDetailPage() {
 
     return parts.join(' / ')
   }, [selectedVariants, selectedLayer, componentStructure])
+
+  // Heading shown above the preview: every selected variant value plus the active interaction
+  // state, joined by a middot (e.g. "Stacked · Base").
+  const variantHeading = useMemo(() => {
+    const parts: string[] = []
+    if (componentStructure) {
+      componentStructure.variants.forEach(variant => {
+        if (variant.propName === 'states') return // interaction state is appended separately
+        if (variant.variants.length > 1) {
+          const value = selectedVariants[variant.propName] || variant.variants[0]
+          parts.push(
+            variant.propName === 'layout' && value === 'side-by-side'
+              ? 'Side By Side'
+              : value.charAt(0).toUpperCase() + value.slice(1)
+          )
+        }
+      })
+    }
+    parts.push(activeState.charAt(0).toUpperCase() + activeState.slice(1))
+    return parts.join(' · ')
+  }, [selectedVariants, componentStructure, activeState])
 
   // Get the layer number for building CSS variable paths
   const layerNum = selectedLayer.replace('layer-', '')
@@ -303,6 +339,16 @@ export default function ComponentDetailPage() {
           borderTopLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
           borderBottomLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         }}>
+          {/* Variant + layer heading above the preview */}
+          <div style={{ marginBottom: 'var(--recursica_brand_dimensions_general_md)', flexShrink: 0 }}>
+            <h2 style={{ ...getTypographyStyle('h2'), color: `var(${layerText(mode, 0, 'color')})` }}>
+              {variantHeading}
+            </h2>
+            <h3 style={{ ...getTypographyStyle('h3'), color: `var(${layerText(mode, 0, 'color')})`, opacity: `var(${layerText(mode, 0, 'low-emphasis')})` }}>
+              {`Layer ${layerNum}`}
+            </h3>
+          </div>
+
           {/* Preview Section */}
           <div style={{
             flex: debugMode ? undefined : 1,
@@ -323,8 +369,8 @@ export default function ComponentDetailPage() {
             position: 'relative',
             minHeight: debugMode ? '400px' : 0,
           }}>
-            {/* Component Preview */}
-            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', width: '100%', minWidth: 0 }}>
+            {/* Component Preview — pinned to the top-left of the preview surface */}
+            <div style={{ flex: debugMode ? undefined : 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-start', width: '100%', minWidth: 0 }}>
               <Suspense fallback={<div />}>
                 {component.name === 'Button' ? (
                   <ButtonPreview
@@ -348,12 +394,20 @@ export default function ComponentDetailPage() {
                   <CheckboxItemPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
+                    activeState={activeState}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Checkbox group' ? (
                   <CheckboxGroupPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
+                ) : component.name === 'Radio button group item' ? (
+                  <RadioButtonItemPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    activeState={activeState}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Avatar' ? (
@@ -379,6 +433,7 @@ export default function ComponentDetailPage() {
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     selectedAltLayer={null}
+                    activeState={activeState}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Label' ? (
@@ -602,7 +657,7 @@ export default function ComponentDetailPage() {
                     alignItems: 'flex-start',
                     justifyContent: 'flex-start',
                   }}>
-                    {component.render?.(new Set([selectedLayer as any])) || <div>No preview available</div>}
+                    {component.render?.(new Set([selectedLayer as any]), activeState) || <div>No preview available</div>}
                   </div>
                 ) : (
                   <div style={{
@@ -640,6 +695,7 @@ export default function ComponentDetailPage() {
               setSelectedVariants(prev => ({ ...prev, [prop]: variant }))
             }}
             onLayerChange={setSelectedLayer}
+            onActiveStateChange={handleActiveStateChange}
           />
         </div>
       </div>

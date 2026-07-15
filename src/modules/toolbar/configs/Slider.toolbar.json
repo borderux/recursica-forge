@@ -3,6 +3,10 @@
     "states": {
       "icon": "cursor",
       "label": "State"
+    },
+    "layout": {
+      "icon": "layout",
+      "label": "Layout"
     }
   },
   "properties": {
@@ -10,14 +14,6 @@
       "icon": "faders-horizontal",
       "label": "Track",
       "group": {
-        "properties.track": {
-          "icon": "paint-bucket",
-          "label": "Track"
-        },
-        "properties.track-active": {
-          "icon": "paint-bucket",
-          "label": "Active track"
-        },
         "properties.track-height": {
           "icon": "arrows-up-down",
           "label": "Track height",
@@ -200,14 +196,6 @@
       "icon": "dots-three",
       "label": "Step indicator",
       "group": {
-        "properties.step-indicator-color": {
-          "icon": "paint-bucket",
-          "label": "Color"
-        },
-        "properties.step-indicator-color-active": {
-          "icon": "paint-bucket",
-          "label": "Active color"
-        },
         "properties.step-indicator-width": {
           "icon": "arrows-left-right",
           "label": "Width"
@@ -215,6 +203,39 @@
         "properties.step-indicator-border-radius": {
           "icon": "corners-out",
           "label": "Corner radius"
+        }
+      }
+    },
+    "track-color": {
+      "icon": "paint-bucket",
+      "label": "Track color",
+      "group": {
+        "properties.track": {
+          "label": "Track"
+        },
+        "properties.track-active": {
+          "label": "Track Active"
+        }
+      }
+    },
+    "step-indicator-color": {
+      "icon": "paint-bucket",
+      "label": "Step indicator color",
+      "group": {
+        "properties.step-indicator-color": {
+          "label": "Step Indicator Color"
+        },
+        "properties.step-indicator-color-active": {
+          "label": "Step Indicator Color Active"
+        }
+      }
+    },
+    "opacity": {
+      "icon": "eye",
+      "label": "Disabled opacity",
+      "group": {
+        "properties.opacity": {
+          "label": "Opacity"
         }
       }
     }

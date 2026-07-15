@@ -19,7 +19,7 @@ export default function ReadOnlyFieldPreview({
     const { mode } = useThemeMode()
 
     // Extract variants from selectedVariants
-    const layout = (selectedVariants.layouts || 'stacked') as 'stacked' | 'side-by-side'
+    const layout = (selectedVariants.layout || 'stacked') as 'stacked' | 'side-by-side'
 
     // Get form vertical gutter CSS variable
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
@@ -28,9 +28,9 @@ export default function ReadOnlyFieldPreview({
     const EditIcon = iconNameToReactComponent('pencil')
 
     // Show both layouts if no specific layout is selected, otherwise show selected layout
-    const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layouts
+    const layoutsToShow: Array<'stacked' | 'side-by-side'> = selectedVariants.layout
         ? [layout]
-        : ['stacked', 'side-by-side']
+        : ['stacked']
 
     const verticalGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
 
@@ -40,13 +40,10 @@ export default function ReadOnlyFieldPreview({
             flexDirection: 'column',
             gap: verticalGutter,
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'flex-start'
         }}>
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {/* Basic read-only field with value */}
                         <ReadOnlyField

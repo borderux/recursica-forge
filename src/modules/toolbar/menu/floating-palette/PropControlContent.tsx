@@ -1354,8 +1354,12 @@ export default function PropControlContent({
   const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text', 'step-number-text', 'input-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style']
 
   // Always check recursica_ui-kit.json structure directly for text property groups, regardless of prop type
-  // This ensures we catch text property groups even if they weren't parsed correctly
-  const isTextPropertyGroup = textPropertyGroupNames.includes(propNameLower) &&
+  // This ensures we catch text property groups even if they weren't parsed correctly.
+  // A color prop is NEVER a text group, even if a same-named text-group element exists (e.g. Tree's
+  // "selected-text" is both a text-STYLE group and a text COLOR leaf) — otherwise the color control
+  // would be mis-rendered as a typography control.
+  const isTextPropertyGroup = prop.type !== 'color' && prop.category !== 'colors' &&
+    textPropertyGroupNames.includes(propNameLower) &&
     (prop.type === 'text-group' || (() => {
       // Fallback: Check recursica_ui-kit.json structure directly
       try {

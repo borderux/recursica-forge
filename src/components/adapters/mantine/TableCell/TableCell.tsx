@@ -35,8 +35,11 @@ export default function TableCell({
   const textDecorationVar = getComponentTextCssVar('TableCell', textStyleKey, 'text-decoration')
   const textAlignVar = getComponentTextCssVar('TableCell', textStyleKey, 'text-align')
 
-  const textColorVar = buildComponentCssVarPath('TableCell', 'properties', 'colors', layer, disabled ? 'text-color-disabled' : 'text-color-enabled')
-  const cellColorVar = buildComponentCssVarPath('TableCell', 'properties', 'colors', layer, disabled ? 'cell-color-disabled' : 'cell-color-enabled')
+  // Enabled colours are the base; disabled colours live under variants.states.disabled.
+  const cellBase = (prop: string) => buildComponentCssVarPath('TableCell', 'properties', 'colors', layer, prop)
+  const cellDisabled = (prop: string) => buildComponentCssVarPath('TableCell', 'variants', 'states', 'disabled', 'properties', 'colors', layer, prop)
+  const textColorVar = disabled ? cellDisabled('text-color') : cellBase('text-color')
+  const cellColorVar = disabled ? cellDisabled('cell-color') : cellBase('cell-color')
 
   const Component = isHeader ? MantineTable.Th : MantineTable.Td
 

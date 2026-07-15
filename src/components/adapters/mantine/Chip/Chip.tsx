@@ -96,12 +96,19 @@ export default function Chip({
   // Map unified size to Mantine size
   const mantineSize = size === 'small' ? 'xs' : 'md'
 
-  // Use recursica_ui-kit.json chip colors for standard layers
-  // Use explicit path building instead of parsing variant names from strings
-  const chipBgVar = buildVariantColorCssVar('Chip', variant, 'background-color', layer)
-  const chipBorderVar = buildVariantColorCssVar('Chip', variant, 'border-color', layer)
+  // Colors now live under variants.selection-states.<sel>[.variants.states.error].properties.colors.
+  // The legacy `variant` values map: unselected/selected → base of that selection; error/error-selected
+  // → the `error` interaction-state of unselected/selected respectively.
+  const chipIsError = variant === 'error' || variant === 'error-selected'
+  const chipSel = (variant === 'selected' || variant === 'error-selected') ? 'selected' : 'unselected'
+  const chipColor = (prop: string) => chipIsError
+    ? buildComponentCssVarPath('Chip', 'variants', 'selection-states', chipSel, 'variants', 'states', 'error', 'properties', 'colors', layer, prop)
+    : buildComponentCssVarPath('Chip', 'variants', 'selection-states', chipSel, 'properties', 'colors', layer, prop)
 
-  const chipColorVar = buildVariantColorCssVar('Chip', variant, 'text-color', layer)
+  const chipBgVar = chipColor('background-color')
+  const chipBorderVar = chipColor('border-color')
+
+  const chipColorVar = chipColor('text-color')
   const chipIconColorVar = chipColorVar
 
   // Get size CSS variables - Chip size properties are component-level (not layer-specific)
@@ -111,9 +118,9 @@ export default function Chip({
   const closeIconSizeVar = getComponentLevelCssVar('Chip', 'close-icon-size')
   const iconGapVar = getComponentLevelCssVar('Chip', 'icon-text-gap')
   // Get icon color CSS variables from variant-level per-layer colors
-  const leadingIconColorVar = buildVariantColorCssVar('Chip', variant, 'leading-icon-color', layer)
-  const selectedIconColorVar = buildVariantColorCssVar('Chip', variant, 'selected-icon-color', layer)
-  const closeIconColorVar = buildVariantColorCssVar('Chip', variant, 'close-icon-color', layer)
+  const leadingIconColorVar = chipColor('leading-icon-color')
+  const selectedIconColorVar = chipColor('selected-icon-color')
+  const closeIconColorVar = chipColor('close-icon-color')
   const horizontalPaddingVar = getComponentLevelCssVar('Chip', 'horizontal-padding')
   const verticalPaddingVar = getComponentLevelCssVar('Chip', 'vertical-padding')
   const borderSizeVar = getComponentLevelCssVar('Chip', 'border-size')

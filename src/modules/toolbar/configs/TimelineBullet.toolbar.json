@@ -9,112 +9,34 @@
         "icon-alternative",
         "avatar"
       ]
+    },
+    "selection-states": {
+      "icon": "circle",
+      "label": "Item state"
     }
   },
   "properties": {
-    "active-colors": {
+    "colors": {
       "icon": "paint-bucket",
-      "label": "Active",
-      "floatingPaletteLabel": "Active Colors",
+      "label": "Colors",
       "group": {
-        "properties.active-background": {
-          "icon": "paint-bucket",
-          "label": "Background",
-          "floatingPaletteLabel": "Active Background"
+        "properties.colors.background-color": {
+          "label": "Background"
         },
-        "properties.active-border-color": {
-          "icon": "paint-brush-broad",
-          "label": "Border",
-          "floatingPaletteLabel": "Active Border Color",
-          "showForVariants": [
-            "default",
-            "icon",
-            "icon-alternative",
-            "avatar"
-          ]
+        "properties.colors.border-color": {
+          "label": "Border"
+        },
+        "properties.colors.icon-color": {
+          "label": "Icon"
         }
       }
     },
-    "inactive-colors": {
-      "icon": "paint-bucket",
-      "label": "Inactive",
-      "floatingPaletteLabel": "Inactive Colors",
+    "avatar-opacity": {
+      "icon": "eye",
+      "label": "Avatar opacity",
       "group": {
-        "properties.inactive-background": {
-          "icon": "paint-bucket",
-          "label": "Background",
-          "floatingPaletteLabel": "Inactive Background"
-        },
-        "properties.inactive-border-color": {
-          "icon": "paint-brush-broad",
-          "label": "Border",
-          "floatingPaletteLabel": "Inactive Border Color",
-          "showForVariants": [
-            "default",
-            "icon",
-            "icon-alternative",
-            "avatar"
-          ]
-        }
-      }
-    },
-    "icon-group": {
-      "icon": "star",
-      "label": "Icon",
-      "showForVariants": [
-        "icon"
-      ],
-      "group": {
-        "properties.active-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Active color",
-          "showForVariants": [
-            "icon"
-          ]
-        },
-        "properties.inactive-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Inactive color",
-          "showForVariants": [
-            "icon"
-          ]
-        },
-        "properties.icon-size": {
-          "icon": "resize",
-          "label": "Size",
-          "showForVariants": [
-            "icon"
-          ]
-        }
-      }
-    },
-    "icon-alt-group": {
-      "icon": "star",
-      "label": "Icon",
-      "showForVariants": [
-        "icon-alternative"
-      ],
-      "group": {
-        "properties.active-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Active color",
-          "showForVariants": [
-            "icon-alternative"
-          ]
-        },
-        "properties.inactive-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Inactive color",
-          "showForVariants": [
-            "icon-alternative"
-          ]
-        },
-        "properties.icon-size": {
-          "icon": "resize",
-          "label": "Size",
-          "showForVariants": [
-            "icon-alternative"
-          ]
+        "properties.avatar-opacity": {
+          "label": "Opacity"
         }
       }
     },
@@ -123,83 +45,43 @@
       "label": "Border",
       "group": {
         "properties.border-size": {
-          "icon": "arrows-left-right",
           "label": "Size",
           "propertyType": "slider",
           "range": [
             0,
-            10
+            20
           ],
-          "step": 1,
-          "showForVariants": [
-            "default",
-            "icon",
-            "icon-alternative",
-            "avatar"
-          ]
+          "step": 1
         },
         "properties.border-radius": {
-          "icon": "corners-out",
-          "label": "Radius",
-          "showForVariants": [
-            "default",
-            "icon",
-            "icon-alternative"
-          ]
+          "label": "Radius"
         }
       }
     },
     "dimensions": {
       "icon": "resize",
       "label": "Dimensions",
-      "showForVariants": [
-        "default",
-        "icon",
-        "icon-alternative"
-      ],
       "group": {
         "properties.bullet-size": {
-          "icon": "resize",
           "label": "Bullet",
           "propertyType": "slider",
           "range": [
             10,
             100
           ],
-          "step": 1,
-          "showForVariants": [
-            "default",
-            "icon",
-            "icon-alternative"
-          ]
-        }
-      }
-    },
-    "avatar": {
-      "icon": "user-circle",
-      "label": "Avatar",
-      "showForVariants": [
-        "avatar"
-      ],
-      "group": {
+          "step": 1
+        },
+        "properties.icon-size": {
+          "label": "Icon size"
+        },
         "properties.avatar-size": {
-          "icon": "resize",
-          "label": "Size",
-          "propertyType": "select",
+          "label": "Avatar size",
           "control": "dropdown",
           "options": [
             "small",
             "default",
             "large"
           ]
-        },
-        "properties.active-avatar-opacity": {
-          "icon": "eye",
-          "label": "Active opacity"
-        },
-        "properties.inactive-avatar-opacity": {
-          "icon": "eye",
-          "label": "Inactive opacity"
         }
       }
     }

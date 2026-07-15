@@ -1,22 +1,15 @@
 {
-  "variants": {},
+  "variants": {
+    "selection-states": {
+      "icon": "toggle-right",
+      "label": "State"
+    }
+  },
   "properties": {
     "thumb": {
       "icon": "sliders-horizontal",
       "label": "Thumb",
       "group": {
-        "properties.thumb-selected": {
-          "label": "Thumb selected"
-        },
-        "properties.thumb-unselected": {
-          "label": "Thumb unselected"
-        },
-        "properties.icon-selected": {
-          "label": "Icon selected"
-        },
-        "properties.icon-unselected": {
-          "label": "Icon unselected"
-        },
         "properties.thumb-height": {
           "label": "Thumb height",
           "range": [
@@ -42,7 +35,7 @@
           "step": 1
         },
         "properties.thumb-icon-size": {
-          "label": "Icon Size",
+          "label": "Icon size",
           "range": [
             8,
             24
@@ -55,12 +48,6 @@
       "icon": "faders-horizontal",
       "label": "Track",
       "group": {
-        "properties.track-selected": {
-          "label": "Track selected"
-        },
-        "properties.track-unselected": {
-          "label": "Track unselected"
-        },
         "properties.track-width": {
           "label": "Track width",
           "range": [
@@ -87,9 +74,31 @@
         }
       }
     },
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
+      "group": {
+        "properties.colors.track-color": {
+          "label": "Track"
+        },
+        "properties.colors.thumb-color": {
+          "label": "Thumb"
+        },
+        "properties.colors.icon-color": {
+          "label": "Icon"
+        },
+        "properties.opacity": {
+          "label": "Disabled opacity"
+        }
+      }
+    },
     "text": {
       "icon": "text-aa",
-      "label": "Label text style",
+      "label": "Text style"
+    },
+    "text-color": {
+      "icon": "palette",
+      "label": "Text color",
       "group": {
         "properties.colors.text-color": {
           "label": "Color"
@@ -103,25 +112,13 @@
         "properties.label-gap": {
           "label": "Switch-label gap"
         },
-        "properties.colors.text-color": {
-          "label": "Text color"
-        },
         "properties.label-max-width": {
           "label": "Max width",
-          "min": 40,
-          "max": 500
-        }
-      }
-    },
-    "disabled": {
-      "icon": "prohibit",
-      "label": "Disabled state",
-      "group": {
-        "properties.disabled-text": {
-          "label": "Text color"
-        },
-        "properties.opacity": {
-          "label": "Opacity"
+          "range": [
+            40,
+            500
+          ],
+          "step": 1
         }
       }
     },

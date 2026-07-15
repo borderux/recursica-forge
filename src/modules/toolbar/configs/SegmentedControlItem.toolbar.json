@@ -27,7 +27,13 @@
         },
         "properties.border-size": {
           "icon": "arrows-left-right",
-          "label": "Border size"
+          "label": "Border size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         },
         "properties.colors.border-color": {
           "icon": "paint-bucket",
@@ -57,7 +63,13 @@
         },
         "properties.border-size": {
           "icon": "arrows-left-right",
-          "label": "Border size"
+          "label": "Border size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         },
         "properties.colors.border-color": {
           "icon": "paint-bucket",
@@ -93,6 +105,15 @@
         "properties.icon-text-gap": {
           "icon": "arrows-left-right",
           "label": "Icon text gap"
+        }
+      }
+    },
+    "opacity": {
+      "icon": "eye",
+      "label": "Disabled opacity",
+      "group": {
+        "properties.opacity": {
+          "label": "Opacity"
         }
       }
     }

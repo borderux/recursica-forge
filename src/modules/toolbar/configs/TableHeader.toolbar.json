@@ -81,15 +81,30 @@
         }
       }
     },
+    "colors": {
+      "icon": "paint-bucket",
+      "label": "Colors",
+      "group": {
+        "properties.colors.cell-color": {
+          "label": "Background"
+        },
+        "properties.colors.text-color": {
+          "label": "Text"
+        },
+        "properties.opacity": {
+          "label": "Disabled opacity"
+        }
+      }
+    },
     "sorted-colors": {
       "icon": "paint-bucket",
       "label": "Sorted Colors",
       "group": {
-        "properties.sorted-cell-color": {
+        "properties.colors.sorted-cell-color": {
           "label": "Sorted Background",
           "floatingPaletteLabel": "Sorted Background"
         },
-        "properties.sorted-text-color": {
+        "properties.colors.sorted-text-color": {
           "label": "Sorted Text",
           "floatingPaletteLabel": "Sorted Text"
         }
@@ -99,27 +114,13 @@
       "icon": "paint-bucket",
       "label": "Unsorted Colors",
       "group": {
-        "properties.unsorted-cell-color": {
+        "properties.colors.unsorted-cell-color": {
           "label": "Unsorted Background",
           "floatingPaletteLabel": "Unsorted Background"
         },
-        "properties.unsorted-text-color": {
+        "properties.colors.unsorted-text-color": {
           "label": "Unsorted Text",
           "floatingPaletteLabel": "Unsorted Text"
-        }
-      }
-    },
-    "disabled-colors": {
-      "icon": "paint-bucket",
-      "label": "Disabled Colors",
-      "group": {
-        "properties.cell-color-disabled": {
-          "label": "Disabled Background",
-          "floatingPaletteLabel": "Disabled Background"
-        },
-        "properties.text-color-disabled": {
-          "label": "Disabled Text",
-          "floatingPaletteLabel": "Disabled Text"
         }
       }
     },

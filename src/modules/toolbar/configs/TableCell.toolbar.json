@@ -30,34 +30,6 @@
         }
       }
     },
-    "enabled-colors": {
-      "icon": "paint-bucket",
-      "label": "Enabled",
-      "group": {
-        "properties.cell-color-enabled": {
-          "label": "Background",
-          "floatingPaletteLabel": "Background"
-        },
-        "properties.text-color-enabled": {
-          "label": "Text",
-          "floatingPaletteLabel": "Text"
-        }
-      }
-    },
-    "disabled-colors": {
-      "icon": "paint-bucket",
-      "label": "Disabled",
-      "group": {
-        "properties.cell-color-disabled": {
-          "label": "Background",
-          "floatingPaletteLabel": "Background"
-        },
-        "properties.text-color-disabled": {
-          "label": "Text",
-          "floatingPaletteLabel": "Text"
-        }
-      }
-    },
     "text-style": {
       "icon": "text-aa",
       "label": "Text Style"
@@ -65,6 +37,21 @@
     "currency-style": {
       "icon": "text-aa",
       "label": "Currency Style"
+    },
+    "colors": {
+      "icon": "paint-bucket",
+      "label": "Colors",
+      "group": {
+        "properties.colors.cell-color": {
+          "label": "Background"
+        },
+        "properties.colors.text-color": {
+          "label": "Text"
+        },
+        "properties.opacity": {
+          "label": "Disabled opacity"
+        }
+      }
     }
   }
 }

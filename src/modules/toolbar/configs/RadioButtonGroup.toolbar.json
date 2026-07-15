@@ -1,5 +1,10 @@
 {
-  "variants": {},
+  "variants": {
+    "layout": {
+      "icon": "layout",
+      "label": "Layout"
+    }
+  },
   "properties": {
     "properties": {
       "icon": "stack",
@@ -9,17 +14,17 @@
           "icon": "split-vertical",
           "label": "Item gap"
         },
-        "properties.horizontal-padding": {
+        "properties.padding": {
           "icon": "frame-corners",
           "label": "Padding"
         },
-        "properties.stacked-label-field-gap": {
+        "properties.label-field-gap": {
           "label": "Stacked gap"
         },
-        "properties.sbs-gutter": {
+        "properties.gutter": {
           "label": "Side-by-side horizontal gap"
         },
-        "properties.sbs-vertical-padding": {
+        "properties.vertical-padding": {
           "label": "Side-by-side vertical gap"
         }
       }
@@ -28,11 +33,8 @@
       "icon": "arrows-up-down",
       "label": "Top and bottom margin",
       "group": {
-        "properties.stacked-top-bottom-margin": {
-          "label": "Stacked"
-        },
-        "properties.sbs-top-bottom-margin": {
-          "label": "Side-by-side"
+        "properties.top-bottom-margin": {
+          "label": "Margin"
         }
       }
     }

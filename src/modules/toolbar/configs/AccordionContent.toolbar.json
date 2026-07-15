@@ -21,7 +21,13 @@
           "label": "Bottom padding"
         },
         "properties.border-size": {
-          "label": "Border size"
+          "label": "Border size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         },
         "properties.colors.border-color": {
           "label": "Border color"

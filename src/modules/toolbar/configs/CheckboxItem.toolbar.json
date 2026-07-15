@@ -1,5 +1,10 @@
 {
-  "variants": {},
+  "variants": {
+    "selection-states": {
+      "icon": "check-square",
+      "label": "Selection"
+    }
+  },
   "properties": {
     "checkbox": {
       "icon": "check-square",
@@ -26,6 +31,15 @@
           ],
           "step": 1
         },
+        "properties.icon-size": {
+          "label": "Icon size",
+          "propertyType": "slider",
+          "range": [
+            4,
+            100
+          ],
+          "step": 1
+        },
         "properties.label-gap": {
           "label": "Value checkbox gap"
         },
@@ -37,99 +51,37 @@
             1000
           ],
           "step": 1
+        }
+      }
+    },
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
+      "group": {
+        "properties.colors.background-color": {
+          "label": "Background"
+        },
+        "properties.colors.border-color": {
+          "label": "Border"
+        },
+        "properties.colors.icon-color": {
+          "label": "Icon"
         },
         "properties.opacity": {
           "label": "Disabled opacity"
         }
       }
     },
-    "selected": {
-      "icon": "palette",
-      "label": "Selected enabled",
-      "group": {
-        "properties.background-checked": {
-          "label": "Checked background"
-        },
-        "properties.border-checked": {
-          "label": "Checked border"
-        },
-        "properties.colors.icon-color": {
-          "label": "Checked icon"
-        },
-        "properties.background-indeterminate": {
-          "label": "Indeterminate background"
-        },
-        "properties.border-indeterminate": {
-          "label": "Indeterminate border"
-        },
-        "properties.icon-color-indeterminate": {
-          "label": "Indeterminate icon"
-        }
-      }
-    },
-    "selected-disabled": {
-      "icon": "prohibit",
-      "label": "Selected disabled",
-      "group": {
-        "properties.disabled-background-checked": {
-          "label": "Checked background"
-        },
-        "properties.disabled-border-checked": {
-          "label": "Checked border"
-        },
-        "properties.disabled-icon-checked": {
-          "label": "Checked icon"
-        },
-        "properties.disabled-background-indeterminate": {
-          "label": "Indeterminate background"
-        },
-        "properties.disabled-border-indeterminate": {
-          "label": "Indeterminate border"
-        },
-        "properties.disabled-icon-indeterminate": {
-          "label": "Indeterminate icon"
-        }
-      }
-    },
-    "unselected": {
-      "icon": "square",
-      "label": "Unselected",
-      "group": {
-        "properties.background-unchecked": {
-          "label": "Background"
-        },
-        "properties.border-unchecked": {
-          "label": "Border"
-        },
-        "properties.disabled-background-unchecked": {
-          "label": "Disabled background"
-        },
-        "properties.disabled-border-unchecked": {
-          "label": "Disabled border"
-        }
-      }
-    },
     "text": {
       "icon": "text-aa",
-      "label": "Text style",
+      "label": "Text style"
+    },
+    "text-color": {
+      "icon": "palette",
+      "label": "Text color",
       "group": {
-        "properties.font-family": {
-          "label": "Font"
-        },
-        "properties.font-weight": {
-          "label": "Weight"
-        },
-        "properties.font-size": {
-          "label": "Size"
-        },
-        "properties.line-height": {
-          "label": "Line height"
-        },
         "properties.colors.text-color": {
           "label": "Color"
-        },
-        "properties.disabled-text": {
-          "label": "Disabled text color"
         }
       }
     }

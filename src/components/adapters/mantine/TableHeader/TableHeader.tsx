@@ -45,8 +45,8 @@ export default function TableHeader({
   const verticalDividerColorVar = buildComponentCssVarPath('TableHeader', 'properties', 'colors', layer, 'vertical-divider-color')
 
   if (disabled) {
-    textColorVar = buildComponentCssVarPath('TableHeader', 'properties', 'colors', layer, 'text-color-disabled')
-    cellColorVar = buildComponentCssVarPath('TableHeader', 'properties', 'colors', layer, 'cell-color-disabled')
+    textColorVar = buildComponentCssVarPath('TableHeader', 'variants', 'states', 'disabled', 'properties', 'colors', layer, 'text-color')
+    cellColorVar = buildComponentCssVarPath('TableHeader', 'variants', 'states', 'disabled', 'properties', 'colors', layer, 'cell-color')
   } else if (isSorted) {
     textColorVar = buildComponentCssVarPath('TableHeader', 'properties', 'colors', layer, 'sorted-text-color')
     cellColorVar = buildComponentCssVarPath('TableHeader', 'properties', 'colors', layer, 'sorted-cell-color')

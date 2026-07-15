@@ -1,206 +1,58 @@
 {
-  "variants": {},
+  "variants": {
+    "selection-states": {
+      "icon": "circle",
+      "label": "Item state"
+    }
+  },
   "properties": {
-    "connector": {
-      "icon": "minus",
-      "label": "Connector",
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
       "group": {
-        "properties.active-connector-color": {
-          "icon": "paint-bucket",
-          "label": "Active color"
+        "properties.colors.connector-color": {
+          "label": "Connector"
         },
-        "properties.inactive-connector-color": {
-          "icon": "paint-bucket",
-          "label": "Inactive color"
+        "properties.colors.title-color": {
+          "label": "Title"
         },
-        "properties.active-connector-size": {
-          "icon": "arrows-left-right",
-          "label": "Active size",
-          "propertyType": "slider",
-          "range": [
-            1,
-            10
-          ],
-          "step": 1
+        "properties.colors.description-color": {
+          "label": "Description"
         },
-        "properties.inactive-connector-size": {
-          "icon": "arrows-left-right",
-          "label": "Inactive size",
-          "propertyType": "slider",
-          "range": [
-            1,
-            10
-          ],
-          "step": 1
+        "properties.colors.timestamp-color": {
+          "label": "Timestamp"
         }
       }
     },
-    "title": {
-      "icon": "text-aa",
-      "label": "Title",
+    "connector-size": {
+      "icon": "arrows-left-right",
+      "label": "Connector size",
       "group": {
-        "properties.active-title-color": {
-          "icon": "paint-bucket",
-          "label": "Active color"
-        },
-        "properties.inactive-title-color": {
-          "icon": "paint-bucket",
-          "label": "Inactive color"
-        }
-      }
-    },
-    "description": {
-      "icon": "text-aa",
-      "label": "Description",
-      "group": {
-        "properties.active-description-color": {
-          "icon": "paint-bucket",
-          "label": "Active color"
-        },
-        "properties.inactive-description-color": {
-          "icon": "paint-bucket",
-          "label": "Inactive color"
-        }
-      }
-    },
-    "timestamp": {
-      "icon": "text-aa",
-      "label": "Timestamp",
-      "group": {
-        "properties.active-timestamp-color": {
-          "icon": "paint-bucket",
-          "label": "Active color"
-        },
-        "properties.inactive-timestamp-color": {
-          "icon": "paint-bucket",
-          "label": "Inactive color"
+        "properties.connector-size": {
+          "label": "Size"
         }
       }
     },
     "title-text": {
       "icon": "text-aa",
-      "label": "Title text style",
-      "group": {
-        "properties.font-family": {
-          "icon": "text-aa",
-          "label": "Font family"
-        },
-        "properties.font-size": {
-          "icon": "text-aa",
-          "label": "Font size"
-        },
-        "properties.font-weight": {
-          "icon": "text-aa",
-          "label": "Font weight"
-        },
-        "properties.letter-spacing": {
-          "icon": "text-aa",
-          "label": "Letter spacing"
-        },
-        "properties.line-height": {
-          "icon": "text-aa",
-          "label": "Line height"
-        },
-        "properties.text-decoration": {
-          "icon": "text-aa",
-          "label": "Text decoration"
-        },
-        "properties.text-transform": {
-          "icon": "text-aa",
-          "label": "Text transform"
-        },
-        "properties.font-style": {
-          "icon": "text-aa",
-          "label": "Font style"
-        }
-      }
+      "label": "Title text style"
     },
     "description-text": {
       "icon": "text-aa",
-      "label": "Description text style",
-      "group": {
-        "properties.font-family": {
-          "icon": "text-aa",
-          "label": "Font family"
-        },
-        "properties.font-size": {
-          "icon": "text-aa",
-          "label": "Font size"
-        },
-        "properties.font-weight": {
-          "icon": "text-aa",
-          "label": "Font weight"
-        },
-        "properties.letter-spacing": {
-          "icon": "text-aa",
-          "label": "Letter spacing"
-        },
-        "properties.line-height": {
-          "icon": "text-aa",
-          "label": "Line height"
-        },
-        "properties.text-decoration": {
-          "icon": "text-aa",
-          "label": "Text decoration"
-        },
-        "properties.text-transform": {
-          "icon": "text-aa",
-          "label": "Text transform"
-        },
-        "properties.font-style": {
-          "icon": "text-aa",
-          "label": "Font style"
-        }
-      }
+      "label": "Description text style"
     },
     "timestamp-text": {
       "icon": "text-aa",
-      "label": "Timestamp text style",
-      "group": {
-        "properties.font-family": {
-          "icon": "text-aa",
-          "label": "Font family"
-        },
-        "properties.font-size": {
-          "icon": "text-aa",
-          "label": "Font size"
-        },
-        "properties.font-weight": {
-          "icon": "text-aa",
-          "label": "Font weight"
-        },
-        "properties.letter-spacing": {
-          "icon": "text-aa",
-          "label": "Letter spacing"
-        },
-        "properties.line-height": {
-          "icon": "text-aa",
-          "label": "Line height"
-        },
-        "properties.text-decoration": {
-          "icon": "text-aa",
-          "label": "Text decoration"
-        },
-        "properties.text-transform": {
-          "icon": "text-aa",
-          "label": "Text transform"
-        },
-        "properties.font-style": {
-          "icon": "text-aa",
-          "label": "Font style"
-        }
-      }
+      "label": "Timestamp text style"
     },
     "spacing": {
       "icon": "split-horizontal",
       "label": "Spacing",
       "group": {
         "properties.bullet-content-gap": {
-          "icon": "split-horizontal",
           "label": "Bullet content gap"
         },
         "properties.max-text-width": {
-          "icon": "arrows-left-right",
           "label": "Max text width",
           "propertyType": "slider",
           "range": [
@@ -210,11 +62,9 @@
           "step": 10
         },
         "properties.title-description-gap": {
-          "icon": "split-horizontal",
           "label": "Title description gap"
         },
         "properties.description-timestamp-gap": {
-          "icon": "split-horizontal",
           "label": "Description timestamp gap"
         }
       }

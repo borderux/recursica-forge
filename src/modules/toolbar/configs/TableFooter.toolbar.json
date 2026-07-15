@@ -57,15 +57,16 @@
     },
     "colors": {
       "icon": "paint-bucket",
-      "label": "Color",
+      "label": "Colors",
       "group": {
-        "properties.cell-color-enabled": {
-          "label": "Background",
-          "floatingPaletteLabel": "Background"
+        "properties.colors.cell-color": {
+          "label": "Background"
         },
-        "properties.text-color-enabled": {
-          "label": "Text",
-          "floatingPaletteLabel": "Text"
+        "properties.colors.text-color": {
+          "label": "Text"
+        },
+        "properties.opacity": {
+          "label": "Disabled opacity"
         }
       }
     },

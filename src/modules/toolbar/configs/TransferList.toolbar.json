@@ -4,7 +4,7 @@
       "icon": "diamonds-four",
       "label": "State"
     },
-    "layouts": {
+    "layout": {
       "icon": "layout",
       "label": "Layout"
     }
@@ -93,7 +93,13 @@
       "group": {
         "properties.border-size": {
           "icon": "arrows-left-right",
-          "label": "Size"
+          "label": "Size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         },
         "properties.border-radius": {
           "icon": "corners-out",
@@ -126,11 +132,8 @@
       "icon": "arrows-up-down",
       "label": "Top and bottom margin",
       "group": {
-        "properties.stacked-top-bottom-margin": {
-          "label": "Stacked"
-        },
-        "properties.sbs-top-bottom-margin": {
-          "label": "Side-by-side"
+        "properties.top-bottom-margin": {
+          "label": "Margin"
         }
       }
     },
@@ -175,6 +178,15 @@
             500
           ],
           "step": 1
+        }
+      }
+    },
+    "opacity": {
+      "icon": "eye",
+      "label": "Disabled opacity",
+      "group": {
+        "properties.opacity": {
+          "label": "Opacity"
         }
       }
     }

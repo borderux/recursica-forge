@@ -71,6 +71,7 @@ export interface ToolbarPropConfig {
   componentRef?: string
 }
 
+
 export interface ToolbarVariantConfig {
   icon: string
   label: string

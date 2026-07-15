@@ -1,6 +1,6 @@
 {
   "variants": {
-    "layouts": {
+    "layout": {
       "icon": "layout",
       "label": "Layout"
     }

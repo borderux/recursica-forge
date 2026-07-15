@@ -49,7 +49,7 @@ type LayerOption = 'layer-0' | 'layer-1' | 'layer-2' | 'layer-3'
 export type Section = {
   name: string
   url: string
-  render?: (selectedLayers: Set<LayerOption>) => JSX.Element
+  render?: (selectedLayers: Set<LayerOption>, activeState?: string) => JSX.Element
 }
 
 // Sort layers numerically by layer number
@@ -1584,7 +1584,7 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
     {
       name: 'Tree',
       url: `${base}/tree`,
-      render: (selectedLayers: Set<LayerOption>) => {
+      render: (selectedLayers: Set<LayerOption>, activeState?: string) => {
         const layer = Array.from(selectedLayers)[0] || 'layer-0'
         const data = [
           {
@@ -1628,18 +1628,18 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
           },
         ]
         
-        return <TreePreviewComponent data={data} layer={layer} />
+        return <TreePreviewComponent data={data} layer={layer} forceHover={activeState === 'hover'} />
       },
     },
   ]
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
-const TreePreviewComponent = ({ data, layer }: { data: any; layer: any }) => {
+const TreePreviewComponent = ({ data, layer, forceHover }: { data: any; layer: any; forceHover?: boolean }) => {
   const [selected, setSelected] = React.useState<string[]>([])
   return (
     <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start' }}>
-      <Tree data={data} layer={layer} style={{ width: '100%' }} selected={selected} onSelect={setSelected} />
+      <Tree data={data} layer={layer} style={{ width: '100%' }} selected={selected} onSelect={setSelected} forceHover={forceHover} />
     </div>
   )
 }

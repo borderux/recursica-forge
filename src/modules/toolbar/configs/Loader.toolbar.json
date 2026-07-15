@@ -34,7 +34,7 @@
           "icon": "corners-out",
           "label": "Border radius"
         },
-        "properties.thickness": {
+        "properties.thickness-size": {
           "icon": "pencil-line",
           "label": "Thickness",
           "propertyType": "slider",

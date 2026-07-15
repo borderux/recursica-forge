@@ -27,9 +27,10 @@
           "label": "Border size",
           "range": [
             0,
-            10
+            20
           ],
-          "step": 1
+          "step": 1,
+          "propertyType": "slider"
         },
         "properties.colors.border-color": {
           "icon": "paint-bucket",
@@ -54,14 +55,6 @@
           "label": "Vertical"
         }
       }
-    },
-    "direction": {
-      "icon": "arrows-out",
-      "label": "Direction"
-    },
-    "fill-width": {
-      "icon": "arrows-out-line-horizontal",
-      "label": "Fill container width"
     },
     "divider": {
       "icon": "split-horizontal",

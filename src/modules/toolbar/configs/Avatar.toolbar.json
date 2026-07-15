@@ -45,10 +45,11 @@
           "label": "Size",
           "range": [
             0,
-            10
+            20
           ],
           "step": 1,
-          "sliderType": "discrete"
+          "sliderType": "discrete",
+          "propertyType": "slider"
         },
         "properties.border-radius": {
           "icon": "corners-out",
@@ -99,7 +100,7 @@
         "text"
       ]
     },
-    "padding": {
+    "properties.padding": {
       "icon": "square-logo",
       "label": "Padding"
     },

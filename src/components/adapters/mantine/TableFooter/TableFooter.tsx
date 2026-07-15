@@ -36,8 +36,10 @@ export default function TableFooter({
   const textCaseVar = getComponentTextCssVar(textComponent, textStyleKey, 'text-transform')
   const textDecorationVar = getComponentTextCssVar(textComponent, textStyleKey, 'text-decoration')
 
-  const textColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'text-color-enabled')
-  const cellColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'cell-color-enabled')
+  const footerBase = (prop: string) => buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, prop)
+  const footerDisabled = (prop: string) => buildComponentCssVarPath('TableFooter', 'variants', 'states', 'disabled', 'properties', 'colors', layer, prop)
+  const textColorVar = disabled ? footerDisabled('text-color') : footerBase('text-color')
+  const cellColorVar = disabled ? footerDisabled('cell-color') : footerBase('cell-color')
   const horizontalDividerColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'horizontal-divider-color')
   const verticalDividerColorVar = buildComponentCssVarPath('TableFooter', 'properties', 'colors', layer, 'vertical-divider-color')
 

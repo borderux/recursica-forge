@@ -13,7 +13,7 @@
           "icon": "text-aa",
           "label": "Content color"
         },
-        "properties.horizontal-padding": {
+        "properties.padding": {
           "icon": "arrows-out",
           "label": "Padding"
         },
@@ -187,7 +187,7 @@
           "propertyType": "slider",
           "range": [
             0,
-            8
+            20
           ],
           "step": 1
         },

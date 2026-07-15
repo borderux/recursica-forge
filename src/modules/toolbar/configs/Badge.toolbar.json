@@ -47,9 +47,10 @@
           "label": "Size",
           "range": [
             0,
-            10
+            20
           ],
-          "step": 1
+          "step": 1,
+          "propertyType": "slider"
         },
         "properties.border-radius": {
           "icon": "corners-out",

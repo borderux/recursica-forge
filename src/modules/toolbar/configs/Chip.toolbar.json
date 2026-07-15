@@ -1,22 +1,41 @@
 {
   "variants": {
-    "style": {
-      "icon": "diamonds-four",
-      "label": "Style"
+    "selection-states": {
+      "icon": "check-circle",
+      "label": "Selection"
     }
   },
   "properties": {
-    "background": {
-      "icon": "paint-bucket",
-      "label": "Background"
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
+      "group": {
+        "properties.colors.background-color": {
+          "label": "Background"
+        },
+        "properties.colors.text-color": {
+          "label": "Text"
+        },
+        "properties.colors.border-color": {
+          "label": "Border"
+        },
+        "properties.colors.leading-icon-color": {
+          "label": "Leading icon"
+        },
+        "properties.colors.selected-icon-color": {
+          "label": "Selected icon"
+        },
+        "properties.colors.close-icon-color": {
+          "label": "Remove icon"
+        },
+        "properties.colors.icon-color": {
+          "label": "Error icon"
+        }
+      }
     },
     "text": {
       "icon": "text-aa",
       "label": "Text style"
-    },
-    "text-color": {
-      "icon": "text-aa",
-      "label": "Text color"
     },
     "border": {
       "icon": "square",
@@ -27,17 +46,14 @@
           "label": "Size",
           "range": [
             0,
-            10
+            20
           ],
-          "step": 1
+          "step": 1,
+          "propertyType": "slider"
         },
         "properties.border-radius": {
           "icon": "corners-out",
           "label": "Corner radius"
-        },
-        "properties.colors.border-color": {
-          "icon": "paint-bucket",
-          "label": "Color"
         }
       }
     },
@@ -70,18 +86,6 @@
         "properties.icon-text-gap": {
           "icon": "split-horizontal",
           "label": "Icon/text gap"
-        },
-        "properties.leading-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Leading icon color"
-        },
-        "properties.selected-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Selected icon color"
-        },
-        "properties.close-icon-color": {
-          "icon": "paint-bucket",
-          "label": "Remove icon color"
         }
       }
     },
@@ -106,6 +110,15 @@
             1000
           ],
           "step": 1
+        }
+      }
+    },
+    "text-size": {
+      "icon": "text-aa",
+      "label": "Text size",
+      "group": {
+        "properties.text-size": {
+          "label": "Size"
         }
       }
     },

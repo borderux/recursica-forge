@@ -20,7 +20,7 @@ export default function DropdownPreview({
     const { mode } = useThemeMode()
 
     const state = (selectedVariants.states || 'default') 
-    const layout = (selectedVariants.layouts || 'stacked') as 'stacked' | 'side-by-side'
+    const layout = (selectedVariants.layout || 'stacked') as 'stacked' | 'side-by-side'
 
     const formVerticalGutterVar = getGlobalCssVar('form', 'properties', 'vertical-item-gap', mode)
 
@@ -29,9 +29,9 @@ export default function DropdownPreview({
     const StarIcon = iconNameToReactComponent('star')
     const ChevronRightIcon = iconNameToReactComponent('chevron-right')
 
-    const layoutsToShow: string[] = selectedVariants.layouts
+    const layoutsToShow: string[] = selectedVariants.layout
         ? [layout]
-        : ['stacked', 'side-by-side']
+        : ['stacked']
 
     const items = [
         { value: 'option-1', label: 'Obsidian Ingot', leadingIcon: StarIcon ? <StarIcon /> : undefined, leadingIconType: 'icon' as const },
@@ -53,13 +53,10 @@ export default function DropdownPreview({
             flexDirection: 'column',
             gap: verticalGutter,
             width: '100%',
-            alignItems: 'center'
+            alignItems: 'flex-start'
         }}>
             {layoutsToShow.map((layoutVariant) => (
                 <div key={layoutVariant} style={{ width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                    <h2 style={h2Style}>
-                        {layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'}
-                    </h2>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: `var(${formVerticalGutterVar})`, width: '100%' }}>
                         {/* Default state */}
                         {state === 'default' && (
