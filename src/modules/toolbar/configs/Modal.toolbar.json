@@ -276,11 +276,11 @@
         }
       }
     },
-    "button-gap": {
+    "properties.button-gap": {
       "icon": "split-horizontal",
       "label": "Button gap"
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
       "label": "Elevation"
     }

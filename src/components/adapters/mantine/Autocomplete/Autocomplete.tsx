@@ -100,8 +100,8 @@ export default function Autocomplete({
     const verticalPaddingVar = getComponentLevelCssVar('Autocomplete', 'vertical-padding')
     const iconSizeVar = getComponentLevelCssVar('Autocomplete', 'icon-size')
     const iconTextGapVar = getComponentLevelCssVar('Autocomplete', 'icon-text-gap')
-    const maxWidthVar = getComponentLevelCssVar('Autocomplete', 'max-width')
-    const minWidthVar = getComponentLevelCssVar('Autocomplete', 'min-width')
+    const maxWidthVar = buildComponentCssVarPath('Autocomplete', 'variants', 'layouts', layout, 'properties', 'max-width')
+    const minWidthVar = buildComponentCssVarPath('Autocomplete', 'variants', 'layouts', layout, 'properties', 'min-width')
     const placeholderOpacityVar = getComponentLevelCssVar('Autocomplete', 'placeholder-opacity')
 
     // Get text style CSS variables

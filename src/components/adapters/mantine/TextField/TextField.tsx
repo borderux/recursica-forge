@@ -77,8 +77,8 @@ export default function TextField({
   const verticalPaddingVar = getComponentLevelCssVar('TextField', 'vertical-padding')
   const iconSizeVar = getComponentLevelCssVar('TextField', 'icon-size')
   const iconTextGapVar = getComponentLevelCssVar('TextField', 'icon-text-gap')
-  const maxWidthVar = getComponentLevelCssVar('TextField', 'max-width')
-  const minWidthVar = getComponentLevelCssVar('TextField', 'min-width')
+  const maxWidthVar = buildComponentCssVarPath('TextField', 'variants', 'layouts', layout, 'properties', 'max-width')
+  const minWidthVar = buildComponentCssVarPath('TextField', 'variants', 'layouts', layout, 'properties', 'min-width')
   const placeholderOpacityVar = getComponentLevelCssVar('TextField', 'placeholder-opacity')
 
   // Get Label's gutter for side-by-side layout (Label component manages spacing)

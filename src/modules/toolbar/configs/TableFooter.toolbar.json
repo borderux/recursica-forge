@@ -65,7 +65,7 @@
         }
       }
     },
-    "text-style": {
+    "properties.text-style": {
       "icon": "text-aa",
       "label": "Text Style"
     }

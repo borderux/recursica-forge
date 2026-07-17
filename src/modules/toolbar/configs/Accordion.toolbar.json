@@ -2,7 +2,7 @@
   "variants": {},
   "properties": {
     "container": {
-      "icon": "paint-bucket",
+      "icon": "diamond",
       "label": "Container",
       "group": {
         "properties.colors.background-color": {
@@ -18,10 +18,10 @@
       "label": "Border",
       "group": {
         "properties.colors.border-color": {
-          "label": "Border color"
+          "label": "Color"
         },
         "properties.border-size": {
-          "label": "Border size",
+          "label": "Size",
           "range": [
             0,
             20
@@ -30,7 +30,7 @@
           "propertyType": "slider"
         },
         "properties.border-radius": {
-          "label": "Border radius"
+          "label": "Corner radius"
         }
       }
     },
@@ -76,7 +76,7 @@
         }
       }
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
       "label": "Elevation"
     }

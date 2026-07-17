@@ -6,13 +6,13 @@
       "label": "Colors",
       "group": {
         "properties.colors.text-color": {
-          "label": "Text color"
+          "label": "Text"
         },
         "properties.colors.background-color": {
-          "label": "Background color"
+          "label": "Background"
         },
         "properties.colors.border-color": {
-          "label": "Border color"
+          "label": "Border"
         }
       }
     },
@@ -39,10 +39,10 @@
       "label": "Border",
       "group": {
         "properties.border-radius": {
-          "label": "Border radius"
+          "label": "Corner radius"
         },
         "properties.border-size": {
-          "label": "Border size",
+          "label": "Size",
           "propertyType": "slider",
           "range": [
             0,
@@ -52,7 +52,7 @@
         }
       }
     },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
       "label": "Text"
     },

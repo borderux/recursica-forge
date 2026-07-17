@@ -54,6 +54,15 @@ export const VARIANT_PROP_TO_CATEGORY: Record<string, string> = {
 }
 
 /**
+ * Variant axes that are preview/display toggles — they control how the demo is laid out rather
+ * than a design-token variant of the component. These render as a switch in the preview header
+ * (next to the title), not in the toolbar's Variants list.
+ */
+export const DISPLAY_TOGGLE_VARIANTS = new Set<string>(['fill-width'])
+export const isDisplayToggleVariant = (propName: string): boolean =>
+  DISPLAY_TOGGLE_VARIANTS.has(propName)
+
+/**
  * Checks if a prop's path matches a specific variant by verifying the variant name
  * appears at the correct structural position (right after the category key).
  * 
@@ -717,6 +726,29 @@ export function getComponentDefaultValues(componentName: string): Record<string,
  * @param selectedVariants - Currently selected variants to resolve variant-specific paths
  * @returns 'token' if the property uses a token reference, 'px' if it uses hardcoded px, or null if not found
  */
+/**
+ * Classify a dimension `{...}` reference as a design token vs a raw px value.
+ * Design tokens (`{brand.*}`, `{tokens.*}`) drive the token slider. A `{ui-kit.globals.*}`
+ * reference, however, points at a form-field global that itself holds a raw px literal, so the
+ * control must be a px slider that matches the global (and stays px after detaching). We follow
+ * the ui-kit reference chain and return 'px' when it bottoms out at a `{value, unit}` literal.
+ */
+function classifyDimensionRef(uikitRoot: any, ref: string, depth = 0): 'token' | 'px' {
+  const path = ref.trim().replace(/^\{|\}$/g, '')
+  if (depth > 6 || !path.startsWith('ui-kit.')) return 'token'
+  let cur: any = uikitRoot
+  for (const seg of path.split('.')) {
+    if (cur == null || typeof cur !== 'object') return 'token'
+    cur = cur[seg]
+  }
+  if (cur && typeof cur === 'object' && cur.$type === 'dimension') {
+    const v = cur.$value
+    if (v && typeof v === 'object' && 'unit' in v) return 'px'
+    if (typeof v === 'string' && v.trim().startsWith('{')) return classifyDimensionRef(uikitRoot, v, depth + 1)
+  }
+  return 'token'
+}
+
 export function getDimensionPropertyType(
   componentName: string,
   propPath: string[],
@@ -778,7 +810,7 @@ export function getDimensionPropertyType(
 
       // Check if $value is a plain string token reference (e.g., "{tokens.border-radius.sm}")
       if (typeof value === 'string' && value.trim().startsWith('{')) {
-        return 'token'
+        return classifyDimensionRef(uikitRoot, value)
       }
 
       // Check if it's an object with value and unit
@@ -787,7 +819,7 @@ export function getDimensionPropertyType(
 
         // If value is a string starting with '{', it's a token reference
         if (typeof dimValue === 'string' && dimValue.trim().startsWith('{')) {
-          return 'token'
+          return classifyDimensionRef(uikitRoot, dimValue)
         }
 
         // If value is a number, it's hardcoded px

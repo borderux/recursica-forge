@@ -92,7 +92,7 @@
         }
       }
     },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
       "label": "Text style"
     },

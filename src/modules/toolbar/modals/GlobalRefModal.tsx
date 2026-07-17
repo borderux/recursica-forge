@@ -424,12 +424,26 @@ export function GlobalRefModal({ isOpen, onClose, conflict }: GlobalRefModalProp
         (typeof initialGlobalDtcgValue === 'object' && initialGlobalDtcgValue !== null && initialGlobalDtcgValue.unit === 'px')
 
       if (isPixelValue) {
+        // Derive a sensible px range: widths/heights need a large ceiling; other dimensions
+        // (padding/margin/gap) stay small. Always ensure the current value fits within the range.
+        const currentPx = (() => {
+          if (typeof initialGlobalDtcgValue === 'string') {
+            const m = initialGlobalDtcgValue.match(/(-?\d+(?:\.\d+)?)\s*px/i)
+            return m ? parseFloat(m[1]) : 0
+          }
+          if (initialGlobalDtcgValue && typeof initialGlobalDtcgValue === 'object' && typeof initialGlobalDtcgValue.value === 'number') {
+            return initialGlobalDtcgValue.value
+          }
+          return 0
+        })()
+        const baseMax = (lowerVar.includes('width') || lowerVar.includes('height')) ? 1000 : 40
+        const maxPixelValue = Math.max(baseMax, Math.ceil(currentPx))
         return (
           <PixelValueSliderInline
             targetCssVar={conflict.globalCssVarName}
             label={simpleLabel}
             minPixelValue={0}
-            maxPixelValue={40}
+            maxPixelValue={maxPixelValue}
           />
         )
       }

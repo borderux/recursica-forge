@@ -81,8 +81,8 @@ export default function Dropdown({
     const verticalPaddingVar = getComponentLevelCssVar('Dropdown', 'vertical-padding')
     const iconSizeVar = getComponentLevelCssVar('Dropdown', 'icon-size')
     const iconTextGapVar = getComponentLevelCssVar('Dropdown', 'icon-text-gap')
-    const maxWidthVar = getComponentLevelCssVar('Dropdown', 'max-width')
-    const minWidthVar = getComponentLevelCssVar('Dropdown', 'min-width')
+    const maxWidthVar = buildComponentCssVarPath('Dropdown', 'variants', 'layouts', layout, 'properties', 'max-width')
+    const minWidthVar = buildComponentCssVarPath('Dropdown', 'variants', 'layouts', layout, 'properties', 'min-width')
 
     // Get text style CSS variables
     const valueFontSizeVar = getComponentTextCssVar('Dropdown', 'text', 'font-size')

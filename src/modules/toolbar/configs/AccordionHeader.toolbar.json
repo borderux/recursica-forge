@@ -25,9 +25,6 @@
         },
         "properties.colors.border-color": {
           "label": "Border"
-        },
-        "properties.opacity": {
-          "label": "Disabled opacity"
         }
       }
     },
@@ -36,10 +33,10 @@
       "label": "Border",
       "group": {
         "properties.border-radius": {
-          "label": "Border radius"
+          "label": "Corner radius"
         },
         "properties.border-size": {
-          "label": "Border size",
+          "label": "Size",
           "propertyType": "slider",
           "range": [
             0,
@@ -49,7 +46,7 @@
         }
       }
     },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
       "label": "Text"
     },

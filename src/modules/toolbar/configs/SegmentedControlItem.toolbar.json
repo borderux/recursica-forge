@@ -1,11 +1,11 @@
 {
   "variants": {},
   "properties": {
-    "selected-text": {
+    "properties.selected-text": {
       "icon": "text-aa",
       "label": "Selected text style"
     },
-    "unselected-text": {
+    "properties.unselected-text": {
       "icon": "text-aa",
       "label": "Unselected text style"
     },

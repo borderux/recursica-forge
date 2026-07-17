@@ -11,7 +11,7 @@
         }
       }
     },
-    "item-gap": {
+    "properties.item-gap": {
       "icon": "split-horizontal",
       "label": "Item gap"
     }

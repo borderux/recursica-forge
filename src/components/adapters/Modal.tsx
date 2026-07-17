@@ -20,6 +20,8 @@ export type ModalProps = {
     onClose: () => void
     title?: React.ReactNode
     showHeader?: boolean
+    /** Show the header close (×) button. Defaults to true. Set false to force a decision via the footer. */
+    showCloseButton?: boolean
     showFooter?: boolean
     scrollable?: boolean
     padding?: boolean
@@ -51,6 +53,7 @@ export function Modal({
     onClose,
     title,
     showHeader = true,
+    showCloseButton = true,
     showFooter = true,
     scrollable = false,
     padding = true,
@@ -212,6 +215,7 @@ export function Modal({
                 content={content}
                 children={children}
                 showHeader={showHeader}
+                showCloseButton={showCloseButton}
                 showFooter={showFooter}
                 scrollable={scrollable}
                 padding={padding}

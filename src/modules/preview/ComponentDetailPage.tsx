@@ -51,7 +51,8 @@ import { getTypographyStyle } from '../components/typographyStyles'
 import { Button } from '../../components/adapters/Button'
 import { useDebugMode } from './PreviewPage'
 import ComponentDebugTable from './ComponentDebugTable'
-import { parseComponentStructure } from '../toolbar/utils/componentToolbarUtils'
+import { parseComponentStructure, isDisplayToggleVariant } from '../toolbar/utils/componentToolbarUtils'
+import VariantSwitch from '../toolbar/menu/dropdown/VariantSwitch'
 import { extractBraceContent, parseTokenReference } from '../../core/utils/tokenReferenceParser'
 import type { ComponentName } from '../../components/registry/types'
 import { layerProperty, layerText } from '../../core/css/cssVarBuilder'
@@ -106,7 +107,10 @@ export default function ComponentDetailPage() {
   // override). Stable identity so the toolbar's notify effect doesn't refire every render.
   const handleActiveStateChange = useCallback((state: string) => {
     setActiveState(state)
-    setSelectedVariants(prev => ({ ...prev, states: state === 'base' ? 'default' : state }))
+    // Only error/disabled are forced into the preview; hover/focus require real interaction, so
+    // they don't drive selectedVariants.states (which the state-aware previews read).
+    const forced = (state === 'error' || state === 'disabled') ? state : 'default'
+    setSelectedVariants(prev => ({ ...prev, states: forced }))
   }, [])
 
   // Toolbar state - alternative layers removed
@@ -193,6 +197,7 @@ export default function ComponentDetailPage() {
     if (componentStructure) {
       componentStructure.variants.forEach(variant => {
         if (variant.propName === 'states') return // interaction state is appended separately
+        if (isDisplayToggleVariant(variant.propName)) return // shown as a switch in the header, not the title
         if (variant.variants.length > 1) {
           const value = selectedVariants[variant.propName] || variant.variants[0]
           parts.push(
@@ -206,6 +211,20 @@ export default function ComponentDetailPage() {
     parts.push(activeState.charAt(0).toUpperCase() + activeState.slice(1))
     return parts.join(' · ')
   }, [selectedVariants, componentStructure, activeState])
+
+  // Display-toggle variants (e.g. fill-width) render as switches in the preview header, aligned to
+  // the right of the title — they control how the demo lays out, not a design-token variant.
+  const displayToggleVariants = useMemo(
+    () => (componentStructure?.variants || []).filter(
+      v => isDisplayToggleVariant(v.propName) && v.variants.length > 1
+    ),
+    [componentStructure]
+  )
+
+  // The preview only *forces* error/disabled (states the user can't trigger by interacting). For
+  // hover/focus the user must actually hover/focus the preview, so we leave the preview at 'base'
+  // while the toolbar tab still edits that state's props.
+  const previewState = (activeState === 'error' || activeState === 'disabled') ? activeState : 'base'
 
   // Get the layer number for building CSS variable paths
   const layerNum = selectedLayer.replace('layer-', '')
@@ -339,14 +358,31 @@ export default function ComponentDetailPage() {
           borderTopLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
           borderBottomLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         }}>
-          {/* Variant + layer heading above the preview */}
-          <div style={{ marginBottom: 'var(--recursica_brand_dimensions_general_md)', flexShrink: 0 }}>
-            <h2 style={{ ...getTypographyStyle('h2'), color: `var(${layerText(mode, 0, 'color')})` }}>
-              {variantHeading}
-            </h2>
-            <h3 style={{ ...getTypographyStyle('h3'), color: `var(${layerText(mode, 0, 'color')})`, opacity: `var(${layerText(mode, 0, 'low-emphasis')})` }}>
-              {`Layer ${layerNum}`}
-            </h3>
+          {/* Variant + layer heading above the preview. Display-toggle switches (e.g. fill container
+              width) sit to the right of the title, aligned to the right edge of the preview area. */}
+          <div style={{ marginBottom: 'var(--recursica_brand_dimensions_general_md)', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ ...getTypographyStyle('h2'), color: `var(${layerText(mode, 0, 'color')})` }}>
+                {variantHeading}
+              </h2>
+              <h3 style={{ ...getTypographyStyle('h3'), color: `var(${layerText(mode, 0, 'color')})`, opacity: `var(${layerText(mode, 0, 'low-emphasis')})` }}>
+                {`Layer ${layerNum}`}
+              </h3>
+            </div>
+            {displayToggleVariants.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_sm)', flexShrink: 0, minWidth: '200px' }}>
+                {displayToggleVariants.map(variant => (
+                  <VariantSwitch
+                    key={variant.propName}
+                    componentName={component.name}
+                    propName={variant.propName}
+                    variants={variant.variants}
+                    selected={selectedVariants[variant.propName] || variant.variants[0]}
+                    onSelect={(variantName) => setSelectedVariants(prev => ({ ...prev, [variant.propName]: variantName }))}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Preview Section */}
@@ -394,7 +430,7 @@ export default function ComponentDetailPage() {
                   <CheckboxItemPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
-                    activeState={activeState}
+                    activeState={previewState}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Checkbox group' ? (
@@ -407,7 +443,7 @@ export default function ComponentDetailPage() {
                   <RadioButtonItemPreview
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
-                    activeState={activeState}
+                    activeState={previewState}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Avatar' ? (
@@ -433,7 +469,7 @@ export default function ComponentDetailPage() {
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     selectedAltLayer={null}
-                    activeState={activeState}
+                    activeState={previewState}
                     componentElevation={componentElevation}
                   />
                 ) : component.name === 'Label' ? (
@@ -657,7 +693,7 @@ export default function ComponentDetailPage() {
                     alignItems: 'flex-start',
                     justifyContent: 'flex-start',
                   }}>
-                    {component.render?.(new Set([selectedLayer as any]), activeState) || <div>No preview available</div>}
+                    {component.render?.(new Set([selectedLayer as any]), previewState) || <div>No preview available</div>}
                   </div>
                 ) : (
                   <div style={{
@@ -676,7 +712,7 @@ export default function ComponentDetailPage() {
 
         {/* Toolbar Panel - Right Side */}
         <div style={{
-          width: '380px',
+          width: '416px',
           flexShrink: 0,
           display: 'flex',
           flexDirection: 'column',

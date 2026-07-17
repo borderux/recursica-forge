@@ -48,7 +48,6 @@
             20
           ],
           "step": 1,
-          "sliderType": "discrete",
           "propertyType": "slider"
         },
         "properties.border-radius": {
@@ -93,7 +92,7 @@
         }
       }
     },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
       "label": "Text",
       "showForVariants": [
@@ -104,7 +103,7 @@
       "icon": "square-logo",
       "label": "Padding"
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
       "label": "Elevation"
     }

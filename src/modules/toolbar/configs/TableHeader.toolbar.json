@@ -115,11 +115,11 @@
         }
       }
     },
-    "sorted-text-style": {
+    "properties.sorted-text-style": {
       "icon": "text-aa",
       "label": "Sorted Text Style"
     },
-    "unsorted-text-style": {
+    "properties.unsorted-text-style": {
       "icon": "text-aa",
       "label": "Unsorted Text Style"
     }

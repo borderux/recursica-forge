@@ -30,7 +30,6 @@ import WidthGroupToolbar from '../width-group/WidthGroupToolbar'
 import ElevationToolbar from '../elevation/ElevationToolbar'
 import BackgroundToolbar from '../background/BackgroundToolbar'
 import IconGroupToolbar from '../icon-group/IconGroupToolbar'
-import TopBottomMarginToolbar from '../top-bottom-margin-group/TopBottomMarginToolbar'
 import BrandDimensionSliderInline from '../../utils/BrandDimensionSliderInline'
 import { SegmentedControl } from '../../../../components/adapters/SegmentedControl'
 import { iconNameToReactComponent } from '../../../components/iconUtils'
@@ -219,6 +218,8 @@ function PixelValueSlider({
       minLabel={`${minPixelValue}px`}
       maxLabel={`${maxPixelValue}px`}
       showMinMaxLabels={false}
+      // A value bound to a global (e.g. a form-field token) is edited via the globe icon, not locally.
+      disabled={globalRef.isAttached}
       label={<Label layer="layer-1" layout="stacked" editIcon={globalRef.editIcon} onEditIconClick={globalRef.handleGlobeClick} editIconTitle={globalRef.editIconTitle}>{label}</Label>}
     />
   )
@@ -1025,6 +1026,26 @@ export default function PropControlContent({
       if (config.step) propToRender.step = config.step
     }
 
+    // Border size is always a continuous px slider — no tick marks on the track. It used to render
+    // inconsistently: discrete where a config set sliderType:'discrete' (e.g. Avatar) or where the
+    // value was token-backed, continuous elsewhere. A border width is a plain pixel value, so we
+    // intercept it here — before any config-driven discrete routing — to normalize every component.
+    if (propToRender.name.toLowerCase() === 'border-size') {
+      const [bMin, bMax] = propToRender.range ?? []
+      return (
+        <PixelValueSlider
+          key={`${primaryVar}-border-size`}
+          primaryVar={primaryVar}
+          cssVars={cssVars}
+          label={label}
+          minPixelValue={bMin ?? 0}
+          maxPixelValue={bMax ?? 20}
+          step={propToRender.step ?? 1}
+          type="continuous"
+        />
+      )
+    }
+
     // Segmented control or Dropdown with options
     // Use a wrapper component with useCssVar so it re-renders when the value changes
     const configWithControl = config as (ToolbarPropConfig & { control?: string; options?: Array<string | { label: string; value: string; icon?: string }> }) | undefined
@@ -1080,11 +1101,6 @@ export default function PropControlContent({
         )}
 
     const propNameLower = propToRender.name.toLowerCase()
-
-    // Only TextField/NumberInput still need a component check here (dual-layout margin below).
-    // All the per-component pixel-slider ranges are now data in the toolbar config JSON.
-    const isTextField = normalizedComponentName === 'text-field' || normalizedComponentName === 'text field'
-    const isNumberInput = normalizedComponentName === 'number-input' || normalizedComponentName === 'number input'
 
 
 
@@ -1202,57 +1218,6 @@ export default function PropControlContent({
             dimensionCategory="general"
             layer={selectedLayer as any}
           />
-        )
-      }
-
-      // Use Slider component for TextField dimension properties (MUST use sliders, never DimensionTokenSelector)
-      // Special handling for top-bottom-margin: show ALL layout variants (stacked and side-by-side)
-      if (propNameLower === 'top-bottom-margin' && prop.isVariantSpecific && prop.variantProp === 'layout') {
-        const structure = parseComponentStructure(componentName)
-        const allMarginProps = structure.props.filter(p =>
-          p.name.toLowerCase() === 'top-bottom-margin' &&
-          p.isVariantSpecific &&
-          p.variantProp === 'layout'
-        )
-
-        return (
-          <>
-            {allMarginProps.map((marginProp) => {
-              const layoutVariant = marginProp.path.find(p => p === 'stacked' || p === 'side-by-side') || 'stacked'
-              const layoutLabel = layoutVariant === 'side-by-side' ? 'Side-by-side' : 'Stacked'
-              const marginCssVars = getCssVarsForProp(marginProp)
-              const marginPrimaryVar = marginCssVars[0] || marginProp.cssVar
-              const marginLabel = `${label} (${layoutLabel})`
-
-              if (isTextField || isNumberInput) {
-                // Use TextField/NumberInput-specific slider
-                                  const minValue = 0
-                  const maxValue = 32
-
-        return (
-          <PixelValueSlider
-            key={`${primaryVar}-${selectedVariants.size || ''}`}
-            primaryVar={primaryVar}
-            cssVars={cssVars}
-            minPixelValue={minValue}
-            maxPixelValue={maxValue}
-            label={label}
-          />
-        )} else {
-                // Use BrandDimensionSliderInline for other components
-                return (
-                  <BrandDimensionSliderInline
-                    key={marginProp.cssVar}
-                    targetCssVar={marginPrimaryVar}
-                    targetCssVars={marginCssVars.length > 0 ? marginCssVars : undefined}
-                    label={marginLabel}
-                    dimensionCategory="general"
-                    layer={selectedLayer as any}
-                  />
-                )
-              }
-            })}
-          </>
         )
       }
 
@@ -1612,18 +1577,9 @@ export default function PropControlContent({
     }
   }
 
-  // Top-Bottom-Margin Module - Standalone prop for form elements
-  if (propNameLower === 'top-bottom-margin') {
-    return (
-      <TopBottomMarginToolbar
-        componentName={componentName}
-        prop={prop}
-        selectedVariants={selectedVariants}
-        selectedLayer={selectedLayer}
-        groupedPropsConfig={undefined}
-      />
-    )
-  }
+  // top-bottom-margin is a layout-variant prop: it resolves to the active layout's value via
+  // resolveConfigProp, so it renders as a single dimension slider tied to the Layout dropdown
+  // (handled by the generic dimension path in renderPropControl).
 
   return renderPropControl(prop)
 }

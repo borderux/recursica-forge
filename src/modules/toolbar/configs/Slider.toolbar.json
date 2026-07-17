@@ -81,7 +81,7 @@
         }
       }
     },
-    "top-bottom-margin": {
+    "properties.top-bottom-margin": {
       "icon": "arrows-up-down",
       "label": "Top and bottom margin"
     },
@@ -180,15 +180,15 @@
         }
       }
     },
-    "input-text": {
+    "properties.input-text": {
       "icon": "text-aa",
       "label": "Input text style"
     },
-    "min-max-label": {
+    "properties.min-max-label": {
       "icon": "text-aa",
       "label": "Min/max label style"
     },
-    "read-only-value": {
+    "properties.read-only-value": {
       "icon": "text-aa",
       "label": "Read-only value style"
     },

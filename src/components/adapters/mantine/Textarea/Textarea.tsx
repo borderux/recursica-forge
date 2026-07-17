@@ -65,8 +65,8 @@ export default function Textarea({
     const borderRadiusVar = getComponentLevelCssVar('Textarea', 'border-radius')
     const horizontalPaddingVar = getComponentLevelCssVar('Textarea', 'horizontal-padding')
     const verticalPaddingVar = getComponentLevelCssVar('Textarea', 'vertical-padding')
-    const maxWidthVar = getComponentLevelCssVar('Textarea', 'max-width')
-    const minWidthVar = getComponentLevelCssVar('Textarea', 'min-width')
+    const maxWidthVar = buildComponentCssVarPath('Textarea', 'variants', 'layouts', layout, 'properties', 'max-width')
+    const minWidthVar = buildComponentCssVarPath('Textarea', 'variants', 'layouts', layout, 'properties', 'min-width')
     const placeholderOpacityVar = getComponentLevelCssVar('Textarea', 'placeholder-opacity')
     const rowsVar = getComponentLevelCssVar('Textarea', 'rows')
 

@@ -23,7 +23,7 @@
         }
       }
     },
-    "label-text": {
+    "properties.label-text": {
       "icon": "text-aa",
       "label": "Label text style"
     },
@@ -39,7 +39,7 @@
         }
       }
     },
-    "optional-text": {
+    "properties.optional-text": {
       "icon": "text-aa",
       "label": "Optional text style"
     },

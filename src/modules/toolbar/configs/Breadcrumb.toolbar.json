@@ -5,7 +5,7 @@
       "icon": "square-logo",
       "label": "Padding"
     },
-    "item-gap": {
+    "properties.item-gap": {
       "icon": "arrows-left-right",
       "label": "Item gap"
     }

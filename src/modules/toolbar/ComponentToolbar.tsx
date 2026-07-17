@@ -7,7 +7,7 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react'
 import type { ReactNode, CSSProperties } from 'react'
-import { parseComponentStructure, toSentenceCase, ComponentProp, VARIANT_PROP_TO_CATEGORY, pathMatchesVariant } from './utils/componentToolbarUtils'
+import { parseComponentStructure, toSentenceCase, ComponentProp, VARIANT_PROP_TO_CATEGORY, pathMatchesVariant, isDisplayToggleVariant } from './utils/componentToolbarUtils'
 import VariantDropdown from './menu/dropdown/VariantDropdown'
 import VariantSwitch from './menu/dropdown/VariantSwitch'
 import { SegmentedControl } from '../../components/adapters/SegmentedControl'
@@ -106,10 +106,11 @@ export default function ComponentToolbar({
     return loadToolbarConfig(componentName)
   }, [componentName])
 
-  // Filter variants to show (excluding the interaction-states axis, which is handled by the tabs)
+  // Filter variants to show. Excludes the interaction-states axis (handled by the tabs) and any
+  // display-toggle axes like fill-width (rendered in the preview header, not the toolbar).
   const visibleVariants = useMemo(() => {
     const filtered = liveStructure.variants.filter(
-      variant => variant.variants.length >= 1 && variant.propName !== 'states'
+      variant => variant.variants.length >= 1 && variant.propName !== 'states' && !isDisplayToggleVariant(variant.propName)
     )
 
     if (toolbarConfig?.variants) {
@@ -639,7 +640,7 @@ export default function ComponentToolbar({
                         leftSection={
                           isSelected
                             ? iconEl
-                            : <Tooltip label={item.label} position="top">{iconEl}</Tooltip>
+                            : <Tooltip label={item.label} position="top" withinPortal>{iconEl}</Tooltip>
                         }
                       >
                         {isSelected ? item.label : null}

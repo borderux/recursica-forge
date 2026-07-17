@@ -1,7 +1,7 @@
 {
   "variants": {},
   "properties": {
-    "background": {
+    "properties.colors.background-color": {
       "icon": "paint-bucket",
       "label": "Background"
     },
@@ -101,7 +101,7 @@
         }
       }
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
       "label": "Elevation"
     }

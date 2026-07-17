@@ -56,9 +56,9 @@
         }
       }
     },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
-      "label": "Text style"
+      "label": "Text"
     },
     "padding": {
       "icon": "square-logo",
@@ -66,17 +66,17 @@
       "group": {
         "properties.horizontal-padding": {
           "icon": "arrows-left-right",
-          "label": "Horizontal padding"
+          "label": "Horizontal"
         },
         "properties.vertical-padding": {
           "icon": "arrows-up-down",
-          "label": "Vertical padding"
+          "label": "Vertical"
         }
       }
     },
-    "top-bottom-margin": {
+    "properties.top-bottom-margin": {
       "icon": "arrows-up-down",
-      "label": "Top and bottom margin"
+      "label": "Margin"
     },
     "width": {
       "icon": "arrows-left-right",
@@ -90,19 +90,19 @@
           "icon": "arrows-out-line-horizontal",
           "label": "Max width"
         },
-        "properties.min-height": {
+        "properties.height": {
           "icon": "arrows-in-line-vertical",
-          "label": "Min height"
+          "label": "Height"
         }
       }
     },
     "icon": {
-      "icon": "diamond",
+      "icon": "star",
       "label": "Icon",
       "group": {
         "properties.icon-size": {
           "icon": "diamond",
-          "label": "Icon size"
+          "label": "Size"
         },
         "properties.icon-text-gap": {
           "icon": "split-horizontal",
@@ -112,11 +112,16 @@
     },
     "placeholder-opacity": {
       "icon": "eye",
-      "label": "Placeholder opacity"
+      "label": "Placeholder",
+      "group": {
+        "properties.placeholder-opacity": {
+          "label": "Opacity"
+        }
+      }
     },
     "opacity": {
       "icon": "eye",
-      "label": "Disabled opacity",
+      "label": "Opacity",
       "group": {
         "properties.opacity": {
           "label": "Opacity"

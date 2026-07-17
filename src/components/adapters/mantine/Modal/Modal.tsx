@@ -22,6 +22,7 @@ export default function Modal({
     onClose,
     title,
     showHeader = true,
+    showCloseButton = true,
     showFooter = true,
     scrollable = false,
     padding = true,
@@ -288,17 +289,19 @@ export default function Modal({
                     } as any}>
                         {title}
                     </HeadingTag>
-                    <Button
-                        variant="text"
-                        size="small"
-                        layer={layer}
-                        onClick={(e) => {
-                            e.stopPropagation()
-                            onClose()
-                        }}
-                        style={{ flexShrink: 0 }}
-                        icon={CloseIcon ? <CloseIcon size={16} weight="bold" /> : undefined}
-                    />
+                    {showCloseButton && (
+                        <Button
+                            variant="text"
+                            size="small"
+                            layer={layer}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onClose()
+                            }}
+                            style={{ flexShrink: 0 }}
+                            icon={CloseIcon ? <CloseIcon size={16} weight="bold" /> : undefined}
+                        />
+                    )}
                 </Group>
             ) : null}
             withCloseButton={false} // We implement our own close button

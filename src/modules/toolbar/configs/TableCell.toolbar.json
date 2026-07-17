@@ -27,11 +27,11 @@
         }
       }
     },
-    "text-style": {
+    "properties.text-style": {
       "icon": "text-aa",
       "label": "Text Style"
     },
-    "currency-style": {
+    "properties.currency-style": {
       "icon": "text-aa",
       "label": "Currency Style"
     },

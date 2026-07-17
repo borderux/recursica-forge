@@ -6,7 +6,7 @@
     }
   },
   "properties": {
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
       "label": "Text style"
     },
@@ -20,11 +20,11 @@
         }
       }
     },
-    "top-bottom-margin": {
+    "properties.top-bottom-margin": {
       "icon": "arrows-up-down",
       "label": "Top and bottom margin"
     },
-    "min-height": {
+    "properties.min-height": {
       "icon": "arrows-in-line-vertical",
       "label": "Min height"
     }

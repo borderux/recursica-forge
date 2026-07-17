@@ -15,7 +15,7 @@
         }
       }
     },
-    "content-text": {
+    "properties.content-text": {
       "icon": "article",
       "label": "Content text"
     },
@@ -117,7 +117,7 @@
         }
       }
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
       "label": "Elevation"
     }

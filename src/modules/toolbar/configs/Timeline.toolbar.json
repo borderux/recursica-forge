@@ -33,15 +33,15 @@
         }
       }
     },
-    "title-text": {
+    "properties.title-text": {
       "icon": "text-aa",
       "label": "Title text style"
     },
-    "description-text": {
+    "properties.description-text": {
       "icon": "text-aa",
       "label": "Description text style"
     },
-    "timestamp-text": {
+    "properties.timestamp-text": {
       "icon": "text-aa",
       "label": "Timestamp text style"
     },

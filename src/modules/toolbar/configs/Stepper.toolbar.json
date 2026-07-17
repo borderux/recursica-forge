@@ -158,15 +158,15 @@
         }
       }
     },
-    "step-number-text": {
+    "properties.step-number-text": {
       "icon": "text-aa",
       "label": "Step number text style"
     },
-    "label-text": {
+    "properties.label-text": {
       "icon": "text-aa",
       "label": "Label text style"
     },
-    "description-text": {
+    "properties.description-text": {
       "icon": "text-aa",
       "label": "Description text style"
     },

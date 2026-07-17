@@ -277,17 +277,7 @@ export function checkForOnToneConflict(
     siblings,
   }
 
-  const pref = getOnTonePreference()
-
-  if (pref === 'always-update') {
-    applyOnToneUpdates(conflict)
-    return
-  }
-  if (pref === 'never-update') {
-    return
-  }
-
-  // 'ask' — fire event
+  // Always prompt — the modal pops on every qualifying change (no stored "don't ask" preference).
   pendingConflict = conflict
 
   if (immediate) {
@@ -310,17 +300,13 @@ export function checkForOnToneConflict(
 // ─── Resolution ───────────────────────────────────────────────────────────────
 
 /**
- * Called by the modal to apply the user's decision.
+ * Called by the modal to apply the user's decision. The modal prompts on every change,
+ * so there is no persisted preference to record here.
  */
 export function resolveOnToneConflict(
   decision: 'update' | 'skip',
   conflict: OnToneConflict,
-  rememberChoice: boolean,
 ): void {
-  if (rememberChoice) {
-    setOnTonePreference(decision === 'update' ? 'always-update' : 'never-update')
-  }
-
   if (decision === 'update') {
     applyOnToneUpdates(conflict)
   }

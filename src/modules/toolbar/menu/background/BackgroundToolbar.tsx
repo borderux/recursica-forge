@@ -159,8 +159,12 @@ export default function BackgroundToolbar({
     })
   }, [structure, includeTextColor, selectedLayer, selectedVariants])
 
-  // Get CSS variables
-  const backgroundVar = backgroundProp?.cssVar || ''
+  // Get CSS variables. The internal search re-resolves the background prop from selectedVariants
+  // (used by components like MenuItem with multiple variant-specific backgrounds). When it finds
+  // nothing — e.g. an interaction state whose selectedVariants.states is gated away from the preview,
+  // or a base selection with no state segment — fall back to the prop the toolbar already resolved
+  // for the active state+layer, so the Background control never silently disappears.
+  const backgroundVar = backgroundProp?.cssVar || prop.cssVar || ''
   const selectedBackgroundVar = selectedBackgroundProp?.cssVar || ''
   const textColorVar = textColorProp?.cssVar || ''
 

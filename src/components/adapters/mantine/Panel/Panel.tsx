@@ -70,12 +70,12 @@ export default function Panel({
     }, [onClose])
 
     // Build CSS variable names for colors
-    const bgVar = getComponentLevelCssVar('Panel', `colors.${layer}.background`)
+    const bgVar = getComponentLevelCssVar('Panel', `colors.${layer}.background-color`)
     const borderColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.border-color`)
     const titleColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.title`)
     const contentColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.content`)
     const dividerColorVar = getComponentLevelCssVar('Panel', `colors.${layer}.divider-color`)
-    const hfBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.header-footer-background`)
+    const hfBgVar = getComponentLevelCssVar('Panel', `colors.${layer}.header-footer-background-color`)
 
     // Build CSS variable names for component-level props
     const borderRadiusVar = getComponentLevelCssVar('Panel', 'border-radius')

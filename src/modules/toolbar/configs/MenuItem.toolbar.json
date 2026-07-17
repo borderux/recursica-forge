@@ -69,11 +69,11 @@
         }
       }
     },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
       "label": "Text style"
     },
-    "supporting-text": {
+    "properties.supporting-text": {
       "icon": "text-aa",
       "label": "Supporting text style"
     },
@@ -91,7 +91,7 @@
         }
       }
     },
-    "border-radius": {
+    "properties.border-radius": {
       "icon": "corners-out",
       "label": "Corner radius"
     },
@@ -117,7 +117,7 @@
         }
       }
     },
-    "disabled-opacity": {
+    "properties.opacity": {
       "icon": "eye",
       "label": "Disabled opacity"
     },

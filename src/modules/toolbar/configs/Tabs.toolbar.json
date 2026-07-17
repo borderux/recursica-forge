@@ -83,11 +83,11 @@
         }
       }
     },
-    "active-text": {
+    "properties.active-text": {
       "icon": "check-square",
       "label": "Active tab text style"
     },
-    "inactive-text": {
+    "properties.inactive-text": {
       "icon": "squares-four",
       "label": "Inactive tab text style"
     },

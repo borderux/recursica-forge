@@ -163,8 +163,21 @@ html[data-theme-mode="dark"] .toolbar-section-label {
   display: flex;
   width: 100%;
   justify-content: center;
+  flex-wrap: nowrap;
 }
+/* Tabs may shrink to fit the row (never wrap); the active tab's label truncates with an
+   ellipsis rather than pushing tabs onto a second line. */
 .component-toolbar-panel .state-tabs-list [role="tab"] {
-  flex: 0 0 auto !important;
+  flex: 0 1 auto !important;
   min-width: 0 !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+.component-toolbar-panel .state-tabs-list [role="tab"] .mantine-Tabs-tabLabel,
+.component-toolbar-panel .state-tabs-list [role="tab"] .mantine-Tabs-tabSection ~ * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }

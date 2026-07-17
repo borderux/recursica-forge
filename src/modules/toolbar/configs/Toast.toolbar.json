@@ -6,11 +6,11 @@
     }
   },
   "properties": {
-    "background": {
+    "properties.colors.background-color": {
       "icon": "paint-bucket",
       "label": "Background"
     },
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
       "label": "Text style"
     },
@@ -106,7 +106,7 @@
         }
       }
     },
-    "elevation": {
+    "properties.elevation": {
       "icon": "copy-simple",
       "label": "Elevation"
     }

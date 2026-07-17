@@ -6,32 +6,38 @@
     }
   },
   "properties": {
-    "text": {
+    "properties.text": {
       "icon": "text-aa",
-      "label": "Text style"
+      "label": "Text"
     },
     "color": {
       "icon": "paint-bucket",
-      "label": "Color",
+      "label": "Colors",
       "group": {
         "properties.colors.text-color": {
-          "label": "Text color"
+          "label": "Text"
         },
         "properties.colors.icon-color": {
-          "label": "Icon color"
+          "label": "Icon"
         }
       }
     },
     "icon": {
-      "icon": "resize",
-      "label": "Size",
+      "icon": "star",
+      "label": "Icon",
       "group": {
         "properties.icon-size": {
-          "label": "Icon size"
+          "label": "Size"
         },
         "properties.icon-text-gap": {
           "label": "Icon-text gap"
-        },
+        }
+      }
+    },
+    "size": {
+      "icon": "arrows-out",
+      "label": "Size",
+      "group": {
         "properties.max-width": {
           "label": "Max width",
           "range": [
