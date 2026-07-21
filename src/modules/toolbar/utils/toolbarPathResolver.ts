@@ -19,8 +19,6 @@ const LEGACY_PROP_TO_PATH: Record<string, string> = {
   'icon-color': 'properties.colors.icon-color',
   'border': 'properties.colors.border-color',
   'border-color': 'properties.colors.border-color',
-  'hover-color': 'properties.colors.hover-color',
-  'hover-opacity': 'properties.colors.hover-opacity',
   'disabled-opacity': 'properties.opacity',
   'opacity': 'properties.opacity',
   'elevation': 'properties.elevation',

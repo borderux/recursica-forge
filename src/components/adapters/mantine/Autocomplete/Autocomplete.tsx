@@ -86,9 +86,7 @@ export default function Autocomplete({
     const leadingIconVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'leading-icon')
     const trailingIconVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', isOpenedState, 'properties', 'colors', layer, 'trailing-icon')
 
-    // Get focus state colors
-    const focusBorderVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', 'focus', 'properties', 'colors', layer, 'border-color')
-    const focusBorderSizeVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', 'focus', 'properties', 'border-size')
+    // Focus is a GLOBAL state (Theme › States) — no per-component focus colors.
 
     // Get variant-specific border size
     const borderSizeVar = buildComponentCssVarPath('Autocomplete', 'variants', 'states', effectiveState, 'properties', 'border-size')
@@ -226,7 +224,10 @@ export default function Autocomplete({
                 height: 'auto',
                 borderRadius: `var(${borderRadiusVar})`,
                 backgroundColor: `var(${backgroundVar})`,
-                boxShadow: `inset 0 0 0 var(${opened || state === 'focus' ? focusBorderSizeVar : borderSizeVar}) var(${opened || state === 'focus' ? focusBorderVar : borderVar})`,
+                // Focus is a GLOBAL state (glow via interactive-states.css) — keep the
+                // base border always; the removed per-component focus vars were making
+                // this box-shadow invalid on focus, so the border vanished.
+                boxShadow: `inset 0 0 0 var(${borderSizeVar}) var(${borderVar})`,
                 color: `var(${textVar})`,
                 cursor: state === 'disabled' ? 'not-allowed' : 'text',
                 transition: 'box-shadow 0.2s, background-color 0.2s',

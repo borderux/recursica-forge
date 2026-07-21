@@ -158,33 +158,12 @@
         }
       }
     },
-    "hover": {
-      "icon": "cursor-click",
-      "label": "Hover",
-      "group": {
-        "properties.colors.hover-color": {
-          "label": "Color"
-        },
-        "properties.colors.hover-opacity": {
-          "label": "Opacity"
-        }
-      }
-    },
     "opacity": {
       "icon": "eye",
-      "label": "Hover opacity",
+      "label": "Disabled opacity",
       "group": {
         "properties.opacity": {
           "label": "Opacity"
-        }
-      }
-    },
-    "hover-text-color": {
-      "icon": "text-aa",
-      "label": "Hover text color",
-      "group": {
-        "properties.color": {
-          "label": "Text"
         }
       }
     }

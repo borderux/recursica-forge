@@ -11,7 +11,11 @@ import { UnifiedThemeProvider } from './components/providers/UnifiedThemeProvide
 import { ComplianceProvider } from './core/compliance/ComplianceContext'
 import './styles/index.css'
 import './styles/theme.css.ts'
+import './styles/interactive-states.css'
 import { bootstrapTheme } from './core/bootstrap'
+import { initFocusModality } from './core/css/focusModality'
+
+initFocusModality()
 
 // Lazy load pages to split code chunks
 const PalettesPage = React.lazy(() => import('./modules/palettes/PalettesPage'))
@@ -24,6 +28,7 @@ const LayersPage = React.lazy(() => import('./modules/layers/LayersPage'))
 const ElevationsPage = React.lazy(() => import('./modules/elevation/ElevationsPage'))
 const ThemePage = React.lazy(() => import('./modules/theme/ThemePage'))
 const DimensionsPage = React.lazy(() => import('./modules/dimensions/DimensionsPage'))
+const StatesPage = React.lazy(() => import('./modules/theme/StatesPage'))
 const CompliancePage = React.lazy(() => import('./modules/compliance/CompliancePage'))
 
 const RandomizerResultsPage = import.meta.env.DEV
@@ -105,6 +110,7 @@ const router = createBrowserRouter([
           { path: 'elevations', element: <ElevationsPage /> },
           { path: 'layers', element: <LayersPage /> },
           { path: 'dimensions', element: <DimensionsPage /> },
+          { path: 'states', element: <StatesPage /> },
           { path: 'compliance', element: <CompliancePage /> },
         ],
       },

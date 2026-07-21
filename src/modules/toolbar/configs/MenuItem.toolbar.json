@@ -24,14 +24,6 @@
         "properties.trailing-icon-color": {
           "icon": "image-square",
           "label": "Trailing icon"
-        },
-        "properties.colors.hover-color": {
-          "icon": "cursor-click",
-          "label": "Hover color"
-        },
-        "properties.colors.hover-opacity": {
-          "icon": "cursor-click",
-          "label": "Hover opacity"
         }
       }
     },
@@ -58,14 +50,6 @@
         "properties.trailing-icon-color": {
           "icon": "image-square",
           "label": "Trailing icon"
-        },
-        "properties.colors.hover-color": {
-          "icon": "cursor-click",
-          "label": "Hover color"
-        },
-        "properties.colors.hover-opacity": {
-          "icon": "cursor-click",
-          "label": "Hover opacity"
         }
       }
     },

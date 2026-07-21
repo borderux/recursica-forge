@@ -157,6 +157,12 @@ describe('buildPaletteVars', () => {
     const vars = buildPaletteVars(mockTokens, mockTheme, 'Light')
     
     expect(vars['--recursica_brand_themes_light_states_disabled']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_states_hover_color']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_states_hover_opacity']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_states_focus_color']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_states_focus_border-size']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_states_focus_margin']).toBeDefined()
+    expect(vars['--recursica_brand_themes_light_states_focus_blur']).toBeDefined()
     expect(vars['--recursica_brand_themes_light_states_overlay_opacity']).toBeDefined()
     expect(vars['--recursica_brand_themes_light_states_overlay_color']).toBeDefined()
   })

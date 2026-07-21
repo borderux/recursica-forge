@@ -118,15 +118,9 @@
       }
     },
     "overlay": {
-      "icon": "palette",
-      "label": "Overlay",
+      "icon": "eye",
+      "label": "Disabled opacity",
       "group": {
-        "properties.hover-color": {
-          "label": "Color"
-        },
-        "properties.hover-opacity": {
-          "label": "Hover Opacity"
-        },
         "properties.disabled-opacity": {
           "label": "Disabled Opacity"
         }

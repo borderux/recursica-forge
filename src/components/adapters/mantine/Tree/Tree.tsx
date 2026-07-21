@@ -56,11 +56,10 @@ export default function Tree({
   const borderSizeVar = getComponentLevelCssVar('Tree', 'border-size')
   const borderRadiusVar = getComponentLevelCssVar('Tree', 'border-radius')
 
-  // Colors + text style now live under variants.selections.<sel>[.variants.states.hover].properties…
+  // Colors + text style live under variants.selection-states.<sel>.properties…
+  // (hover is a GLOBAL state now — no per-component hover colors)
   const baseColorVar = (sel: string, prop: string) =>
     buildComponentCssVarPath('Tree', 'variants', 'selection-states', sel, 'properties', 'colors', layer, prop)
-  const hoverColorVar = (sel: string, prop: string) =>
-    buildComponentCssVarPath('Tree', 'variants', 'selection-states', sel, 'variants', 'states', 'hover', 'properties', 'colors', layer, prop)
   const textStyleVar = (sel: string, prop: string) =>
     buildComponentCssVarPath('Tree', 'variants', 'selection-states', sel, 'properties', 'text', prop)
 
@@ -82,12 +81,6 @@ export default function Tree({
     '--tree-unselected-bg': `var(${baseColorVar('unselected', 'background-color')}, transparent)`,
     '--tree-unselected-border-color': `var(${baseColorVar('unselected', 'border-color')}, transparent)`,
     '--tree-unselected-text': `var(${baseColorVar('unselected', 'text-color')})`,
-    '--tree-selected-hover-bg': `var(${hoverColorVar('selected', 'background-color')})`,
-    '--tree-selected-hover-border-color': `var(${hoverColorVar('selected', 'border-color')}, transparent)`,
-    '--tree-selected-hover-text': `var(${hoverColorVar('selected', 'text-color')})`,
-    '--tree-unselected-hover-bg': `var(${hoverColorVar('unselected', 'background-color')})`,
-    '--tree-unselected-hover-border-color': `var(${hoverColorVar('unselected', 'border-color')}, transparent)`,
-    '--tree-unselected-hover-text': `var(${hoverColorVar('unselected', 'text-color')})`,
   }
   for (const p of TEXT_PROPS) {
     treeVars[`--tree-selected-${p}`] = `var(${textStyleVar('selected', p)})`
@@ -137,6 +130,9 @@ export default function Tree({
                   <Button
                     variant="text"
                     size="small"
+                    /* Not a separate tab stop — the tree node (treeitem) is the focus target
+                       and gets the global focus glow; the chevron toggles expand on node click. */
+                    {...({ tabIndex: -1, 'aria-hidden': true } as any)}
                     icon={expanded ? (
                       ChevronDownIcon ? <ChevronDownIcon /> : '▼'
                     ) : (

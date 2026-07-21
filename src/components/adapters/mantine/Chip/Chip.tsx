@@ -326,7 +326,9 @@ export default function Chip({
 
   return (
     <Component
-      key={`chip-${variant}-${layer}`}
+      /* Keep the element stable across selection changes so toggling doesn't
+         remount it and drop keyboard focus (variant intentionally excluded). */
+      key={`chip-${layer}`}
       disabled={isButton ? disabled : undefined}
       data-disabled={disabled ? "true" : undefined}
       type={isButton ? "button" : undefined}

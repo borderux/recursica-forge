@@ -24,6 +24,61 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const firstHexMatchRef = useRef<string | null>(null)
   const [activeOnSelect, setActiveOnSelect] = useState<((cssVarName: string) => void) | null>(null)
+  const gridRef = useRef<HTMLDivElement>(null)
+
+  const closePicker = () => {
+    setAnchor(null)
+    setActiveOnSelect(null)
+  }
+
+  // Keyboard nav inside the swatch grid: arrow keys move focus geometrically
+  // between swatches, Escape closes. Swatches use tabIndex=-1 so Tab / Shift+Tab
+  // exit the grid (Shift+Tab lands on the modal's close button).
+  const handleGridKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') { e.preventDefault(); closePicker(); return }
+    if (!e.key.startsWith('Arrow')) return
+    const container = gridRef.current
+    if (!container) return
+    const swatches = Array.from(container.querySelectorAll<HTMLElement>('.palette-swatch'))
+    if (swatches.length === 0) return
+    const cur = document.activeElement as HTMLElement
+    if (!swatches.includes(cur)) { e.preventDefault(); swatches[0].focus(); return }
+    e.preventDefault()
+    const c = cur.getBoundingClientRect()
+    const ccx = c.left + c.width / 2
+    const ccy = c.top + c.height / 2
+    let best: HTMLElement | null = null
+    let bestScore = Infinity
+    for (const el of swatches) {
+      if (el === cur) continue
+      const r = el.getBoundingClientRect()
+      const dx = (r.left + r.width / 2) - ccx
+      const dy = (r.top + r.height / 2) - ccy
+      let primary: number, cross: number
+      if (e.key === 'ArrowRight') { if (dx <= 1) continue; primary = dx; cross = Math.abs(dy) }
+      else if (e.key === 'ArrowLeft') { if (dx >= -1) continue; primary = -dx; cross = Math.abs(dy) }
+      else if (e.key === 'ArrowDown') { if (dy <= 1) continue; primary = dy; cross = Math.abs(dx) }
+      else if (e.key === 'ArrowUp') { if (dy >= -1) continue; primary = -dy; cross = Math.abs(dx) }
+      else continue
+      const score = primary + cross * 3
+      if (score < bestScore) { bestScore = score; best = el }
+    }
+    best?.focus()
+  }
+
+  // When the picker opens (and is positioned), move focus to the selected swatch.
+  useEffect(() => {
+    if (!anchor || pos.top === -9999) return
+    const t = setTimeout(() => {
+      const container = gridRef.current
+      if (!container) return
+      // Selected swatches render with a rounded selection border (5px radius); focus that one.
+      const all = Array.from(container.querySelectorAll<HTMLElement>('.palette-swatch'))
+      const sel = all.find((el) => getComputedStyle(el).borderTopLeftRadius.startsWith('5'))
+      ;(sel || all[0])?.focus()
+    }, 40)
+    return () => clearTimeout(t)
+  }, [anchor, pos.top])
 
 
   // Reset firstHexMatchRef when target changes so hex-based selection works correctly for each picker session
@@ -348,6 +403,8 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
       }}
     >
       <div
+        ref={gridRef}
+        onKeyDown={handleGridKeyDown}
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -535,7 +592,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       key={s.key}
                       title={s.label}
                       className="palette-swatch"
-                      tabIndex={0}
+                      tabIndex={-1}
                       role="button"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -646,7 +703,7 @@ export default function PaletteSwatchPicker({ onSelect }: { onSelect?: (cssVarNa
                       key={s.key}
                       title={s.label}
                       className="palette-swatch"
-                      tabIndex={0}
+                      tabIndex={-1}
                       role="button"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {

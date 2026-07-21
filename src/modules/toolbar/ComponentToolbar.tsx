@@ -137,9 +137,10 @@ export default function ComponentToolbar({
       const cat = VARIANT_PROP_TO_CATEGORY[v.propName] || v.propName
       const activeVal = selectedVariants[v.propName] || v.variants[0]
       const nested = compJson.variants?.[cat]?.[activeVal]?.variants?.states
-      if (nested) return nested
+      if (nested && Object.keys(nested).length > 0) return nested
     }
-    return compJson.variants?.states ?? null
+    const top = compJson.variants?.states
+    return top && Object.keys(top).length > 0 ? top : null
   }, [compJson, selectedVariants, liveStructure.variants])
 
   const hasStates = !!activeStatesObj
@@ -466,14 +467,13 @@ export default function ComponentToolbar({
     // States for the current selection (nested under whichever variant axis is active).
     let availableStates: string[] = activeStatesObj ? Object.keys(activeStatesObj).map(s => s.toLowerCase()) : []
 
-    // If no statesObj is found, default to standard interaction states
+    // hover & focus are now GLOBAL states (Theme › States page), not per-component.
+    // Only component control-states (disabled / error / active) get tabs here.
     if (availableStates.length === 0) {
-      availableStates = ['hover', 'focus', 'disabled']
+      availableStates = ['disabled']
     }
 
     const orderedStates = [
-      { key: 'hover', label: 'Hover', icon: 'hand-pointing' },
-      { key: 'focus', label: 'Focus', icon: 'radio-button' },
       { key: 'active', label: 'Active', icon: 'cursor' },
       { key: 'error', label: 'Error', icon: 'warning' },
       { key: 'disabled', label: 'Disabled', icon: 'prohibit' }

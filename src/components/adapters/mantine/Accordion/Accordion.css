@@ -33,14 +33,14 @@
 .recursica-accordion.mantine-accordion .mantine-Accordion-item {
   padding: var(--accordion-item-padding, 0) !important;
   margin: var(--accordion-item-margin, 0) !important;
-  background: var(--acc-src-bg-base-collapsed) !important;
+  background-color: var(--acc-src-bg-base-collapsed) !important;
   border-radius: var(--accordion-item-border-radius) !important;
   border: var(--accordion-item-border-size, 0) solid var(--accordion-item-border-color, transparent) !important;
 }
 
 /* Apply expanded background when accordion item is open */
 .recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] {
-  background: var(--acc-src-bg-base-expanded) !important;
+  background-color: var(--acc-src-bg-base-expanded) !important;
 }
 
 /* Divider between items - rendered as a line centered in the gap between items */
@@ -97,39 +97,15 @@
   --acc-header-border: var(--acc-src-border-base-expanded);
 }
 
-/* Hover state (per appearance) */
-.recursica-accordion.mantine-accordion .mantine-Accordion-control:hover {
-  color: var(--acc-src-text-hover-collapsed) !important;
-  background: var(--acc-src-bg-hover-collapsed) !important;
-  --accordion-header-icon: var(--acc-src-icon-hover-collapsed);
-  --acc-header-border: var(--acc-src-border-hover-collapsed);
-}
-.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] .mantine-Accordion-control:hover {
-  color: var(--acc-src-text-hover-expanded) !important;
-  background: var(--acc-src-bg-hover-expanded) !important;
-  --accordion-header-icon: var(--acc-src-icon-hover-expanded);
-  --acc-header-border: var(--acc-src-border-hover-expanded);
-}
-
-/* Focus state (per appearance) */
-.recursica-accordion.mantine-accordion .mantine-Accordion-control:focus-visible {
-  color: var(--acc-src-text-focus-collapsed) !important;
-  background: var(--acc-src-bg-focus-collapsed) !important;
-  --accordion-header-icon: var(--acc-src-icon-focus-collapsed);
-  --acc-header-border: var(--acc-src-border-focus-collapsed);
-}
-.recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] .mantine-Accordion-control:focus-visible {
-  color: var(--acc-src-text-focus-expanded) !important;
-  background: var(--acc-src-bg-focus-expanded) !important;
-  --accordion-header-icon: var(--acc-src-icon-focus-expanded);
-  --acc-header-border: var(--acc-src-border-focus-expanded);
-}
+/* Hover & focus are GLOBAL states (Theme › States / src/styles/interactive-states.css).
+   The per-appearance hover/focus rules were removed: their source vars no longer exist,
+   and an invalid `background:` shorthand here was killing the global hover overlay. */
 
 /* Disabled state (per appearance) */
 .recursica-accordion.mantine-accordion .mantine-Accordion-control:disabled,
 .recursica-accordion.mantine-accordion .mantine-Accordion-control[data-disabled] {
   color: var(--acc-src-text-disabled-collapsed) !important;
-  background: var(--acc-src-bg-disabled-collapsed) !important;
+  background-color: var(--acc-src-bg-disabled-collapsed) !important;
   --accordion-header-icon: var(--acc-src-icon-disabled-collapsed);
   --acc-header-border: var(--acc-src-border-disabled-collapsed);
   opacity: var(--accordion-item-header-disabled-opacity, 1) !important;
@@ -137,7 +113,7 @@
 .recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] .mantine-Accordion-control:disabled,
 .recursica-accordion.mantine-accordion .mantine-Accordion-item[data-open='true'] .mantine-Accordion-control[data-disabled] {
   color: var(--acc-src-text-disabled-expanded) !important;
-  background: var(--acc-src-bg-disabled-expanded) !important;
+  background-color: var(--acc-src-bg-disabled-expanded) !important;
   --accordion-header-icon: var(--acc-src-icon-disabled-expanded);
   --acc-header-border: var(--acc-src-border-disabled-expanded);
 }
@@ -216,8 +192,5 @@
 .recursica-accordion.mantine-accordion .mantine-Accordion-panel .layer-segmented-control-buttons {
   border: revert !important;
 }
-/* Accessibility: Restore focus ring */
-.recursica-accordion.mantine-accordion .mantine-Accordion-control:focus-visible {
-  outline: 2px solid var(--accordion-border, var(--accordion-item-border-color, #005fcc)) !important;
-  outline-offset: 2px !important;
-}
+/* Focus glow is provided globally by src/styles/interactive-states.css
+   (the control is a <button>). No per-component focus outline here. */

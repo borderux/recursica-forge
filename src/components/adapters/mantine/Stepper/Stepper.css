@@ -7,6 +7,13 @@
 
 /* ---- Indicator (stepIcon) ---- */
 
+/* Completed check icon inside the bullet: Mantine sets its own color on
+   stepCompletedIcon — force the themed indicator-text color instead. */
+.recursica-stepper .mantine-Stepper-step[data-completed] .mantine-Stepper-stepCompletedIcon,
+.recursica-stepper .mantine-Stepper-step[data-completed] .mantine-Stepper-stepCompletedIcon svg {
+    color: var(--stepper-completed-indicator-text) !important;
+}
+
 /* Completed step indicator */
 .recursica-stepper .mantine-Stepper-step[data-completed] .mantine-Stepper-stepIcon {
     background-color: var(--stepper-completed-indicator-bg) !important;

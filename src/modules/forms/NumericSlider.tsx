@@ -42,6 +42,7 @@ export default function NumericSlider({
         layer="layer-3"
         layout="stacked"
         showInput={false}
+        showMinMaxLabels={false}
         showValueLabel={true}
         valueLabel={displayLabel}
         label={label ? <Label layer="layer-3" layout="stacked">{label}</Label> : undefined}

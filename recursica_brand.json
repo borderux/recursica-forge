@@ -246,8 +246,55 @@
             "$value": "{tokens.opacities.ghost}"
           },
           "hover": {
-            "$type": "number",
-            "$value": "{tokens.opacities.mist}"
+            "color": {
+              "$type": "color",
+              "$value": "{brand.themes.light.palettes.core-colors.high-contrast.tone}"
+            },
+            "opacity": {
+              "$type": "number",
+              "$value": "{tokens.opacities.mist}"
+            }
+          },
+          "link": {
+            "decoration": {
+              "$type": "string",
+              "$value": "underline"
+            },
+            "style": {
+              "$type": "string",
+              "$value": "normal"
+            },
+            "weight": {
+              "$type": "string",
+              "$value": "700"
+            }
+          },
+          "focus": {
+            "color": {
+              "$type": "color",
+              "$value": "{brand.themes.light.palettes.core-colors.interactive.tone}"
+            },
+            "border-size": {
+              "$type": "number",
+              "$value": {
+                "value": 1,
+                "unit": "px"
+              }
+            },
+            "margin": {
+              "$type": "number",
+              "$value": {
+                "value": 2,
+                "unit": "px"
+              }
+            },
+            "blur": {
+              "$type": "number",
+              "$value": {
+                "value": 4,
+                "unit": "px"
+              }
+            }
           },
           "overlay": {
             "color": {
@@ -1334,8 +1381,55 @@
             "$value": "{tokens.opacities.ghost}"
           },
           "hover": {
-            "$type": "number",
-            "$value": "{tokens.opacities.mist}"
+            "color": {
+              "$type": "color",
+              "$value": "{brand.themes.dark.palettes.core-colors.high-contrast.tone}"
+            },
+            "opacity": {
+              "$type": "number",
+              "$value": "{tokens.opacities.mist}"
+            }
+          },
+          "link": {
+            "decoration": {
+              "$type": "string",
+              "$value": "underline"
+            },
+            "style": {
+              "$type": "string",
+              "$value": "normal"
+            },
+            "weight": {
+              "$type": "string",
+              "$value": "700"
+            }
+          },
+          "focus": {
+            "color": {
+              "$type": "color",
+              "$value": "{brand.themes.dark.palettes.core-colors.interactive.tone}"
+            },
+            "border-size": {
+              "$type": "number",
+              "$value": {
+                "value": 1,
+                "unit": "px"
+              }
+            },
+            "margin": {
+              "$type": "number",
+              "$value": {
+                "value": 2,
+                "unit": "px"
+              }
+            },
+            "blur": {
+              "$type": "number",
+              "$value": {
+                "value": 4,
+                "unit": "px"
+              }
+            }
           },
           "overlay": {
             "color": {

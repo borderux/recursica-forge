@@ -31,32 +31,13 @@ export default function CheckboxItem({
     const textDecorationVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-decoration')
     const textTransformVar = getComponentTextCssVar('CheckboxItem', 'text', 'text-transform')
 
-    const getCheckboxPropVar = (prop: string) => `var(${buildComponentCssVarPath('Checkbox', 'properties', prop)})`
-    const getCheckboxColorVar = (prop: string) => `var(${buildComponentCssVarPath('Checkbox', 'properties', 'colors', layer, prop)})`
     const getCheckboxItemColorVar = (prop: string) => `var(${buildComponentCssVarPath('CheckboxItem', 'properties', 'colors', layer, prop)})`
 
+    // NOTE: the checkbox box's own size/color vars are set by the base Checkbox
+    // adapter (from the current variants.selection-states.* JSON structure). We must
+    // NOT re-specify them here — the old flat paths no longer exist and would
+    // override the correct values with empty vars. Only item-level vars belong here.
     const cssVars = {
-        '--checkbox-size': getCheckboxPropVar('size'),
-        '--checkbox-radius': getCheckboxPropVar('border-radius'),
-        '--checkbox-border-width': getCheckboxPropVar('border-size'),
-        '--checkbox-icon-size': getCheckboxPropVar('icon-size'),
-        '--checkbox-bg-checked': getCheckboxColorVar('background-checked'),
-        '--checkbox-border-checked': getCheckboxColorVar('border-checked'),
-        '--checkbox-bg-unchecked': getCheckboxColorVar('background-unchecked'),
-        '--checkbox-border-unchecked': getCheckboxColorVar('border-unchecked'),
-        '--checkbox-bg-indeterminate': getCheckboxColorVar('background-indeterminate'),
-        '--checkbox-border-indeterminate': getCheckboxColorVar('border-indeterminate'),
-        '--checkbox-icon-color': getCheckboxColorVar('icon-color'),
-        '--checkbox-icon-color-indeterminate': getCheckboxColorVar('icon-color-indeterminate'),
-        '--checkbox-disabled-bg-checked': getCheckboxColorVar('disabled-background-checked-color'),
-        '--checkbox-disabled-bg-unchecked': getCheckboxColorVar('disabled-background-unchecked-color'),
-        '--checkbox-disabled-bg-indeterminate': getCheckboxColorVar('disabled-background-indeterminate-color'),
-        '--checkbox-disabled-border-checked': getCheckboxColorVar('disabled-border-checked'),
-        '--checkbox-disabled-border-unchecked': getCheckboxColorVar('disabled-border-unchecked'),
-        '--checkbox-disabled-border-indeterminate': getCheckboxColorVar('disabled-border-indeterminate'),
-        '--checkbox-disabled-icon-checked': getCheckboxColorVar('disabled-icon-checked'),
-        '--checkbox-disabled-icon-indeterminate': getCheckboxColorVar('disabled-icon-indeterminate'),
-        '--checkbox-disabled-opacity': getCheckboxPropVar('disabled-opacity'),
         '--checkbox-item-gap': `var(${labelGapVar})`,
         '--checkbox-item-font-family': `var(${fontFamilyVar})`,
         '--checkbox-item-font-size': `var(${fontSizeVar})`,

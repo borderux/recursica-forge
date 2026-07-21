@@ -78,7 +78,8 @@
 .mantine-Button-root:hover:not([data-disabled="true"]) svg,
 .mantine-Button-root:hover:not([data-disabled="true"]) .recursica-button-left-section,
 .mantine-Button-root:hover:not([data-disabled="true"]) .recursica-button-right-section {
-  color: var(--button-icon-color-hover, var(--button-text-hover, var(--button-color))) !important;
+  /* Keep base icon color on hover (no per-component hover override). */
+  color: var(--button-icon-color, inherit) !important;
 }
 
 /* Small buttons (xs) use small-icon variant - use --button-icon-size first (reactive), fall back to static recursica var */
@@ -277,58 +278,19 @@
 .recursica-layer-3 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled),
 .recursica-layer-3 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled),
 .recursica-layer-3 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled) {
-  /* Prevent background color change on hover - override Mantine's CSS-in-JS */
+  /* Components define NO hover styling — hover is a global overlay (Theme › States).
+     These rules only NEUTRALIZE Mantine's built-in hover so the button keeps its
+     base appearance; the global tint provides the hover feedback. */
   background-color: var(--button-bg) !important;
-  /* Apply text hover color */
-  color: var(--button-text-hover, var(--button-color)) !important;
-  /* Apply hover border color */
-  border-color: var(--button-border-color-hover, var(--button-border-color)) !important;
-  /* Apply hover-elevation box-shadow if set, otherwise remove shadow */
-  box-shadow: var(--button-hover-box-shadow, none) !important;
-  /* Prevent any gradient or filter effects */
-  filter: none !important;
-  backdrop-filter: none !important;
-  /* Ensure overlay is not clipped */
-  overflow: visible !important;
-  /* Ensure no transforms that could affect positioning */
+  color: var(--button-color) !important;
+  /* NOTE: do not touch border-color here — for variants without --button-border-color
+     (e.g. text), an unset var() invalidates the declaration and the border falls back
+     to currentColor, painting a phantom outline on hover. The base border (--button-bd)
+     already carries through unchanged. */
+  box-shadow: var(--recursica_ui-kit_components_button_elevation, none) !important;
   transform: none !important;
-  will-change: auto !important;
-  /* Disable transitions that could affect overlay positioning */
-  transition: none !important;
 }
 
-.mantine-Button-root:hover:not([data-disabled="true"])::before,
-.mantine-Button-root[data-variant="filled"]:hover:not([data-disabled="true"])::before,
-.mantine-Button-root[data-variant="outline"]:hover:not([data-disabled="true"])::before,
-.mantine-Button-root[data-variant="subtle"]:hover:not([data-disabled="true"])::before,
-.recursica-layer-0 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
-.recursica-layer-0 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
-.recursica-layer-0 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before,
-.recursica-layer-1 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
-.recursica-layer-1 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
-.recursica-layer-1 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before,
-.recursica-layer-2 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
-.recursica-layer-2 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
-.recursica-layer-2 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before,
-.recursica-layer-3 .mantine-Button-root[data-variant="filled"]:hover:not(:disabled)::before,
-.recursica-layer-3 .mantine-Button-root[data-variant="outline"]:hover:not(:disabled)::before,
-.recursica-layer-3 .mantine-Button-root[data-variant="subtle"]:hover:not(:disabled)::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--button-hover-color, #000000);
-  opacity: var(--button-hover-opacity, 0.08);
-  border-radius: inherit;
-  pointer-events: none;
-  /* Prevent blur or filter effects */
-  backdrop-filter: none !important;
-  filter: none !important;
-  transform: none !important;
-  will-change: auto !important;
-  /* Disable all transitions and animations */
-  transition: none !important;
-  animation: none !important;
-}
+/* Hover tint is now provided globally by src/styles/interactive-states.css
+   (brand States page). The per-component ::before overlay was removed so the
+   global hover overlay is the single source of truth. */

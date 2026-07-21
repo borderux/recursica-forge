@@ -162,11 +162,11 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
         // Persist to theme JSON if this is a text-emphasis opacity, hover opacity, disabled opacity, or overlay opacity
         const isEmphasisOpacity = prefixedTarget.includes('text-emphasis-high') ||
           prefixedTarget.includes('text-emphasis-low')
-        const isHoverOpacity = prefixedTarget.includes('state-hover')
+        // Hover opacity is now a global state edited on the Theme › States page — not here.
         const isDisabledOpacity = prefixedTarget.includes('state-disabled')
         const isOverlayOpacity = prefixedTarget.includes('state-overlay-opacity')
 
-        if ((isEmphasisOpacity || isHoverOpacity || isDisabledOpacity || isOverlayOpacity) && themeJson) {
+        if ((isEmphasisOpacity || isDisabledOpacity || isOverlayOpacity) && themeJson) {
           try {
             const themeCopy = getVarsStore().getLatestThemeCopy()
             const root: any = themeCopy?.brand ? themeCopy.brand : themeCopy
@@ -187,18 +187,6 @@ export default function OpacityPickerOverlay({ tokenName: propTokenName, onClose
 
               // Update the opacity reference in theme JSON
               themes[modeKey]['text-emphasis'][emphasisKey] = {
-                // Use plural form (opacities) for token references
-                $value: `{tokens.opacities.${tokenKey}}`
-              }
-            } else if (isHoverOpacity) {
-              // Handle hover opacity
-              // Ensure states structure exists
-              if (!themes[modeKey]) themes[modeKey] = {}
-              if (!themes[modeKey].states) themes[modeKey].states = {}
-
-              // Update the hover opacity reference in theme JSON
-              themes[modeKey].states.hover = {
-                $type: 'number',
                 // Use plural form (opacities) for token references
                 $value: `{tokens.opacities.${tokenKey}}`
               }

@@ -107,8 +107,8 @@ export default function ComponentDetailPage() {
   // override). Stable identity so the toolbar's notify effect doesn't refire every render.
   const handleActiveStateChange = useCallback((state: string) => {
     setActiveState(state)
-    // Only error/disabled are forced into the preview; hover/focus require real interaction, so
-    // they don't drive selectedVariants.states (which the state-aware previews read).
+    // Component control-states (error/disabled) are forced into the preview. Hover & focus are now
+    // global states (Theme › States) applied on real interaction, so they never appear as tabs here.
     const forced = (state === 'error' || state === 'disabled') ? state : 'default'
     setSelectedVariants(prev => ({ ...prev, states: forced }))
   }, [])
