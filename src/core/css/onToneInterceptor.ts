@@ -331,9 +331,19 @@ function applyOnToneUpdates(conflict: OnToneConflict): void {
   const cssVarFromRef = '--recursica_' + refInner.replace(/\./g, '_')
   const cssVarValue = `var(${cssVarFromRef})`
 
+  const updatedVars: string[] = []
   for (const sibling of conflict.siblings) {
     // Write to DOM and sync JSON — noGlobalRefCheck=true prevents the global ref
     // interceptor from also firing on these sibling writes.
     updateCssVar(sibling.cssVarName, cssVarValue, undefined, { noGlobalRefCheck: true, noOnToneCheck: true })
+    updatedVars.push(sibling.cssVarName)
+  }
+
+  // updateCssVar writes UIKit vars SILENTLY (see updateCssVar.ts), so the toolbar prop
+  // controls — which re-read via useRawCssVar on `cssVarsUpdated` — never hear about these
+  // on-tone sibling changes and keep showing stale values. Dispatch the event explicitly so
+  // every affected control refreshes to the newly-applied on-tone value(s).
+  if (updatedVars.length > 0 && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('cssVarsUpdated', { detail: { cssVars: updatedVars } }))
   }
 }

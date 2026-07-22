@@ -8,11 +8,8 @@
   "properties": {
     "colors": {
       "icon": "palette",
-      "label": "Colors",
+      "label": "Text colors",
       "group": {
-        "properties.colors.connector-color": {
-          "label": "Connector"
-        },
         "properties.colors.title-color": {
           "label": "Title"
         },
@@ -24,12 +21,21 @@
         }
       }
     },
-    "connector-size": {
+    "connector": {
       "icon": "arrows-left-right",
-      "label": "Connector size",
+      "label": "Connector",
       "group": {
+        "properties.colors.connector-color": {
+          "label": "Color"
+        },
         "properties.connector-size": {
-          "label": "Size"
+          "label": "Size",
+          "propertyType": "slider",
+          "range": [
+            0,
+            20
+          ],
+          "step": 1
         }
       }
     },
@@ -49,6 +55,9 @@
       "icon": "split-horizontal",
       "label": "Spacing",
       "group": {
+        "properties.item-gap": {
+          "label": "Gap between items"
+        },
         "properties.bullet-content-gap": {
           "label": "Bullet content gap"
         },

@@ -18,7 +18,13 @@
         },
         "properties.button-node-gap": {
           "label": "Button/node gap"
-        },
+        }
+      }
+    },
+    "node": {
+      "icon": "tree-structure",
+      "label": "Node",
+      "group": {
         "properties.vertical-padding": {
           "label": "Vertical padding"
         },

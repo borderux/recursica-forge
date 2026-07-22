@@ -1,6 +1,6 @@
 /**
  * CSS Variable Name Utilities
- * 
+ *
  * Generates CSS variable names for UIKit components following the pattern:
  * --recursica_ui-kit_components_{component}_{path-segments}
  * 

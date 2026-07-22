@@ -65,7 +65,6 @@ export default function StepperPreview({
                 gap: '24px',
                 width: '100%',
                 alignItems: orientation === 'vertical' ? 'flex-start' : 'center',
-                padding: '16px',
             }}
         >
             <Stepper

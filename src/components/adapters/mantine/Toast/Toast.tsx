@@ -37,13 +37,14 @@ export default function Toast({
   const toastTextVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'text-color')
   // Button color from recursica_ui-kit.json
   const toastButtonVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'button')
+  // Border color is per-style (each style variant defines its own), mirroring bg/text/button.
+  const toastBorderColorVar = buildComponentCssVarPath('Toast', 'variants', 'styles', variant, 'properties', 'colors', layer, 'border-color')
   
   // Get component-level CSS variables (these are under toast.properties in recursica_ui-kit.json)
   const verticalPaddingVar = getComponentLevelCssVar('Toast', 'vertical-padding')
   const horizontalPaddingVar = getComponentLevelCssVar('Toast', 'horizontal-padding')
   const borderRadiusVar = getComponentLevelCssVar('Toast', 'border-radius')
   const borderSizeVar = getComponentLevelCssVar('Toast', 'border-size')
-  const borderColorVar = getComponentLevelCssVar('Toast', 'border-color')
   const minWidthVar = getComponentLevelCssVar('Toast', 'min-width')
   const maxWidthVar = getComponentLevelCssVar('Toast', 'max-width')
   const minHeightVar = getComponentLevelCssVar('Toast', 'min-height')
@@ -177,7 +178,7 @@ export default function Toast({
       '--toast-horizontal-padding': `var(${horizontalPaddingVar})`,
       '--toast-border-radius': `var(${borderRadiusVar})`,
       '--toast-border-size': `var(${borderSizeVar})`,
-      '--toast-border-color': `var(${borderColorVar})`,
+      '--toast-border-color': `var(${toastBorderColorVar})`,
       '--toast-min-width': `var(${minWidthVar})`,
       '--toast-max-width': `var(${maxWidthVar})`,
       '--toast-min-height': `var(${minHeightVar})`,

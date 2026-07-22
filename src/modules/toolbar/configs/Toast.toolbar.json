@@ -6,18 +6,18 @@
     }
   },
   "properties": {
-    "properties.colors.background-color": {
-      "icon": "paint-bucket",
-      "label": "Background"
-    },
     "properties.text": {
       "icon": "text-aa",
       "label": "Text style"
     },
-    "text-color": {
-      "icon": "text-aa",
-      "label": "Text color",
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
       "group": {
+        "properties.colors.background-color": {
+          "icon": "paint-bucket",
+          "label": "Background"
+        },
         "properties.colors.text-color": {
           "icon": "text-aa",
           "label": "Text"
@@ -25,6 +25,10 @@
         "properties.button": {
           "icon": "paint-bucket",
           "label": "Button"
+        },
+        "properties.colors.border-color": {
+          "icon": "paint-bucket",
+          "label": "Border"
         }
       }
     },
@@ -55,12 +59,19 @@
           ],
           "step": 1
         },
-        "properties.colors.border-color": {
-          "label": "Color"
-        },
         "properties.border-radius": {
           "icon": "corners-out",
           "label": "Corner radius"
+        }
+      }
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "group": {
+        "properties.elevation": {
+          "icon": "copy-simple",
+          "label": "Elevation"
         }
       }
     },
@@ -98,7 +109,7 @@
       "icon": "diamond",
       "label": "Icon",
       "group": {
-        "properties.colors.icon-color": {
+        "properties.icon": {
           "label": "Icon size"
         },
         "properties.spacing": {

@@ -49,7 +49,6 @@ export default function MenuItemPreview({
       display: 'flex',
       justifyContent: 'center',
       width: '100%',
-      padding: '16px',
     }}>
       <Menu
         key={`menu-${updateKey}`}

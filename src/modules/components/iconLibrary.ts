@@ -150,6 +150,7 @@ import {
   ToggleRight,
   Trash,
   Tree,
+  TreeStructure,
   TrendUp,
   Upload,
   User,
@@ -464,6 +465,7 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'toggle-right': ToggleRight,
   'ruler': Ruler,
   'rectangle': Rectangle,
+  'tree-structure': TreeStructure,
 }
 
 /**

@@ -191,7 +191,10 @@ export default function ComponentDetailPage() {
   }, [selectedVariants, selectedLayer, componentStructure])
 
   // Heading shown above the preview: every selected variant value plus the active interaction
-  // state, joined by a middot (e.g. "Stacked · Base").
+  // state, joined by a middot (e.g. "Stacked · Base"). The interaction state is only appended
+  // when the component actually has states beyond "base" (disabled/error) — for base-only
+  // components, a trailing "· Base" is noise, so it's omitted (leaving just the variant, or the
+  // component name when there are no variants either).
   const variantHeading = useMemo(() => {
     const parts: string[] = []
     if (componentStructure) {
@@ -208,9 +211,13 @@ export default function ComponentDetailPage() {
         }
       })
     }
-    parts.push(activeState.charAt(0).toUpperCase() + activeState.slice(1))
-    return parts.join(' · ')
-  }, [selectedVariants, componentStructure, activeState])
+    const statesVariant = componentStructure?.variants.find(v => v.propName === 'states')
+    const hasNonBaseStates = !!statesVariant && statesVariant.variants.some(s => s !== 'base')
+    if (hasNonBaseStates) {
+      parts.push(activeState.charAt(0).toUpperCase() + activeState.slice(1))
+    }
+    return parts.length > 0 ? parts.join(' · ') : (component?.name ?? '')
+  }, [selectedVariants, componentStructure, activeState, component])
 
   // Display-toggle variants (e.g. fill-width) render as switches in the preview header, aligned to
   // the right of the title — they control how the demo lays out, not a design-token variant.
@@ -349,7 +356,10 @@ export default function ComponentDetailPage() {
           display: 'flex',
           flexDirection: 'column',
           minWidth: 0,
-          padding: component.name.toLowerCase().includes('table') ? 0 : 'var(--recursica_brand_dimensions_general_xl)',
+          // No padding here: the layer surface below already pads the component with the
+          // layer's own padding token. Only the heading gets an inset (below) so it isn't
+          // flush to the card — this avoids double-padding the preview.
+          padding: 0,
           position: 'sticky',
           top: 0,
           alignSelf: component.name.toLowerCase().includes('table') ? 'stretch' : 'flex-start',
@@ -360,7 +370,7 @@ export default function ComponentDetailPage() {
         }}>
           {/* Variant + layer heading above the preview. Display-toggle switches (e.g. fill container
               width) sit to the right of the title, aligned to the right edge of the preview area. */}
-          <div style={{ marginBottom: 'var(--recursica_brand_dimensions_general_md)', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
+          <div style={{ padding: 'var(--recursica_brand_dimensions_general_xl) var(--recursica_brand_dimensions_general_xl) 0', marginBottom: 'var(--recursica_brand_dimensions_general_md)', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
             <div style={{ minWidth: 0 }}>
               <h2 style={{ ...getTypographyStyle('h2'), color: `var(${layerText(mode, 0, 'color')})` }}>
                 {variantHeading}

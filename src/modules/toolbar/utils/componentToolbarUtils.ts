@@ -456,7 +456,11 @@ export function parseComponentStructure(componentName: string, uikitOverride?: a
         // Special case: Check if this is a text property group (text, header-text, content-text, label-text, optional-text, supporting-text, min-max-label, read-only-value, value, placeholder)
         // Text property groups are objects containing text-related properties (font-family, font-size, etc.)
         // We need to create a prop for the parent group so it shows up in the toolbar
-        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'description-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'selected-text', 'unselected-text', 'step-number-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style']
+        // Keep in sync with ComponentToolbar's TEXT_GROUP_NAMES — both must recognise the same
+        // text-style groups (this list decides which groups become a single 'text-group' prop;
+        // that one decides which config keys resolve to them). Covers every font-* group in
+        // recursica_ui-kit.json (e.g. title-text / timestamp-text / active-text / input-text).
+        const textPropertyGroupNames = ['text', 'header-text', 'content-text', 'label-text', 'optional-text', 'supporting-text', 'min-max-label', 'read-only-value', 'placeholder', 'active-text', 'inactive-text', 'description-text', 'title-text', 'timestamp-text', 'selected-text', 'unselected-text', 'step-number-text', 'input-text', 'text-style', 'sorted-text-style', 'unsorted-text-style', 'currency-style']
         const isTextPropertyGroup = textPropertyGroupNames.includes(key.toLowerCase()) &&
           typeof value === 'object' &&
           value !== null &&

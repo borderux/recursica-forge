@@ -55,7 +55,6 @@ export default function RadioButtonItemPreview({
             gap: '24px',
             justifyContent: 'center',
             alignItems: 'flex-start',
-            padding: '16px',
             width: '100%',
             maxWidth: '400px',
         }} data-update-key={updateKey}>

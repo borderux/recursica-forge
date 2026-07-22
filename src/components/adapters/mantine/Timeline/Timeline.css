@@ -15,6 +15,17 @@
     --_tl-line-width: var(--timeline-active-connector-size, 2px);
 }
 
+/* ---- Vertical gap between items (item-gap prop) ---- */
+/* Mantine spaces items with a top margin on all but the first item; the connector
+   ::before bridges that gap via a matching negative bottom. Drive both from the
+   configurable --timeline-item-gap so items and their connectors stay in sync. */
+.recursica-timeline .mantine-Timeline-item:not(:first-of-type) {
+    margin-top: var(--timeline-item-gap, 32px) !important;
+}
+.recursica-timeline .mantine-Timeline-item::before {
+    bottom: calc(-1 * var(--timeline-item-gap, 32px)) !important;
+}
+
 /* ---- Center all bullets horizontally in the bullet column (left-aligned) ---- */
 .recursica-timeline .mantine-Timeline-itemBullet {
     left: calc(var(--_tl-bullet-size) / 2) !important;

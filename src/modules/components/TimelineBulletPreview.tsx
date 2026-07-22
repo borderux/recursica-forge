@@ -44,18 +44,39 @@ const ITEMS: PreviewItem[] = [
  * (we need timeline vars for connector, text, and spacing).
  */
 function buildCssVars(layer: string, bulletType: string) {
-    // Bullet variant color var
-    const bulletColorVar = (prop: string) =>
-        buildComponentCssVarPath('TimelineBullet', 'variants', 'types', bulletType, 'properties', 'colors', layer, prop)
-    // Bullet variant dimension var
-    const bulletPropVar = (prop: string) =>
-        buildComponentCssVarPath('TimelineBullet', 'variants', 'types', bulletType, 'properties', prop)
+    // Bullet variant color var — active-/inactive-prefixed props live under
+    // variants.selection-states.<sel> ("active-background" → …/background-color).
+    const bulletColorVar = (prop: string) => {
+        const m = prop.match(/^(active|inactive)-(.+)$/)
+        if (m) {
+            const jsonProp = m[2] === 'background' ? 'background-color' : m[2]
+            return buildComponentCssVarPath('TimelineBullet', 'variants', 'types', bulletType, 'variants', 'selection-states', m[1], 'properties', 'colors', layer, jsonProp)
+        }
+        return buildComponentCssVarPath('TimelineBullet', 'variants', 'types', bulletType, 'properties', 'colors', layer, prop)
+    }
+    // Bullet variant dimension var — active-/inactive-prefixed props live under selection-states.
+    const bulletPropVar = (prop: string) => {
+        const m = prop.match(/^(active|inactive)-(.+)$/)
+        if (m) {
+            return buildComponentCssVarPath('TimelineBullet', 'variants', 'types', bulletType, 'variants', 'selection-states', m[1], 'properties', m[2])
+        }
+        return buildComponentCssVarPath('TimelineBullet', 'variants', 'types', bulletType, 'properties', prop)
+    }
 
     // Timeline (parent) vars for non-bullet props
-    const timelineColorVar = (prop: string) =>
-        buildComponentCssVarPath('Timeline', 'properties', 'colors', layer, prop)
-    const timelinePropVar = (prop: string) =>
-        buildComponentCssVarPath('Timeline', 'properties', prop)
+    // active-/inactive-prefixed props live under variants.selection-states.<sel>.
+    const timelineColorVar = (prop: string) => {
+        const m = prop.match(/^(active|inactive)-(.+)$/)
+        return m
+            ? buildComponentCssVarPath('Timeline', 'variants', 'selection-states', m[1], 'properties', 'colors', layer, m[2])
+            : buildComponentCssVarPath('Timeline', 'properties', 'colors', layer, prop)
+    }
+    const timelinePropVar = (prop: string) => {
+        const m = prop.match(/^(active|inactive)-(.+)$/)
+        return m
+            ? buildComponentCssVarPath('Timeline', 'variants', 'selection-states', m[1], 'properties', m[2])
+            : buildComponentCssVarPath('Timeline', 'properties', prop)
+    }
     const textVar = (group: string, prop: string) =>
         getComponentTextCssVar('Timeline', group, prop)
 
@@ -237,7 +258,6 @@ export default function TimelineBulletPreview({
             style={{
                 display: 'flex',
                 justifyContent: 'flex-start',
-                padding: '16px',
                 alignItems: 'flex-start',
             }}
         >
