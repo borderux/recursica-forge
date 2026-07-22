@@ -1,7 +1,7 @@
 {
   "ui-kit": {
     "components": {
-      "radio-button-group": {
+      "switch-group": {
         "variants": {
           "layouts": {
             "stacked": {

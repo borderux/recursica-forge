@@ -27,7 +27,34 @@ type TreeNode = {
   url: string
   isMapped: boolean
   children?: TreeNode[]
+  /** Synthetic grouping node (not a real component; not navigable). */
+  isGroup?: boolean
 }
+
+/**
+ * Visual-only grouping: these top-level component families are nested under a
+ * synthetic "Form inputs" node in the nav tree — mirroring the "Form inputs"
+ * group in the Theme › States preview. This does NOT change any JSON; it only
+ * reshapes the sidebar tree. Each family keeps its own item sub-nodes.
+ */
+const FORM_INPUTS_GROUP = 'Form inputs'
+const FORM_INPUT_PARENTS = new Set<string>([
+  'Autocomplete',
+  'Checkbox group',
+  'Date picker',
+  'Dropdown',
+  'File input',
+  'File upload',
+  'Number input',
+  'Radio button group',
+  'Segmented control',
+  'Slider',
+  'Switch group',
+  'Text field',
+  'Textarea',
+  'Time picker',
+  'Transfer list',
+])
 
 export function ComponentsSidebar({
   debugMode,
@@ -214,10 +241,27 @@ export function ComponentsSidebar({
       }
     })
 
-    // Sort tree alphabetically by name
-    tree.sort((a, b) => a.name.localeCompare(b.name))
+    // Nest the form-input families under a synthetic "Form inputs" group node
+    // (visual only). Each family keeps its own item children (a third level).
+    const inputNodes = tree.filter(n => FORM_INPUT_PARENTS.has(n.name))
+    let roots = tree
+    if (inputNodes.length > 0) {
+      const rest = tree.filter(n => !FORM_INPUT_PARENTS.has(n.name))
+      inputNodes.sort((a, b) => a.name.localeCompare(b.name))
+      rest.push({
+        name: FORM_INPUTS_GROUP,
+        url: '',
+        isMapped: true,
+        isGroup: true,
+        children: inputNodes,
+      })
+      roots = rest
+    }
 
-    return tree
+    // Sort tree alphabetically by name
+    roots.sort((a, b) => a.name.localeCompare(b.name))
+
+    return roots
   }, [allComponents, baseComponents])
 
   // Get current component from URL (convert slug to component name)
@@ -241,25 +285,27 @@ export function ComponentsSidebar({
   }, [currentComponent, componentTree])
 
   const treeData = useMemo(() => {
-    return componentTree.map(node => ({
-      value: node.name,
-      label: node.name,
-      children: node.children?.map(child => {
-        const displayLabel = (() => {
-          const parentName = node.name.toLowerCase()
-          const childName = child.name.toLowerCase()
-          if (childName.startsWith(parentName + ' ')) {
-            const suffix = child.name.substring(node.name.length + 1)
+    // Recursively map to Tree data. Child labels are shortened when they start
+    // with their DIRECT parent's name (e.g. "Checkbox group item" → "Item").
+    const toTreeData = (node: TreeNode, parentName?: string): any => {
+      const label = (() => {
+        if (parentName) {
+          const p = parentName.toLowerCase()
+          const c = node.name.toLowerCase()
+          if (c.startsWith(p + ' ')) {
+            const suffix = node.name.substring(parentName.length + 1)
             return suffix.charAt(0).toUpperCase() + suffix.slice(1)
           }
-          return child.name
-        })()
-        return {
-          value: child.name,
-          label: displayLabel,
         }
-      })
-    }))
+        return node.name
+      })()
+      return {
+        value: node.name,
+        label,
+        children: node.children?.map(child => toTreeData(child, node.name)),
+      }
+    }
+    return componentTree.map(node => toTreeData(node))
   }, [componentTree])
 
   const handleNavClick = (componentName: string) => {
@@ -268,7 +314,9 @@ export function ComponentsSidebar({
   }
 
   const handleSelect = (selectedKeys: string[]) => {
-    if (selectedKeys.length > 0) {
+    if (selectedKeys.length > 0 && selectedKeys[0] !== FORM_INPUTS_GROUP) {
+      // The "Form inputs" node is a synthetic group — clicking it expands/collapses
+      // (handled by the Tree) but never navigates.
       handleNavClick(selectedKeys[0])
     }
   }

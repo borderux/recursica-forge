@@ -4,7 +4,7 @@
       "tooltip": {
         "properties": {
           "elevation": {
-            "$value": "{brand.palettes.neutral.500.color.tone}",
+            "$value": "{brand.elevations.elevation-0}",
             "$extensions": {
               "recursica.type": "elevation"
             }
@@ -12,112 +12,112 @@
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "value": 2,
-              "unit": "px"
+              "unit": "px",
+              "value": 200
             }
           },
           "vertical-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.xl}"
           },
           "horizontal-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{brand.dimensions.general.none}"
           },
           "border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.2xl}"
+            "$value": "{brand.dimensions.border-radii.lg}"
           },
           "min-width": {
             "$type": "dimension",
             "$value": {
-              "value": 454,
-              "unit": "px"
+              "unit": "px",
+              "value": 42
             }
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 292,
-              "unit": "px"
+              "unit": "px",
+              "value": 304
             }
           },
           "beak-size": {
             "$type": "dimension",
             "$value": {
-              "value": 24,
-              "unit": "px"
+              "unit": "px",
+              "value": 180
             }
           },
           "beak-inset": {
             "$type": "dimension",
             "$value": {
-              "value": 47,
-              "unit": "px"
+              "unit": "px",
+              "value": 90
             }
           },
           "min-height": {
             "$type": "dimension",
             "$value": {
-              "value": 85,
-              "unit": "px"
+              "unit": "px",
+              "value": 4
             }
           },
           "colors": {
             "layer-0": {
-              "background": {
+              "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.tone}"
               },
-              "text": {
+              "text-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.on-tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.tone}"
               }
             },
             "layer-1": {
-              "background": {
+              "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.tone}"
               },
-              "text": {
+              "text-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.on-tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.tone}"
               }
             },
             "layer-2": {
-              "background": {
+              "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.tone}"
               },
-              "text": {
+              "text-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.on-tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.tone}"
               }
             },
             "layer-3": {
-              "background": {
+              "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.tone}"
               },
-              "text": {
+              "text-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.100.color.on-tone}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.neutral.200.color.tone}"
               }
             }
           },
@@ -128,23 +128,23 @@
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.lg}"
+              "$value": "{ui-kit.globals.form.field.size.border-radius}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.black}"
+              "$value": "{tokens.opacities.ghost}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.tight}"
+              "$value": "{tokens.font.styles.normal}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.short}"
+              "$value": "{tokens.font.line-heights.shorter}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.none}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "text-transform": {
               "$type": "string",
@@ -152,7 +152,7 @@
             },
             "font-style": {
               "$type": "string",
-              "$value": "{tokens.font.styles.normal}"
+              "$value": "{ui-kit.components.button}"
             }
           }
         }

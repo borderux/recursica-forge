@@ -972,28 +972,41 @@ function ensureStateTokenRefs(result: any): void {
   const themes = result?.themes
   if (!themes) return
 
+  // Only stamps `$type` on actual leaf tokens (those with a `$value`); never on
+  // group objects like `hover` / `focus` / `link`, which have no `$value`.
+  const setLeafType = (node: any, type: string): void => {
+    if (node && typeof node === 'object' && '$value' in node && !node.$type) {
+      node.$type = type
+    }
+  }
+
   for (const mode of ['light', 'dark'] as const) {
     const modeData = themes[mode]
     if (!modeData) continue
 
-    // Fix states: disabled, hover, overlay.opacity
+    // 2.x states: disabled (number), hover { color, opacity }, focus { color,
+    // border-size, margin, blur }, link { decoration, style, weight }, overlay
+    // { color, opacity }. (1.x bare-number hover is also covered — setLeafType
+    // types it only if it still carries a $value.)
     const states = modeData.states
     if (states && typeof states === 'object') {
-      for (const stateKey of ['disabled', 'hover'] as const) {
-        const state = states[stateKey]
-        if (state && typeof state === 'object') {
-          if (!state.$type) state.$type = 'number'
-        }
+      setLeafType(states.disabled, 'number')
+      setLeafType(states.hover, 'number') // legacy 1.x bare-number hover only
+
+      if (states.hover && typeof states.hover === 'object') {
+        setLeafType(states.hover.color, 'color')
+        setLeafType(states.hover.opacity, 'number')
       }
-      // Fix overlay.opacity
-      const overlay = states.overlay
-      if (overlay && typeof overlay === 'object') {
-        if (overlay.opacity && typeof overlay.opacity === 'object') {
-          if (!overlay.opacity.$type) overlay.opacity.$type = 'number'
-        }
-        if (overlay.color && typeof overlay.color === 'object') {
-          if (!overlay.color.$type) overlay.color.$type = 'color'
-        }
+      if (states.focus && typeof states.focus === 'object') {
+        setLeafType(states.focus.color, 'color')
+        for (const k of ['border-size', 'margin', 'blur']) setLeafType(states.focus[k], 'number')
+      }
+      if (states.link && typeof states.link === 'object') {
+        for (const k of ['decoration', 'style', 'weight']) setLeafType(states.link[k], 'string')
+      }
+      if (states.overlay && typeof states.overlay === 'object') {
+        setLeafType(states.overlay.color, 'color')
+        setLeafType(states.overlay.opacity, 'number')
       }
     }
 
@@ -1001,10 +1014,7 @@ function ensureStateTokenRefs(result: any): void {
     const textEmphasis = modeData['text-emphasis']
     if (textEmphasis && typeof textEmphasis === 'object') {
       for (const emphasisKey of ['low', 'high'] as const) {
-        const emphasis = textEmphasis[emphasisKey]
-        if (emphasis && typeof emphasis === 'object') {
-          if (!emphasis.$type) emphasis.$type = 'number'
-        }
+        setLeafType(textEmphasis[emphasisKey], 'number')
       }
     }
   }

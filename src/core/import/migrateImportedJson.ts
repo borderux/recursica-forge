@@ -1,9 +1,37 @@
 /**
  * JSON Migration Utility for Imported Files
- * 
- * Upgrades older JSON schemas to the current DTCG structure.
- * This runs before schema validation to ensure old exports can still be imported.
+ *
+ * Upgrades older JSON exports to the current (2.x) DTCG structure so that files
+ * authored against an earlier (1.x) structure can still be imported cleanly.
+ *
+ * Two layers run in order:
+ *   1. String rules (MIGRATION_RULES) — rewrite reference strings in place
+ *      (e.g. renamed token paths). Applied to every file, recursively.
+ *   2. Structural migrations (migrateBrandTo2x / migrateUikitTo2x) — reshape the
+ *      object graph for a specific file type (e.g. brand `states`, uikit globals).
+ *
+ * All structural migrations are STRUCTURE-DRIVEN and IDEMPOTENT: they detect the
+ * old shape and only transform when it is present. This is deliberate — the
+ * `$extensions.recursica.metadata.version` marker is unreliable (exports stamp it
+ * with the app's package version, not the structure version), so we never trust
+ * the marker to decide whether to migrate. Re-importing an already-2.x file is a
+ * no-op.
+ *
+ * ── 1.x → 2.x structural deltas ─────────────────────────────────────────────
+ *  brand.themes.<mode>.states:
+ *    - `hover` was a bare opacity number → becomes `{ color, opacity }`
+ *      (the old number is preserved as `opacity`; `color` gets the 2.x default).
+ *    - `focus` (glow) and `link` (hover text treatment) are NEW → added with 2.x
+ *      defaults if absent. Hover & focus are GLOBAL in 2.x (see StatesPage).
+ *  ui-kit:
+ *    - globals.form.field.colors.`border-error` → `error-border-color`
+ *      (both the key and every reference to it).
+ *    - per-component `states.hover` / `states.focus` / `states.visited-hover` are
+ *      removed (these interaction states are global in 2.x); emptied `states` /
+ *      `variants` containers are then pruned.
  */
+
+const TARGET_STRUCTURE_VERSION = '2.0.0'
 
 export interface MigrationRule {
   description: string
@@ -64,13 +92,24 @@ export const MIGRATION_RULES: MigrationRule[] = [
       pattern: /^var\(--recursica_tokens_sizes_(.+?)\)$/g,
       replacement: '{tokens.sizes.$1}',
     },
-  }
+  },
+  {
+    // 1.x → 2.x: the form-field error border global was renamed to follow the
+    // state-first `{state}-{property}` pattern (matches disabled-border-color).
+    description: 'Rename form-field border-error reference to error-border-color',
+    stringReplacement: {
+      pattern: /\{ui-kit\.globals\.form\.field\.colors\.border-error\}/g,
+      replacement: '{ui-kit.globals.form.field.colors.error-border-color}',
+    },
+  },
 ]
 
 /**
- * Deep clones and migrates a JSON object based on defined rules.
+ * Deep clones a JSON value and applies every string-replacement rule to each
+ * string leaf. Returns a fresh object graph (safe for the structural passes to
+ * mutate in place).
  */
-export function migrateImportedJson(data: any): any {
+function applyStringRules(data: any): any {
   if (data === null || data === undefined) {
     return data
   }
@@ -90,16 +129,127 @@ export function migrateImportedJson(data: any): any {
   }
 
   if (Array.isArray(data)) {
-    return data.map(item => migrateImportedJson(item))
+    return data.map(item => applyStringRules(item))
   }
 
   if (typeof data === 'object') {
     const migrated: any = {}
     for (const [key, value] of Object.entries(data)) {
-      migrated[key] = migrateImportedJson(value)
+      migrated[key] = applyStringRules(value)
     }
     return migrated
   }
 
   return data
+}
+
+// ── Structural-migration helpers ──────────────────────────────────────────────
+
+const px = (value: number) => ({ value, unit: 'px' })
+
+/** 2.x default focus-glow block for a given theme mode. */
+const defaultFocus = (mode: string) => ({
+  color: { $type: 'color', $value: `{brand.themes.${mode}.palettes.core-colors.interactive.tone}` },
+  'border-size': { $type: 'number', $value: px(1) },
+  margin: { $type: 'number', $value: px(2) },
+  blur: { $type: 'number', $value: px(4) },
+})
+
+/** 2.x default link hover-treatment block. */
+const defaultLink = () => ({
+  decoration: { $type: 'string', $value: 'underline' },
+  style: { $type: 'string', $value: 'normal' },
+  weight: { $type: 'string', $value: '400' },
+})
+
+/** 2.x default hover overlay color for a given theme mode. */
+const defaultHoverColor = (mode: string) => ({
+  $type: 'color',
+  $value: `{brand.themes.${mode}.palettes.neutral.400.color.tone}`,
+})
+
+/** Stamp the structure version onto a file root (informational; idempotent). */
+function stampVersion(root: any): void {
+  if (!root || typeof root !== 'object') return
+  root.$extensions = root.$extensions || {}
+  root.$extensions['recursica.metadata'] = {
+    ...(root.$extensions['recursica.metadata'] || {}),
+    version: TARGET_STRUCTURE_VERSION,
+  }
+}
+
+/**
+ * Brand: reshape `themes.<mode>.states` from the 1.x shape to 2.x. Idempotent —
+ * only reshapes `hover` when it is still a bare number, and only adds `focus` /
+ * `link` when absent.
+ */
+export function migrateBrandTo2x(root: any): any {
+  const brand = root?.brand ?? root
+  const themes = brand?.themes
+  if (themes && typeof themes === 'object') {
+    for (const mode of Object.keys(themes)) {
+      const states = themes[mode]?.states
+      if (!states || typeof states !== 'object') continue
+      // 1.x `hover` was a bare opacity number → { color, opacity } (preserve the number as opacity)
+      if (
+        states.hover && typeof states.hover === 'object' &&
+        '$value' in states.hover && !('color' in states.hover) && !('opacity' in states.hover)
+      ) {
+        states.hover = { color: defaultHoverColor(mode), opacity: states.hover }
+      }
+      if (!states.focus) states.focus = defaultFocus(mode)
+      if (!states.link) states.link = defaultLink()
+    }
+  }
+  stampVersion(root)
+  return root
+}
+
+/**
+ * UIKit: rename the error-border global, strip per-component interaction states
+ * that became global in 2.x (hover/focus/visited-hover), and prune the emptied
+ * `states` / `variants` containers. Idempotent.
+ */
+export function migrateUikitTo2x(root: any): any {
+  const uikit = root?.['ui-kit'] ?? root
+  // Rename globals.form.field.colors.border-error → error-border-color (the key;
+  // references are handled by the string rule).
+  const colors = uikit?.globals?.form?.field?.colors
+  if (colors && typeof colors === 'object' && colors['border-error'] && !colors['error-border-color']) {
+    colors['error-border-color'] = colors['border-error']
+    delete colors['border-error']
+  }
+
+  const REMOVED_STATES = new Set(['hover', 'focus', 'visited-hover'])
+  const prune = (node: any): void => {
+    if (!node || typeof node !== 'object' || Array.isArray(node) || '$value' in node) return
+    // Recurse first so empties propagate bottom-up.
+    for (const key of Object.keys(node)) prune(node[key])
+    const states = node.states
+    if (states && typeof states === 'object' && !('$value' in states)) {
+      for (const s of Object.keys(states)) if (REMOVED_STATES.has(s)) delete states[s]
+      if (Object.keys(states).length === 0) delete node.states
+    }
+    const variants = node.variants
+    if (variants && typeof variants === 'object' && !('$value' in variants) && Object.keys(variants).length === 0) {
+      delete node.variants
+    }
+  }
+  if (uikit?.components && typeof uikit.components === 'object') prune(uikit.components)
+
+  stampVersion(root)
+  return root
+}
+
+/**
+ * Deep clones and migrates an imported JSON file to the current (2.x) structure.
+ * Applies string rules to every file; applies file-type-specific structural
+ * migrations when `fileType` is provided. Structural passes are idempotent.
+ */
+export function migrateImportedJson(data: any, fileType?: 'tokens' | 'brand' | 'uikit'): any {
+  const migrated = applyStringRules(data)
+  if (fileType === 'brand') return migrateBrandTo2x(migrated)
+  if (fileType === 'uikit') return migrateUikitTo2x(migrated)
+  if (fileType === 'tokens') { stampVersion(migrated); return migrated }
+  return migrated
 }

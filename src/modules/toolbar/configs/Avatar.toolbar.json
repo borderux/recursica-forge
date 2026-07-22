@@ -4,7 +4,7 @@
       "icon": "diamonds-four",
       "label": "Type"
     },
-    "style-secondary": {
+    "types": {
       "icon": "circle-half",
       "label": "Style"
     },

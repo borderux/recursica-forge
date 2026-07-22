@@ -157,15 +157,6 @@
           ]
         }
       }
-    },
-    "opacity": {
-      "icon": "eye",
-      "label": "Disabled opacity",
-      "group": {
-        "properties.opacity": {
-          "label": "Opacity"
-        }
-      }
     }
   }
 }

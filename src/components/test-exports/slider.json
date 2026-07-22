@@ -8,7 +8,7 @@
               "properties": {
                 "top-bottom-margin": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.none}"
+                  "$value": "{brand.dimensions.general.lg}"
                 }
               }
             },
@@ -16,208 +16,43 @@
               "properties": {
                 "top-bottom-margin": {
                   "$type": "dimension",
-                  "$value": "{brand.dimensions.general.xl}"
+                  "$value": "{brand.dimensions.general.lg}"
                 }
               }
             }
           },
           "states": {
-            "default": {
-              "properties": {
-                "colors": {
-                  "layer-0": {
-                    "track": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "track-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "thumb": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  },
-                  "layer-1": {
-                    "track": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "track-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "thumb": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  },
-                  "layer-2": {
-                    "track": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "track-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "thumb": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  },
-                  "layer-3": {
-                    "track": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "track-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "thumb": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    }
-                  }
-                },
-                "input-border-size": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": 10,
-                    "unit": "px"
-                  }
-                }
-              }
-            },
             "error": {
               "properties": {
                 "colors": {
                   "layer-0": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.300.color.tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "input-background": {
+                    "input-background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-color}"
                     },
                     "input-text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": null
                     },
                     "input-border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
@@ -225,37 +60,37 @@
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     }
                   },
                   "layer-1": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.300.color.tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "input-background": {
+                    "input-background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-color}"
                     },
                     "input-text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": null
                     },
                     "input-border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
@@ -263,37 +98,37 @@
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     }
                   },
                   "layer-2": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.300.color.tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "input-background": {
+                    "input-background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-color}"
                     },
                     "input-text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": null
                     },
                     "input-border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
@@ -301,37 +136,37 @@
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     }
                   },
                   "layer-3": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.300.color.tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "input-background": {
+                    "input-background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.border-color}"
                     },
                     "input-text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": null
                     },
                     "input-border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
@@ -339,16 +174,13 @@
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-icon-color}"
                     }
                   }
                 },
                 "input-border-size": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 7,
-                    "unit": "px"
-                  }
+                  "$value": "{ui-kit.globals.form.field.size.horizontal-padding}"
                 }
               }
             },
@@ -358,326 +190,208 @@
                   "layer-0": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.300.color.tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "input-background": {
+                    "input-background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-border-color}"
                     },
                     "input-text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-background-color}"
                     },
                     "input-border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     }
                   },
                   "layer-1": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.300.color.tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "input-background": {
+                    "input-background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-border-color}"
                     },
                     "input-text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-background-color}"
                     },
                     "input-border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     }
                   },
                   "layer-2": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.300.color.tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "input-background": {
+                    "input-background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-border-color}"
                     },
                     "input-text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-background-color}"
                     },
                     "input-border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     }
                   },
                   "layer-3": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.300.color.tone}"
                     },
                     "track-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "thumb": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "icon-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.text-valued}"
                     },
-                    "input-background": {
+                    "input-background-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-border-color}"
                     },
                     "input-text": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.error-background-color}"
                     },
                     "input-border-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     },
                     "step-indicator-color-active": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.neutral.800.color.tone}"
                     }
                   }
                 },
                 "input-border-size": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 6,
-                    "unit": "px"
-                  }
+                  "$value": "{ui-kit.globals.form.field.size.horizontal-padding}"
+                },
+                "opacity": {
+                  "$type": "number",
+                  "$value": "{tokens.opacities.mist}"
                 }
               }
             },
-            "focus": {
+            "active": {
               "properties": {
                 "colors": {
                   "layer-0": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "track-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "thumb": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.palette-2.050.color.tone}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.palette-1.800.color.tone}"
                     }
                   },
                   "layer-1": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "track-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "thumb": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.palette-2.050.color.tone}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.palette-1.800.color.tone}"
                     }
                   },
                   "layer-2": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "track-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "thumb": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.palette-2.050.color.tone}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.palette-1.800.color.tone}"
                     }
                   },
                   "layer-3": {
                     "track": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "track-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "thumb": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "icon-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-background": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-text": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "input-border-color": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.palette-2.050.color.tone}"
                     },
                     "step-indicator-color": {
                       "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
-                    },
-                    "step-indicator-color-active": {
-                      "$type": "color",
-                      "$value": "{brand.palettes.neutral.500.color.tone}"
+                      "$value": "{brand.palettes.palette-1.800.color.tone}"
                     }
-                  }
-                },
-                "input-border-size": {
-                  "$type": "dimension",
-                  "$value": {
-                    "value": 1,
-                    "unit": "px"
                   }
                 }
               }
@@ -687,7 +401,7 @@
         "properties": {
           "icon-size": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.icons.lg}"
+            "$value": "{brand.dimensions.text-size.default}"
           },
           "track-height": {
             "$type": "dimension",
@@ -695,18 +409,18 @@
           },
           "thumb-size": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "track-border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.xl}"
+            "$value": "{brand.dimensions.border-radii.none}"
           },
           "thumb-border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.default}"
+            "$value": "{brand.dimensions.border-radii.none}"
           },
           "thumb-elevation": {
-            "$value": "{brand.palettes.neutral.500.color.tone}",
+            "$value": "{brand.elevations.elevation-1}",
             "$extensions": {
               "recursica.type": "elevation"
             }
@@ -714,64 +428,30 @@
           "input-width": {
             "$type": "dimension",
             "$value": {
-              "value": 73,
-              "unit": "px"
+              "unit": "px",
+              "value": 960
             }
           },
           "input-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.general.lg}"
           },
           "min-max-label": {
             "font-family": {
               "$type": "string",
-              "$value": "{brand.fonts.primary}"
+              "$value": "{brand.fonts.secondary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.3xl}"
+              "$value": "{ui-kit.globals.form.field.size.border-radius}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.thin}"
+              "$value": "{tokens.opacities.ghost}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.wide}"
-            },
-            "line-height": {
-              "$type": "number",
-              "$value": "{tokens.font.line-heights.short}"
-            },
-            "text-decoration": {
-              "$type": "string",
-              "$value": "{tokens.font.decorations.line-through}"
-            },
-            "text-transform": {
-              "$type": "string",
-              "$value": "{tokens.font.cases.titlecase}"
-            },
-            "font-style": {
-              "$type": "string",
-              "$value": "{tokens.font.styles.italic}"
-            }
-          },
-          "read-only-value": {
-            "font-family": {
-              "$type": "string",
-              "$value": "{brand.fonts.tertiary}"
-            },
-            "font-size": {
-              "$type": "dimension",
-              "$value": "{tokens.font.sizes.5xl}"
-            },
-            "font-weight": {
-              "$type": "number",
-              "$value": "{tokens.font.weights.semi-bold}"
-            },
-            "letter-spacing": {
-              "$type": "string",
-              "$value": "{tokens.font.letter-spacings.default}"
+              "$value": "{tokens.font.styles.normal}"
             },
             "line-height": {
               "$type": "number",
@@ -779,7 +459,7 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.line-through}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "text-transform": {
               "$type": "string",
@@ -787,77 +467,249 @@
             },
             "font-style": {
               "$type": "string",
+              "$value": "{ui-kit.components.button}"
+            }
+          },
+          "read-only-value": {
+            "font-family": {
+              "$type": "string",
+              "$value": "{brand.fonts.secondary}"
+            },
+            "font-size": {
+              "$type": "dimension",
+              "$value": "{tokens.font.sizes.xs}"
+            },
+            "font-weight": {
+              "$type": "number",
+              "$value": "{tokens.opacities.ghost}"
+            },
+            "letter-spacing": {
+              "$type": "string",
               "$value": "{tokens.font.styles.normal}"
+            },
+            "line-height": {
+              "$type": "number",
+              "$value": "{tokens.font.line-heights.shorter}"
+            },
+            "text-decoration": {
+              "$type": "string",
+              "$value": "{tokens.font.letter-spacings.default}"
+            },
+            "text-transform": {
+              "$type": "string",
+              "$value": "{tokens.font.cases.uppercase}"
+            },
+            "font-style": {
+              "$type": "string",
+              "$value": "{ui-kit.components.button}"
             }
           },
           "input-border-size": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{ui-kit.globals.form.field.size.horizontal-padding}"
           },
           "input-border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.sm}"
+            "$value": "{ui-kit.globals.form.field.size.border-size-default}"
           },
           "input-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{brand.fonts.primary}"
+              "$value": "{brand.fonts.secondary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.4xl}"
+              "$value": "{tokens.font.sizes.sm}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.extra-bold}"
+              "$value": "{tokens.opacities.ghost}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.widest}"
+              "$value": "{tokens.font.styles.normal}"
             },
             "line-height": {
               "$type": "number",
-              "$value": "{tokens.font.line-heights.shortest}"
+              "$value": "{tokens.font.line-heights.shorter}"
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.none}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.titlecase}"
+              "$value": "{tokens.font.cases.uppercase}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "{tokens.font.styles.normal}"
+              "$value": "{ui-kit.components.button}"
             }
           },
           "step-indicator-border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.2xl}"
+            "$value": "{ui-kit.globals.form.field.size.border-size-default}"
           },
           "step-indicator-width": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.2xl}"
+            "$value": "{brand.dimensions.general.xl}"
           },
           "input-height": {
             "$type": "dimension",
             "$value": {
-              "value": 82,
-              "unit": "px"
+              "unit": "px",
+              "value": 384
             }
           },
           "input-padding-vertical": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.lg}"
+            "$value": "{ui-kit.globals.form.properties.label-field-gap-horizontal}"
           },
           "input-padding-left": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.md}"
+            "$value": "{ui-kit.globals.form.field.size.icon-text-gap}"
           },
           "input-padding-right": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.md}"
+            "$value": "{ui-kit.globals.form.field.size.icon-text-gap}"
+          },
+          "colors": {
+            "layer-0": {
+              "track": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.300.color.tone}"
+              },
+              "track-active": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.alert}"
+              },
+              "thumb": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.elements.text.alert}"
+              },
+              "icon-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+              },
+              "input-background-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.border-color}"
+              },
+              "input-text": {
+                "$type": "color",
+                "$value": null
+              },
+              "input-border-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
+              },
+              "step-indicator-color": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              }
+            },
+            "layer-1": {
+              "track": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.300.color.tone}"
+              },
+              "track-active": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.alert}"
+              },
+              "thumb": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.text.alert}"
+              },
+              "icon-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+              },
+              "input-background-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.border-color}"
+              },
+              "input-text": {
+                "$type": "color",
+                "$value": null
+              },
+              "input-border-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
+              },
+              "step-indicator-color": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              }
+            },
+            "layer-2": {
+              "track": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.300.color.tone}"
+              },
+              "track-active": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.alert}"
+              },
+              "thumb": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.text.alert}"
+              },
+              "icon-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+              },
+              "input-background-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.border-color}"
+              },
+              "input-text": {
+                "$type": "color",
+                "$value": null
+              },
+              "input-border-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
+              },
+              "step-indicator-color": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              }
+            },
+            "layer-3": {
+              "track": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.300.color.tone}"
+              },
+              "track-active": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.alert}"
+              },
+              "thumb": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.text.alert}"
+              },
+              "icon-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.text-valued}"
+              },
+              "input-background-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.border-color}"
+              },
+              "input-text": {
+                "$type": "color",
+                "$value": null
+              },
+              "input-border-color": {
+                "$type": "color",
+                "$value": "{ui-kit.globals.form.field.colors.disabled-background-color}"
+              },
+              "step-indicator-color": {
+                "$type": "color",
+                "$value": "{brand.palettes.neutral.500.color.tone}"
+              }
+            }
           }
         }
       }

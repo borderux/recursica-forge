@@ -5,78 +5,78 @@
         "properties": {
           "colors": {
             "layer-0": {
-              "background": {
+              "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
               },
               "content": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-0.properties.border-color}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-0.properties.surface}"
               }
             },
             "layer-1": {
-              "background": {
+              "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
               },
               "content": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-1.properties.border-color}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-1.properties.surface}"
               }
             },
             "layer-2": {
-              "background": {
+              "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
               },
               "content": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-2.properties.border-color}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-2.properties.surface}"
               }
             },
             "layer-3": {
-              "background": {
+              "background-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.palettes.core-colors.alert.interactive}"
               },
               "content": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-3.properties.border-color}"
               },
               "border-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-3.properties.surface}"
               }
             }
           },
           "content-text": {
             "font-family": {
               "$type": "string",
-              "$value": "{brand.fonts.primary}"
+              "$value": "{brand.fonts.secondary}"
             },
             "font-size": {
               "$type": "dimension",
-              "$value": "{tokens.font.sizes.5xl}"
+              "$value": "{tokens.font.sizes.sm}"
             },
             "font-weight": {
               "$type": "number",
-              "$value": "{tokens.font.weights.light}"
+              "$value": "{tokens.opacities.ghost}"
             },
             "letter-spacing": {
               "$type": "string",
-              "$value": "{tokens.font.letter-spacings.widest}"
+              "$value": "{tokens.font.styles.normal}"
             },
             "line-height": {
               "$type": "number",
@@ -84,59 +84,59 @@
             },
             "text-decoration": {
               "$type": "string",
-              "$value": "{tokens.font.decorations.underline}"
+              "$value": "{tokens.font.letter-spacings.default}"
             },
             "text-transform": {
               "$type": "string",
-              "$value": "{tokens.font.cases.titlecase}"
+              "$value": "{tokens.font.cases.uppercase}"
             },
             "font-style": {
               "$type": "string",
-              "$value": "{brand.palettes.neutral.500.color.tone}"
+              "$value": "{ui-kit.components.button}"
             }
           },
           "border-radius": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.border-radii.lg}"
+            "$value": "{brand.dimensions.border-radii.none}"
           },
           "border-size": {
             "$type": "dimension",
             "$value": {
-              "value": 6,
-              "unit": "px"
+              "unit": "px",
+              "value": 200
             }
           },
           "horizontal-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.sm}"
+            "$value": "{brand.dimensions.gutters.horizontal}"
           },
           "vertical-padding": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
+            "$value": "{brand.dimensions.general.md}"
           },
           "min-width": {
             "$type": "dimension",
             "$value": {
-              "value": 108,
-              "unit": "px"
+              "unit": "px",
+              "value": 20
             }
           },
           "max-width": {
             "$type": "dimension",
             "$value": {
-              "value": 824,
-              "unit": "px"
+              "unit": "px",
+              "value": 40
             }
           },
           "beak-size": {
             "$type": "dimension",
             "$value": {
-              "value": 12,
-              "unit": "px"
+              "unit": "px",
+              "value": 180
             }
           },
           "elevation": {
-            "$value": "{brand.palettes.neutral.500.color.tone}",
+            "$value": "{brand.elevations.elevation-2}",
             "$extensions": {
               "recursica.type": "elevation"
             }

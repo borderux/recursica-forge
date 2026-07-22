@@ -7,45 +7,34 @@
             "layer-0": {
               "dots-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-0.properties.border-color}"
               }
             },
             "layer-1": {
               "dots-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-1.properties.border-color}"
               }
             },
             "layer-2": {
               "dots-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-2.properties.border-color}"
               }
             },
             "layer-3": {
               "dots-color": {
                 "$type": "color",
-                "$value": "{brand.palettes.neutral.500.color.tone}"
+                "$value": "{brand.layers.layer-3.properties.border-color}"
               }
             }
           },
           "item-gap": {
             "$type": "dimension",
-            "$value": "{brand.dimensions.general.default}"
-          },
-          "active-pages": {
-            "$value": "{brand.palettes.neutral.500.color.tone}",
-            "$extensions": {
-              "recursica.component": {
-                "selected-variants": {
-                  "style": "{ui-kit.components.button.variants.styles.solid}",
-                  "size": "{ui-kit.components.button.variants.sizes.small}"
-                }
-              }
-            }
+            "$value": "{brand.dimensions.general.xl}"
           },
           "inactive-pages": {
-            "$value": "{brand.palettes.neutral.500.color.tone}",
+            "$value": "center",
             "$extensions": {
               "recursica.component": {
                 "selected-variants": {
@@ -56,13 +45,32 @@
             }
           },
           "navigation-controls": {
-            "$value": "{brand.palettes.neutral.500.color.tone}",
+            "$value": "center",
             "$extensions": {
               "recursica.component": {
                 "selected-variants": {
                   "style": "{ui-kit.components.button.variants.styles.text}",
                   "size": "{ui-kit.components.button.variants.sizes.small}",
                   "content": "{ui-kit.components.button.variants.content.icon-only}"
+                }
+              }
+            }
+          }
+        },
+        "variants": {
+          "states": {
+            "active": {
+              "properties": {
+                "pages": {
+                  "$value": "center",
+                  "$extensions": {
+                    "recursica.component": {
+                      "selected-variants": {
+                        "style": "{ui-kit.components.button.variants.styles.solid}",
+                        "size": "{ui-kit.components.button.variants.sizes.small}"
+                      }
+                    }
+                  }
                 }
               }
             }

@@ -1,14 +1,4 @@
 {
-  "variants": {
-    "position": {
-      "icon": "square",
-      "label": "Position"
-    },
-    "alignment": {
-      "icon": "align-center",
-      "label": "Alignment"
-    }
-  },
   "properties": {
     "properties.text": {
       "icon": "text-aa",

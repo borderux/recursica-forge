@@ -5,7 +5,7 @@
         "properties": {
           "indicator-color": {
             "$type": "color",
-            "$value": "{brand.palettes.neutral.500.color.tone}"
+            "$value": "{brand.palettes.core-colors.low-contrast.tone}"
           }
         },
         "variants": {
@@ -15,22 +15,19 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 55,
-                    "unit": "px"
+                    "unit": "px",
+                    "value": 28
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 3,
-                    "unit": "px"
-                  }
+                  "$value": "{brand.dimensions.border-radii.2xl}"
                 },
-                "thickness": {
+                "thickness-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 29,
-                    "unit": "px"
+                    "unit": "px",
+                    "value": 400
                   }
                 }
               }
@@ -40,22 +37,19 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 45,
-                    "unit": "px"
+                    "unit": "px",
+                    "value": 384
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 2,
-                    "unit": "px"
-                  }
+                  "$value": "{brand.dimensions.border-radii.2xl}"
                 },
-                "thickness": {
+                "thickness-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 4,
-                    "unit": "px"
+                    "unit": "px",
+                    "value": 500
                   }
                 }
               }
@@ -65,22 +59,19 @@
                 "size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 11,
-                    "unit": "px"
+                    "unit": "px",
+                    "value": 4
                   }
                 },
                 "border-radius": {
                   "$type": "dimension",
-                  "$value": {
-                    "value": 23,
-                    "unit": "px"
-                  }
+                  "$value": "{brand.dimensions.border-radii.2xl}"
                 },
-                "thickness": {
+                "thickness-size": {
                   "$type": "dimension",
                   "$value": {
-                    "value": 13,
-                    "unit": "px"
+                    "unit": "px",
+                    "value": 600
                   }
                 }
               }
