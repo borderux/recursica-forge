@@ -23,17 +23,9 @@
   box-sizing: border-box;
 }
 
-/* Hover tint & focus glow are now provided globally by
-   src/styles/interactive-states.css (brand States page). */
-.mantine-menu-item:hover:not([data-disabled="true"])::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-color: var(--menu-item-hover-color, transparent);
-  opacity: var(--menu-item-hover-opacity, 0);
-  border-radius: var(--menu-item-border-radius, 4px);
-  pointer-events: none;
-}
+/* Hover tint & focus glow are provided globally by src/styles/interactive-states.css
+   (the menu item is a <button>, so the themed color-mix overlay — color AT the hover
+   opacity — applies directly). No per-component ::before overlay. */
 
 .mantine-menu-item[data-disabled="true"] {
   cursor: not-allowed;

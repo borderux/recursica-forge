@@ -248,7 +248,7 @@
           "hover": {
             "color": {
               "$type": "color",
-              "$value": "{brand.themes.light.palettes.core-colors.high-contrast.tone}"
+              "$value": "{brand.themes.light.palettes.neutral.400.color.tone}"
             },
             "opacity": {
               "$type": "number",
@@ -266,7 +266,7 @@
             },
             "weight": {
               "$type": "string",
-              "$value": "700"
+              "$value": "400"
             }
           },
           "focus": {
@@ -1383,7 +1383,7 @@
           "hover": {
             "color": {
               "$type": "color",
-              "$value": "{brand.themes.dark.palettes.core-colors.high-contrast.tone}"
+              "$value": "{brand.themes.dark.palettes.neutral.400.color.tone}"
             },
             "opacity": {
               "$type": "number",
@@ -1401,7 +1401,7 @@
             },
             "weight": {
               "$type": "string",
-              "$value": "700"
+              "$value": "400"
             }
           },
           "focus": {

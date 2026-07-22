@@ -210,7 +210,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     const linkVal = (v: any, fallback: string) => (v && typeof v === 'object' && '$value' in v ? String(v.$value) : fallback)
     const linkDecoration = linkVal(state?.link?.decoration, 'underline')
     const linkStyle = linkVal(state?.link?.style, 'normal')
-    const linkWeight = linkVal(state?.link?.weight, '700')
+    const linkWeight = linkVal(state?.link?.weight, '400')
 
     // Always emit state CSS variables, even if values are undefined (they'll have fallback defaults)
     vars[stateVar(modeLower, 'disabled')] = disabled
@@ -235,7 +235,7 @@ export function buildPaletteVars(tokens: JsonLike, theme: JsonLike, mode: ModeLa
     vars[stateVar(modeLower, 'focus', 'blur')] = '4px'
     vars[stateVar(modeLower, 'link', 'decoration')] = 'underline'
     vars[stateVar(modeLower, 'link', 'style')] = 'normal'
-    vars[stateVar(modeLower, 'link', 'weight')] = '700'
+    vars[stateVar(modeLower, 'link', 'weight')] = '400'
     vars[stateVar(modeLower, 'overlay', 'opacity')] = `var(${tokenOpacity('solid')})`
     vars[stateVar(modeLower, 'overlay', 'color')] = `var(${paletteCore(modeLower, 'high-contrast')})`
   }

@@ -95,13 +95,7 @@ export default function MenuItem({
   const supportingTextTransformVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'text-transform')
   const supportingFontStyleVar = getComponentTextCssVar('MenuItem', 'supporting-text', 'font-style')
 
-  // Get hover vars from state-level UIKit tokens (separate per selected/unselected)
-  const unselectedHoverColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'hover-color')
-  const unselectedHoverOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'unselected-item', 'hover-opacity')
-  const selectedHoverColorVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'hover-color')
-  const selectedHoverOpacityVar = buildComponentCssVarPath('MenuItem', 'properties', 'colors', layer, 'selected-item', 'hover-opacity')
-  const hoverColorVar = effectiveVariant === 'selected' ? selectedHoverColorVar : unselectedHoverColorVar
-  const hoverOpacityVar = effectiveVariant === 'selected' ? selectedHoverOpacityVar : unselectedHoverOpacityVar
+  // Hover is a GLOBAL state (Theme › States) — no per-component hover vars.
   const disabledOpacityVar = getComponentLevelCssVar('MenuItem', 'disabled-opacity')
 
   // Determine background
@@ -132,8 +126,6 @@ export default function MenuItem({
         ['--menu-item-trailing-icon-color' as string]: `var(${finalTrailingIconColorVar})`,
         ['--menu-item-supporting-text-color' as string]: `var(${finalSupportingTextColorVar})`,
         ['--menu-item-opacity' as string]: disabled ? `var(${disabledOpacityVar})` : '1',
-        ['--menu-item-hover-opacity' as string]: `var(${hoverOpacityVar}, 0.08)`,
-        ['--menu-item-hover-color' as string]: `var(${hoverColorVar}, #000000)`,
         // Apply cascading-safe text styles on the button (these cascade cleanly to children)
         fontFamily: fontFamilyVar ? `var(${fontFamilyVar})` : undefined,
         fontSize: fontSizeVar ? `var(${fontSizeVar})` : undefined,

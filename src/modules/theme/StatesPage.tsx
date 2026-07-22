@@ -41,6 +41,7 @@ import { MenuItem } from '../../components/adapters/MenuItem'
 import { Accordion } from '../../components/adapters/Accordion'
 import { Tree } from '../../components/adapters/Tree'
 import { Breadcrumb } from '../../components/adapters/Breadcrumb'
+import { Panel } from '../../components/adapters/Panel'
 import { TextField } from '../../components/adapters/TextField'
 import { Textarea } from '../../components/adapters/Textarea'
 import { NumberInput } from '../../components/adapters/NumberInput'
@@ -83,8 +84,15 @@ function Group({ title, row, fill, level = 4, children }: { title: string; row?:
   )
 }
 
-/** Every interactive component, grouped under an h4 by component name. */
-function TestComponents() {
+/** Alphabetized list of preview components (also drives the visibility panel). */
+const PREVIEW_COMPONENTS = [
+  'Accordion', 'Breadcrumb', 'Button', 'Chip', 'Form inputs', 'Link',
+  'Menu', 'Pagination', 'Slider', 'Stepper', 'Tabs', 'Tree',
+] as const
+type PreviewComponent = (typeof PREVIEW_COMPONENTS)[number]
+
+/** Interactive components, rendered in a two-column grid, filtered by `visible`. */
+function TestComponents({ visible }: { visible: Record<string, boolean> }) {
   const [checked, setChecked] = useState(false)
   const [selected, setSelected] = useState(false)
   const [on, setOn] = useState(false)
@@ -92,14 +100,17 @@ function TestComponents() {
   const [menuSelected, setMenuSelected] = useState<number>(0)
   const [chips, setChips] = useState<Record<string, boolean>>({ 'Option A': true })
   const [treeSelected, setTreeSelected] = useState<string[]>(['second'])
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical, 20px)' }}>
+  const [segValue, setSegValue] = useState<string>('list')
+
+  const groups: Record<PreviewComponent, React.ReactNode> = {
+    Button: (
       <Group title="Button" row>
         <Button variant="solid">Solid</Button>
         <Button variant="outline">Outline</Button>
         <Button variant="text">Text</Button>
       </Group>
-
+    ),
+    Chip: (
       <Group title="Chip" row>
         {['Option A', 'Option B'].map((c) => (
           <Chip
@@ -112,27 +123,20 @@ function TestComponents() {
           </Chip>
         ))}
       </Group>
-
+    ),
+    Link: (
       <Group title="Link">
         {/* No `recursica-interactive` marker: links must NOT take the hover overlay —
             only the link-hover text treatment (Link.css) + focus glow (a[href]). */}
         <Link href="#">Link text</Link>
       </Group>
-
-      <Group title="Selection" level={3}>
-        <CheckboxItem checked={checked} onChange={setChecked} label="Checkbox item" />
-        <RadioButtonItem selected={selected} onChange={setSelected} label="Radio item" value="a" />
-        <SwitchItem checked={on} onChange={setOn} label="Switch item" />
-        <SegmentedControl
-          defaultValue="list"
-          items={[{ value: 'list', label: 'List' }, { value: 'grid', label: 'Grid' }]}
-        />
-      </Group>
-
+    ),
+    Slider: (
       <Group title="Slider" fill>
         <Slider value={slider} onChange={(v) => setSlider(typeof v === 'number' ? v : v[0])} min={0} max={100} />
       </Group>
-
+    ),
+    Tabs: (
       <Group title="Tabs" fill>
         {(['default', 'pills', 'outline'] as const).map((v) => (
           <Tabs key={v} defaultValue="one" variant={v}>
@@ -143,7 +147,8 @@ function TestComponents() {
           </Tabs>
         ))}
       </Group>
-
+    ),
+    Menu: (
       <Group title="Menu">
         <Menu style={{ overflow: 'visible' }}>
           {['Profile', 'Settings', 'Sign out'].map((item, i) => (
@@ -159,11 +164,13 @@ function TestComponents() {
           ))}
         </Menu>
       </Group>
-
+    ),
+    Accordion: (
       <Group title="Accordion" fill>
         <Accordion items={[{ id: 'a', title: 'Section A', content: 'Content A' }]} />
       </Group>
-
+    ),
+    Tree: (
       <Group title="Tree" fill>
         <Tree
           data={[
@@ -174,20 +181,32 @@ function TestComponents() {
           onSelect={setTreeSelected}
         />
       </Group>
-
+    ),
+    Pagination: (
       <Group title="Pagination">
         <Pagination total={10} defaultValue={1} />
       </Group>
-
+    ),
+    Stepper: (
       <Group title="Stepper">
         <Stepper active={1} steps={[{ label: 'Start' }, { label: 'Details' }, { label: 'Done' }]} />
       </Group>
-
+    ),
+    Breadcrumb: (
       <Group title="Breadcrumb">
         <Breadcrumb items={[{ label: 'Home', href: '#' }, { label: 'Section', href: '#' }, { label: 'Current' }]} />
       </Group>
-
-      <Group title="Input">
+    ),
+    'Form inputs': (
+      <Group title="Form inputs" fill>
+        <CheckboxItem checked={checked} onChange={setChecked} label="Checkbox item" />
+        <RadioButtonItem selected={selected} onChange={setSelected} label="Radio item" value="a" />
+        <SwitchItem checked={on} onChange={setOn} label="Switch item" />
+        <SegmentedControl
+          value={segValue}
+          onChange={setSegValue}
+          items={[{ value: 'list', label: 'List' }, { value: 'grid', label: 'Grid' }]}
+        />
         <TextField label="Text field" placeholder="Focus / hover me" minWidth={220} />
         <Textarea label="Textarea" placeholder="Type here" />
         <NumberInput label="Number input" placeholder="0" />
@@ -204,6 +223,25 @@ function TestComponents() {
           ]}
         />
       </Group>
+    ),
+  }
+
+  const shown = PREVIEW_COMPONENTS.filter((k) => visible[k])
+  return (
+    <div
+      style={{
+        display: 'grid',
+        // Two columns, wrapping to the next row; each group occupies one cell.
+        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+        gap: 'var(--recursica_brand_dimensions_general_lg, 24px)',
+        alignItems: 'start',
+      }}
+    >
+      {shown.length === 0 ? (
+        <div style={{ opacity: 0.6, fontSize: 13 }}>No components selected — open the Components panel to add some.</div>
+      ) : (
+        shown.map((k) => <div key={k}>{groups[k]}</div>)
+      )}
     </div>
   )
 }
@@ -224,12 +262,16 @@ export default function StatesPage() {
   const linkStyleVar = stateVar(mode, 'link', 'style')
   const linkWeightVar = stateVar(mode, 'link', 'weight')
 
+  // Preview visibility (default: only Button) + the right-side Components panel.
+  const [visible, setVisible] = useState<Record<string, boolean>>({ Button: true })
+  const [panelOpen, setPanelOpen] = useState(false)
+
   const [borderSize, setBorderSize] = useState<number>(1)
   const [margin, setMargin] = useState<number>(2)
   const [blur, setBlur] = useState<number>(4)
   const [linkDecoration, setLinkDecoration] = useState<string>('underline')
   const [linkStyle, setLinkStyle] = useState<string>('normal')
-  const [linkWeight, setLinkWeight] = useState<number>(700)
+  const [linkWeight, setLinkWeight] = useState<number>(400)
   // Bumped on reset/undo to remount the color + opacity controls so they re-read
   // the reverted values from the DOM.
   const [resyncKey, setResyncKey] = useState(0)
@@ -246,7 +288,7 @@ export default function StatesPage() {
       setBlur(read(focusBlurVar, 4))
       setLinkDecoration((readCssVar(linkDecorationVar) || 'underline').trim())
       setLinkStyle((readCssVar(linkStyleVar) || 'normal').trim())
-      setLinkWeight(read(linkWeightVar, 700))
+      setLinkWeight(read(linkWeightVar, 400))
     }
     sync()
     // Re-read + remount controls on any revert:
@@ -349,11 +391,11 @@ export default function StatesPage() {
         padding: 'var(--recursica_brand_dimensions_general_xl)',
       }}
     >
+      {/* Header */}
       <h1
         style={{
-          margin: 0,
-          marginBottom: 'var(--recursica_brand_dimensions_gutters_vertical)',
           ...getTypographyStyle('h1'),
+          margin: 0,
           color: `var(${genericLayerText(0, 'color')})`,
           opacity: `var(${genericLayerText(0, 'high-emphasis')})`,
         }}
@@ -361,16 +403,16 @@ export default function StatesPage() {
         States
       </h1>
 
+      {/* ── Hover + Focus side by side (equal height: both stretch to the taller) ── */}
       <div
         style={{
+          marginTop: 'var(--recursica_brand_dimensions_gutters_vertical)',
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
           gap: 'var(--recursica_brand_dimensions_general_lg)',
-          alignItems: 'start',
+          alignItems: 'stretch',
         }}
       >
-        {/* ── Left column: Hover + Focus stacked ───────────────────── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
           {/* Hover */}
           <section data-recursica-layer="0" style={cardStyle}>
             <h2 style={h2Style}>Hover</h2>
@@ -482,14 +524,49 @@ export default function StatesPage() {
               unit="px"
             />
           </section>
-        </div>
-
-        {/* ── Right column: shared preview ─────────────────────────── */}
-        <section data-recursica-layer="0" style={cardStyle}>
-          <h3 style={h3Style}>Hover to preview / Tab to focus</h3>
-          <TestComponents />
-        </section>
       </div>
+
+      {/* ── Full-width shared preview (max-centered by the page container) ── */}
+      <section
+        data-recursica-layer="0"
+        style={{ ...cardStyle, marginTop: 'var(--recursica_brand_dimensions_general_lg)' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--recursica_brand_dimensions_gutters_horizontal, 12px)' }}>
+          <h3 style={{ ...h3Style, margin: 0 }}>Hover to preview / Tab to focus</h3>
+          <Button variant="outline" onClick={() => setPanelOpen((o) => !o)}>
+            Change preview components
+          </Button>
+        </div>
+        <TestComponents visible={visible} />
+      </section>
+
+      {/* ── Components panel (right-side drawer, themed Panel component) ── */}
+      {panelOpen && (
+        <div
+          onClick={() => setPanelOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
+        />
+      )}
+      <Panel
+        overlay
+        position="right"
+        isOpen={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        title="Components"
+        width="320px"
+        layer="layer-0"
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--recursica_brand_dimensions_gutters_vertical, 12px)' }}>
+          {PREVIEW_COMPONENTS.map((k) => (
+            <CheckboxItem
+              key={k}
+              checked={!!visible[k]}
+              onChange={(c) => setVisible((v) => ({ ...v, [k]: c }))}
+              label={k}
+            />
+          ))}
+        </div>
+      </Panel>
     </div>
   )
 }

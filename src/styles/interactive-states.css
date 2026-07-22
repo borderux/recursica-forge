@@ -32,37 +32,45 @@
   /* Reusable focus-glow pieces (so every focusable target shares one definition). */
   --recursica-focus-outline: var(--recursica_brand_states_focus_border-size, 1px) solid
     var(--recursica_brand_states_focus_color, currentColor);
-  /* The glow is a drop-shadow FILTER (not box-shadow) so it is orthogonal to any
-     component elevation/box-shadow — it can't be clobbered by them and doesn't
-     erase them. Applied everywhere below. */
-  --recursica-focus-glow: drop-shadow(0 0 var(--recursica_brand_states_focus_blur, 4px)
-    var(--recursica_brand_states_focus_color, currentColor));
+  /* The glow is a box-shadow: it follows the element's BORDER-BOX (the outermost
+     edge of the component), never the drawn pixels — so transparent-background
+     elements (outline/text buttons) glow only around their outer silhouette, not
+     inward around borders or text (which a drop-shadow filter would do). The
+     ID-level specificity bump on the focus rules lets it beat component elevation
+     box-shadows while focused. */
+  --recursica-focus-glow: 0 0 var(--recursica_brand_states_focus_blur, 4px)
+    var(--recursica_brand_states_focus_color, currentColor);
 }
 
 /* ── Hover: a uniform color overlay on box-like interactive elements ──────────
    Uses background-image (a paint layer above background-color) so it composites
    over existing backgrounds and never disturbs elevation box-shadows. */
-button:hover:not(:disabled):not([data-disabled]):not([aria-disabled="true"]):not(.mantine-Stepper-step),
-[role="button"]:hover:not([data-disabled]):not([aria-disabled="true"]),
-[role="tab"]:hover:not([data-disabled]):not([aria-disabled="true"]),
-[role="menuitem"]:hover:not([data-disabled]):not([aria-disabled="true"]),
-[role="option"]:hover:not([data-disabled]):not([aria-disabled="true"]),
-[role="checkbox"]:hover:not([data-disabled]):not([aria-disabled="true"]),
-[role="radio"]:hover:not([data-disabled]):not([aria-disabled="true"]),
-[role="switch"]:hover:not([data-disabled]):not([aria-disabled="true"]),
-[role="treeitem"]:hover:not([data-disabled]):not([aria-disabled="true"]),
+button:hover:not(:disabled):not([data-disabled="true"]):not([aria-disabled="true"]):not(.mantine-Stepper-step),
+[role="button"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="tab"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="menuitem"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="option"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="checkbox"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="radio"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
+[role="switch"]:hover:not([data-disabled="true"]):not([aria-disabled="true"]),
 input[type="checkbox"]:hover:not(:disabled),
 input[type="radio"]:hover:not(:disabled),
 /* Switch: the input is visually hidden — tint the visible track. */
 .mantine-Switch-track:hover,
+/* Slider: tint only the part under the cursor — thumb, filled bar, or empty track.
+   (bar/thumb are children of track, so exclude track when they're the hover target;
+   the track's visible surface is its ::before, so the tint goes there) */
+.mantine-Slider-thumb:hover,
+.mantine-Slider-bar:hover,
+.mantine-Slider-track:hover:not(:has(.mantine-Slider-bar:hover)):not(:has(.mantine-Slider-thumb:hover))::before,
 /* Segmented control: tint only the track (root), never the outer wrapper. */
 .mantine-SegmentedControl-root:hover,
 /* Stepper: the whole step is a <button> (excluded above) — tint only the bullet. */
-.mantine-Stepper-step:hover:not(:disabled):not([data-disabled]) .mantine-Stepper-stepIcon,
+.mantine-Stepper-step:hover:not(:disabled):not([data-disabled="true"]) .mantine-Stepper-stepIcon,
 [class*="recursica-"][class*="-wrapper"]:not([class*="segmented"]):has(input, textarea, select):hover,
 /* Field-style triggers (autocomplete, dropdown) hosting an inset input. */
 [class*="recursica-"][class*="-trigger"]:not(.disabled):has(input, textarea, select):hover,
-.recursica-interactive:hover:not(:disabled):not([data-disabled]):not([aria-disabled="true"]) {
+.recursica-interactive:hover:not(:disabled):not([data-disabled="true"]):not([aria-disabled="true"]) {
   background-image: linear-gradient(
     var(--recursica-hover-tint),
     var(--recursica-hover-tint)
@@ -72,7 +80,7 @@ input[type="radio"]:hover:not(:disabled),
 /* ── Focus: a "glow" ring around the focused element ─────────────────────────
    - border-size -> outline thickness (the crisp ring)
    - margin      -> outline-offset (gap between the element and the ring)
-   - blur        -> drop-shadow filter radius (a soft glow; 0 = no glow)
+   - blur        -> box-shadow blur radius (a soft glow around the border-box; 0 = none)
    The trailing :not(#\9) is a specificity bump (adds an ID's weight without ever
    matching) so these !important rules beat any component's own !important focus
    styles — the glow is guaranteed on every interactive element. */
@@ -86,7 +94,6 @@ a[href]:focus-visible:not(#\9),
 [role="radio"]:focus-visible:not(#\9),
 [role="switch"]:focus-visible:not(#\9),
 [role="slider"]:focus-visible:not(#\9),
-[role="treeitem"]:focus-visible:not(#\9),
 input[type="checkbox"]:focus-visible:not(#\9),
 input[type="radio"]:focus-visible:not(#\9),
 html[data-recursica-kbd] [class*="recursica-"][class*="-wrapper"]:has(input:focus-visible, textarea:focus-visible, select:focus-visible):not(#\9),
@@ -95,14 +102,14 @@ html[data-recursica-kbd] [class*="recursica-"][class*="-trigger"]:has(input:focu
 .recursica-interactive:has(:focus-visible):not(#\9) {
   outline: var(--recursica-focus-outline) !important;
   outline-offset: var(--recursica_brand_states_focus_margin, 2px) !important;
-  filter: var(--recursica-focus-glow) !important;
+  box-shadow: var(--recursica-focus-glow) !important;
 }
 
 /* Switch: the <input> is visually hidden, so glow the visible track instead. */
 .mantine-Switch-input:focus-visible + .mantine-Switch-track:not(#\9) {
   outline: var(--recursica-focus-outline) !important;
   outline-offset: var(--recursica_brand_states_focus_margin, 2px) !important;
-  filter: var(--recursica-focus-glow) !important;
+  box-shadow: var(--recursica-focus-glow) !important;
 }
 
 /* The whole field (wrapper) shows the glow, so suppress the inset control's own
