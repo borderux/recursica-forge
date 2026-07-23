@@ -2,7 +2,7 @@
   "variants": {},
   "properties": {
     "colors": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.dots-color": {
@@ -14,6 +14,18 @@
     "properties.item-gap": {
       "icon": "split-horizontal",
       "label": "Item gap"
+    },
+    "active-pages": {
+      "icon": "file",
+      "label": "Active pages"
+    },
+    "inactive-pages": {
+      "icon": "file-dashed",
+      "label": "Inactive pages"
+    },
+    "navigation-controls": {
+      "icon": "arrows-left-right",
+      "label": "Navigation controls"
     }
   }
 }

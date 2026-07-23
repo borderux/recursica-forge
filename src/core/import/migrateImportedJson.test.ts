@@ -268,6 +268,36 @@ describe('migrateImportedJson — uikit 1.x → 2.x', () => {
     expect(c['footer-background-color'].$value).toBe('{brand.layers.layer-0.properties.surface}')
     expect(c['border-color']).toBeDefined()
   })
+
+  it('moves pagination active-page button ref to properties.active-pages and drops variants', () => {
+    const data = {
+      'ui-kit': {
+        components: {
+          pagination: {
+            properties: {
+              'inactive-pages': { $value: '{ui-kit.components.button}', $extensions: { 'recursica.component': { 'selected-variants': { style: '{ui-kit.components.button.variants.styles.outline}' } } } },
+            },
+            variants: {
+              states: {
+                active: {
+                  properties: {
+                    pages: { $value: '{ui-kit.components.button}', $extensions: { 'recursica.component': { 'selected-variants': { style: '{ui-kit.components.button.variants.styles.solid}' } } } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = migrateImportedJson(data, 'uikit')
+    const pag = out['ui-kit'].components.pagination
+    expect(pag.variants).toBeUndefined()
+    expect(pag.properties['active-pages'].$value).toBe('{ui-kit.components.button}')
+    expect(pag.properties['active-pages'].$extensions['recursica.component']['selected-variants'].style)
+      .toBe('{ui-kit.components.button.variants.styles.solid}')
+    expect(pag.properties['inactive-pages']).toBeDefined()
+  })
 })
 
 describe('migrateImportedJson — segmented-control-item selected/unselected → selection-state variants', () => {

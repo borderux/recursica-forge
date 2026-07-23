@@ -76,6 +76,8 @@ import {
   Eye,
   EyeSlash,
   FadersHorizontal,
+  File,
+  FileDashed,
   FileSvg,
   FileText,
   Fire,
@@ -474,6 +476,8 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'align-top-simple': AlignTopSimple,
   'align-bottom-simple': AlignBottomSimple,
   'line-vertical': LineVertical,
+  'file': File,
+  'file-dashed': FileDashed,
 }
 
 /**

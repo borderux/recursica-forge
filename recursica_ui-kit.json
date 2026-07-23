@@ -7775,6 +7775,17 @@
             "$type": "dimension",
             "$value": "{brand.dimensions.general.sm}"
           },
+          "active-pages": {
+            "$value": "{ui-kit.components.button}",
+            "$extensions": {
+              "recursica.component": {
+                "selected-variants": {
+                  "style": "{ui-kit.components.button.variants.styles.solid}",
+                  "size": "{ui-kit.components.button.variants.sizes.small}"
+                }
+              }
+            }
+          },
           "inactive-pages": {
             "$value": "{ui-kit.components.button}",
             "$extensions": {
@@ -7794,25 +7805,6 @@
                   "style": "{ui-kit.components.button.variants.styles.text}",
                   "size": "{ui-kit.components.button.variants.sizes.small}",
                   "content": "{ui-kit.components.button.variants.content.icon-only}"
-                }
-              }
-            }
-          }
-        },
-        "variants": {
-          "states": {
-            "active": {
-              "properties": {
-                "pages": {
-                  "$value": "{ui-kit.components.button}",
-                  "$extensions": {
-                    "recursica.component": {
-                      "selected-variants": {
-                        "style": "{ui-kit.components.button.variants.styles.solid}",
-                        "size": "{ui-kit.components.button.variants.sizes.small}"
-                      }
-                    }
-                  }
                 }
               }
             }

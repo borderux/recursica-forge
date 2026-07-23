@@ -325,6 +325,17 @@ export function migrateUikitTo2x(root: any): any {
     }
   }
 
+  // Pagination: the active-page button ref moved out of variants.states.active.properties.pages
+  // onto a top-level properties.active-pages (matching inactive-pages / navigation-controls), and
+  // the now-empty variants block is dropped.
+  const pagination = components?.pagination
+  const activePages = pagination?.variants?.states?.active?.properties?.pages
+  if (pagination && activePages && !pagination.properties?.['active-pages']) {
+    pagination.properties = pagination.properties || {}
+    pagination.properties['active-pages'] = clone(activePages)
+    delete pagination.variants
+  }
+
   // Panel: the shared header/footer background split into separate header and footer colours.
   const panelColors = components?.panel?.properties?.colors
   if (panelColors && typeof panelColors === 'object') {

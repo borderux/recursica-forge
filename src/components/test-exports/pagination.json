@@ -33,6 +33,17 @@
             "$type": "dimension",
             "$value": "{brand.dimensions.general.xl}"
           },
+          "active-pages": {
+            "$value": "center",
+            "$extensions": {
+              "recursica.component": {
+                "selected-variants": {
+                  "style": "{ui-kit.components.button.variants.styles.solid}",
+                  "size": "{ui-kit.components.button.variants.sizes.small}"
+                }
+              }
+            }
+          },
           "inactive-pages": {
             "$value": "center",
             "$extensions": {
@@ -52,25 +63,6 @@
                   "style": "{ui-kit.components.button.variants.styles.text}",
                   "size": "{ui-kit.components.button.variants.sizes.small}",
                   "content": "{ui-kit.components.button.variants.content.icon-only}"
-                }
-              }
-            }
-          }
-        },
-        "variants": {
-          "states": {
-            "active": {
-              "properties": {
-                "pages": {
-                  "$value": "center",
-                  "$extensions": {
-                    "recursica.component": {
-                      "selected-variants": {
-                        "style": "{ui-kit.components.button.variants.styles.solid}",
-                        "size": "{ui-kit.components.button.variants.sizes.small}"
-                      }
-                    }
-                  }
                 }
               }
             }
