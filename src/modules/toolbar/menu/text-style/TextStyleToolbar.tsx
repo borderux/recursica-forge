@@ -104,12 +104,35 @@ export default function TextStyleToolbar({
   }, [componentName, textElementName])
   const selectionStateValue = selectedVariants?.['selection-states']
 
-  // Resolve a text sub-property to its CSS var, routing to the selection-state path first
-  // (Tree), then falling back to size-variant / component-level (getComponentTextCssVar).
+  // Style × selection-state text (e.g. Tabs item): text lives under
+  // variants.styles.{style}.variants.selection-states.{state}.properties.text.* — a
+  // selection-state nested inside a style. Detected from the live uikit.
+  const hasStyleSelectionStateText = useMemo(() => {
+    try {
+      const uikitStore = getVarsStore().getState().uikit as any
+      const components = uikitStore?.['ui-kit']?.components || uikitStore?.components || {}
+      let key = componentName.toLowerCase().replace(/\s+/g, '-')
+      if (key === 'hover-card-/-popover') key = 'hover-card-popover'
+      const styles = components[key]?.variants?.styles || {}
+      return Object.values(styles).some((sv: any) => {
+        const sel = sv?.variants?.['selection-states'] || {}
+        return Object.values(sel).some((st: any) => st?.properties?.[textElementName] !== undefined)
+      })
+    } catch {
+      return false
+    }
+  }, [componentName, textElementName])
+  const styleValue = selectedVariants?.style
+
+  // Resolve a text sub-property to its CSS var, routing to the style×selection-state path first
+  // (Tabs item), then the top-level selection-state path (Tree), then falling back to
+  // size-variant / component-level (getComponentTextCssVar).
   const textVar = (sub: string) =>
-    hasSelectionStateText && selectionStateValue
-      ? buildComponentCssVarPath(componentName as any, 'variants', 'selection-states', selectionStateValue, 'properties', textElementName, sub)
-      : getComponentTextCssVar(componentName as any, textElementName, sub, sizeVariant)
+    hasStyleSelectionStateText && styleValue && selectionStateValue
+      ? buildComponentCssVarPath(componentName as any, 'variants', 'styles', styleValue, 'variants', 'selection-states', selectionStateValue, 'properties', textElementName, sub)
+      : hasSelectionStateText && selectionStateValue
+        ? buildComponentCssVarPath(componentName as any, 'variants', 'selection-states', selectionStateValue, 'properties', textElementName, sub)
+        : getComponentTextCssVar(componentName as any, textElementName, sub, sizeVariant)
 
   // Get CSS variables for all text properties
   // Use size variant if available (for components like Avatar where text properties are per size variant)

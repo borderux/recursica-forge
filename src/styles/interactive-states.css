@@ -67,7 +67,7 @@ input[type="radio"]:hover:not(:disabled),
 .mantine-SegmentedControl-root:hover,
 /* Stepper: the whole step is a <button> (excluded above) — tint only the bullet. */
 .mantine-Stepper-step:hover:not(:disabled):not([data-disabled="true"]) .mantine-Stepper-stepIcon,
-[class*="recursica-"][class*="-wrapper"]:not([class*="segmented"]):has(input, textarea, select):hover,
+[class*="recursica-"][class*="-wrapper"]:not([class*="segmented"]):not([class*="table"]):has(input, textarea, select):hover,
 /* Field-style triggers (autocomplete, dropdown) hosting an inset input. */
 [class*="recursica-"][class*="-trigger"]:not(.disabled):has(input, textarea, select):hover,
 .recursica-interactive:hover:not(:disabled):not([data-disabled="true"]):not([aria-disabled="true"]) {
@@ -96,7 +96,7 @@ a[href]:focus-visible:not(#\9),
 [role="slider"]:focus-visible:not(#\9),
 input[type="checkbox"]:focus-visible:not(#\9),
 input[type="radio"]:focus-visible:not(#\9),
-html[data-recursica-kbd] [class*="recursica-"][class*="-wrapper"]:has(input:focus-visible, textarea:focus-visible, select:focus-visible):not(#\9),
+html[data-recursica-kbd] [class*="recursica-"][class*="-wrapper"]:not([class*="table"]):has(input:focus-visible, textarea:focus-visible, select:focus-visible):not(#\9),
 html[data-recursica-kbd] [class*="recursica-"][class*="-trigger"]:has(input:focus-visible, textarea:focus-visible, select:focus-visible):not(#\9),
 .recursica-interactive:focus-visible:not(#\9),
 .recursica-interactive:has(:focus-visible):not(#\9) {

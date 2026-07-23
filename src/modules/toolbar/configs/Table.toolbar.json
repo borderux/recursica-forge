@@ -1,9 +1,9 @@
 {
   "variants": {},
   "properties": {
-    "layout": {
-      "icon": "arrows-in-line-horizontal",
-      "label": "Layout",
+    "padding": {
+      "icon": "square-logo",
+      "label": "Padding",
       "group": {
         "properties.padding": {
           "icon": "arrows-left-right",
@@ -16,7 +16,7 @@
       }
     },
     "border": {
-      "icon": "frame-corners",
+      "icon": "square",
       "label": "Border",
       "group": {
         "properties.colors.border-color": {
@@ -79,33 +79,27 @@
         }
       }
     },
-    "row-colors": {
-      "icon": "paint-bucket",
-      "label": "Row colors",
+    "row-striping": {
+      "icon": "list",
+      "label": "Row striping",
       "group": {
         "properties.colors.striped-color": {
-          "label": "Striped"
+          "label": "Color"
         },
-        "properties.colors.selected-color": {
-          "label": "Selected"
-        },
-        "properties.colors.highlight-on-hover-color": {
-          "label": "Hover highlight"
+        "properties.opacities.striped-opacity": {
+          "label": "Opacity"
         }
       }
     },
-    "row-opacities": {
-      "icon": "eye",
-      "label": "Row opacities",
+    "selected-rows": {
+      "icon": "check",
+      "label": "Selected rows",
       "group": {
-        "properties.opacities.striped-opacity": {
-          "label": "Striped"
+        "properties.colors.selected-color": {
+          "label": "Color"
         },
         "properties.opacities.selected-opacity": {
-          "label": "Selected"
-        },
-        "properties.opacities.highlight-on-hover-opacity": {
-          "label": "Hover highlight"
+          "label": "Opacity"
         }
       }
     }

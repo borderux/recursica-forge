@@ -54,6 +54,7 @@ export type ComponentName =
   | 'Slider'
   | 'Stepper'
   | 'Tabs'
+  | 'TabsItem'
   | 'TimePicker'
   | 'Timeline'
   | 'TimelineBullet'

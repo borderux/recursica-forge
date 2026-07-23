@@ -1293,6 +1293,10 @@ export function getComponentSections(mode: 'light' | 'dark'): Section[] {
       url: `${base}/tabs`,
     },
     {
+      name: 'Tabs item',
+      url: `${base}/tabs-item`,
+    },
+    {
       name: 'Text field',
       url: `${base}/text-field`,
       render: (_selectedLayers: Set<LayerOption>) => (

@@ -75,9 +75,9 @@
         }
       }
     },
-    "size": {
-      "icon": "arrows-left-right",
-      "label": "Size",
+    "dimensions": {
+      "icon": "ruler",
+      "label": "Dimensions",
       "group": {
         "properties.min-width": {
           "label": "Minimum width",
@@ -106,7 +106,7 @@
       }
     },
     "icon": {
-      "icon": "diamond",
+      "icon": "star",
       "label": "Icon",
       "group": {
         "properties.icon": {

@@ -2,7 +2,7 @@
   "variants": {
     "types": {
       "icon": "circle",
-      "label": "Bullet type",
+      "label": "Type",
       "options": [
         "default",
         "icon",
@@ -12,12 +12,12 @@
     },
     "selection-states": {
       "icon": "circle",
-      "label": "Item state"
+      "label": "State"
     }
   },
   "properties": {
     "colors": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.background-color": {
@@ -41,7 +41,7 @@
       }
     },
     "border": {
-      "icon": "paint-brush-broad",
+      "icon": "square",
       "label": "Border",
       "group": {
         "properties.border-size": {
@@ -59,7 +59,7 @@
       }
     },
     "dimensions": {
-      "icon": "resize",
+      "icon": "ruler",
       "label": "Dimensions",
       "group": {
         "properties.bullet-size": {

@@ -23,6 +23,7 @@ const SliderPreview = lazy(() => import('../components/SliderPreview'))
 const SegmentedControlPreview = lazy(() => import('../components/SegmentedControlPreview'))
 const SegmentedControlItemPreview = lazy(() => import('../components/SegmentedControlItemPreview'))
 const TabsPreview = lazy(() => import('../components/TabsPreview'))
+const TabsItemPreview = lazy(() => import('../components/TabsItemPreview'))
 const AssistiveElementPreview = lazy(() => import('../components/AssistiveElementPreview'))
 const TextFieldPreview = lazy(() => import('../components/TextFieldPreview'))
 const TextareaPreview = lazy(() => import('../components/TextareaPreview'))
@@ -364,12 +365,16 @@ export default function ComponentDetailPage() {
           top: 0,
           alignSelf: component.name.toLowerCase().includes('table') ? 'stretch' : 'flex-start',
           height: component.name.toLowerCase().includes('table') ? '100%' : undefined,
-          overflow: 'visible',
+          // Table previews are full-bleed, so clip them to the card's rounded left corners.
+          // Other previews stay visible so their popovers/tooltips aren't cut off.
+          overflow: component.name.toLowerCase().includes('table') ? 'hidden' : 'visible',
           borderTopLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
           borderBottomLeftRadius: 'var(--recursica_brand_dimensions_border-radii_xl)',
         }}>
           {/* Variant + layer heading above the preview. Display-toggle switches (e.g. fill container
-              width) sit to the right of the title, aligned to the right edge of the preview area. */}
+              width) sit to the right of the title, aligned to the right edge of the preview area.
+              Hidden for table components — their previews are full-bleed and the heading is noise. */}
+          {!component.name.toLowerCase().includes('table') && (
           <div style={{ padding: 'var(--recursica_brand_dimensions_general_xl) var(--recursica_brand_dimensions_general_xl) 0', marginBottom: 'var(--recursica_brand_dimensions_general_md)', flexShrink: 0, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--recursica_brand_dimensions_general_lg)' }}>
             <div style={{ minWidth: 0 }}>
               <h2 style={{ ...getTypographyStyle('h2'), color: `var(${layerText(mode, 0, 'color')})` }}>
@@ -394,6 +399,7 @@ export default function ComponentDetailPage() {
               </div>
             )}
           </div>
+          )}
 
           {/* Preview Section */}
           <div style={{
@@ -582,6 +588,12 @@ export default function ComponentDetailPage() {
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
                   />
+                ) : component.name === 'Tabs item' ? (
+                  <TabsItemPreview
+                    selectedVariants={selectedVariants}
+                    selectedLayer={selectedLayer}
+                    componentElevation={componentElevation}
+                  />
                 ) : component.name === 'Modal' ? (
                   <ModalPreview
                     selectedVariants={selectedVariants}
@@ -670,6 +682,8 @@ export default function ComponentDetailPage() {
                     selectedVariants={selectedVariants}
                     selectedLayer={selectedLayer}
                     componentElevation={componentElevation}
+                    showHeader={true}
+                    showFooter={true}
                   />
                 ) : component.name === 'Table cell' ? (
                   <TablePreview
@@ -678,6 +692,8 @@ export default function ComponentDetailPage() {
                     componentElevation={componentElevation}
                     singleRowMode={true}
                     hideSearch={true}
+                    showHeader={false}
+                    showFooter={false}
                   />
                 ) : component.name === 'Table header' ? (
                   <TablePreview
@@ -686,6 +702,8 @@ export default function ComponentDetailPage() {
                     componentElevation={componentElevation}
                     singleRowMode={true}
                     hideSearch={true}
+                    showHeader={true}
+                    showFooter={false}
                   />
                 ) : component.name === 'Table footer' ? (
                   <TablePreview
@@ -694,6 +712,8 @@ export default function ComponentDetailPage() {
                     componentElevation={componentElevation}
                     singleRowMode={true}
                     hideSearch={true}
+                    showHeader={false}
+                    showFooter={true}
                   />
                 ) : component.name === 'Tree' ? (
                   <div style={{

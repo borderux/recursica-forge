@@ -1,17 +1,18 @@
 {
-  "variants": {},
-  "properties": {
-    "properties.selected-text": {
-      "icon": "text-aa",
-      "label": "Selected text style"
-    },
-    "properties.unselected-text": {
-      "icon": "text-aa",
-      "label": "Unselected text style"
-    },
-    "selected": {
+  "variants": {
+    "selection-states": {
       "icon": "check-square",
-      "label": "Selected",
+      "label": "Item state",
+      "options": [
+        "selected",
+        "unselected"
+      ]
+    }
+  },
+  "properties": {
+    "colors": {
+      "icon": "palette",
+      "label": "Colors",
       "group": {
         "properties.colors.background-color": {
           "icon": "paint-bucket",
@@ -21,46 +22,20 @@
           "icon": "text-aa",
           "label": "Text color"
         },
-        "properties.elevation": {
-          "icon": "copy-simple",
-          "label": "Elevation"
-        },
-        "properties.border-size": {
-          "icon": "arrows-left-right",
-          "label": "Border size",
-          "propertyType": "slider",
-          "range": [
-            0,
-            20
-          ],
-          "step": 1
-        },
         "properties.colors.border-color": {
           "icon": "paint-bucket",
           "label": "Border color"
-        },
-        "properties.border-radius": {
-          "icon": "corners-out",
-          "label": "Border radius"
         }
       }
     },
-    "unselected": {
+    "properties.text": {
+      "icon": "text-aa",
+      "label": "Text style"
+    },
+    "border": {
       "icon": "square",
-      "label": "Unselected",
+      "label": "Border",
       "group": {
-        "properties.colors.background-color": {
-          "icon": "paint-bucket",
-          "label": "Background"
-        },
-        "properties.colors.text-color": {
-          "icon": "text-aa",
-          "label": "Text color"
-        },
-        "properties.elevation": {
-          "icon": "copy-simple",
-          "label": "Elevation"
-        },
         "properties.border-size": {
           "icon": "arrows-left-right",
           "label": "Border size",
@@ -71,13 +46,19 @@
           ],
           "step": 1
         },
-        "properties.colors.border-color": {
-          "icon": "paint-bucket",
-          "label": "Border color"
-        },
         "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Border radius"
+          "label": "Corner radius"
+        }
+      }
+    },
+    "elevation": {
+      "icon": "copy-simple",
+      "label": "Elevation",
+      "group": {
+        "properties.elevation": {
+          "icon": "copy-simple",
+          "label": "Elevation"
         }
       }
     },
@@ -105,15 +86,6 @@
         "properties.icon-text-gap": {
           "icon": "arrows-left-right",
           "label": "Icon text gap"
-        }
-      }
-    },
-    "opacity": {
-      "icon": "eye",
-      "label": "Disabled opacity",
-      "group": {
-        "properties.opacity": {
-          "label": "Opacity"
         }
       }
     }

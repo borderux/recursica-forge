@@ -60,9 +60,12 @@
   background-color: color-mix(in srgb, var(--table-striped-color, var(--recursica_brand_palettes_neutral_default_color_tone, #888888)) calc(var(--table-striped-opacity, 0.1) * 100%), var(--table-cell-bg, transparent)) !important;
 }
 
-/* Highlight on hover background color on table cells */
+/* Row hover uses the GLOBAL theme hover state (Theme › States), not a per-component
+   override. It paints as a background-IMAGE layer (the shared hover tint) so it composites
+   ON TOP of whatever background-color the row already has — striped, selected, or default —
+   instead of replacing it. */
 .recursica-table.mantine-table tbody tr:hover td {
-  background-color: color-mix(in srgb, var(--table-hover-color, var(--recursica_brand_palettes_neutral_default_color_tone, #888888)) calc(var(--table-hover-opacity, 0.1) * 100%), var(--table-cell-bg, transparent)) !important;
+  background-image: linear-gradient(var(--recursica-hover-tint), var(--recursica-hover-tint)) !important;
 }
 
 /* Selected row background color on table cells */

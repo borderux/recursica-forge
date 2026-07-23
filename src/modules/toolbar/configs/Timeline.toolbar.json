@@ -22,7 +22,7 @@
       }
     },
     "connector": {
-      "icon": "arrows-left-right",
+      "icon": "line-segment",
       "label": "Connector",
       "group": {
         "properties.colors.connector-color": {

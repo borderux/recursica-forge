@@ -49,10 +49,6 @@
                 "$type": "color",
                 "$value": "{brand.palettes.palette-1.100.color.on-tone}"
               },
-              "highlight-on-hover-color": {
-                "$type": "color",
-                "$value": "{brand.palettes.palette-1.100.color.on-tone}"
-              },
               "selected-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.core-colors.low-contrast.tone}"
@@ -72,10 +68,6 @@
                 "$value": "{brand.layers.layer-1.properties.surface}"
               },
               "striped-color": {
-                "$type": "color",
-                "$value": "{brand.palettes.palette-1.100.color.on-tone}"
-              },
-              "highlight-on-hover-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.palette-1.100.color.on-tone}"
               },
@@ -101,10 +93,6 @@
                 "$type": "color",
                 "$value": "{brand.palettes.palette-1.100.color.on-tone}"
               },
-              "highlight-on-hover-color": {
-                "$type": "color",
-                "$value": "{brand.palettes.palette-1.100.color.on-tone}"
-              },
               "selected-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.core-colors.low-contrast.tone}"
@@ -124,10 +112,6 @@
                 "$value": "{brand.layers.layer-3.properties.surface}"
               },
               "striped-color": {
-                "$type": "color",
-                "$value": "{brand.palettes.palette-1.100.color.on-tone}"
-              },
-              "highlight-on-hover-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.palette-1.100.color.on-tone}"
               },
@@ -151,10 +135,6 @@
                 "$type": "number",
                 "$value": "{tokens.opacities.solid}"
               },
-              "highlight-on-hover-opacity": {
-                "$type": "number",
-                "$value": "{tokens.opacities.solid}"
-              },
               "selected-opacity": {
                 "$type": "number",
                 "$value": "{tokens.opacities.solid}"
@@ -162,10 +142,6 @@
             },
             "layer-1": {
               "striped-opacity": {
-                "$type": "number",
-                "$value": "{tokens.opacities.solid}"
-              },
-              "highlight-on-hover-opacity": {
                 "$type": "number",
                 "$value": "{tokens.opacities.solid}"
               },
@@ -179,10 +155,6 @@
                 "$type": "number",
                 "$value": "{tokens.opacities.solid}"
               },
-              "highlight-on-hover-opacity": {
-                "$type": "number",
-                "$value": "{tokens.opacities.solid}"
-              },
               "selected-opacity": {
                 "$type": "number",
                 "$value": "{tokens.opacities.solid}"
@@ -190,10 +162,6 @@
             },
             "layer-3": {
               "striped-opacity": {
-                "$type": "number",
-                "$value": "{tokens.opacities.solid}"
-              },
-              "highlight-on-hover-opacity": {
                 "$type": "number",
                 "$value": "{tokens.opacities.solid}"
               },

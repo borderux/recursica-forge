@@ -30,7 +30,7 @@
       }
     },
     "colors": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.background-color": {
@@ -42,7 +42,7 @@
       }
     },
     "dimensions": {
-      "icon": "square-logo",
+      "icon": "ruler",
       "label": "Dimensions",
       "group": {
         "properties.vertical-padding": {

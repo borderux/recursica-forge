@@ -19,78 +19,6 @@
     }
   },
   "properties": {
-    "active": {
-      "icon": "check-square",
-      "label": "Active tab",
-      "group": {
-        "properties.colors.icon-color": {
-          "icon": "diamond",
-          "label": "Icon color"
-        },
-        "properties.colors.text-color": {
-          "icon": "text-aa",
-          "label": "Text color"
-        },
-        "properties.colors.background-color": {
-          "icon": "paint-bucket",
-          "label": "Background"
-        },
-        "properties.colors.border-color": {
-          "icon": "paint-bucket",
-          "label": "Border color"
-        },
-        "properties.border-size": {
-          "icon": "arrows-left-right",
-          "label": "Border size",
-          "propertyType": "slider",
-          "range": [
-            0,
-            20
-          ],
-          "step": 1
-        }
-      }
-    },
-    "inactive": {
-      "icon": "squares-four",
-      "label": "Inactive tab",
-      "group": {
-        "properties.colors.icon-color": {
-          "icon": "diamond",
-          "label": "Icon color"
-        },
-        "properties.colors.text-color": {
-          "icon": "text-aa",
-          "label": "Text color"
-        },
-        "properties.colors.background-color": {
-          "icon": "paint-bucket",
-          "label": "Background"
-        },
-        "properties.colors.border-color": {
-          "icon": "paint-bucket",
-          "label": "Border color"
-        },
-        "properties.border-size": {
-          "icon": "arrows-left-right",
-          "label": "Border size",
-          "propertyType": "slider",
-          "range": [
-            0,
-            20
-          ],
-          "step": 1
-        }
-      }
-    },
-    "properties.active-text": {
-      "icon": "check-square",
-      "label": "Active tab text style"
-    },
-    "properties.inactive-text": {
-      "icon": "squares-four",
-      "label": "Inactive tab text style"
-    },
     "spacing": {
       "icon": "split-horizontal",
       "label": "Spacing",
@@ -102,59 +30,6 @@
         "properties.tabs-content-gap": {
           "icon": "arrows-out-cardinal",
           "label": "Gap between tabs and content"
-        }
-      }
-    },
-    "tabs": {
-      "icon": "squares-four",
-      "label": "Tab size and style",
-      "group": {
-        "properties.min-width": {
-          "icon": "arrows-left-right",
-          "label": "Min width"
-        },
-        "properties.max-width": {
-          "icon": "arrows-left-right",
-          "label": "Max width"
-        },
-        "properties.border-radius": {
-          "icon": "corners-out",
-          "label": "Border radius"
-        },
-        "properties.icon-size": {
-          "icon": "diamond",
-          "label": "Icon size"
-        },
-        "properties.element-gap": {
-          "icon": "split-horizontal",
-          "label": "Element gap"
-        },
-        "properties.horizontal-padding": {
-          "icon": "arrows-left-right",
-          "label": "Horizontal padding"
-        },
-        "properties.vertical-padding": {
-          "icon": "arrows-up-down",
-          "label": "Vertical padding"
-        },
-        "properties.tab-content-alignment": {
-          "icon": "text-align-left",
-          "label": "Content alignment",
-          "control": "segmented",
-          "options": [
-            {
-              "value": "left",
-              "icon": "text-align-left"
-            },
-            {
-              "value": "center",
-              "icon": "text-align-center"
-            },
-            {
-              "value": "right",
-              "icon": "text-align-right"
-            }
-          ]
         }
       }
     }

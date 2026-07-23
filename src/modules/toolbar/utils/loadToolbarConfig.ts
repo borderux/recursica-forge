@@ -32,6 +32,7 @@ import ModalConfig from '../configs/Modal.toolbar.json'
 import DropdownConfig from '../configs/Dropdown.toolbar.json'
 import AutocompleteConfig from '../configs/Autocomplete.toolbar.json'
 import TabsConfig from '../configs/Tabs.toolbar.json'
+import TabsItemConfig from '../configs/TabsItem.toolbar.json'
 import TooltipConfig from '../configs/Tooltip.toolbar.json'
 import LinkConfig from '../configs/Link.toolbar.json'
 import ReadOnlyFieldConfig from '../configs/ReadOnlyField.toolbar.json'
@@ -209,6 +210,9 @@ export function loadToolbarConfig(componentName: string): ToolbarConfig | null {
       staticConfig = AutocompleteConfig as unknown as ToolbarConfig; break
     case 'tabs':
       staticConfig = TabsConfig as unknown as ToolbarConfig; break
+    case 'tabs-item':
+    case 'tabs item':
+      staticConfig = TabsItemConfig as unknown as ToolbarConfig; break
     case 'tooltip':
       staticConfig = TooltipConfig as unknown as ToolbarConfig; break
     case 'link':

@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { Tabs } from '../../components/adapters/Tabs'
 
-import { iconNameToReactComponent } from './iconUtils'
-import { Badge } from '../../components/adapters/Badge'
 import { useThemeMode } from '../theme/ThemeModeContext'
 import { useRawCssVar } from '../../components/hooks/useCssVar'
 import { buildComponentCssVarPath } from '../../components/utils/cssVarNames'
 import { layerText } from '../../core/css/cssVarBuilder'
-import { h2Style } from './typographyStyles'
+import { getTypographyStyle } from './typographyStyles'
 
 
 interface TabsPreviewProps {
@@ -84,20 +82,9 @@ function TabSet({
     )
 }
 
-const h3Style = {
-    margin: 0,
-    fontFamily: 'var(--recursica_brand_typography_h3-font-family)',
-    fontSize: 'var(--recursica_brand_typography_h3-font-size)',
-    fontWeight: 'var(--recursica_brand_typography_h3-font-weight)',
-    letterSpacing: 'var(--recursica_brand_typography_h3-font-letter-spacing)',
-    lineHeight: 'var(--recursica_brand_typography_h3-line-height)',
-    textAlign: 'left' as const,
-} as React.CSSProperties
-
 export default function TabsPreview({
     selectedVariants,
     selectedLayer,
-    componentElevation,
 }: TabsPreviewProps) {
     const { mode } = useThemeMode()
     const modeLower = mode.toLowerCase()
@@ -107,13 +94,10 @@ export default function TabsPreview({
 
     const [value1, setValue1] = useState<string | null>('gallery')
     const [value2, setValue2] = useState<string | null>('gallery')
-    const [value3, setValue3] = useState<string | null>('gallery')
-    const [value4, setValue4] = useState<string | null>('gallery')
-    const [value5, setValue5] = useState<string | null>('gallery')
-    const [value6, setValue6] = useState<string | null>('gallery')
     const variant = (selectedVariants.style || 'default') as 'default' | 'pills' | 'outline'
     const orientation = (selectedVariants.orientation || 'horizontal') as 'horizontal' | 'vertical'
-    const tabContentAlignmentVar = buildComponentCssVarPath('Tabs', 'variants', 'orientation', orientation, 'properties', 'tab-content-alignment')
+    // Content alignment now lives on TabsItem, per style × orientation.
+    const tabContentAlignmentVar = buildComponentCssVarPath('TabsItem', 'variants', 'styles', variant, 'variants', 'orientation', orientation, 'properties', 'tab-content-alignment')
     const tabContentAlignmentRaw = useRawCssVar(tabContentAlignmentVar, 'left')
     const tabContentAlignment = (tabContentAlignmentRaw?.trim().replace(/^["']|["']$/g, '') || 'left') as 'left' | 'center' | 'right'
 
@@ -121,229 +105,32 @@ export default function TabsPreview({
     const panelStyle = contentPanelStyle(modeLower)
     const tabSetProps = { variant, orientation, tabContentAlignment, layer: selectedLayer, contentPanel: panelStyle }
 
-    // Get contextual icons for tabs
-    const FireIcon = iconNameToReactComponent('fire')
-    const DiamondIcon = iconNameToReactComponent('diamond')
-    const ShieldIcon = iconNameToReactComponent('shield')
-
-    const headerToPreviewGap = 'var(--recursica_brand_dimensions_general_default)'
-    const previewToHeaderGap = 'var(--recursica_brand_dimensions_gutters_vertical)'
     const vertGutter = 'var(--recursica_brand_dimensions_gutters_vertical)'
-    const headerMargin = { marginBottom: headerToPreviewGap }
-    const previewMargin = { marginBottom: previewToHeaderGap }
+    const headerMargin = { marginBottom: vertGutter }
+    const headerStyle = { ...getTypographyStyle('h4'), ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }
 
     return (
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: vertGutter, width: '600px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: vertGutter, width: '600px' }}>
             {isHorizontal ? (
                 <>
-                    {/* Section: Tabs on top */}
                     <div>
-                        <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Top</h2>
-
-                        <div style={previewMargin}>
-                            <TabSet value={value1} onChange={setValue1} {...tabSetProps} />
-                        </div>
-
-
-                        <div style={previewMargin}>
-                            <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                                <Tabs.List>
-                                    <Tabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</Tabs.Tab>
-                                    <Tabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</Tabs.Tab>
-                                    <Tabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</Tabs.Tab>
-                                </Tabs.List>
-                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
-                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
-                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
-                            </Tabs>
-                        </div>
-
-
-                        <div style={previewMargin}>
-                            <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                                <Tabs.List>
-                                    <Tabs.Tab value="gallery">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Forge</span>
-                                            <Badge variant="primary-color">42</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                    <Tabs.Tab value="messages">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Mines</span>
-                                            <Badge variant="primary-color">7</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                    <Tabs.Tab value="settings">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Armory</span>
-                                            <Badge variant="primary-color">104</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                </Tabs.List>
-                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
-                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
-                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
-                            </Tabs>
-                        </div>
+                        <h4 style={headerStyle}>Top</h4>
+                        <TabSet value={value1} onChange={setValue1} {...tabSetProps} />
                     </div>
-
-                    {/* Section: Tabs on bottom */}
                     <div>
-                        <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Bottom</h2>
-
-                        <div style={previewMargin}>
-                            <TabSet value={value4} onChange={setValue4} {...tabSetProps} mantineOverrides={{ inverted: true }} />
-                        </div>
-
-
-                        <div style={previewMargin}>
-                            <Tabs value={value5 ?? undefined} onChange={(v) => setValue5(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ inverted: true }} >
-                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
-                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
-                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
-                                <Tabs.List>
-                                    <Tabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</Tabs.Tab>
-                                    <Tabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</Tabs.Tab>
-                                    <Tabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</Tabs.Tab>
-                                </Tabs.List>
-                            </Tabs>
-                        </div>
-
-
-                        <div style={previewMargin}>
-                            <Tabs value={value6 ?? undefined} onChange={(v) => setValue6(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ inverted: true }} >
-                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
-                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
-                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
-                                <Tabs.List>
-                                    <Tabs.Tab value="gallery">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Forge</span>
-                                            <Badge variant="primary-color">42</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                    <Tabs.Tab value="messages">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Mines</span>
-                                            <Badge variant="primary-color">7</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                    <Tabs.Tab value="settings">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Armory</span>
-                                            <Badge variant="primary-color">104</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                </Tabs.List>
-                            </Tabs>
-                        </div>
+                        <h4 style={headerStyle}>Bottom</h4>
+                        <TabSet value={value2} onChange={setValue2} {...tabSetProps} mantineOverrides={{ inverted: true }} />
                     </div>
                 </>
             ) : (
                 <>
-                    {/* Section: Tabs on left */}
                     <div>
-                        <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Left</h2>
-
-                        <div style={previewMargin}>
-                            <TabSet value={value1} onChange={setValue1} {...tabSetProps} />
-                        </div>
-
-
-                        <div style={previewMargin}>
-                            <Tabs value={value2 ?? undefined} onChange={(v) => setValue2(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                                <Tabs.List>
-                                    <Tabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</Tabs.Tab>
-                                    <Tabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</Tabs.Tab>
-                                    <Tabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</Tabs.Tab>
-                                </Tabs.List>
-                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
-                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
-                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
-                            </Tabs>
-                        </div>
-
-
-                        <div style={previewMargin}>
-                            <Tabs value={value3 ?? undefined} onChange={(v) => setValue3(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} >
-                                <Tabs.List>
-                                    <Tabs.Tab value="gallery">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Forge</span>
-                                            <Badge variant="primary-color">42</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                    <Tabs.Tab value="messages">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Mines</span>
-                                            <Badge variant="primary-color">7</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                    <Tabs.Tab value="settings">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Armory</span>
-                                            <Badge variant="primary-color">104</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                </Tabs.List>
-                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
-                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
-                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
-                            </Tabs>
-                        </div>
+                        <h4 style={headerStyle}>Left</h4>
+                        <TabSet value={value1} onChange={setValue1} {...tabSetProps} />
                     </div>
-
-                    {/* Section: Tabs on right */}
                     <div>
-                        <h2 style={{ ...h2Style, ...headerMargin, color: `var(${textColorVar})`, opacity: `var(${textEmphasisVar})` }}>Right</h2>
-
-                        <div style={previewMargin}>
-                            <TabSet value={value4} onChange={setValue4} {...tabSetProps} mantineOverrides={{ placement: 'right' }} />
-                        </div>
-
-
-                        <div style={previewMargin}>
-                            <Tabs value={value5 ?? undefined} onChange={(v) => setValue5(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
-                                <Tabs.List>
-                                    <Tabs.Tab value="gallery" leftSection={FireIcon ? <FireIcon size={16} /> : undefined}>Forge</Tabs.Tab>
-                                    <Tabs.Tab value="messages" leftSection={DiamondIcon ? <DiamondIcon size={16} /> : undefined}>Mines</Tabs.Tab>
-                                    <Tabs.Tab value="settings" leftSection={ShieldIcon ? <ShieldIcon size={16} /> : undefined}>Armory</Tabs.Tab>
-                                </Tabs.List>
-                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
-                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
-                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
-                            </Tabs>
-                        </div>
-
-
-                        <div style={previewMargin}>
-                            <Tabs value={value6 ?? undefined} onChange={(v) => setValue6(v ?? null)} variant={variant} orientation={orientation} tabContentAlignment={tabContentAlignment} layer={selectedLayer} mantine={{ placement: 'right' }} >
-                                <Tabs.List>
-                                    <Tabs.Tab value="gallery">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Forge</span>
-                                            <Badge variant="primary-color">42</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                    <Tabs.Tab value="messages">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Mines</span>
-                                            <Badge variant="primary-color">7</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                    <Tabs.Tab value="settings">
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <span>Armory</span>
-                                            <Badge variant="primary-color">104</Badge>
-                                        </div>
-                                    </Tabs.Tab>
-                                </Tabs.List>
-                                <Tabs.Panel value="gallery" style={panelStyle}>The forge burns bright with molten ore and enchanted embers.</Tabs.Panel>
-                                <Tabs.Panel value="messages" style={panelStyle}>Deep tunnels echo with the sound of pickaxes and distant rumbles.</Tabs.Panel>
-                                <Tabs.Panel value="settings" style={panelStyle}>Racks of enchanted weapons gleam under the lantern light.</Tabs.Panel>
-                            </Tabs>
-                        </div>
+                        <h4 style={headerStyle}>Right</h4>
+                        <TabSet value={value2} onChange={setValue2} {...tabSetProps} mantineOverrides={{ placement: 'right' }} />
                     </div>
                 </>
             )}

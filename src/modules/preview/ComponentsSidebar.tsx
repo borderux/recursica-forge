@@ -149,6 +149,7 @@ export function ComponentsSidebar({
       { name: 'Table header', url: `${base}/table-header` },
       { name: 'Table footer', url: `${base}/table-footer` },
       { name: 'Tabs', url: `${base}/tabs` },
+      { name: 'Tabs item', url: `${base}/tabs-item` },
       { name: 'Text field', url: `${base}/text-field` },
       { name: 'Textarea', url: `${base}/textarea` },
       { name: 'Time picker', url: `${base}/time-picker` },

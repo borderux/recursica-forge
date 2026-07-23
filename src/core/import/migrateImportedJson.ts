@@ -220,6 +220,111 @@ export function migrateUikitTo2x(root: any): any {
     delete colors['border-error']
   }
 
+  const components = uikit?.components
+  const clone = (v: any) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)))
+
+  // Segmented control item: selected/unselected property groups (+ selected-text/unselected-text)
+  // → variants/selection-states/{selected,unselected}/properties/{…, text}.
+  const sci = components?.['segmented-control-item']
+  if (sci?.properties && typeof sci.properties === 'object' && sci.properties.selected) {
+    const p = sci.properties
+    const mkState = (block: any, text: any) => {
+      const props: any = {}
+      if (block?.colors) props.colors = block.colors
+      for (const k of ['elevation', 'border-size', 'border-radius']) if (block && k in block) props[k] = block[k]
+      if (text) props.text = text
+      return { properties: props }
+    }
+    sci.variants = sci.variants || {}
+    sci.variants['selection-states'] = {
+      selected: mkState(p.selected, p['selected-text']),
+      unselected: mkState(p.unselected, p['unselected-text']),
+    }
+    delete p.selected; delete p.unselected; delete p['selected-text']; delete p['unselected-text']
+  }
+
+  // Tabs: split per-tab appearance into a new `tabs-item` component with active/inactive as a
+  // selection-state variant, per style. Item colors/border-size come from the old
+  // tabs/variants/styles/<style>/properties/{active,inactive}; text from tabs/properties/{active,inactive}-text.
+  // Per-tab sizing also moves onto tabs-item (per style): min/max-width were global on the
+  // container; padding/icon-size/element-gap were per-orientation — take the horizontal set.
+  const tabs = components?.tabs
+  const tabStyles = tabs?.variants?.styles
+  if (tabStyles && typeof tabStyles === 'object' &&
+      Object.values(tabStyles).some((s: any) => s?.properties?.active)) {
+    const activeText = tabs.properties?.['active-text']
+    const inactiveText = tabs.properties?.['inactive-text']
+    const globalMin = tabs.properties?.['min-width']
+    const globalMax = tabs.properties?.['max-width']
+    const horizProps = tabs.variants?.orientation?.horizontal?.properties || {}
+    const vertProps = tabs.variants?.orientation?.vertical?.properties || {}
+    const SIZE_KEYS = ['horizontal-padding', 'vertical-padding', 'icon-size', 'element-gap']
+    // tab-content-alignment moves onto tabs-item, per style × orientation.
+    const horizAlign = horizProps['tab-content-alignment']
+    const vertAlign = vertProps['tab-content-alignment']
+    const itemStyles: any = {}
+    for (const [sname, s] of Object.entries<any>(tabStyles)) {
+      if (sname.startsWith('$')) continue
+      const props = s?.properties || {}
+      if (!props.active) continue
+      const mkState = (block: any, text: any) => {
+        const pp: any = {}
+        if (block?.colors) pp.colors = block.colors
+        if (block && 'border-size' in block) pp['border-size'] = block['border-size']
+        if (text) pp.text = clone(text)
+        return { properties: pp }
+      }
+      const istyle: any = { properties: {} }
+      if (props['border-radius']) istyle.properties['border-radius'] = props['border-radius']
+      if (globalMin) istyle.properties['min-width'] = clone(globalMin)
+      if (globalMax) istyle.properties['max-width'] = clone(globalMax)
+      for (const k of SIZE_KEYS) if (horizProps[k]) istyle.properties[k] = clone(horizProps[k])
+      istyle.variants = {
+        'selection-states': {
+          inactive: mkState(props.inactive, inactiveText),
+          active: mkState(props.active, activeText),
+        },
+      }
+      if (horizAlign || vertAlign) {
+        istyle.variants.orientation = {
+          horizontal: { properties: horizAlign ? { 'tab-content-alignment': clone(horizAlign) } : {} },
+          vertical: { properties: vertAlign ? { 'tab-content-alignment': clone(vertAlign) } : {} },
+        }
+      }
+      itemStyles[sname] = istyle
+      delete props.active; delete props.inactive; delete props['border-radius']
+    }
+    components['tabs-item'] = { variants: { styles: itemStyles } }
+    if (tabs.properties) {
+      delete tabs.properties['active-text']; delete tabs.properties['inactive-text']
+      delete tabs.properties['min-width']; delete tabs.properties['max-width']
+    }
+    // space-between-tabs moves onto each style's per-orientation group (per style × orientation).
+    for (const o of ['horizontal', 'vertical']) {
+      const sbt = tabs.variants?.orientation?.[o]?.properties?.['space-between-tabs']
+      if (!sbt) continue
+      for (const [sname, st] of Object.entries<any>(tabStyles)) {
+        if (sname.startsWith('$')) continue
+        const so = st?.variants?.orientation?.[o]
+        if (so) { so.properties = so.properties || {}; so.properties['space-between-tabs'] = clone(sbt) }
+      }
+    }
+    // Sizing, alignment, and spacing have all moved off the container's top-level orientation axis.
+    if (tabs.variants) delete tabs.variants.orientation
+  }
+
+  // Table: row hover is driven by the global theme hover state in 2.x, so the per-component
+  // highlight-on-hover color/opacity overrides are removed from every layer.
+  const tableProps = components?.table?.properties
+  if (tableProps && typeof tableProps === 'object') {
+    for (const layer of Object.values<any>(tableProps.colors || {})) {
+      if (layer && typeof layer === 'object') delete layer['highlight-on-hover-color']
+    }
+    for (const layer of Object.values<any>(tableProps.opacities || {})) {
+      if (layer && typeof layer === 'object') delete layer['highlight-on-hover-opacity']
+    }
+  }
+
   const REMOVED_STATES = new Set(['hover', 'focus', 'visited-hover'])
   const prune = (node: any): void => {
     if (!node || typeof node !== 'object' || Array.isArray(node) || '$value' in node) return

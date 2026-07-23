@@ -18,8 +18,8 @@ export default function Table({
   const borderColorVar = buildComponentCssVarPath('Table', 'properties', 'colors', layer, 'border-color')
   const stripedColorVar = buildComponentCssVarPath('Table', 'properties', 'colors', layer, 'striped-color')
   const stripedOpacityVar = buildComponentCssVarPath('Table', 'properties', 'opacities', layer, 'striped-opacity')
-  const highlightColorVar = buildComponentCssVarPath('Table', 'properties', 'colors', layer, 'highlight-on-hover-color')
-  const highlightOpacityVar = buildComponentCssVarPath('Table', 'properties', 'opacities', layer, 'highlight-on-hover-opacity')
+  // Row hover is driven by the global theme hover state (Theme › States), not a per-component
+  // override — see Table.css.
   const selectedColorVar = buildComponentCssVarPath('Table', 'properties', 'colors', layer, 'selected-color')
   const selectedOpacityVar = buildComponentCssVarPath('Table', 'properties', 'opacities', layer, 'selected-opacity')
 
@@ -53,9 +53,6 @@ export default function Table({
           style={{
             ['--table-striped-color' as string]: `var(${stripedColorVar})`,
             ['--table-striped-opacity' as string]: `var(${stripedOpacityVar})`,
-            ['--table-hover-color' as string]: `var(${highlightColorVar})`,
-            ['--table-hover-opacity' as string]: `var(${highlightOpacityVar})`,
-            ['--table-highlight-color' as string]: `var(${highlightColorVar})`,
             ['--table-selected-color' as string]: `var(${selectedColorVar})`,
             ['--table-selected-opacity' as string]: `var(${selectedOpacityVar})`,
             ['--table-row-padding' as string]: `var(${rowPaddingVar})`,

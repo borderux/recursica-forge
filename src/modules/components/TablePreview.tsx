@@ -24,6 +24,10 @@ interface TablePreviewProps {
   componentElevation?: string
   singleRowMode?: boolean
   hideSearch?: boolean
+  /** Show the table header row (thead). Default false — only the Table header preview shows it. */
+  showHeader?: boolean
+  /** Show the table footer row (tfoot). Default true. */
+  showFooter?: boolean
 }
 
 interface GoblinRow {
@@ -83,6 +87,8 @@ export default function TablePreview({
   selectedLayer,
   singleRowMode = false,
   hideSearch = false,
+  showHeader = false,
+  showFooter = true,
 }: TablePreviewProps) {
   const { mode } = useThemeMode()
   const [filterText, setFilterText] = useState('')
@@ -279,6 +285,7 @@ export default function TablePreview({
           }}
           style={{ width: '100%', height: singleRowMode ? 'auto' : '100%' }}
         >
+          {showHeader && (
           <thead>
             <tr style={{
               background: mode === 'dark' ? '#1e272e' : '#f5f6fa',
@@ -349,6 +356,7 @@ export default function TablePreview({
               </TableHeader>
             </tr>
           </thead>
+          )}
           <tbody>
             {processedData.length > 0 ? (
               processedData.map((row) => {
@@ -452,6 +460,7 @@ export default function TablePreview({
               </tr>
             )}
           </tbody>
+          {showFooter && (
           <tfoot>
             <tr>
               <TableFooter style={{ width: 48 }} layer={selectedLayer as any} />
@@ -470,6 +479,7 @@ export default function TablePreview({
               <TableFooter layer={selectedLayer as any} />
             </tr>
           </tfoot>
+          )}
         </Table>
       </div>
     </div>

@@ -2,7 +2,7 @@
   "variants": {
     "selection-states": {
       "icon": "check-square",
-      "label": "Selection"
+      "label": "State"
     }
   },
   "properties": {
@@ -34,7 +34,7 @@
       }
     },
     "dimensions": {
-      "icon": "arrows-left-right",
+      "icon": "ruler",
       "label": "Dimensions",
       "group": {
         "properties.max-width": {
