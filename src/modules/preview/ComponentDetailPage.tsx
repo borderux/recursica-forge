@@ -110,7 +110,7 @@ export default function ComponentDetailPage() {
     setActiveState(state)
     // Component control-states (error/disabled) are forced into the preview. Hover & focus are now
     // global states (Theme › States) applied on real interaction, so they never appear as tabs here.
-    const forced = (state === 'error' || state === 'disabled') ? state : 'default'
+    const forced = (state === 'error' || state === 'disabled' || state === 'visited') ? state : 'default'
     setSelectedVariants(prev => ({ ...prev, states: forced }))
   }, [])
 

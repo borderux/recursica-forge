@@ -486,6 +486,7 @@ export default function ComponentToolbar({
     }
 
     const orderedStates = [
+      { key: 'visited', label: 'Visited', icon: 'eye' },
       { key: 'active', label: 'Active', icon: 'cursor' },
       { key: 'error', label: 'Error', icon: 'warning' },
       { key: 'disabled', label: 'Disabled', icon: 'prohibit' }

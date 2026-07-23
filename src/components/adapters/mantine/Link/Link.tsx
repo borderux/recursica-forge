@@ -47,7 +47,7 @@ export default function Link({
     // Icon color CSS variables (per-state)
     const defaultIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'default', 'properties', 'colors', layer, 'icon')
     const hoverIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'hover', 'properties', 'colors', layer, 'icon')
-    const visitedIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'colors', layer, 'icon')
+    const visitedIconColorVar = buildComponentCssVarPath('Link', 'variants', 'states', 'visited', 'properties', 'colors', layer, 'icon-color')
 
     // Shared text properties (component level)
     const fontFamilyVar = getComponentTextCssVar('Link', 'text', 'font-family')

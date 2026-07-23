@@ -8174,24 +8174,6 @@
                       "$value": "{brand.palettes.palette-1.800.color.tone}"
                     }
                   }
-                },
-                "text": {
-                  "font-weight": {
-                    "$type": "number",
-                    "$value": "{tokens.font.weights.regular}"
-                  },
-                  "text-decoration": {
-                    "$type": "string",
-                    "$value": "{tokens.font.decorations.none}"
-                  },
-                  "text-transform": {
-                    "$type": "string",
-                    "$value": "{tokens.font.cases.original}"
-                  },
-                  "font-style": {
-                    "$type": "string",
-                    "$value": "{tokens.font.styles.normal}"
-                  }
                 }
               }
             }

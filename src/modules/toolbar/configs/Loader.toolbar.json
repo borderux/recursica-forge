@@ -16,9 +16,9 @@
         }
       }
     },
-    "size": {
-      "icon": "arrows-out",
-      "label": "Size",
+    "dimensions": {
+      "icon": "ruler",
+      "label": "Dimensions",
       "group": {
         "properties.size": {
           "icon": "arrows-up-down",
@@ -32,7 +32,7 @@
         },
         "properties.border-radius": {
           "icon": "corners-out",
-          "label": "Border radius"
+          "label": "Corner radius"
         },
         "properties.thickness-size": {
           "icon": "pencil-line",
