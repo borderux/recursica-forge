@@ -314,9 +314,12 @@ export function getPropConfig(
 
   const propKey = propName.toLowerCase()
 
-  // First check at the root level
-  if (config.props[propKey]) {
-    return config.props[propKey]
+  // Root-level match. Uses findInGroup so a top-level entry keyed with its full path
+  // (e.g. "properties.min-height") resolves by its leaf name ("min-height") — the same
+  // flexible matching grouped children already get. A plain exact key still matches too.
+  const rootMatch = findInGroup(config.props, propKey)
+  if (rootMatch) {
+    return rootMatch
   }
 
   // Then check inside groups

@@ -325,6 +325,18 @@ export function migrateUikitTo2x(root: any): any {
     }
   }
 
+  // Panel: the shared header/footer background split into separate header and footer colours.
+  const panelColors = components?.panel?.properties?.colors
+  if (panelColors && typeof panelColors === 'object') {
+    for (const layer of Object.values<any>(panelColors)) {
+      if (!layer || typeof layer !== 'object' || !layer['header-footer-background-color']) continue
+      const shared = layer['header-footer-background-color']
+      if (!layer['header-background-color']) layer['header-background-color'] = clone(shared)
+      if (!layer['footer-background-color']) layer['footer-background-color'] = clone(shared)
+      delete layer['header-footer-background-color']
+    }
+  }
+
   const REMOVED_STATES = new Set(['hover', 'focus', 'visited-hover'])
   const prune = (node: any): void => {
     if (!node || typeof node !== 'object' || Array.isArray(node) || '$value' in node) return

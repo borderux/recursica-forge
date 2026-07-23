@@ -47,6 +47,7 @@ const FORM_INPUT_PARENTS = new Set<string>([
   'File upload',
   'Number input',
   'Radio button group',
+  'Read only field',
   'Segmented control',
   'Slider',
   'Switch group',

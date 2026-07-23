@@ -12,6 +12,9 @@ import React from 'react'
 
 // Import only the icons we actually use - this allows Vite to tree-shake unused icons
 import {
+  AlignBottomSimple,
+  AlignTop,
+  AlignTopSimple,
   Angle,
   ArrowArcLeft,
   ArrowBendRightDown,
@@ -94,6 +97,7 @@ import {
   Layout,
   Lightning,
   LineSegment,
+  LineVertical,
   Link,
   List,
   MagnifyingGlass,
@@ -466,6 +470,10 @@ const phosphorIconMap: Record<string, IconComponent> = {
   'ruler': Ruler,
   'rectangle': Rectangle,
   'tree-structure': TreeStructure,
+  'align-top': AlignTop,
+  'align-top-simple': AlignTopSimple,
+  'align-bottom-simple': AlignBottomSimple,
+  'line-vertical': LineVertical,
 }
 
 /**

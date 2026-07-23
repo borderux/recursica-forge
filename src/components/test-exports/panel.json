@@ -9,7 +9,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.interactive.tone}"
               },
-              "header-footer-background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.elements.interactive.tone}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.elements.interactive.tone}"
               },
@@ -35,7 +39,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.interactive.tone}"
               },
-              "header-footer-background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.elements.interactive.tone}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.elements.interactive.tone}"
               },
@@ -61,7 +69,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.elements.interactive.tone}"
               },
-              "header-footer-background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.elements.interactive.tone}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.elements.interactive.tone}"
               },
@@ -87,7 +99,11 @@
                 "$type": "color",
                 "$value": "{brand.palettes.core-colors.alert.interactive}"
               },
-              "header-footer-background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.palettes.core-colors.alert.interactive}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.palettes.core-colors.alert.interactive}"
               },

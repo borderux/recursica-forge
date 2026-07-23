@@ -6,12 +6,12 @@
     }
   },
   "properties": {
-    "properties.text": {
+    "text": {
       "icon": "text-aa",
       "label": "Text style"
     },
     "colors": {
-      "icon": "paint-bucket",
+      "icon": "palette",
       "label": "Colors",
       "group": {
         "properties.colors.text-color": {
@@ -20,13 +20,29 @@
         }
       }
     },
-    "properties.top-bottom-margin": {
+    "margin": {
       "icon": "arrows-up-down",
-      "label": "Top and bottom margin"
+      "label": "Margin",
+      "group": {
+        "properties.top-bottom-margin": {
+          "label": "Top / bottom margins"
+        }
+      }
     },
-    "properties.min-height": {
-      "icon": "arrows-in-line-vertical",
-      "label": "Min height"
+    "dimensions": {
+      "icon": "ruler",
+      "label": "Dimensions",
+      "group": {
+        "properties.min-height": {
+          "label": "Min height",
+          "propertyType": "slider",
+          "range": [
+            20,
+            100
+          ],
+          "step": 1
+        }
+      }
     }
   }
 }

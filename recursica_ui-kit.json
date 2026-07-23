@@ -13145,7 +13145,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.properties.surface}"
               },
-              "header-footer-background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-0.properties.surface}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-0.properties.surface}"
               },
@@ -13171,7 +13175,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.surface}"
               },
-              "header-footer-background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-1.properties.surface}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-1.properties.surface}"
               },
@@ -13197,7 +13205,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.properties.surface}"
               },
-              "header-footer-background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-2.properties.surface}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-2.properties.surface}"
               },
@@ -13223,7 +13235,11 @@
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.properties.surface}"
               },
-              "header-footer-background-color": {
+              "header-background-color": {
+                "$type": "color",
+                "$value": "{brand.layers.layer-3.properties.surface}"
+              },
+              "footer-background-color": {
                 "$type": "color",
                 "$value": "{brand.layers.layer-3.properties.surface}"
               },

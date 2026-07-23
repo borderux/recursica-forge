@@ -243,6 +243,31 @@ describe('migrateImportedJson — uikit 1.x → 2.x', () => {
     expect(p.opacities['layer-0']['highlight-on-hover-opacity']).toBeUndefined()
     expect(p.opacities['layer-0']['striped-opacity']).toBeDefined()
   })
+
+  it('splits panel header-footer background into separate header/footer colours', () => {
+    const data = {
+      'ui-kit': {
+        components: {
+          panel: {
+            properties: {
+              colors: {
+                'layer-0': {
+                  'header-footer-background-color': { $type: 'color', $value: '{brand.layers.layer-0.properties.surface}' },
+                  'border-color': { $type: 'color', $value: '{brand.layers.layer-0.properties.border-color}' },
+                },
+              },
+            },
+          },
+        },
+      },
+    }
+    const out = migrateImportedJson(data, 'uikit')
+    const c = out['ui-kit'].components.panel.properties.colors['layer-0']
+    expect(c['header-footer-background-color']).toBeUndefined()
+    expect(c['header-background-color'].$value).toBe('{brand.layers.layer-0.properties.surface}')
+    expect(c['footer-background-color'].$value).toBe('{brand.layers.layer-0.properties.surface}')
+    expect(c['border-color']).toBeDefined()
+  })
 })
 
 describe('migrateImportedJson — segmented-control-item selected/unselected → selection-state variants', () => {

@@ -150,6 +150,10 @@ export default function Tree({
                       border: 'none',
                       color: 'inherit'
                     }}
+                    /* Never take focus on click — it's aria-hidden, and a focused aria-hidden
+                       element is an a11y violation. preventDefault on mousedown stops focus while
+                       still letting onClick toggle. Focus stays on the treeitem. */
+                    onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                     onClick={(e) => {
                       e.stopPropagation()
                       elementProps.onClick?.(e)
